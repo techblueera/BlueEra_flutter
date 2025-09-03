@@ -598,7 +598,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
-            if (fullScreenShortController.videoItem?.author?.id != businessId)
+            if (fullScreenShortController.videoItem?.author?.id != businessUserId)
               IconButton(
                 onPressed: () {
                   if (isGuestUser()) {
@@ -844,7 +844,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
         }
       } else {
-        if (fullScreenShortController.videoItem?.author?.id == businessId) {
+        if (fullScreenShortController.videoItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(

@@ -366,7 +366,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
           Get.to(() => VisitProfileScreen(authorId: videoItem.author?.id ?? ''));
         }
       } else {
-        if (videoItem.author?.id == businessId) {
+        if (videoItem.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoItem.author?.id ?? ''));

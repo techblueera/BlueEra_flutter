@@ -632,7 +632,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
           Get.to(() => VisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??''));
         }
       }else{
-        if (videoController.videoFeedItem?.author?.id == businessId) {
+        if (videoController.videoFeedItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoController.videoFeedItem?.author?.id??''));

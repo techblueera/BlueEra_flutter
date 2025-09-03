@@ -386,7 +386,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (isOwnChannel)
+
                     Padding(
                       padding: EdgeInsets.only(
                           right: SizeConfig.size18, top: SizeConfig.size4),
@@ -417,6 +417,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
                           // print("Update Params: $reqProfile");
                         },
                         dialogTitle: 'Upload Channel Logo',
+                        isOwnProfile: isOwnChannel
                       ),
                     ),
                   /*      Padding(
@@ -1120,7 +1121,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
         Get.to(() => VisitProfileScreen(authorId: authorId));
       }
     } else {
-      if (authorId == businessId) {
+      if (authorId == businessUserId) {
         Get.to(() => BusinessOwnProfileScreen());
       } else {
         Get.to(() => VisitBusinessProfile(businessId: authorId));
