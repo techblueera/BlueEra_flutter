@@ -110,7 +110,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
           return ListView.builder(
             itemCount: channelVideos.length +
-                (videosController.isLoading.value ? 1 : 0),
+                (videosController.isMoreDataLoading(videos).value ? 1 : 0),
             padding: EdgeInsets.only(
                 left: SizeConfig.paddingXSL,
                 right: SizeConfig.paddingXSL,
@@ -137,15 +137,17 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
                 videoItem: videoFeedItem,
                 onTapOption: () {
                   openBlockSelectionDialog(
-                      context: context,
-                     userBlockVoidCallback: () async {
-                        print('call');
-                         await Get.find<VideoController>().userBlocked(
-                           videoType: videos,
-                           otherUserId: videoFeedItem.video?.userId??'',
-                         );
-                     },
-                      postBlockVoidCallback: (){
+                    context: context,
+                    reportType: 'VIDEO_POST',
+                    userId: videoFeedItem.video?.userId??'',
+                    contentId: videoFeedItem.video?.id??'',
+                    userBlockVoidCallback: () async {
+                      await Get.find<VideoController>().userBlocked(
+                        videoType: videos,
+                        otherUserId: videoFeedItem.video?.userId??'',
+                      );
+                    },
+                      reportCallback: (params){
 
                       }
                   );

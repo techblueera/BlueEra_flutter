@@ -9,12 +9,18 @@ import 'package:get/get.dart';
 class BlockPostModalSheet extends StatefulWidget {
   const BlockPostModalSheet({
     super.key,
-    required this.postBlockVoidCallback,
-    required this.userBlockVoidCallback
+    required this.reportType,
+    required this.otherUserId,
+    required this.contentId,
+    required this.userBlockVoidCallback,
+    required this.reportCallback
   });
 
-  final VoidCallback postBlockVoidCallback;
+  final String reportType;
+  final String otherUserId;
+  final String contentId;
   final VoidCallback userBlockVoidCallback;
+  final Function(Map<String, dynamic>) reportCallback;
 
   @override
   State<BlockPostModalSheet> createState() => _BlockPostModalSheetState();
@@ -78,24 +84,22 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                         child: Material(
                           color: AppColors.white,
                           child: ReportDialog(
-                            reportReasons: {
-                              AppLocalizations.of(context)!.inappropriateContent: false,
-                              AppLocalizations.of(context)!.promotesHatredViolence: false,
-                              AppLocalizations.of(context)!.fraudOrScam: false,
-                              AppLocalizations.of(context)!.contentIsSpam: false,
-                            },
-                            reportType: 'POST',
-                            contentId: 0,
-                            reportTo: 0,
-                            postModelIndex: 0,
+                              reportType: widget.reportType,
+                              reportReasons: {
+                                AppLocalizations.of(context)!.inappropriateContent: false,
+                                AppLocalizations.of(context)!.promotesHatredViolence: false,
+                                AppLocalizations.of(context)!.fraudOrScam: false,
+                                AppLocalizations.of(context)!.contentIsSpam: false,
+                              },
+                              contentId: widget.contentId,
+                              otherUserId: widget.otherUserId,
+                              reportCallback: (params)=> widget.reportCallback(params),
                           ),
                         ),
                       ),
                     );
                   },
                 );
-                // widget.postBlockVoidCallback();
-                // Get.find<FeedController>().userBlocked(isPartialBlocked: true, otherUserId: widget.userId);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -130,7 +134,6 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
               onTap: () {
                 Navigator.pop(context);
                 widget.userBlockVoidCallback();
-                // Get.find<FeedController>().userBlocked(isPartialBlocked: true, otherUserId: widget.userId);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,7 +187,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                AppLocalizations.of(context)!.partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra,
+                'Reported posts are reviewed by BlueEra. Repeated violations may lead to account restrictions.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     color: Colors.white, fontSize: 16), // White text
@@ -222,7 +225,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                AppLocalizations.of(context)!.fullyBlockedUserCannotSeeYourProfileOrPostsOnBlueEra,
+                'Reported posts are reviewed by BlueEra. When you block someone, you won’t see their posts, and their posts will be removed from feed.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     color: Colors.white, fontSize: 16), // White text

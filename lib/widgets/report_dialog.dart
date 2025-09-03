@@ -1,34 +1,37 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/hide_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ReportDialog extends StatefulWidget {
   const ReportDialog(
       {super.key,
-      required this.reportReasons,
-      required this.reportType,
-      required this.contentId,
-      required this.reportTo,
-      required this.postModelIndex,
-      this.backgroundColor = AppColors.primaryColor,
-      this.textColor = AppColors.black,
-      this.iconColor = AppColors.black
+        required this.reportReasons,
+        required this.reportCallback,
+        required this.reportType,
+        required this.contentId,
+        required this.otherUserId,
+        this.backgroundColor = AppColors.primaryColor,
+        this.textColor = AppColors.black,
+        this.iconColor = AppColors.black
       });
 
   final Map<String, bool> reportReasons;
   final String reportType;
-  final int contentId;
-  final int reportTo;
-  final int postModelIndex;
+  final String contentId;
+  final String otherUserId;
   final Color? backgroundColor;
   final Color? textColor;
   final Color? iconColor;
+  final Function(Map<String, dynamic>) reportCallback;
 
   @override
   _ReportDialogState createState() => _ReportDialogState();
@@ -189,45 +192,44 @@ class _ReportDialogState extends State<ReportDialog> {
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
                         reportCase.clear();
-                        for (int i = 0;
-                        i < currentReportReasons.length;
-                        i++) {
+                        for (int i = 0; i < currentReportReasons.length; i++) {
                           if (currentReportReasons.values.elementAt(i) ==
                               true) {
-                            reportCase
-                                .add(currentReportReasons.keys.elementAt(i));
+                            reportCase.add(currentReportReasons.keys.elementAt(i));
                           }
                         }
 
-                        if(widget.reportType == 'POST'){
+                        Map<String, dynamic> params = {};
 
+                        if(widget.reportType == 'POST'){
                           Navigator.pop(context);
 
-                          commonSnackBar(message: "Reported Successfully", isFromHomeScreen: true);
+                          widget.reportCallback(params);
 
-                          showDialog(
-                              context: context,
-                              builder: (context) => Dialog(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: CustomSuccessSheet(
-                                    buttonText: AppLocalizations.of(context)!.gotIt,
-                                    title: AppLocalizations.of(context)!.youHaveReportedThisPost,
-                                    subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
-                                    onPress: () {
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ),
-                              ));
+                          // Get.find<FeedController>().reportFeed(
+                          //     otherUserId: widget.otherUserId,
+                          //     type: PostType.all,
+                          //     params: params
+                          // );
+                          //
+                          // commonSnackBar(message: "Reported Successfully", isFromHomeScreen: true);
+                          //
+                          // showDialog(
+                          //     context: context,
+                          //     builder: (context) => Dialog(
+                          //       child: Material(
+                          //         color: Colors.transparent,
+                          //         child: CustomSuccessSheet(
+                          //           buttonText: AppLocalizations.of(context)!.gotIt,
+                          //           title: AppLocalizations.of(context)!.youHaveReportedThisPost,
+                          //           subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
+                          //           onPress: () {
+                          //             Navigator.pop(context);
+                          //           },
+                          //         ),
+                          //       ),
+                          //     ));
 
-
-                          // context.read<FeedBloc>().add(PostReportEvent(
-                          //     description: _reportText!,
-                          //     reportCase: reportCase.isNotEmpty ? reportCase : null,
-                          //     reportType: widget.reportType,
-                          //     contentId: widget.contentId,
-                          //     reportedTo: widget.reportTo));
                         }
                       }
                     },
@@ -248,22 +250,4 @@ class _ReportDialogState extends State<ReportDialog> {
     isValidate.value = hasChecked && hasText;
   }
 
-  void reportUpdate(BuildContext context, int postModelIndex) {
-    // switch (pageName) {
-    //   case "GetSearchDataPage":
-    //     context.read<GetSearchModelProvider>().reportUpdate(postModelIndex);
-    //     break;
-    //   case "JobPostScreen":
-    //     context.read<JobPostModelProvider>().reportUpdate(postModelIndex);
-    //     break;
-    //
-    //   case 'HomeScreen':
-    //     context.read<PostModelProvider>().reportUpdate(postModelIndex);
-    //     break;
-    //   default:
-    //     break;
-    // }
-
-    /// do work for hiding the post because its reported
-  }
 }

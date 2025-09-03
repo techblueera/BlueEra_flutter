@@ -1,6 +1,4 @@
 import 'dart:developer';
-import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -18,7 +16,6 @@ import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
-import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
@@ -28,10 +25,8 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:chewie/chewie.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 // Import your new controller
@@ -52,6 +47,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   final GlobalKey _contentKey = GlobalKey();
   bool _isMeasured = false;
   double _calculatedHeight = SizeConfig.size300;
+  bool isUploadFromChannel = false;
 
   @override
   void initState() {
@@ -61,6 +57,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoPlayerController = Get.put(SingleVideoPlayerController(), tag: widget.videoItem.videoId);
 
     videoController.videoFeedItem = widget.videoItem;
+    isUploadFromChannel = videoController.videoFeedItem?.channel?.id != null;
 
     /// measure height for sliver approach
     _measureHeaderHeight();
@@ -96,7 +93,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoController.likes.value = videoController.videoFeedItem?.video?.stats?.likes ?? 0;
     videoController.comments.value = videoController.videoFeedItem?.video?.stats?.comments ?? 0;
 
-    if (videoController.videoFeedItem?.channel?.id != null) {
+    if (isUploadFromChannel) {
       videoController.isChannelFollow.value = videoController.videoFeedItem?.channel?.isFollowing ?? false;
     }
   }
@@ -289,15 +286,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void _showBlockDialog(VideoFeedItem videoFeedItem) {
     openBlockSelectionDialog(
       context: context,
+      reportType: 'VIDEO_POST',
+      userId: videoFeedItem.video?.userId??'',
+      contentId: videoFeedItem.video?.id??'',
       userBlockVoidCallback: () async {
         await Get.find<VideoController>().userBlocked(
           videoType: Videos.videoFeed,
           otherUserId: videoFeedItem.video?.userId ?? '',
         );
       },
-      postBlockVoidCallback: (){
+        reportCallback: (params){
 
-      }
+        }
     );
   }
 
@@ -402,13 +402,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     child: InkWell(
                       onTap: ()=> _openProfile(),
                       child: ChannelProfileHeader(
-                        imageUrl: videoController.videoFeedItem?.channel?.id != null
+                        imageUrl: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.logoUrl ?? ''
                             : videoController.videoFeedItem?.author?.profileImage ?? '',
-                        title: videoController.videoFeedItem?.channel?.id != null
+                        title: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.name ?? ''
                             : videoController.videoFeedItem?.author?.username ?? '',
-                        subtitle: videoController.videoFeedItem?.channel?.id != null
+                        subtitle: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.username ?? ''
                             : (videoController.videoFeedItem?.author?.accountType == AppConstants.individual)
                             ? videoController.videoFeedItem?.author?.designation ?? "OTHERS"
@@ -419,7 +419,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     ),
                   ),
 
-                  if (videoController.videoFeedItem?.channel?.id != null)
+                  if (isUploadFromChannel)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [

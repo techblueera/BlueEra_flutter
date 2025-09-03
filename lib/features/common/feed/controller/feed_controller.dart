@@ -519,7 +519,7 @@ class FeedController extends GetxController{
     }
   }
 
-  ///USER BLOCK(PARTIAL AND FULL)...
+  ///USER BLOCK...
   Future<void> userBlocked({required PostType type, required String otherUserId}) async {
     final list = getListByType(type);
 
@@ -535,11 +535,9 @@ class FeedController extends GetxController{
       if (response.isSuccess) {
         blockUserResponse = ApiResponse.complete(response);
         BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
-        log('before size--> ${list.length}');
         list.removeWhere((p) {
           return p.authorId == otherUserId;
         });
-        log('after size--> ${list.length}');
         Get.back();
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
@@ -553,13 +551,15 @@ class FeedController extends GetxController{
     }
   }
 
-  /// Block user
-  Future<void> blockUser({required String userId, required bool isPartial}) async {
+  /// Feed Report
+  Future<void> reportFeed({required PostType type,  required String otherUserId, required Map<String, dynamic> params}) async {
+    final list = getListByType(type);
+
     try {
-      final response = await FeedRepo().blockUser(params: {
-        ApiKeys.blockedTo: userId,
-        ApiKeys.type: isPartial ? BlockedType.partial.label : BlockedType.full.label,
-        ApiKeys.duration: 0
+      final response = await FeedRepo().report(params: {
+        // ApiKeys.blockedTo: userId,
+        // ApiKeys.type: isPartial ? BlockedType.partial.label : BlockedType.full.label,
+        // ApiKeys.duration: 0
       });
 
       if (response.isSuccess) {

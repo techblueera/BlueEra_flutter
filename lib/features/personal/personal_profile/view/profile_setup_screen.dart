@@ -54,7 +54,7 @@ class _PersonalProfileSetupScreenState
   List<String> postTab = [];
   int selectedIndex = 0;
   List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.Latest;
+  SortBy selectedFilter = SortBy.UnderProgress;
 
   @override
   void initState() {

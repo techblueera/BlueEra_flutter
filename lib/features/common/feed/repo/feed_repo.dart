@@ -229,4 +229,16 @@ class FeedRepo extends BaseService{
     return response;
   }
 
+  ///REPORT...
+  Future<ResponseModel> report({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      userFeedReport,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

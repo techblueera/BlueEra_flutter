@@ -117,13 +117,16 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
             onTapOption: () {
               openBlockSelectionDialog(
                   context: context,
+                  reportType: 'VIDEO_POST',
+                  userId: videoFeedItem.video?.userId??'',
+                  contentId: videoFeedItem.video?.id??'',
                   userBlockVoidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
                       videoType: Videos.saved,
                       otherUserId: videoFeedItem.video?.userId??'',
                     );
                   },
-                  postBlockVoidCallback: (){
+                  reportCallback: (params){
 
                   }
               );

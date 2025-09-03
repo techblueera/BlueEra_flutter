@@ -172,11 +172,10 @@ class ReelUploadDetailsController extends GetxController {
           message:
               "Video uploaded successfully. It may take about 5 to 30 minutes to appear on your profile.",
         );
-// Get.to
+
         Get.until(
           (route) =>
-              Get.currentRoute ==
-              RouteHelper.getBottomNavigationBarScreenRoute(),
+              Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute(),
         );
         await Future.delayed(Duration(milliseconds: 200));
         if (isIndividualUser()) {
