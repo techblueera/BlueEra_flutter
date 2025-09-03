@@ -1,0 +1,128 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
+import 'package:BlueEra/features/common/reel/models/get_all_users.dart';
+import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:get/get.dart';
+
+class TagUserController extends GetxController {
+  final RxList<UsersData> allUsers = <UsersData>[].obs;
+  final RxList<UsersData> filteredUsers = <UsersData>[].obs;
+  final RxList<UsersData> selectedUsers = <UsersData>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxString searchQuery = ''.obs;
+  final int maxTagLimit = 6;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchUsers();
+    debounce(
+      searchQuery,
+      (_) => filterUsers(),
+      time: const Duration(milliseconds: 500),
+    );
+  }
+
+  void fetchUsers() async {
+    isLoading.value = true;
+    try {
+      ResponseModel response = await ChannelRepo().getAllUsers();
+
+      if (response.statusCode == 200) {
+        GetAllUsers getAllUsers = GetAllUsers.fromJson(response.response?.data);
+        allUsers.value = getAllUsers.data;
+
+
+        if (Get.find<PhotoPostController>().isPhotoPostEdit) {
+          if (Get.find<PhotoPostController>()
+              .postData
+              ?.value
+              .taggedUsers
+              ?.isNotEmpty ??
+              false) {
+            final taggedIds =
+                Get.find<PhotoPostController>().postData?.value.taggedUsers ??
+                    [];
+
+            selectedUsers.value = allUsers.where((user) {
+              final isTagged = taggedIds.contains(user.id);
+              user.isSelected.value =
+                  isTagged; // set isSelected based on tagged
+              return isTagged;
+            }).toList();
+            logs(" tagUserController.selectedUsers.value====${selectedUsers}");
+            // setState(() {});
+          }
+        }
+
+
+        filterUsers();
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      print('Error fetching users: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void filterUsers() {
+    if (searchQuery.value.isEmpty) {
+      filteredUsers.value = allUsers;
+    } else {
+      filteredUsers.value = allUsers.where((user) {
+        final query = searchQuery.value.toLowerCase();
+        final name = user.name?.toLowerCase() ?? '';
+        final businessName = user.businessName?.toLowerCase() ?? '';
+        final username = user.username?.toLowerCase() ?? '';
+
+        return name.contains(query) ||
+            businessName.contains(query) ||
+            username.contains(query);
+      }).toList();
+    }
+  }
+
+  void updateSearchQuery(String query) {
+    searchQuery.value = query;
+  }
+
+  bool canAddMoreUsers() {
+    return selectedUsers.length < maxTagLimit;
+  }
+
+  void toggleUserSelection(UsersData user) {
+    if (user.isSelected.value) {
+      user.isSelected.value = false;
+      selectedUsers.remove(user);
+    } else {
+      if (canAddMoreUsers()) {
+        user.isSelected.value = true;
+        selectedUsers.add(user);
+      } else {
+        // Show a message that max limit reached
+
+        commonSnackBar(
+          message: 'You can tag maximum $maxTagLimit people',
+        );
+      }
+    }
+  }
+
+  void removeSelectedUser(UsersData user) {
+    user.isSelected.value = false;
+    selectedUsers.remove(user);
+  }
+
+  void clearAllSelections() {
+    for (var user in selectedUsers) {
+      user.isSelected.value = false;
+    }
+    selectedUsers.clear();
+  }
+}

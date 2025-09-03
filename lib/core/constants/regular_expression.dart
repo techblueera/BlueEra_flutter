@@ -1,0 +1,116 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+
+class RegularExpressionUtils {
+  ///IN USED..
+  static String emailPattern = r"[a-zA-Z0-9$_@.-]";
+  static String alphabetSpacePatternDigit = r"[a-zA-Z0-9$_@.-]";
+  static String alphabetSpacePatternDigitSpace = r"[a-zA-Z0-9$-/\_@. ]";
+  static String alphabetSpacePattern = "[a-zA-Z-0-9 ]";
+  static String alphabetSpacePattern_ = "[a-zA-Z-& ]";
+  static String alphabetPattern = "[a-zA-Z]";
+  static String alphabetPatternSpace = "[a-zA-Z ]";
+  static String alphanumericPattern = "[a-zA-Z0-9]";
+  static String discount = '[0-9]{0,3}';
+  static String digitsPattern = r"[0-9]";
+  static String skills = r'^[^\s][a-zA-Z0-9+\.\#_\-]*$';
+  static String pinCodeRegExp = r'^[1-9][0-9]{5}$';
+
+  static final String courseNameRegex = r"^[a-zA-Z .'-]*$";
+  static final String institutionNameRegex = r"^[a-zA-Z0-9 .'-]*$";
+  static final String phoneWithPrefixPattern = r'^[+0-9]*$';
+  static final String linkRegex =   r'^(https?:\/\/)?(www\.)?[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}([\/\w\.-]*)*\/?$';
+
+  static final String date = r"[0-9a-zA-Z/,\- ]";
+
+}
+
+/// VALIDATION METHOD
+class ValidationMethod {
+  /// EMAIL VALIDATION METHOD
+  static String? validateEmail(value) {
+    bool regex = RegExp(
+            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
+        .hasMatch(value);
+    if (value == null) {
+      return AppStrings.emailIsRequired;
+    } else if (regex == false) {
+      return AppStrings.pleaseEnterValidEmail;
+    }
+
+    return null;
+  }
+
+  emptyValidation(value) {
+    if (value.toString().isEmpty) {
+      return AppStrings.required;
+    }
+    return null;
+  }
+
+  /// PHONE VALIDATION METHOD
+  static String? validatePhone(value) {
+    bool regex = RegExp(r"\d{10}").hasMatch(value);
+    if (value == '') {
+      return AppStrings.mobileIsRequired;
+    } else if (regex == false) {
+      return AppStrings.mobileIsRequired;
+    }
+
+    return null;
+  }
+
+  /// PHONE VALIDATION METHOD
+  static String? validateLandline(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Required";
+    }
+
+    // Match only numbers, length between 6 and 8
+    bool regex = RegExp(r'^\d{6,8}$').hasMatch(value);
+
+    if (!regex) {
+      return "Landline must be 6 to 8 digits";
+    }
+
+    return null;
+  }
+
+
+ static bool isValidURL(String url) {
+    final Uri? uri = Uri.tryParse(url);
+
+    return uri != null && uri.isAbsolute && (uri.hasScheme && uri.hasAuthority);
+  }
+
+ static String? urlValidation(value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter a link';
+    } else if (!isValidURL(value.trim())) {
+      return 'Enter a valid URL';
+    }
+
+    return null;
+  }
+
+  static String? userNameValidation(String? value) {
+    final alphanumericRegex = RegExp(r'^[a-zA-Z0-9]+$');
+
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter a username';
+    } else if (!alphanumericRegex.hasMatch(value.trim())) {
+      return 'Username can only contain letters and numbers';
+    }
+
+    return null;
+  }
+
+
+}
+
+
+
+
+
+String removeSpaceFromString(String data) {
+  return data.toLowerCase().replaceAll(' ', '');
+}

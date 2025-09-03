@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "725685070061",
+    "project_id": "blueera-50c05",
+    "storage_bucket": "blueera-50c05.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:725685070061:android:877400b3bc1273c4ae04e4",
+        "android_client_info": {
+          "package_name": "ai.bluecs.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnwQv2WIfK4YsVBGMNpyVZyveBHOw1Z0A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/Mr.bhavesh/Documents/flutter3.29.1/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/Mr.bhavesh/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/Mr.bhavesh/Documents/BlueEraFlutter/BlueEraNewFlutter/blueera_flutter/android/app/.cxx/Debug/qu3r6n3c/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/Mr.bhavesh/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/Mr.bhavesh/Documents/BlueEraFlutter/BlueEraNewFlutter/blueera_flutter/android/app/.cxx/Debug/qu3r6n3c/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

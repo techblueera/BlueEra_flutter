@@ -1,0 +1,2 @@
+/Users/Mr.bhavesh/Documents/BlueEraFlutter/BlueEraNewFlutter/blueera_flutter/android/app/.cxx/Debug/qu3r6n3c/x86_64/CMakeFiles/edit_cache.dir
+/Users/Mr.bhavesh/Documents/BlueEraFlutter/BlueEraNewFlutter/blueera_flutter/android/app/.cxx/Debug/qu3r6n3c/x86_64/CMakeFiles/rebuild_cache.dir

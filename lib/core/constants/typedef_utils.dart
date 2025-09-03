@@ -1,0 +1,1 @@
+typedef OnTab = void Function();

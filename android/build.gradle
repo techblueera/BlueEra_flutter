@@ -1,0 +1,56 @@
+buildscript {
+    ext.kotlin_version = '2.0.21'
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url "https://plugins.gradle.org/m2/" } // ➕ OneSignal plugin source
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.android.tools.build:gradle:8.7.0"
+        classpath 'com.google.gms:google-services:4.3.13'
+        classpath 'gradle.plugin.com.onesignal:onesignal-gradle-plugin:[0.14.0, 0.99.99]' // ➕ OneSignal plugin
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url "https://plugins.gradle.org/m2/" } // ➕ Safe for all plugins
+    }
+}
+
+rootProject.buildDir = '../build'
+
+subprojects {
+    afterEvaluate {
+        if (it.hasProperty('android')) {
+            it.android.compileSdkVersion = 36
+            it.android.defaultConfig.targetSdkVersion = 36
+            it.android.compileOptions.sourceCompatibility = JavaVersion.VERSION_17
+            it.android.compileOptions.targetCompatibility = JavaVersion.VERSION_17
+            tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions.jvmTarget = JavaVersion.VERSION_17
+            }
+//            if (it.android.namespace == null) {
+//                def manifest = new XmlSlurper().parse(file(it.android.sourceSets.main.manifest.srcFile))
+//                def packageName = manifest.@package.text()
+//                android.namespace = packageName
+//                println("Updating namespace ${packageName}")
+//            }
+        }
+    }
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
