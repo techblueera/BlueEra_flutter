@@ -92,7 +92,7 @@ class _BusinessDetailsEditPageOneState
       websiteController.text = data.websiteUrl ?? '';
       cityController.text = data.cityStatePincode ?? '';
       fullBusinessAddressTextController.text = data.address ?? '';
-      picCodeController.text = data.pincode.toString() ?? '';
+      picCodeController.text = data.pincode !=null?data.pincode.toString():"";
       locationTextController.text = data.businessLocation != null
           ? '${data.businessLocation?.lat}, ${data.businessLocation?.lon}'
           : '';

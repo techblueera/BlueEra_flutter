@@ -569,10 +569,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                   "Posts"),
                               GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(
-                                        context,
-                                        RouteHelper
-                                            .getFollowerFollowingScreenRoute());
+                                    // Navigator.pushNamed(
+                                    //     context,
+                                    //     RouteHelper
+                                    //         .getFollowerFollowingScreenRoute());
                                   },
                                   child: buildStatBlock(
                                       channelController
@@ -582,10 +582,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                       "Followers")),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(
-                                      context,
-                                      RouteHelper
-                                          .getFollowerFollowingScreenRoute());
+                                  // Navigator.pushNamed(
+                                  //     context,
+                                  //     RouteHelper
+                                  //         .getFollowerFollowingScreenRoute());
                                 },
                                 child: buildStatBlock(
                                     channelController
