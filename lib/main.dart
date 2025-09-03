@@ -5,11 +5,14 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/hive_model/video_hive_model.dart';
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
 import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
@@ -27,6 +30,7 @@ import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'features/common/feed/hive_model/post_hive_model.dart';
 import 'core/services/home_cache_service.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -140,7 +144,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _handleDeepLink(Uri uri) {
+  void _handleDeepLink(Uri uri) async{
     debugPrint(
         "=====================================Deep link received:========================= $uri");
     try {
@@ -154,17 +158,16 @@ class _MyAppState extends State<MyApp> {
             break;
           case 'video':
             // TODO: Navigate to video detail screen with id
-            Get.to(() => DeeplinkVideoScreen(videoId: '$id',));
-            
-            debugPrint('Deep link -> video id: $id');
+             await deepLinkNetworkResources.navigateToVideoDetail(id);
+            logs('Deep link -> video id: $id');
             break;
-          case 'short':
-            // TODO: Navigate to short/reel detail screen with id
-            debugPrint('Deep link -> short id: $id');
-            break;
+          // case 'short':
+          //   // TODO: Navigate to short/reel detail screen with id
+          //   logs('Deep link -> short id: $id');
+          //   break;
           case 'job':
             // TODO: Navigate to job detail screen with id
-            debugPrint('Deep link -> job id: $id');
+            logs('Deep link -> job id: $id');
             break;
           case 'profile':
             // TODO: Navigate to profile screen with user id
@@ -172,10 +175,10 @@ class _MyAppState extends State<MyApp> {
             // the profile screen of the users whose post are visible on home, they use two different screen to show
             // there profile Visiting_profile_screen.dart and Header_widget.dart both has sharing funtionaity.
             
-            debugPrint('Deep link -> profile userId: $id');
+            logs('Deep link -> profile userId: $id');
             break;
           default:
-            debugPrint('Unknown deep link type: $type');
+            logs('Unknown deep link type: $type');
         }
       } else {
         // Fallback: try last segment as id (legacy)
