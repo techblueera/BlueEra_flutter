@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 void openBlockSelectionDialog(
     {
       required BuildContext context,
-      required VoidCallback postBlockVoidCallback,
-      required VoidCallback userBlockVoidCallback
+      required String userId,
+      required String contentId,
+      required String reportType,
+      required VoidCallback userBlockVoidCallback,
+      required Function(Map<String, dynamic>) reportCallback
     }){
   showDialog(
     context: context,
@@ -14,8 +17,11 @@ void openBlockSelectionDialog(
       return Dialog(
         backgroundColor: AppColors.white,
         child: BlockPostModalSheet(
-             postBlockVoidCallback: ()=> postBlockVoidCallback(),
-             userBlockVoidCallback: ()=> userBlockVoidCallback(),
+          reportType: reportType,
+          contentId: contentId,
+          otherUserId: userId,
+          userBlockVoidCallback: ()=> userBlockVoidCallback(),
+          reportCallback: (params)=> reportCallback(params)
         ),
       );
     },

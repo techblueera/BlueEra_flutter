@@ -39,7 +39,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     'Channels'
   ];
   List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.Latest;
+  SortBy selectedFilter = SortBy.UnderProgress;
 
   @override
   void initState() {

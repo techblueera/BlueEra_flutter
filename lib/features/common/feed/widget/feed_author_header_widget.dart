@@ -37,13 +37,17 @@ class PostAuthorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('account type--> ${post?.user?.accountType}');
+    print('author id--> $authorId');
+    print('business id--> ${post?.user?.business_id}');
+    // print('user Id--> ${post?.user?}');
     String name = (post?.user?.accountType == AppConstants.individual)
         ? post?.user?.name ?? ''
         : post?.user?.businessName ?? '';
 
     String designation = (post?.user?.accountType == AppConstants.individual)
         ?
-      post?.user?.designation ?? "OTHERS"
+    post?.user?.designation ?? "OTHERS"
 
         : post?.user?.businessCategory ?? '';
 
@@ -65,7 +69,7 @@ class PostAuthorHeader extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 if (((authorId == userId) ||
-                        (post?.user?.business_id == businessId)) &&
+                    (post?.user?.business_id == businessId)) &&
                     (postFilteredType == PostType.myPosts ||
                         postFilteredType == PostType.saved)) {
                   return;
@@ -85,19 +89,19 @@ class PostAuthorHeader extends StatelessWidget {
                   } else {
                     Get.to(() => VisitBusinessProfile(
                         businessId: post?.user?.business_id ?? ""
-                      )
+                    )
                     );
                   }
                 }
               },
               child: ChannelProfileHeader(
-                imageUrl: post?.user?.profileImage ?? '',
-                title: '$name',
-                userName: '${post?.user?.username}',
-                subtitle: designation,
-                avatarSize: SizeConfig.size42,
-                borderColor: AppColors.primaryColor,
-                postedAgo: postedAgo
+                  imageUrl: post?.user?.profileImage ?? '',
+                  title: '$name',
+                  userName: '${post?.user?.username}',
+                  subtitle: designation,
+                  avatarSize: SizeConfig.size42,
+                  borderColor: AppColors.primaryColor,
+                  postedAgo: postedAgo
               ),
             ),
           ),
@@ -116,8 +120,8 @@ class PostAuthorHeader extends StatelessWidget {
               )
             else
               FeedPopUpMenu(
-                  post: post ?? Post(id: ''),
-                  postFilteredType: postFilteredType,
+                post: post ?? Post(id: ''),
+                postFilteredType: postFilteredType,
               )
           else if(post?.user?.accountType == AppConstants.business)
             if(id != businessId)
@@ -139,16 +143,19 @@ class PostAuthorHeader extends StatelessWidget {
 
   void blockUserPopUp(){
     openBlockSelectionDialog(
-        context: Get.context!,
-        userBlockVoidCallback: () {
-          Get.find<FeedController>().userBlocked(
-              otherUserId: post?.authorId??'',
-              type: postFilteredType
-          );
-        },
-        postBlockVoidCallback: (){
+      context: Get.context!,
+      userId: authorId,
+      contentId: post?.id??'',
+      reportType: 'POST',
+      userBlockVoidCallback: () {
+        Get.find<FeedController>().userBlocked(
+            otherUserId: post?.authorId??'',
+            type: postFilteredType
+        );
+      },
+      reportCallback: (params){
 
-        }
+      }
     );
   }
 }

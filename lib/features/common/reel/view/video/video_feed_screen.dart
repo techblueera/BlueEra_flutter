@@ -257,13 +257,16 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
               onTapOption: () {
                 openBlockSelectionDialog(
                   context: context,
+                  reportType: 'VIDEO_POST',
+                  userId: videoFeedItem.video?.userId??'',
+                  contentId: videoFeedItem.video?.id??'',
                   userBlockVoidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
                       videoType: Videos.videoFeed,
                       otherUserId: videoFeedItem.video?.userId ?? '',
                     );
                   },
-                  postBlockVoidCallback: (){
+                    reportCallback: (params){
 
                     }
                 );

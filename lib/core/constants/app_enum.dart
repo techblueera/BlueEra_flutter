@@ -1160,10 +1160,10 @@ enum PostSortBy {
 }
 
 enum SortBy {
+  UnderProgress('Under Progress', 'under_progress'),
   Latest('Latest', 'latest'),
   Popular('Popular', 'popular'),
-  Oldest('Oldest', 'oldest'),
-  UnderProgress('Under Progress', 'under_progress');
+  Oldest('Oldest', 'oldest');
 
   final String label;
   final String queryValue;

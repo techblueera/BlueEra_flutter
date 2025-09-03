@@ -48,10 +48,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verify => 'Verify';
 
   @override
-  String get registrationIncomplete => 'Registration incomplete. Some features are restricted. ';
+  String get registrationIncomplete =>
+      'Registration incomplete. Some features are restricted. ';
 
   @override
-  String get completeBasicDetailsLisintg => 'Please complete the basic details before proceeding with the listing';
+  String get completeBasicDetailsLisintg =>
+      'Please complete the basic details before proceeding with the listing';
 
   @override
   String get startListing => 'Start Listing';
@@ -96,10 +98,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spacesNotAllowed => 'Spaces are not allowed';
 
   @override
-  String get onlyAlphanumericAllowed => 'Only alphanumeric characters are allowed';
+  String get onlyAlphanumericAllowed =>
+      'Only alphanumeric characters are allowed';
 
   @override
-  String get mustContainOneNumeric => 'Must contain at least one numeric character';
+  String get mustContainOneNumeric =>
+      'Must contain at least one numeric character';
 
   @override
   String get oneLastStep => 'One last step';
@@ -153,10 +157,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get select => 'Select';
 
   @override
-  String get pleaseAuthenticateToAccessTheAppSeamlessly => 'Please authenticate to access the app seamlessly';
+  String get pleaseAuthenticateToAccessTheAppSeamlessly =>
+      'Please authenticate to access the app seamlessly';
 
   @override
-  String get pleaseEnterYourDevicePasswordToAccessTheAppSeamlessly => 'Please enter your device password to access the app seamlessly';
+  String get pleaseEnterYourDevicePasswordToAccessTheAppSeamlessly =>
+      'Please enter your device password to access the app seamlessly';
 
   @override
   String get home => 'Home';
@@ -408,7 +414,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseEnterYourOption4 => 'Please enter your option4';
 
   @override
-  String get pleaseEnterLessThan20Characters => 'Please enter less than 20 characters';
+  String get pleaseEnterLessThan20Characters =>
+      'Please enter less than 20 characters';
 
   @override
   String get youPostedAQuestion => 'You posted a question!';
@@ -447,7 +454,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get seeAllResults => 'See all results';
 
   @override
-  String get thisFeatureWillBeUnavailableUntilYouFinishYourRegistration => 'This feature will be unavailable until you finish your registration';
+  String get thisFeatureWillBeUnavailableUntilYouFinishYourRegistration =>
+      'This feature will be unavailable until you finish your registration';
 
   @override
   String get startRegistration => 'Start Registration';
@@ -510,7 +518,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportAndBlockUser => 'Report and Block this user';
 
   @override
-  String get reportSuccessMessage => 'Thank you for your feedback. We will review and take necessary actions.';
+  String get reportSuccessMessage =>
+      'Thank you for your feedback. We will review and take necessary actions.';
 
   @override
   String get repliesTo => 'Replies to';
@@ -552,7 +561,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get issueHasBeenReported => 'Issue has been reported';
 
   @override
-  String get thankYouForYourFeedbackWeWillReviewAndTakeNecessaryActions => 'Thank you for your feedback. We will review and take necessary actions';
+  String get thankYouForYourFeedbackWeWillReviewAndTakeNecessaryActions =>
+      'Thank you for your feedback. We will review and take necessary actions';
 
   @override
   String get repost => 'Repost';
@@ -576,10 +586,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get egBangalore => 'Eg: Bangalore';
 
   @override
-  String get buildYourNetworkByAddingConnections => 'Build your network\nby adding connections';
+  String get buildYourNetworkByAddingConnections =>
+      'Build your network\nby adding connections';
 
   @override
-  String get startByImportingFromYourContactList => 'Start by importing from your contact list';
+  String get startByImportingFromYourContactList =>
+      'Start by importing from your contact list';
 
   @override
   String get importContacts => 'Import Contacts';
@@ -615,13 +627,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mediaSentOrReceived => 'Media sent or received...';
 
   @override
-  String get sendAMessageToStartAConversation => 'Send a message to start a conversation';
+  String get sendAMessageToStartAConversation =>
+      'Send a message to start a conversation';
 
   @override
   String get removeConnection => 'Remove Connection';
 
   @override
-  String get doYouWishToProceedWithRemovingThisConnectionFromYourNetwork => 'Do you wish to proceed with removing this connection from your network?';
+  String get doYouWishToProceedWithRemovingThisConnectionFromYourNetwork =>
+      'Do you wish to proceed with removing this connection from your network?';
 
   @override
   String get yes => 'Yes';
@@ -648,7 +662,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendConnectionRequest => 'Send connection request';
 
   @override
-  String get pleaseSelectTheUsersYouWishToSendAConnectionRequest => 'Please select the users you wish to send a connection request';
+  String get pleaseSelectTheUsersYouWishToSendAConnectionRequest =>
+      'Please select the users you wish to send a connection request';
 
   @override
   String get sendInvitation => 'Send Invitation';
@@ -672,7 +687,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendInviteLink => 'Send Invite Link';
 
   @override
-  String get inviteMessage => 'Hey! I\'m using BlueEra and would love for you to join me there. I\'m sending you an invite—download the app, and let\'s connect! at https://bluecs.in/app';
+  String get inviteMessage =>
+      'Hey! I\'m using BlueEra and would love for you to join me there. I\'m sending you an invite—download the app, and let\'s connect! at https://bluecs.in/app';
 
   @override
   String get checkThisOut => 'Check this out!';
@@ -681,7 +697,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadMoreContacts => 'Load More Contacts';
 
   @override
-  String get pleaseSelectTheUsersYouWishToSendAnInvitation => 'Please select the users you wish to send an Invitation';
+  String get pleaseSelectTheUsersYouWishToSendAnInvitation =>
+      'Please select the users you wish to send an Invitation';
 
   @override
   String get selectAll => 'Select All';
@@ -699,10 +716,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rejectAndBlockUser => 'Reject & block user';
 
   @override
-  String get partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra => 'Partially blocked user can see your profile and posts, but cannot connect or send you messages on BlueEra';
+  String get partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra =>
+      'Partially blocked user can see your profile and posts, but cannot connect or send you messages on BlueEra';
 
   @override
-  String get fullyBlockedUserCannotSeeYourProfileOrPostsOnBlueEra => 'Fully blocked user cannot see your profile or posts on BlueEra';
+  String get fullyBlockedUserCannotSeeYourProfileOrPostsOnBlueEra =>
+      'Fully blocked user cannot see your profile or posts on BlueEra';
 
   @override
   String get somethingWentWrong => 'Something went wrong';
@@ -741,7 +760,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fullyBlockThisUser => 'Fully block this user';
 
   @override
-  String get areYouSureYouWantToBlockThisUser => 'Are you sure you want to block this user?';
+  String get areYouSureYouWantToBlockThisUser =>
+      'Are you sure you want to block this user?';
 
   @override
   String get goBack => 'Go Back';
@@ -765,16 +785,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ok => 'OK';
 
   @override
-  String get someImagesExceedTheMaximumSizeLimit => 'Some images exceed the maximum size limit of 5MB. Please select smaller files.';
+  String get someImagesExceedTheMaximumSizeLimit =>
+      'Some images exceed the maximum size limit of 5MB. Please select smaller files.';
 
   @override
-  String get someVideosExceedTheMaximumSizeLimit => 'Some videos exceed the maximum size limit of 50MB. Please select smaller files.';
+  String get someVideosExceedTheMaximumSizeLimit =>
+      'Some videos exceed the maximum size limit of 50MB. Please select smaller files.';
 
   @override
-  String get videosMustBe30SecondsOrShorter => 'Videos must be 30 seconds or shorter. Please select shorter videos.';
+  String get videosMustBe30SecondsOrShorter =>
+      'Videos must be 30 seconds or shorter. Please select shorter videos.';
 
   @override
-  String get someDocumentsExceedTheMaximumSizeLimit => 'Some documents exceed the maximum size limit of 10MB. Please select smaller files.';
+  String get someDocumentsExceedTheMaximumSizeLimit =>
+      'Some documents exceed the maximum size limit of 10MB. Please select smaller files.';
 
   @override
   String get photos => 'Photos';
@@ -852,13 +876,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploadDocument => 'Upload Document';
 
   @override
-  String get oneDocumentIsRequiredSoCanNotBeDeleted => 'One Document is required so can not be deleted';
+  String get oneDocumentIsRequiredSoCanNotBeDeleted =>
+      'One Document is required so can not be deleted';
 
   @override
   String get chooseTheBusinessTypes => 'Choose the Business Type';
 
   @override
-  String get uploadYourBusinessServicesPhoto => 'Upload Your Business/Services Photo';
+  String get uploadYourBusinessServicesPhoto =>
+      'Upload Your Business/Services Photo';
 
   @override
   String get saveAndNext => 'Save & Next';
@@ -912,7 +938,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get close => 'Close';
 
   @override
-  String get ifItsNotListedYouCanCreateOne => 'If it\'s not listed, you can create one';
+  String get ifItsNotListedYouCanCreateOne =>
+      'If it\'s not listed, you can create one';
 
   @override
   String get enterDocName => 'Enter Doc Name';
@@ -930,7 +957,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startAddingServiceAndCategory => 'Start Adding Service & Category';
 
   @override
-  String get startAddingProductAndServicesAndCategory => 'Start Adding Product and Services & Category';
+  String get startAddingProductAndServicesAndCategory =>
+      'Start Adding Product and Services & Category';
 
   @override
   String get listingIsNotCompleted => 'Listing is Not Completed';
@@ -1008,13 +1036,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excellent => 'Excellent';
 
   @override
-  String get whyCancelItAutoEndWhenPlanExpired => 'Why cancel, it auto end When plan Expired';
+  String get whyCancelItAutoEndWhenPlanExpired =>
+      'Why cancel, it auto end When plan Expired';
 
   @override
   String get whyCancelItAutoEndOn => 'Why cancel, it auto end on';
 
   @override
-  String get yourAccessAllPremiumFeatureEndNow => 'Your access all premium Feature end now';
+  String get yourAccessAllPremiumFeatureEndNow =>
+      'Your access all premium Feature end now';
 
   @override
   String get cancelSubscriptionNow => 'Cancel Subscription Now';
@@ -1023,7 +1053,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelOnExpiryDate => 'Cancel On Expiry-Date';
 
   @override
-  String get unlimitedAddProductOrServices => 'Unlimited Add product or services';
+  String get unlimitedAddProductOrServices =>
+      'Unlimited Add product or services';
 
   @override
   String get yourListVisibleFor1Month => 'Your list visible for 1 month';
@@ -1062,7 +1093,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get availableCoinAndValue => 'Available coin & Value';
 
   @override
-  String get chooseThePaymentTypeToRedeemCoin => 'Choose the Payment Type To Redeem Coin';
+  String get chooseThePaymentTypeToRedeemCoin =>
+      'Choose the Payment Type To Redeem Coin';
 
   @override
   String get finalAmountToPay => 'Final Amount To Pay';
@@ -1086,7 +1118,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allPostsNotFound => 'No posts found!';
 
   @override
-  String get areYouSureYouWantToDeleteThisPost => 'Are you sure you want to delete this post?';
+  String get areYouSureYouWantToDeleteThisPost =>
+      'Are you sure you want to delete this post?';
 
   @override
   String get postDeleted => 'Post Deleted';
@@ -1164,7 +1197,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enableBiometricAuthentication => 'Enable Biometric Authentication';
 
   @override
-  String get useFingerprintOrFaceIdToSecureYourApp => 'Use fingerprint or face ID to secure your app';
+  String get useFingerprintOrFaceIdToSecureYourApp =>
+      'Use fingerprint or face ID to secure your app';
 
   @override
   String get reportAnIssue => 'Report an issue';
@@ -1188,13 +1222,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get existingPhoneNumber => 'Existing phone number';
 
   @override
-  String get pleaseEnterCorrectMobileNumber => 'Please enter correct mobile number';
+  String get pleaseEnterCorrectMobileNumber =>
+      'Please enter correct mobile number';
 
   @override
   String get newPhoneNumber => 'New phone number';
 
   @override
-  String get newPhoneNumberShouldNotBeSameAsExistingPhoneNumber => 'New phone number should not be same as existing phone number';
+  String get newPhoneNumberShouldNotBeSameAsExistingPhoneNumber =>
+      'New phone number should not be same as existing phone number';
 
   @override
   String get sendRequest => 'Send Request';
@@ -1206,7 +1242,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coin => 'coin';
 
   @override
-  String get earnExtraIncomeByReferringYourFriends => 'Earn extra income by referring your friends!';
+  String get earnExtraIncomeByReferringYourFriends =>
+      'Earn extra income by referring your friends!';
 
   @override
   String get rs => 'Rs';
@@ -1305,10 +1342,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutMeCannotBeEmpty => 'About Me cannot be empty';
 
   @override
-  String get aboutUsCannotBeMoreThan200Words => 'About Us cannot be more than 200 words';
+  String get aboutUsCannotBeMoreThan200Words =>
+      'About Us cannot be more than 200 words';
 
   @override
-  String get aboutMeCannotBeMoreThan200Words => 'About Me cannot be more than 200 words';
+  String get aboutMeCannotBeMoreThan200Words =>
+      'About Me cannot be more than 200 words';
 
   @override
   String get addYourWorkExperience => 'Add your work Experience';
@@ -1410,7 +1449,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidForm => 'Invalid Form';
 
   @override
-  String get pleaseScrollDownAndReviewAllFieldsToEnsureTheyAreFilledOutCorrectlyAndAreNotLeftEmpty => 'Please scroll down and review all fields to ensure they are filled out correctly and are not left empty.';
+  String get pleaseScrollDownAndReviewAllFieldsToEnsureTheyAreFilledOutCorrectlyAndAreNotLeftEmpty =>
+      'Please scroll down and review all fields to ensure they are filled out correctly and are not left empty.';
 
   @override
   String get fullName => 'Full Name';
@@ -1458,22 +1498,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobRoleWork => 'Job role/work';
 
   @override
-  String get egSrTeacherDriverOfficeAssistant => 'eg: SR.TEACHER, DRIVER, OFFICE ASSISTANT';
+  String get egSrTeacherDriverOfficeAssistant =>
+      'eg: SR.TEACHER, DRIVER, OFFICE ASSISTANT';
 
   @override
   String get hidePhoneNumber => 'Hide phone number';
 
   @override
-  String get areYouSureYouWantToHideThisField => 'Are you sure you want to hide this field?';
+  String get areYouSureYouWantToHideThisField =>
+      'Are you sure you want to hide this field?';
 
   @override
-  String get areYouSureYouWantToShowThisField => 'Are you sure you want to show this field?';
+  String get areYouSureYouWantToShowThisField =>
+      'Are you sure you want to show this field?';
 
   @override
-  String get yourPhoneNumberWillNotBeVisibleToOthersOnYourProfile => 'Your phone number will not be visible to others on your profile';
+  String get yourPhoneNumberWillNotBeVisibleToOthersOnYourProfile =>
+      'Your phone number will not be visible to others on your profile';
 
   @override
-  String get yourPhoneNumberWillBeVisibleToOthersOnYourProfile => 'Your phone number will be visible to others on your profile';
+  String get yourPhoneNumberWillBeVisibleToOthersOnYourProfile =>
+      'Your phone number will be visible to others on your profile';
 
   @override
   String get hideThisField => 'Hide this field';
@@ -1530,25 +1575,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prefix => 'Prefix';
 
   @override
-  String get shortDescribeAboutOrganization => 'Short Describe About Organization';
+  String get shortDescribeAboutOrganization =>
+      'Short Describe About Organization';
 
   @override
-  String get enterShortDescriptionMax60Characters => 'Enter Short Description (Max 60 characters)';
+  String get enterShortDescriptionMax60Characters =>
+      'Enter Short Description (Max 60 characters)';
 
   @override
   String get saveChanges => 'Save Changes';
 
   @override
-  String get youHaveMadeChangesToOneOrMoreFieldsInYourProfile => 'You have made changes to one or more fields in your profile';
+  String get youHaveMadeChangesToOneOrMoreFieldsInYourProfile =>
+      'You have made changes to one or more fields in your profile';
 
   @override
   String get discardChanges => 'Discard Changes';
 
   @override
-  String get pleaseEnterCurrentOrganisaition => 'Please enter current organisation';
+  String get pleaseEnterCurrentOrganisaition =>
+      'Please enter current organisation';
 
   @override
-  String get pleaseEnterYourEducationTillNow => 'Please enter your education till now';
+  String get pleaseEnterYourEducationTillNow =>
+      'Please enter your education till now';
 
   @override
   String get pleaseEnterYourJobRoleWork => 'Please enter your job role/work';
@@ -1560,10 +1610,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get congratulation => 'CONGRATULATION';
 
   @override
-  String get yourProfileHasBeenSuccessfullyCompleted => 'Your profile has been successfully completed!';
+  String get yourProfileHasBeenSuccessfullyCompleted =>
+      'Your profile has been successfully completed!';
 
   @override
-  String get nowItsTimeToFinalizeYourBusinessListingAndShowcaseYourServicesToTheWorld => 'Now, it\'s time to finalize your business listing and showcase your services to the world';
+  String get nowItsTimeToFinalizeYourBusinessListingAndShowcaseYourServicesToTheWorld =>
+      'Now, it\'s time to finalize your business listing and showcase your services to the world';
 
   @override
   String get welcomePost => 'Welcome Post';
@@ -1629,7 +1681,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get switchTo => 'switch to';
 
   @override
-  String get toBeOnTheSafeSideSelectBoth => '(To be on the safe side, select both.)';
+  String get toBeOnTheSafeSideSelectBoth =>
+      '(To be on the safe side, select both.)';
 
   @override
   String get deleteAll => 'Delete All';
@@ -1638,7 +1691,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get votes => 'Votes';
 
   @override
-  String get areYouSureYouWantToHideThisPost => 'Are you sure you want to hide this post?';
+  String get areYouSureYouWantToHideThisPost =>
+      'Are you sure you want to hide this post?';
 
   @override
   String get postHidden => 'Post Hidden';
@@ -1686,7 +1740,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorAccessingContacts => 'Error accessing contacts';
 
   @override
-  String get contactPermissionRequired => 'Permission to access contacts is required';
+  String get contactPermissionRequired =>
+      'Permission to access contacts is required';
 
   @override
   String get removeFromSelection => 'Remove from Selection';
@@ -1719,10 +1774,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get location => 'Location';
 
   @override
-  String get locationPermissionRequired => 'Permission to access location is required.';
+  String get locationPermissionRequired =>
+      'Permission to access location is required.';
 
   @override
-  String get locationPermissionPermanentlyDenied => 'Location permission is permanently denied. Please enable it in settings.';
+  String get locationPermissionPermanentlyDenied =>
+      'Location permission is permanently denied. Please enable it in settings.';
 
   @override
   String get errorAccessingLocation => 'Error accessing location.';
@@ -1794,7 +1851,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appointmentBookedSuccessfully => 'Appointment Booked Successfully';
 
   @override
-  String get appointmentBookedSuccessfullyMessage => 'Your appointment has been booked successfully.\nWe will contact you soon!';
+  String get appointmentBookedSuccessfullyMessage =>
+      'Your appointment has been booked successfully.\nWe will contact you soon!';
 
   @override
   String get appointmentBookingForm => 'Appointment Booking Form';
@@ -1842,13 +1900,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelAppointment => 'Cancel Appointment';
 
   @override
-  String get typeYourEnquiry => 'Type your Enquiry like (eg: Book an appointment or know the prices...)';
+  String get typeYourEnquiry =>
+      'Type your Enquiry like (eg: Book an appointment or know the prices...)';
 
   @override
   String get yourEnquirySent => 'Your enquiry sent';
 
   @override
-  String get yourEnquirySentMessage => 'Your enquiry has been sent successfully.\nWe will contact you soon!';
+  String get yourEnquirySentMessage =>
+      'Your enquiry has been sent successfully.\nWe will contact you soon!';
 
   @override
   String get sendEnquiry => 'Send Enquiry';
@@ -2238,7 +2298,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notScannedYet => 'Not Scanned Yet';
 
   @override
-  String get placementInstructions => 'Place QR code inside the frame to scan please avoid shake to get results quickly';
+  String get placementInstructions =>
+      'Place QR code inside the frame to scan please avoid shake to get results quickly';
 
   @override
   String get scanningCode => 'Scanning Code..';
@@ -2286,7 +2347,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteWallpaperTitle => 'Delete Wallpaper';
 
   @override
-  String get deleteWallpaperConfirmation => 'Are you sure you want to delete this wallpaper?';
+  String get deleteWallpaperConfirmation =>
+      'Are you sure you want to delete this wallpaper?';
 
   @override
   String errorSavingImage(dynamic error) {
@@ -2366,7 +2428,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyYourBusiness => 'Verify Your Business';
 
   @override
-  String get verificationDescription => 'Please choose how you\'d like to verify this business.';
+  String get verificationDescription =>
+      'Please choose how you\'d like to verify this business.';
 
   @override
   String get verificationProgress => 'Verification progress';
@@ -2385,7 +2448,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businessVerificationTitle => 'Business Verification';
 
   @override
-  String get businessVerificationDesc => 'Verify the business using official government\ndocuments like GST, Udyam, or Trade License.';
+  String get businessVerificationDesc =>
+      'Verify the business using official government\ndocuments like GST, Udyam, or Trade License.';
 
   @override
   String get getTagsOnce => 'Get Tags Once Verified';
@@ -2397,7 +2461,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownershipVerificationTitle => 'Ownership Verification';
 
   @override
-  String get ownershipVerificationDesc => 'Verify using your government ID, selfie with ID,\nor an authorization letter.';
+  String get ownershipVerificationDesc =>
+      'Verify using your government ID, selfie with ID,\nor an authorization letter.';
 
   @override
   String get verifyOwnerButton => 'Verify as Owner';
@@ -2414,10 +2479,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get successTitle => 'Submitted Successfully';
 
   @override
-  String get successSubtitle => 'We\'ll verify your document within 24–48 hours. You\'ll be notified once it\'s done.';
+  String get successSubtitle =>
+      'We\'ll verify your document within 24–48 hours. You\'ll be notified once it\'s done.';
 
   @override
-  String get headerDescription => 'To complete verification, we need to confirm you are the business owner or an authorized representative.';
+  String get headerDescription =>
+      'To complete verification, we need to confirm you are the business owner or an authorized representative.';
 
   @override
   String get uploadInstructions => 'Upload any one of the following:';
@@ -2426,22 +2493,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get governmentIdTitle => 'A valid government ID';
 
   @override
-  String get governmentIdDescription => 'Aadhaar, PAN, Driving License\nthat matches business records';
+  String get governmentIdDescription =>
+      'Aadhaar, PAN, Driving License\nthat matches business records';
 
   @override
   String get selfieTitle => 'A selfie with your ID';
 
   @override
-  String get selfieDescription => 'Clear photo of you holding\nyour government ID';
+  String get selfieDescription =>
+      'Clear photo of you holding\nyour government ID';
 
   @override
   String get authorizationLetterTitle => 'Authorization letter from the owner';
 
   @override
-  String get authorizationLetterDescription => 'Include a signed letter and\nowner\'s ID copy';
+  String get authorizationLetterDescription =>
+      'Include a signed letter and\nowner\'s ID copy';
 
   @override
-  String get warningMessage => 'Make sure the document clearly\nshows your name and photo.';
+  String get warningMessage =>
+      'Make sure the document clearly\nshows your name and photo.';
 
   @override
   String get verifyLaterButton => 'Verify Later';
@@ -2450,7 +2521,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uploadNow => 'Upload Now';
 
   @override
-  String get confirmBusinessText => 'Help us confirm your business is real. Just upload one document — we\'ll review it quickly.';
+  String get confirmBusinessText =>
+      'Help us confirm your business is real. Just upload one document — we\'ll review it quickly.';
 
   @override
   String get chooseDocumentTypeText => 'Choose Document Type';
@@ -2474,19 +2546,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentNoRequired => 'Document number is required';
 
   @override
-  String get confirmAuthorizationText => 'I confirm I\'m authorized to register this business.';
+  String get confirmAuthorizationText =>
+      'I confirm I\'m authorized to register this business.';
 
   @override
   String get submitButtonText => 'Submit for Verification';
 
   @override
-  String get documentUploadSuccessMessage => 'Verification document added successfully';
+  String get documentUploadSuccessMessage =>
+      'Verification document added successfully';
 
   @override
-  String get documentUploadErrorMessage => 'Verification document not uploaded, something went wrong';
+  String get documentUploadErrorMessage =>
+      'Verification document not uploaded, something went wrong';
 
   @override
-  String get acknowledgementRequiredMessage => 'Please give your acknowledgement.';
+  String get acknowledgementRequiredMessage =>
+      'Please give your acknowledgement.';
 
   @override
   String get documentRequiredMessage => 'Please upload document.';
@@ -2525,7 +2601,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sellOrProvideServices => 'Sell or Provide Services';
 
   @override
-  String get increaseCustomerPromoteAndMany => 'Increase Customer / Promote & Many More';
+  String get increaseCustomerPromoteAndMany =>
+      'Increase Customer / Promote & Many More';
 
   @override
   String get discoverBusinesses => 'Discover Businesses';
@@ -2590,7 +2667,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get downloadYourResume => 'Download your Resume';
 
   @override
-  String get completeYourProfileToDownloadYourResume => 'Complete your profile to download your resume.';
+  String get completeYourProfileToDownloadYourResume =>
+      'Complete your profile to download your resume.';
 
   @override
   String get uploadIntroductionVideo => 'Upload Introduction Video';
@@ -2617,7 +2695,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get skillsUpdatedSuccessfully => 'Skills updated successfully!';
 
   @override
-  String get addSkillsThatBestDefineYourExpertise => 'Add skills that best define your expertise, for e.g, Direct Marketing, Java etc.';
+  String get addSkillsThatBestDefineYourExpertise =>
+      'Add skills that best define your expertise, for e.g, Direct Marketing, Java etc.';
 
   @override
   String get skillSoftwareName => 'Skill / Software name*';
@@ -2659,10 +2738,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sendVerified => 'Send Verified';
 
   @override
-  String get pleaseSelectAnOrganisationToVerified => 'Please select an organisation to verified.';
+  String get pleaseSelectAnOrganisationToVerified =>
+      'Please select an organisation to verified.';
 
   @override
-  String get sendAVerificationRequestToYourCompanyToConfirmYourEmploymentOnceApprovedByTheRecruiterYouWillReceiveAVerifiedBadge => 'Send a verification request to your company to confirm your employment. Once approved by the recruiter, you will receive a verified badge.';
+  String get sendAVerificationRequestToYourCompanyToConfirmYourEmploymentOnceApprovedByTheRecruiterYouWillReceiveAVerifiedBadge =>
+      'Send a verification request to your company to confirm your employment. Once approved by the recruiter, you will receive a verified badge.';
 
   @override
   String get isThisYourCurrentEmployment => 'Is this your current employment?';
@@ -2710,10 +2791,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get withdrawRequest => 'Withdraw Request';
 
   @override
-  String get employmentVerificationRequestMessage => 'Your employment verification request has been sent to your company. Once approved by the recruiter, you will receive a verified badge.';
+  String get employmentVerificationRequestMessage =>
+      'Your employment verification request has been sent to your company. Once approved by the recruiter, you will receive a verified badge.';
 
   @override
-  String get verificationSubmittedMessage => 'Your verification request has been submitted successfully. Our team is reviewing your details. This process may take up to 24–48 hours.';
+  String get verificationSubmittedMessage =>
+      'Your verification request has been submitted successfully. Our team is reviewing your details. This process may take up to 24–48 hours.';
 
   @override
   String get employmentVerificationSentTitle => 'Employment Verification Sent';
@@ -2722,7 +2805,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verificationRequestPending => 'Verification Request Pending';
 
   @override
-  String get clearNotificationConfirmation => 'Are you sure you want to\n clear notification?';
+  String get clearNotificationConfirmation =>
+      'Are you sure you want to\n clear notification?';
 
   @override
   String get settings => 'Settings';
@@ -2897,7 +2981,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportReport => 'Export Report';
 
   @override
-  String get somethingWentWrongPleaseTryAgain => 'Something Went Wrong Please Try Again';
+  String get somethingWentWrongPleaseTryAgain =>
+      'Something Went Wrong Please Try Again';
 
   @override
   String youGotEnquiriesThisMonth(Object detailsTotalValue) {
@@ -2956,7 +3041,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterAValidPositiveNumber => 'Enter a valid positive number';
 
   @override
-  String get expectedSalaryShouldBeMoreThanCurrentSalary => 'Expected salary should be more than current salary';
+  String get expectedSalaryShouldBeMoreThanCurrentSalary =>
+      'Expected salary should be more than current salary';
 
   @override
   String get pleaseFillYourBirthday => 'Please fill your date of birth';
@@ -2965,13 +3051,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseSelectYourGender => 'Please select your gender';
 
   @override
-  String get pleaseEnterYourOrganizationName => 'Please enter your organization name';
+  String get pleaseEnterYourOrganizationName =>
+      'Please enter your organization name';
 
   @override
   String get pleaseEnterYourJobRole => 'Please enter your job role/work';
 
   @override
-  String get youHaveMoreChangesToOneOrMoreFieldsInYourProfile => 'You have made changes to one or more fields in your profile';
+  String get youHaveMoreChangesToOneOrMoreFieldsInYourProfile =>
+      'You have made changes to one or more fields in your profile';
 
   @override
   String get monetizeYourInfluence => 'Monetize your influence';
@@ -2983,7 +3071,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requestOTP => 'Request OTP';
 
   @override
-  String get howWouldYouLikeToGetTheCode => 'How would you like to get the code?';
+  String get howWouldYouLikeToGetTheCode =>
+      'How would you like to get the code?';
 
   @override
   String get whatsApp => 'WhatsApp';
@@ -3001,7 +3090,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccountAs => 'Create Account As';
 
   @override
-  String get chooseShopSellHire => 'Choose how you want to get started, \n whether you\'re here to shop, sell, or hire.';
+  String get chooseShopSellHire =>
+      'Choose how you want to get started, \n whether you\'re here to shop, sell, or hire.';
 
   @override
   String get uploadYourBusinessLogo => 'Upload Your Business Logo';
@@ -3010,13 +3100,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalSelfEmployee => 'Personal / Self Employee';
 
   @override
-  String get forIndividualsOfferService => 'For individuals to offer services, shop, find jobs, watch reels, and much more.';
+  String get forIndividualsOfferService =>
+      'For individuals to offer services, shop, find jobs, watch reels, and much more.';
 
   @override
-  String get forBusinessToSellOnline => 'For businesses to sell products online, connect with local customers, and grow their reach.';
+  String get forBusinessToSellOnline =>
+      'For businesses to sell products online, connect with local customers, and grow their reach.';
 
   @override
-  String get forPostingJobOpeningsAndConnectingWithRightCandidates => 'For posting job openings and connecting with the right candidates.';
+  String get forPostingJobOpeningsAndConnectingWithRightCandidates =>
+      'For posting job openings and connecting with the right candidates.';
 
   @override
   String get takeOne => 'Take from camera';
@@ -3040,7 +3133,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doYouHaveAGSTNumberTitle => 'Do you have a GST number?';
 
   @override
-  String get doYouHaveAGSTNumberSubTitle => 'If yes, your business will be instantly marked as verified.';
+  String get doYouHaveAGSTNumberSubTitle =>
+      'If yes, your business will be instantly marked as verified.';
 
   @override
   String get yesIHave => 'Yes, I have';
@@ -3055,7 +3149,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addYourBusiness => 'Add Your Business';
 
   @override
-  String get enterSizDigitOTPVerify => 'We\'ve sent a 6-digit OTP to +91 98765 43210 Please enter it below to verify your number.';
+  String get enterSizDigitOTPVerify =>
+      'We\'ve sent a 6-digit OTP to +91 98765 43210 Please enter it below to verify your number.';
 
   @override
   String get businessDetails => 'Business Details';
@@ -3151,7 +3246,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectBusinessCategory => 'Select Business Category';
 
   @override
-  String get egOurStore => 'Eg., Visit our store for casual and traditional wear...';
+  String get egOurStore =>
+      'Eg., Visit our store for casual and traditional wear...';
 
   @override
   String get businessDescription => 'Business Description';
@@ -3169,19 +3265,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeMapLocation => 'Your store’s map location';
 
   @override
-  String get youCanUpdateYourPhotoAnytime => 'You can update your photo anytime.';
+  String get youCanUpdateYourPhotoAnytime =>
+      'You can update your photo anytime.';
 
   @override
   String get profilePicture => 'Profile Picture';
 
   @override
-  String get searchLocationThreeCharterEnter => 'Search with 3+ characters to get your location';
+  String get searchLocationThreeCharterEnter =>
+      'Search with 3+ characters to get your location';
 
   @override
   String get highestEducation => 'Highest Education';
 
   @override
-  String get completeYourProfileAccessAccount => 'Complete Your Registration For Access Your Account';
+  String get completeYourProfileAccessAccount =>
+      'Complete Your Registration For Access Your Account';
 
   @override
   String get startBySelectingAccountTypes => 'Start By Selecting Account Types';
@@ -3190,10 +3289,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifyYourEmail => 'Verify your mail';
 
   @override
-  String get verificationLinkText => 'A verification link has been sent to your email';
+  String get verificationLinkText =>
+      'A verification link has been sent to your email';
 
   @override
-  String get clickVerifyYourEmailLink => '. Click the link to verify your email.';
+  String get clickVerifyYourEmailLink =>
+      '. Click the link to verify your email.';
 
   @override
   String get goToMail => 'Go to Mail';
@@ -3211,7 +3312,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fresherExperienceDetected => 'Fresher Experience Detected';
 
   @override
-  String get toAddWorkExperience => 'To add work experience, please remove your fresher experience first.';
+  String get toAddWorkExperience =>
+      'To add work experience, please remove your fresher experience first.';
 
   @override
   String get agree => 'Agree';
@@ -3223,7 +3325,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fresher => 'Fresher';
 
   @override
-  String get startProfessionalWork => 'Are you a fresher starting your career or an experienced professional?';
+  String get startProfessionalWork =>
+      'Are you a fresher starting your career or an experienced professional?';
 
   @override
   String get noDataFound => 'No record found';
@@ -3247,7 +3350,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get switchBusinessTypeQuestion => 'Switch Business Type?';
 
   @override
-  String get confirmSwitchBusinessTypeMessage => 'Switching business type will result in the loss of existing form data. Do you want to proceed?';
+  String get confirmSwitchBusinessTypeMessage =>
+      'Switching business type will result in the loss of existing form data. Do you want to proceed?';
 
   @override
   String get confirmSwitchBusinessTypeYes => 'Yes, Switch';
@@ -3256,25 +3360,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseWhatYouWantToVerify => 'Choose what you want to verify.';
 
   @override
-  String get verifyYourBusinessDetailsUsingGst => 'Verify your business details using GST or business documents.';
+  String get verifyYourBusinessDetailsUsingGst =>
+      'Verify your business details using GST or business documents.';
 
   @override
-  String get confirmsYourBusinessIsRegistered => 'Confirms your business is registered';
+  String get confirmsYourBusinessIsRegistered =>
+      'Confirms your business is registered';
 
   @override
-  String get requiredGstOrLicenseCertificate => 'Required: GST or license/certificate';
+  String get requiredGstOrLicenseCertificate =>
+      'Required: GST or license/certificate';
 
   @override
   String get ownershipVerification => 'Ownership Verification';
 
   @override
-  String get verifyThatYouAreTheOwnerOfTheBusiness => 'Verify that you are the owner of the business.';
+  String get verifyThatYouAreTheOwnerOfTheBusiness =>
+      'Verify that you are the owner of the business.';
 
   @override
-  String get confirmsYourIdentityAsTheBusinessOwner => 'Confirms your identity as the business owner';
+  String get confirmsYourIdentityAsTheBusinessOwner =>
+      'Confirms your identity as the business owner';
 
   @override
-  String get requiredAadhaarVoterIdOrSimilar => 'Required: Aadhaar, Voter ID, or similar';
+  String get requiredAadhaarVoterIdOrSimilar =>
+      'Required: Aadhaar, Voter ID, or similar';
 
   @override
   String get verifyNow => 'Verify Now';
@@ -3292,10 +3402,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get takePhoto => 'Take Photo';
 
   @override
-  String get uploadOneDocumentToVerifyYourIdentityAsTheBusinessOwner => 'Upload one document to verify your identity as the business owner.';
+  String get uploadOneDocumentToVerifyYourIdentityAsTheBusinessOwner =>
+      'Upload one document to verify your identity as the business owner.';
 
   @override
-  String get theNameOnTheDocumentShouldMatchYourPanName => '*The name on the document should match your PAN name.';
+  String get theNameOnTheDocumentShouldMatchYourPanName =>
+      '*The name on the document should match your PAN name.';
 
   @override
   String get uploadYourDocumentPhoto => 'Upload Your Document Photo';
@@ -3349,16 +3461,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onBoarding4Title => 'Earn via Reels and Videos';
 
   @override
-  String get onBoarding1SubTitle => 'Explore and buy products and services from Verified Local Businesses near you.';
+  String get onBoarding1SubTitle =>
+      'Explore and buy products and services from Verified Local Businesses near you.';
 
   @override
-  String get onBoarding2SubTitle => 'Promote businesses and earn from your social reach.';
+  String get onBoarding2SubTitle =>
+      'Promote businesses and earn from your social reach.';
 
   @override
-  String get onBoarding3SubTitle => 'Recruiters can post jobs. Job seekers can apply with ease.';
+  String get onBoarding3SubTitle =>
+      'Recruiters can post jobs. Job seekers can apply with ease.';
 
   @override
-  String get onBoarding4SubTitle => 'Earn using Reels and Videos on your own using BlueEra.';
+  String get onBoarding4SubTitle =>
+      'Earn using Reels and Videos on your own using BlueEra.';
 
   @override
   String get accountType1Title => 'Individual Account';
@@ -3367,16 +3483,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountType1SubTitle => 'Self employed, social worker, job seeker';
 
   @override
-  String get accountType1Description => 'Build your presence. Connect. Get noticed!';
+  String get accountType1Description =>
+      'Build your presence. Connect. Get noticed!';
 
   @override
   String get accountType2Title => 'Business Listing';
 
   @override
-  String get accountType2SubTitle => 'Store, Salon, Cafe, Hospitals, Manufacturing';
+  String get accountType2SubTitle =>
+      'Store, Salon, Cafe, Hospitals, Manufacturing';
 
   @override
-  String get accountType2Description => 'List your shop, office, or service and get discovered!';
+  String get accountType2Description =>
+      'List your shop, office, or service and get discovered!';
 
   @override
   String get yourNameHint => 'eg. Neha Singh';

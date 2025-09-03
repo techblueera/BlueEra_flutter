@@ -391,14 +391,17 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                   shouldPreload: _preloadedVideos.containsKey(index),
                   onTapOption: () {
                     openBlockSelectionDialog(
-                        context: context,
-                        userBlockVoidCallback: () async {
-                          await _blockUserAndAdvance(
-                            videoItem: videoItem,
-                            otherUserId: videoItem.video?.userId ?? '',
-                          );
-                        },
-                        postBlockVoidCallback: (){
+                      context: context,
+                      reportType: 'VIDEO_POST',
+                      userId: videoItem.video?.userId??'',
+                      contentId: videoItem.video?.id??'',
+                      userBlockVoidCallback: () async {
+                        await _blockUserAndAdvance(
+                          videoItem: videoItem,
+                          otherUserId: videoItem.video?.userId ?? '',
+                        );
+                      },
+                        reportCallback: (params){
 
                         }
                     );
