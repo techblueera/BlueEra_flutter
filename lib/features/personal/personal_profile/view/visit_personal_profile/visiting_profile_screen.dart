@@ -481,6 +481,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           isOwnVideos: false,
           channelId: '',
           authorId: widget.authorId,
+          sortBy: SortBy.Latest,
           isScroll: false,
           postVia: PostVia.profile,
         );

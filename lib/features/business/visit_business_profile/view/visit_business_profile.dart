@@ -169,6 +169,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                     channelId: '',
                     authorId: widget.businessId,
                     isScroll: false,
+                    sortBy: SortBy.Latest,
                     postVia: PostVia.profile,
                   ),
 

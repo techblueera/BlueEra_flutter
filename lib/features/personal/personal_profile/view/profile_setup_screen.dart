@@ -417,7 +417,7 @@ class _PersonalProfileSetupScreenState
       case 'Shorts':
         return ShortsChannelSection(
           isOwnShorts: true,
-          channelId: channelId,
+          channelId: '',
           authorId: userId,
           showShortsInGrid: true,
           sortBy: selectedFilter,
@@ -427,7 +427,7 @@ class _PersonalProfileSetupScreenState
         return VideoChannelSection(
           isOwnVideos: true,
           sortBy: selectedFilter,
-          channelId: channelId,
+          channelId: '',
           authorId: userId,
           isScroll: false,
           postVia: PostVia.profile,

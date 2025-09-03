@@ -105,14 +105,14 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case 'Profile':
         return BusinessProfileWidget();
       case 'My Posts':
-        return FeedScreen(
+         return FeedScreen(
           key: ValueKey('feedScreen_my_posts'),
           postFilterType: PostType.myPosts,
           id: businessId,
           isInParentScroll: true
         );
       case 'Shorts':
-           return ShortsChannelSection(
+         return ShortsChannelSection(
           isOwnShorts: true,
           channelId: '',
           authorId: businessId,
@@ -123,8 +123,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case "Videos":
       return VideoChannelSection(
             isOwnVideos: true,
-            channelId: channelId,
-            authorId:userId,
+            channelId: '',
+            authorId: businessId,
             isScroll: false,
             postVia: PostVia.profile,
         );
