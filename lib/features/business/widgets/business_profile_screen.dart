@@ -115,7 +115,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
          return ShortsChannelSection(
           isOwnShorts: true,
           channelId: '',
-          authorId: businessId,
+          authorId: businessUserId,
           showShortsInGrid: true,
           sortBy: selectedFilter,
           postVia: PostVia.profile,
@@ -124,9 +124,10 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       return VideoChannelSection(
             isOwnVideos: true,
             channelId: '',
-            authorId: businessId,
+            authorId: businessUserId,
             isScroll: false,
             postVia: PostVia.profile,
+            sortBy: selectedFilter,
         );
       default:
         return const Center(child: CustomText('Coming soon'));
