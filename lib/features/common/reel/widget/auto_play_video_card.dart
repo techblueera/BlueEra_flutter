@@ -325,7 +325,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                             videoType: Videos.videoFeed,
                           )
                       else if (widget.videoItem.author?.accountType == AppConstants.business)
-                        if (widget.videoItem.author?.id != businessId)
+                        if (widget.videoItem.author?.id != businessUserId)
                           IconButton(
                             onPressed: widget.onTapOption,
                             icon: LocalAssets(imagePath: AppIconAssets.blockIcon),

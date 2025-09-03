@@ -242,7 +242,7 @@ class _VideoCardState extends State<VideoCard> {
                                   videoType: widget.videoType
                               )
                           else if(widget.videoItem.author?.accountType == AppConstants.business)
-                            if(widget.videoItem.author?.id != businessId)
+                            if(widget.videoItem.author?.id != businessUserId)
                               IconButton(
                                 onPressed: widget.onTapOption,
                                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
@@ -261,7 +261,22 @@ class _VideoCardState extends State<VideoCard> {
                 ),
               ],
             ),
+            if(widget.videoType == Videos.underProgress)
+              ...[
+                AspectRatio(
+                  aspectRatio: 18/9,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.black65,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
+                    ),
+                    child: Center(
+                      child: LocalAssets(imagePath: AppIconAssets.progressIndicator),
+                    ),
+                  ),
+                )
 
+              ],
           ],
         ),
       ),

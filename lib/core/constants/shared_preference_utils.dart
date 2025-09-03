@@ -11,6 +11,7 @@ String userNameGlobal = '';
 String userProfessionGlobal = '';
 String userId = '';
 String businessId = '';
+String businessUserId = '';
 String userMobileGlobal = '';
 String isUserLoginGlobal = '';
 String has_reel_profile_status = 'false';
@@ -51,6 +52,7 @@ class SharedPreferenceUtils {
   static const userProfession = 'user_profession';
   static const businessName = 'business_name';
   static const businessOwnerName = 'business_owner_name';
+  static const businessUserId = 'business_user_id';
 
   static Future<void> userLoggedIn({
     required String loginUserId_,
@@ -226,8 +228,13 @@ getBusinessData() async {
   businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessName) ??
       "";
+
   businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessOwnerName) ??
+      "";
+
+  businessUserId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessUserId) ??
       "";
 }
 
