@@ -127,6 +127,8 @@ class _MyAppState extends State<MyApp> {
   void _initDeepLinks() {
     _appLinks = AppLinks();
 
+    logs("added deepLink");
+
     // Handle app launched via link (cold start)
     _appLinks.getInitialLink().then((uri) {
       if (uri != null) _handleDeepLink(uri);
