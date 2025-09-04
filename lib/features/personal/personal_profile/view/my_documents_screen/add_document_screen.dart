@@ -72,11 +72,10 @@ class AddDocumentScreen extends StatelessWidget {
                             color: AppColors.white),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children:  [
-                            Icon(Icons.ios_share,color:Color(0xff505050),size: 20,),
-                            SizedBox(width: 5,),
-                            // 505050
-                            CustomText("Share Media File",)],
+                          children: [
+                            
+                            
+                            CustomText("Share Media File")],
                         ),
                       ),
                       SizedBox(height: SizeConfig.size80),

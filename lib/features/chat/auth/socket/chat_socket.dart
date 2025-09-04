@@ -21,8 +21,7 @@ class ChatSocketService {
     try {
       print("Attempting to connect to socket...");
       _socket = IO.io(
-        'http://13.234.34.139:3000/',
-        // 'http://13.233.214.14:3000',
+        'http://43.205.113.192:3000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setPath('/socket')
@@ -37,7 +36,6 @@ class ChatSocketService {
         _isConnected = true;
         _socket.emit("screenRoom", {ApiKeys.conversation_id: "online"});
         _socket.emit("ChatList", {ApiKeys.type: "personal"});
-          print("Socket connected!");
 
       });
 

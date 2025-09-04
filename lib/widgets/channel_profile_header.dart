@@ -7,7 +7,6 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/post_meta_info.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,7 +21,6 @@ class ChannelProfileHeader extends StatelessWidget {
   final VoidCallback? onTapAvatar;
   final Color? borderColor;
   final bool? isVerifiedTickShow;
-  final String? postedAgo;
 
   const ChannelProfileHeader({
     Key? key,
@@ -36,7 +34,6 @@ class ChannelProfileHeader extends StatelessWidget {
     this.subTitleColor,
     this.borderColor,
     this.isVerifiedTickShow = false,
-    this.postedAgo
   }) : super(key: key);
 
   @override
@@ -108,25 +105,11 @@ class ChannelProfileHeader extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: SizeConfig.size2),
-                Row(
-                  children: [
-                    CustomText(
-                      subtitle,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: subTitleColor ?? AppColors.secondaryTextColor,
-                    ),
-
-                    if(postedAgo?.isNotEmpty??false)
-                    ...[
-                      SizedBox(width: SizeConfig.size8),
-                      PostMetaInfo(
-                        timeAgoText: postedAgo!,
-                        fontSize: SizeConfig.extraSmall,
-                      ),
-                    ]
-
-                  ],
+                CustomText(
+                  subtitle,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: subTitleColor ?? AppColors.secondaryTextColor,
                 ),
 
                 // Add optional follower/follow section if needed

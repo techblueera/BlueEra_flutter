@@ -242,7 +242,6 @@ List<String> selectGenderList = [
 ];
 
 void createProfileScreen() {
-  logs("userMobileGlobal=== ${userMobileGlobal}");
   Get.toNamed(
     RouteHelper.getSelectAccountScreenRoute(),
     arguments: {ApiKeys.argMobileNumber: userMobileGlobal},

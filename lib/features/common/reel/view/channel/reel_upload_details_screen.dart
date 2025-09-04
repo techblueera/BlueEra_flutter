@@ -17,10 +17,14 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/set_availability_screen.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -1174,9 +1178,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       //   }
       // }
 
-       uploadVideo();
-
-      //uploadVideoNewsync();
+      // uploadVideo();
+      uploadVideoNewsync();
 
       // videoUploadInBackground();
 
@@ -1312,7 +1315,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       reelUploadDetailsController.uploadFileToS3(
         file: videoFile,
         fileType: videoInfo['mimeType']!,
-        preSignedUrl: reelUploadDetailsController.uploadInitVideoFile?.uploadUrl??"",
+        preSignedUrl: reelUploadDetailsController.uploadInitVideoFile!.uploadUrl!,
         onProgress: (total) {
           videoProgress = total; // total in 0.0 - 1.0
           updateCombinedProgress();
@@ -1321,7 +1324,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       reelUploadDetailsController.uploadFileToS3(
         file: coverFile,
         fileType: coverInfo['mimeType']!,
-        preSignedUrl: reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl??"",
+        preSignedUrl: reelUploadDetailsController.uploadInitCoverImageFile!.uploadUrl!,
         onProgress: (total) {
           coverProgress = total;
           updateCombinedProgress();

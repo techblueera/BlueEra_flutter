@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/gst_verify_model.dart';
+import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/api/model/otp_verify_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -22,6 +23,8 @@ import 'package:BlueEra/features/common/auth/model/version_control_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/services/notifications/one_signal_services.dart';
@@ -87,49 +90,51 @@ class AuthController extends GetxController {
           await AuthRepo().authMobileOtpVerifyRepo(bodyRequest: requestData);
 
       if (response.statusCode == 200) {
-        final data = response.response?.data[ApiKeys.user];
-        if (data == false) {
-          // await createGuestAccountUserController(reqData: {
-          //   ApiKeys.contact_no: mobileNumberEditController.text,
-          //   ApiKeys.account_type: AppConstants.guest
-          // });
-          Get.offNamed(
-            RouteHelper.getSelectAccountScreenRoute(),
-            arguments: {
-              ApiKeys.argMobileNumber: mobileNumberEditController.text
-            },
-          );
-        } else {
+        OtpVerifyModel data =
+            otpVerifyModelFromJson(jsonEncode(response.response?.data));
+
+        final dataUser = response.response?.data?[ApiKeys.user] ?? false;
+
+        ///if true user key the user created successfully....
+        if (dataUser) {
           commonSnackBar(message: response.message ?? AppStrings.success);
 
-          OtpVerifyModel data =
-              otpVerifyModelFromJson(jsonEncode(response.response?.data));
           if (data.token != null && (data.token?.isNotEmpty ?? false)) {
             OnesignalService.setOneSignalUserIdentity(
                 data.data?.username ?? '');
+            if (data.data?.accountType?.toUpperCase() ==
+                AppConstants.business) {
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.accountType, AppConstants.business);
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.userBusinessId, data.data?.business);
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.authToken, data.token);
 
-            await SharedPreferenceUtils.userLoggedIn(
-                businesId: data.business != null ? "${data.business?.id}" : "",
-                loginUserId_: "${data.data?.id}",
-                contactNo: "${data.data?.contactNo}",
-                autToken: "${data.token}",
-                name: data.data?.accountType?.toUpperCase() ==
-                    AppConstants.business
-                    ? ""
-                    : "${data.data?.name}",
-                profileImage: data.data?.accountType?.toUpperCase() ==
-                        AppConstants.business
-                    ? "${data.business?.logo}"
-                    : "${data.data?.profileImage}",
-              profession: data.data?.accountType?.toUpperCase() ==
-                  AppConstants.business
-                  ? ""
-                  : "${data.data?.profession}",
-            );
-            await SharedPreferenceUtils.setSecureValue(
-                SharedPreferenceUtils.accountType, data.data?.accountType);
+              await getUserLoginBusinessId();
+              await getUserLoginAccountType();
+              await getUserAuthToken();
+              final viewProfileController =
+                  Get.put(ViewBusinessDetailsController());
 
-            await getUserLoginData();
+              await viewProfileController.viewBusinessProfile();
+            } else if (data.data?.accountType?.toUpperCase() ==
+                AppConstants.individual) {
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
+              await getMobileNo();
+
+              final personalController =
+                  Get.put(ViewPersonalDetailsController());
+              await personalController.viewPersonalProfile();
+
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.authToken, data.token);
+
+              await getUserLoginAccountType();
+              await getUserAuthToken();
+            }
+
             Get.offNamedUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
               (route) => false,
@@ -139,20 +144,46 @@ class AuthController extends GetxController {
           }
           otpVerificationResponse = ApiResponse.complete(response);
         }
+
+        ///Guest create account but profile create.....
+        else if (data.data?.accountType?.toUpperCase() == AppConstants.guest) {
+          await SharedPreferenceUtils.guestUserLoggedIn(
+            loginUserId_: "${data.data?.id}",
+            contactNo: "${data.data?.contactNo}",
+            autToken: "${data.token}",
+            getUserName: "${data.data?.username}",
+          );
+          await SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.accountType, AppConstants.guest);
+          await getGuestUserLoginData();
+          await Future.delayed(Duration(milliseconds: 350));
+          Get.offNamedUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            (route) => false,
+          );
+        }
+
+        ///GUEST ACCOUNT.....
+        else {
+          await createGuestAccountUserController(reqData: {
+            ApiKeys.contact_no: mobileNumberEditController.text,
+            ApiKeys.account_type: AppConstants.guest
+          });
+        }
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      logs("ERROR ${e}");
       otpVerificationResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
-  ///Add User...
+  /* ///Add User...
   Future<void> addNewUser({required Map<String, dynamic>? reqData}) async {
     try {
-      logs("REQ DATA==== ${reqData}");
       ResponseModel response =
           await AuthRepo().authUserRegisterRepo(bodyRequest: reqData);
       if (response.isSuccess) {
@@ -161,27 +192,28 @@ class AuthController extends GetxController {
         if (otpVerifyModel.success ?? false) {
           commonSnackBar(message: response.message ?? AppStrings.success);
           await SharedPreferenceUtils.userLoggedIn(
-              businesId: otpVerifyModel.business != null
-                  ? "${otpVerifyModel.business?.id}"
-                  : "",
-              loginUserId_: "${otpVerifyModel.data?.id}",
-              contactNo: "${otpVerifyModel.data?.contactNo}",
-              autToken: "${otpVerifyModel.token}",
-              name: otpVerifyModel.data?.accountType?.toUpperCase() ==
-                  AppConstants.business
-                  ? ""
-                  : "${otpVerifyModel.data?.name}",
-                profileImage: otpVerifyModel.data?.accountType?.toUpperCase() ==
-                        AppConstants.business
-                    ? "${otpVerifyModel.business?.logo}"
-                    : "${otpVerifyModel.data?.profileImage}",
-              profession: otpVerifyModel.data?.accountType?.toUpperCase() ==
-                  AppConstants.business
-                  ? ""
-                  : "${otpVerifyModel.data?.profession}",
+            businesId: otpVerifyModel.business != null
+                ? "${otpVerifyModel.business?.id}"
+                : "",
+            loginUserId_: "${otpVerifyModel.data?.id}",
+            contactNo: "${otpVerifyModel.data?.contactNo}",
+            autToken: "${otpVerifyModel.token}",
+            getUserName: otpVerifyModel.data?.accountType?.toUpperCase() ==
+                    AppConstants.business
+                ? ""
+                : "${otpVerifyModel.data?.name}",
+            profileImage: otpVerifyModel.data?.accountType?.toUpperCase() ==
+                    AppConstants.business
+                ? "${otpVerifyModel.business?.logo}"
+                : "${otpVerifyModel.data?.profileImage}",
+            designation: otpVerifyModel.data?.accountType?.toUpperCase() ==
+                    AppConstants.business
+                ? ""
+                : "${otpVerifyModel.data?.profession}",
           );
           await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.accountType, otpVerifyModel.data?.accountType);
+              SharedPreferenceUtils.accountType,
+              otpVerifyModel.data?.accountType);
 
           await getUserLoginData();
           if (otpVerifyModel.data?.accountType?.toUpperCase() ==
@@ -212,6 +244,82 @@ class AuthController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      addUserResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+*/
+  Future<void> addIndivisualUser(
+      {required Map<String, dynamic>? reqData}) async {
+    try {
+      ResponseModel response = await AuthRepo()
+          .updateIndividualAccountUserRepo(bodyRequest: reqData);
+      if (response.isSuccess) {
+        GuestUserResModel guestUserResModel =
+            GuestUserResModel.fromJson(response.response?.data);
+        if (guestUserResModel.status ?? false) {
+          commonSnackBar(message: response.message ?? AppStrings.success);
+          final personalController = Get.put(ViewPersonalDetailsController());
+          await personalController.viewPersonalProfile();
+          Get.offNamedUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            (route) => false,
+          );
+
+          clearAllData();
+          addUserResponse = ApiResponse.complete(response);
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+        }
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs("ERRPR $e");
+      addUserResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
+    try {
+      ResponseModel response =
+          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData);
+      if (response.isSuccess) {
+        GuestUserResModel guestUserResModel =
+            GuestUserResModel.fromJson(response.response?.data);
+        if (guestUserResModel.status ?? false) {
+          commonSnackBar(message: response.message ?? AppStrings.success);
+          // await getUserLoginData();
+
+          await SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.accountType, AppConstants.business);
+          await SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.userBusinessId,
+              guestUserResModel.businessId);
+          await SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.authToken, guestUserResModel.token);
+
+          await getUserLoginBusinessId();
+          await getUserLoginAccountType();
+          await getUserAuthToken();
+          final viewProfileController =
+              Get.put(ViewBusinessDetailsController());
+          await viewProfileController.viewBusinessProfile();
+          Get.offAll(CreateBusinessAccountStepTwo());
+
+          clearAllData();
+          addUserResponse = ApiResponse.complete(response);
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+        }
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs("ERRPR $e");
       addUserResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
@@ -460,6 +568,7 @@ class AuthController extends GetxController {
         if (guestResModel.success ?? false) {
           commonSnackBar(message: response.message ?? AppStrings.success);
           await SharedPreferenceUtils.guestUserLoggedIn(
+            loginUserId_: "${guestResModel.data?.id}",
             contactNo: "${guestResModel.data?.contactNo}",
             autToken: "${guestResModel.token}",
             getUserName: "${guestResModel.data?.name}",

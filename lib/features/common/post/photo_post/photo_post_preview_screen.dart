@@ -213,10 +213,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
   Widget _buildPreviewButton() {
     return PositiveCustomBtn(
         onTap: () {
-          Get.toNamed(
-              RouteHelper.getPhotoPostReviewScreenRoute(),
-              arguments: {ApiKeys.argPostVia: postVia}
-          );
+          Get.toNamed(RouteHelper.getPhotoPostReviewScreenRoute(), arguments: {ApiKeys.argPostVia: postVia});
         },
         title: "Continue");
   }

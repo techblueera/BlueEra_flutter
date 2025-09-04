@@ -309,11 +309,10 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           ShortsChannelSection(
-            isOwnShorts: false,
+            isOwnChannel: false,
             channelId: '',
             authorId: widget.userId,
             showShortsInGrid: false,
-            postVia: PostVia.profile,
           ),
 
           const SizedBox(height: 16),

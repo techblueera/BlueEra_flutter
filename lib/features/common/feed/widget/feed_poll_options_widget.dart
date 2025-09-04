@@ -15,8 +15,7 @@ class FeedPollOptionsWidget extends StatefulWidget {
     // required this.authorId,
     required this.poll,
     required this.postFilteredType,
-    this.postedAgo,
-    this.message,
+    this.sortBy,
   });
 
   // final Map<String, bool>? quesOptions;
@@ -26,8 +25,7 @@ class FeedPollOptionsWidget extends StatefulWidget {
   // final int authorId;
   final Poll? poll;
   final PostType postFilteredType;
-  final String? postedAgo;
-  final String? message;
+  final SortBy? sortBy;
 
   @override
   State<FeedPollOptionsWidget> createState() => _FeedPollOptionsWidgetState();
@@ -41,14 +39,7 @@ class _FeedPollOptionsWidgetState extends State<FeedPollOptionsWidget> with Auto
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return CustomPollWidget(
-        postId: widget.postId,
-        question: widget.question,
-        options: widget.poll!.options,
-        postFilteredType: widget.postFilteredType,
-        postedAgo: widget.postedAgo,
-        message: widget.message,
-    );
+    return CustomPollWidget(postId: widget.postId, options: widget.poll!.options, postFilteredType: widget.postFilteredType, sortBy: widget.sortBy);
   }
 
 

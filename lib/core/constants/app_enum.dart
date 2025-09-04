@@ -738,7 +738,6 @@ enum VisitingChannelMenuAction {
 }
 
 enum OwnChannelMenuAction {
-  channelEdit,
   chennelSetting,
   addVideo,
   addProduct,
@@ -1160,10 +1159,10 @@ enum PostSortBy {
 }
 
 enum SortBy {
-  UnderProgress('Under Progress', 'under_progress'),
   Latest('Latest', 'latest'),
   Popular('Popular', 'popular'),
-  Oldest('Oldest', 'oldest');
+  Oldest('Oldest', 'oldest'),
+  UnderProgress('Under Progress', 'under_progress');
 
   final String label;
   final String queryValue;

@@ -360,6 +360,7 @@ Future<void> showCreateChannelDialog(
       Navigator.pushNamed(
         context,
         RouteHelper.getManageChannelScreenRoute(),
+        arguments: {ApiKeys.videoType: VideoType.video},
       );
     },
     cancelCallback: () {

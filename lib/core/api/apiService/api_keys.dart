@@ -319,5 +319,4 @@ class ApiKeys {
   static const office_landline_no_number = "office_landline_no[number]";
   static const pincode = "pincode";
   static const business_description = "business_description";
-  static const channelData = "channelData";
 }

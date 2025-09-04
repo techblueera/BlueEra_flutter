@@ -15,7 +15,6 @@ import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigati
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step2.dart';
@@ -259,7 +258,6 @@ class RouteHelper {
       RouteConstant.allTransactionsScreen;
   static String getearnBlueeraScreenRoute() => RouteConstant.earnBlueeraScreen;
   static String getaddDocumentScreenRoute() => RouteConstant.addDocumentScreen;
-  static String getpostDetailPageRoute() => RouteConstant.postDetailPage;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -389,8 +387,7 @@ class RouteHelper {
         return MaterialPageRoute(builder: (_) => CustomizeMapScreen());
       case RouteConstant.SearchLocationScreen:
         final args = settings.arguments as Map<String, dynamic>?;
-        final onPlaceSelected = args?[ApiKeys.onPlaceSelected] as Function(
-            double?, double?, String?)?;
+        final onPlaceSelected = args?[ApiKeys.onPlaceSelected] as Function(double?, double?, String?)?;
         final fromScreen = args?[ApiKeys.fromScreen] as String;
         return MaterialPageRoute(
           builder: (_) => SearchLocationScreen(
@@ -765,12 +762,8 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => EarnBlueeraScreen(),
             settings: RouteSettings(name: getearnBlueeraScreenRoute()));
-      case RouteConstant.postDetailPage:
-        return MaterialPageRoute(
-            builder: (_) => PostDeatilPage(),
-            settings: RouteSettings(name: getpostDetailPageRoute()));
 
-     default:
+      default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
             body: Center(child: CustomText('No route found')),

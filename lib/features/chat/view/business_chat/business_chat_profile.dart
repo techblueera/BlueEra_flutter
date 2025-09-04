@@ -6,8 +6,7 @@ import 'package:BlueEra/features/business/widgets/header_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_info_widget.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/view/widget/business_chat_header.dart';
-import 'package:BlueEra/features/chat/view/widget/business_chat_overview.dart';
-
+import 'package:BlueEra/features/chat/view/widget/business_overview_chat.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -65,35 +64,32 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
     {
       "imageUrl":
           "https://slicecover.com/cdn/shop/files/14proSMCskyblue.png?v=1709805718&width=2000",
-      "title": "Apple iPhone 16",
-      "price": "₹61,499",
-      "originalPrice": "₹98,000",
-      "discount": "50% Off",
-      "shop": "Pervez Mobile Shop",
-      "rating": "4.8 ",
-      'reviews':"48 reviews"
+      "title": "Dog Food",
+      "price": "₹500",
+      "oldPrice": "₹700",
+      "discount": "20% Off",
+      "rating": 4.5,
+      "reviews": 120,
     },
     {
       "imageUrl":
           "https://slicecover.com/cdn/shop/files/14proSMCskyblue.png?v=1709805718&width=2000",
-      "title": "Apple iPhone 16",
-      "price": "₹61,499",
-      "originalPrice": "₹98,000",
-      "discount": "50% Off",
-      "shop": "Pervez Mobile Shop",
-      "rating": "4.8 (48 reviews)",
-      'reviews':"48 reviews"
+      "title": "Cat Toy",
+      "price": "₹250",
+      "oldPrice": "₹350",
+      "discount": "10% Off",
+      "rating": 4.2,
+      "reviews": 80,
     },
     {
       "imageUrl":
           "https://slicecover.com/cdn/shop/files/14proSMCskyblue.png?v=1709805718&width=2000",
-      "title": "Apple iPhone 16",
-      "price": "₹61,499",
-      "originalPrice": "₹98,000",
-      "discount": "50% Off",
-      "shop": "Pervez Mobile Shop",
-      "rating": "4.8 ",
-      'reviews':"48 reviews"
+      "title": "Dog Leash",
+      "price": "₹450",
+      "oldPrice": "₹600",
+      "discount": "25% Off",
+      "rating": 4.7,
+      "reviews": 200,
     },
   ];
 
@@ -185,17 +181,13 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                           businessName: businessData?.businessName ?? "N/A",
                           isTitleShow: true,
                         ),
-                        SizedBox(
-                          height: 20,
-                        ),
+                        SizedBox(height:20,),
                         CustomText(
-                          "Products",
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
+              "Products",
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+            SizedBox(height: 10,),
                         SizedBox(
                           height: 240,
                           child: ListView.builder(
@@ -208,142 +200,129 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                                 imageUrl: product["imageUrl"],
                                 title: product["title"],
                                 price: product["price"],
-                                oldPrice: product["price"],
+                                oldPrice: product["oldPrice"],
                                 discount: product["discount"],
                                 rating: product["rating"],
-                                reviews: product["reviews"].toString(),
+                                reviews: product["reviews"],
                               );
                             },
                           ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
+                        SizedBox(height: 10,),
                         Card(
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Profile Row
-                                Row(
-                                  children: [
-                                    const CircleAvatar(
-                                      radius: 20,
-                                      backgroundImage: NetworkImage(
-                                        "https://randomuser.me/api/portraits/women/44.jpg",
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          "Courtney Henry",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16),
-                                        ),
-                                        Row(
-                                          children: const [
-                                            Icon(Icons.star,
-                                                color: Colors.amber, size: 16),
-                                            Icon(Icons.star,
-                                                color: Colors.amber, size: 16),
-                                            Icon(Icons.star,
-                                                color: Colors.amber, size: 16),
-                                            Icon(Icons.star,
-                                                color: Colors.amber, size: 16),
-                                            Icon(Icons.star_half,
-                                                color: Colors.amber, size: 16),
-                                            SizedBox(width: 6),
-                                            Text("2 mins ago",
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey)),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-
-                                // Review Text
-                                const Text(
-                                  "Yorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                                  "Nunc vulputate libero et velit interdum, ac aliquet odio mattis. "
-                                  "Class aptent taciti sociosqu ad litora torquent.",
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.black87),
-                                ),
-                                const SizedBox(height: 12),
-
-                                // Images
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-
-                                // Actions Row
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: const [
-                                        Icon(Icons.thumb_up,
-                                            color: Colors.blue),
-                                        SizedBox(width: 5),
-                                        Text("5k+"),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: const [
-                                        Icon(Icons.comment, color: Colors.grey),
-                                        SizedBox(width: 5),
-                                        Text("310"),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: const [
-                                        Icon(Icons.share, color: Colors.grey),
-                                        SizedBox(width: 5),
-                                        Text("50"),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Profile Row
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(
+                        "https://randomuser.me/api/portraits/women/44.jpg",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Courtney Henry",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
                         ),
+                        Row(
+                          children: const [
+                            Icon(Icons.star, color: Colors.amber, size: 16),
+                            Icon(Icons.star, color: Colors.amber, size: 16),
+                            Icon(Icons.star, color: Colors.amber, size: 16),
+                            Icon(Icons.star, color: Colors.amber, size: 16),
+                            Icon(Icons.star_half,
+                                color: Colors.amber, size: 16),
+                            SizedBox(width: 6),
+                            Text("2 mins ago",
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Review Text
+                const Text(
+                  "Yorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                  "Nunc vulputate libero et velit interdum, ac aliquet odio mattis. "
+                  "Class aptent taciti sociosqu ad litora torquent.",
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                const SizedBox(height: 12),
+
+                // Images
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Actions Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.thumb_up, color: Colors.blue),
+                        SizedBox(width: 5),
+                        Text("5k+"),
+                      ],
+                    ),
+                    Row(
+                      children: const [
+                        Icon(Icons.comment, color: Colors.grey),
+                        SizedBox(width: 5),
+                        Text("310"),
+                      ],
+                    ),
+                    Row(
+                      children: const [
+                        Icon(Icons.share, color: Colors.grey),
+                        SizedBox(width: 5),
+                        Text("50"),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
                         const SizedBox(height: 24),
                         //Add product ui here
                         const Text('Post',
@@ -361,14 +340,20 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                           ),
                         ),
                         const SizedBox(height: 16),
+                        
                       ],
                     ),
                   ),
 
-                  // product tab
-                  productTab(),
-                  reviewTab(),
-                    FeedScreen(
+                  // Store tab
+                  ShortsChannelSection(
+                      // scrollController: _scrollController,
+                      isOwnChannel: false,
+                      sortBy: controller.selectedFilter,
+                      showShortsInGrid: true,
+                      channelId: '',
+                      authorId: businessData?.userId ?? ""),
+                  FeedScreen(
                     key: const ValueKey('feedScreen_others_posts'),
                     postFilterType: PostType.otherPosts,
                     id: businessData?.userId,
@@ -388,244 +373,14 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
     );
   }
 
-  GridView productTab() {
-    return GridView.builder(
-                  itemCount: products.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // 2 items per row
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.65, // controls height of card
-                  ),
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-                    return Container(
-                      padding: EdgeInsets.all(10),
-                      margin: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(12)),
-                            child: Image.network(
-                              product["imageUrl"],
-                              height: 120,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product["title"],
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  product["price"],
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: Colors.black),
-                                ),
-                                Text(
-                                  "${product["discount"]} ${product["originalPrice"]}",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                    decoration: TextDecoration.lineThrough,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.store,
-                                        size: 14, color: Colors.black54),
-                                    SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        product["shop"],
-                                        style: TextStyle(fontSize: 12),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.star,
-                                        color: Colors.orange, size: 14),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      product["rating"],
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-  }
-
-  Card reviewTab() {
-    return Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Profile Row
-                              Row(
-                                children: [
-                                  const CircleAvatar(
-                                    radius: 20,
-                                    backgroundImage: NetworkImage(
-                                      "https://randomuser.me/api/portraits/women/44.jpg",
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Courtney Henry",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16),
-                                      ),
-                                      Row(
-                                        children: const [
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star_half,
-                                              color: Colors.amber, size: 16),
-                                          SizedBox(width: 6),
-                                          Text("2 mins ago",
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Review Text
-                              const Text(
-                                "Yorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                                "Nunc vulputate libero et velit interdum, ac aliquet odio mattis. "
-                                "Class aptent taciti sociosqu ad litora torquent.",
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.black87),
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Images
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Actions Row
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.thumb_up,
-                                          color: Colors.blue),
-                                      SizedBox(width: 5),
-                                      Text("5k+"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.comment, color: Colors.grey),
-                                      SizedBox(width: 5),
-                                      Text("310"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.share, color: Colors.grey),
-                                      SizedBox(width: 5),
-                                      Text("50"),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-  }
-
   Widget buildProductCard({
     required String imageUrl,
     required String title,
     required String price,
     required String oldPrice,
     required String discount,
-    required String rating,
-    required String reviews,
+    required double rating,
+    required int reviews,
   }) {
     return Container(
       width: 150,
@@ -705,10 +460,10 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                       style: const TextStyle(
                           fontWeight: FontWeight.w600, fontSize: 12),
                     ),
-                    // Text(
-                    //   "($reviews reviews)",
-                    //   style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    // ),
+                    Text(
+                      "($reviews reviews)",
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
                   ],
                 ),
               ],

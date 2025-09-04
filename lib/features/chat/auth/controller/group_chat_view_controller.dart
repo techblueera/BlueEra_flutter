@@ -101,7 +101,6 @@ class GroupChatViewController extends GetxController {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
     }else if (chatListModel.type=="personal"){
-      print('persionalChatlist');
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
     }else if (chatListModel.type=="group"){
@@ -390,7 +389,6 @@ print("data1");
         required String? contactName,
         required String? contactNo,
         required bool isInitialMessage,
-       required  String? businessId,
         bool? isFromContactList}) async {
     await getLocalConversation(conversationId, userId);
     if (isFromContactList != null && isFromContactList) {
@@ -403,7 +401,6 @@ print("data1");
           profileImage: profileImage,
           name: contactName,
           contactNo: contactNo,
-          businessId: businessId,
         ),
       );
     } else {
@@ -416,7 +413,6 @@ print("data1");
           profileImage: profileImage,
           name: contactName,
           contactNo: contactNo,
-          businessId: businessId,
         ),
       );
     }

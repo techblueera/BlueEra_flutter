@@ -1,3 +1,4 @@
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -35,7 +36,9 @@ class _ExpandableTextState extends State<ExpandableText> {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style ?? const TextStyle(color: AppColors.black28);
+    final style = widget.style ?? const TextStyle(
+        color: AppColors.black28
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -52,104 +55,40 @@ class _ExpandableTextState extends State<ExpandableText> {
 
         final isOverflow = tpTrimmed.didExceedMaxLines;
 
-          // If text fits, no need for expand/collapse
-          if (!isOverflow) {
-            return SizedBox(
-              width: double.infinity,
-              child: Text(
-                widget.text,
-                style: style,
-                textAlign: TextAlign.start,
-              ),
-            );
-
-        }
-
-        if (_readMore) {
-          // Create "Read more" text painter to measure its width
-          final readMoreStyle = style.copyWith(
-            color: AppColors.primaryColor,
-            fontWeight: FontWeight.w600,
-            fontSize: SizeConfig.medium15,
-          );
-          final readMorePainter = TextPainter(
-            text: TextSpan(text: '... Read more', style: readMoreStyle),
-            textDirection: TextDirection.ltr,
-            textAlign: TextAlign.start,
-            textScaler: MediaQuery.of(context).textScaler,
-          )..layout();
-
-          // Calculate the cutoff position, accounting for "Read more" width
-          final lastLineHeight = (widget.trimLines - 1) * tpTrimmed.preferredLineHeight;
-          final availableWidthOnLastLine = constraints.maxWidth - readMorePainter.width;
-
-          final cutoffOffset = tpTrimmed.getPositionForOffset(Offset(
-            availableWidthOnLastLine,
-            lastLineHeight + (tpTrimmed.preferredLineHeight * 0.5), // Middle of last line
-          ));
-
-          final cutoffIndex = cutoffOffset.offset;
-          String visibleText = widget.text.substring(0, cutoffIndex);
-
-          // Clean up the visible text
-          if (visibleText.endsWith(' ')) {
-            visibleText = visibleText.trimRight();
-          }
-
-          // Remove any partial word at the end to avoid awkward cuts
-          final lastSpaceIndex = visibleText.lastIndexOf(' ');
-          if (lastSpaceIndex > 0 && cutoffIndex < widget.text.length) {
-            visibleText = visibleText.substring(0, lastSpaceIndex);
-          }
-
-          return Align(
-            alignment: Alignment.centerLeft,
-            child: RichText(
-              softWrap: true,
-              text: TextSpan(
-                style: style,
-                children: [
-                  TextSpan(text: visibleText,),
-                  const TextSpan(text: '... '),
-                  WidgetSpan(
-                    alignment: PlaceholderAlignment.baseline,
-                    baseline: TextBaseline.alphabetic,
-                    child: GestureDetector(
-                      onTap: () {
-                        if (widget.expandMode == ExpandMode.dialog) {
-                          _showFullTextDialog(context, style);
-                        } else {
-                          setState(() => _readMore = false);
-                        }
-                      },
-                      child: Text(
-                        'Read more',
-                        style: readMoreStyle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.text,
+              maxLines: _readMore ? widget.trimLines : null,
+              overflow: _readMore ? TextOverflow.ellipsis : null,
+              style: style,
             ),
-          );
-        } else {
-          // Expanded view with "Show less" link below
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.text, style: style),
+            if (isOverflow)
               GestureDetector(
-                onTap: () => setState(() => _readMore = true),
+                onTap: () {
+                  if (widget.expandMode == ExpandMode.dialog) {
+                    _showFullTextDialog(context, style);
+                  } else {
+                    setState(() {
+                      _readMore = !_readMore;
+                      if (widget.onHeightChanged != null) {
+                        // You can implement height change callback here if needed
+                      }
+                    });
+                  }
+                },
                 child: CustomText(
-                  'Show less',
+                  widget.expandMode == ExpandMode.dialog
+                      ? 'Read more'
+                      : (_readMore ? 'Read more' : 'Show less'),
                   color: AppColors.primaryColor,
                   fontSize: SizeConfig.medium15,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
-          );
-        }
+          ],
+        );
       },
     );
   }
@@ -181,15 +120,24 @@ class _ExpandableTextState extends State<ExpandableText> {
                       fontWeight: FontWeight.bold,
                       color: AppColors.mainTextColor,
                     ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                   ],
                 ),
-                SizedBox(height: SizeConfig.size8),
+                SizedBox(height: SizeConfig.size16),
                 Flexible(
                   child: SingleChildScrollView(
-                    child: Text(widget.text, style: style),
+                    child: Text(
+                      widget.text,
+                      style: style,
+                    ),
                   ),
                 ),
-                SizedBox(height: SizeConfig.size8),
+                SizedBox(height: SizeConfig.size16),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(

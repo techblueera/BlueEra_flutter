@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -49,8 +48,6 @@ class ReelVideoPopUpMenu extends StatelessWidget {
               context: context,
               text: (videoFeedItem.video?.type == 'long') ? 'Are you sure you want to delete this video?' : 'Are you sure you want to delete this short?',
               confirmCallback: () {
-                logs("videoFeedItem.video?.id === ${videoFeedItem.video?.id }");
-                Get.back();
                 Get.find<VideoController>().videoDelete(videoType: videoType, videoId: videoFeedItem.video?.id ?? '');
               },
               cancelCallback: () {

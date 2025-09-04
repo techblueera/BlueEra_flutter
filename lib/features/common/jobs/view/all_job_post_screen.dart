@@ -140,8 +140,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                       child: InkWell(
                         onTap: () {
                           if (isIndividual()) {
-                            
-                            debugPrint("individual job card tapped");
                             Get.to(() => JobDetailScreen(
                                   jobId: job?.sId.toString() ?? "",
                                   isPostApply: AppConstants.APPLY_NOW,
@@ -151,7 +149,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                 ));
                           }
                           if (isBusiness()) {
-                            debugPrint("business job card tapped");
                             Get.to(() => JobDetailScreen(
                                   jobId: job?.sId.toString() ?? "",
                                   isPostDirection: '',
@@ -359,34 +356,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                             });
                                                         // Handle edit action
                                                         break;
-                                                      case 'Share':
-                                                        // Share job: deep link + optional image preview
-                                                        try {
-                                                          final linkShare = jobDeepLink(jobId: job?.sId?.toString());
-
-                                                          XFile? xFile;
-                                                          final imageUrl = job?.jobPostImage;
-                                                          if (imageUrl != null && imageUrl.isNotEmpty) {
-                                                            xFile = await urlToCachedXFile(imageUrl);
-                                                          }
-
-                                                          await SharePlus.instance.share(ShareParams(
-                                                            text: linkShare,
-                                                            subject: job?.jobTitle,
-                                                            previewThumbnail: xFile,
-                                                          ));
-
-                                                          if (xFile != null) {
-                                                            final file = File(xFile.path);
-                                                            if (await file.exists()) {
-                                                              await file.delete();
-                                                              print("🗑️ File deleted from cache.");
-                                                            }
-                                                          }
-                                                        } catch (e) {
-                                                          print("job card share failed $e");
-                                                        }
-                                                        break;
                                                       case 'Hide':
                                                         final Map<String,
                                                             dynamic> params = {
@@ -402,6 +371,10 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         await apiCalling();
 
                                                         break;
+                                                      case 'Share':
+                                                        // Handle share action
+                                                        break;
+
                                                       case 'Close Vacancy':
                                                         final Map<String,
                                                             dynamic> params = {

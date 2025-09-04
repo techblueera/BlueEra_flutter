@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -13,18 +12,14 @@ import 'package:flutter/material.dart';
 // ignore: must_be_immutable
 class CommonProfileImage extends StatefulWidget {
   String? imagePath;
-  String? dialogTitle;
   final double size;
   final Function(String) onImageUpdate;
-  final bool isOwnProfile;
 
   CommonProfileImage({
     Key? key,
     required this.imagePath,
-    required this.dialogTitle,
     required this.onImageUpdate,
     this.size = 100,
-    this.isOwnProfile = true
   }) : super(key: key);
 
   @override
@@ -32,13 +27,14 @@ class CommonProfileImage extends StatefulWidget {
 }
 
 class _CommonProfileImageState extends State<CommonProfileImage> {
-
+  bool isNetworkUrl(String path) {
+    return path.startsWith('http://') || path.startsWith('https://');
+  }
 
   @override
   Widget build(BuildContext context) {
-    print('image--> ${widget.imagePath}');
     return InkWell(
-      onTap: (widget.isOwnProfile) ? () => selectImage(context,widget.dialogTitle??"Upload Picture") : null,
+      onTap: () => selectImage(context),
       child: Stack(
         children: [
           Container(
@@ -54,10 +50,10 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
                   ? ClipOval(
                       child: ((widget.imagePath != null) &&
                               (widget.imagePath?.isNotEmpty ?? false) &&
-                              (isNetworkImage(widget.imagePath ?? "")))
-                          ? NetWorkOcToAssets(imgUrl: widget.imagePath??"")
+                              (isNetworkUrl(widget.imagePath ?? "")))
+                          ? NetWorkOcToAssets(imgUrl: widget.imagePath!)
                           : Image(
-                              image: FileImage(File(widget.imagePath??""))
+                              image: FileImage(File(widget.imagePath!))
                                 ..evict(),
                               fit: BoxFit.cover,
                               width: 100, // radius * 2
@@ -67,8 +63,6 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
                   : LocalAssets(imagePath: AppIconAssets.user_out_line),
             ),
           ),
-
-          if (widget.isOwnProfile)
           Positioned(
             bottom: 0,
             right: 0,
@@ -89,11 +83,11 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
   }
 
   ///SELECT IMAGE AND SHOW DIALOG...
-  selectImage(BuildContext context,String titleOfDialog) async {
+  selectImage(BuildContext context) async {
     final appLocalizations = AppLocalizations.of(context);
 
     widget.imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, titleOfDialog ?? "");
+        context, appLocalizations?.businessLogo ?? "");
     if (widget.imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...
       widget.onImageUpdate(widget.imagePath ?? "");

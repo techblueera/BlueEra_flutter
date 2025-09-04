@@ -4,7 +4,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/post_meta_info.dart';
 import 'package:flutter/material.dart';
 
 class QaPostWidget extends StatefulWidget {
@@ -19,6 +22,7 @@ class QaPostWidget extends StatefulWidget {
   final Widget Function() authorSection;
   final Widget Function() buildActions;
   final PostType postFilteredType;
+  final SortBy? sortBy;
 
   const QaPostWidget({
     super.key,
@@ -33,6 +37,7 @@ class QaPostWidget extends StatefulWidget {
     required this.authorSection,
     required this.buildActions,
     required this.postFilteredType,
+    this.sortBy,
   });
 
   @override
@@ -54,7 +59,43 @@ class _QaPostWidgetState extends State<QaPostWidget> {
 
                 widget.authorSection(),
 
+                Padding(
+                  padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15),
+                  child: CustomText(
+                  widget.poll?.question??'',
+                    color: AppColors.mainTextColor,
+                    fontSize: SizeConfig.medium15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size16),
+
                 _buildPollOptions(), // QA post specific widget
+
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: SizeConfig.size15,
+                    right: SizeConfig.size15,
+                    top: SizeConfig.size5,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: widget.referenceLink.isNotEmpty
+                            ? ClickableLinkText(url: widget.referenceLink)
+                            : SizedBox.shrink(),
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      PostMetaInfo(
+                        timeAgoText: widget.postedAgo,
+                        fontSize: SizeConfig.extraSmall,
+                      ),
+                    ],
+                  ),
+                ),
+
 
                 Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15, top: SizeConfig.size15,bottom: 0),
@@ -79,8 +120,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
       postId: widget.postId ?? "0",
       poll: widget.poll,
       postFilteredType: widget.postFilteredType,
-      postedAgo: widget.postedAgo,
-      message: widget.message,
+      sortBy: widget.sortBy,
     );
   }
 

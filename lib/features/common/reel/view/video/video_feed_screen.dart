@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_dialogs.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -257,18 +257,12 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
               onTapOption: () {
                 openBlockSelectionDialog(
                   context: context,
-                  reportType: 'VIDEO_POST',
-                  userId: videoFeedItem.video?.userId??'',
-                  contentId: videoFeedItem.video?.id??'',
-                  userBlockVoidCallback: () async {
+                  voidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
                       videoType: Videos.videoFeed,
                       otherUserId: videoFeedItem.video?.userId ?? '',
                     );
                   },
-                    reportCallback: (params){
-
-                    }
                 );
               },
             );

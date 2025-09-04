@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_dialogs.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -23,7 +23,7 @@ class PostAuthorHeader extends StatelessWidget {
   final PostType postFilteredType;
   final VoidCallback? onTapAvatar;
   final VoidCallback? onTapOptions;
-  final String? postedAgo;
+  final SortBy? sortBy;
 
   const PostAuthorHeader({
     super.key,
@@ -32,22 +32,18 @@ class PostAuthorHeader extends StatelessWidget {
     required this.postFilteredType,
     this.onTapAvatar,
     this.onTapOptions,
-    this.postedAgo,
+    this.sortBy,
   });
 
   @override
   Widget build(BuildContext context) {
-    print('account type--> ${post?.user?.accountType}');
-    print('author id--> $authorId');
-    print('business id--> ${post?.user?.business_id}');
-    // print('user Id--> ${post?.user?}');
     String name = (post?.user?.accountType == AppConstants.individual)
         ? post?.user?.name ?? ''
         : post?.user?.businessName ?? '';
 
     String designation = (post?.user?.accountType == AppConstants.individual)
         ?
-    post?.user?.designation ?? "OTHERS"
+      post?.user?.designation ?? "OTHERS"
 
         : post?.user?.businessCategory ?? '';
 
@@ -69,7 +65,7 @@ class PostAuthorHeader extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 if (((authorId == userId) ||
-                    (post?.user?.business_id == businessId)) &&
+                        (post?.user?.business_id == businessId)) &&
                     (postFilteredType == PostType.myPosts ||
                         postFilteredType == PostType.saved)) {
                   return;
@@ -88,20 +84,17 @@ class PostAuthorHeader extends StatelessWidget {
                     navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
                     Get.to(() => VisitBusinessProfile(
-                        businessId: post?.user?.business_id ?? ""
-                    )
-                    );
+                        businessId: post?.user?.business_id ?? ""));
                   }
                 }
               },
               child: ChannelProfileHeader(
-                  imageUrl: post?.user?.profileImage ?? '',
-                  title: '$name',
-                  userName: '${post?.user?.username}',
-                  subtitle: designation,
-                  avatarSize: SizeConfig.size42,
-                  borderColor: AppColors.primaryColor,
-                  postedAgo: postedAgo
+                imageUrl: post?.user?.profileImage ?? '',
+                title: '$name',
+                userName: '${post?.user?.username}',
+                subtitle: designation,
+                avatarSize: SizeConfig.size42,
+                borderColor: AppColors.primaryColor,
               ),
             ),
           ),
@@ -113,27 +106,36 @@ class PostAuthorHeader extends StatelessWidget {
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else {
-                    onTapOptions ?? blockUserPopUp();                  }
+                    onTapOptions ??
+                            () => blockUserPopUp(context);                  }
 
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )
             else
               FeedPopUpMenu(
-                post: post ?? Post(id: ''),
-                postFilteredType: postFilteredType,
+                  post: post ?? Post(id: ''),
+                  postFilteredType: postFilteredType,
+                  sortBy: sortBy
               )
           else if(post?.user?.accountType == AppConstants.business)
             if(id != businessId)
               IconButton(
-                onPressed: onTapOptions ??
-                        () => blockUserPopUp(),
+                onPressed:(){
+                  if (isGuestUser()) {
+                    createProfileScreen();
+                  } else {
+                    onTapOptions ??
+                            () => blockUserPopUp(context);                  }
+
+                },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )
             else
               FeedPopUpMenu(
                   post: post ?? Post(id: ''),
-                  postFilteredType: postFilteredType
+                  postFilteredType: postFilteredType,
+                  sortBy: sortBy
               )
 
         ],
@@ -141,21 +143,12 @@ class PostAuthorHeader extends StatelessWidget {
     );
   }
 
-  void blockUserPopUp(){
+  void blockUserPopUp(BuildContext context){
     openBlockSelectionDialog(
-      context: Get.context!,
-      userId: authorId,
-      contentId: post?.id??'',
-      reportType: 'POST',
-      userBlockVoidCallback: () {
-        Get.find<FeedController>().userBlocked(
-            otherUserId: post?.authorId??'',
-            type: postFilteredType
-        );
-      },
-      reportCallback: (params){
-
-      }
+        context: Get.context!,
+        voidCallback: () async {
+          Get.find<FeedController>().userBlocked(otherUserId: post?.authorId??'', type: postFilteredType, sortBy: sortBy);
+        }
     );
   }
 }

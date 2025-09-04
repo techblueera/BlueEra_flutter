@@ -34,16 +34,16 @@ class ReelUploadDetailsController extends GetxController {
   RxBool isVideoDetailsLoading = false.obs;
   Rx<VideoFeedItem> videoData = VideoFeedItem().obs;
 
+
   RxString VideoUploadProgress = ''.obs;
 
   void navigateAfterUploadVideo() {
     // Navigate to Channel Screen, clear stack so back goes to bottom nav
     Get.until(
-      (route) =>
-          route.settings.name ==
-          RouteHelper.getBottomNavigationBarScreenRoute(),
+          (route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute(),
     );
     if (channelId.isNotEmpty) {
+
       // Then open channel screen on top of bottom nav
       Get.toNamed(
         RouteHelper.getChannelScreenRoute(),
@@ -52,9 +52,10 @@ class ReelUploadDetailsController extends GetxController {
           ApiKeys.channelId: channelId,
           ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual)
               ? userId
-              : businessUserId
+              : businessId
         },
       );
+
     } else {
       // No channel → go to profile
       if (accountTypeGlobal == AppConstants.individual) {
@@ -104,8 +105,9 @@ class ReelUploadDetailsController extends GetxController {
       {required Map<String, dynamic> queryParams,
       required bool isVideoUpload}) async {
     try {
-      ResponseModel? response = await ChannelRepo()
-          .uploadInit(queryParams: queryParams, url: initUpload);
+      ResponseModel? response =
+          await ChannelRepo().uploadInit(queryParams: queryParams, url: initUpload);
+      log("response: --> ${response?.isSuccess}");
 
       if (response?.isSuccess ?? false) {
         uploadInitResponse = ApiResponse.complete(response);
@@ -127,18 +129,18 @@ class ReelUploadDetailsController extends GetxController {
     }
   }
 
-  Future<void> uploadFileToS3({
-    required File file,
-    required String fileType,
-    required String preSignedUrl,
-    required Function(double progress) onProgress,
-  }) async {
+  Future<void> uploadFileToS3(
+      {required File file,
+      required String fileType,
+      required String preSignedUrl,
+      required Function(double progress) onProgress,
+      }) async {
     try {
       ResponseModel? response = await ChannelRepo().uploadVideoToS3(
           onProgress: onProgress,
-          file: file,
-          fileType: fileType,
-          preSignedUrl: preSignedUrl);
+          file: file, fileType: fileType,
+          preSignedUrl: preSignedUrl
+      );
 
       if (response?.isSuccess ?? false) {
         uploadFileToS3Response = ApiResponse.complete(response);
@@ -163,27 +165,22 @@ class ReelUploadDetailsController extends GetxController {
       onProgress?.call(0.9);
 
       ResponseModel? response =
-          await ChannelRepo().uploadVideo(bodyRequest: reqData);
+      await ChannelRepo().uploadVideo(bodyRequest: reqData);
 
       if (response?.isSuccess ?? false) {
         onProgress?.call(1.0); // Finish at 100%
         Navigator.of(Get.context!).pop();
         commonSnackBar(
           message:
-              "Video uploaded successfully. It may take about 5 to 30 minutes to appear on your profile.",
+          "Video uploaded successfully. It may take about 5 to 30 minutes to appear on your profile.",
         );
 
         Get.until(
-          (route) =>
-              Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute(),
+              (route) =>
+          Get.currentRoute ==
+              RouteHelper.getBottomNavigationBarScreenRoute(),
         );
-        await Future.delayed(Duration(milliseconds: 200));
-        if (isIndividualUser()) {
-          Get.to(PersonalProfileSetupScreen());
-        }
-        if (isBusinessUser()) {
-          Get.to(BusinessOwnProfileScreen());
-        }
+
         videoUploadResponse = ApiResponse.complete(response);
       } else {
         onProgress?.call(1.0); // Finish at 100%
@@ -271,3 +268,4 @@ class ReelUploadDetailsController extends GetxController {
     }
   }
 }
+

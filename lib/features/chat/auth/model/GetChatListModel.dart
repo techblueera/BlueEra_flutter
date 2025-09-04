@@ -143,8 +143,7 @@ class Sender {
       this.contactNo, 
       this.profession, 
       this.designation, 
-      this.profileImage,
-      this.businessId, 
+      this.profileImage, 
       this.username, 
       this.dateOfBirth, 
       this.deletedAt, 
@@ -170,7 +169,6 @@ class Sender {
     profession = json['profession'];
     designation = json['designation'];
     profileImage = json['profile_image'];
-    businessId = json['business_id'];
     username = json['username'];
     dateOfBirth = json['date_of_birth'] != null ? DateOfBirth.fromJson(json['date_of_birth']) : null;
     deletedAt = json['deleted_at'];
@@ -195,7 +193,6 @@ class Sender {
   String? profession;
   String? designation;
   String? profileImage;
-  String? businessId;
   String? username;
   DateOfBirth? dateOfBirth;
   dynamic deletedAt;
@@ -222,7 +219,6 @@ class Sender {
     map['profession'] = profession;
     map['designation'] = designation;
     map['profile_image'] = profileImage;
-    map['business_id'] = businessId;
     map['username'] = username;
     if (dateOfBirth != null) {
       map['date_of_birth'] = dateOfBirth?.toJson();

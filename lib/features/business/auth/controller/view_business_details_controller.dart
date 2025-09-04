@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -111,6 +112,15 @@ class ViewBusinessDetailsController extends GetxController {
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.userProfile,
             businessProfileDetails?.data?.logo);
+        await SharedPreferenceUtils.userLoggedInIndivisualGuest(
+          loginUserId_: "${businessProfileDetails?.data?.userId}",
+          contactNo:
+              "${businessProfileDetails?.data?.userContactNo?.contact_no}",
+          getUserName: "${businessProfileDetails?.data?.businessName}",
+          profileImage: "${businessProfileDetails?.data?.logo}",
+          designation: "",
+          businesId: "${businessProfileDetails?.data?.id}",
+        );
 
         await getUserLoginData();
 
@@ -118,8 +128,7 @@ class ViewBusinessDetailsController extends GetxController {
         update();
       } else {
         commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong
-        );
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       viewBusinessResponse = ApiResponse.error('error');
@@ -129,7 +138,9 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().updateBusinessProfileDetails(params);
+          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
+      /*  ResponseModel responseModel =
+          await BusinessProfileRepo().updateBusinessProfileDetails(params);*/
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);

@@ -295,22 +295,14 @@ class _FeedScreenState extends State<FeedScreen> {
         } else if (feedController.postsResponse.status == Status.ERROR) {
           return LoadErrorWidget(
             errorMessage: 'Failed to load posts',
-            onRetry: () {
-              feedController.isLoading.value = true;
-              fetchPostData(
-                isInitialLoad: true,
-                refresh: true,
-                id: widget.id,
-
-              );
-            },
+            onRetry: () => fetchPostData(
+                isInitialLoad: true, refresh: true, id: widget.id),
           );
         }
       } else {
         return FeedShimmerCard();
       }
 
-      
       return const SizedBox();
     });
   }

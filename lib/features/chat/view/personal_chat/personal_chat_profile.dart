@@ -36,8 +36,7 @@ import '../../../../widgets/horizontal_tab_selector.dart';
 
 class PersonalChatProfile extends StatefulWidget {
   final String userId ;
-  final String? contactNumber;
-  const PersonalChatProfile({super.key, required this.userId,  this.contactNumber});
+  const PersonalChatProfile({super.key, required this.userId});
 
   @override
   State<PersonalChatProfile> createState() =>
@@ -59,7 +58,7 @@ class _PersonalChatProfileState
     super.initState();
       controller = Get.put(VisitProfileController());
 
-    // controller.fetchUserById(userId: "689deb7aac8beb10537e3107");
+    // controller.fetchUserById(userId: "6891a80e721656f3ca842eba");
    controller.fetchUserById(userId: widget.userId);
     _loadInitialData();
   }
@@ -70,8 +69,8 @@ class _PersonalChatProfileState
   }
 
   Future<void> _loadInitialData() async {
-    await viewProfileController.viewPersonalProfiles(widget.contactNumber??"");
-    await viewProfileController.UserFollowersAndPostsCount(widget.userId);
+    await viewProfileController.viewPersonalProfile();
+    await viewProfileController.UserFollowersAndPostsCount();
 
     _updateTextControllers();
   }
@@ -294,16 +293,16 @@ class _PersonalChatProfileState
                                       child: 
                                        CustomText("${user.email}"),
                                     ),
-                                //     if(user.designation!=null)
-                                //      Container(
-                                //   padding: EdgeInsets.all(5),
-                                //   decoration: BoxDecoration(
-                                //     borderRadius: BorderRadius.circular(10),
-                                //     border: Border.all(color: Colors.grey)
-                                //   ),
-                                //   child: 
-                                //    CustomText("${user.designation}"),
-                                // ),
+                                    if(user.designation!=null)
+                                     Container(
+                                  padding: EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.grey)
+                                  ),
+                                  child: 
+                                   CustomText("${user.designation}"),
+                                ),
                                   ],
                                 ),
                                 SizedBox(height: SizeConfig.size5),
@@ -407,8 +406,8 @@ class _PersonalChatProfileState
           isSelfTestimonial: true,
         );
      case 'Shorts':
-     return ShortsChannelSection(
-            isOwnShorts: false,
+     return   ShortsChannelSection(
+            isOwnChannel: false,
             channelId: '',
             authorId: widget.userId,
             showShortsInGrid: false,

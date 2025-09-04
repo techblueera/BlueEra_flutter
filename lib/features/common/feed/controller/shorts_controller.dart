@@ -401,10 +401,10 @@ class ShortsController extends GetxController{
       Shorts shorts,
       String channelOrUserId,
       String authorId,
-      bool isOwnShorts, {
+      bool isOwnChannel, {
         bool isInitialLoad = false,
         bool refresh = false,
-        PostVia? postVia,
+        Map<String, Object>? extraParams,
       }) async {
     switch (shorts) {
       case Shorts.latest:
@@ -420,8 +420,8 @@ class ShortsController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
+          extraParams: extraParams,
         );
         break;
 
@@ -438,8 +438,8 @@ class ShortsController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
+          extraParams: extraParams,
         );
         break;
 
@@ -456,8 +456,8 @@ class ShortsController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
+          extraParams: extraParams,
         );
         break;
 
@@ -474,12 +474,12 @@ class ShortsController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
+          extraParams: extraParams,
         );
         break;
 
-     // 👇 default: if not sorting-related (drafts etc.)
+    // 👇 default: if not sorting-related (drafts etc.)
       default:
         await _fetchShorts(
           shorts: shorts,
@@ -493,8 +493,8 @@ class ShortsController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
+          extraParams: extraParams,
         );
     }
   }
@@ -511,8 +511,8 @@ class ShortsController extends GetxController{
     required bool refresh,
     required String channelOrUserId,
     required String authorId,
-    required bool isOwnShorts,
-    required PostVia? postVia,
+    required bool isOwnChannel,
+    Map<String, Object>? extraParams,
   }) async {
     if (isInitialLoad) {
       page = 1;
@@ -529,34 +529,36 @@ class ShortsController extends GetxController{
         ApiKeys.typeFilter: 'short'
       };
 
+      // if(sortBy!=null){
+      //   if(sortBy!=SortBy.UnderProgress){
+      //     params[ApiKeys.sortBy] = sortBy.queryValue;
+      //     params[ApiKeys.status] = VideoStatus.published.queryValue;
+      //   }else{
+      //     params[ApiKeys.status] = VideoStatus.processing.queryValue;
+      //   }
+      // }else{
+      //   params[ApiKeys.status] = VideoStatus.draft.queryValue;
+      // }
+
+      if (shorts == Shorts.latest || shorts == Shorts.popular || shorts == Shorts.oldest) {
+        params[ApiKeys.sortBy] = shorts!.queryValue;
+        params[ApiKeys.status] = VideoStatus.published.queryValue;
+      } else if (shorts == Shorts.underProgress) {
+        params[ApiKeys.status] = VideoStatus.processing.queryValue;
+      } else {
+        params[ApiKeys.status] = VideoStatus.draft.queryValue;
+      }
+
+      // Merge any extra params provided by caller (e.g., post_via)
+      if (extraParams != null && extraParams.isNotEmpty) {
+        params.addAll(extraParams);
+      }
+
       ResponseModel response;
-
-      if(postVia == PostVia.channel){
-        if (shorts == Shorts.latest || shorts == Shorts.popular || shorts == Shorts.oldest) {
-          params[ApiKeys.sortBy] = shorts!.queryValue;
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (shorts == Shorts.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        } else {
-          params[ApiKeys.status] = VideoStatus.draft.queryValue;
-        }
-        params[ApiKeys.postVia] = 'channel';
-
-        if(isOwnShorts){
-          response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-        }else {
-          response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
-        }
-      } else if(postVia == PostVia.profile){
-        if (shorts == Shorts.latest) {
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (shorts == Shorts.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        }
-        params[ApiKeys.postVia] = 'user';
+      if(isOwnChannel){
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      }else{
-        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
+      }else {
+        response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
       }
 
       if (response.isSuccess) {

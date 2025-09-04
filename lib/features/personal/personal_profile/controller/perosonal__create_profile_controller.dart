@@ -93,7 +93,6 @@ class PersonalCreateProfileController extends GetxController {
 
   Future<void> updateUserProfileDetails({
     required Map<String, dynamic> params,
-    bool isFromProfileOnly=false,
   }) async {
     try {
       print("Params being sent to API: $params");
@@ -104,11 +103,7 @@ class PersonalCreateProfileController extends GetxController {
       if (responseModel.isSuccess) {
         updateUserProfileResponse = ApiResponse.complete(responseModel);
         await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
-        if(!isFromProfileOnly)
-          {
-            Get.back();
-
-          }
+        Get.back();
         commonSnackBar(
             message: responseModel.response?.data?['message'] ??
                 "Update successfully");

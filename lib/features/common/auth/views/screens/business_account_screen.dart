@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -266,7 +267,8 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                                         _typeOfBusiness?.name.toLowerCase())
                                     .toList(),
                                 selectedValue: _selectedCategoryOfBusiness,
-                                title:  appLocalizations?.categoryOfBusiness??"Category of Business",
+                                title: appLocalizations?.categoryOfBusiness ??
+                                    "Category of Business",
                                 hintText: appLocalizations
                                         ?.selectCategoryOfBusiness ??
                                     "",
@@ -356,7 +358,8 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                   selectedValue: _selectedNatureOfBusiness,
                   hintText: appLocalizations?.selectNatureOfTheBusiness ?? "",
                   displayValue: (profession) => profession.displayName,
-                  title: appLocalizations?.natureOfBusiness??"Nature of the Business",
+                  title: appLocalizations?.natureOfBusiness ??
+                      "Nature of the Business",
                   onChanged: (value) {
                     setState(() {
                       _selectedNatureOfBusiness = value;
@@ -470,6 +473,48 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
             filename: fileName);
       }
       Map<String, dynamic> requestData = {
+        ApiKeys.logo_image: imageByPart,
+        ApiKeys.business_name: authController.businessNameTextController.text,
+        "date_of_incorporation": jsonEncode({
+          ApiKeys.date: authController.selectedDay?.value,
+          ApiKeys.month: authController.selectedMonth?.value,
+          ApiKeys.year: authController.selectedYear?.value,
+        }),
+        ApiKeys.type_of_business: _typeOfBusiness?.name,
+        ApiKeys.nature_of_business: _selectedNatureOfBusiness?.name,
+
+        ///ADDED KEY OTHER KEY HARD CODED AS PER DISCUSIION
+        ApiKeys.category_Of_Business:
+            (_typeOfBusiness?.name.toLowerCase() == "both")
+                ? "68a80b766fdb4e82b42b77c0"
+                : _selectedCategoryOfBusiness?.id,
+        if (_typeOfBusiness?.name.toLowerCase() == "both")
+          ApiKeys.category_other:
+              authController.businessOtherCategoryTextController.text,
+        if (_selectedSubCategoryOfBusiness?.sId?.isNotEmpty ?? false)
+          ApiKeys.sub_category_Of_Business: _selectedSubCategoryOfBusiness?.sId,
+
+        if ((authController.gstVerifyModel?.value.success ?? false) &&
+            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
+                false))
+          ApiKeys.gst_have: true,
+        if ((authController.gstVerifyModel?.value.success ?? false) &&
+            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
+                false))
+          ApiKeys.gst_number: authController.gstVerifyModel?.value.data?.gstin,
+        ApiKeys.gst_verified: ((authController.gstVerifyModel?.value.success ??
+                    false) &&
+                (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
+                    false))
+            ? true
+            : false,
+        if (authController.referralCodeController.text.isNotEmpty)
+          ApiKeys.referral_code: authController.referralCodeController.text,
+      };
+      await authController.addBusinessUser(reqData: requestData);
+
+/*
+      Map<String, dynamic> requestData = {
         ApiKeys.contact_no: authController.mobileNumberEditController.text,
         ApiKeys.account_type: AppConstants.business.toUpperCase(),
         ApiKeys.logo_image: imageByPart,
@@ -509,7 +554,8 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
         if (authController.referralCodeController.text.isNotEmpty)
           ApiKeys.referral_code: authController.referralCodeController.text,
       };
-      await authController.addNewUser(reqData: requestData);
+*/
+      // await authController.addNewUser(reqData: requestData);
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;

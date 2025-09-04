@@ -84,5 +84,4 @@ class RouteConstant {
   static const String DraftScreen = "/DraftScreen";
   static const String earnBlueeraScreen = "/EarnBlueeraScreen";
   static const String addDocumentScreen = "/AddDocumentScreen";
-  static const String postDetailPage = "/PostDeatilPage";
 }

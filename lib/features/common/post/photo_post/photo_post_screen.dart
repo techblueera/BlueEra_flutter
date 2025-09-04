@@ -122,10 +122,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             height: SizeConfig.size50 + 2,
             decoration: BoxDecoration(
               color: AppColors.white, // White background
-              borderRadius: BorderRadius.circular(10.0), // Rounded corners
-              border: Border.all(
-                width: 1,
-                color: AppColors.greyE5),
+              borderRadius: BorderRadius.circular(12), // Rounded corners
               boxShadow: [AppShadows.textFieldShadow],
             ),
             child: Center(

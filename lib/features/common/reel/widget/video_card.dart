@@ -24,6 +24,7 @@ import 'package:get/get.dart';
 
 class VideoCard extends StatefulWidget {
   final VideoFeedItem videoItem;
+  final ValueNotifier<bool>? globalMuteNotifier;
   final VoidCallback onTapOption;
   final Videos videoType;
   final VoidCallback? voidCallback;
@@ -31,6 +32,7 @@ class VideoCard extends StatefulWidget {
   const VideoCard({
     super.key,
     required this.videoItem,
+    this.globalMuteNotifier,
     required this.onTapOption,
     required this.videoType,
     this.voidCallback,
@@ -49,14 +51,14 @@ class _VideoCardState extends State<VideoCard> {
   @override
   void initState() {
     super.initState();
-    creator = widget.videoItem.channel?.id!=null
-        ? widget.videoItem.channel?.name??''
-        : widget.videoItem.author?.name??'';
-    channelProfile = widget.videoItem.channel?.id!=null
-        ? widget.videoItem.channel?.logoUrl??''
-        : widget.videoItem.author?.profileImage??'';
-    postedAgo = timeAgo(DateTime.parse(widget.videoItem.video?.createdAt??DateTime.now().toIso8601String()));
-
+    creator = widget.videoItem.channel != null
+        ? widget.videoItem.channel?.name ?? ''
+        : widget.videoItem.author?.name ?? '';
+    channelProfile = widget.videoItem.channel != null
+        ? widget.videoItem.channel?.logoUrl ?? ''
+        : widget.videoItem.author?.profileImage ?? '';
+    postedAgo = timeAgo(DateTime.parse(
+        widget.videoItem.video?.createdAt ?? DateTime.now().toIso8601String()));
   }
 
   @override
@@ -71,212 +73,242 @@ class _VideoCardState extends State<VideoCard> {
       ),
       child: Container(
         decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8.0)
-        ),
-        child: Stack(
+            color: AppColors.white, borderRadius: BorderRadius.circular(8.0)),
+        child: Column(
           children: [
-            Column(
-              children: [
-                GestureDetector(
-                  onTap: widget.voidCallback ?? () {
-                    if(widget.videoType == Videos.underProgress){
+            GestureDetector(
+              onTap: widget.voidCallback ??
+                  () {
+                    if (widget.videoType == Videos.underProgress) {
                       return;
                     }
 
                     Navigator.pushNamed(
-                        context,
-                        RouteHelper.getVideoPlayerScreenRoute(),
-                        arguments: {ApiKeys.videoItem: widget.videoItem}
-                    );
+                        context, RouteHelper.getVideoPlayerScreenRoute(),
+                        arguments: {ApiKeys.videoItem: widget.videoItem});
                   },
-                  child: Stack(
-                    children: [
-                      AspectRatio(
-                        aspectRatio: 18/9,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
-                          child: CachedNetworkImage(
-                            imageUrl: widget.videoItem.video?.coverUrl??"",
-                            width: SizeConfig.screenWidth, // makes it take full width
-                            height: SizeConfig.size170, // fixed height like your original
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              width: SizeConfig.screenWidth,
-                              height: SizeConfig.size140,
-                              color: Colors.grey[300],
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              width: SizeConfig.screenWidth,
-                              height: SizeConfig.size140,
-                              color: Colors.grey[300],
-                              child: LocalAssets(imagePath: AppIconAssets.appIcon),
-                            ),
-                          ),
+              child: Stack(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 18 / 9,
+                    child: ClipRRect(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(8.0)),
+                      child: CachedNetworkImage(
+                        imageUrl: widget.videoItem.video?.coverUrl ?? "",
+                        width: SizeConfig.screenWidth,
+                        // makes it take full width
+                        height: SizeConfig.size170,
+                        // fixed height like your original
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size140,
+                          color: Colors.grey[300],
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size140,
+                          color: Colors.grey[300],
+                          child: LocalAssets(imagePath: AppIconAssets.appIcon),
                         ),
                       ),
-
-                      Positioned(
-                        left: SizeConfig.size12,
-                        right: SizeConfig.size12,
-                        bottom: SizeConfig.size12,
-                        child: VideoPostMetaInfo(
-                          totalVideoDuration: formatDuration( Duration(seconds: widget.videoItem.video?.duration??0)),
-                          totalLikes: widget.videoItem.video?.stats?.likes.toString()??'0',
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ),
-
-                GestureDetector(
-                  onTap: (){
-                    if(widget.videoItem.channel?.id!=null){
-                      Navigator.pushNamed(
-                          context,
-                          RouteHelper.getChannelScreenRoute(),
-                          arguments: {
-                            ApiKeys.argAccountType: widget.videoItem.author?.accountType,
-                            ApiKeys.channelId: widget.videoItem.channel?.id,
-                            ApiKeys.authorId: widget.videoItem.author?.id
-                          }
-                      );
-                    }else{
-                      /// we don't have channel so will call profile
-                      if (widget.videoItem.author?.accountType?.toUpperCase() == AppConstants.individual) {
-                        if (widget.videoItem.author?.id == userId) {
-                          navigatePushTo(context, PersonalProfileSetupScreen());
-                        } else {
-                          Get.to(() => VisitProfileScreen(authorId: widget.videoItem.author?.id??''));
-                        }
-                      }else{
-                        if (widget.videoItem.author?.id == businessUserId) {
-                          navigatePushTo(context, BusinessOwnProfileScreen());
-                        } else {
-                          Get.to(() => VisitBusinessProfile(businessId: widget.videoItem.author?.id??''));
-                        }
-                      }
-                    }
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size5, horizontal: SizeConfig.size10),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        InkWell(
-                          onTap: ()=> navigatePushTo(
-                            context,
-                            ImageViewScreen(
-                              appBarTitle: '',
-                              // imageUrls: [post?.author.profileImage ?? ''],
-                              imageUrls: [channelProfile??''],
-                              initialIndex: 0,
-                            ),
-                          ),
-                          child: CachedAvatarWidget(
-                            imageUrl: channelProfile,
-                            size: SizeConfig.size40,
-                            borderRadius: SizeConfig.size20,
-                            borderColor: AppColors.primaryColor,
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CustomText(
-                                widget.videoItem.video?.title??'',
-                                color: AppColors.mainTextColor,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w400,
-                                maxLines: 2,
-                              ),
-                              SizedBox(height: SizeConfig.size2),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: CustomText(
-                                      "${creator} ${widget.videoItem.video?.stats?.views.toString() ?? '0'} views ${postedAgo}",
-                                      fontSize: SizeConfig.small11,
-                                      color: AppColors.secondaryTextColor,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size8),
-
-                        if(widget.videoItem.channel?.id!=null)
-                          if(widget.videoItem.channel?.id != channelId)
-                            IconButton(
-                              onPressed: ()=> widget.onTapOption(),
-                              icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
-                            )
-                          else
-                            ReelVideoPopUpMenu(
-                                videoFeedItem: widget.videoItem,
-                                popUpMenuColor: AppColors.black,
-                                videoType: widget.videoType
-                            )
-                        else
-                          if(widget.videoItem.author?.accountType == AppConstants.individual)
-                            if(widget.videoItem.author?.id != userId)
-                              IconButton(
-                                onPressed: ()=> widget.onTapOption(),
-                                icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
-                              )
-                            else
-                              ReelVideoPopUpMenu(
-                                  videoFeedItem: widget.videoItem,
-                                  popUpMenuColor: AppColors.black,
-                                  videoType: widget.videoType
-                              )
-                          else if(widget.videoItem.author?.accountType == AppConstants.business)
-                            if(widget.videoItem.author?.id != businessUserId)
-                              IconButton(
-                                onPressed: widget.onTapOption,
-                                icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
-                              )
-                            else
-                              ReelVideoPopUpMenu(
-                                  videoFeedItem: widget.videoItem,
-                                  popUpMenuColor: AppColors.black,
-                                  videoType: widget.videoType
-                              ),
-
-
-                      ],
                     ),
                   ),
-                ),
-              ],
+
+                  // if (widget.isOwnChannel)
+                  //   Positioned(
+                  //     top: 0,
+                  //     right: (widget.videoItem.video?.type == 'long') ? -(SizeConfig.size4) : -(SizeConfig.size8),
+                  //     child: ReelPopUpMenu(
+                  //         videoFeedItem: widget.videoItem,
+                  //         sortBy: widget.sortBy,
+                  //         videoType: widget.videoType
+                  //     ),
+                  //   ),
+
+                  Positioned(
+                    left: SizeConfig.size12,
+                    right: SizeConfig.size12,
+                    bottom: SizeConfig.size12,
+                    child: VideoPostMetaInfo(
+                      totalVideoDuration: formatDuration(Duration(
+                          seconds: widget.videoItem.video?.duration ?? 0)),
+                      totalLikes:
+                          widget.videoItem.video?.stats?.likes.toString() ??
+                              '0',
+                    ),
+                  ),
+
+                  if (widget.videoType == Videos.underProgress) ...[
+                    AspectRatio(
+                      aspectRatio: 18 / 9,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.black65,
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(8.0)),
+                        ),
+                        child: Center(
+                          child: LocalAssets(
+                              imagePath: AppIconAssets.progressIndicator),
+                        ),
+                      ),
+                    )
+                  ]
+                ],
+              ),
             ),
-            if(widget.videoType == Videos.underProgress)
-              ...[
-                AspectRatio(
-                  aspectRatio: 18/9,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.black65,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
+            GestureDetector(
+              onTap: () {
+                if (widget.videoItem.channel?.id != null) {
+                  Navigator.pushNamed(
+                      context, RouteHelper.getChannelScreenRoute(),
+                      arguments: {
+                        // ApiKeys.argAccountType: AppConstants.individual,
+                        // ApiKeys.channelId: "68920f2ebda1108dfd43a6ee",
+                        ApiKeys.argAccountType:
+                            widget.videoItem.author?.accountType,
+                        ApiKeys.channelId: widget.videoItem.channel?.id,
+                        ApiKeys.authorId: widget.videoItem.author?.id
+                      });
+                } else {
+                  /// we don't have channel so will call profile
+                  if (widget.videoItem.author?.accountType?.toUpperCase() ==
+                      AppConstants.individual) {
+                    if (widget.videoItem.author?.id == userId) {
+                      navigatePushTo(context, PersonalProfileSetupScreen());
+                    } else {
+                      Get.to(() => VisitProfileScreen(
+                          authorId: widget.videoItem.author?.id ?? ''));
+                    }
+                  } else {
+                    if (widget.videoItem.author?.id == businessId) {
+                      navigatePushTo(context, BusinessOwnProfileScreen());
+                    } else {
+                      Get.to(() => VisitBusinessProfile(
+                          businessId: widget.videoItem.author?.id ?? ''));
+                    }
+                  }
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size5, horizontal: SizeConfig.size10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    InkWell(
+                      onTap: () => navigatePushTo(
+                        context,
+                        ImageViewScreen(
+                          appBarTitle: '',
+                          // imageUrls: [post?.author.profileImage ?? ''],
+                          imageUrls: [channelProfile ?? ''],
+                          initialIndex: 0,
+                        ),
+                      ),
+                      child: CachedAvatarWidget(
+                        imageUrl: channelProfile,
+                        size: SizeConfig.size40,
+                        borderRadius: SizeConfig.size20,
+                        borderColor: AppColors.primaryColor,
+                      ),
                     ),
-                    child: Center(
-                      child: LocalAssets(imagePath: AppIconAssets.progressIndicator),
+                    SizedBox(width: SizeConfig.size8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomText(
+                            widget.videoItem.video?.title ?? '',
+                            color: AppColors.mainTextColor,
+                            fontSize: SizeConfig.large,
+                            fontWeight: FontWeight.w400,
+                            maxLines: 2,
+                          ),
+                          SizedBox(height: SizeConfig.size2),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: CustomText(
+                                  "${creator} ${widget.videoItem.video?.stats?.views.toString() ?? '0'} views ${postedAgo}",
+                                  fontSize: SizeConfig.small11,
+                                  color: AppColors.secondaryTextColor,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                )
-
-              ],
+                    SizedBox(width: SizeConfig.size8),
+                    if (widget.videoItem.channel?.id != null)
+                      if (widget.videoItem.channel?.id != channelId)
+                        IconButton(
+                          onPressed: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            } else {
+                              widget.onTapOption();
+                            }
+                          },
+                          icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+                        )
+                      else
+                        ReelVideoPopUpMenu(
+                            videoFeedItem: widget.videoItem,
+                            popUpMenuColor: AppColors.black,
+                            videoType: widget.videoType)
+                    else if (widget.videoItem.author?.accountType ==
+                        AppConstants.individual)
+                      if (widget.videoItem.author?.id != userId)
+                        IconButton(
+                          onPressed: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            } else {
+                              widget.onTapOption();
+                            }
+                          },
+                          icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+                        )
+                      else
+                        ReelVideoPopUpMenu(
+                            videoFeedItem: widget.videoItem,
+                            popUpMenuColor: AppColors.black,
+                            videoType: widget.videoType)
+                    else if (widget.videoItem.author?.accountType ==
+                        AppConstants.business)
+                      if (widget.videoItem.author?.id != businessId)
+                        IconButton(
+                          onPressed: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            } else {
+                              widget.onTapOption();
+                            }
+                          },
+                          icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+                        )
+                      else
+                        ReelVideoPopUpMenu(
+                            videoFeedItem: widget.videoItem,
+                            popUpMenuColor: AppColors.black,
+                            videoType: widget.videoType),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

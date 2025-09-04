@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 
@@ -18,7 +17,6 @@ import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
-import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
 import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
@@ -30,7 +28,6 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -38,7 +35,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart' as dioObj;
 
 enum ChannelTab {
   shorts,
@@ -232,8 +228,11 @@ class _ChannelScreenState extends State<ChannelScreen> {
               shortsController.isMoreDataLoading(shorts).isFalse) {
             shortsController.isMoreDataLoading(shorts).value = true;
             shortsController.getShortsByType(
-                shorts, widget.channelId, widget.authorId, isOwnChannel,
-                postVia: PostVia.channel);
+              shorts,
+              widget.channelId,
+              widget.authorId,
+              isOwnChannel,
+            );
           }
           break;
         case ChannelTab.videos:
@@ -386,41 +385,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                    Padding(
-                      padding: EdgeInsets.only(
-                          right: SizeConfig.size18, top: SizeConfig.size4),
-                      child: CommonProfileImage(
-                        imagePath: channelController.channelLogo.value,
-                        onImageUpdate: (image) async {
-                          final manageChannelController =
-                              Get.put(ManageChannelController());
-
-                          channelController.channelLogo.value = image;
-
-                          dioObj.MultipartFile? imageByPart;
-
-                          String fileName = image.split('/').last;
-                          imageByPart = await dioObj.MultipartFile.fromFile(
-                              image,
-                              filename: fileName);
-
-                          Map<String, dynamic> requestData = {
-                            ApiKeys.name:
-                                channelController.channelData.value?.name,
-                          };
-                          requestData[ApiKeys.logo] = imageByPart;
-                          await manageChannelController.updateChannel(
-                            reqData: requestData,
-                          );
-
-                          // print("Update Params: $reqProfile");
-                        },
-                        dialogTitle: 'Upload Channel Logo',
-                        isOwnProfile: isOwnChannel
-                      ),
-                    ),
-                  /*      Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: SizeConfig.size6),
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -442,7 +407,8 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                   context,
                                   RouteHelper.getManageChannelScreenRoute(),
                                   arguments: {
-                                    ApiKeys.channelData: channelController.channelData.value,
+                                    'isUpdate': true,
+                                    'channelData': channelController.channelData.value,
                                   },
                                 );
                                 if (result == true) {
@@ -465,8 +431,8 @@ class _ChannelScreenState extends State<ChannelScreen> {
                           )
                       ],
                     ),
-                  ),*/
-                  // SizedBox(width: SizeConfig.size20),
+                  ),
+                  SizedBox(width: SizeConfig.size20),
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(top: SizeConfig.size6),
@@ -515,24 +481,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                       navigateToProfileSection();
                                     })
                                   : _buildOwnChannelPopUpMenu(
-                                      onChannelEdit: () async {
-                                        final result =
-                                            await Navigator.pushNamed(
-                                          context,
-                                          RouteHelper
-                                              .getManageChannelScreenRoute(),
-                                          arguments: {
-                                            ApiKeys.channelData: channelController
-                                                .channelData.value,
-                                          },
-                                        );
-                                        if (result == true) {
-                                          channelController.getChannelDetails(
-                                              channelOrUserId: isOwnChannel
-                                                  ? widget.authorId
-                                                  : widget.channelId);
-                                        }
-                                      },
                                       onchannelSetting: () {
                                         Get.to(() => ChannelSettingScreen());
                                       },
@@ -570,10 +518,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                   "Posts"),
                               GestureDetector(
                                   onTap: () {
-                                    // Navigator.pushNamed(
-                                    //     context,
-                                    //     RouteHelper
-                                    //         .getFollowerFollowingScreenRoute());
+                                    Navigator.pushNamed(
+                                        context,
+                                        RouteHelper
+                                            .getFollowerFollowingScreenRoute());
                                   },
                                   child: buildStatBlock(
                                       channelController
@@ -583,10 +531,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                                       "Followers")),
                               GestureDetector(
                                 onTap: () {
-                                  // Navigator.pushNamed(
-                                  //     context,
-                                  //     RouteHelper
-                                  //         .getFollowerFollowingScreenRoute());
+                                  Navigator.pushNamed(
+                                      context,
+                                      RouteHelper
+                                          .getFollowerFollowingScreenRoute());
                                 },
                                 child: buildStatBlock(
                                     channelController
@@ -640,6 +588,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                           child: commonButtonWithIcon(
                             height: SizeConfig.size36,
                             onTap: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                                return;
+                              }
                               channelController.followUnfollowChannel(
                                   channelId: widget.channelId,
                                   isFollowing:
@@ -656,19 +608,19 @@ class _ChannelScreenState extends State<ChannelScreen> {
                           ),
                         )),
                     SizedBox(width: SizeConfig.size8),
-                    Expanded(
-                      child: commonButtonWithIcon(
-                        height: SizeConfig.size36,
-                        onTap: () {},
-                        title: "Connect",
-                        textColor: AppColors.primaryColor,
-                        icon: AppIconAssets.connectIcon,
-                        iconColor: AppColors.primaryColor,
-                        borderColor: AppColors.primaryColor,
-                        isPrefix: false,
-                        radius: SizeConfig.size8,
-                      ),
-                    )
+                    // Expanded(
+                    //   child: commonButtonWithIcon(
+                    //     height: SizeConfig.size36,
+                    //     onTap: () {},
+                    //     title: "Connect",
+                    //     textColor: AppColors.primaryColor,
+                    //     icon: AppIconAssets.connectIcon,
+                    //     iconColor: AppColors.primaryColor,
+                    //     borderColor: AppColors.primaryColor,
+                    //     isPrefix: false,
+                    //     radius: SizeConfig.size8,
+                    //   ),
+                    // )
                   ],
                 ),
               ],
@@ -739,38 +691,39 @@ class _ChannelScreenState extends State<ChannelScreen> {
 
   Widget _filterButtons() {
     return SingleChildScrollView(
-        child: Row(
-      children: [
-        SizedBox(width: SizeConfig.size20),
-        LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-        SizedBox(width: SizeConfig.size10),
-        Padding(
-          padding: EdgeInsets.only(right: 20),
-          child: Row(
-            children: filters!.map((filter) {
-              final isSelected = channelController.selectedFilter == filter;
-              return Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size14),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      channelController.selectedFilter = filter;
-                    });
-                  },
-                  child: CustomText(
-                    filter.label, // use .label for display text
-                    decoration: TextDecoration.underline,
-                    color: isSelected ? Colors.blue : Colors.black54,
-                    decorationColor: isSelected ? Colors.blue : Colors.black54,
-                    fontWeight: FontWeight.w600,
+      child: Row(
+        children: [
+          SizedBox(width: SizeConfig.size20),
+          LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
+          SizedBox(width: SizeConfig.size10),
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Row(
+              children: filters!.map((filter) {
+                final isSelected = channelController.selectedFilter == filter;
+                return Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size14),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        channelController.selectedFilter = filter;
+                      });
+                    },
+                    child: CustomText(
+                      filter.label, // use .label for display text
+                      decoration: TextDecoration.underline,
+                      color: isSelected ? Colors.blue : Colors.black54,
+                      decorationColor: isSelected ? Colors.blue : Colors.black54,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        )
-      ],
-    ));
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      )
+    );
   }
 
   Widget buildStatBlock(String value, String label) {
@@ -795,21 +748,18 @@ class _ChannelScreenState extends State<ChannelScreen> {
     switch (_selectedTab) {
       case ChannelTab.shorts:
         return ShortsChannelSection(
-          isOwnShorts: isOwnChannel,
-          sortBy: channelController.selectedFilter,
-          showShortsInGrid: true,
-          channelId: widget.channelId,
-          authorId: widget.authorId,
-          postVia: PostVia.channel,
-        );
+            isOwnChannel: isOwnChannel,
+            sortBy: channelController.selectedFilter,
+            showShortsInGrid: true,
+            channelId: widget.channelId,
+            authorId: widget.authorId);
       case ChannelTab.videos:
         return VideoChannelSection(
-          isOwnVideos: isOwnChannel,
+          isOwnChannel: isOwnChannel,
           sortBy: channelController.selectedFilter,
           channelId: widget.channelId,
           authorId: widget.authorId,
           isScroll: false,
-          postVia: PostVia.channel,
         );
 
       case ChannelTab.posts:
@@ -818,6 +768,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
             key: ValueKey('own_channel_posts'),
             id: widget.authorId,
             postFilterType: _getPostType(),
+            // sortBy: channelController.selectedFilter,
             isInParentScroll: true, // Indicate this is used in parent scroll
           );
         else
@@ -825,6 +776,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
             key: ValueKey('visiting_channel_posts'),
             id: widget.authorId,
             postFilterType: _getPostType(),
+            // sortBy: channelController.selectedFilter,
             isInParentScroll: true, // Indicate this is used in parent scroll
           );
       case ChannelTab.product:
@@ -857,6 +809,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       constraints: BoxConstraints(),
       onSelected: (VisitingChannelMenuAction value) {
+        if (isGuestUser()) {
+          createProfileScreen();
+          return;
+        }
         switch (value) {
           case VisitingChannelMenuAction.reportChannel:
             if (onReport != null) onReport();
@@ -910,7 +866,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
   }
 
   Widget _buildOwnChannelPopUpMenu({
-    VoidCallback? onChannelEdit,
     VoidCallback? onchannelSetting,
     VoidCallback? onAddVideo,
     VoidCallback? onAddProduct,
@@ -922,9 +877,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
       constraints: BoxConstraints(),
       onSelected: (OwnChannelMenuAction value) {
         switch (value) {
-          case OwnChannelMenuAction.channelEdit:
-            if (onChannelEdit != null) onChannelEdit();
-            break;
           case OwnChannelMenuAction.chennelSetting:
             if (onchannelSetting != null) onchannelSetting();
             break;
@@ -938,16 +890,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
       },
       itemBuilder: (context) => [
         PopupMenuItem(
-          value: OwnChannelMenuAction.channelEdit,
-          child: CustomText(
-            "Channel Edit",
-          ),
-        ),
-        PopupMenuItem(
           value: OwnChannelMenuAction.chennelSetting,
-          child: CustomText(
-            "Channel Settings",
-          ),
+          child: Text("Channel Settings",
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ),
         // PopupMenuItem(
         //   value: OwnChannelMenuAction.addShort,
@@ -957,15 +903,15 @@ class _ChannelScreenState extends State<ChannelScreen> {
         // ),
         PopupMenuItem(
           value: OwnChannelMenuAction.addVideo,
-          child: CustomText(
-            "Add Video",
-          ),
+          child: Text("Add Video",
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ),
         PopupMenuItem(
           value: OwnChannelMenuAction.addProduct,
-          child: CustomText(
-            "Add Product",
-          ),
+          child: Text("Add Product",
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ),
       ],
       child: Padding(
@@ -1121,7 +1067,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
         Get.to(() => VisitProfileScreen(authorId: authorId));
       }
     } else {
-      if (authorId == businessUserId) {
+      if (authorId == businessId) {
         Get.to(() => BusinessOwnProfileScreen());
       } else {
         Get.to(() => VisitBusinessProfile(businessId: authorId));

@@ -1,9 +1,11 @@
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_dialogs.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -25,8 +27,10 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:chewie/chewie.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 // Import your new controller
@@ -47,7 +51,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   final GlobalKey _contentKey = GlobalKey();
   bool _isMeasured = false;
   double _calculatedHeight = SizeConfig.size300;
-  bool isUploadFromChannel = false;
 
   @override
   void initState() {
@@ -57,7 +60,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoPlayerController = Get.put(SingleVideoPlayerController(), tag: widget.videoItem.videoId);
 
     videoController.videoFeedItem = widget.videoItem;
-    isUploadFromChannel = videoController.videoFeedItem?.channel?.id != null;
 
     /// measure height for sliver approach
     _measureHeaderHeight();
@@ -93,7 +95,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoController.likes.value = videoController.videoFeedItem?.video?.stats?.likes ?? 0;
     videoController.comments.value = videoController.videoFeedItem?.video?.stats?.comments ?? 0;
 
-    if (isUploadFromChannel) {
+    if (videoController.videoFeedItem?.channel?.id != null) {
       videoController.isChannelFollow.value = videoController.videoFeedItem?.channel?.isFollowing ?? false;
     }
   }
@@ -286,18 +288,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void _showBlockDialog(VideoFeedItem videoFeedItem) {
     openBlockSelectionDialog(
       context: context,
-      reportType: 'VIDEO_POST',
-      userId: videoFeedItem.video?.userId??'',
-      contentId: videoFeedItem.video?.id??'',
-      userBlockVoidCallback: () async {
+      voidCallback: () async {
         await Get.find<VideoController>().userBlocked(
           videoType: Videos.videoFeed,
           otherUserId: videoFeedItem.video?.userId ?? '',
         );
       },
-        reportCallback: (params){
-
-        }
     );
   }
 
@@ -323,26 +319,66 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         onCommentButtonPressed: _onCommentPressed,
         onSavedUnSavedButtonPressed: _onSavedPressed,
         onShareButtonPressed: () async {
-          await _shareVideoSimple();
-        },
+              _onShareButtonPressed();
+            },
       ),
     ));
   }
 
-  /// Simple, consistent share experience (like header_widget.dart)
-  Future<void> _shareVideoSimple() async {
-    final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
-    final link = videoDeepLink(videoId: id);
-    final title = widget.videoItem.video?.title ?? 'BlueEra Video';
+  Future<void> _onShareButtonPressed() async {
+    // Try to prepare a preview thumbnail (cover image preferred)
+    XFile? xFile;
+    try {
+      final thumbUrl = widget.videoItem.video?.coverUrl ?? widget.videoItem.video?.videoUrl;
+      if (thumbUrl != null && thumbUrl.isNotEmpty) {
+        xFile = await urlToCachedXFile(thumbUrl);
+      }
+    } catch (_) {
+      // Ignore thumbnail failures
+    }
 
-    final message = "Check out this video on BlueEra:\n$link\n";
+    // Build deep link for video using centralized helper
+    final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
+    final shareUrl = videoDeepLink(videoId: id);
 
     await SharePlus.instance.share(ShareParams(
-      text: message,
-      subject: title,
+      text: shareUrl,
+      subject: widget.videoItem.video?.title,
+      previewThumbnail: xFile,
     ));
+
+    // Clean up cached file
+    if (xFile != null) {
+      final file = File(xFile.path);
+      if (await file.exists()) {
+        await file.delete();
+        print("🗑️ File deleted from cache.");
+      }
+    }
   }
 
+  Future<XFile> urlToCachedXFile(String fileUrl) async {
+    // Get temp (cache) directory
+    final tempDir = await getTemporaryDirectory();
+    String fileName = fileUrl.split('/').last; // keep original name if possible
+    // Ensure we have an extension to help receivers detect MIME type
+    if (!fileName.contains('.')) {
+      fileName = '${fileName}.jpg';
+    }
+    final filePath = "${tempDir.path}/$fileName";
+
+    // Download file into cache
+    await Dio().download(fileUrl, filePath);
+
+    // Return as XFile
+    String mime = 'image/*';
+    final lower = fileName.toLowerCase();
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) mime = 'image/jpeg';
+    else if (lower.endsWith('.png')) mime = 'image/png';
+    else if (lower.endsWith('.webp')) mime = 'image/webp';
+    else if (lower.endsWith('.gif')) mime = 'image/gif';
+    return XFile(filePath, mimeType: mime);
+  }
 
   Widget _buildExpandedWidget() {
     return Column(
@@ -400,27 +436,33 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     child: InkWell(
                       onTap: ()=> _openProfile(),
                       child: ChannelProfileHeader(
-                        imageUrl: isUploadFromChannel
+                        imageUrl: videoController.videoFeedItem?.channel?.id != null
                             ? videoController.videoFeedItem?.channel?.logoUrl ?? ''
                             : videoController.videoFeedItem?.author?.profileImage ?? '',
-                        title: isUploadFromChannel
+                        title: videoController.videoFeedItem?.channel?.id != null
                             ? videoController.videoFeedItem?.channel?.name ?? ''
                             : videoController.videoFeedItem?.author?.username ?? '',
-                        subtitle: isUploadFromChannel
+                        subtitle: videoController.videoFeedItem?.channel?.id != null
                             ? videoController.videoFeedItem?.channel?.username ?? ''
-                            : videoController.videoFeedItem?.author?.designation ?? "OTHERS",
+                            : (videoController.videoFeedItem?.author?.accountType == AppConstants.individual)
+                            ? videoController.videoFeedItem?.author?.designation ?? "OTHERS"
+                            : videoController.videoFeedItem?.author?.designation ?? '',
                         avatarSize: SizeConfig.size40,
                         isVerifiedTickShow: true,
                       ),
                     ),
                   ),
 
-                  if (isUploadFromChannel)
+                  if (videoController.videoFeedItem?.channel?.id != null)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Obx(() => CustomBtn(
                           onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
                                   channelId: videoController.videoFeedItem?.channel?.id ?? ''
@@ -455,6 +497,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       await Get.find<VideoController>().videoUnLike(
           videoId: videoController.videoFeedItem?.video?.id ?? '0'
       );
+      log('videoController after unlike video--> ${videoController.isLiked.value}');
       widget.videoItem.interactions?.isLiked = false;
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) - 1;
     } else {
@@ -502,8 +545,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           }
       );
     }else{
-      log('videoController.videoFeedItem?.author?.accountType?.toUpperCase() --> ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() }');
-      log('videoController.videoFeedItem?.author?.id??'' --> ${videoController.videoFeedItem?.author?.id??'' }');
       /// we don't have channel so will call profile
       if (videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual) {
         if (videoController.videoFeedItem?.author?.id == userId) {
@@ -512,7 +553,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           Get.to(() => VisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??''));
         }
       }else{
-        if (videoController.videoFeedItem?.author?.id == businessUserId) {
+        if (videoController.videoFeedItem?.author?.id == businessId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoController.videoFeedItem?.author?.id??''));

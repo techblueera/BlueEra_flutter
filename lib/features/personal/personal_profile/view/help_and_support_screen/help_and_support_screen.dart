@@ -21,17 +21,26 @@ class HelpAndSupportScreen extends StatefulWidget {
   State<HelpAndSupportScreen> createState() => _HelpAndSupportScreenState();
 }
 
-class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> { 
+class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
+  final HelpAndSupportController helpController = Get.put(HelpAndSupportController());
   List<SupportCase> allList = [];
 
-  
+  @override
+  void initState() {
+    super.initState();
+    helpController.setIndex("0");
+    helpController.setTitle("Help & Support");
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<HelpAndSupportController>(
-      init: HelpAndSupportController(),
-      builder: (helpController) {
-     return  Scaffold(
+    return Obx(
+      () => Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: CommonBackAppBar(
           onBackTap: () {
@@ -42,12 +51,12 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
               helpController.setTitle("Help & Support");
             }
           },
-          title: helpController.title,
+          title: helpController.title.value,
           isLeading: true,
         ),
         body: Padding(
           padding: EdgeInsets.all(SizeConfig.size16),
-          child: Column(
+          child: Obx(() => Column(
                 children: [
                   if (helpController.index == '1') ...[
                     SizedBox(height: SizeConfig.size20),
@@ -102,65 +111,62 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                     ),
                   ],
                 ],
-              )
+              )),
         ),
-      );
-    },);
+      ),
+    );
   }
 }
 
 Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
-  return InkWell(
-    onTap: onTap,
-    child: Container(
-      padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size4, horizontal: SizeConfig.size4),
-      margin: EdgeInsets.symmetric(horizontal: 1),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                margin: EdgeInsets.all(SizeConfig.size10),
-                padding: EdgeInsets.all(SizeConfig.size10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(100),
-                  color: AppColors.primaryColor.withOpacity(0.3),
-                ),
-                child: SvgPicture.asset(
-                  value1,
-                  height: 18,
-                  width: 18,
-                ),
+  return Container(
+    padding: EdgeInsets.symmetric(
+        vertical: SizeConfig.size4, horizontal: SizeConfig.size4),
+    margin: EdgeInsets.symmetric(horizontal: 1),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              margin: EdgeInsets.all(SizeConfig.size10),
+              padding: EdgeInsets.all(SizeConfig.size10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100),
+                color: AppColors.primaryColor.withOpacity(0.3),
               ),
-              SizedBox(width: SizeConfig.size10),
-              CustomText(
-                value2,
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ],
-          ),
-          Padding(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: InkWell(
-              onTap: onTap,
               child: SvgPicture.asset(
-                AppIconAssets.frontArrow,
+                value1,
                 height: 18,
                 width: 18,
-                color: Colors.black,
               ),
             ),
-          )
-        ],
-      ),
+            SizedBox(width: SizeConfig.size10),
+            CustomText(
+              value2,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ],
+        ),
+        Padding(
+          padding: EdgeInsets.all(SizeConfig.size10),
+          child: InkWell(
+            onTap: onTap,
+            child: SvgPicture.asset(
+              AppIconAssets.frontArrow,
+              height: 18,
+              width: 18,
+              color: Colors.black,
+            ),
+          ),
+        )
+      ],
     ),
   );
 }
@@ -278,7 +284,6 @@ class _QueriesCardState extends State<QueriesCard> {
     });
 
     final statusMap = {
-      0:'--',
       1: "Resolved",
       2: "In Progress",
       3: "Needs Attention",

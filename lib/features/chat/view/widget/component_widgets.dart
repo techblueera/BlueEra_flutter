@@ -136,7 +136,6 @@ Widget ChatListTile(
       } else {
 
         chatViewController.openAnyOneChatFunction(
-          businessId: chat?.sender?.businessId,
           type:type,
           isInitialMessage: false,
           userId: userId,
@@ -144,7 +143,6 @@ Widget ChatListTile(
           profileImage: chat?.sender?.profileImage,
           contactName: chat?.sender?.name,
           contactNo: chat?.sender?.contactNo,
-                 
         );
       }
     },

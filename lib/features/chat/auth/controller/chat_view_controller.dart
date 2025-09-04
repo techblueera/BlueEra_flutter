@@ -236,6 +236,7 @@ print('chatListEvent');
         }
       });
       chatSocket.listenEvent("isOnLine", (data) {
+print('ifOline:$data');
         if (userOpenUserId.value == data['user_id']) {
           if (data['is_online']) {
             userOnlineStatus.value = "Online";
@@ -396,7 +397,6 @@ print('chatListEvent');
       required String? contactName,
       required String? contactNo,
       required bool isInitialMessage,
-       String? businessId,
       bool? isFromContactList}) async {
     await getLocalConversation(conversationId, userId);
     if (isFromContactList != null && isFromContactList) {
@@ -409,7 +409,6 @@ print('chatListEvent');
           profileImage: profileImage,
           name: contactName,
           contactNo: contactNo,
-          businessId:businessId ,
         ),
       );
     } else {
@@ -422,7 +421,6 @@ print('chatListEvent');
           profileImage: profileImage,
           name: contactName,
           contactNo: contactNo,
-          businessId: businessId,
         ),
       );
     }

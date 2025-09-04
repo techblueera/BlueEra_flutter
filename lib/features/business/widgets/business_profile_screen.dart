@@ -1,17 +1,14 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+
 import '../../../core/api/apiService/api_response.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
 import '../auth/controller/view_business_details_controller.dart';
@@ -30,26 +27,13 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       Get.find<ViewBusinessDetailsController>();
 
   List<String> postTab = [
-    'Profile',
-    'My Posts',
+    'Profile','My Posts',
     'Shorts',
-    'Videos',
     'My Products',
     'Subscription',
+    
     'Channels'
   ];
-  List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.UnderProgress;
-
-  @override
-  void initState() {
-    setFilters();
-    super.initState();
-  }
-
-  void setFilters(){
-    filters = SortBy.values.where((e) => e == SortBy.Latest || e == SortBy.UnderProgress).toList();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,13 +54,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 },
                 labelBuilder: (label) => label,
               ),
-
-
-              if(viewBusinessDetailsController.selectedIndex.value == 2 ||
-                  viewBusinessDetailsController.selectedIndex.value == 3 )...[
-                _filterButtons(),
-              ],
-
               SizedBox(
                 height: SizeConfig.size20,
               ),
@@ -105,69 +82,22 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case 'Profile':
         return BusinessProfileWidget();
       case 'My Posts':
-         return FeedScreen(
+        return FeedScreen(
           key: ValueKey('feedScreen_my_posts'),
           postFilterType: PostType.myPosts,
-          id: businessId,
-          isInParentScroll: true
+          id: businessId
         );
-      case 'Shorts':
-         return ShortsChannelSection(
-          isOwnShorts: true,
-          channelId: '',
-          authorId: businessUserId,
+         case 'Shorts':
+           return ShortsChannelSection(
+          isOwnChannel: true,
+          channelId: channelId,
+          authorId: userId,
           showShortsInGrid: true,
-          sortBy: selectedFilter,
-          postVia: PostVia.profile,
+           extraParams: { ApiKeys.postVia: 'user'},
         );
-      case "Videos":
-      return VideoChannelSection(
-            isOwnVideos: true,
-            channelId: '',
-            authorId: businessUserId,
-            isScroll: false,
-            postVia: PostVia.profile,
-            sortBy: selectedFilter,
-        );
+
       default:
         return const Center(child: CustomText('Coming soon'));
     }
-  }
-
-  Widget _filterButtons() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(left: SizeConfig.large, right: SizeConfig.large, top: SizeConfig.size20),
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-            SizedBox(width: SizeConfig.size10),
-            Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: Row(
-                children: filters!.map((filter) {
-                  final isSelected = selectedFilter == filter;
-                  return Padding(
-                    padding: EdgeInsets.only(right: SizeConfig.size14),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedFilter = filter;
-                        });
-                      },
-                      child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label, // use .label for display text
-                        decoration: TextDecoration.underline,
-                        color: isSelected ? Colors.blue : Colors.black54,
-                        decorationColor: isSelected ? Colors.blue : Colors.black54,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            )
-          ],
-        )
-    );
   }
 }

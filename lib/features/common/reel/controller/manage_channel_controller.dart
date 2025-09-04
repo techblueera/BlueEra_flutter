@@ -74,7 +74,7 @@ class ManageChannelController extends GetxController {
   ///UPDATE CHANNEL...
   Future<void> updateChannel({
     required Map<String, dynamic> reqData,
-    List<Map<String, String>>? socialLinkReqData,
+    required List<Map<String, String>> socialLinkReqData,
   }) async {
     try {
       String? channelId = await SharedPreferenceUtils.getSecureValue(

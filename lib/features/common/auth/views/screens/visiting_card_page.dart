@@ -230,163 +230,118 @@ class VisitingCard extends StatelessWidget {
                                   children: [
                                     const Text("🇮🇳", style: TextStyle(fontSize: 32)),
                                     SizedBox(height: baseFont * 0.5),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        "Jai Bharat",
-                                        style: TextStyle(
-                                          fontSize: baseFont + 2,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                    Text(
+                                      "Jai Bharat",
+                                      style: TextStyle(
+                                        fontSize: baseFont + 2,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     SizedBox(height: baseFont * 0.6),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Stack(
-                                        children: [
-                                          // White border text
-                                          Text(
-                                            "ये देश मेरा, ",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              foreground: Paint()
-                                                ..style = PaintingStyle.stroke
-                                                ..strokeWidth = baseFont * 0.15   // thickness of border
-                                                ..color = Colors.white, // border color
-                                            ),
+                                    Stack(
+                                      children: [
+                                        // White border text
+                                        Text(
+                                          "ये देश मेरा,\nकंटेंट और पोस्ट मेरा,",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: baseFont,
+                                            fontWeight: FontWeight.w600,
+                                            foreground: Paint()
+                                              ..style = PaintingStyle.stroke
+                                              ..strokeWidth = baseFont * 0.15   // thickness of border
+                                              ..color = Colors.white, // border color
                                           ),
-                                          // Fill text
-                                          Text(
-                                            "ये देश मेरा, ",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.deepOrange, // main text color
-                                            ),
+                                        ),
+                                        // Fill text
+                                        Text(
+                                          "ये देश मेरा,\nकंटेंट और पोस्ट मेरा,",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: baseFont,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.deepOrange, // main text color
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Stack(
-                                        children: [
-                                          // White border text
-                                          Text(
-                                            "कंटेंट और पोस्ट मेरा,",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              foreground: Paint()
-                                                ..style = PaintingStyle.stroke
-                                                ..strokeWidth = baseFont * 0.15   // thickness of border
-                                                ..color = Colors.white, // border color
-                                            ),
-                                          ),
-                                          // Fill text
-                                          Text(
-                                            "कंटेंट और पोस्ट मेरा,",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.deepOrange, // main text color
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
 
                                     SizedBox(height: baseFont * 0.5),
 
 
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Stack(
-                                        children: [
-                                          Text(
-                                            "देखने वाले लोग मेरे,",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              foreground: Paint()
-                                                ..style = PaintingStyle.stroke
-                                                ..strokeWidth = baseFont * 0.18   // thickness of border
-                                                ..color = Colors.white, // border color
-                                            ),
+                                    Stack(
+                                      children: [
+                                        Text(
+                                          "देखने वाले लोग मेरे,",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: baseFont,
+                                            fontWeight: FontWeight.w600,
+                                            foreground: Paint()
+                                              ..style = PaintingStyle.stroke
+                                              ..strokeWidth = baseFont * 0.18   // thickness of border
+                                              ..color = Colors.white, // border color
                                           ),
-                                          Text(
-                                            "देखने वाले लोग मेरे,",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF0025F9),
-                                            ),
+                                        ),
+                                        Text(
+                                          "देखने वाले लोग मेरे,",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: baseFont,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF0025F9),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Stack(
-                                        children: [
-                                          Text(
-                                            "तो अब ऐप भी मेरा –",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              foreground: Paint()
-                                                ..style = PaintingStyle.stroke
-                                                ..strokeWidth = baseFont * 0.15 // thickness of border
-                                                ..color = AppColors.white,
-                                            ),
+                                    Stack(
+                                      children: [
+                                        Text(
+                                          "तो अब ऐप भी मेरा –",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: baseFont,
+                                            fontWeight: FontWeight.w600,
+                                            foreground: Paint()
+                                              ..style = PaintingStyle.stroke
+                                              ..strokeWidth = baseFont * 0.15 // thickness of border
+                                              ..color = AppColors.white,
                                           ),
-                                          Text(
-                                            "तो अब ऐप भी मेरा –",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: baseFont,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.green,
-                                            ),
+                                        ),
+                                        Text(
+                                          "तो अब ऐप भी मेरा –",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: baseFont,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.green,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                     SizedBox(height: baseFont * 0.2),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Stack(
-                                        children: [
-                                          Text(
-                                            "BlueEra",
-                                            style: TextStyle(
-                                              fontSize: baseFont + 2,
-                                              fontWeight: FontWeight.bold,
-                                              foreground: Paint()
-                                                ..style = PaintingStyle.stroke
-                                                ..strokeWidth = baseFont * 0.15   // thickness of border
-                                                ..color = Colors.white,
-                                            ),
+                                    Stack(
+                                      children: [
+                                        Text(
+                                          "BlueEra",
+                                          style: TextStyle(
+                                            fontSize: baseFont + 2,
+                                            fontWeight: FontWeight.bold,
+                                            foreground: Paint()
+                                              ..style = PaintingStyle.stroke
+                                              ..strokeWidth = baseFont * 0.15   // thickness of border
+                                              ..color = Colors.white,
                                           ),
-                                          Text(
-                                            "BlueEra",
-                                            style: TextStyle(
-                                              fontSize: baseFont + 2,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green,
-                                            ),
+                                        ),
+                                        Text(
+                                          "BlueEra",
+                                          style: TextStyle(
+                                            fontSize: baseFont + 2,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                     SizedBox(height: baseFont * 0.2),
                                   ],
@@ -405,31 +360,25 @@ class VisitingCard extends StatelessWidget {
                       children: [
                         Expanded(
                           flex: 2,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              "👇Click on Download Link",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: baseFont,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryColor,
-                              ),
+                          child: Text(
+                            "👇Click on Download Link",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: baseFont,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
                             ),
                           ),
                         ),
                         Expanded(
                           flex: 1,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              "स्वदेशी अपनाओ",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: baseFont + 6,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.black,
-                              ),
+                          child: Text(
+                            "स्वदेशी अपनाओ",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: baseFont + 6,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.black,
                             ),
                           ),
                         ),

@@ -15,8 +15,12 @@ class AppIconAssets {
   static String on_boarding2 = "${iconPath}on_boarding2.svg";
   static String on_boarding3 = "${iconPath}on_boarding3.svg";
   static String on_boarding4 = "${iconPath}on_boarding4.svg";
+  static String on_boarding5 = "${iconPath}on_boarding5.svg";
   static String otp_bg = "${iconPath}otp_bg.svg";
   static String personal_account = "${iconPath}personal_account.svg";
+  static String recruiter_account = "${iconPath}recruiter_account.svg";
+  static String sms_sky = "${iconPath}sms_sky.svg";
+  static String whatsapp = "${iconPath}whatsapp.svg";
   static String service = "${iconPath}service.svg";
   static String store = "${iconPath}store.svg";
   static String store_service = "${iconPath}store_service.svg";
@@ -340,7 +344,4 @@ class AppIconAssets {
   static String playStore= "${iconPath}play_store.svg";
   static String appStore= "${iconPath}app_store.svg";
   static String logout_new= "${AppConstants.baseIconAssetsPath}logout_new.png";
- 
-  static String visiting_bg = "${iconPath}bgcontainerTemp.svg";
-  static String bE_logo = "${iconPath}bE_logo.svg";
 }

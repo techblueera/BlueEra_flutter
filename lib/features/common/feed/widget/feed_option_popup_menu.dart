@@ -13,7 +13,8 @@ import 'package:get/get.dart';
 class FeedPopUpMenu extends StatelessWidget {
   final Post post;
   final PostType postFilteredType;
-  const FeedPopUpMenu({super.key, required this.post, required this.postFilteredType});
+  final SortBy? sortBy;
+  const FeedPopUpMenu({super.key, required this.post, required this.postFilteredType, this.sortBy});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class FeedPopUpMenu extends StatelessWidget {
               context: context,
               text: 'Are you sure you want to delete this post?',
               confirmCallback: () async {
-                Get.find<FeedController>().postDelete(postId: post.id, type: postFilteredType);
+                Get.find<FeedController>().postDelete(postId: post.id??'', type: postFilteredType, sortBy: sortBy);
               },
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog

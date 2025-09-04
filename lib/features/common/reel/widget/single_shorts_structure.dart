@@ -15,6 +15,7 @@ class SingleShortStructure extends StatefulWidget {
   final List<VideoFeedItem>? allLoadedShorts;
   final VideoFeedItem? shortItem;
   final int? initialIndex;
+  final bool isOwnProfile;
   final double padding;
   final double? imageWidth;
   final double? imageHeight;
@@ -27,6 +28,7 @@ class SingleShortStructure extends StatefulWidget {
     this.allLoadedShorts,
     this.shortItem,
     this.initialIndex,
+    this.isOwnProfile = false,
     this.padding = 10.0,
     this.imageWidth,
     this.imageHeight,

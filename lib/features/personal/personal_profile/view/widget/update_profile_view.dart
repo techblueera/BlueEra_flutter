@@ -58,7 +58,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
 
-  final personalCreateProfileController = Get.find<PersonalCreateProfileController>();
+  final personalCreateProfileController =
+      Get.put(PersonalCreateProfileController());
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
   bool isProfileCreateStatus = false;
   final authController = Get.find<AuthController>();
@@ -93,7 +94,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   @override
   void initState() {
     apiCalling();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
 
     isProfileCreateStatus =
         viewProfileController.personalProfileDetails.value.isProfileCreated ??
@@ -242,8 +242,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         ProfessionTypeData(
             tagId: selectedProfession,
             name: selectedProfession?.toLowerCase());
-    });
-
     super.initState();
   }
 
@@ -286,7 +284,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               personalCreateProfileController
                                   .isImageUpdated.value = true;
                             },
-                            dialogTitle: 'Upload Profile Picture',
                           ),
                         ),
                         SizedBox(height: SizeConfig.size14),
@@ -375,7 +372,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 'onPlaceSelected': (double? lat,
                                     double? lng,
                                     String? address,
-                                    bool? currentLocationSelected) {
+                                    // bool? currentLocationSelected
+                                    ) {
                                   if (address != null) {
                                     locationController.text = address;
                                     personalCreateProfileController

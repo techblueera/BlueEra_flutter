@@ -38,7 +38,7 @@ class VideoController extends GetxController{
   RxInt likes = 0.obs;
   RxInt comments = 0.obs;
   int page = 1;
-  int limit = 40;
+  int limit = 20;
 
   ///Channel Videos(Trending, Popular, Oldest)
   RxList<VideoFeedItem> latestVideosPosts = <VideoFeedItem>[].obs;
@@ -332,10 +332,9 @@ class VideoController extends GetxController{
       Videos videos,
       String channelOrUserId,
       String authorId,
-      bool isOwnVideos, {
+      bool isOwnChannel, {
         bool isInitialLoad = false,
         bool refresh = false,
-        PostVia? postVia,
       }) async {
     switch (videos) {
       case Videos.latest:
@@ -351,8 +350,7 @@ class VideoController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
         );
         break;
 
@@ -369,8 +367,7 @@ class VideoController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
         );
         break;
 
@@ -387,8 +384,7 @@ class VideoController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
         );
         break;
 
@@ -405,8 +401,7 @@ class VideoController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
         );
         break;
 
@@ -424,8 +419,7 @@ class VideoController extends GetxController{
           refresh: refresh,
           channelOrUserId: channelOrUserId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
-          postVia: postVia,
+          isOwnChannel: isOwnChannel,
         );
     }
   }
@@ -444,8 +438,7 @@ class VideoController extends GetxController{
     required bool refresh,
     required String channelOrUserId,
     required String authorId,
-    required bool isOwnVideos,
-    required PostVia? postVia,
+    required bool isOwnChannel,
   }) async {
     if (isInitialLoad) {
       page = 1;
@@ -462,55 +455,32 @@ class VideoController extends GetxController{
         ApiKeys.typeFilter: 'long'
       };
 
-      ResponseModel response;
-      if(postVia == PostVia.channel) {
-        if (videos == Videos.latest || videos == Videos.popular || videos == Videos.oldest) {
-          params[ApiKeys.sortBy] = videos!.queryValue;
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (videos == Shorts.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        } else {
-          params[ApiKeys.status] = VideoStatus.draft.queryValue;
-        }
-        params[ApiKeys.postVia] = 'channel';
-
-        if(isOwnVideos){
-          /// for own channel we will fetch videos by user Id
-          response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-        }else {
-          /// for own channel we will fetch videos by other user channel id
-          response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
-        }
-      }else if(postVia == PostVia.profile){
-        if (videos == Videos.latest) {
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (videos == Videos.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        }
-        params[ApiKeys.postVia] = 'user';
-
-        /// for own profile videos we will fetch videos by user Id
-        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      }else{
-        /// for getting  all videos of user we will fetch videos by user Id (will not sent postVia)
-        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      }
-
-      // if (videos == Videos.latest || videos == Videos.popular || videos == Videos.oldest) {
-      //   params[ApiKeys.sortBy] = videos!.queryValue;
-      //   params[ApiKeys.status] = VideoStatus.published.queryValue;
-      // } else if (videos == Shorts.underProgress) {
-      //   params[ApiKeys.status] = VideoStatus.processing.queryValue;
-      // } else {
+      // if(sortBy!=null){
+      //   if(sortBy!=SortBy.UnderProgress){
+      //     params[ApiKeys.sortBy] = sortBy.queryValue;
+      //     params[ApiKeys.status] = VideoStatus.published.queryValue;
+      //   }else{
+      //     params[ApiKeys.status] = VideoStatus.processing.queryValue;
+      //   }
+      // }else{
       //   params[ApiKeys.status] = VideoStatus.draft.queryValue;
       // }
-      //
-      // ResponseModel response;
-      // if(isOwnVideos){
-      //   response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      // }else {
-      //   response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
-      // }
+
+      if (videos == Videos.latest || videos == Videos.popular || videos == Videos.oldest) {
+        params[ApiKeys.sortBy] = videos!.queryValue;
+        params[ApiKeys.status] = VideoStatus.published.queryValue;
+      } else if (videos == Shorts.underProgress) {
+        params[ApiKeys.status] = VideoStatus.processing.queryValue;
+      } else {
+        params[ApiKeys.status] = VideoStatus.draft.queryValue;
+      }
+
+      ResponseModel response;
+      if(isOwnChannel){
+        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
+      }else {
+         response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
+      }
 
       if (response.isSuccess) {
         channelVideosResponse = ApiResponse.complete(response);
@@ -640,43 +610,8 @@ class VideoController extends GetxController{
       }
     }
 
-  ///USER BLOCK...
+  ///USER BLOCK(PARTIAL AND FULL)...
   Future<void> userBlocked({required Videos videoType,required String otherUserId}) async {
-    final list = getListByType(videoType: videoType);
-    // final index = list.indexWhere((v) => v.video?.id == videoId);
-
-    try {
-      Map<String, dynamic> params = {
-        ApiKeys.blockedTo:  otherUserId,
-        ApiKeys.type: BlockedType.full.label,
-        ApiKeys.duration:  0
-      };
-
-      final response = await AuthRepo().blockUser(params: params);
-
-      if (response.isSuccess) {
-        blockUserResponse = ApiResponse.complete(response);
-        BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
-        list.removeWhere((v) {
-          print('contain userId --> ${v.video?.userId}');
-          print('userId --> $otherUserId');
-          return v.video?.userId == otherUserId;
-        });
-        Get.back();
-        commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
-      } else {
-        blockUserResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      blockUserResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
-  }
-
-  ///POST BLOCK...
-  Future<void> postBlocked({required Videos videoType,required String otherUserId}) async {
     final list = getListByType(videoType: videoType);
     // final index = list.indexWhere((v) => v.video?.id == videoId);
 
@@ -737,53 +672,5 @@ class VideoController extends GetxController{
 
     savedVideos.addAll(filteredList);
     // isSavedVideosLoading.value = false;
-  }
-
-  /// Get Video By ID for deep link handling
-  Future<VideoFeedItem?> getVideoById(String videoId) async {
-    try {
-      log('DEEPLINK_DEBUG: Fetching video with ID: $videoId');
-      final response = await FeedRepo().getVideoById(videoId: videoId);
-      
-      log('DEEPLINK_DEBUG: API Response - Success: ${response.isSuccess}');
-      log('DEEPLINK_DEBUG: API Response - Message: ${response.message}');
-      log('DEEPLINK_DEBUG: API Response - Data: ${response.response?.data}');
-      
-      if (response.isSuccess) {
-        final responseData = response.response?.data;
-        if (responseData != null) {
-          log('DEEPLINK_DEBUG: Response data found, extracting video from nested structure');
-          
-          // The API returns: { data: { videos: [VideoFeedItem] } }
-          // We need to extract the first video from the videos array
-          final videosData = responseData['data'];
-          if (videosData != null && videosData['videos'] != null && videosData['videos'].isNotEmpty) {
-            final videoData = videosData['videos'][0];
-            log('DEEPLINK_DEBUG: Extracted video data from nested structure');
-            
-            final videoFeedItem = VideoFeedItem.fromJson(videoData);
-            
-            // Log the parsed video details
-            log('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video URL: ${videoFeedItem.video?.videoUrl}');
-            log('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video ID: ${videoFeedItem.video?.id}');
-            log('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video Title: ${videoFeedItem.video?.title}');
-            
-            return videoFeedItem;
-          } else {
-            log('DEEPLINK_DEBUG: No videos found in nested data structure');
-          }
-        } else {
-          log('DEEPLINK_DEBUG: Video data is null in successful response');
-        }
-      } else {
-        log('DEEPLINK_DEBUG: API call failed with message: ${response.message}');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      log('DEEPLINK_DEBUG: Error fetching video by ID: $e');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-    
-    return null;
   }
 }

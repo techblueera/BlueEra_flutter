@@ -20,9 +20,9 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  if (foundationObj.kDebugMode) {
-    log(logMsg);
-  }
+  // if (foundationObj.kDebugMode) {
+    print(logMsg);
+  // }
 }
 
 ///UN FOCUS KEYBOARD
@@ -177,7 +177,7 @@ String videoDeepLink({String? videoId}) {
 
 /// Generate deep link for a Short/Reel item
 String shortDeepLink({String? shortId}) {
-  return 'https://blueera.ai/app/video/${(shortId ?? "")}';
+  return 'https://blueera.ai/app/short/${(shortId ?? "")}';
 }
 
 /// Generate deep link for a Job post item

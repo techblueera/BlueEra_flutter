@@ -10,12 +10,12 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/hive_model/video_hive_model.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
-import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:app_links/app_links.dart';
 import 'package:camera/camera.dart';
 import 'package:croppy/croppy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -23,8 +23,11 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+
+// import 'package:workmanager/workmanager.dart';
 import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+
 import 'features/common/feed/hive_model/post_hive_model.dart';
 import 'core/services/home_cache_service.dart';
 
@@ -35,6 +38,7 @@ Future<void> main() async {
   ///GET LOGIN USER DATA...
   await getUserLoginStatus();
   await getUserLoginData();
+
   await getChannelId();
   unFocus();
   Get.put(GlobalMessageService());
@@ -42,7 +46,7 @@ Future<void> main() async {
   appVersion = packageInfo.version;
 
   ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.prod);
+  await projectKeys(environmentType: AppConstants.dev);
 
   ///APP ORIENTATIONS....
   SystemChrome.setPreferredOrientations([
@@ -88,7 +92,6 @@ Future<void> main() async {
  //   );
  //   MobileAds.instance.updateRequestConfiguration(configuration);
  // }
-
   await MobileAds.instance.initialize();
 
   Get.put(NavigationHelperController());
@@ -152,8 +155,6 @@ class _MyAppState extends State<MyApp> {
             break;
           case 'video':
             // TODO: Navigate to video detail screen with id
-            Get.to(() => DeeplinkVideoScreen(videoId: '$id',));
-            
             debugPrint('Deep link -> video id: $id');
             break;
           case 'short':
@@ -166,10 +167,6 @@ class _MyAppState extends State<MyApp> {
             break;
           case 'profile':
             // TODO: Navigate to profile screen with user id
-            //TODO: we have three profile screen first is normal user profile screen and then other are
-            // the profile screen of the users whose post are visible on home, they use two different screen to show
-            // there profile Visiting_profile_screen.dart and Header_widget.dart both has sharing funtionaity.
-            
             debugPrint('Deep link -> profile userId: $id');
             break;
           default:

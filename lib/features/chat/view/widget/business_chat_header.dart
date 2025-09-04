@@ -114,8 +114,8 @@ class _HeaderWidgetsState extends State<HeaderWidgets> {
           return Row(
             children: [
               SizedBox(
-                height: 30,
-                width: 80,
+                height: 48,
+                width: 85,
                 child: TextButton(
                   style: TextButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -136,19 +136,22 @@ class _HeaderWidgetsState extends State<HeaderWidgets> {
                 
                     // Handle follow action
                   },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(width: SizeConfig.paddingXSmall),
-                      CustomText(
-                        controller.isFollow.value
-                            ? "Unfollow"
-                            : "Follow",
-                        color: AppColors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(width: SizeConfig.paddingXSmall),
+                        CustomText(
+                          controller.isFollow.value
+                              ? "Unfollow"
+                              : "Follow",
+                          color: AppColors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

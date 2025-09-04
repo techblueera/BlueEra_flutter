@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -103,56 +101,44 @@ class _AboutBusinessWidgetState extends State<AboutBusinessWidget> {
               child: Container(
                 child: Row(
                   children: widget.livePhotos.isNotEmpty
-                      ? widget.livePhotos.asMap().entries.map((photoUrl) {
+                      ? widget.livePhotos.map((photoUrl) {
                     return Padding(
+
                       padding: const EdgeInsets.only(right: 8.0),
-                      child: InkWell(
-                        onTap: (){
-                          navigatePushTo(
-                            context,
-                            ImageViewScreen(
-                              subTitle: '',
-                              appBarTitle: 'Store Image',
-                              imageUrls: widget.livePhotos,
-                              initialIndex: photoUrl.key,
-                            ),
-                          );
-                        },
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(5),
-                          child: Image.network(
-                            photoUrl.value,
-                            width: 100,
-                            height: 130,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                width: 100,
-                                height: 130,
-                                color: Colors.grey[200],
-                                alignment: Alignment.center,
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                width: 100,
-                                height: 130,
-                                color: Colors.grey[200],
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                          ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: Image.network(
+                          photoUrl,
+                          width: 100,
+                          height: 130,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              width: 100,
+                              height: 130,
+                              color: Colors.grey[200],
+                              alignment: Alignment.center,
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 130,
+                              color: Colors.grey[200],
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );

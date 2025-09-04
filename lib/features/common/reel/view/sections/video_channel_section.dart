@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_dialogs.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
@@ -13,19 +13,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class VideoChannelSection extends StatefulWidget {
-  final bool isOwnVideos;
+  final bool isOwnChannel;
   final bool isScroll;
   final SortBy? sortBy;
   final String channelId;
   final String authorId;
-  final PostVia? postVia;
   final VoidCallback? onLoadMore; // Callback for pagination
 
   const VideoChannelSection({
     super.key,
     this.onLoadMore,
-    this.postVia,
-    this.isOwnVideos = false,
+    this.isOwnChannel = false,
     this.isScroll = true,
     this.sortBy,
     required this.channelId,
@@ -38,13 +36,14 @@ class VideoChannelSection extends StatefulWidget {
 
 class _VideoChannelSectionState extends State<VideoChannelSection> {
   final VideoController videosController = Get.put<VideoController>(VideoController());
+  ValueNotifier<bool> globalMuteNotifier = ValueNotifier(false);
   Videos videos = Videos.latest;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchChannelVideos(isInitialLoad: true,postVia: widget.postVia);
+      fetchChannelVideos(isInitialLoad: true);
     });
     setVideosType();
   }
@@ -54,7 +53,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.sortBy != widget.sortBy) {
       setVideosType();
-      fetchChannelVideos(isInitialLoad: true, postVia: widget.postVia);
+      fetchChannelVideos(isInitialLoad: true);
     }
   }
 
@@ -69,15 +68,14 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
   }
 
 
-  void fetchChannelVideos({bool isInitialLoad = false, bool refresh = false,PostVia? postVia}) {
+  void fetchChannelVideos({bool isInitialLoad = false, bool refresh = false}) {
     videosController.getVideosByType(
         videos,
         widget.channelId,
         widget.authorId,
-        widget.isOwnVideos,
+        widget.isOwnChannel,
         isInitialLoad: isInitialLoad,
         refresh: refresh,
-        postVia: postVia
     );
   }
 
@@ -85,7 +83,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
   void loadMore() {
     if (videosController.isMoreDataAvailable &&
         videosController.isLoading.isFalse) {
-      fetchChannelVideos(postVia: widget.postVia);
+      fetchChannelVideos();
     }
   }
 
@@ -110,7 +108,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
           return ListView.builder(
             itemCount: channelVideos.length +
-                (videosController.isMoreDataLoading(videos).value ? 1 : 0),
+                (videosController.isLoading.value ? 1 : 0),
             padding: EdgeInsets.only(
                 left: SizeConfig.paddingXSL,
                 right: SizeConfig.paddingXSL,
@@ -135,21 +133,22 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
               return VideoCard(
                 videoItem: videoFeedItem,
+                globalMuteNotifier: globalMuteNotifier,
                 onTapOption: () {
                   openBlockSelectionDialog(
-                    context: context,
-                    reportType: 'VIDEO_POST',
-                    userId: videoFeedItem.video?.userId??'',
-                    contentId: videoFeedItem.video?.id??'',
-                    userBlockVoidCallback: () async {
-                      await Get.find<VideoController>().userBlocked(
-                        videoType: videos,
-                        otherUserId: videoFeedItem.video?.userId??'',
-                      );
-                    },
-                      reportCallback: (params){
-
-                      }
+                      context: context,
+                     voidCallback: () async {
+                       // if( type=='videoChannel' ||
+                       //     type=='videoFeed' ||
+                       //     type=='videoSaved'
+                       // ){
+                         print('call');
+                         await Get.find<VideoController>().userBlocked(
+                           videoType: videos,
+                           otherUserId: videoFeedItem.video?.userId??'',
+                         );
+                       // }
+                     }
                   );
                 },
                 videoType: videos
@@ -159,7 +158,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
         }else{
           return LoadErrorWidget(
               errorMessage: 'Failed to load videos',
-              onRetry: ()=>  fetchChannelVideos(isInitialLoad: true,postVia: widget.postVia)
+              onRetry: ()=>  fetchChannelVideos(isInitialLoad: true)
           );
         }
       }else{

@@ -218,27 +218,4 @@ class FeedRepo extends BaseService{
   }
 
 
-  ///GET VIDEO BY ID...
-  Future<ResponseModel> getVideoById({required String videoId}) async {
-    final response = await ApiBaseHelper().getHTTP(
-      videosShare(videoId),
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///REPORT...
-  Future<ResponseModel> report({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      userFeedReport,
-      params: params,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
 }

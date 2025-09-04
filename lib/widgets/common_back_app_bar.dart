@@ -188,7 +188,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               Builder(
                 builder: (context) {
                   return InkWell(onTap: () {
-                    print("Profile Tapped");
                     if (onProfileTap != null) {
                       onProfileTap!();
                     } else {

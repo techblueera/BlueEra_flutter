@@ -28,7 +28,6 @@ class PersonalChatScreen extends StatefulWidget {
   PersonalChatScreen({
     required this.conversationId,
     required this.userId,
-    required this.businessId,
     this.profileImage,
     required this.type,
     this.name,
@@ -38,7 +37,6 @@ class PersonalChatScreen extends StatefulWidget {
   final String? conversationId;
   final String? userId;
   final String? profileImage;
-  final String? businessId;
   final String? name;
   final String? type;
   final bool isInitialMessage;
@@ -60,7 +58,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   @override
   void initState() {
-    print('lsdnvsl${widget.businessId}');
+    print('lsdnvsl${widget.type}');
     chatViewController.sendMessageController.value.clear();
      chatViewController.isTextFieldEmpty.value=false;
      chatViewController.listenUserNewMessages(userId: widget.userId??"",
@@ -99,10 +97,10 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   void _navigateToProfile({required String authorId}) {
       if (widget.type=="BUSINESS") {
         print("kjnln");
-        Get.to(() => BusinessChatProfile(userId: widget.businessId??''));
+        Get.to(() => BusinessChatProfile(userId: authorId));
       }else{
           print("kjnlhhhn");
-        Get.to(() => PersonalChatProfile(userId: authorId,contactNumber: widget.contactNo,));
+        Get.to(() => PersonalChatProfile(userId: authorId));
       }
 
       // } else if (_post?.user?.accountType?.toUpperCase() == AppConstants.business) {
@@ -289,8 +287,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
               return InkWell(
                 onTap: (){
                   //  Get.to(()=>PersonalChatProfile());
-                 _navigateToProfile(authorId:  
-                 widget.userId??'');
+                 _navigateToProfile(authorId: widget.userId??'');
                 },
                 child: Row(
                   children: [

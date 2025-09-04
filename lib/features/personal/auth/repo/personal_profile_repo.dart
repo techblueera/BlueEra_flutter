@@ -11,18 +11,14 @@ class PersonalProfileRepo extends BaseService {
 
     return response;
   }
- Future<ResponseModel> viewParticularPersonalProfiles(String no) async {
-    final response = await ApiBaseHelper().getHTTP(getotherUsers(no),
-        showProgress: false, onError: (error) {}, onSuccess: (data) {});
 
-    return response;
-  }
   ///UPDATE USER PROFILE....
   Future<ResponseModel> updateUser({
     required Map<String, dynamic> formData,
   }) async {
     final response = await ApiBaseHelper().putHTTP(
-      "$updateUserProfile/$userId",
+      "$updateIndividualAccountUser$userId",
+      // "$updateUserProfile/$userId",
       params: formData,
       isMultipart: true,
       onError: (error) {
@@ -36,11 +32,9 @@ class PersonalProfileRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getUserWithFollowersAndPostsCount(String? userId) async {
-    print('userIdnow:$userId');
+  Future<ResponseModel> getUserWithFollowersAndPostsCount() async {
     final response = await ApiBaseHelper().getHTTP(
       "$FollowersAndPostsCount/$userId",
-      showProgress: false,
       onError: (error) {
         print("Get user counts failed: $error");
       },

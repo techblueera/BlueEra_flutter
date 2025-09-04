@@ -53,27 +53,24 @@ class SelectProfilePictureDialog {
                     color: AppColors.primaryColor,
                     padding: const EdgeInsets.all(1.0),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // Spacer(),
                         // SizedBox(width: SizeConfig.size50,),
                         Expanded(
-                          child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: SizeConfig.size20,
-                                horizontal: SizeConfig.size20,
-                              ),
-                              child: CustomText(
-                                title,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                color: Colors.white,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: SizeConfig.size20,
+                              horizontal: SizeConfig.size20,
+                            ),
+                            child: CustomText(
+                              title,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              color: Colors.white,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -101,7 +98,6 @@ class SelectProfilePictureDialog {
                               onTap: () async {
                                 final picker = ImagePicker();
                                 final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
                                 if (pickedFile != null) {
                                   // if (!isAllowedImageExtension(pickedFile.path)) {
                                   //   commonSnackBar(message: 'Only JPG, JPEG, and PNG files are allowed.');
@@ -244,7 +240,7 @@ class SelectProfilePictureDialog {
   }
 
   ///New Cropper
-  static Future<String> cropImage(BuildContext context, String filePath, {CropAspectRatio? cropAspectRatio}) async {
+  static Future<String> cropImage(BuildContext context, String filePath) async {
     final imageFile = File(filePath);
     final fileImage = FileImage(imageFile);
 
@@ -276,8 +272,11 @@ class SelectProfilePictureDialog {
         Transformation.panAndScale,
       ],
       shouldPopAfterCrop: true,
-      allowedAspectRatios: [
-        cropAspectRatio ?? CropAspectRatio(width: 10, height: 10),
+      allowedAspectRatios: const [
+        // CropAspectRatio(width: 1, height: 1),
+        // CropAspectRatio(width: 4, height: 3),
+        // CropAspectRatio(width: 16, height: 9),
+        CropAspectRatio(width: 10, height: 10),
       ],
       showLoadingIndicatorOnSubmit: true,
       postProcessFn: (result) async {
@@ -290,7 +289,6 @@ class SelectProfilePictureDialog {
 
     return completer.future;
   }
-
 
   /// Save a ui.Image as a PNG file to temporary storage.
   static Future<File?> _saveUiImageToFile(ui.Image image, int page) async {
@@ -311,7 +309,7 @@ class SelectProfilePictureDialog {
     }
   }
 
-  Future<File?> compressImage(File rawFile, {int quality = 70}) async {
+  Future<File?> compressImage(File rawFile, {int quality = 85}) async {
     final dir = await getTemporaryDirectory();
     final targetPath =
         '${dir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';

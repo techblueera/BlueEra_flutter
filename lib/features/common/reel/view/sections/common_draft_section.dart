@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
@@ -44,11 +43,10 @@ class _CommonDraftSectionState extends State<CommonDraftSection> {
           ),
         ),
                  ShortsChannelSection(
-           isOwnShorts: widget.isOwnProfile,
+           isOwnChannel: widget.isOwnProfile,
            channelId: widget.channelId,
            authorId: widget.authorId,
            showShortsInGrid: false,
-           postVia: PostVia.channel,
          ),
       ],
     );
@@ -67,11 +65,10 @@ class _CommonDraftSectionState extends State<CommonDraftSection> {
           ),
         ),
                  VideoChannelSection(
-             isOwnVideos: widget.isOwnProfile,
+             isOwnChannel: widget.isOwnProfile,
              channelId: widget.channelId,
              authorId: widget.authorId,
              isScroll: false,
-             postVia: PostVia.channel,
          )
       ],
     );

@@ -12,23 +12,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ShortsChannelSection extends StatefulWidget {
-  final bool isOwnShorts;
+  final bool isOwnChannel;
   final SortBy? sortBy;
   final bool showShortsInGrid;
   final String channelId;
   final String authorId;
   final VoidCallback? onLoadMore; // Callback for pagination
-  final PostVia? postVia;
+  final Map<String, Object>? extraParams; // Optional query params passthrough
 
   ShortsChannelSection({
     super.key,
     this.onLoadMore,
-    required this.isOwnShorts,
+    required this.isOwnChannel,
     required this.channelId,
     required this.authorId,
     required this.showShortsInGrid,
-    this.postVia,
     this.sortBy,
+    this.extraParams,
   });
 
   @override
@@ -74,10 +74,10 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
         shorts,
         widget.channelId,
         widget.authorId,
-        widget.isOwnShorts,
+        widget.isOwnChannel,
         isInitialLoad: isInitialLoad,
         refresh: refresh,
-        postVia: widget.postVia,
+        extraParams: widget.extraParams,
     );
   }
 
@@ -97,6 +97,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
       if(shortsController.isInitialLoading(shorts).isFalse){
         if(shortsController.shortsResponse.status == Status.COMPLETE){
           final channelShorts = shortsController.getListByType(shortsType: shorts);
+          log("shortsPosts--> $channelShorts");
 
           if (channelShorts.isEmpty) {
             return Center(
@@ -128,6 +129,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
                 allLoadedShorts: channelShorts,
                 shortItem: channelShortsItem,
                 initialIndex: index,
+                isOwnProfile: widget.isOwnChannel,
                 imageHeight: SizeConfig.size200,
                 imageWidth: SizeConfig.size130,
                 borderRadius: 10.0,
@@ -148,6 +150,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
                   allLoadedShorts: channelShorts,
                   shortItem: channelShortsItem,
                   initialIndex: index,
+                  isOwnProfile: widget.isOwnChannel,
                   imageHeight: SizeConfig.size190,
                   imageWidth: SizeConfig.size130,
                   borderRadius: 10.0,

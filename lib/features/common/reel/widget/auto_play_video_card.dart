@@ -315,7 +315,14 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                       if (widget.videoItem.author?.accountType == AppConstants.individual)
                         if (widget.videoItem.author?.id != userId)
                           IconButton(
-                            onPressed: widget.onTapOption,
+                            onPressed: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                                return;
+                              } else {
+                                widget.onTapOption();
+                              }
+                            },
                             icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
                           )
                         else
@@ -325,9 +332,16 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                             videoType: Videos.videoFeed,
                           )
                       else if (widget.videoItem.author?.accountType == AppConstants.business)
-                        if (widget.videoItem.author?.id != businessUserId)
+                        if (widget.videoItem.author?.id != businessId)
                           IconButton(
-                            onPressed: widget.onTapOption,
+                            onPressed: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                                return;
+                              } else {
+                                widget.onTapOption();
+                              }
+                            },
                             icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
                           )
                         else
@@ -366,7 +380,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
           Get.to(() => VisitProfileScreen(authorId: videoItem.author?.id ?? ''));
         }
       } else {
-        if (videoItem.author?.id == businessUserId) {
+        if (videoItem.author?.id == businessId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoItem.author?.id ?? ''));

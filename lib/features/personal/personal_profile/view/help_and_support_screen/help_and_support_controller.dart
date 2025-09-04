@@ -15,8 +15,8 @@ class HelpAndSupportController extends GetxController {
   RxString email = ''.obs;
   RxString message = ''.obs;
   RxBool isLoading = false.obs;
-  String index = '0';
-  String title = 'Help & Support';
+  RxString index = ' '.obs;
+  RxString title = ' '.obs;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController messageController = TextEditingController();
   RxList<SupportCase> allList = <SupportCase>[].obs;
@@ -42,12 +42,10 @@ class HelpAndSupportController extends GetxController {
     message.value = value;
   }
   void setIndex(String value) {
-    index = value;
-    update();
+    index.value = value;
   }
   void setTitle(String value) {
-    title = value;
-    update();
+    title.value = value;
   }
 
 

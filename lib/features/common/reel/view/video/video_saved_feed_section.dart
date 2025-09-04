@@ -2,8 +2,8 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
- import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/common_dialogs.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
@@ -32,6 +32,7 @@ class VideoSavedFeedSection extends StatefulWidget {
 class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with RouteAware {
   final ScrollController _scrollController = ScrollController();
   VideoController videoController = Get.put(VideoController());
+  ValueNotifier<bool> globalMuteNotifier = ValueNotifier(false);
 
   @override
   void initState() {
@@ -64,12 +65,20 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
     return setupScrollVisibilityNotification(
       controller: _scrollController,
       headerHeight: widget.headerHeight,
+      // onVisibilityChanged: (visible) {
+      //   Future.delayed(const Duration(milliseconds: 400), () {
+      //     if (mounted) {
+      //       setState(() => _isVisible = visible);
+      //     }
+      //   });
+      //   widget.onHeaderVisibilityChanged?.call(visible);
+      // },
       onVisibilityChanged: (visible, offset) {
         final controller = Get.find<HomeScreenController>();
         final currentOffset = controller.headerOffset.value;
 
         // Linear animation step (same speed up/down)
-        const step = 0.25; // smaller = smoother, larger = faster
+        const step = 0.2; // smaller = smoother, larger = faster
 
         double newOffset = currentOffset;
 
@@ -114,20 +123,15 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
 
           return VideoCard(
             videoItem: videoFeedItem,
+            globalMuteNotifier: globalMuteNotifier,
             onTapOption: () {
               openBlockSelectionDialog(
                   context: context,
-                  reportType: 'VIDEO_POST',
-                  userId: videoFeedItem.video?.userId??'',
-                  contentId: videoFeedItem.video?.id??'',
-                  userBlockVoidCallback: () async {
+                  voidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
                       videoType: Videos.saved,
                       otherUserId: videoFeedItem.video?.userId??'',
                     );
-                  },
-                  reportCallback: (params){
-
                   }
               );
             },

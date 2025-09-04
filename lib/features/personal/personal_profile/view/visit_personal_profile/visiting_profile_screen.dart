@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_bio_widget.dart';
@@ -12,8 +10,6 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
@@ -33,15 +29,17 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
     with SingleTickerProviderStateMixin {
   List<String> postTab = [];
   int selectedIndex = 0;
+
   late VisitProfileController controller;
 
   @override
   void initState() {
+    super.initState();
+
     controller = Get.put(VisitProfileController());
 
     // controller.fetchUserById(userId: "6891a80e721656f3ca842eba");
     controller.fetchUserById(userId: widget.authorId);
-    super.initState();
   }
 
   @override
@@ -159,8 +157,6 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           if (user.profession == SELF_EMPLOYED) 'Portfolio',
           'Posts',
           'Testimonials',
-          'Shorts',
-          'Videos'
         ];
         return SingleChildScrollView(
           child: SafeArea(
@@ -212,7 +208,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                   Expanded(
                                     child: Row(
                                       children: [
-                                        Expanded(
+                                        Flexible(
                                           child: CustomText(
                                             user.name ?? 'N/A',
                                             fontSize: SizeConfig.size18,
@@ -220,23 +216,12 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                       
-                                        InkWell(
-                                          onTap: () async {
-                                            final link = profileDeepLink(userId: widget.authorId);
-                                            final message = "Check out my profile on BlueEra:\n$link\n";
-                                            await SharePlus.instance.share(ShareParams(
-                                              text: message,
-                                              subject: user.name,
-                                            ));
-                                          },
-                                          child: Image.asset( 
-                                                                  'assets/images/arrow.png',
-                                                                  height: 25,
-                                                                  width: 25,
-                                                                  fit: BoxFit.cover,
-                                                                ),
-                                        ),
+                                        SizedBox(width: SizeConfig.size4),
+                                        // const Icon(
+                                        //   Icons.verified,
+                                        //   color: AppColors.primaryColor,
+                                        //   size: 20,
+                                        // ),
                                       ],
                                     ),
                                   ),
@@ -433,7 +418,6 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                     },
                     labelBuilder: (label) => label,
                   ),
-
                   SizedBox(height: SizeConfig.size16),
                   _buildTabContent(selectedIndex)
                 ],
@@ -467,24 +451,8 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           visitUserID: widget.authorId,
           isSelfTestimonial: false,
         );
-      case 'Shorts':
-        return ShortsChannelSection(
-          isOwnShorts: true,
-          channelId: '',
-          authorId: widget.authorId,
-          showShortsInGrid: true,
-          sortBy: SortBy.Latest,
-          postVia: PostVia.profile,
-        );
-      case 'Videos':
-        return  VideoChannelSection(
-          isOwnVideos: false,
-          channelId: '',
-          authorId: widget.authorId,
-          sortBy: SortBy.Latest,
-          isScroll: false,
-          postVia: PostVia.profile,
-        );
+      // case 'Channels':
+      // return ChannelsWidget();
       default:
         return const Center(child: CustomText('Coming soon'));
     }

@@ -10,20 +10,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PollController extends GetxController {
-  Rx<ApiResponse> postPollResponse = ApiResponse.initial('Initial').obs;
   final questionController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
-  // TextEditingController referenceLinkController = TextEditingController();
-  TextEditingController correctAnswerController = TextEditingController();
+  TextEditingController referenceLinkController = TextEditingController();
 
-  final RxList<TextEditingController> optionControllers = <TextEditingController>[].obs;
+  final RxList<TextEditingController> optionControllers =
+      <TextEditingController>[].obs;
   RxList<String> options = <String>[].obs;
-  // RxBool isAddLink = false.obs;
-  RxBool isAddCorrectAnswer = false.obs;
+  RxBool isAddLink = false.obs;
   RxBool isLoading = false.obs;
+  Rx<ApiResponse> postPollResponse = ApiResponse.initial('Initial').obs;
   bool isPollPostEdit = false;
   String? postId;
-  RxInt chooseCorrectAnswer = (-1).obs;
 
   Future createPollPost(Map<String, dynamic> params) async {
     try {
@@ -61,6 +59,7 @@ class PollController extends GetxController {
   void onInit() {
     super.onInit();
     // addOption();
+    // addOption();
   }
 
   /// Add a new option controller
@@ -90,10 +89,10 @@ class PollController extends GetxController {
     postPollResponse = ApiResponse.initial('Initial').obs;
     questionController.clear();
     descriptionController.clear();
-    // referenceLinkController.clear();
+    referenceLinkController.clear();
     optionControllers.clear();
     options.clear();
-    // isAddLink.value = false;
+    isAddLink.value = false;
     addOption();
     addOption();
   }

@@ -1,11 +1,11 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
@@ -33,16 +33,15 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
   final List<String> tabs = [
     'Profile',
     'Shorts',
-    'Videos'
     'Posts',
     // 'Reviews',
     // 'Our Branches'
   ];
 
-
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: tabs.length, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Ensure your VisitPersonalProfileTabs updates
@@ -57,7 +56,6 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
     _tabController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +106,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                     VisitPersonalProfileTabs(onTab: (index){
                       if(index==3){
                         Map<String,dynamic> data={
-                          ApiKeys.businessId : widget.businessId
+                          ApiKeys.businessId :widget.businessId
                         };
                         controller.getParticularRatingApi(data);
                       }
@@ -153,26 +151,15 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                     ),
                   ),
 
-                  // Shorts tab
+                  // Store tab
                   ShortsChannelSection(
-                    // scrollController: _scrollController,
-                    isOwnShorts: false,
-                    showShortsInGrid: true,
-                    channelId: '',
-                    sortBy: SortBy.Latest,
-                    authorId: widget.businessId,
-                    postVia: PostVia.profile,
+                      // scrollController: _scrollController,
+                      isOwnChannel: false,
+                      sortBy: controller.selectedFilter,
+                      showShortsInGrid: true,
+                      channelId: '',
+                      authorId: businessData?.userId??""
                   ),
-
-                  VideoChannelSection(
-                    isOwnVideos: false,
-                    channelId: '',
-                    authorId: widget.businessId,
-                    isScroll: false,
-                    sortBy: SortBy.Latest,
-                    postVia: PostVia.profile,
-                  ),
-
                   FeedScreen(
                     key: const ValueKey('feedScreen_others_posts'),
                     postFilterType: PostType.otherPosts,
@@ -192,7 +179,6 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
       ),
     );
   }
-
 }
 
 class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {

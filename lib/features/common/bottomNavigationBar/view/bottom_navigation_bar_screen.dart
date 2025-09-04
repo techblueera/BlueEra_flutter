@@ -1,13 +1,19 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/store_screen.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -37,7 +43,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void initState() {
     super.initState();
 
-   if(channelId.isEmpty) {
+    if (channelId.isEmpty) {
       getChannelDetails().then((value) => channelId = value ?? '');
     }
     chatViewController.connectSocket();
@@ -49,10 +55,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   ///GET CHANNEL DETAILS...
   Future<String?> getChannelDetails() async {
     try {
-      ResponseModel response = await ChannelRepo().getChannelDetails(channelOrUserId: userId);
+      ResponseModel response =
+          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
 
       if (response.statusCode == 200) {
-        ChannelModel channelModel = ChannelModel.fromJson(response.response?.data);
+        ChannelModel channelModel =
+            ChannelModel.fromJson(response.response?.data);
         String channelId = channelModel.data.id;
         SharedPreferenceUtils.setSecureValue(channelId, channelId);
         return channelId;
@@ -64,7 +72,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  Future<void> getOneSignalUpdate()async{
+  Future<void> getOneSignalUpdate() async {
     OnesignalService().onNotifiacation();
     OnesignalService().onNotificationClick();
     await Future.delayed(Duration(seconds: 1));
@@ -79,47 +87,44 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     super.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       // drawer: _buildProfileDrawer(),
       body: ValueListenableBuilder(
-        valueListenable: bottomBarVisibleNotifier,
+          valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
-          return Stack(
-            children: [
-              // 👇 Your dynamic screen based on index
-              Positioned.fill(
-                child: _getScreen(currentIndex, isVisible),
-              ),
+            return Stack(
+              children: [
+                // 👇 Your dynamic screen based on index
+                Positioned.fill(
+                  child: _getScreen(currentIndex, isVisible),
+                ),
 
-              // 👇 Bottom Nav Animation using ValueListenableBuilder
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: AnimatedSlide(
-                  offset: isVisible ? Offset.zero : const Offset(0, 1),
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  child: BottomNavigationBarWidget(
-                    onHeaderVisibilityChanged: _toggleAppBar,
-                    isBottomNavVisible: isVisible,
-                    currentIndex: currentIndex,
-                    onTap: (index) {
-                      setState(() => currentIndex = index);
-                    },
-                    chatNotificationCount: chatNotificationCount,
+                // 👇 Bottom Nav Animation using ValueListenableBuilder
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: AnimatedSlide(
+                    offset: isVisible ? Offset.zero : const Offset(0, 1),
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    child: BottomNavigationBarWidget(
+                      onHeaderVisibilityChanged: _toggleAppBar,
+                      isBottomNavVisible: isVisible,
+                      currentIndex: currentIndex,
+                      onTap: (index) {
+                        setState(() => currentIndex = index);
+                      },
+                      chatNotificationCount: chatNotificationCount,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-          }
-      ),
+              ],
+            );
+          }),
     );
   }
 
@@ -138,13 +143,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 2:
         return CustomizeMapScreen();
       case 3:
-        return JobsScreen(
-            isHeaderVisible: isVisible,
-            onHeaderVisibilityChanged: _toggleAppBar
-        );
+        return isGuestUser()
+            ? GuestDashBoardScreen()
+            : JobsScreen(
+                isHeaderVisible: isVisible,
+                onHeaderVisibilityChanged: _toggleAppBar);
       case 4:
       default:
-        return ChatMainScreen();
+        return isGuestUser() ? GuestDashBoardScreen() : ChatMainScreen();
     }
   }
 
@@ -154,6 +160,52 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarVisibleNotifier.value = visible;
     }
   }
-
 }
 
+class GuestDashBoardScreen extends StatefulWidget {
+  const GuestDashBoardScreen({super.key});
+
+  @override
+  State<GuestDashBoardScreen> createState() => _GuestDashBoardScreenState();
+}
+
+class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        isLeading: false,
+      ),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomText(
+              "Guest User",
+              fontSize: SizeConfig.size24,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
+            CustomText(
+              "Create a account to access all features and enjoy the full experience!",
+              fontSize: SizeConfig.size15,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(
+              height: SizeConfig.size20,
+            ),
+            PositiveCustomBtn(
+                onTap: () {
+                  createProfileScreen();
+                },
+                title: "Create Profile")
+          ],
+        ),
+      ),
+    );
+  }
+}

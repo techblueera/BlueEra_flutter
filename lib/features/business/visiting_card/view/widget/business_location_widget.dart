@@ -26,15 +26,8 @@ class BusinessLocationWidget extends StatefulWidget {
 class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
   late MapplsMapController mapController;
 
-  Future<void> _onMapCreated(MapplsMapController controller) async {
+  void _onMapCreated(MapplsMapController controller) {
     mapController = controller;
-    await mapController.addSymbol(
-      SymbolOptions(
-        geometry: LatLng(widget.latitude, widget.longitude),
-        iconSize: 1.2,
-      ),
-    );
-    setState(() {});
   }
 
 
@@ -64,7 +57,16 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
               child: Stack(
                 children: [
                   MapplsMap(
-                    onMapCreated: (controller) => _onMapCreated(controller),
+                    onMapCreated: (controller) async {
+                      _onMapCreated(controller);
+                      await mapController.addSymbol(
+                        SymbolOptions(
+                          geometry: LatLng(widget.latitude, widget.longitude),
+                          iconSize: 1.2,
+                        ),
+                      );
+                      setState(() {});
+                    },
                     initialCameraPosition: CameraPosition(
                       target: LatLng(widget.latitude, widget.longitude),
                       zoom: 14.0,

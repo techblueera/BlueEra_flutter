@@ -24,7 +24,6 @@ class MessagePostController extends GetxController {
   RxString messageText = ''.obs;
   RxString messageTitle = ''.obs;
   RxBool isAddLink = false.obs;
-  RxBool isAddTitle = false.obs;
 
   final List<Map<String, String>> fontStyles = [
     {'name': 'Style', 'family': 'OpenSans'},

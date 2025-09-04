@@ -26,8 +26,8 @@ class ChannelController extends GetxController{
   RxBool isCollapsed = false.obs;
   int limit = 20;
   RxBool isInitialLoading = true.obs;
-  SortBy selectedFilter = SortBy.UnderProgress;
-  RxString channelLogo="".obs;
+  SortBy selectedFilter = SortBy.Latest;
+
   RxBool isChannelFollow = false.obs;
   bool isMuteChannel = false;
 
@@ -85,7 +85,6 @@ class ChannelController extends GetxController{
       if (response.isSuccess) {
         ChannelModel channelModel = ChannelModel.fromJson(response.response?.data);
         channelData.value = channelModel.data;
-        channelLogo.value=channelData.value?.logoUrl??"";
         isChannelFollow.value = channelData.value?.isFollowing ?? false;
         // isMuteChannel = channelData.value?.isFollowing ?? false;
         SharedPreferenceUtils.setSecureValue(channelId, channelData.value?.id);

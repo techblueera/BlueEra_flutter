@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -92,7 +94,7 @@ class _BusinessDetailsEditPageOneState
       websiteController.text = data.websiteUrl ?? '';
       cityController.text = data.cityStatePincode ?? '';
       fullBusinessAddressTextController.text = data.address ?? '';
-      picCodeController.text = data.pincode !=null?data.pincode.toString():"";
+      picCodeController.text = data.pincode.toString() ?? '';
       locationTextController.text = data.businessLocation != null
           ? '${data.businessLocation?.lat}, ${data.businessLocation?.lon}'
           : '';
@@ -181,10 +183,62 @@ class _BusinessDetailsEditPageOneState
                               image;
                           viewBusinessDetailsController.isImageUpdated.value =
                               true;
-                        }, dialogTitle:  'Upload Business Logo',
+                        },
                       ),
                     ),
+                    /*   Padding(
+                padding: EdgeInsets.only(
+                    right: SizeConfig.size18, top: SizeConfig.size4),
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(SizeConfig.size3),
 
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border:
+                        Border.all(color: AppColors.primaryColor, width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey,
+                        backgroundImage: (viewBusinessDetailsController.imagePath?.value ?? "").isNotEmpty
+                            ? NetworkImage(viewBusinessDetailsController.imagePath?.value  ?? "")
+                            : null,
+                        child:viewBusinessDetailsController.imagePath?.value  == null
+                            ? CustomText(
+                          ( widget.prevBusinessDetails?.businessName ?? '')
+                              .trim()
+                              .split(' ')
+                              .map((e) => e.isNotEmpty ? e[0] : '')
+                              .take(2)
+                              .join()
+                              .toUpperCase(),
+                        )
+                            : null,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: () {
+                          viewBusinessDetailsController.imagePath?.value = image;
+                          viewBusinessDetailsController.isImageUpdated.value =
+                          true;
+                        },
+                        child: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: AppColors.primaryColor,
+                          child: Icon(Icons.edit_outlined,
+                              size: 14, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                ),*/
                     SizedBox(
                       height: SizeConfig.size20,
                     ),
@@ -643,8 +697,11 @@ class _BusinessDetailsEditPageOneState
           : selectedBusiness?.displayName ?? '',
       ApiKeys.city_state_pincode: cityController.text,
       ApiKeys.address: viewBusinessDetailsController.businessAddress.value,
-      ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
-      ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+      "business_location":jsonEncode({
+        ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
+        ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+      }),
+
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,
       ApiKeys.logo_image: viewBusinessDetailsController.isImageUpdated.value

@@ -5,13 +5,13 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
@@ -24,10 +24,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_bio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -53,13 +51,10 @@ class _PersonalProfileSetupScreenState
   final youtubeController = TextEditingController();
   List<String> postTab = [];
   int selectedIndex = 0;
-  List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.UnderProgress;
 
   @override
   void initState() {
     super.initState();
-    setFilters();
     _loadInitialData();
   }
 
@@ -68,15 +63,9 @@ class _PersonalProfileSetupScreenState
     super.didChangeDependencies();
   }
 
-  setFilters() {
-    filters = SortBy.values
-        .where((e) => e == SortBy.Latest || e == SortBy.UnderProgress)
-        .toList();
-  }
-
   Future<void> _loadInitialData() async {
     await viewProfileController.viewPersonalProfile();
-    await viewProfileController.UserFollowersAndPostsCount(userId);
+    await viewProfileController.UserFollowersAndPostsCount();
 
     _updateTextControllers();
   }
@@ -113,7 +102,7 @@ class _PersonalProfileSetupScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold( 
       appBar: CommonBackAppBar(
         isLeading: true,
         title: '',
@@ -130,272 +119,285 @@ class _PersonalProfileSetupScreenState
       //   Get.to(()=>AddAccountScreen());
       //
       // }),
-      body: isGuestUser()
-          ? PositiveCustomBtn(onTap: () {}, title: "Logout")
-          : Obx(() {
-              if (viewProfileController.viewPersonalResponse.value.status ==
-                  Status.COMPLETE) {
-                final user =
-                    viewProfileController.personalProfileDetails.value.user;
-                final validIndexes =
-                    user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
-                String profession = user?.profession ?? "OTHERS";
-                postTab = [
-                  if (viewProfileController
-                          .personalProfileDetails.value.user?.profession ==
-                      SELF_EMPLOYED)
-                    'My Portfolio',
-                  'About Me',
-                  'Posts',
-                  'Shorts',
-                  'Videos',
-                  'Testimonials'
-                ];
-                return SafeArea(
-                  child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size8,
-                        horizontal: SizeConfig.size20),
-                    child: Column(
+      body:isGuestUser()?PositiveCustomBtn(onTap: (){}, title: "Logout"): Obx(() {
+        if (viewProfileController.viewPersonalResponse.value.status ==
+            Status.COMPLETE) {
+          String profession = viewProfileController
+                  .personalProfileDetails.value.user?.profession ??
+              "OTHERS";
+          postTab = [
+            if (viewProfileController
+                    .personalProfileDetails.value.user?.profession ==
+                SELF_EMPLOYED)
+              'My Portfolio',
+            'About Me',
+            'Posts',
+            'Shorts',
+            'Testimonials',
+            
+          ];
+          return SafeArea(
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size8, horizontal: SizeConfig.size20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: SizeConfig.size8),
+                  Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size6),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: SizeConfig.size8),
                         Padding(
-                          padding: EdgeInsets.only(right: SizeConfig.size6),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          padding: EdgeInsets.only(
+                              right: SizeConfig.size18, top: SizeConfig.size4),
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
                             children: [
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    right: SizeConfig.size18,
-                                    top: SizeConfig.size4),
-                                child: CommonProfileImage(
-                                  imagePath: personalCreateProfileController
-                                          .imagePath?.value ??
-                                      "",
-                                  onImageUpdate: (image) async {
-                                    personalCreateProfileController
-                                        .imagePath?.value = image;
-
-                                    dynamic dataImage = await multiPartImage(
-                                      imagePath: personalCreateProfileController
-                                              .imagePath?.value ??
-                                          "",
-                                    );
-                                    var reqProfile = {
-                                      ApiKeys.profile_image: dataImage
-                                    };
-                                    print("Update Params: $reqProfile");
-                                    await personalCreateProfileController
-                                        .updateUserProfileDetails(
-                                            params: reqProfile,
-                                            isFromProfileOnly: true);
-                                  },
-                                  dialogTitle: 'Upload Profile Picture',
+                              Container(
+                                padding: EdgeInsets.all(SizeConfig.size3),
+                                // border thickness
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: AppColors.primaryColor, width: 2),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.grey,
+                                  backgroundImage: viewProfileController
+                                              .personalProfileDetails
+                                              .value
+                                              .user
+                                              ?.profileImage !=
+                                          null
+                                      ? NetworkImage(viewProfileController
+                                          .personalProfileDetails
+                                          .value
+                                          .user!
+                                          .profileImage!)
+                                      : null,
+                                  child: viewProfileController
+                                              .personalProfileDetails
+                                              .value
+                                              .user
+                                              ?.profileImage ==
+                                          null
+                                      ? CustomText(
+                                          (viewProfileController
+                                                      .personalProfileDetails
+                                                      .value
+                                                      .user
+                                                      ?.name ??
+                                                  '')
+                                              .trim()
+                                              .split(' ')
+                                              .map((e) =>
+                                                  e.isNotEmpty ? e[0] : '')
+                                              .take(2)
+                                              .join()
+                                              .toUpperCase(),
+                                        )
+                                      : null,
                                 ),
                               ),
-                              Expanded(
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.only(top: SizeConfig.size10),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              ConstrainedBox(
-                                                constraints: BoxConstraints(
-                                                    maxWidth:
-                                                        SizeConfig.screenWidth /
-                                                            3),
-                                                child: CustomText(
-                                                  viewProfileController
-                                                          .personalProfileDetails
-                                                          .value
-                                                          .user
-                                                          ?.name ??
-                                                      '',
-                                                  fontSize: SizeConfig.large,
-                                                  fontWeight: FontWeight.bold,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                width: SizeConfig.size8,
-                                              ),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  if (viewProfileController
-                                                          .personalProfileDetails
-                                                          .value
-                                                          .isProfileCreated ==
-                                                      false) {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                CreateProfileScreen()));
-                                                  } else {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                UpdateProfileScreen()));
-                                                  }
-                                                },
-                                                child: CircleAvatar(
-                                                  radius: 14,
-                                                  backgroundColor:
-                                                      AppColors.primaryColor,
-                                                  child: Icon(
-                                                      Icons.edit_outlined,
-                                                      size: 14,
-                                                      color: Colors.white),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          // Row(
-                                          //   mainAxisAlignment: MainAxisAlignment.end,
-                                          //   children: [
-                                          //     InkWell(
-                                          //         onTap: () {
-                                          //           Navigator.push(
-                                          //               context,
-                                          //               MaterialPageRoute(
-                                          //                   builder: (context) =>
-                                          //                       ProfileSettingsScreen()));
-                                          //         },
-                                          //         child: SvgPicture.asset(
-                                          //             AppIconAssets
-                                          //                 .profile_v_settings)),
-                                          //     SizedBox(
-                                          //       width: SizeConfig.size16,
-                                          //     ),
-                                          //     InkWell(
-                                          //         onTap: () {
-                                          //         //   Navigator.push(
-                                          //         //       context,
-                                          //         //       MaterialPageRoute(
-                                          //         //           builder: (context) =>
-                                          //         //               VisitPersonalProfile()));
-                                          //         },
-                                          //         child: SvgPicture.asset(
-                                          //             AppIconAssets.upload_share)),
-                                          //   ],
-                                          // ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 2),
-                                      CustomText(profession,
-                                          color:
-                                              Color.fromRGBO(107, 124, 147, 1)),
-                                      SizedBox(height: SizeConfig.size12),
-                                      Obx(() {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 38.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              StatBlock(
-                                                count: viewProfileController
-                                                    .postsCount.value
-                                                    .toString(),
-                                                label: "Posts",
-                                              ),
-                                              StatBlock(
-                                                count: viewProfileController
-                                                    .followersCount.value
-                                                    .toString(),
-                                                label: "Followers",
-                                              ),
-                                              StatBlock(
-                                                count: viewProfileController
-                                                    .followingCount.value
-                                                    .toString(),
-                                                label: "Following",
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
-                                    ],
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    if (viewProfileController
+                                            .personalProfileDetails
+                                            .value
+                                            .isProfileCreated ==
+                                        false) {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  CreateProfileScreen()));
+                                    } else {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  UpdateProfileScreen()));
+                                    }
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 14,
+                                    backgroundColor: AppColors.primaryColor,
+                                    child: Icon(Icons.edit_outlined,
+                                        size: 14, color: Colors.white),
                                   ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(height: SizeConfig.size16),
-
-                        if ((viewProfileController.personalProfileDetails.value
-                                    .isProfileCreated ??
-                                false) &&
-                            isResumeShow(
-                                designation: viewProfileController
-                                    .personalProfileDetails
-                                    .value
-                                    .user
-                                    ?.profession)) ...[
-                          CustomBtn(
-                            isValidate: true,
-                            onTap: () {
-                              Get.toNamed(
-                                  RouteHelper.getCreateResumeScreenRoute());
-                            },
-                            title: "My Resume",
-                            bgColor: AppColors.white,
-                            borderColor: AppColors.primaryColor,
-                            textColor: AppColors.primaryColor,
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: SizeConfig.size10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                              maxWidth:
+                                                  SizeConfig.screenWidth / 3),
+                                          child: CustomText(
+                                            viewProfileController
+                                                    .personalProfileDetails
+                                                    .value
+                                                    .user
+                                                    ?.name ??
+                                                '',
+                                            fontSize: SizeConfig.large,
+                                            fontWeight: FontWeight.bold,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: SizeConfig.size2,
+                                        ),
+                                        // SvgPicture.asset(
+                                        //     AppIconAssets.verify_v_profile),
+                                      ],
+                                    ),
+                                    // Row(
+                                    //   mainAxisAlignment: MainAxisAlignment.end,
+                                    //   children: [
+                                    //     InkWell(
+                                    //         onTap: () {
+                                    //           Navigator.push(
+                                    //               context,
+                                    //               MaterialPageRoute(
+                                    //                   builder: (context) =>
+                                    //                       ProfileSettingsScreen()));
+                                    //         },
+                                    //         child: SvgPicture.asset(
+                                    //             AppIconAssets
+                                    //                 .profile_v_settings)),
+                                    //     SizedBox(
+                                    //       width: SizeConfig.size16,
+                                    //     ),
+                                    //     InkWell(
+                                    //         onTap: () {
+                                    //         //   Navigator.push(
+                                    //         //       context,
+                                    //         //       MaterialPageRoute(
+                                    //         //           builder: (context) =>
+                                    //         //               VisitPersonalProfile()));
+                                    //         },
+                                    //         child: SvgPicture.asset(
+                                    //             AppIconAssets.upload_share)),
+                                    //   ],
+                                    // ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                CustomText(profession,
+                                    color: Color.fromRGBO(107, 124, 147, 1)),
+                                SizedBox(height: SizeConfig.size12),
+                                Obx(() {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 38.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        StatBlock(
+                                          count: viewProfileController
+                                              .postsCount.value
+                                              .toString(),
+                                          label: "Posts",
+                                        ),
+                                        StatBlock(
+                                          count: viewProfileController
+                                              .followersCount.value
+                                              .toString(),
+                                          label: "Followers",
+                                        ),
+                                        StatBlock(
+                                          count: viewProfileController
+                                              .followingCount.value
+                                              .toString(),
+                                          label: "Following",
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
-                          SizedBox(height: SizeConfig.size16),
-                        ],
-
-                        // Conditional Bio Section
-                        if (_shouldShowBioSection())
-                          ProfileBioWidget(
-                            bioText: viewProfileController
-                                .personalProfileDetails.value.user?.bio,
-                          ),
-
-                        HorizontalTabSelector(
-                          horizontalMargin: 0,
-                          tabs: postTab,
-                          selectedIndex: selectedIndex,
-                          onTabSelected: (index, value) {
-                            setState(() => selectedIndex = index);
-                          },
-                          labelBuilder: (label) => label,
                         ),
-
-                        if (validIndexes.contains(selectedIndex)) ...[
-                          _filterButtons(),
-                        ],
-
-                        SizedBox(height: SizeConfig.size16),
-                        _buildTabContent(selectedIndex),
                       ],
                     ),
                   ),
-                );
-              } else {
-                return SizedBox();
-              }
-            }),
+                  SizedBox(height: SizeConfig.size16),
+
+                  if ((viewProfileController
+                              .personalProfileDetails.value.isProfileCreated ??
+                          false) &&
+                      isResumeShow(
+                          designation: viewProfileController
+                              .personalProfileDetails
+                              .value
+                              .user
+                              ?.profession)) ...[
+                    CustomBtn(
+                      isValidate: true,
+                      onTap: () {
+                        Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+                      },
+                      title: "My Resume",
+                      bgColor: AppColors.white,
+                      borderColor: AppColors.primaryColor,
+                      textColor: AppColors.primaryColor,
+                    ),
+                    SizedBox(height: SizeConfig.size16),
+                  ],
+
+                  // Conditional Bio Section
+                  if (_shouldShowBioSection())
+                    ProfileBioWidget(
+                      bioText: viewProfileController
+                          .personalProfileDetails.value.user?.bio,
+                    ),
+
+                  HorizontalTabSelector(
+                    horizontalMargin: 0,
+                    tabs: postTab,
+                    selectedIndex: selectedIndex,
+                    onTabSelected: (index, value) {
+                      setState(() => selectedIndex = index);
+                    },
+                    labelBuilder: (label) => label,
+                  ),
+                  SizedBox(height: SizeConfig.size16),
+                  _buildTabContent(selectedIndex)
+                ],
+              ),
+            ),
+          );
+        } else {
+          return SizedBox();
+        }
+      }),
     );
   }
 
@@ -416,22 +418,14 @@ class _PersonalProfileSetupScreenState
         );
       case 'Shorts':
         return ShortsChannelSection(
-          isOwnShorts: true,
-          channelId: '',
+          isOwnChannel: true,
+          channelId: channelId,
           authorId: userId,
           showShortsInGrid: true,
-          sortBy: selectedFilter,
-          postVia: PostVia.profile,
+          extraParams: { ApiKeys.postVia: 'user' },
         );
-      case 'Videos':
-        return VideoChannelSection(
-          isOwnVideos: true,
-          sortBy: selectedFilter,
-          channelId: '',
-          authorId: userId,
-          isScroll: false,
-          postVia: PostVia.profile,
-        );
+      // case 'Achievements':
+      // return AchievementsWidget();
       case 'Testimonials':
         return TestimonialsScreen(
           userName: "",
@@ -643,44 +637,5 @@ class _PersonalProfileSetupScreenState
       caseSensitive: false,
     );
     return youTubeRegex.hasMatch(url.trim());
-  }
-
-  Widget _filterButtons() {
-    return SingleChildScrollView(
-        padding:
-            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-            SizedBox(width: SizeConfig.size10),
-            Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: Row(
-                children: filters!.map((filter) {
-                  final isSelected = selectedFilter == filter;
-                  return Padding(
-                    padding: EdgeInsets.only(right: SizeConfig.size14),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedFilter = filter;
-                        });
-                      },
-                      child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label,
-                        // use .label for display text
-                        decoration: TextDecoration.underline,
-                        color: isSelected ? Colors.blue : Colors.black54,
-                        decorationColor:
-                            isSelected ? Colors.blue : Colors.black54,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            )
-          ],
-        ));
   }
 }

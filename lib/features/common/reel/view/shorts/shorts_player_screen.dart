@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_dialogs.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -391,18 +391,12 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                   shouldPreload: _preloadedVideos.containsKey(index),
                   onTapOption: () {
                     openBlockSelectionDialog(
-                      context: context,
-                      reportType: 'VIDEO_POST',
-                      userId: videoItem.video?.userId??'',
-                      contentId: videoItem.video?.id??'',
-                      userBlockVoidCallback: () async {
-                        await _blockUserAndAdvance(
-                          videoItem: videoItem,
-                          otherUserId: videoItem.video?.userId ?? '',
-                        );
-                      },
-                        reportCallback: (params){
-
+                        context: context,
+                        voidCallback: () async {
+                          await _blockUserAndAdvance(
+                            videoItem: videoItem,
+                            otherUserId: videoItem.video?.userId ?? '',
+                          );
                         }
                     );
                   },

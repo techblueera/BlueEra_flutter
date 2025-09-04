@@ -506,13 +506,13 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )),
           SizedBox(height: SizeConfig.size15),
           InkWell(
-             onTap: () => _shareVideoSimple(),
+             onTap: () => _onShareButtonPressed(),
             child: LocalAssets(
                 imagePath: AppIconAssets.reel_share, imgColor: AppColors.white),
           ),
           SizedBox(height: SizeConfig.size3),
           InkWell(
-            onTap: () => _shareVideoSimple(),
+            onTap: () => _onShareButtonPressed(),
             child: CustomText(
               formatNumberLikePost(
                   fullScreenShortController.videoItem?.video?.stats?.shares ?? 0),
@@ -598,7 +598,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
-            if (fullScreenShortController.videoItem?.author?.id != businessUserId)
+            if (fullScreenShortController.videoItem?.author?.id != businessId)
               IconButton(
                 onPressed: () {
                   if (isGuestUser()) {
@@ -844,7 +844,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
         }
       } else {
-        if (fullScreenShortController.videoItem?.author?.id == businessUserId) {
+        if (fullScreenShortController.videoItem?.author?.id == businessId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(
@@ -909,20 +909,60 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       ),
     );
   }
-   /// Simple, consistent share experience (like header_widget.dart)
-  Future<void> _shareVideoSimple() async {
-    final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
-    final link = shortDeepLink(shortId: id);
-    final title = widget.videoItem.video?.title ?? 'BlueEra Short';
+  
+  Future<void> _onShareButtonPressed() async {
+    // Try to prepare a preview thumbnail (cover image preferred)
+    XFile? xFile;
+    try {
+      final thumbUrl = widget.videoItem.video?.coverUrl ?? widget.videoItem.video?.videoUrl;
+      if (thumbUrl != null && thumbUrl.isNotEmpty) {
+        xFile = await urlToCachedXFile(thumbUrl);
+      }
+    } catch (_) {
+      // Ignore thumbnail failures
+    }
 
-    final message = "Check out this Short video on BlueEra:\n$link\n";
+    // Build deep link for video using centralized helper
+    final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
+    final shareUrl = shortDeepLink(shortId: id);
 
     await SharePlus.instance.share(ShareParams(
-      text: message,
-      subject: title,
+      text: shareUrl,
+      subject: widget.videoItem.video?.title,
+      previewThumbnail: xFile,
     ));
-  }
-  
 
+    // Clean up cached file
+    if (xFile != null) {
+      final file = File(xFile.path);
+      if (await file.exists()) {
+        await file.delete();
+        print("🗑️ File deleted from cache.");
+      }
+    }
+  }
+
+  Future<XFile> urlToCachedXFile(String fileUrl) async {
+    // Get temp (cache) directory
+    final tempDir = await getTemporaryDirectory();
+    String fileName = fileUrl.split('/').last; // keep original name if possible
+    // Ensure we have an extension to help receivers detect MIME type
+    if (!fileName.contains('.')) {
+      fileName = '${fileName}.jpg';
+    }
+    final filePath = "${tempDir.path}/$fileName";
+
+    // Download file into cache
+    await Dio().download(fileUrl, filePath);
+
+    // Return as XFile
+    String mime = 'image/*';
+    final lower = fileName.toLowerCase();
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) mime = 'image/jpeg';
+    else if (lower.endsWith('.png')) mime = 'image/png';
+    else if (lower.endsWith('.webp')) mime = 'image/webp';
+    else if (lower.endsWith('.gif')) mime = 'image/gif';
+    return XFile(filePath, mimeType: mime);
+  }
 
 }

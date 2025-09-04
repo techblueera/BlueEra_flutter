@@ -87,6 +87,7 @@ class BusinessProfileDetails {
       this.is_following,
       this.category_other,
       this.pincode,
+      this.userContactNo,
       this.rating
   });
 
@@ -132,6 +133,7 @@ class BusinessProfileDetails {
     subCategoryOfBusiness = json['sub_category_Of_Business'];
     websiteUrl = json['website_url'];
     categoryDetails = json['category_details'] != null ? CategoryDetails.fromJson(json['category_details']) : null;
+    userContactNo = json['userContactNo'] != null ? UserContactNo.fromJson(json['userContactNo']) : null;
     subCategoryDetails = json['sub_category_details'] != null ? SubCategoryDetails.fromJson(json['sub_category_details']) : null;
     pincode = json['pincode'];
 
@@ -161,6 +163,7 @@ class BusinessProfileDetails {
   String? websiteUrl;
   dynamic pincode;
   CategoryDetails? categoryDetails;
+  UserContactNo? userContactNo;
   SubCategoryDetails? subCategoryDetails;
   int?rating;
   BusinessNumber? businessNumber;
@@ -214,6 +217,9 @@ class BusinessProfileDetails {
     if (this.businessNumber != null) {
       map['business_number'] = this.businessNumber!.toJson();
     }
+    if (this.userContactNo != null) {
+      map['userContactNo'] = this.userContactNo!.toJson();
+    }
     return map;
   }
 
@@ -241,6 +247,24 @@ class CategoryDetails {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
+    return map;
+  }
+}
+// UserContactNo
+class UserContactNo {
+  UserContactNo({
+    this.contact_no,
+  });
+
+  UserContactNo.fromJson(dynamic json) {
+    contact_no = json['contact_no'];
+  }
+
+  String? contact_no;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['contact_no'] = contact_no;
     return map;
   }
 }

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 
 class ChannelRepo extends BaseService {
   ///CREATE CHANNEL...
@@ -161,7 +162,6 @@ print("url=== ${url}");
   Future<ResponseModel> getAllUsers() async {
     final response = await ApiBaseHelper().getHTTP(
       allUsers,
-      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -322,8 +322,7 @@ print("url=== ${url}");
     return await ApiBaseHelper().putHTTP(
       "${channels}/$channelId",
       params: bodyRequest,
-      isMultipart: true
-      // isArrayReq: true,
+      isArrayReq: true,
     );
   }
 

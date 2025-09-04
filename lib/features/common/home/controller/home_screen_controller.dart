@@ -56,10 +56,6 @@ class HomeScreenController extends GetxController{
             SharedPreferenceUtils.businessOwnerName,
             businessProfileDetails.data?.ownerDetails?[0].name);
 
-        await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.businessUserId,
-            businessProfileDetails.data?.userId);
-
         await getBusinessData();
 
         viewBusinessResponse = ApiResponse.complete(responseModel);

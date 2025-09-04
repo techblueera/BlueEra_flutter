@@ -31,8 +31,8 @@ class ManageChannelScreen extends StatefulWidget {
 }
 
 class _ManageChannelScreenState extends State<ManageChannelScreen> {
-  bool isUserNameVerify = false;
-  ChannelData? _channelData;
+  bool _isUpdate = false, isUserNameVerify = false;
+  ChannelData? channelData;
   File? _profileImage;
   TextEditingController _channelNameController = TextEditingController();
   TextEditingController userNameController = TextEditingController();
@@ -67,9 +67,9 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       Get.put<ManageChannelController>(ManageChannelController());
 
   bool get hasExistingLogo =>
-      _channelData!=null &&
-      _channelData?.logoUrl != null &&
-      _channelData!.logoUrl.isNotEmpty;
+      _isUpdate &&
+      channelData?.logoUrl != null &&
+      channelData!.logoUrl.isNotEmpty;
 
   @override
   void dispose() {
@@ -91,11 +91,13 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       print("Received arguments: $args");
 
       if (args != null) {
-        _channelData = args[ApiKeys.channelData];
+        _isUpdate = args['isUpdate'] ?? false;
+        channelData = args['channelData'];
 
-        print("Populating fields with data: $_channelData");
+        print("Is Update: $_isUpdate");
+        print("Populating fields with data: $channelData");
 
-        if (_channelData != null) {
+        if (_isUpdate && channelData != null) {
           _populateFields();
         }
       }
@@ -104,20 +106,20 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
   }
 
   void _populateFields() {
-    print("Channel website: ${_channelData?.websites}");
+    print("Channel website: ${channelData?.websites}");
 
-    _channelNameController.text = _channelData?.name ?? '';
-    userNameController.text = _channelData?.username ?? '';
-    _channelBioController.text = _channelData?.bio ?? '';
+    _channelNameController.text = channelData?.name ?? '';
+    userNameController.text = channelData?.username ?? '';
+    _channelBioController.text = channelData?.bio ?? '';
 
-    if (_channelData?.websites != null && _channelData!.websites.isNotEmpty) {
-      _websiteController.text = _channelData!.websites.join(', ');
+    if (channelData?.websites != null && channelData!.websites.isNotEmpty) {
+      _websiteController.text = channelData!.websites.join(', ');
     }
 
-    if (_channelData?.socialLinks != null) {
-      print("Social links found: ${_channelData!.socialLinks}");
+    if (channelData?.socialLinks != null) {
+      print("Social links found: ${channelData!.socialLinks}");
 
-      for (var socialLink in _channelData!.socialLinks) {
+      for (var socialLink in channelData!.socialLinks) {
         try {
           var field = selectedInputFields.firstWhere(
             (field) =>
@@ -154,7 +156,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
-        title: (_channelData!=null) ? "Update Channel" : "Create Channel",
+        title: _isUpdate ? "Update Channel" : "Create Channel",
       ),
       body: Form(
         key: _formKey,
@@ -212,7 +214,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                                         borderRadius: BorderRadius.circular(
                                             SizeConfig.size50),
                                         child: Image.network(
-                                          _channelData!.logoUrl,
+                                          channelData!.logoUrl,
                                           fit: BoxFit.cover,
                                           height: SizeConfig.size100,
                                           width: SizeConfig.size100,
@@ -502,7 +504,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                         onTap: () => _onSubmit(),
                         height: SizeConfig.size40,
                         radius: 8,
-                        title: (_channelData!=null) ? 'Update' : 'Create',
+                        title: _isUpdate ? 'Update' : 'Create',
                         borderColor: AppColors.primaryColor,
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
@@ -541,7 +543,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       // }
 
     if (isFormValid) {
-      if (_channelData==null && _profileImage == null && !hasExistingLogo) {
+      if (!_isUpdate && _profileImage == null && !hasExistingLogo) {
         commonSnackBar(
             message: "Please add your brand logo or profile picture.");
         return;
@@ -618,7 +620,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       print("Social Links Data: $socialLinkRequestData");
       // return;
       try {
-        if (_channelData!=null) {
+        if (_isUpdate) {
           await manageChannelController.updateChannel(
               reqData: requestData, socialLinkReqData: socialLinkRequestData);
         } else {

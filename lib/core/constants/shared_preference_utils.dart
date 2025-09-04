@@ -11,13 +11,13 @@ String userNameGlobal = '';
 String userProfessionGlobal = '';
 String userId = '';
 String businessId = '';
-String businessUserId = '';
 String userMobileGlobal = '';
 String isUserLoginGlobal = '';
 String has_reel_profile_status = 'false';
 String reel_profile_id_global = '';
 
 String userProfileGlobal = '';
+// String userProfile_global = '';
 String channelId = '';
 
 String businessNameGlobal = '';
@@ -50,34 +50,55 @@ class SharedPreferenceUtils {
   static const lastVersion = 'last_version';
   static const lastGreetingCallKey = 'last_greeting_call_key';
   static const userProfession = 'user_profession';
-  static const businessName = 'business_name';
-  static const businessOwnerName = 'business_owner_name';
-  static const businessUserId = 'business_user_id';
+  static const businessName = 'user_profession';
+  static const businessOwnerName = 'user_profession';
 
-  static Future<void> userLoggedIn({
+  static Future<void>   userLoggedIn({
     required String loginUserId_,
     required String businesId,
     required String contactNo,
     required String autToken,
-    required String name,
+    required String getUserName,
     required String profileImage,
-    required String profession,
+    required String designation,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(authToken, autToken);
-    await SharedPreferenceUtils.setSecureValue(userName, name);
+    await SharedPreferenceUtils.setSecureValue(userName, getUserName);
     await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
-    await SharedPreferenceUtils.setSecureValue(userProfession, profession);
+    await SharedPreferenceUtils.setSecureValue(userProfession, designation);
+  }
+  static Future<void> userLoggedInIndivisualGuest({
+    required String loginUserId_,
+    required String businesId,
+    required String contactNo,
+    required String getUserName,
+    required String profileImage,
+    required String designation,
+
+  }) async {
+    await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
+    await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
+    await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
+    await SharedPreferenceUtils.setSecureValue(userName, getUserName);
+    await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
+    await SharedPreferenceUtils.setSecureValue(userProfession, designation);
+    await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
+
   }
 
   static Future<void> guestUserLoggedIn({
+    required String loginUserId_,
+
     required String contactNo,
     required String autToken,
     required String getUserName,
   }) async {
+    await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
+
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(authToken, autToken);
@@ -113,7 +134,6 @@ class SharedPreferenceUtils {
     try {
       final workManagerBaseUrl =
           await SharedPreferenceUtils.getBaseUrlSecureValue();
-      // logs("workManagerBaseUrl===== $workManagerBaseUrl");
       await _secureStorage.deleteAll();
       authTokenGlobal = '';
       accountTypeGlobal = '';
@@ -125,10 +145,9 @@ class SharedPreferenceUtils {
       reel_profile_id_global = '';
       userNameGlobal = '';
       userProfileGlobal = '';
-      userProfessionGlobal = '';
-      businessNameGlobal = '';
-      businessOwnerNameGlobal = '';
       channelId = '';
+      userProfessionGlobal = '';
+      Get.find<AuthController>().imgPath.value="";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
     } on Exception catch (e) {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
@@ -151,6 +170,22 @@ getUserLoginBusinessId() async {
       "";
 }
 
+getUserLoginAccountType() async {
+  accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.accountType) ??
+      "";
+}
+
+getUserAuthToken() async {
+  authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.authToken);
+}
+getMobileNo()
+async {
+  userMobileGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userLoginMobile) ??
+      "";
+}
 ///GET USER DATA....
 getUserLoginData() async {
   authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
@@ -194,6 +229,12 @@ getUserLoginData() async {
 }
 ///GET USER DATA....
 getGuestUserLoginData() async {
+  userId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.loginUserId) ??
+      "";
+  businessId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userBusinessId) ??
+      "";
   authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.authToken);
   accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
@@ -221,20 +262,11 @@ getChannelId() async {
 
 /// GET Business Data...
 getBusinessData() async {
-  userProfileGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.userProfile) ??
-      "";
-
   businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessName) ??
       "";
-
   businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessOwnerName) ??
-      "";
-
-  businessUserId = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessUserId) ??
       "";
 }
 

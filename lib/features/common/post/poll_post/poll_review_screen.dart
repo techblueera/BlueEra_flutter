@@ -1,5 +1,3 @@
-
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -106,10 +104,8 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
                       hintText:
                           "E.g., This helps people understand the question",
                       title: "Add Comment or Description (Optional)",
-                      maxLine: 3,
-                      maxLength: 180,
-                      inputLength: 180,
-                      isCounterVisible: true,
+                      maxLine: 2,
+                      inputLength: 100,
                       textEditController: pollController.descriptionController,
                       isValidate: false,
                     ),
@@ -128,10 +124,10 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
                             child: PositiveCustomBtn(
                           onTap: () async {
                             try {
+                              pollController.isLoading.value = true;
                               final position = await getCurrentLocation();
                               final Map<String, dynamic> params;
                               if (pollController.isPollPostEdit) {
-                                pollController.isLoading.value = true;
                                 params = {
                                   ApiKeys.type: AppConstants.POLL_POST,
                                   ApiKeys.sub_title: pollController
@@ -154,31 +150,21 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
                                       false)
                                     ApiKeys.longitude:
                                         position?.longitude.toString(),
-                                  // ApiKeys.reference_link: pollController
-                                  //         .referenceLinkController
-                                  //         .text
-                                  //         .isNotEmpty
-                                  //     ? pollController
-                                  //         .referenceLinkController.text
-                                  //     : "",
+                                  ApiKeys.reference_link: pollController
+                                          .referenceLinkController
+                                          .text
+                                          .isNotEmpty
+                                      ? pollController
+                                          .referenceLinkController.text
+                                      : "",
                                 };
                               } else {
-
-                                if(selectedIndex==-1){
-                                  showCreateChannelDialog();
-                                  return;
-                                }
-
-                                pollController.isLoading.value = true;
                                 pollController.syncOptionsFromControllers();
-                                final List<Map<String, dynamic>>
-                                    formattedOptions = pollController.options.
-                                         asMap().
-                                         entries.
-                                         map((opt) => {
-                                           'text': opt.value,
-                                           'isCorrect': (selectedIndex.value == opt.key) ? true : false})
-                                           .toList();
+
+                                final List<Map<String, String>>
+                                    formattedOptions = pollController.options
+                                        .map((opt) => {'text': opt})
+                                        .toList();
                                 params = {
                                   ApiKeys.type: AppConstants.POLL_POST,
                                   ApiKeys.postVia: widget.postVia?.name,
@@ -209,10 +195,10 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
                                       false)
                                     ApiKeys.longitude:
                                         position?.longitude.toString(),
-                                  // if (pollController
-                                  //     .referenceLinkController.text.isNotEmpty)
-                                  //   ApiKeys.reference_link: pollController
-                                  //       .referenceLinkController.text,
+                                  if (pollController
+                                      .referenceLinkController.text.isNotEmpty)
+                                    ApiKeys.reference_link: pollController
+                                        .referenceLinkController.text,
                                 };
                               }
                               await pollController.createPollPost(params);
@@ -237,46 +223,4 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
       }),
     );
   }
-
-  void showCreateChannelDialog()  {
-    Get.dialog(
-        Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Container(
-            padding: EdgeInsets.all(SizeConfig.size20),
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  'Please choose correct answer.',
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mainTextColor,
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => Get.back(),
-                    child: CustomText(
-                      'Ok',
-                      color: AppColors.primaryColor,
-                      fontSize: SizeConfig.medium15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-         )
-       );
-      }
-
 }

@@ -500,7 +500,7 @@ class FeedController extends GetxController{
   }
 
   /// Delete Post
-  Future<void> postDelete({required String postId, required PostType type}) async {
+  Future<void> postDelete({required String postId, required PostType type, SortBy? sortBy}) async {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 
@@ -519,8 +519,8 @@ class FeedController extends GetxController{
     }
   }
 
-  ///USER BLOCK...
-  Future<void> userBlocked({required PostType type, required String otherUserId}) async {
+  ///USER BLOCK(PARTIAL AND FULL)...
+  Future<void> userBlocked({required PostType type, SortBy? sortBy, required String otherUserId}) async {
     final list = getListByType(type);
 
     try {
@@ -535,9 +535,11 @@ class FeedController extends GetxController{
       if (response.isSuccess) {
         blockUserResponse = ApiResponse.complete(response);
         BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
+        log('before size--> ${list.length}');
         list.removeWhere((p) {
           return p.authorId == otherUserId;
         });
+        log('after size--> ${list.length}');
         Get.back();
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
@@ -551,15 +553,13 @@ class FeedController extends GetxController{
     }
   }
 
-  /// Feed Report
-  Future<void> reportFeed({required PostType type,  required String otherUserId, required Map<String, dynamic> params}) async {
-    final list = getListByType(type);
-
+  /// Block user
+  Future<void> blockUser({required String userId, required bool isPartial}) async {
     try {
-      final response = await FeedRepo().report(params: {
-        // ApiKeys.blockedTo: userId,
-        // ApiKeys.type: isPartial ? BlockedType.partial.label : BlockedType.full.label,
-        // ApiKeys.duration: 0
+      final response = await FeedRepo().blockUser(params: {
+        ApiKeys.blockedTo: userId,
+        ApiKeys.type: isPartial ? BlockedType.partial.label : BlockedType.full.label,
+        ApiKeys.duration: 0
       });
 
       if (response.isSuccess) {
@@ -575,7 +575,7 @@ class FeedController extends GetxController{
   }
 
   /// Poll Answer
-  Future<void> answerPoll({required int optionId, required String postId, required PostType type}) async {
+  Future<void> answerPoll({required int optionId, required String postId, required PostType type, SortBy? sortBy}) async {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 

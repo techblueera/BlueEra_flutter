@@ -37,7 +37,7 @@ class VisitingCardHelper {
     }
   }
 
-  static Future<void> shareVisitingCard(GlobalKey cardKey, {String? message}) async {
+  static Future<void> shareVisitingCard(GlobalKey cardKey) async {
     try {
       // Capture with RepaintBoundary (keeps your background image)
       RenderRepaintBoundary boundary =
@@ -52,7 +52,7 @@ class VisitingCardHelper {
       final file = await File('${tempDir.path}/visiting_card.png').create();
       await file.writeAsBytes(pngBytes);
 
-      final String defaultMessage = """
+      final String message = """
 Download our app now:
 👉 Play Store: ${AppConstants.androidPlayStoreUrl}
 👉 App Store: ${AppConstants.iosAppStoreUrl}
@@ -61,7 +61,7 @@ Download our app now:
       // ✅ Share with image + text
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: message ?? defaultMessage,
+        text: message,
       );
     } catch (e) {
       debugPrint("❌ Error sharing card: $e");

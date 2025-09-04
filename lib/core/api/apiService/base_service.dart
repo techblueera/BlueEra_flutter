@@ -28,27 +28,19 @@ abstract class BaseService {
       '/user-service/business/verifyBusinessStatus';
   final String videoUpload = 'video-service/videos/upload';
   final String getUser = 'user-service/user/get?contact_no=$userMobileGlobal';
-   String getotherUsers (String contactNo )  =>
-       'user-service/user/get?contact_no=$contactNo';
   final String updateUserProfile = 'user-service/user/updateUser';
+  // final String updateUserProfile = 'user-service/user/updateUser';
   final String videosSearch = 'video-service/videos/search';
   String channelStats(String channelId) =>
       'channel-service/channels/$channelId/stats';
   final String bookings = 'booking-enquiry-service/bookings';
-   String receivedBooking(String channelId) =>
-       'booking-enquiry-service/bookings/summary/by-videos?channelId=$channelId';
-   String  receivedEnquiry(String channelId) =>
-       'booking-enquiry-service/inquiries/summary/by-videos?channelId=$channelId';
-   String receivedVideoBooking(String channelId,String videoId)=>
-       'booking-enquiry-service/bookings?channelId=$channelId&videoId=$videoId';
-      String receivedVideoEnquiry(String channelId,String videoId)=>''
-          'booking-enquiry-service/inquiries?channelId=$channelId&videoId=$videoId';
-   String getBookingById(String bookingId)=>
-       'booking-enquiry-service/bookings/$bookingId';
-   String updateBookingStatus(String id)=>
-       'booking-enquiry-service/bookings/$id';
-      String enquiryBookingStatus(String id)=>
-          'booking-enquiry-service/inquiries/$id/status';
+   String receivedBooking(String channelId) => 'booking-enquiry-service/bookings/summary/by-videos?channelId=$channelId';
+   String  receivedEnquiry(String channelId) =>  'booking-enquiry-service/inquiries/summary/by-videos?channelId=$channelId';
+   String receivedVideoBooking(String channelId,String videoId)=>'booking-enquiry-service/bookings?channelId=$channelId&videoId=$videoId';
+      String receivedVideoEnquiry(String channelId,String videoId)=>'booking-enquiry-service/inquiries?channelId=$channelId&videoId=$videoId';
+   String getBookingById(String bookingId)=> 'booking-enquiry-service/bookings/$bookingId';
+   String updateBookingStatus(String id)=> 'booking-enquiry-service/bookings/$id';
+      String enquiryBookingStatus(String id)=> 'booking-enquiry-service/inquiries/$id/status';
   final String MyBookingList = 'booking-enquiry-service/bookings/my-bookings';
   final String myInquiries = 'booking-enquiry-service/inquiries/my-inquiries';
   final String  Inquiries = 'booking-enquiry-service/inquiries';
@@ -83,7 +75,7 @@ abstract class BaseService {
   String channelVideos(String channelOrUserId) =>
       'video-service/videos/channel/$channelOrUserId';
   String ownChannelVideos(String authorId) =>
-      'video-service/videos/users/$authorId/videos';
+      'video-service/videos/users/$userId/videos';
   String channelReports(String channelId) =>
       'channel-service/channels/$channelId/reports';
   String channelBlockUser(String channelId) =>
@@ -210,7 +202,6 @@ abstract class BaseService {
   String postLikeUnlike(String id) => "video-service/likes/$id/like";
   String videoView(String id) => "video-service/videos/metadata/$id";
   String videoCategories = "video-service/categories";
-  String videosShare(String videoId) => "video-service/share/videos/$videoId";
 
   /// Post service
   final String addPost = "post-service/post/add-post";
@@ -225,8 +216,7 @@ abstract class BaseService {
   final String postByID = "post-service/post/view/";
 
   /// Comment
-  String postComments(String postId) =>
-      "post-service/post/comments/$postId";
+  String postComments(String postId) => "post-service/post/comments/$postId";
   final String postComment = "post-service/post/comment";
   final String postCommentLike = "post-service/post/comment/like";
   String videoComments(String videoId) =>
@@ -234,10 +224,8 @@ abstract class BaseService {
   String videoCommentLike(String commentId) =>
       "video-service//comments/$commentId/like";
   final String videoAddComment = "video-service/comments";
-  String videos(String videoId) =>
-      "video-service/videos/$videoId";
-  String videosMetaData(String videoId) =>
-      "video-service/videos/$videoId";
+  String videos(String videoId) => "video-service/videos/$videoId";
+  String videosMetaData(String videoId) => "video-service/videos/$videoId";
 
   final String getSocialMediaHandlers = "user-service/user/getSMediaHandlers";
   final String addSocialMediaHandler = "user-service/user/addSMediaHandler";
@@ -249,35 +237,24 @@ abstract class BaseService {
 
   //JOB POST
   final String jobPost = "job-service/jobs";
-  String jobPostStep2(String jobId) =>
-      "job-service/jobs/$jobId/step2";
-  String jobPostStep3(String jobId) =>
-      "job-service/jobs/$jobId/step3";
-  String jobPostStep4(String jobId) =>
-      "job-service/jobs/$jobId/step4";
-  String publishJob(String jobId) =>
-      "job-service/jobs/$jobId/publish";
-  String updateJobDetails(String jobId) =>
-      "job-service/jobs/$jobId";
+  String jobPostStep2(String jobId) => "job-service/jobs/$jobId/step2";
+  String jobPostStep3(String jobId) => "job-service/jobs/$jobId/step3";
+  String jobPostStep4(String jobId) => "job-service/jobs/$jobId/step4";
+  String publishJob(String jobId) => "job-service/jobs/$jobId/publish";
+  String updateJobDetails(String jobId) => "job-service/jobs/$jobId";
   String getJobByLat(String lat, lng) =>
       "map-service/api/jobs?lat=$lat&lng=$lng&radius=25";
   String getStoreByLat(String lat, lng) =>
       "map-service/api/stores?lat=$lat&lng=$lng&radius=25";
 
-  String getJobDetails(String jobId) =>
-      "job-service/jobs/$jobId";
-  String getResumeById(String resumeId) =>
-      "job-service/resumes/$resumeId";
-  String getPlaceById(String placeId) =>
-      "map-service/api/places/$placeId";
-  String getStoreById(String storeId) =>
-      "map-service/api/stores/$storeId";
-  String getPlaceByLat(double lat,double lng) =>
-      "map-service/api/places?lat=$lat&lng=$lng&radius=25";
+  String getJobDetails(String jobId) => "job-service/jobs/$jobId";
+  String getResumeById(String resumeId) => "job-service/resumes/$resumeId";
+  String getPlaceById(String placeId) => "map-service/api/places/$placeId";
+  String getStoreById(String storeId) => "map-service/api/stores/$storeId";
+  String getPlaceByLat(double lat,double lng) => "map-service/api/places?lat=$lat&lng=$lng&radius=25";
   final String servicesByLatLng = "map-service/api/services";
   final String foodServicesByLatLng = "map-service/api/services/food-services";
-  String getServiceProfileByUserId(String userId) =>
-      "map-service/services/$userId";
+  String getServiceProfileByUserId(String userId) => "map-service/services/$userId";
   final String storesByLatLng = "map-service/stores";
   String getStoresDetailsByStoreId(String storeId) =>
       "map-service/stores/$storeId";
@@ -287,10 +264,8 @@ abstract class BaseService {
   final String getAllResumes = "job-service/resumes";
   final String jobApplication = "job-service/applications";
 
-  String setAvailability(String channelId) =>
-      "booking-enquiry-service/availability/$channelId";
- String getcalender(String channelId) =>
-     "booking-enquiry-service/availability/calendar/$channelId";
+  String setAvailability(String channelId) => "booking-enquiry-service/availability/$channelId";
+ String getcalender(String channelId) => "booking-enquiry-service/availability/calendar/$channelId";
 //  String getReceivedBooking (String channelId,String videoId)=>"booking-enquiry-service/bookings/$channelId/$videoId";
   ///TRAVEL
   final String addPlace = "travel-service/places/add";
@@ -402,8 +377,7 @@ abstract class BaseService {
   // Notification
 
   final String notificationListApi = "/notification-service/notifications";
-  String clearNotificationWithId(String notifyId) =>
-      '/notification-service/notifications/$notifyId';
+  String clearNotificationWithId(String notifyId) => '/notification-service/notifications/$notifyId';
   final String clearAllNotification = '/notification-service/notifications/all';
   final String individualProfessions = 'user-service/individual-professions';
   final String deletePostCommentById = 'post-service/post/delete-comment/';
@@ -412,6 +386,8 @@ abstract class BaseService {
   //categories
   final String toplevelcategoriesApi = "/inventory-service/product/categories/top-level";
   final String createGuestAccount = "/user-service/user/create-guest-account";
-  final String userFeedReport = "userfeed-service//report/add-reports";
+  final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
+  final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
+
 
 }

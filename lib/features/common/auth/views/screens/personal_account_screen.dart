@@ -135,13 +135,14 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   color: AppColors.black,
                 ),
                 SizedBox(height: SizeConfig.size10),
+
                 ///ENTER NAME...
                 CommonTextField(
                     textEditController: _nameTextController,
                     inputLength: AppConstants.inputCharterLimit50,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     title: appLocalizations?.yourName,
                     titleColor: Colors.black,
                     hintText: AppConstants.name,
@@ -225,27 +226,25 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
-                GetBuilder<AuthController>(
-                    builder: (authController) {
-                      return CommonDropdownDialog<ProfessionTypeData>(
-                        items:authController.professionTypeDataList,
-                        selectedValue: selectedProfessionObj,
-                        hintText: AppConstants.selectProfession,
-                        title: appLocalizations?.selectYourProfession ??
-                            "Select",
-                        displayValue: (profession) => profession.name??"",
-                        onChanged: (value) {
-                          _selectedSelfEmploymentObj=null;
-                          authController.subcategoriesFiledNameList.clear();
+                GetBuilder<AuthController>(builder: (authController) {
+                  return CommonDropdownDialog<ProfessionTypeData>(
+                    items: authController.professionTypeDataList,
+                    selectedValue: selectedProfessionObj,
+                    hintText: AppConstants.selectProfession,
+                    title: appLocalizations?.selectYourProfession ?? "Select",
+                    displayValue: (profession) => profession.name ?? "",
+                    onChanged: (value) {
+                      _selectedSelfEmploymentObj = null;
+                      authController.subcategoriesFiledNameList.clear();
 
-                          clearTextFiled();
-                          setState(() {
-                            _selectedProfession = value?.tagId;
-                            selectedProfessionObj = value;
-                          });
-                        },
-                      );
-                    }),
+                      clearTextFiled();
+                      setState(() {
+                        _selectedProfession = value?.tagId;
+                        selectedProfessionObj = value;
+                      });
+                    },
+                  );
+                }),
 
                 if ((_selectedProfession == SELF_EMPLOYED)) ...[
                   SizedBox(
@@ -262,12 +261,11 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   ),
 
                   CommonDropdownDialog<SubcategoriesFiledName>(
-                    items: selectedProfessionObj?.subcategoriesFiledName??[],
+                    items: selectedProfessionObj?.subcategoriesFiledName ?? [],
                     selectedValue: _selectedSelfEmploymentObj,
                     hintText: AppConstants.selectSelfEmployee,
                     title: "Select Work Type",
-                    displayValue: (selfEmployment) =>
-                    selfEmployment.name??"",
+                    displayValue: (selfEmployment) => selfEmployment.name ?? "",
                     onChanged: (value) {
                       setState(() {
                         _selectedSelfEmploymentObj = value;
@@ -286,14 +284,13 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     titleColor: Colors.black,
                     hintText: "Please specify work type",
                   ),
                 ],
 
-                if ((_selectedProfession ==
-                    CONTENT_CREATOR)) ...[
+                if ((_selectedProfession == CONTENT_CREATOR)) ...[
                   SizedBox(
                     height: SizeConfig.size20,
                   ),
@@ -306,7 +303,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Type Your Specification",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. Education,Poetry",
                   ),
                 ],
@@ -321,7 +318,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Type Your Work Specification",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. Helper",
                     isValidate: false,
                     // autovalidateMode: _autoValidate,
@@ -346,7 +343,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Type Your NGO / Society Name",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. Auto Union",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
@@ -370,7 +367,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Type Your Company Name",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. TCS LTD",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
@@ -395,7 +392,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Type Your Expertise",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. Cooking,Dancing",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
@@ -406,8 +403,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     // }
                   ),
                 ],
-                if ((_selectedProfession ==
-                    SENIOR_CITIZEN_RETIRED)) ...[
+                if ((_selectedProfession == SENIOR_CITIZEN_RETIRED)) ...[
                   SizedBox(
                     height: SizeConfig.size20,
                   ),
@@ -419,7 +415,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Type Your Expertise",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. Banking,Teaching",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
@@ -442,7 +438,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     title: "Which class you study?",
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "Eg. 10th,Diploma,BE,PHD",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
@@ -468,12 +464,11 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     height: SizeConfig.size10,
                   ),
                   CommonDropdownDialog<SubcategoriesFiledName>(
-                    items: selectedProfessionObj?.subcategoriesFiledName??[],
+                    items: selectedProfessionObj?.subcategoriesFiledName ?? [],
                     selectedValue: _selectedSelfEmploymentObj,
                     hintText: AppConstants.selectSelfArtist,
                     title: "Select Your Art / Skill",
-                    displayValue: (selfEmployment) =>
-                    selfEmployment.name??"",
+                    displayValue: (selfEmployment) => selfEmployment.name ?? "",
                     onChanged: (value) {
                       setState(() {
                         _selectedSelfEmploymentObj = value;
@@ -481,7 +476,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                       });
                     },
                   ),
-                 /* CommonDropdownDialog<ArtistCategory>(
+                  /* CommonDropdownDialog<ArtistCategory>(
                     items: ArtistCategory.values,
                     selectedValue: _selectedArtistCategory,
                     hintText: AppConstants.selectSelfArtist,
@@ -512,7 +507,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                       inputLength: 24,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetSpacePattern,
                       titleColor: Colors.black,
                       hintText: "Please Specify Art Type",
                       // autovalidateMode: _autoValidate,
@@ -537,7 +532,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 13,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     titleColor: Colors.black,
                     hintText: appLocalizations?.pleaseSpecifyIfOther,
                     // autovalidateMode: _autoValidate,
@@ -556,7 +551,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     title: "Designation / Expertise",
                     hintText: "Enter your designation/expertise",
                     // autovalidateMode: _autoValidate,
@@ -592,7 +587,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern_,
+                        RegularExpressionUtils.alphabetSpacePattern_,
                     titleColor: Colors.black,
                     hintText: "Eg., Ministry of Education",
                     // validator: (value) {
@@ -610,7 +605,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern_,
+                        RegularExpressionUtils.alphabetSpacePattern_,
                     titleColor: Colors.black,
                     hintText: "Eg., Civil Engineering Division",
                   ),
@@ -624,7 +619,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: AppConstants.inputCharterLimit250,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     title: "Sector",
                     hintText: "Eg. IT Sector",
                     // autovalidateMode: _autoValidate,
@@ -637,8 +632,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     (_selectedProfession != ARTIST) &&
                     (_selectedProfession != CONTENT_CREATOR) &&
                     (_selectedProfession != HOMEMAKER) &&
-                    (_selectedProfession !=
-                        SENIOR_CITIZEN_RETIRED) &&
+                    (_selectedProfession != SENIOR_CITIZEN_RETIRED) &&
                     (_selectedProfession != FARMER) &&
                     (_selectedProfession != STUDENT) &&
                     (_selectedProfession != OTHERS)) ...[
@@ -647,7 +641,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     title: appLocalizations?.designation,
                     hintText: "Enter your designation",
                     isValidate: false,
@@ -676,11 +670,11 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                                 child: InkWell(
                                   onTap: userNameController.text.isNotEmpty
                                       ? () {
-                                    authController
-                                        .getCheckUsernameController(
-                                        value:
-                                        userNameController.text);
-                                  }
+                                          authController
+                                              .getCheckUsernameController(
+                                                  value:
+                                                      userNameController.text);
+                                        }
                                       : null,
                                   child: CustomText(
                                     "Check",
@@ -708,7 +702,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                           return GestureDetector(
                             onTap: () {
                               userNameController.text =
-                              authController.userNameList[i];
+                                  authController.userNameList[i];
                               authController.select(i);
                             },
                             child: Container(
@@ -727,12 +721,12 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: isSelected
                                     ? [
-                                  BoxShadow(
-                                      blurRadius: 6,
-                                      spreadRadius: 0.5,
-                                      color:
-                                      Colors.black.withOpacity(0.15))
-                                ]
+                                        BoxShadow(
+                                            blurRadius: 6,
+                                            spreadRadius: 0.5,
+                                            color:
+                                                Colors.black.withOpacity(0.15))
+                                      ]
                                     : null,
                               ),
                               child: CustomText(
@@ -752,15 +746,13 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     inputLength: 15,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphanumericPattern,
+                        RegularExpressionUtils.alphanumericPattern,
                     titleColor: Colors.black,
                     hintText: "Eg @Sachin",
                     isValidate: false,
                     prefixText: userNameController.text.isNotEmpty ? "@" : "",
                     validator: (value) {
-                      if (value == null || value
-                          .trim()
-                          .length < 7) {
+                      if (value == null || value.trim().length < 7) {
                         return "Username must be at least 7 characters";
                       }
                       return null;
@@ -778,51 +770,47 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   // ),
                 ],
 
-                if ((_selectedProfession !=
-                    GOVTPSU) &&
-                    (_selectedProfession !=
-                        POLITICIAN) &&
+                if ((_selectedProfession != GOVTPSU) &&
+                    (_selectedProfession != POLITICIAN) &&
                     (_selectedProfession != MEDIA) &&
-                    (_selectedProfession !=
-                        REG_UNION) &&
-                    (_selectedProfession !=
-                        INDUSTRIALIST)) ...[
+                    (_selectedProfession != REG_UNION) &&
+                    (_selectedProfession != INDUSTRIALIST)) ...[
                   ..._referralCodeEnable
                       ? [
-                    CommonTextField(
-                      isValidate: false,
+                          CommonTextField(
+                            isValidate: false,
 
-                      textEditController: _referralCodeController,
-                      inputLength: AppConstants.inputCharterLimit10,
-                      keyBoardType: TextInputType.text,
-                      regularExpression:
-                      RegularExpressionUtils.alphanumericPattern,
-                      title: appLocalizations?.referralCode,
-                      hintText: appLocalizations?.enterReferralCode,
-                      // autovalidateMode: _autoValidate,
-                      // validator: (value) {
-                      //   if (value == null || value.isEmpty) {
-                      //     return 'Please enter your referral code';
-                      //   }
-                      //   return null;
-                      // },
-                    )
-                  ]
+                            textEditController: _referralCodeController,
+                            inputLength: AppConstants.inputCharterLimit10,
+                            keyBoardType: TextInputType.text,
+                            regularExpression:
+                                RegularExpressionUtils.alphanumericPattern,
+                            title: appLocalizations?.referralCode,
+                            hintText: appLocalizations?.enterReferralCode,
+                            // autovalidateMode: _autoValidate,
+                            // validator: (value) {
+                            //   if (value == null || value.isEmpty) {
+                            //     return 'Please enter your referral code';
+                            //   }
+                            //   return null;
+                            // },
+                          )
+                        ]
                       : [
-                    Center(
-                      child: InkWell(
-                        onTap: () =>
-                            setState(() => _referralCodeEnable = true),
-                        child: CustomText(
-                          appLocalizations?.youHaveReferCode,
-                          color: AppColors.primaryColor,
-                          decoration: TextDecoration.underline,
-                          fontSize: SizeConfig.medium,
-                          decorationColor: AppColors.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
+                          Center(
+                            child: InkWell(
+                              onTap: () =>
+                                  setState(() => _referralCodeEnable = true),
+                              child: CustomText(
+                                appLocalizations?.youHaveReferCode,
+                                color: AppColors.primaryColor,
+                                decoration: TextDecoration.underline,
+                                fontSize: SizeConfig.medium,
+                                decorationColor: AppColors.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
                   // SizedBox(height: SizeConfig.size10,),
                   // Padding(
                   //   padding: EdgeInsets.symmetric(
@@ -894,9 +882,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
           : null;
       dio.MultipartFile? imageByPart;
       if (imageFile?.path.isNotEmpty ?? false) {
-        String fileName = imageFile?.path
-            .split('/')
-            .last ?? "";
+        String fileName = imageFile?.path.split('/').last ?? "";
         imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
             filename: fileName);
       }
@@ -907,7 +893,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
         designation = _designationTextController.text;
       }
 
-      Map<String, dynamic> requestData = {
+      /*  Map<String, dynamic> requestData = {
         ApiKeys.contact_no: authController.mobileNumberEditController.text,
         ApiKeys.account_type: AppConstants.individual.toUpperCase(),
         ApiKeys.profile_image: imageByPart,
@@ -972,9 +958,75 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
 
         ApiKeys.referred_by_code:
         _referralCodeEnable ? _referralCodeController.text : null,
+      };*/
+      Map<String, dynamic> requestData = {
+        ApiKeys.profile_image: imageByPart,
+        ApiKeys.name: _nameTextController.text,
+        "date_of_birth": jsonEncode({
+          ApiKeys.date: _selectedDay,
+          ApiKeys.month: _selectedMonth,
+          ApiKeys.year: _selectedYear,
+        }),
+        ApiKeys.gender: _selectedGender?.name,
+
+        ///CONDITION....
+        ApiKeys.profession: _selectedProfession,
+        ApiKeys.designation: designation,
+        if (_selectedProfession == PRIVATE_JOB)
+          ApiKeys.sector: _sectorTextController.text,
+        if ((_selectedProfession == SELF_EMPLOYED))
+          ApiKeys.specilization: _designationTextController.text,
+        if (_selectedProfession == SKILLED_WORKER)
+          ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
+        if (_selectedProfession == CONTENT_CREATOR)
+          ApiKeys.specilization: _contentCraterTextController.text,
+
+        ///USER NAME
+        if ((_selectedProfession == CONTENT_CREATOR) ||
+            (_selectedProfession == POLITICIAN) ||
+            (_selectedProfession == REG_UNION) ||
+            (_selectedProfession == INDUSTRIALIST) ||
+            (_selectedProfession == ARTIST) ||
+            (_selectedProfession == MEDIA) ||
+            (_selectedProfession == GOVTPSU))
+          ApiKeys.username: userNameController.text,
+
+        if (_selectedProfession == POLITICIAN)
+          ApiKeys.department: politicalPartyController.text,
+        if (_selectedProfession == GOVTPSU)
+          ApiKeys.department: departmentNameController.text,
+        if (_selectedProfession == GOVTPSU)
+          ApiKeys.subDivision: subDivision.text,
+        if (_selectedProfession == REG_UNION)
+          ApiKeys.department: _ngoNameTextController.text,
+
+        if (_selectedProfession == INDUSTRIALIST)
+          ApiKeys.department: _companyNameTextController.text,
+
+        if (_selectedProfession == STUDENT)
+          ApiKeys.schoolOrCollegeName: _CourseTextController.text,
+        if (_selectedProfession == OTHERS)
+          ApiKeys.specilization: _otherProfessionTextController.text,
+        if (_selectedProfession == ARTIST)
+          ApiKeys.art: jsonEncode({
+            ApiKeys.artName: _selectedSelfEmploymentObj?.tagId,
+            ApiKeys.artType: _artTypeController.text
+          }),
+        if (_selectedProfession == HOMEMAKER)
+          ApiKeys.art: jsonEncode({
+            ApiKeys.artName: _ExpertiseTextController.text,
+          }),
+
+        if (_selectedProfession == SENIOR_CITIZEN_RETIRED)
+          ApiKeys.art: jsonEncode({
+            ApiKeys.artName: _SeniorTextController.text,
+          }),
+
+        ApiKeys.referred_by_code:
+            _referralCodeEnable ? _referralCodeController.text : null,
       };
       logs("requestData PERSONAL ==== ${requestData}");
-      await authController.addNewUser(reqData: requestData);
+      await authController.addIndivisualUser(reqData: requestData);
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;
@@ -1014,11 +1066,11 @@ class UsernamePicker extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
-                    BoxShadow(
-                        blurRadius: 6,
-                        spreadRadius: 0.5,
-                        color: Colors.black.withOpacity(0.15))
-                  ]
+                          BoxShadow(
+                              blurRadius: 6,
+                              spreadRadius: 0.5,
+                              color: Colors.black.withOpacity(0.15))
+                        ]
                       : null,
                 ),
                 child: CustomText(

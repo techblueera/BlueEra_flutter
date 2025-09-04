@@ -5,28 +5,23 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../features/common/feed/models/posts_response.dart';
 
 class CustomPollWidget extends StatefulWidget {
   final String postId;
-  final String question;
   final List<PollOption> options;
   final PostType postFilteredType;
-  final String? postedAgo;
-  final String? message;
+  final SortBy? sortBy;
 
   const CustomPollWidget(
       {super.key,
       required this.postId,
-      required this.question,
       required this.options,
       required this.postFilteredType,
-      this.postedAgo,
-      this.message,
-      });
+      this.sortBy});
 
   @override
   State<CustomPollWidget> createState() => _CustomPollWidgetState();
@@ -65,14 +60,15 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
         optionId: index,
         postId: widget.postId,
         type: widget.postFilteredType,
-       );
-
+        sortBy: widget.sortBy);
+    Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
       // Update local state
       setState(() {
         localOptions[index].votes?.add(userIdLocal);
         selectedIndex = index;
       });
+    });
   }
 
   @override
@@ -83,35 +79,6 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
     return Column(
       children: [
-
-        Padding(
-          padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(
-                child: CustomText(
-                  widget.question,
-                  color: AppColors.mainTextColor,
-                  fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-              // if (hasVoted)
-                CustomText(
-                  '${totalVotes} votes',
-                  fontSize: SizeConfig.medium,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-            ],
-          ),
-        ),
-
-        SizedBox(height: SizeConfig.size16),
-
         // Poll options with progress bars
         ...List.generate(localOptions.length, (index) {
           final option = localOptions[index];
@@ -131,7 +98,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                 if (isGuestUser()) {
                   createProfileScreen();
                 } else {
-                  hasVoted ? null : _handleVote(index);
+                  hasVoted ? null : () => _handleVote(index);
                 }
               },
               child: Container(
@@ -150,7 +117,6 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-
                     // Progress bar fill (light grey based on percentage)
                     if (hasVoted)
                       FractionallySizedBox(
@@ -186,6 +152,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                       ),
                       child: Row(
                         children: [
+                          // Option text
                           Expanded(
                             child: CustomText(
                               option.text,
@@ -199,13 +166,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                             ),
                           ),
                           // Percentage
-
-                          if(hasVoted)...[
-                            if (selectedIndex == index)
-                              ...[
-                                Icon(Icons.check_circle_outline, color: AppColors.primaryColor),
-                                SizedBox(width: SizeConfig.size8),
-                              ],
+                          if (hasVoted)
                             CustomText(
                               '$percentage%',
                               fontSize: SizeConfig.medium,
@@ -214,8 +175,6 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                                   : Colors.black87,
                               fontWeight: FontWeight.w500,
                             ),
-                          ]
-
                         ],
                       ),
                     ),
@@ -226,27 +185,25 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
           );
         }),
         // Total votes display
-
-        Padding(
-          padding: EdgeInsets.only(
-            left: SizeConfig.size15,
-            right: SizeConfig.size15,
-            top: SizeConfig.size5,
-          ),
-          child: widget.message?.isNotEmpty ?? false
-              ?  ExpandableText(
-            text: widget.message??'',
-            trimLines: 2,
-            style: TextStyle(
-              color: AppColors.mainTextColor,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w400,
+        if (hasVoted)
+          Padding(
+            padding: EdgeInsets.only(
+              left: SizeConfig.size15,
+              right: SizeConfig.size15,
+              top: SizeConfig.size12,
             ),
-            expandMode: ExpandMode.dialog,
-            dialogTitle: 'Poll Description',
-          ) : SizedBox.shrink(),
-        ),
-
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CustomText(
+                  '${totalVotes} votes',
+                  fontSize: SizeConfig.medium,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

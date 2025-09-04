@@ -227,8 +227,9 @@ class ProfileSettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            if (Platform.isAndroid) ...[
+            if(Platform.isAndroid)...[
               SizedBox(height: SizeConfig.size20),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -264,8 +265,7 @@ class ProfileSettingsScreen extends StatelessWidget {
                         Get.toNamed(RouteHelper.getWalletScreenRoute());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromRGBO(35, 153, 245, 0.2),
+                        backgroundColor: const Color.fromRGBO(35, 153, 245, 0.2),
                         side: const BorderSide(color: Colors.lightBlueAccent),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -310,6 +310,7 @@ class ProfileSettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
             ],
 
             Padding(
@@ -320,17 +321,17 @@ class ProfileSettingsScreen extends StatelessWidget {
                 color: Color.fromRGBO(186, 199, 210, 1),
               ),
             ),
-            if (Platform.isAndroid) ...[
-              _buildTile(
-                AppIconAssets.earnWithBlueEra,
-                "Earn with BlueEra",
-                "Learn how to earn with BlueEra",
-                onTap: () {
-                  Get.to(() => EarnBlueeraScreen());
-                  // Get.toNamed(RouteHelper.getearnBlueeraScreenRoute());
-                },
-              ),
-            ],
+    if(Platform.isAndroid)...[
+
+            _buildTile(
+              AppIconAssets.earnWithBlueEra,
+              "Earn with BlueEra",
+              "Learn how to earn with BlueEra",
+              onTap: () {
+                Get.to(() => EarnBlueeraScreen());
+                // Get.toNamed(RouteHelper.getearnBlueeraScreenRoute());
+              },
+            ),],
             _buildTile(AppIconAssets.inventory, "Inventory",
                 "Add/Edit/Delete/Draft Products", onTap: () {
               Get.to(() => InventoryScreen());
@@ -338,36 +339,26 @@ class ProfileSettingsScreen extends StatelessWidget {
             _buildTile(AppIconAssets.bookingEnquiries, "Booking & Enquiries",
                 "Set/Receive/Earn through your videos",
                 onTap: () => Get.to(() => BookingsScreen())),
-            if (Platform.isAndroid) ...[
-              _buildTile(AppIconAssets.subscription, "Subscription",
-                  "Add/Cancel/Subscribe",
-                  onTap: () => Get.to(() => SubscriptionScreen())),
-              _buildTile(
-                  AppIconAssets.payment, "Payment", "Pay & Manage Account",
-                  onTap: () => Get.to(() => PaymentSettingScreen())),
-            ],
-            if (isIndividual())
-              _buildTile(AppIconAssets.channelNew, "Channel",
-                  "Create/Edit/Delete Channel & Videos", onTap: () {
-                if (channelId.isNotEmpty) {
-                  Get.toNamed(
-                    RouteHelper.getChannelScreenRoute(),
-                    arguments: {
-                      ApiKeys.argAccountType: accountTypeGlobal,
-                      ApiKeys.channelId: channelId,
-                      ApiKeys.authorId:
-                          (accountTypeGlobal == AppConstants.individual)
-                              ? userId
-                              : businessId
-                    },
-                  );
-                } else {
-                  Navigator.pushNamed(
-                    context,
-                    RouteHelper.getManageChannelScreenRoute(),
-                  );
-                }
-              }),
+    if(Platform.isAndroid)...[
+
+            _buildTile(AppIconAssets.subscription, "Subscription",
+                "Add/Cancel/Subscribe",onTap: ()=>Get.to(()=>SubscriptionScreen())),
+            _buildTile(AppIconAssets.payment, "Payment", "Pay & Manage Account",
+                onTap: () => Get.to(() => PaymentSettingScreen())),],
+            _buildTile(
+              AppIconAssets.channelNew,
+              "Channel",
+              "Create/Edit/Delete Channel & Videos",
+              onTap: () =>     Get.toNamed(
+        RouteHelper.getChannelScreenRoute(),
+        arguments: {
+          ApiKeys.argAccountType: accountTypeGlobal,
+          ApiKeys.channelId: channelId,
+          ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual)
+              ? userId
+              : businessId
+        },
+      )),
             // onTap: () => Get.toNamed(RouteHelper.getChannelScreenRoute(),
             //     arguments: {'isOwnChannel': true})),
             _buildTile(

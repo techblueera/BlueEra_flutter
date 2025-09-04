@@ -97,7 +97,7 @@ class _FeedCardState extends State<FeedCard> {
               onTapAvatar: _shouldShowProfileNavigation()
                   ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
                   : null,
-             ),
+              sortBy: widget.sortBy),
           buildActions: () => PostActionsBar(
             post: _post,
             isLiked: _post?.isLiked ?? false,
@@ -135,11 +135,10 @@ class _FeedCardState extends State<FeedCard> {
             post: _post,
             authorId: _post?.authorId ?? '0',
             postFilteredType: widget.postFilteredType,
+            sortBy: widget.sortBy,
             onTapAvatar: _shouldShowProfileNavigation()
                 ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
                 : null,
-            postedAgo: timeAgo(
-                _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           ),
           buildActions: () => PostActionsBar(
             post: _post,
@@ -158,14 +157,11 @@ class _FeedCardState extends State<FeedCard> {
               _onSavedUnSavedButtonPressed();
             },
             onShareButtonPressed: () {
-              try {
-                _onShareButtonPressed();
-              } catch (e) {
-                print("feed card share failed $e");
-              }
+              _onShareButtonPressed();
             },
           ),
           postFilteredType: widget.postFilteredType,
+          sortBy: widget.sortBy,
         );
 
       case FeedType.shorts:
@@ -235,32 +231,21 @@ class _FeedCardState extends State<FeedCard> {
   }
 
   Future<void> _onShareButtonPressed() async {
-   try {
- 
-   logs("linkShare====${_post!.id} and ${_post!.media?.isNotEmpty}");
-
-    XFile? xFile;
-    if (_post!.media != null && _post!.media!.isNotEmpty) {
-      // Safely handle first media
-      xFile = await urlToCachedXFile(_post!.media!.first);
-    }
+    XFile xFile = await urlToCachedXFile(_post!.media!.first);
+    // https://api.blueera.ai/api/post-service/app/post/
+    // final linkShare="https://api.blueera.ai/api/post-service/app/post/${_post?.id.toString()}";
+  //  logs("linkShare====${linkShare}");
     final shareUrl = postDeepLink(postId: _post!.id.toString()); //'https://blueera.ai/app/post/${(postId ?? "")}';
     final combinedText = shareUrl;
     await SharePlus.instance.share(ShareParams(
         text: combinedText,
         subject: _post!.title,
         previewThumbnail: xFile));
-
-     if (xFile != null) {
-      final file = File(xFile.path);
-      if (await file.exists()) {
-        await file.delete();
-        print("🗑️ File deleted from cache.");
-      }
+    final file = File(xFile.path);
+    if (await file.exists()) {
+      await file.delete();
+      print("🗑️ File deleted from cache.");
     }
-   } catch (e) {
-     print("feed card share failed inside _onShareButtonPressed $e");
-   }
   }
 
   Future<XFile> urlToCachedXFile(String fileUrl) async {

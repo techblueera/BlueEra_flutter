@@ -449,7 +449,6 @@ class _ContactsPageState extends State<ContactsPage> {
                                                         ?.existingNotConnected?[
                                                             index]
                                                         .contactNo,
-                                                      //  businessId: details.existingNotConnected[index].,
                                                     isFromContactList: true);
                                               }
                                             }
@@ -628,8 +627,9 @@ class _ContactsPageState extends State<ContactsPage> {
                                                 ),
                                               ),
                                               TextButton(
-                                                onPressed: () =>
-                                                  VisitingCardHelper.buildAndShareVisitingCard(context),
+                                                onPressed: () {
+                                                  VisitingCardHelper.buildAndShareVisitingCard(context);
+                                                },
                                                 child: const Text(
                                                   "Invite",
                                                   style: TextStyle(
@@ -639,7 +639,7 @@ class _ContactsPageState extends State<ContactsPage> {
                                                 ),
                                               ),
                                             ],
-                                        ),
+                                          ),
                                         );
                                       },
                                     ),

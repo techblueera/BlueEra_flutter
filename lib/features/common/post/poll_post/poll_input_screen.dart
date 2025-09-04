@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -48,11 +49,11 @@ class _PollInputScreenState extends State<PollInputScreen> {
             .add(TextEditingController(text: data.text));
       });
 
-      // if (widget.post?.referenceLink?.isNotEmpty ?? false) {
-      //   pollController.isAddLink.value = true;
-      //   pollController.referenceLinkController.text =
-      //       widget.post?.referenceLink ?? "";
-      // }
+      if (widget.post?.referenceLink?.isNotEmpty ?? false) {
+        pollController.isAddLink.value = true;
+        pollController.referenceLinkController.text =
+            widget.post?.referenceLink ?? "";
+      }
     } else {
       pollController.addOption();
       pollController.addOption();
@@ -92,11 +93,11 @@ class _PollInputScreenState extends State<PollInputScreen> {
                     title: "Your Question",
                     hintText: "E.g., How do you commute to work?",
                     textEditController: pollController.questionController,
-                    inputLength: 100,
-                    maxLength: 100,
+                    inputLength: 140,
+                    maxLength: 140,
                     validationMessage: AppStrings.required,
                     validationType: null,
-                    isCounterVisible: true,
+                    isCounterVisible: false,
                     readOnly: (pollController.isPollPostEdit),
                   ),
                   const SizedBox(height: 16),
@@ -117,10 +118,10 @@ class _PollInputScreenState extends State<PollInputScreen> {
                                             : "E.g., Your option here",
                                     textEditController:
                                         pollController.optionControllers[index],
-                                    inputLength: 36,
-                                    maxLength: 36,
+                                    inputLength: 30,
+                                    maxLength: 30,
                                     validationMessage: AppStrings.required,
-                                    isCounterVisible: true,
+                                    isCounterVisible: false,
                                     readOnly: (pollController.isPollPostEdit),
                                   ),
                                 ),
@@ -159,65 +160,65 @@ class _PollInputScreenState extends State<PollInputScreen> {
                         );
                       return SizedBox();
                     }),
-                  // Obx(() {
-                  //   if (!pollController.isAddLink.value) {
-                  //     return Padding(
-                  //       padding: EdgeInsets.only(top: SizeConfig.size15),
-                  //       child: InkWell(
-                  //         onTap: () {
-                  //           pollController.isAddLink.value = true;
-                  //         },
-                  //         child: Row(
-                  //           children: [
-                  //             LocalAssets(imagePath: AppIconAssets.addBlueIcon),
-                  //             SizedBox(width: SizeConfig.size10),
-                  //             CustomText(
-                  //               'Add Link (Reference / Website)',
-                  //               fontSize: SizeConfig.large,
-                  //               color: AppColors.primaryColor,
-                  //             )
-                  //           ],
-                  //         ),
-                  //       ),
-                  //     );
-                  //   }
-                  //   if (pollController.isAddLink.value) {
-                  //     return Padding(
-                  //       padding: EdgeInsets.only(top: SizeConfig.size15),
-                  //       child: Column(
-                  //         mainAxisAlignment: MainAxisAlignment.center,
-                  //         crossAxisAlignment: CrossAxisAlignment.center,
-                  //         children: [
-                  //           Row(
-                  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //             children: [
-                  //               CustomText("Reference link"),
-                  //               InkWell(
-                  //                 onTap: () {
-                  //                   pollController.referenceLinkController
-                  //                       .clear();
-                  //                   pollController.isAddLink.value = false;
-                  //                 },
-                  //                 child: CustomText(
-                  //                   "Remove",
-                  //                   color: AppColors.red,
-                  //                 ),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //           SizedBox(
-                  //             height: SizeConfig.size10,
-                  //           ),
-                  //           HttpsTextField(
-                  //               controller:
-                  //                   pollController.referenceLinkController,
-                  //               hintText: "Add website link"),
-                  //         ],
-                  //       ),
-                  //     );
-                  //   }
-                  //   return SizedBox();
-                  // }),
+                  Obx(() {
+                    if (!pollController.isAddLink.value) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.size15),
+                        child: InkWell(
+                          onTap: () {
+                            pollController.isAddLink.value = true;
+                          },
+                          child: Row(
+                            children: [
+                              LocalAssets(imagePath: AppIconAssets.addBlueIcon),
+                              SizedBox(width: SizeConfig.size10),
+                              CustomText(
+                                'Add Link (Reference / Website)',
+                                fontSize: SizeConfig.large,
+                                color: AppColors.primaryColor,
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    if (pollController.isAddLink.value) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.size15),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                CustomText("Reference link"),
+                                InkWell(
+                                  onTap: () {
+                                    pollController.referenceLinkController
+                                        .clear();
+                                    pollController.isAddLink.value = false;
+                                  },
+                                  child: CustomText(
+                                    "Remove",
+                                    color: AppColors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: SizeConfig.size10,
+                            ),
+                            HttpsTextField(
+                                controller:
+                                    pollController.referenceLinkController,
+                                hintText: "Add website link"),
+                          ],
+                        ),
+                      );
+                    }
+                    return SizedBox();
+                  }),
                   SizedBox(height: SizeConfig.size25),
                   PositiveCustomBtn(
                       onTap: () {

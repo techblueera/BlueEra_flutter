@@ -66,16 +66,14 @@ class Sender {
   String? name;
   String? contact;
   String? profileImage;
-  String? businessId;
 
-  Sender({this.id, this.name, this.contact, this.profileImage,this.businessId});
+  Sender({this.id, this.name, this.contact, this.profileImage});
 
   Sender.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     contact = json['contact'];
     profileImage = json['profile_image'];
-    businessId = json['business_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -84,7 +82,6 @@ class Sender {
     data['name'] = this.name;
     data['contact'] = this.contact;
     data['profile_image'] = this.profileImage;
-    data['business_id'] = this.businessId;
     return data;
   }
 }

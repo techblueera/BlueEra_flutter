@@ -30,12 +30,9 @@ class VisitProfileController extends GetxController {
 
       ResponseModel response = await UserRepo().getUserById(userId: userId);
       if (response.isSuccess && response.response?.data != null) {
-       // print("useralldata:${response.response?.data}");
         userData.value = UserProfileRes.fromJson(response.response?.data);
-       //   print("useralldata:${ userData.value}");
         isFollow.value = userData.value?.isFollowing ?? false;
         followerCount.value = userData.value?.followersCount ?? 0;
-          print("useralldata:${ userData.value}");
         ///SET SKILL...
         personalController.skillsList.clear();
         personalController
@@ -50,7 +47,7 @@ class VisitProfileController extends GetxController {
   ///SET PROJECT...
         personalProfileDetails.experiencesList?.clear();
         personalProfileDetails. experiencesList?.addAll(userData.value?.user?.experiences??[]);
-  print("useralldata:${personalProfileDetails}");
+
         userProfileResponse.value = ApiResponse.complete(response);
       } else {
         userProfileResponse.value =
