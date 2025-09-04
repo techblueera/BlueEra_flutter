@@ -1,10 +1,12 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -14,7 +16,11 @@ import 'package:BlueEra/features/common/feed/hive_model/video_hive_model.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/custom_success_sheet.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,9 +33,11 @@ class VideoController extends GetxController{
   ApiResponse channelVideosResponse = ApiResponse.initial('Initial');
   ApiResponse deleteVideosResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
+  ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
+  ApiResponse videoViewResponse = ApiResponse.initial('Initial');
 
-  RxList<VideoFeedItem> videoFeedPosts = <VideoFeedItem>[].obs;
-  VideoFeedItem? videoFeedItem;
+  RxList<ShortFeedItem> videoFeedPosts = <ShortFeedItem>[].obs;
+  ShortFeedItem? videoFeedItem;
   RxBool isLoading = true.obs;
   RxBool isLoadingMore = false.obs;
   bool isMoreDataAvailable = false;
@@ -41,19 +49,18 @@ class VideoController extends GetxController{
   int limit = 40;
 
   ///Channel Videos(Trending, Popular, Oldest)
-  RxList<VideoFeedItem> latestVideosPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> popularVideosPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> oldestVideosPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> underProgressVideosPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> draftVideosPosts = <VideoFeedItem>[].obs;
-  ApiResponse shortVideoLikeResponse = ApiResponse.initial('Initial');
+  RxList<ShortFeedItem> latestVideosPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> popularVideosPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> oldestVideosPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> underProgressVideosPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> draftVideosPosts = <ShortFeedItem>[].obs;
   int latestVideosPage = 1, popularVideosPage = 1, oldestVideosPage = 1, underProgressVideosPage = 1, draftVideoPage = 1;
   RxBool isLatestVideosLoading = true.obs, isPopularVideosLoading = true.obs, isOldestVideosLoading = true.obs, isUnderProgressVideosLoading = true.obs, isDraftVideosLoading = true.obs;
   RxBool isLatestVideosMoreDataLoading = false.obs, isPopularVideosMoreDataLoading = false.obs, isOldestVideosMoreDataLoading = false.obs,  isUnderProgressVideosMoreDataLoading = false.obs, isDraftVideosMoreDataLoading = false.obs;
   bool isLatestVideosHasMoreData = true, isPopularVideosHasMoreData = true, isOldestVideosHasMoreData = true, isUnderProgressVideosHasMoreData = true, isDraftVideosHasMoreData = true;
 
   /// Saved Videos
-  RxList<VideoFeedItem> savedVideos = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> savedVideos = <ShortFeedItem>[].obs;
   RxBool isSavedVideosLoading = true.obs;
   RxBool isVideoSavedInDb = false.obs;
 
@@ -65,13 +72,13 @@ class VideoController extends GetxController{
       final response = await FeedRepo().viewVideo(videoId: videoId);
 
       if (response.isSuccess) {
-        shortVideoLikeResponse = ApiResponse.complete(response);
+        videoViewResponse = ApiResponse.complete(response);
       } else {
-        shortVideoLikeResponse =  ApiResponse.error('error');
+        videoViewResponse =  ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      shortVideoLikeResponse =  ApiResponse.error('error');
+      videoViewResponse =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
     }
@@ -135,7 +142,7 @@ class VideoController extends GetxController{
       if (response.isSuccess) {
         videoPostsResponse =  ApiResponse.complete(response);
         final videoFeedModelResponse = VideoResponse.fromJson(response.response?.data);
-          List<VideoFeedItem> videoFeedItem = videoFeedModelResponse.data?.videos??[];
+          List<ShortFeedItem> videoFeedItem = videoFeedModelResponse.data?.videos??[];
           if(page==1){
             videoFeedPosts.value = videoFeedItem;
             
@@ -175,7 +182,7 @@ class VideoController extends GetxController{
       
       if (response.isSuccess) {
         final videoFeedModelResponse = VideoResponse.fromJson(response.response?.data);
-        List<VideoFeedItem> videoFeedItem = videoFeedModelResponse.data?.videos ?? [];
+        List<ShortFeedItem> videoFeedItem = videoFeedModelResponse.data?.videos ?? [];
         
         if (videoFeedItem.isNotEmpty) {
           // Cache videos
@@ -436,7 +443,7 @@ class VideoController extends GetxController{
     required Videos? videos,
     required int page,
     required bool isInitialLoad,
-    required RxList<VideoFeedItem> targetList,
+    required RxList<ShortFeedItem> targetList,
     required RxBool targetInitialLoading,
     required RxBool isTargetMoreDataLoading,
     required bool isTargetHasMoreData,
@@ -463,16 +470,17 @@ class VideoController extends GetxController{
       };
 
       ResponseModel response;
-      if(postVia == PostVia.channel) {
+      if(postVia == PostVia.channel || postVia == PostVia.profile) {
         if (videos == Videos.latest || videos == Videos.popular || videos == Videos.oldest) {
           params[ApiKeys.sortBy] = videos!.queryValue;
           params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (videos == Shorts.underProgress) {
+        } else if (videos == Videos.underProgress) {
           params[ApiKeys.status] = VideoStatus.processing.queryValue;
         } else {
           params[ApiKeys.status] = VideoStatus.draft.queryValue;
         }
-        params[ApiKeys.postVia] = 'channel';
+
+        params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
         if(isOwnVideos){
           /// for own channel we will fetch videos by user Id
@@ -481,41 +489,15 @@ class VideoController extends GetxController{
           /// for own channel we will fetch videos by other user channel id
           response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
         }
-      }else if(postVia == PostVia.profile){
-        if (videos == Videos.latest) {
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (videos == Videos.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        }
-        params[ApiKeys.postVia] = 'user';
-
-        /// for own profile videos we will fetch videos by user Id
-        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
       }else{
         /// for getting  all videos of user we will fetch videos by user Id (will not sent postVia)
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
       }
 
-      // if (videos == Videos.latest || videos == Videos.popular || videos == Videos.oldest) {
-      //   params[ApiKeys.sortBy] = videos!.queryValue;
-      //   params[ApiKeys.status] = VideoStatus.published.queryValue;
-      // } else if (videos == Shorts.underProgress) {
-      //   params[ApiKeys.status] = VideoStatus.processing.queryValue;
-      // } else {
-      //   params[ApiKeys.status] = VideoStatus.draft.queryValue;
-      // }
-      //
-      // ResponseModel response;
-      // if(isOwnVideos){
-      //   response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      // }else {
-      //   response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
-      // }
-
       if (response.isSuccess) {
         channelVideosResponse = ApiResponse.complete(response);
         final videoResponse = VideoResponse.fromJson(response.response?.data);
-        final List<VideoFeedItem> newVideos = videoResponse.data?.videos ?? [];
+        final List<ShortFeedItem> newVideos = videoResponse.data?.videos ?? [];
         // if (newVideos.isNotEmpty) {
           if(page == 1){
             targetList.value = newVideos;
@@ -597,7 +579,7 @@ class VideoController extends GetxController{
 
 
   /// Utility to get post list by type
-  RxList<VideoFeedItem> getListByType({required Videos videoType}) {
+  RxList<ShortFeedItem> getListByType({required Videos videoType}) {
     switch (videoType) {
       case Videos.videoFeed:
         return videoFeedPosts;
@@ -616,13 +598,13 @@ class VideoController extends GetxController{
     }
   }
 
-  /// Delete Post
-  Future<void> videoDelete({required Videos videoType, required String videoId}) async {
-    final list = getListByType(videoType: videoType);
+  /// Delete Video
+  Future<void> videoDelete({required Videos video, required String videoId}) async {
+    final list = getListByType(videoType: video);
     final index = list.indexWhere((v) => v.video?.id == videoId);
 
       try {
-        if (videoType == Videos.videoFeed) {
+        if (video == Videos.saved) {
           await HiveServices().deleteVideoById(videoId);
         } else {
           final response = await ChannelRepo().deleteVideo(videoId: videoId);
@@ -643,7 +625,6 @@ class VideoController extends GetxController{
   ///USER BLOCK...
   Future<void> userBlocked({required Videos videoType,required String otherUserId}) async {
     final list = getListByType(videoType: videoType);
-    // final index = list.indexWhere((v) => v.video?.id == videoId);
 
     try {
       Map<String, dynamic> params = {
@@ -675,30 +656,38 @@ class VideoController extends GetxController{
     }
   }
 
-  ///POST BLOCK...
-  Future<void> postBlocked({required Videos videoType,required String otherUserId}) async {
-    final list = getListByType(videoType: videoType);
-    // final index = list.indexWhere((v) => v.video?.id == videoId);
+  ///VIDEO POST REPOST...
+  Future<void> postReport({
+    required Videos videos,
+    required String videoId,
+    required Map<String, dynamic> params
+  }) async {
+    final list = getListByType(videoType: videos);
+    final index = list.indexWhere((v) => v.video?.id == videoId);
 
     try {
-      Map<String, dynamic> params = {
-        ApiKeys.blockedTo:  otherUserId,
-        ApiKeys.type: BlockedType.full.label,
-        ApiKeys.duration:  0
-      };
 
-      final response = await AuthRepo().blockUser(params: params);
+      final response = await AuthRepo().report(params: params);
 
       if (response.isSuccess) {
         blockUserResponse = ApiResponse.complete(response);
-        BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
-        list.removeWhere((v) {
-          print('contain userId --> ${v.video?.userId}');
-          print('userId --> $otherUserId');
-          return v.video?.userId == otherUserId;
-        });
-        Get.back();
-        commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
+        if (index != -1) list.removeAt(index);
+        showDialog(
+            context: Get.context!,
+            builder: (context) => Dialog(
+              child: Material(
+                color: Colors.transparent,
+                child: CustomSuccessSheet(
+                  buttonText: AppLocalizations.of(context)!.gotIt,
+                  title: AppLocalizations.of(context)!.youHaveReportedThisPost,
+                  subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
+                  onPress: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ));
+
       } else {
         blockUserResponse =  ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -707,11 +696,97 @@ class VideoController extends GetxController{
       blockUserResponse =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
+    }
+  }
+
+
+  ///UPDATE VIDEO Thumbnail...
+  Future<void> updateVideoThumbnail({
+    required Videos videos,
+    required String videoId,
+    required String thumbnail,
+  }) async {
+    final reelUploadDetailsController = Get.put(ReelUploadDetailsController());
+    final list = getListByType(videoType: videos);
+    final index = list.indexWhere((v) => v.video?.id == videoId);
+
+    try {
+      double progress = 0.0;
+
+      void updateProgress(double value) {
+        progress = value.clamp(0.0, 1.0);
+        UploadProgressDialog.update(progress); // ✅ use new dialog updater
+      }
+
+      // ✅ Show dialog
+      UploadProgressDialog.show(initialProgress: progress);
+
+      final coverFile = File(thumbnail);
+      final coverInfo = getFileInfo(coverFile);
+
+      // 1. Init upload
+      await reelUploadDetailsController.uploadInit(
+        queryParams: {
+          ApiKeys.fileName: coverInfo['fileName'],
+          ApiKeys.fileType: coverInfo['mimeType'],
+        },
+        isVideoUpload: false,
+      );
+      updateProgress(0.2);
+
+      // 2. Upload to S3 (20% → 90%)
+      await reelUploadDetailsController.uploadFileToS3(
+        file: coverFile,
+        fileType: coverInfo['mimeType']!,
+        preSignedUrl:
+        reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ?? "",
+        onProgress: (total) {
+          // total is 0.0 - 1.0
+          final combined = 0.2 + total * 0.7;
+          updateProgress(combined);
+        },
+      );
+
+      updateProgress(0.9);
+
+      // 3. Save new thumbnail URL from backend
+      final newCoverUrl =
+          reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '';
+
+      ResponseModel? response = await ChannelRepo().updateVideoDetails(
+        videoId: videoId,
+        params: {ApiKeys.coverUrl: newCoverUrl},
+      );
+
+      updateProgress(1.0);
+      if (response.isSuccess) {
+
+        final videoItem = list[index];
+
+        list[index] = videoItem.copyWith(
+            video: videoItem.video?.copyWith(
+            coverUrl: thumbnail,
+          ),
+        );
+
+        updateVideoThumbnailResponse = ApiResponse.complete(response);
+      } else {
+        updateVideoThumbnailResponse = ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e) {
+      updateVideoThumbnailResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      // ✅ Always close the dialog (GetX version, no context needed)
+      UploadProgressDialog.close();
     }
   }
 
   /// Save Video To LOCAL DB
-  Future<bool> saveVideosToLocalDB({required VideoFeedItem videoFeedItem}) async {
+  Future<bool> saveVideosToLocalDB({required ShortFeedItem videoFeedItem}) async {
     bool isSaved = HiveServices().isVideoSaved(videoFeedItem.videoId??'');
     if(isSaved){
       await HiveServices().deleteVideoById(videoFeedItem.videoId??'');
@@ -731,7 +806,7 @@ class VideoController extends GetxController{
     savedVideos.clear();
     List<VideoFeedItemHive> savedVideoFeed = HiveServices().getAllSavedVideos();
     final filteredList = savedVideoFeed
-        .where((e) => e.video?.type == 'long') // <-- replace 'short' with your desired type
+        .where((e) => e.video?.type == 'long')
         .map((e) => e.toVideoFeedItem())
         .toList();
 
@@ -740,7 +815,7 @@ class VideoController extends GetxController{
   }
 
   /// Get Video By ID for deep link handling
-  Future<VideoFeedItem?> getVideoById(String videoId) async {
+  Future<ShortFeedItem?> getVideoById(String videoId) async {
     try {
       log('DEEPLINK_DEBUG: Fetching video with ID: $videoId');
       final response = await FeedRepo().getVideoById(videoId: videoId);
@@ -755,13 +830,13 @@ class VideoController extends GetxController{
           log('DEEPLINK_DEBUG: Response data found, extracting video from nested structure');
           
           // The API returns: { data: { videos: [VideoFeedItem] } }
-          // We need to extract the first video from the videos array
+          // We need to extract t he first video from the videos array
           final videosData = responseData['data'];
           if (videosData != null && videosData['videos'] != null && videosData['videos'].isNotEmpty) {
             final videoData = videosData['videos'][0];
             log('DEEPLINK_DEBUG: Extracted video data from nested structure');
             
-            final videoFeedItem = VideoFeedItem.fromJson(videoData);
+            final videoFeedItem = ShortFeedItem.fromJson(videoData);
             
             // Log the parsed video details
             log('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video URL: ${videoFeedItem.video?.videoUrl}');

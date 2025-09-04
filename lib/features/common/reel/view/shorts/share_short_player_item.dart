@@ -104,7 +104,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
         final videoId = fullScreenShortController.videoItem?.video?.id ?? '0';
 
         // Find the video in any of the lists to get the most up-to-date state
-        VideoFeedItem? updatedVideo;
+        ShortFeedItem? updatedVideo;
         final currentList =
             shortsController.getListByType(shortsType: widget.shorts);
         for (final list in [currentList]) {
@@ -586,7 +586,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -606,7 +606,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -626,7 +626,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized),
         ],

@@ -38,7 +38,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
     AppLocalizations.of(context);
 
     return Container(
-        width: 500,
+        // width: 500,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
             color: AppColors.white,
@@ -51,7 +51,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
               children: [
                 Expanded(
                   child: CustomText(
-                    AppLocalizations.of(context)!.blockUser,
+                    'Report / Block',
                     fontSize: SizeConfig.extraLarge22,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w700,
@@ -86,10 +86,17 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                           child: ReportDialog(
                               reportType: widget.reportType,
                               reportReasons: {
-                                AppLocalizations.of(context)!.inappropriateContent: false,
-                                AppLocalizations.of(context)!.promotesHatredViolence: false,
-                                AppLocalizations.of(context)!.fraudOrScam: false,
-                                AppLocalizations.of(context)!.contentIsSpam: false,
+                                'Sexual content': false,
+                                'Voilent or repulsive content': false,
+                                'Hateful or abusive content': false,
+                                'Harrasement or bullying': false,
+                                'Harmful or dangerous act': false,
+                                'Suicide, self harm or eating disorder ': false,
+                                'Misinformation': false,
+                                'Child abuse': false,
+                                'Promotes terrorism': false,
+                                'Spam or misleading': false,
+                                'Legal issue': false,
                               },
                               contentId: widget.contentId,
                               otherUserId: widget.otherUserId,
@@ -106,7 +113,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                 children: [
                   Expanded(
                     child: CustomText(
-                      'Report',
+                      'Report Post',
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w600,
                     ),

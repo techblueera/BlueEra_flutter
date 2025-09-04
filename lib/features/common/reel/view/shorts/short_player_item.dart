@@ -33,7 +33,7 @@ import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 
 class ShortPlayerItem extends StatefulWidget {
-  final VideoFeedItem videoItem;
+  final ShortFeedItem videoItem;
   final bool autoPlay;
   final bool shouldPreload;
   final VoidCallback onTapOption;
@@ -84,7 +84,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         final videoId = widget.videoItem.video?.id ?? '0';
 
         // Find the video in any of the lists to get the most up-to-date state
-        VideoFeedItem? updatedVideo;
+        ShortFeedItem? updatedVideo;
         final currentList =
             shortsController.getListByType(shortsType: widget.shorts);
         for (final list in [currentList]) {
@@ -573,7 +573,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: widget.videoItem,
+                  shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -593,7 +593,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: widget.videoItem,
+                  shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -613,7 +613,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: widget.videoItem,
+                  shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts),
         ],

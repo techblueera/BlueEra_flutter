@@ -603,7 +603,7 @@ class RouteHelper {
         );
       case RouteConstant.videoPlayerScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final videoItem = args[ApiKeys.videoItem] as VideoFeedItem;
+        final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
         return MaterialPageRoute(
           builder: (_) => VideoPlayerScreen(videoItem: videoItem),
         );
@@ -622,8 +622,8 @@ class RouteHelper {
       case RouteConstant.shortsPlayerScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final Shorts shorts = args[ApiKeys.shorts] as Shorts;
-        final List<VideoFeedItem> videoItem =
-            args[ApiKeys.videoItem] as List<VideoFeedItem>;
+        final List<ShortFeedItem> videoItem =
+            args[ApiKeys.videoItem] as List<ShortFeedItem>;
         final int initialIndex = args[ApiKeys.initialIndex] as int;
         return MaterialPageRoute(
           builder: (_) => ShortsPlayerScreen(

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -16,6 +17,7 @@ import 'package:BlueEra/features/common/reel/models/video_category_response.dart
 import 'package:BlueEra/features/common/reel/models/video_meta_data_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -32,7 +34,7 @@ class ReelUploadDetailsController extends GetxController {
   UploadInitResponse? uploadInitCoverImageFile;
 
   RxBool isVideoDetailsLoading = false.obs;
-  Rx<VideoFeedItem> videoData = VideoFeedItem().obs;
+  Rx<ShortFeedItem> videoData = ShortFeedItem().obs;
 
   RxString VideoUploadProgress = ''.obs;
 
@@ -155,6 +157,7 @@ class ReelUploadDetailsController extends GetxController {
 
   ///UPLOAD VIDEO...
   Future<void> uploadVideo({
+    PostVia? postVia,
     required Map<String, dynamic> reqData,
     void Function(double progress)? onProgress,
   }) async {
@@ -163,42 +166,61 @@ class ReelUploadDetailsController extends GetxController {
       onProgress?.call(0.9);
 
       ResponseModel? response =
-          await ChannelRepo().uploadVideo(bodyRequest: reqData);
+      await ChannelRepo().uploadVideo(bodyRequest: reqData);
 
       if (response?.isSuccess ?? false) {
         onProgress?.call(1.0); // Finish at 100%
-        Navigator.of(Get.context!).pop();
+        UploadProgressDialog.close();
+
         commonSnackBar(
           message:
-              "Video uploaded successfully. It may take about 5 to 30 minutes to appear on your profile.",
+          "Video uploaded successfully. It may take about 5 to 30 minutes to appear on your profile.",
         );
 
+        // Clear stack and go to bottom nav
         Get.until(
-          (route) =>
-              Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute(),
+              (route) =>
+          Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute(),
         );
-        await Future.delayed(Duration(milliseconds: 200));
-        if (isIndividualUser()) {
-          Get.to(PersonalProfileSetupScreen());
+
+        await Future.delayed(const Duration(milliseconds: 200));
+
+        if (postVia == PostVia.channel) {
+          Get.toNamed(
+            RouteHelper.getChannelScreenRoute(),
+            arguments: {
+              ApiKeys.argAccountType: accountTypeGlobal.toUpperCase(),
+              ApiKeys.channelId: channelId,
+              ApiKeys.authorId: isIndividualUser() ? userId : businessUserId,
+            },
+          );
+        } else {
+          if (isIndividualUser()) {
+            Get.to(() => PersonalProfileSetupScreen());
+          }
+          if (isBusinessUser()) {
+            Get.to(() => BusinessOwnProfileScreen());
+          }
         }
-        if (isBusinessUser()) {
-          Get.to(BusinessOwnProfileScreen());
-        }
+
         videoUploadResponse = ApiResponse.complete(response);
       } else {
-        onProgress?.call(1.0); // Finish at 100%
-        Navigator.of(Get.context!).pop();
+        UploadProgressDialog.close();
+        videoUploadResponse = ApiResponse.error('error');
+
         commonSnackBar(
           message: response?.message ?? AppStrings.somethingWentWrong,
         );
       }
     } catch (e) {
-      onProgress?.call(1.0); // Finish at 100%
-      Navigator.of(Get.context!).pop();
+      UploadProgressDialog.close();
       videoUploadResponse = ApiResponse.error('error');
+
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
+
 
   ///UPDATE VIDEO DETAILS...
   Future<void> updateVideoDetails(
@@ -242,7 +264,7 @@ class ReelUploadDetailsController extends GetxController {
   }
 
   ///GET VIDEOS DETAILS...
-  Future<VideoFeedItem?> getVideosDetails({required String videoId}) async {
+  Future<ShortFeedItem?> getVideosDetails({required String videoId}) async {
     try {
       isVideoDetailsLoading.value = true;
       ResponseModel response =
@@ -252,7 +274,7 @@ class ReelUploadDetailsController extends GetxController {
         videoDetailsResponse = ApiResponse.complete(response);
         log('response--> ${response.response?.data}');
         final VideoFeedItemDataResponse =
-            VideoFeedItem.fromJson(response.response?.data['data']['videos']);
+            ShortFeedItem.fromJson(response.response?.data['data']['videos']);
         videoData.value = VideoFeedItemDataResponse;
         return videoData.value;
       } else {

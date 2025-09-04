@@ -1,9 +1,12 @@
 import 'dart:convert';
-
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/model/geo_coding_response.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
@@ -13,15 +16,20 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
+import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pinput/pinput.dart';
+
+import '../../../../../core/services/location_permission_handler.dart';
 
 class CreateBusinessAccountStepTwo extends StatefulWidget {
   const CreateBusinessAccountStepTwo({super.key});
@@ -44,6 +52,7 @@ class _CreateBusinessAccountStepTwoState
   final yourRoleController = TextEditingController();
   final emailTextController = TextEditingController();
   final businessDescriptionController = TextEditingController();
+  final landmarkController = TextEditingController();
 
   ContactType? selectedType = ContactType.Mobile;
 
@@ -67,7 +76,28 @@ class _CreateBusinessAccountStepTwoState
     emailTextController.addListener(_validateForm);
     businessDescriptionController.addListener(_validateForm);
     picCodeController.addListener(_validateForm);
+    landmarkController.addListener(_validateForm);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkPermissionAndSetData(context);
+    });
+
   }
+
+
+  Future<void> checkPermissionAndSetData(BuildContext context) async {
+    final locationResult = await LocationPermissionHandler.getCurrentLocation();
+
+    if (locationResult.isSuccess && locationResult.position != null) {
+      final pos = locationResult.position!;
+      log("📍 lat: ${pos.latitude}, lng: ${pos.longitude}");
+      getAddressDetails(position: pos);
+    } else {
+      log("❌ Location error: ${locationResult.message}");
+      // Handle error UI (e.g., show snackbar or dialog)
+    }
+  }
+
 
   void _validateForm() {
     setState(() {
@@ -93,6 +123,7 @@ class _CreateBusinessAccountStepTwoState
     });
   }
 
+
   @override
   void dispose() {
     mobileController.dispose();
@@ -106,7 +137,56 @@ class _CreateBusinessAccountStepTwoState
     emailTextController.dispose();
     businessDescriptionController.dispose();
     picCodeController.dispose();
+    landmarkController.dispose();
     super.dispose();
+  }
+
+
+  Future<void> getAddressDetails({required Position position}) async {
+
+    try {
+      final responseModel = await PlaceRepo().getGeoCode(position: position);
+
+      if (responseModel.isSuccess) {
+        final data = GeocodingResponse.fromJson(responseModel.response?.data);
+
+        final result = data.results.first;
+
+        fullBusinessAddressTextController.text = result.formattedAddress;
+
+        // City
+        cityController.text = result.addressComponents
+            .firstWhere(
+              (c) => c.types.contains('locality'),
+          orElse: () => AddressComponent(longName: '', shortName: '', types: []),
+        )
+            .longName;
+
+        // Pincode
+        picCodeController.text = result.addressComponents
+            .firstWhere(
+              (c) => c.types.contains('postal_code'),
+          orElse: () => AddressComponent(longName: '', shortName: '', types: []),
+        )
+            .longName;
+
+        print("full address: ${fullBusinessAddressTextController.text}, city: ${cityController.text}, PinCode: ${picCodeController.text}");
+        setState(() {});
+
+      } else {
+        // setState(() {
+        //   errorMessage =
+        //       responseModel.data['error_message'] ?? 'Something went wrong';
+        //   isLoading = false;
+        // });
+      }
+    } catch (e) {
+      if(!mounted) return;
+      // setState(() {
+      //   errorMessage = e.toString();
+      //   isLoading = false;
+      // });
+    }
   }
 
   @override
@@ -173,42 +253,54 @@ class _CreateBusinessAccountStepTwoState
                     height: SizeConfig.size20,
                   ),
 
-                  InkWell(
-                    onTap: () async {
-                      Navigator.pushNamed(
-                        context,
-                        RouteHelper.getSearchLocationScreenRoute(),
-                        arguments: {
-                          'onPlaceSelected': (
-                            double? lat,
-                            double? lng,
-                            String? address,
-                          ) {
-                            if (address != null) {
-                              fullBusinessAddressTextController.text = address;
-                              viewBusinessDetailsController.setStartLocation(
-                                  lat, lng, address);
-                              setState(() {});
-                            }
-                          },
-                          ApiKeys.fromScreen: ""
-                        },
-                      );
-                    },
-                    child: CommonTextField(
-                      readOnly: true,
-                      maxLine: 3,
-                      textEditController: fullBusinessAddressTextController,
-                      inputLength: AppConstants.inputCharterLimit50,
-                      keyBoardType: TextInputType.text,
-                      regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
-                      title: appLocalizations?.fullBusinessAddress,
-                      hintText: appLocalizations?.fullBusinessAddress,
-                      isValidate: false,
-                    ),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        appLocalizations?.fullBusinessAddress,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+
+                      if(fullBusinessAddressTextController.text.isEmpty)
+                      IconButton(
+                          icon: LocalAssets(imagePath: AppIconAssets.currentLocationIcon),
+                          onPressed: ()=> checkPermissionAndSetData(context)
+                      ),
+                    ],
                   ),
 
+
+                  CommonTextField(
+                    readOnly: true,
+                    maxLine: 3,
+                    textEditController: fullBusinessAddressTextController,
+                    inputLength: AppConstants.inputCharterLimit50,
+                    keyBoardType: TextInputType.text,
+                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                    hintText: appLocalizations?.fullBusinessAddress,
+                    isValidate: false,
+                  ),
+
+                  SizedBox(
+                    height: SizeConfig.size20,
+                  ),
+
+                  ///ENTER Landmark ......
+                  CommonTextField(
+                    textEditController: landmarkController,
+                    inputLength: AppConstants.inputCharterLimit200,
+                    keyBoardType: TextInputType.text,
+                    regularExpression:
+                    RegularExpressionUtils.alphabetSpacePattern,
+                    title: 'Floor / Building Name / Landmark',
+                    hintText: 'Floor / Building Name / Landmark',
+                    isValidate: false,
+                  ),
                   SizedBox(
                     height: SizeConfig.size20,
                   ),
@@ -223,6 +315,7 @@ class _CreateBusinessAccountStepTwoState
                     title: appLocalizations?.city,
                     hintText: appLocalizations?.city,
                     isValidate: false,
+                    readOnly: true,
                   ),
                   SizedBox(
                     height: SizeConfig.size20,
@@ -237,6 +330,7 @@ class _CreateBusinessAccountStepTwoState
                     title: "Pin Code",
                     hintText: "345434",
                     isValidate: true,
+                    readOnly: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Please enter Pin Code";

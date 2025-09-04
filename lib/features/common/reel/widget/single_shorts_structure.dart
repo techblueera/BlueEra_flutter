@@ -1,10 +1,13 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -12,8 +15,8 @@ import 'package:flutter/material.dart';
 
 class SingleShortStructure extends StatefulWidget {
   final Shorts shorts;
-  final List<VideoFeedItem>? allLoadedShorts;
-  final VideoFeedItem? shortItem;
+  final List<ShortFeedItem>? allLoadedShorts;
+  final ShortFeedItem? shortItem;
   final int? initialIndex;
   final double padding;
   final double? imageWidth;
@@ -39,6 +42,28 @@ class SingleShortStructure extends StatefulWidget {
 }
 
 class _SingleShortStructureState extends State<SingleShortStructure> {
+late final shortItem;
+late bool canShowMenu;
+
+  @override
+  void initState() {
+   shortItem = widget.shortItem;
+
+   canShowMenu =
+      // Case 1: Channel match
+      (shortItem?.channel?.id != null && shortItem?.channel?.id == channelId) ||
+      
+      // Case 2: Author is individual and matches user
+      (shortItem?.author?.accountType == AppConstants.individual &&
+      shortItem?.author?.id == userId) ||
+      
+      // Case 3: Author is business and not equal to businessUserId
+      (shortItem?.author?.accountType == AppConstants.business &&
+      shortItem?.author?.id != businessUserId);
+      super.initState();
+      print('canShowMenu--> $canShowMenu');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -64,17 +89,14 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
             child: SizedBox(
               width: widget.imageWidth ?? SizeConfig.size220,
               height: 250,
-              // height: widget.imageHeight ?? SizeConfig.size200,
               child: Stack(children: [
                 ClipRRect(
                     borderRadius:
                         BorderRadius.circular(widget.borderRadius ?? 0),
                     child: CachedNetworkImage(
-                      // width: imageWidth ?? SizeConfig.size90,
-                      height: widget.imageHeight ?? 250,
-                      // height: widget.imageHeight ?? SizeConfig.size220,
+                      height: widget.imageHeight ?? SizeConfig.size220,
                       fit: BoxFit.cover,
-                      imageUrl: widget.shortItem?.video?.coverUrl ?? '',
+                      imageUrl: shortItem?.video?.coverUrl ?? '',
                       errorWidget: (context, url, error) => Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.white, width: 1),
@@ -115,8 +137,8 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                           ],
                           CustomText(
                             (widget.withBackground)
-                                ? "${widget.shortItem?.video?.stats?.views}"
-                                : "${widget.shortItem?.video?.stats?.views} Views",
+                                ? "${shortItem?.video?.stats?.views}"
+                                : "${shortItem?.video?.stats?.views} Views",
                             color: AppColors.white,
                             fontSize: SizeConfig.size13,
                             fontWeight: FontWeight.w500,
@@ -125,25 +147,26 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                       ),
                     )),
 
-                // if (widget.isOwnProfile)
-                //   ReelShortPopUpMenu(
-                //       videoFeedItem: widget.shortItem!,
-                //       sortBy: widget.sortBy,
-                //       videoType: 'shorts',
-                //   ),
+                    if (canShowMenu && shortItem != null)
+                    ReelShortPopUpMenu(
+                    shortFeedItem: shortItem,
+                    shorts: widget.shorts,
+                                      ),
 
                 if (widget.shorts == Shorts.underProgress) ...[
-                  Container(
-                    width: widget.imageWidth ?? SizeConfig.size100,
-                    height: widget.imageHeight ?? SizeConfig.size160,
-                    decoration: BoxDecoration(
-                      color: AppColors.black65,
-                      borderRadius:
-                          BorderRadius.circular(widget.borderRadius ?? 8.0),
-                    ),
-                    child: Center(
-                      child: LocalAssets(
-                          imagePath: AppIconAssets.progressIndicator),
+                  Positioned.fill(
+                    child: Container(
+                      width: widget.imageWidth ?? SizeConfig.size100,
+                      height: widget.imageHeight ?? SizeConfig.size160,
+                      decoration: BoxDecoration(
+                        color: AppColors.black65,
+                        borderRadius:
+                            BorderRadius.circular(widget.borderRadius ?? 8.0),
+                      ),
+                      child: Center(
+                        child: LocalAssets(
+                            imagePath: AppIconAssets.progressIndicator),
+                      ),
                     ),
                   )
                 ]

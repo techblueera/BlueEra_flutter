@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -8,11 +7,14 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
+import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/hive_model/post_hive_model.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,6 +24,7 @@ class FeedController extends GetxController{
   ApiResponse deletePostResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse pollAnswerResponse = ApiResponse.initial('Initial');
+  ApiResponse reportPostResponse = ApiResponse.initial('Initial');
   RxList<Post> allPosts = <Post>[].obs;
   RxList<Post> myPosts = <Post>[].obs;
   RxList<Post> otherPosts = <Post>[].obs;
@@ -552,25 +555,39 @@ class FeedController extends GetxController{
   }
 
   /// Feed Report
-  Future<void> reportFeed({required PostType type,  required String otherUserId, required Map<String, dynamic> params}) async {
+  Future<void> postReport({required PostType type, required String postId, required Map<String, dynamic> params}) async {
     final list = getListByType(type);
+    final index = list.indexWhere((p) => p.id == postId);
 
     try {
-      final response = await FeedRepo().report(params: {
-        // ApiKeys.blockedTo: userId,
-        // ApiKeys.type: isPartial ? BlockedType.partial.label : BlockedType.full.label,
-        // ApiKeys.duration: 0
-      });
+      final response = await AuthRepo().report(params: params);
 
       if (response.isSuccess) {
-        blockUserResponse = ApiResponse.complete(response);
-        final block = BlockUserResponse.fromJson(response.response?.data);
-        commonSnackBar(message: block.message, isFromHomeScreen: true);
+        reportPostResponse = ApiResponse.complete(response);
+        if (index != -1) list.removeAt(index);
+        showDialog(
+            context: Get.context!,
+            builder: (context) => Dialog(
+              child: Material(
+                color: Colors.transparent,
+                child: CustomSuccessSheet(
+                  buttonText: AppLocalizations.of(context)!.gotIt,
+                  title: AppLocalizations.of(context)!.youHaveReportedThisPost,
+                  subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
+                  onPress: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ));
+
+        // final block = BlockUserResponse.fromJson(response.response?.data);
+        // commonSnackBar(message: block.message, isFromHomeScreen: true);
       } else {
-        blockUserResponse = ApiResponse.error('error');
+        reportPostResponse = ApiResponse.error('error');
       }
     } catch (_) {
-      blockUserResponse = ApiResponse.error('error');
+      reportPostResponse = ApiResponse.error('error');
     }
   }
 

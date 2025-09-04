@@ -34,11 +34,13 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
   List<String> postTab = [];
   int selectedIndex = 0;
   late VisitProfileController controller;
+  List<SortBy>? filters;
+  SortBy selectedFilter = SortBy.Latest;
 
   @override
   void initState() {
     controller = Get.put(VisitProfileController());
-
+    setFilters();
     // controller.fetchUserById(userId: "6891a80e721656f3ca842eba");
     controller.fetchUserById(userId: widget.authorId);
     super.initState();
@@ -47,6 +49,10 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
   @override
   void dispose() {
     super.dispose();
+  }
+
+  setFilters() {
+    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
 
   void _showPersonalDetailsPopup() {
@@ -162,6 +168,8 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           'Shorts',
           'Videos'
         ];
+        final validIndexes = user.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
+
         return SingleChildScrollView(
           child: SafeArea(
             child: Padding(
@@ -434,6 +442,10 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                     labelBuilder: (label) => label,
                   ),
 
+                  if (validIndexes.contains(selectedIndex)) ...[
+                    _filterButtons(),
+                  ],
+
                   SizedBox(height: SizeConfig.size16),
                   _buildTabContent(selectedIndex)
                 ],
@@ -443,6 +455,44 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
         );
       }),
     );
+  }
+
+  Widget _filterButtons() {
+    return SingleChildScrollView(
+        padding:
+        EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+        child: Row(
+          children: [
+            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
+            SizedBox(width: SizeConfig.size10),
+            Padding(
+              padding: EdgeInsets.only(right: 20),
+              child: Row(
+                children: filters!.map((filter) {
+                  final isSelected = selectedFilter == filter;
+                  return Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size14),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedFilter = filter;
+                        });
+                      },
+                      child: CustomText(
+                        filter.label,
+                        decoration: TextDecoration.underline,
+                        color: isSelected ? Colors.blue : Colors.black54,
+                        decorationColor:
+                        isSelected ? Colors.blue : Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            )
+          ],
+        ));
   }
 
   Widget _buildTabContent(int index) {
@@ -473,7 +523,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           channelId: '',
           authorId: widget.authorId,
           showShortsInGrid: true,
-          sortBy: SortBy.Latest,
+          sortBy: selectedFilter,
           postVia: PostVia.profile,
         );
       case 'Videos':
@@ -481,7 +531,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           isOwnVideos: false,
           channelId: '',
           authorId: widget.authorId,
-          sortBy: SortBy.Latest,
+          sortBy: selectedFilter,
           isScroll: false,
           postVia: PostVia.profile,
         );

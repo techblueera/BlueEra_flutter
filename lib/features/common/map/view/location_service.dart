@@ -100,10 +100,12 @@ class LocationService {
         log("place: $place");
 
         userCurrentAddress = _composeAddress(
+          thoroughfare: place.thoroughfare,
           subLocality: place.subLocality,
           locality: place.locality,
           administrativeArea: place.administrativeArea,
-          country: place.country
+          country: place.country,
+          postalCode: place.postalCode,
         );
 
         if (userCurrentAddress.isEmpty) {
@@ -132,13 +134,18 @@ class LocationService {
 
   /// 📌 Get formatted address parts as a list
   static List<String> _composeAddress({
+    String? thoroughfare,
     String? subLocality,
     String? locality,
     String? administrativeArea,
-    String? country
+    String? country,
+    String? postalCode
   }) {
     final List<String> parts = [];
 
+    if (thoroughfare?.isNotEmpty ?? false) {
+      parts.add(thoroughfare!);
+    }
     if (subLocality?.isNotEmpty ?? false) {
       parts.add(subLocality!);
     }
@@ -150,6 +157,9 @@ class LocationService {
     }
     if (country?.isNotEmpty ?? false) {
       parts.add(country!);
+    }
+    if (postalCode?.isNotEmpty ?? false) {
+      parts.add(postalCode!);
     }
 
     return parts;
@@ -193,6 +203,7 @@ class LocationService {
             child: CustomText(
               confirmText,
               color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
 
@@ -201,7 +212,8 @@ class LocationService {
             onPressed: () => Get.back(), // cancel closes the popup
             child: CustomText(
               cancelText,
-              color: AppColors.primaryColor,
+              color: AppColors.red,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

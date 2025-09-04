@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -6,8 +9,8 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/hide_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -118,10 +121,19 @@ class _ReportDialogState extends State<ReportDialog> {
                           child: Checkbox(
                             value: currentReportReasons[key],
                             onChanged: (bool? value) {
-                              setState(() {
-                                currentReportReasons[key] = value!;
-                                _updateValidation();
-                              });
+                              for (int i = 0; i < currentReportReasons.length; i++) {
+                                if (currentReportReasons.values.elementAt(i) == true) {
+                                  reportCase.add(currentReportReasons.keys.elementAt(i));
+                                }
+                              }
+                              if(reportCase.length <= 3) {
+                                setState(() {
+                                  currentReportReasons[key] = value!;
+                                  _updateValidation();
+                                });
+                              }else{
+                                commonSnackBar(message: 'You can choose upto three reason');
+                              }
                             },
                             // checkColor: Colors.yellowAccent,  // color of tick Mark
                             activeColor: AppColors.primaryColor,
@@ -151,14 +163,13 @@ class _ReportDialogState extends State<ReportDialog> {
                 },
               ),
               SizedBox(height: SizeConfig.size10),
+
+              if(currentReportReasons.containsValue(true))
               CommonTextField(
                 maxLine: 5,
                 textEditController: reportController,
                 keyBoardType: TextInputType.text,
-                // regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                // hintText: appLocalizations?.enterGSTNumber,
                 isValidate: true,
-
                 onChange: (value) {
                   setState(() {
                     _reportText = value;
@@ -166,10 +177,8 @@ class _ReportDialogState extends State<ReportDialog> {
                   });
                 },
                 hintText: AppLocalizations.of(context)!.provideDetails,
-
                 validator: (value) {
-                  if (_reportText == null ||
-                      (_reportText != null && _reportText!.isEmpty)) {
+                  if (value == null || value.isEmpty) {
                     return AppLocalizations.of(context)!.pleaseEnterDescription;
                   }
                   return null;
@@ -190,47 +199,29 @@ class _ReportDialogState extends State<ReportDialog> {
                     width: SizeConfig.screenWidth,
                     isValidate: value,
                     onTap: () {
+                      if(reportCase.length < 1){
+                        return;
+                      }
                       if (_formKey.currentState!.validate()) {
-                        reportCase.clear();
-                        for (int i = 0; i < currentReportReasons.length; i++) {
-                          if (currentReportReasons.values.elementAt(i) ==
-                              true) {
-                            reportCase.add(currentReportReasons.keys.elementAt(i));
-                          }
-                        }
+                        // reportCase.clear();
+                        // for (int i = 0; i < currentReportReasons.length; i++) {
+                        //   if (currentReportReasons.values.elementAt(i) == true) {
+                        //     reportCase.add(currentReportReasons.keys.elementAt(i));
+                        //   }
+                        // }
 
-                        Map<String, dynamic> params = {};
+                        Map<String, dynamic> params = {
+                          ApiKeys.reportType: widget.reportType,
+                          ApiKeys.description: _reportText,
+                          ApiKeys.reportCase: reportCase,
+                          ApiKeys.contentId: widget.contentId,
+                          ApiKeys.reportedTo: widget.otherUserId,
+                        };
 
-                        if(widget.reportType == 'POST'){
-                          Navigator.pop(context);
+                        Navigator.pop(context);
 
-                          widget.reportCallback(params);
+                        widget.reportCallback(params);
 
-                          // Get.find<FeedController>().reportFeed(
-                          //     otherUserId: widget.otherUserId,
-                          //     type: PostType.all,
-                          //     params: params
-                          // );
-                          //
-                          // commonSnackBar(message: "Reported Successfully", isFromHomeScreen: true);
-                          //
-                          // showDialog(
-                          //     context: context,
-                          //     builder: (context) => Dialog(
-                          //       child: Material(
-                          //         color: Colors.transparent,
-                          //         child: CustomSuccessSheet(
-                          //           buttonText: AppLocalizations.of(context)!.gotIt,
-                          //           title: AppLocalizations.of(context)!.youHaveReportedThisPost,
-                          //           subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
-                          //           onPress: () {
-                          //             Navigator.pop(context);
-                          //           },
-                          //         ),
-                          //       ),
-                          //     ));
-
-                        }
                       }
                     },
                   );

@@ -10,7 +10,7 @@ import 'package:BlueEra/features/business/visit_business_profile/view/visit_busi
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
-import 'package:BlueEra/features/common/reel/widget/reel_popup_menu.dart';
+import 'package:BlueEra/features/common/reel/widget/reel_video_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -26,7 +26,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 
 class AutoPlayVideoCard extends StatefulWidget {
-  final VideoFeedItem videoItem;
+  final ShortFeedItem videoItem;
   final ValueNotifier<bool>? globalMuteNotifier;
   final Videos videoType;
   final VoidCallback onTapOption;
@@ -322,7 +322,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                           ReelVideoPopUpMenu(
                             videoFeedItem: widget.videoItem,
                             popUpMenuColor: AppColors.black,
-                            videoType: Videos.videoFeed,
+                            video: Videos.videoFeed,
                           )
                       else if (widget.videoItem.author?.accountType == AppConstants.business)
                         if (widget.videoItem.author?.id != businessUserId)
@@ -334,7 +334,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                           ReelVideoPopUpMenu(
                             videoFeedItem: widget.videoItem,
                             popUpMenuColor: AppColors.black,
-                            videoType: Videos.videoFeed,
+                            video: Videos.videoFeed,
                           ),
                     ],
                   ),
@@ -347,7 +347,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
     );
   }
 
-  void _openProfile(BuildContext context, VideoFeedItem videoItem) {
+  void _openProfile(BuildContext context, ShortFeedItem videoItem) {
     if (videoItem.channel?.id != null) {
       Navigator.pushNamed(
         context,

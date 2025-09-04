@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -9,8 +11,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/reel/widget/reel_popup_menu.dart';
+import 'package:BlueEra/features/common/reel/widget/reel_video_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -19,11 +23,13 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/video_post_meta_info.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 class VideoCard extends StatefulWidget {
-  final VideoFeedItem videoItem;
+  final ShortFeedItem videoItem;
   final VoidCallback onTapOption;
   final Videos videoType;
   final VoidCallback? voidCallback;
@@ -93,11 +99,11 @@ class _VideoCardState extends State<VideoCard> {
                   child: Stack(
                     children: [
                       AspectRatio(
-                        aspectRatio: 18/9,
+                        aspectRatio: 16/9,
                         child: ClipRRect(
                           borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
-                          child: CachedNetworkImage(
-                            imageUrl: widget.videoItem.video?.coverUrl??"",
+                          child: isNetworkImage(widget.videoItem.video?.coverUrl??'') ? CachedNetworkImage(
+                            imageUrl: widget.videoItem.video?.coverUrl??'',
                             width: SizeConfig.screenWidth, // makes it take full width
                             height: SizeConfig.size170, // fixed height like your original
                             fit: BoxFit.cover,
@@ -113,6 +119,11 @@ class _VideoCardState extends State<VideoCard> {
                               color: Colors.grey[300],
                               child: LocalAssets(imagePath: AppIconAssets.appIcon),
                             ),
+                          ) :  Image.file(
+                              File(widget.videoItem.video?.coverUrl??''),
+                              width: SizeConfig.screenWidth, // makes it take full width
+                              height: SizeConfig.size170, // fixed height like your original
+                              fit: BoxFit.cover,
                           ),
                         ),
                       ),
@@ -122,8 +133,34 @@ class _VideoCardState extends State<VideoCard> {
                         right: SizeConfig.size12,
                         bottom: SizeConfig.size12,
                         child: VideoPostMetaInfo(
-                          totalVideoDuration: formatDuration( Duration(seconds: widget.videoItem.video?.duration??0)),
+                          totalVideoDuration: formatDuration(Duration(seconds: widget.videoItem.video?.duration??0)),
                           totalLikes: widget.videoItem.video?.stats?.likes.toString()??'0',
+                        ),
+                      ),
+
+                      Positioned(
+                        right: SizeConfig.size10,
+                        top: SizeConfig.size12,
+                        child: InkWell(
+                          onTap: (){
+                            pickImageFromGallery(context);
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: SizeConfig.size6,
+                                horizontal: SizeConfig.size8,
+                            ),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                                color: AppColors.blackCC,
+                                borderRadius: BorderRadius.circular(8.0)
+                            ),
+                            child: CustomText(
+                              "Change Thumbnail",
+                              color: AppColors.white,
+                              fontSize: SizeConfig.small,
+                            ),
+                          ),
                         ),
                       ),
 
@@ -226,7 +263,7 @@ class _VideoCardState extends State<VideoCard> {
                             ReelVideoPopUpMenu(
                                 videoFeedItem: widget.videoItem,
                                 popUpMenuColor: AppColors.black,
-                                videoType: widget.videoType
+                                video: widget.videoType
                             )
                         else
                           if(widget.videoItem.author?.accountType == AppConstants.individual)
@@ -239,7 +276,7 @@ class _VideoCardState extends State<VideoCard> {
                               ReelVideoPopUpMenu(
                                   videoFeedItem: widget.videoItem,
                                   popUpMenuColor: AppColors.black,
-                                  videoType: widget.videoType
+                                  video: widget.videoType
                               )
                           else if(widget.videoItem.author?.accountType == AppConstants.business)
                             if(widget.videoItem.author?.id != businessUserId)
@@ -251,7 +288,7 @@ class _VideoCardState extends State<VideoCard> {
                               ReelVideoPopUpMenu(
                                   videoFeedItem: widget.videoItem,
                                   popUpMenuColor: AppColors.black,
-                                  videoType: widget.videoType
+                                  video: widget.videoType
                               ),
 
 
@@ -263,12 +300,11 @@ class _VideoCardState extends State<VideoCard> {
             ),
             if(widget.videoType == Videos.underProgress)
               ...[
-                AspectRatio(
-                  aspectRatio: 18/9,
+                Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       color: AppColors.black65,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Center(
                       child: LocalAssets(imagePath: AppIconAssets.progressIndicator),
@@ -282,4 +318,18 @@ class _VideoCardState extends State<VideoCard> {
       ),
     );
   }
+
+  void pickImageFromGallery(BuildContext context) async {
+    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+                                                     context,
+                                                    cropAspectRatio: CropAspectRatio(width: 16, height: 9));
+    if(croppedPath!=null){
+      await Get.find<VideoController>().updateVideoThumbnail(
+          videoId: widget.videoItem.video?.id ?? '',
+          videos: widget.videoType,
+          thumbnail: croppedPath
+      );
+    }
+  }
+
 }

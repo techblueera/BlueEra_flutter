@@ -129,7 +129,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
                 shortItem: channelShortsItem,
                 initialIndex: index,
                 imageHeight: SizeConfig.size200,
-                imageWidth: SizeConfig.size130,
+                // imageWidth: SizeConfig.size130,
                 borderRadius: 10.0,
               );
             },

@@ -364,7 +364,13 @@ class _ChannelScreenState extends State<ChannelScreen> {
                               SizedBox(height: SizeConfig.size5),
                               _buildTabButtons(),
                             ],
-                            _buildTabView(),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15
+                              ),
+                              child: _buildTabView(),
+                            ),
                           ],
                         ),
                       ),

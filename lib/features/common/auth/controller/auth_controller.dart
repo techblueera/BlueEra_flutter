@@ -22,6 +22,7 @@ import 'package:BlueEra/features/common/auth/model/version_control_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/services/notifications/one_signal_services.dart';
@@ -43,6 +44,7 @@ class AuthController extends GetxController {
   final otherNatureOfBusinessTextController = TextEditingController();
   Rx<String> imgPath = "".obs;
   RxString isOtpType = "".obs;
+  RxBool isAddUserLoading = false.obs;
 
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 
@@ -152,14 +154,18 @@ class AuthController extends GetxController {
   ///Add User...
   Future<void> addNewUser({required Map<String, dynamic>? reqData}) async {
     try {
+      UploadProgressDialog.show(title: "Creating account...");
+
       logs("REQ DATA==== ${reqData}");
       ResponseModel response =
           await AuthRepo().authUserRegisterRepo(bodyRequest: reqData);
       if (response.isSuccess) {
         OtpVerifyModel otpVerifyModel =
             otpVerifyModelFromJson(jsonEncode(response.response?.data));
+
+        UploadProgressDialog.update(0.5);
+
         if (otpVerifyModel.success ?? false) {
-          commonSnackBar(message: response.message ?? AppStrings.success);
           await SharedPreferenceUtils.userLoggedIn(
               businesId: otpVerifyModel.business != null
                   ? "${otpVerifyModel.business?.id}"
@@ -184,34 +190,47 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.accountType, otpVerifyModel.data?.accountType);
 
           await getUserLoginData();
+
+          print('closing soon...');
+          UploadProgressDialog.update(0.7);
+
           if (otpVerifyModel.data?.accountType?.toUpperCase() ==
               AppConstants.business) {
-            final viewProfileController =
-                Get.put(ViewBusinessDetailsController());
+            final viewProfileController = Get.put(ViewBusinessDetailsController());
             await viewProfileController.viewBusinessProfile();
-            BusinessProfileDetails details =
-                viewProfileController.businessProfileDetails?.data ??
-                    BusinessProfileDetails();
 
-            Get.offAll(CreateBusinessAccountStepTwo());
+            UploadProgressDialog.update(1.0);
+            await Future.delayed(const Duration(milliseconds: 300));
+            UploadProgressDialog.close();
+
+            Get.offAll(()=> CreateBusinessAccountStepTwo());
           } else {
+            print('closed..');
+            UploadProgressDialog.update(1.0);
+            await Future.delayed(const Duration(milliseconds: 300));
+            UploadProgressDialog.close();
+
             Get.offNamedUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
               (route) => false,
             );
           }
-
           clearAllData();
+          commonSnackBar(message: response.message ?? AppStrings.success);
           addUserResponse = ApiResponse.complete(response);
+
         } else {
+          UploadProgressDialog.close();
           commonSnackBar(
               message: otpVerifyModel.message ?? AppStrings.somethingWentWrong);
         }
       } else {
+        UploadProgressDialog.close();
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      UploadProgressDialog.close();
       addUserResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }

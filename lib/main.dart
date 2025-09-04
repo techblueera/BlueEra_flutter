@@ -37,12 +37,13 @@ Future<void> main() async {
   await getUserLoginData();
   await getChannelId();
   unFocus();
+  Get.put(NavigationHelperController());
   Get.put(GlobalMessageService());
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
 
   ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.prod);
+  await projectKeys(environmentType: AppConstants.dev);
 
   ///APP ORIENTATIONS....
   SystemChrome.setPreferredOrientations([
@@ -81,17 +82,8 @@ Future<void> main() async {
   /// initializeMappls Map
   await initializeMappls();
 
- //  /// Initialize Google Mobile Ads
- // if(kDebugMode) {
- //   RequestConfiguration configuration = RequestConfiguration(
- //     testDeviceIds: ["D1B1EDEBD01A314C64BEB76BFB7777ED"],
- //   );
- //   MobileAds.instance.updateRequestConfiguration(configuration);
- // }
-
   await MobileAds.instance.initialize();
 
-  Get.put(NavigationHelperController());
   cameras = await availableCameras();
   runApp(MyApp());
 }

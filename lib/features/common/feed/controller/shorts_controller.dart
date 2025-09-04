@@ -30,19 +30,19 @@ class ShortsController extends GetxController{
   ApiResponse savedShortsResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
 
-  RxList<VideoFeedItem> trendingVideoFeedPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> trendingVideoFeedPosts = <ShortFeedItem>[].obs;
   int trendingVideoFeedCurrentPage = 1;
   RxBool isFirstLoadTrending = true.obs;
   bool trendingVideoFeedHasMore = true;
   RxBool trendingVideoFeedIsLoadingMore = false.obs;
 
-  RxList<VideoFeedItem> personalizedVideoFeedPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> personalizedVideoFeedPosts = <ShortFeedItem>[].obs;
   int personalizedVideoFeedCurrentPage = 1;
   RxBool isFirstLoadNearBy= true.obs;
   bool personalizedVideoFeedHasMore = true;
   RxBool personalizedVideoIsLoadingMore = false.obs;
 
-  RxList<VideoFeedItem> nearByVideoFeedPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> nearByVideoFeedPosts = <ShortFeedItem>[].obs;
   int nearByVideoFeedCurrentPage = 1;
   RxBool isFirstLoadPersonalized = true.obs;
   bool nearByVideoFeedHasMore = true;
@@ -54,24 +54,24 @@ class ShortsController extends GetxController{
   int limit = 20;
 
   /// Channel Shorts
-  RxList<VideoFeedItem> allChannelShorts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> allChannelShorts = <ShortFeedItem>[].obs;
   int allChannelShortsPage = 1;
   bool isAllShortsHasMore = true;
   RxBool isAllShortsIsLoadingMore = false.obs;
 
   ///Channel Shorts(Trending, Popular, Oldest)
-  RxList<VideoFeedItem> latestShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> popularShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> oldestShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> underProgressShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> draftShortsPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> latestShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> popularShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> oldestShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> underProgressShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> draftShortsPosts = <ShortFeedItem>[].obs;
   int latestShortsPage = 1, popularShortsPage = 1, oldestShortsPage = 1, underProgressShortsPage = 1, draftShortsPage = 1;
   RxBool isLatestShortsLoading = true.obs, isPopularShortsLoading = true.obs, isOldestShortsLoading = true.obs, isUnderProgressShortsLoading = true.obs, isDraftShortsLoading = true.obs;
   RxBool isLatestShortsMoreDataLoading = false.obs, isPopularShortsMoreDataLoading = false.obs, isOldestShortsMoreDataLoading = false.obs,  isUnderProgressShortsMoreDataLoading = false.obs, isDraftShortsMoreDataLoading = false.obs;
   bool isLatestShortsHasMoreData = true, isPopularShortsHasMoreData = true, isOldestShortsHasMoreData = true, isUnderProgressShortsHasMoreData = true, isDraftShortsHasMoreData = true;
 
   /// Saved Videos
-  RxList<VideoFeedItem> savedShorts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> savedShorts = <ShortFeedItem>[].obs;
 
   ///GET ALL Feed Trending(In Shorts)...
   Future<void> getAllFeedTrending({
@@ -503,7 +503,7 @@ class ShortsController extends GetxController{
     required Shorts? shorts,
     required int page,
     required bool isInitialLoad,
-    required RxList<VideoFeedItem> targetList,
+    required RxList<ShortFeedItem> targetList,
     required RxBool targetInitialLoading,
     required RxBool isTargetMoreDataLoading,
     required bool isTargetHasMoreData,
@@ -531,7 +531,7 @@ class ShortsController extends GetxController{
 
       ResponseModel response;
 
-      if(postVia == PostVia.channel){
+      if(postVia == PostVia.channel || postVia == PostVia.profile) {
         if (shorts == Shorts.latest || shorts == Shorts.popular || shorts == Shorts.oldest) {
           params[ApiKeys.sortBy] = shorts!.queryValue;
           params[ApiKeys.status] = VideoStatus.published.queryValue;
@@ -540,29 +540,21 @@ class ShortsController extends GetxController{
         } else {
           params[ApiKeys.status] = VideoStatus.draft.queryValue;
         }
-        params[ApiKeys.postVia] = 'channel';
+        params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
         if(isOwnShorts){
           response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
         }else {
           response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
         }
-      } else if(postVia == PostVia.profile){
-        if (shorts == Shorts.latest) {
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (shorts == Shorts.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        }
-        params[ApiKeys.postVia] = 'user';
-        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      }else{
+      } else{
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
       }
 
       if (response.isSuccess) {
         shortsResponse = ApiResponse.complete(response);
         final videoResponse = VideoResponse.fromJson(response.response?.data);
-        final List<VideoFeedItem> newShorts = videoResponse.data?.videos ?? [];
+        final List<ShortFeedItem> newShorts = videoResponse.data?.videos ?? [];
         // if (newShorts.isNotEmpty) {
           if(page == 1){
             targetList.value = newShorts;
@@ -645,7 +637,7 @@ class ShortsController extends GetxController{
 
 
   /// Utility to get post list by type
-  RxList<VideoFeedItem> getListByType({required Shorts shortsType}) {
+  RxList<ShortFeedItem> getListByType({required Shorts shortsType}) {
     switch (shortsType) {
       case Shorts.trending:
         return trendingVideoFeedPosts;
@@ -724,7 +716,7 @@ class ShortsController extends GetxController{
   }
 
   /// Save Shorts To LOCAL DB
-  Future<bool> saveVideosToLocalDB({required VideoFeedItem videoFeedItem}) async {
+  Future<bool> saveVideosToLocalDB({required ShortFeedItem videoFeedItem}) async {
     bool isSaved = HiveServices().isVideoSaved(videoFeedItem.videoId??'');
     if(isSaved){
       await HiveServices().deleteVideoById(videoFeedItem.videoId??'');
@@ -766,7 +758,7 @@ class ShortsController extends GetxController{
 
   /// Helper method to update a video in a specific list
   void _updateVideoInList(
-      RxList<VideoFeedItem> list,
+      RxList<ShortFeedItem> list,
       String videoId,
       { bool? isLiked,
         int? newLikeCount,

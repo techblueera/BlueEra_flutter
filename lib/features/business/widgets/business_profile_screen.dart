@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -39,7 +37,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     'Channels'
   ];
   List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.UnderProgress;
+  SortBy selectedFilter = SortBy.Latest;
 
   @override
   void initState() {
@@ -48,7 +46,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   }
 
   void setFilters(){
-    filters = SortBy.values.where((e) => e == SortBy.Latest || e == SortBy.UnderProgress).toList();
+    filters = SortBy.values.toList();
   }
 
   @override
@@ -155,7 +153,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                         });
                       },
                       child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label, // use .label for display text
+                        filter.label, // use .label for display text
                         decoration: TextDecoration.underline,
                         color: isSelected ? Colors.blue : Colors.black54,
                         decorationColor: isSelected ? Colors.blue : Colors.black54,

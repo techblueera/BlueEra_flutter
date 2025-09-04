@@ -32,7 +32,7 @@ import 'package:share_plus/share_plus.dart';
 // Import your new controller
 
 class VideoPlayerScreen extends StatefulWidget {
-  final VideoFeedItem videoItem;
+  final ShortFeedItem videoItem;
   const VideoPlayerScreen({super.key, required this.videoItem});
 
   @override
@@ -268,7 +268,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
-  Future<void> _navigateToVideoPlayer(VideoFeedItem videoFeedItem) async {
+  Future<void> _navigateToVideoPlayer(ShortFeedItem videoFeedItem) async {
     // Pause current video before navigation using centralized controller
     videoPlayerController.pauseForNavigation();
 
@@ -283,7 +283,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoPlayerController.resumeAfterNavigation();
   }
 
-  void _showBlockDialog(VideoFeedItem videoFeedItem) {
+  void _showBlockDialog(ShortFeedItem videoFeedItem) {
     openBlockSelectionDialog(
       context: context,
       reportType: 'VIDEO_POST',

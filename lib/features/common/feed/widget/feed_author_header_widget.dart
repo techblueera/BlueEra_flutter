@@ -89,7 +89,7 @@ class PostAuthorHeader extends StatelessWidget {
                   } else {
                     Get.to(() => VisitBusinessProfile(
                         businessId: post?.user?.business_id ?? ""
-                    )
+                      )
                     );
                   }
                 }
@@ -154,7 +154,11 @@ class PostAuthorHeader extends StatelessWidget {
         );
       },
       reportCallback: (params){
-
+        Get.find<FeedController>().postReport(
+            postId: post?.id??'',
+            type: postFilteredType,
+            params: params
+        );
       }
     );
   }

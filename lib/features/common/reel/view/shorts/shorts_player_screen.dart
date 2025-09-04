@@ -16,7 +16,7 @@ import 'package:get/get.dart';
 
 class ShortsPlayerScreen extends StatefulWidget {
   final Shorts shorts;
-  final List<VideoFeedItem> initialShorts;
+  final List<ShortFeedItem> initialShorts;
   final int initialIndex;
 
   const ShortsPlayerScreen(
@@ -180,7 +180,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     }
   }
 
-  List<VideoFeedItem>? _getCurrentFeedList(ShortsController controller) {
+  List<ShortFeedItem>? _getCurrentFeedList(ShortsController controller) {
     switch (widget.shorts) {
       case Shorts.trending:
         return controller.trendingVideoFeedPosts;
@@ -273,7 +273,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     _playerKeys[currentIndex]?.currentState?.playVideo();
   }
 
-  Future<void> _blockUserAndAdvance({required VideoFeedItem videoItem, required String otherUserId}) async {
+  Future<void> _blockUserAndAdvance({required ShortFeedItem videoItem, required String otherUserId}) async {
     final controller = shortsFeedController;
     final currentFeedList = _getCurrentFeedList(controller);
     final String? currentId = videoItem.video?.id;
