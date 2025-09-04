@@ -130,6 +130,8 @@ class AddMoreDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
+     
+     
       ),
     );
   }

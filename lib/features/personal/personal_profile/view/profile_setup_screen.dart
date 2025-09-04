@@ -31,7 +31,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
@@ -253,8 +254,45 @@ class _PersonalProfileSetupScreenState
                                                 size: 14, color: Colors.white),
                                           ),
                                         ),
+                                        SizedBox(
+                                          width: SizeConfig.size8,
+                                        ),
+                                           InkWell(
+                        onTap: () async {
+                          final link = profileDeepLink(userId: viewProfileController
+                                                    .personalProfileDetails
+                                                    .value
+                                                    .user
+                                                    ?.id ?? '');
+                          final message = "See my profile on BlueEra:\n$link\n";
+                          await SharePlus.instance.share(ShareParams(
+                            text: message,
+                            subject: viewProfileController
+                                                    .personalProfileDetails
+                                                    .value
+                                                    .user
+                                                    ?.name ?? '',
+                          ));
+                        },
+                        child: CircleAvatar(
+                          radius: 14,
+                          child: Padding(
+                            padding: const EdgeInsets.all(2.0),
+                            child: Image.asset( 
+                            'assets/images/arrow.png',
+                            height: 18,
+                            width: 18,
+                            fit: BoxFit.cover,
+                            color: AppColors.white,
+                                                  ),
+                          ),
+                        ),)
+                                        
                                       ],
                                     ),
+                                    // Spacer(),
+                                     
+                                      
                                     // Row(
                                     //   mainAxisAlignment: MainAxisAlignment.end,
                                     //   children: [
