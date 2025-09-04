@@ -412,6 +412,8 @@ abstract class BaseService {
   //categories
   final String toplevelcategoriesApi = "/inventory-service/product/categories/top-level";
   final String createGuestAccount = "/user-service/user/create-guest-account";
-  final String userFeedReport = "userfeed-service//report/add-reports";
+  final String userFeedReport = "userfeed-service/report/add-reports";
+  final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
+  final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
 
 }

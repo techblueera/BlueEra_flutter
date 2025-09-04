@@ -50,58 +50,61 @@ RxString isYoutubeEdit="".obs;
   RxString overView=''.obs;
 
   Future<void> viewPersonalProfile() async {
-    final personalController= Get.put(PersonalCreateProfileController());
+    final personalController = Get.put(PersonalCreateProfileController());
 
-    // try {
+    try {
       viewPersonalResponse.value = ApiResponse.initial("Initial");
 
-      // await getUserLoginBusinessId();
       ResponseModel responseModel =
-          await PersonalProfileRepo().viewParticularPersonalProfile();
-
-          // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
-      // ResponseModel response = await UserRepo().getUserById(userId: userId);
+      await PersonalProfileRepo().viewParticularPersonalProfile();
 
       if (responseModel.isSuccess) {
-
         final data = responseModel.response?.data;
         personalProfileDetails.value =
             PersonalProfileDetailsModel.fromJson(data);
 
         ///SET SOCIAL DATA LINK...
         setSocialLink(data);
-        personalController.imagePath?.value =
-            personalProfileDetails.value.user?.profileImage ??
-                "";
+
         ///SET SKILL...
         personalController.skillsList.clear();
-        personalController
-            .skillsList
+        personalController.skillsList
             .addAll(personalProfileDetails.value.user?.skills ?? []);
-       ///SET OVERVIEW
-        overView.value=personalProfileDetails.value.user?.objective??"";
+
+        ///SET OVERVIEW
+        overView.value = personalProfileDetails.value.user?.objective ?? "";
+
         ///SET PROJECT...
         projectsList?.clear();
-        projectsList?.addAll(personalProfileDetails.value.user?.projects??[]);
+        projectsList?.addAll(personalProfileDetails.value.user?.projects ?? []);
+
         ///SET PROJECT...
         experiencesList?.clear();
-        experiencesList?.addAll(personalProfileDetails.value.user?.experiences??[]);
-        Get.find<AuthController>().imgPath.value=personalProfileDetails.value.user?.profileImage??"";
-        await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
+        experiencesList
+            ?.addAll(personalProfileDetails.value.user?.experiences ?? []);
+        await SharedPreferenceUtils.userLoggedInIndivisualGuest(
+          businesId: "",
+          loginUserId_: "${personalProfileDetails.value.user?.id}",
+          contactNo: "${personalProfileDetails.value.user?.contactNo}",
+          getUserName: "${personalProfileDetails.value.user?.name}",
+          profileImage: "${personalProfileDetails.value.user?.profileImage}",
+          designation: "${personalProfileDetails.value.user?.designation}",
+        );
+        await getUserLoginData();
 
-        // followersCount.value = personalProfileDetails.value.followersCount??0  ;
-        // followingCount.value =personalProfileDetails.value.followingCount??0  ;
-        // postsCount.value = personalProfileDetails.value.totalPosts??0  ;
+        // Get.find<AuthController>().imgPath.value=personalProfileDetails.value.user?.profileImage??"";
+        personalController.imagePath?.value=personalProfileDetails.value.user?.profileImage??"";
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    // } catch (e) {
-    //   viewPersonalResponse.value = ApiResponse.error('error');
-    // }
+    } catch (e) {
+      viewPersonalResponse.value = ApiResponse.error('error');
+    }
   }
-Future<void> viewPersonalProfiles( String number) async {
+
+  Future<void> viewPersonalProfiles( String number) async {
     final personalController= Get.find<PersonalCreateProfileController>();
 
     // try {

@@ -46,15 +46,12 @@ class PostAuthorHeader extends StatelessWidget {
         : post?.user?.businessName ?? '';
 
     String designation = (post?.user?.accountType == AppConstants.individual)
-        ?
-    post?.user?.designation ?? "OTHERS"
-
+        ? post?.user?.designation ?? "OTHERS"
         : post?.user?.businessCategory ?? '';
-
 
     String id = (post?.user?.accountType == AppConstants.individual)
         ? authorId
-        : post?.user?.business_id??'';
+        : post?.user?.business_id ?? '';
 
     return Padding(
       padding: EdgeInsets.only(
@@ -69,7 +66,7 @@ class PostAuthorHeader extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 if (((authorId == userId) ||
-                    (post?.user?.business_id == businessId)) &&
+                        (post?.user?.business_id == businessId)) &&
                     (postFilteredType == PostType.myPosts ||
                         postFilteredType == PostType.saved)) {
                   return;
@@ -88,9 +85,7 @@ class PostAuthorHeader extends StatelessWidget {
                     navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
                     Get.to(() => VisitBusinessProfile(
-                        businessId: post?.user?.business_id ?? ""
-                    )
-                    );
+                        businessId: post?.user?.business_id ?? ""));
                   }
                 }
               },
@@ -101,20 +96,18 @@ class PostAuthorHeader extends StatelessWidget {
                   subtitle: designation,
                   avatarSize: SizeConfig.size42,
                   borderColor: AppColors.primaryColor,
-                  postedAgo: postedAgo
-              ),
+                  postedAgo: postedAgo),
             ),
           ),
-
-          if(post?.user?.accountType == AppConstants.individual)
-            if(id != userId)
+          if (post?.user?.accountType == AppConstants.individual)
+            if (id != userId)
               IconButton(
-                onPressed:(){
+                onPressed: () {
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else {
-                    onTapOptions ?? blockUserPopUp();                  }
-
+                    onTapOptions ?? blockUserPopUp();
+                  }
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )
@@ -123,39 +116,37 @@ class PostAuthorHeader extends StatelessWidget {
                 post: post ?? Post(id: ''),
                 postFilteredType: postFilteredType,
               )
-          else if(post?.user?.accountType == AppConstants.business)
-            if(id != businessId)
+          else if (post?.user?.accountType == AppConstants.business)
+            if (id != businessId)
               IconButton(
-                onPressed: onTapOptions ??
-                        () => blockUserPopUp(),
+                onPressed: () {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+                  } else {
+                    onTapOptions ?? () => blockUserPopUp();
+                  }
+                },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )
             else
               FeedPopUpMenu(
                   post: post ?? Post(id: ''),
-                  postFilteredType: postFilteredType
-              )
-
+                  postFilteredType: postFilteredType)
         ],
       ),
     );
   }
 
-  void blockUserPopUp(){
+  void blockUserPopUp() {
     openBlockSelectionDialog(
-      context: Get.context!,
-      userId: authorId,
-      contentId: post?.id??'',
-      reportType: 'POST',
-      userBlockVoidCallback: () {
-        Get.find<FeedController>().userBlocked(
-            otherUserId: post?.authorId??'',
-            type: postFilteredType
-        );
-      },
-      reportCallback: (params){
-
-      }
-    );
+        context: Get.context!,
+        userId: authorId,
+        contentId: post?.id ?? '',
+        reportType: 'POST',
+        userBlockVoidCallback: () {
+          Get.find<FeedController>().userBlocked(
+              otherUserId: post?.authorId ?? '', type: postFilteredType);
+        },
+        reportCallback: (params) {});
   }
 }
