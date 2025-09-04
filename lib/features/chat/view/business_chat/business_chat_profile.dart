@@ -5,6 +5,7 @@ import 'package:BlueEra/features/business/widgets/abourt_business_widget.dart';
 import 'package:BlueEra/features/business/widgets/header_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_info_widget.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
+import 'package:BlueEra/features/chat/view/business_chat/bussiness_chat_newprofile_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/business_chat_header.dart';
 import 'package:BlueEra/features/chat/view/widget/business_chat_overview.dart';
 
@@ -45,7 +46,6 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
   @override
   void initState() {
     super.initState();
-
     _tabController = TabController(length: tabs.length, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Ensure your VisitPersonalProfileTabs updates
@@ -71,7 +71,7 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
       "discount": "50% Off",
       "shop": "Pervez Mobile Shop",
       "rating": "4.8 ",
-      'reviews':"48 reviews"
+      'reviews': "48 reviews"
     },
     {
       "imageUrl":
@@ -82,7 +82,7 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
       "discount": "50% Off",
       "shop": "Pervez Mobile Shop",
       "rating": "4.8 (48 reviews)",
-      'reviews':"48 reviews"
+      'reviews': "48 reviews"
     },
     {
       "imageUrl":
@@ -93,12 +93,14 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
       "discount": "50% Off",
       "shop": "Pervez Mobile Shop",
       "rating": "4.8 ",
-      'reviews':"48 reviews"
+      'reviews': "48 reviews"
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    return BussinessProfileNewscreen();
+
     print("sdns${widget.userId}");
     //   if(isOwnChannel){
     //         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
@@ -368,7 +370,7 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                   // product tab
                   productTab(),
                   reviewTab(),
-                    FeedScreen(
+                  FeedScreen(
                     key: const ValueKey('feedScreen_others_posts'),
                     postFilterType: PostType.otherPosts,
                     id: businessData?.userId,
@@ -390,232 +392,215 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
 
   GridView productTab() {
     return GridView.builder(
-                  itemCount: products.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // 2 items per row
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.65, // controls height of card
-                  ),
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-                    return Container(
-                      padding: EdgeInsets.all(10),
-                      margin: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
-                            spreadRadius: 2,
-                          ),
-                        ],
+      itemCount: products.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // 2 items per row
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.65, // controls height of card
+      ),
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return Container(
+          padding: EdgeInsets.all(10),
+          margin: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                child: Image.network(
+                  product["imageUrl"],
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product["title"],
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      product["price"],
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Colors.black),
+                    ),
+                    Text(
+                      "${product["discount"]} ${product["originalPrice"]}",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(12)),
-                            child: Image.network(
-                              product["imageUrl"],
-                              height: 120,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.store, size: 14, color: Colors.black54),
+                        SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            product["shop"],
+                            style: TextStyle(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product["title"],
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  product["price"],
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: Colors.black),
-                                ),
-                                Text(
-                                  "${product["discount"]} ${product["originalPrice"]}",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                    decoration: TextDecoration.lineThrough,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.store,
-                                        size: 14, color: Colors.black54),
-                                    SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        product["shop"],
-                                        style: TextStyle(fontSize: 12),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.star,
-                                        color: Colors.orange, size: 14),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      product["rating"],
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.orange, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          product["rating"],
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Card reviewTab() {
     return Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Profile Row
-                              Row(
-                                children: [
-                                  const CircleAvatar(
-                                    radius: 20,
-                                    backgroundImage: NetworkImage(
-                                      "https://randomuser.me/api/portraits/women/44.jpg",
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Courtney Henry",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16),
-                                      ),
-                                      Row(
-                                        children: const [
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star,
-                                              color: Colors.amber, size: 16),
-                                          Icon(Icons.star_half,
-                                              color: Colors.amber, size: 16),
-                                          SizedBox(width: 6),
-                                          Text("2 mins ago",
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile Row
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 20,
+                  backgroundImage: NetworkImage(
+                    "https://randomuser.me/api/portraits/women/44.jpg",
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Courtney Henry",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Row(
+                      children: const [
+                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        Icon(Icons.star_half, color: Colors.amber, size: 16),
+                        SizedBox(width: 6),
+                        Text("2 mins ago",
+                            style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
 
-                              // Review Text
-                              const Text(
-                                "Yorem ipsum dolor sit amet, consectetur adipiscing elit. "
-                                "Nunc vulputate libero et velit interdum, ac aliquet odio mattis. "
-                                "Class aptent taciti sociosqu ad litora torquent.",
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.black87),
-                              ),
-                              const SizedBox(height: 12),
+            // Review Text
+            const Text(
+              "Yorem ipsum dolor sit amet, consectetur adipiscing elit. "
+              "Nunc vulputate libero et velit interdum, ac aliquet odio mattis. "
+              "Class aptent taciti sociosqu ad litora torquent.",
+              style: TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
 
-                              // Images
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
+            // Images
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
 
-                              // Actions Row
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.thumb_up,
-                                          color: Colors.blue),
-                                      SizedBox(width: 5),
-                                      Text("5k+"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.comment, color: Colors.grey),
-                                      SizedBox(width: 5),
-                                      Text("310"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: const [
-                                      Icon(Icons.share, color: Colors.grey),
-                                      SizedBox(width: 5),
-                                      Text("50"),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+            // Actions Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: const [
+                    Icon(Icons.thumb_up, color: Colors.blue),
+                    SizedBox(width: 5),
+                    Text("5k+"),
+                  ],
+                ),
+                Row(
+                  children: const [
+                    Icon(Icons.comment, color: Colors.grey),
+                    SizedBox(width: 5),
+                    Text("310"),
+                  ],
+                ),
+                Row(
+                  children: const [
+                    Icon(Icons.share, color: Colors.grey),
+                    SizedBox(width: 5),
+                    Text("50"),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget buildProductCard({
