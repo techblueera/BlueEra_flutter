@@ -122,6 +122,9 @@ class PersonalCreateProfileController extends GetxController {
     }
   }
 
+
+
+
   ///FOR EXPERIENCE...
 
   final companyNameController = TextEditingController();
