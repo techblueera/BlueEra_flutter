@@ -52,7 +52,7 @@ class ReelUploadDetailsController extends GetxController {
           ApiKeys.channelId: channelId,
           ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual)
               ? userId
-              : businessId
+              : businessUserId
         },
       );
     } else {

@@ -611,7 +611,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
-            if (fullScreenShortController.videoItem?.author?.id != businessId)
+            if (fullScreenShortController.videoItem?.author?.id != businessUserId)
               IconButton(
                 onPressed: () {
                   if (isGuestUser()) {
@@ -830,7 +830,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
         }
       } else {
-        if (fullScreenShortController.videoItem?.author?.id == businessId) {
+        if (fullScreenShortController.videoItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(

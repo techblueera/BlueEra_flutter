@@ -152,7 +152,7 @@ class _VideoCardState extends State<VideoCard> {
                           Get.to(() => VisitProfileScreen(authorId: widget.videoItem.author?.id??''));
                         }
                       }else{
-                        if (widget.videoItem.author?.id == businessId) {
+                        if (widget.videoItem.author?.id == businessUserId) {
                           navigatePushTo(context, BusinessOwnProfileScreen());
                         } else {
                           Get.to(() => VisitBusinessProfile(businessId: widget.videoItem.author?.id??''));

@@ -323,8 +323,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         onCommentButtonPressed: _onCommentPressed,
         onSavedUnSavedButtonPressed: _onSavedPressed,
         onShareButtonPressed: () async {
-         
-         
           await _shareVideoSimple();
         },
       ),
@@ -410,9 +408,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                             : videoController.videoFeedItem?.author?.username ?? '',
                         subtitle: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.username ?? ''
-                            : (videoController.videoFeedItem?.author?.accountType == AppConstants.individual)
-                            ? videoController.videoFeedItem?.author?.designation ?? "OTHERS"
-                            : videoController.videoFeedItem?.author?.designation ?? '',
+                            : videoController.videoFeedItem?.author?.designation ?? "OTHERS",
                         avatarSize: SizeConfig.size40,
                         isVerifiedTickShow: true,
                       ),
@@ -459,7 +455,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       await Get.find<VideoController>().videoUnLike(
           videoId: videoController.videoFeedItem?.video?.id ?? '0'
       );
-      log('videoController after unlike video--> ${videoController.isLiked.value}');
       widget.videoItem.interactions?.isLiked = false;
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) - 1;
     } else {
@@ -517,7 +512,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           Get.to(() => VisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??''));
         }
       }else{
-        if (videoController.videoFeedItem?.author?.id == businessId) {
+        if (videoController.videoFeedItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoController.videoFeedItem?.author?.id??''));
