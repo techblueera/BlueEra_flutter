@@ -489,6 +489,10 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
                       children: [
                         Obx(() => CustomBtn(
                           onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
                                   channelId: videoController.videoFeedItem?.channel?.id ?? ''

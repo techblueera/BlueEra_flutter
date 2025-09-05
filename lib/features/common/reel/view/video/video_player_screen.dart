@@ -421,6 +421,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       children: [
                         Obx(() => CustomBtn(
                           onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
                                   channelId: videoController.videoFeedItem?.channel?.id ?? ''
@@ -491,6 +495,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void _openProfile() {
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
     if(videoController.videoFeedItem?.channel?.id!=null){
       Navigator.pushNamed(
           context,

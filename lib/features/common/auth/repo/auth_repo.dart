@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class AuthRepo extends BaseService {
   ///Mobile OTP Send REPO...
@@ -34,6 +35,26 @@ class AuthRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(addUser,
         params: bodyRequest,
         showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {},
+        isMultipart: true);
+    return response;
+  }
+  ///User register  REPO...
+  Future<ResponseModel> updateIndividualAccountUserRepo(
+      {Map<String, dynamic>? bodyRequest}) async {
+    final response = await ApiBaseHelper().putHTTP("${updateIndividualAccountUser}$userId",
+        params: bodyRequest,
+        onError: (error) {},
+        onSuccess: (data) {},
+        isMultipart: true);
+    return response;
+  }
+  ///User register  REPO...
+  Future<ResponseModel> updateBusinessAccountUserRepo(
+      {Map<String, dynamic>? bodyRequest}) async {
+    final response = await ApiBaseHelper().putHTTP("${updateBusinessAccount}$userId",
+        params: bodyRequest,
         onError: (error) {},
         onSuccess: (data) {},
         isMultipart: true);
@@ -82,19 +103,19 @@ class AuthRepo extends BaseService {
   /// Delete User account REPO...
   // Future<ResponseModel> deleteUserAccountRepo(
   //     {required String? userName}) async {
-    // final response = await ApiBaseHelper()
-    //     .postHTTP("${checkUsername}", onError: (error) {}, onSuccess: (data) {});
-    // return response;
+  // final response = await ApiBaseHelper()
+  //     .postHTTP("${checkUsername}", onError: (error) {}, onSuccess: (data) {});
+  // return response;
   // }
 
   Future<ResponseModel> callForceUpdateApi({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-        versionControl,
-        params: params,
-        showProgress: false,
-        onError: (error) {},
-        onSuccess: (data) {},
-        );
+      versionControl,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
     return response;
   }
 

@@ -1744,6 +1744,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -1807,9 +1808,10 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
             CommonProfileImage(
               imagePath: viewBusinessDetailsController.imagePath?.value ?? "",
               onImageUpdate: (image) async {
+                logs("image=== $image");
                 viewBusinessDetailsController.imagePath?.value = image;
                 dioObj.MultipartFile? imageByPart;
-                if (viewBusinessDetailsController.isImageUpdated.value) {
+                // if (viewBusinessDetailsController.isImageUpdated.value) {
                   if (viewBusinessDetailsController
                           .imagePath?.value.isNotEmpty ??
                       false) {
@@ -1822,13 +1824,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                         viewBusinessDetailsController.imagePath?.value ?? "",
                         filename: fileName);
                   }
-                }
+                // }
                 dynamic reqData = {
                   ApiKeys.businessId: businessId,
                   ApiKeys.logo_image:
-                      viewBusinessDetailsController.isImageUpdated.value
-                          ? imageByPart
-                          : null,
+                  imageByPart,
                 };
 
                 await Get.find<ViewBusinessDetailsController>()

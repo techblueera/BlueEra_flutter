@@ -192,6 +192,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     if (onProfileTap != null) {
                       onProfileTap!();
                     } else {
+                      logs("ACCOUNT TYPE === ${accountTypeGlobal}");
                       if (isGuestUser()) {
                         createProfileScreen();
                       } else if (isIndividualUser()) {

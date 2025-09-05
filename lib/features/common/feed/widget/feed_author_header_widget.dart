@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+import 'package:BlueEra/core/constants/block_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -85,9 +85,7 @@ class PostAuthorHeader extends StatelessWidget {
                     navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
                     Get.to(() => VisitBusinessProfile(
-                        businessId: post?.user?.business_id ?? ""
-                      )
-                    );
+                        businessId: post?.user?.business_id ?? ""));
                   }
                 }
               },
@@ -110,8 +108,8 @@ class PostAuthorHeader extends StatelessWidget {
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else {
-                    onTapOptions ?? blockReportUserPopUp();                  }
-
+                    onTapOptions ?? blockUserPopUp();
+                  }
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )
@@ -120,11 +118,16 @@ class PostAuthorHeader extends StatelessWidget {
                 post: post ?? Post(id: ''),
                 postFilteredType: postFilteredType,
               )
-          else if(post?.user?.accountType == AppConstants.business)
-            if(id != businessId)
+          else if (post?.user?.accountType == AppConstants.business)
+            if (id != businessId)
               IconButton(
-                onPressed: onTapOptions ??
-                        () => blockReportUserPopUp(),
+                onPressed: () {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+                  } else {
+                    onTapOptions ?? () => blockUserPopUp();
+                  }
+                },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )
             else
