@@ -272,28 +272,33 @@ class _PersonalProfileSetupScreenState
                                           SizedBox(
                                             width: SizeConfig.size8,
                                           ),
-
                                           InkWell(
                                             onTap: () async {
-                                              final link = profileDeepLink(userId: viewProfileController
-                                                  .personalProfileDetails
-                                                  .value
-                                                  .user
-                                                  ?.id ?? '');
-                                              final message = "See my profile on BlueEra:\n$link\n";
-                                              await SharePlus.instance.share(ShareParams(
+                                              final link = profileDeepLink(
+                                                  userId: viewProfileController
+                                                          .personalProfileDetails
+                                                          .value
+                                                          .user
+                                                          ?.id ??
+                                                      '');
+                                              final message =
+                                                  "See my profile on BlueEra:\n$link\n";
+                                              await SharePlus.instance
+                                                  .share(ShareParams(
                                                 text: message,
                                                 subject: viewProfileController
-                                                    .personalProfileDetails
-                                                    .value
-                                                    .user
-                                                    ?.name ?? '',
+                                                        .personalProfileDetails
+                                                        .value
+                                                        .user
+                                                        ?.name ??
+                                                    '',
                                               ));
                                             },
                                             child: CircleAvatar(
                                               radius: 14,
                                               child: Padding(
-                                                padding: const EdgeInsets.all(2.0),
+                                                padding:
+                                                    const EdgeInsets.all(2.0),
                                                 child: Image.asset(
                                                   'assets/images/arrow.png',
                                                   height: 18,
@@ -302,13 +307,42 @@ class _PersonalProfileSetupScreenState
                                                   color: AppColors.white,
                                                 ),
                                               ),
-                                            ),)
+                                            ),
+                                          )
                                         ],
                                       ),
                                       const SizedBox(height: 2),
                                       CustomText(profession,
                                           color:
                                               Color.fromRGBO(107, 124, 147, 1)),
+                                      // SizedBox(height: SizeConfig.size5),
+                                      if (channelId.isNotEmpty)
+                                        GestureDetector(
+                                          onTap: () {
+                                            if (channelId.isNotEmpty) {
+                                              Get.toNamed(
+                                                RouteHelper
+                                                    .getChannelScreenRoute(),
+                                                arguments: {
+                                                  ApiKeys.argAccountType:
+                                                      accountTypeGlobal,
+                                                  ApiKeys.channelId: channelId,
+                                                  ApiKeys.authorId:
+                                                      userId
+
+                                                },
+                                              );
+                                            }
+                                          },
+                                          // Reuse method if applicable
+                                          child: CustomText(
+                                            'View Channel',
+                                            color: AppColors.primaryColor,
+                                            fontWeight: FontWeight.w500,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
                                       SizedBox(height: SizeConfig.size12),
                                       Obx(() {
                                         return Padding(

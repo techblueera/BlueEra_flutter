@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import '../../../../core/api/model/personal_profile_details_model.dart';
+
 PostByIdResponseModalClass postByIdResponseModalClassFromJson(String str) =>
     PostByIdResponseModalClass.fromJson(json.decode(str));
 
@@ -65,6 +67,7 @@ class PostByIdResponseModalClassData {
   DateTime? updatedAt;
   int? v;
   bool? isLiked;
+   User? user;
 
   PostByIdResponseModalClassData({
     this.id,
@@ -94,6 +97,8 @@ class PostByIdResponseModalClassData {
     this.updatedAt,
     this.v,
     this.isLiked,
+    this.user,
+
   });
 
   factory PostByIdResponseModalClassData.fromJson(Map<String, dynamic> json) =>
@@ -133,6 +138,8 @@ class PostByIdResponseModalClassData {
             : DateTime.parse(json["updatedAt"]),
         v: json["__v"],
         isLiked: json["isLiked"],
+        user: json['user'] != null ? User.fromJson(json['user']) : null,
+
       );
 
   Map<String, dynamic> toJson() => {
@@ -165,5 +172,7 @@ class PostByIdResponseModalClassData {
         "updatedAt": updatedAt?.toIso8601String(),
         "__v": v,
         "isLiked": isLiked,
-      };
+    'user': user?.toJson(),
+
+  };
 }

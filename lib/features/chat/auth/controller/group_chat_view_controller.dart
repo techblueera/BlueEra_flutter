@@ -107,7 +107,7 @@ class GroupChatViewController extends GetxController {
     }else if (chatListModel.type=="group"){
       print("trigger");
       // if (data != null) {
-        getGroupChatListModel?.value = GroupChatListModel.fromJson(data!);
+        getGroupChatListModel?.value = GroupChatListModel.fromJson(data??{});
       // } else {
       //   // Fallback to an empty list to avoid null crash
       //   getGroupChatListModel?.value = GroupChatListModel(

@@ -37,9 +37,6 @@ class PostAuthorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('account type--> ${post?.user?.accountType}');
-    print('author id--> $authorId');
-    print('business id--> ${post?.user?.business_id}');
     // print('user Id--> ${post?.user?}');
     String name = (post?.user?.accountType == AppConstants.individual)
         ? post?.user?.name ?? ''
