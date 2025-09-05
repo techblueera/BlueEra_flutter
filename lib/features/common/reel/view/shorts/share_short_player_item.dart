@@ -892,7 +892,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
     final link = shortDeepLink(shortId: id);
     final title = fullScreenShortController.videoItem?.video?.title ?? 'BlueEra Short';
 
-    final message = "Check out this Short video on BlueEra:\n$link\n";
+    final message = "Watch on BlueEra App:\n$link\n";
 
     await SharePlus.instance.share(ShareParams(
       text: message,

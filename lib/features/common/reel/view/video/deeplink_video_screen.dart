@@ -538,7 +538,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     final link = videoDeepLink(videoId: id);
     final title = videoController.videoFeedItem?.video?.title ?? widget.videoItem?.video?.title ?? 'BlueEra Video';
 
-    final message = "Check out this video on BlueEra:\n$link\n";
+    final message = "Watch on BlueEra App:\n$link\n";
 
     await SharePlus.instance.share(ShareParams(
       text: message,

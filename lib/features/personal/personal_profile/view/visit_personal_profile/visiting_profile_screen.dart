@@ -224,7 +224,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                         InkWell(
                                           onTap: () async {
                                             final link = profileDeepLink(userId: widget.authorId);
-                                            final message = "Check out my profile on BlueEra:\n$link\n";
+                                            final message = "See my profile on BlueEra:\n$link\n";
                                             await SharePlus.instance.share(ShareParams(
                                               text: message,
                                               subject: user.name,
