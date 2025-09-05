@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -31,6 +32,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
@@ -267,35 +269,40 @@ class _PersonalProfileSetupScreenState
                                               ),
                                             ],
                                           ),
-                                          // Row(
-                                          //   mainAxisAlignment: MainAxisAlignment.end,
-                                          //   children: [
-                                          //     InkWell(
-                                          //         onTap: () {
-                                          //           Navigator.push(
-                                          //               context,
-                                          //               MaterialPageRoute(
-                                          //                   builder: (context) =>
-                                          //                       ProfileSettingsScreen()));
-                                          //         },
-                                          //         child: SvgPicture.asset(
-                                          //             AppIconAssets
-                                          //                 .profile_v_settings)),
-                                          //     SizedBox(
-                                          //       width: SizeConfig.size16,
-                                          //     ),
-                                          //     InkWell(
-                                          //         onTap: () {
-                                          //         //   Navigator.push(
-                                          //         //       context,
-                                          //         //       MaterialPageRoute(
-                                          //         //           builder: (context) =>
-                                          //         //               VisitPersonalProfile()));
-                                          //         },
-                                          //         child: SvgPicture.asset(
-                                          //             AppIconAssets.upload_share)),
-                                          //   ],
-                                          // ),
+                                          SizedBox(
+                                            width: SizeConfig.size8,
+                                          ),
+
+                                          InkWell(
+                                            onTap: () async {
+                                              final link = profileDeepLink(userId: viewProfileController
+                                                  .personalProfileDetails
+                                                  .value
+                                                  .user
+                                                  ?.id ?? '');
+                                              final message = "See my profile on BlueEra:\n$link\n";
+                                              await SharePlus.instance.share(ShareParams(
+                                                text: message,
+                                                subject: viewProfileController
+                                                    .personalProfileDetails
+                                                    .value
+                                                    .user
+                                                    ?.name ?? '',
+                                              ));
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 14,
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(2.0),
+                                                child: Image.asset(
+                                                  'assets/images/arrow.png',
+                                                  height: 18,
+                                                  width: 18,
+                                                  fit: BoxFit.cover,
+                                                  color: AppColors.white,
+                                                ),
+                                              ),
+                                            ),)
                                         ],
                                       ),
                                       const SizedBox(height: 2),

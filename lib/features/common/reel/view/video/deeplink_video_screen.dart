@@ -380,9 +380,23 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
   }
 
   void _showBlockDialog(VideoFeedItem videoFeedItem) {
-   
 
-     openBlockSelectionDialog(
+    openBlockSelectionDialog(
+        context: context,
+        reportType: 'VIDEO_POST',
+        userId: videoFeedItem.video?.userId??'',
+        contentId: videoFeedItem.video?.id??'',
+        userBlockVoidCallback: () async {
+          await Get.find<VideoController>().userBlocked(
+            videoType: Videos.videoFeed,
+            otherUserId: videoFeedItem.video?.userId ?? '',
+          );
+        },
+        reportCallback: (params){
+
+        }
+    );
+   /*  openBlockSelectionDialog(
       context: context,
       userBlockVoidCallback: () async {
         await Get.find<VideoController>().userBlocked(
@@ -393,7 +407,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
       postBlockVoidCallback: (){
 
       }
-    );
+    );*/
   }
 
   Widget _buildExpandedWidget() {
