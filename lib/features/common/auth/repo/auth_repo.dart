@@ -33,6 +33,7 @@ class AuthRepo extends BaseService {
       {Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().postHTTP(addUser,
         params: bodyRequest,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {},
         isMultipart: true);
@@ -122,6 +123,18 @@ class AuthRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       createGuestAccount,
       params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///REPORT...
+  Future<ResponseModel> report({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      userFeedReport,
+      params: params,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

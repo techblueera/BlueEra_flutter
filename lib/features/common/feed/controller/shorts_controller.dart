@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -16,7 +17,9 @@ import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -29,20 +32,21 @@ class ShortsController extends GetxController{
   ApiResponse deleteShortResponse = ApiResponse.initial('Initial');
   ApiResponse savedShortsResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
+  ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
 
-  RxList<VideoFeedItem> trendingVideoFeedPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> trendingVideoFeedPosts = <ShortFeedItem>[].obs;
   int trendingVideoFeedCurrentPage = 1;
   RxBool isFirstLoadTrending = true.obs;
   bool trendingVideoFeedHasMore = true;
   RxBool trendingVideoFeedIsLoadingMore = false.obs;
 
-  RxList<VideoFeedItem> personalizedVideoFeedPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> personalizedVideoFeedPosts = <ShortFeedItem>[].obs;
   int personalizedVideoFeedCurrentPage = 1;
   RxBool isFirstLoadNearBy= true.obs;
   bool personalizedVideoFeedHasMore = true;
   RxBool personalizedVideoIsLoadingMore = false.obs;
 
-  RxList<VideoFeedItem> nearByVideoFeedPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> nearByVideoFeedPosts = <ShortFeedItem>[].obs;
   int nearByVideoFeedCurrentPage = 1;
   RxBool isFirstLoadPersonalized = true.obs;
   bool nearByVideoFeedHasMore = true;
@@ -54,24 +58,24 @@ class ShortsController extends GetxController{
   int limit = 20;
 
   /// Channel Shorts
-  RxList<VideoFeedItem> allChannelShorts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> allChannelShorts = <ShortFeedItem>[].obs;
   int allChannelShortsPage = 1;
   bool isAllShortsHasMore = true;
   RxBool isAllShortsIsLoadingMore = false.obs;
 
   ///Channel Shorts(Trending, Popular, Oldest)
-  RxList<VideoFeedItem> latestShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> popularShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> oldestShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> underProgressShortsPosts = <VideoFeedItem>[].obs;
-  RxList<VideoFeedItem> draftShortsPosts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> latestShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> popularShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> oldestShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> underProgressShortsPosts = <ShortFeedItem>[].obs;
+  RxList<ShortFeedItem> draftShortsPosts = <ShortFeedItem>[].obs;
   int latestShortsPage = 1, popularShortsPage = 1, oldestShortsPage = 1, underProgressShortsPage = 1, draftShortsPage = 1;
   RxBool isLatestShortsLoading = true.obs, isPopularShortsLoading = true.obs, isOldestShortsLoading = true.obs, isUnderProgressShortsLoading = true.obs, isDraftShortsLoading = true.obs;
   RxBool isLatestShortsMoreDataLoading = false.obs, isPopularShortsMoreDataLoading = false.obs, isOldestShortsMoreDataLoading = false.obs,  isUnderProgressShortsMoreDataLoading = false.obs, isDraftShortsMoreDataLoading = false.obs;
   bool isLatestShortsHasMoreData = true, isPopularShortsHasMoreData = true, isOldestShortsHasMoreData = true, isUnderProgressShortsHasMoreData = true, isDraftShortsHasMoreData = true;
 
   /// Saved Videos
-  RxList<VideoFeedItem> savedShorts = <VideoFeedItem>[].obs;
+  RxList<ShortFeedItem> savedShorts = <ShortFeedItem>[].obs;
 
   ///GET ALL Feed Trending(In Shorts)...
   Future<void> getAllFeedTrending({
@@ -503,7 +507,7 @@ class ShortsController extends GetxController{
     required Shorts? shorts,
     required int page,
     required bool isInitialLoad,
-    required RxList<VideoFeedItem> targetList,
+    required RxList<ShortFeedItem> targetList,
     required RxBool targetInitialLoading,
     required RxBool isTargetMoreDataLoading,
     required bool isTargetHasMoreData,
@@ -531,7 +535,7 @@ class ShortsController extends GetxController{
 
       ResponseModel response;
 
-      if(postVia == PostVia.channel){
+      if(postVia == PostVia.channel || postVia == PostVia.profile) {
         if (shorts == Shorts.latest || shorts == Shorts.popular || shorts == Shorts.oldest) {
           params[ApiKeys.sortBy] = shorts!.queryValue;
           params[ApiKeys.status] = VideoStatus.published.queryValue;
@@ -540,29 +544,21 @@ class ShortsController extends GetxController{
         } else {
           params[ApiKeys.status] = VideoStatus.draft.queryValue;
         }
-        params[ApiKeys.postVia] = 'channel';
+        params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
         if(isOwnShorts){
           response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
         }else {
           response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
         }
-      } else if(postVia == PostVia.profile){
-        if (shorts == Shorts.latest) {
-          params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (shorts == Shorts.underProgress) {
-          params[ApiKeys.status] = VideoStatus.processing.queryValue;
-        }
-        params[ApiKeys.postVia] = 'user';
-        response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-      }else{
+      } else{
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
       }
 
       if (response.isSuccess) {
         shortsResponse = ApiResponse.complete(response);
         final videoResponse = VideoResponse.fromJson(response.response?.data);
-        final List<VideoFeedItem> newShorts = videoResponse.data?.videos ?? [];
+        final List<ShortFeedItem> newShorts = videoResponse.data?.videos ?? [];
         // if (newShorts.isNotEmpty) {
           if(page == 1){
             targetList.value = newShorts;
@@ -645,8 +641,8 @@ class ShortsController extends GetxController{
 
 
   /// Utility to get post list by type
-  RxList<VideoFeedItem> getListByType({required Shorts shortsType}) {
-    switch (shortsType) {
+  RxList<ShortFeedItem> getListByType({required Shorts shorts}) {
+    switch (shorts) {
       case Shorts.trending:
         return trendingVideoFeedPosts;
       case Shorts.nearBy:
@@ -671,7 +667,7 @@ class ShortsController extends GetxController{
 
   /// Delete Post
   Future<void> shortDelete({required Shorts shortsType, required String videoId}) async {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
     final index = list.indexWhere((v) => v.video?.id == videoId);
 
     try {
@@ -691,7 +687,7 @@ class ShortsController extends GetxController{
 
   ///USER BLOCK(PARTIAL AND FULL)...
   Future<void> userBlocked({required Shorts shortsType, required String otherUserId}) async {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
 
     try {
       Map<String, dynamic> params = {
@@ -724,7 +720,7 @@ class ShortsController extends GetxController{
   }
 
   /// Save Shorts To LOCAL DB
-  Future<bool> saveVideosToLocalDB({required VideoFeedItem videoFeedItem}) async {
+  Future<bool> saveVideosToLocalDB({required ShortFeedItem videoFeedItem}) async {
     bool isSaved = HiveServices().isVideoSaved(videoFeedItem.videoId??'');
     if(isSaved){
       await HiveServices().deleteVideoById(videoFeedItem.videoId??'');
@@ -740,17 +736,15 @@ class ShortsController extends GetxController{
 
   /// Update like count for a specific video across all lists
   void updateVideoLikeCount({required Shorts shortsType, required String videoId, required bool isLiked, required int newLikeCount}) {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
     _updateVideoInList(list, videoId, isLiked: isLiked, newLikeCount: newLikeCount);
   }
 
   /// Update comment count for a specific video across all lists
   void updateVideoCommentCount({required Shorts shortsType, required String videoId, required int newCommentCount}) {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
     _updateVideoInList(list, videoId, newCommentCount: newCommentCount);
   }
-
-
 
   /// Update saved state for a specific video across all lists
   void updateVideoSavedState({required String videoId, required bool isSaved}) {
@@ -766,7 +760,7 @@ class ShortsController extends GetxController{
 
   /// Helper method to update a video in a specific list
   void _updateVideoInList(
-      RxList<VideoFeedItem> list,
+      RxList<ShortFeedItem> list,
       String videoId,
       { bool? isLiked,
         int? newLikeCount,
@@ -814,5 +808,91 @@ class ShortsController extends GetxController{
 
     savedShorts.addAll(filteredList);
   }
+
+  ///UPDATE SHORT Thumbnail...
+  Future<void> updateShortThumbnail({
+    required Shorts shorts,
+    required String shortId,
+    required String thumbnail,
+  }) async {
+    final reelUploadDetailsController = Get.put(ReelUploadDetailsController());
+    final list = getListByType(shorts: shorts);
+    final index = list.indexWhere((s) => s.video?.id == shortId);
+
+    try {
+      double progress = 0.0;
+
+      void updateProgress(double value) {
+        progress = value.clamp(0.0, 1.0);
+        UploadProgressDialog.update(progress); // ✅ use new dialog updater
+      }
+
+      // ✅ Show dialog
+      UploadProgressDialog.show(initialProgress: progress);
+
+      final coverFile = File(thumbnail);
+      final coverInfo = getFileInfo(coverFile);
+
+      // 1. Init upload
+      await reelUploadDetailsController.uploadInit(
+        queryParams: {
+          ApiKeys.fileName: coverInfo['fileName'],
+          ApiKeys.fileType: coverInfo['mimeType'],
+        },
+        isVideoUpload: false,
+      );
+      updateProgress(0.2);
+
+      // 2. Upload to S3 (20% → 90%)
+      await reelUploadDetailsController.uploadFileToS3(
+        file: coverFile,
+        fileType: coverInfo['mimeType']!,
+        preSignedUrl:
+        reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ?? "",
+        onProgress: (total) {
+          // total is 0.0 - 1.0
+          final combined = 0.2 + total * 0.7;
+          updateProgress(combined);
+        },
+      );
+
+      updateProgress(0.9);
+
+      // 3. Save new thumbnail URL from backend
+      final newCoverUrl =
+          reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '';
+
+      ResponseModel? response = await ChannelRepo().updateVideoDetails(
+        videoId: shortId,
+        params: {ApiKeys.coverUrl: newCoverUrl},
+      );
+
+      updateProgress(1.0);
+      if (response.isSuccess) {
+
+        final videoItem = list[index];
+
+        list[index] = videoItem.copyWith(
+          video: videoItem.video?.copyWith(
+            coverUrl: reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
+          ),
+        );
+
+        updateVideoThumbnailResponse = ApiResponse.complete(response);
+      } else {
+        updateVideoThumbnailResponse = ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e) {
+      updateVideoThumbnailResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      // ✅ Always close the dialog (GetX version, no context needed)
+      UploadProgressDialog.close();
+    }
+  }
+
 
 }

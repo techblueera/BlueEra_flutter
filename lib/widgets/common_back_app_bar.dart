@@ -344,7 +344,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       value == PostCreationMenu.message ||
                       value == PostCreationMenu.poll) {
                     postVia(context, value);
-                  } else if (value == 'Place') {
+                  } else if (value == PostCreationMenu.place) {
                     Navigator.pushNamed(
                       context,
                       RouteHelper.getAddPlaceStepOneScreenRoute(),

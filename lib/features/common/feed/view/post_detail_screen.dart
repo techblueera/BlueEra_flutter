@@ -34,29 +34,23 @@ class PostDeatilPage extends StatelessWidget {
               title: "Post",
               isLeading: true,
             ),
-            body: controller.isLoading
-                ? CircularProgressIndicator()
-                : Column(
-                    children: [
-                      controller.postByIdResponseModalClass != null
-                          ? FeedCard(
-                              index: 0,
-
-                              post: Post.fromJson(controller
-                                      .postByIdResponseModalClass?.data
-                                      ?.toJson() ??
-                                  {}),
-                              postFilteredType: PostType
-                                  .otherPosts, //controller.postByIdResponseModalClass.data.type,
-                            )
-                          : Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                      // Container(
-                      //   // child: Image.network(controller.postId ?? ""),
-                      // )
-                    ],
-                  ),
+            body: Column(
+              children: [
+                controller.post != null
+                    ? FeedCard(
+                        index: 0,
+                        post: controller.post,
+                        postFilteredType: PostType
+                            .otherPosts, //controller.postByIdResponseModalClass.data.type,
+                      )
+                    : Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                // Container(
+                //   // child: Image.network(controller.postId ?? ""),
+                // )
+              ],
+            ),
           );
         });
   }

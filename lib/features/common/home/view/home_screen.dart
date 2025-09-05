@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
@@ -265,15 +266,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return
       Scaffold(
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: ()async{
-        //     final id = '68b14c54574ac5743a7c2f07';
-        //     await deepLinkNetworkResources.navigateToVideoDetail(id);
-        //   },
-        //   backgroundColor: Colors.blue,
-        //   child: Icon(Icons.add),
-        // ),
-
         body: SafeArea(
           top: false,
           child: Obx(()=> Stack(

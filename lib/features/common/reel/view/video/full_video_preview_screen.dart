@@ -31,7 +31,6 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
   @override
   void initState() {
     super.initState();
-    log("coming");
     _videoPath = widget.videoPath;
     _initializeVideo();
   }
@@ -168,11 +167,10 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
             right: SizeConfig.size20,
             child: CustomBtn(
               onTap: () async {
-                if (videoType == VideoType.short && (_videoDuration?.inSeconds ?? 0) > 120) {
+                if (videoType == VideoType.short && (_videoDuration?.inSeconds ?? 0) > 600) {
                   await showCommonDialog(
                     context: context,
-                    text: "The selected video is longer than 120 seconds.",
-                    // text: "The selected video is longer than 120 seconds. Would you like to trim it?",
+                    text: "The selected video is longer than 600 seconds.",
                     confirmCallback: () => Navigator.of(context).pop(),
                     // confirmCallback: () => _goToTrimScreen(),
                     cancelCallback: () => Navigator.of(context).pop(),

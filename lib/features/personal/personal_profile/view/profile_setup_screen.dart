@@ -56,7 +56,7 @@ class _PersonalProfileSetupScreenState
   List<String> postTab = [];
   int selectedIndex = 0;
   List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.UnderProgress;
+  SortBy selectedFilter = SortBy.Latest;
 
   @override
   void initState() {
@@ -71,9 +71,7 @@ class _PersonalProfileSetupScreenState
   }
 
   setFilters() {
-    filters = SortBy.values
-        .where((e) => e == SortBy.Latest || e == SortBy.UnderProgress)
-        .toList();
+    filters = SortBy.values.toList();
   }
 
   Future<void> _loadInitialData() async {
@@ -146,7 +144,7 @@ class _PersonalProfileSetupScreenState
                   if (viewProfileController
                           .personalProfileDetails.value.user?.profession ==
                       SELF_EMPLOYED)
-                    'My Portfolio',
+                  'My Portfolio',
                   'About Me',
                   'Posts',
                   'Shorts',
@@ -689,7 +687,7 @@ class _PersonalProfileSetupScreenState
   Widget _filterButtons() {
     return SingleChildScrollView(
         padding:
-            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+            EdgeInsets.only(top: SizeConfig.size20),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
@@ -708,8 +706,7 @@ class _PersonalProfileSetupScreenState
                         });
                       },
                       child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label,
-                        // use .label for display text
+                        filter.label,
                         decoration: TextDecoration.underline,
                         color: isSelected ? Colors.blue : Colors.black54,
                         decorationColor:
