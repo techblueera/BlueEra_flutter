@@ -73,7 +73,14 @@ class CommonVideoCard extends StatelessWidget {
 
               // 👇 common footer
               GestureDetector(
-                onTap: () => _openProfile(context, videoItem),
+                onTap:(){
+                  if (isGuestUser()) {
+                    createProfileScreen();
+
+                    return;
+                  }
+                  onTapOption();
+                },
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.size5,
@@ -145,7 +152,14 @@ class CommonVideoCard extends StatelessWidget {
     if (videoItem.channel?.id != null) {
       if (videoItem.channel?.id != channelId) {
         return IconButton(
-          onPressed: onTapOption,
+          onPressed:(){
+            if (isGuestUser()) {
+              createProfileScreen();
+
+              return;
+            }
+            onTapOption();
+          },
           icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
         );
       }
@@ -167,8 +181,14 @@ class CommonVideoCard extends StatelessWidget {
         );
       }
       return IconButton(
-        onPressed: onTapOption,
-        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+        onPressed:(){
+          if (isGuestUser()) {
+            createProfileScreen();
+
+            return;
+          }
+          onTapOption();
+        },        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
       );
     }
 
@@ -183,8 +203,14 @@ class CommonVideoCard extends StatelessWidget {
         );
       }
       return IconButton(
-        onPressed: onTapOption,
-        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+        onPressed:(){
+          if (isGuestUser()) {
+            createProfileScreen();
+
+            return;
+          }
+          onTapOption();
+        },        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
       );
     }
 

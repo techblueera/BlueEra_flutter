@@ -228,7 +228,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
             Padding(
               padding: EdgeInsets.only(right: 20),
               child: Row(
-                children: filters!.map((filter) {
+                children: filters?.map((filter) {
                   final isSelected = selectedFilter == filter;
                   return Padding(
                     padding: EdgeInsets.only(right: SizeConfig.size14),
@@ -248,7 +248,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                       ),
                     ),
                   );
-                }).toList(),
+                }).toList()??[],
               ),
             )
           ],

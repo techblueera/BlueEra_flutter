@@ -56,7 +56,6 @@ class _FeedScreenState extends State<FeedScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
-    });
 
     // Only add scroll listener if this is an individual page (not in parent scroll)
     if (!widget.isInParentScroll) {
@@ -69,6 +68,7 @@ class _FeedScreenState extends State<FeedScreen> {
         fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
       }
+    });
     });
 
   }

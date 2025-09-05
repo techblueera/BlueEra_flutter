@@ -21,7 +21,7 @@ class GroupChatSocketService {
     try {
       print("Attempting to connect to socket...");
       _socket = IO.io(
-        'http://13.203.74.193:3000',
+        'http://43.205.142.56:3000/',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setPath('/socket')
