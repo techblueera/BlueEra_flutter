@@ -20,7 +20,7 @@ class ChatSocketService {
   Future<void> connectToSocket() async {
     try {
       print("Attempting to connect to socket...");
-      _socket = IO.io('http://43.204.232.102:3000/',
+      _socket = IO.io('http://13.203.208.120:3000/',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setPath('/socket')

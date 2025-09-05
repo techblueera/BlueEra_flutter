@@ -19,6 +19,8 @@ import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -33,6 +35,7 @@ class ShortsController extends GetxController{
   ApiResponse savedShortsResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
+  ApiResponse reportShortPostResponse = ApiResponse.initial('Initial');
 
   RxList<ShortFeedItem> trendingVideoFeedPosts = <ShortFeedItem>[].obs;
   int trendingVideoFeedCurrentPage = 1;
@@ -894,5 +897,48 @@ class ShortsController extends GetxController{
     }
   }
 
+
+  ///VIDEO POST REPOST...
+  Future<void> shortPostReport({
+    required Shorts shorts,
+    required String videoId,
+    required Map<String, dynamic> params
+  }) async {
+    final list = getListByType(shorts: shorts);
+    final index = list.indexWhere((v) => v.video?.id == videoId);
+
+    try {
+
+      final response = await AuthRepo().report(params: params);
+
+      if (response.isSuccess) {
+        reportShortPostResponse = ApiResponse.complete(response);
+        if (index != -1) list.removeAt(index);
+        showDialog(
+            context: Get.context!,
+            builder: (context) => Dialog(
+              child: Material(
+                color: Colors.transparent,
+                child: CustomSuccessSheet(
+                  buttonText: AppLocalizations.of(context)!.gotIt,
+                  title: AppLocalizations.of(context)!.youHaveReportedThisPost,
+                  subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
+                  onPress: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ));
+
+      } else {
+        reportShortPostResponse =  ApiResponse.error('error');
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      reportShortPostResponse =  ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+    }
+  }
 
 }

@@ -33,7 +33,8 @@ import 'package:share_plus/share_plus.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final ShortFeedItem videoItem;
-  const VideoPlayerScreen({super.key, required this.videoItem});
+  final VideoType videoType;
+  const VideoPlayerScreen({super.key, required this.videoItem, required this.videoType});
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -46,8 +47,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool isCollapsed = false;
   final GlobalKey _contentKey = GlobalKey();
   bool _isMeasured = false;
-  double _calculatedHeight = SizeConfig.size300;
   bool isUploadFromChannel = false;
+
+  double _calculatedHeight = SizeConfig.size300;
 
   @override
   void initState() {
@@ -258,7 +260,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   videoItem: videoFeedItem,
                   voidCallback: () => _navigateToVideoPlayer(videoFeedItem),
                   onTapOption: () => _showBlockDialog(videoFeedItem),
-                  videoType: Videos.videoFeed,
+                  videoType: VideoType.videoFeed,
                 );
               },
             );
@@ -275,7 +277,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => VideoPlayerScreen(videoItem: videoFeedItem),
+        builder: (_) => VideoPlayerScreen(
+          videoItem: videoFeedItem,
+          videoType: widget.videoType
+        ),
       ),
     );
 
@@ -291,12 +296,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       contentId: videoFeedItem.video?.id??'',
       userBlockVoidCallback: () async {
         await Get.find<VideoController>().userBlocked(
-          videoType: Videos.videoFeed,
+          videoType: VideoType.videoFeed,
           otherUserId: videoFeedItem.video?.userId ?? '',
         );
       },
         reportCallback: (params){
-
+          Get.find<VideoController>().videoPostReport(
+              videoId: videoFeedItem.video?.id??'',
+              videoType: widget.videoType,
+              params: params
+          );
         }
     );
   }

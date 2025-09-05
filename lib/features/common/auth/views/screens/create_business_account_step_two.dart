@@ -90,10 +90,9 @@ class _CreateBusinessAccountStepTwoState
       fullBusinessAddressTextController.text = locationData.fullAddress;
       cityController.text = locationData.city;
       picCodeController.text = locationData.pinCode;
-     viewBusinessDetailsController.addressLat?.value=double.parse(locationData.lat);
-    viewBusinessDetailsController.addressLong?.value=double.parse(locationData.long);
-
-  }
+      viewBusinessDetailsController.addressLat?.value=double.parse(locationData.lat);
+      viewBusinessDetailsController.addressLong?.value=double.parse(locationData.long);
+    }
   }
 
 

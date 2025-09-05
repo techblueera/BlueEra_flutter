@@ -24,7 +24,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 class CommonVideoCard extends StatelessWidget {
   final Widget mainContent; // AspectRatio part (thumbnail OR autoplay video)
   final ShortFeedItem videoItem;
-  final Videos videoType;
+  final VideoType videoType;
   final VoidCallback onTapOption;
   final VoidCallback? onTapCard;
 
@@ -51,7 +51,7 @@ class CommonVideoCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        if (videoType == Videos.underProgress) return;
+        if (videoType == VideoType.underProgress) return;
         if (onTapCard != null) {
           onTapCard!();
         }

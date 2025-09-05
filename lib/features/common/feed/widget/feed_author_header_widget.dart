@@ -20,7 +20,7 @@ import '../../../../core/constants/shared_preference_utils.dart';
 class PostAuthorHeader extends StatelessWidget {
   final Post? post;
   final String authorId;
-  final PostType postFilteredType;
+  final PostType postType;
   final VoidCallback? onTapAvatar;
   final VoidCallback? onTapOptions;
   final String? postedAgo;
@@ -29,7 +29,7 @@ class PostAuthorHeader extends StatelessWidget {
     super.key,
     required this.post,
     required this.authorId,
-    required this.postFilteredType,
+    required this.postType,
     this.onTapAvatar,
     this.onTapOptions,
     this.postedAgo,
@@ -43,12 +43,15 @@ class PostAuthorHeader extends StatelessWidget {
         : post?.user?.businessName ?? '';
 
     String designation = (post?.user?.accountType == AppConstants.individual)
-        ? post?.user?.designation ?? "OTHERS"
+        ?
+    post?.user?.designation ?? "OTHERS"
+
         : post?.user?.businessCategory ?? '';
+
 
     String id = (post?.user?.accountType == AppConstants.individual)
         ? authorId
-        : post?.user?.business_id ?? '';
+        : post?.user?.business_id??'';
 
     return Padding(
       padding: EdgeInsets.only(
@@ -63,9 +66,9 @@ class PostAuthorHeader extends StatelessWidget {
             child: InkWell(
               onTap: () {
                 if (((authorId == userId) ||
-                        (post?.user?.business_id == businessId)) &&
-                    (postFilteredType == PostType.myPosts ||
-                        postFilteredType == PostType.saved)) {
+                    (post?.user?.business_id == businessId)) &&
+                    (postType == PostType.myPosts ||
+                        postType == PostType.saved)) {
                   return;
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
@@ -93,13 +96,15 @@ class PostAuthorHeader extends StatelessWidget {
                   subtitle: designation,
                   avatarSize: SizeConfig.size42,
                   borderColor: AppColors.primaryColor,
-                  postedAgo: postedAgo),
+                  postedAgo: postedAgo
+              ),
             ),
           ),
-          if (post?.user?.accountType == AppConstants.individual)
-            if (id != userId)
+
+          if(post?.user?.accountType == AppConstants.individual)
+            if(id != userId)
               IconButton(
-                onPressed: () {
+                onPressed:(){
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else {
@@ -111,7 +116,7 @@ class PostAuthorHeader extends StatelessWidget {
             else
               FeedPopUpMenu(
                 post: post ?? Post(id: ''),
-                postFilteredType: postFilteredType,
+                postFilteredType: postType,
               )
           else if (post?.user?.accountType == AppConstants.business)
             if (id != businessId)
@@ -128,35 +133,33 @@ class PostAuthorHeader extends StatelessWidget {
             else
               FeedPopUpMenu(
                   post: post ?? Post(id: ''),
-                  postFilteredType: postFilteredType)
+                  postFilteredType: postType
+              )
+
         ],
       ),
     );
   }
 
-  void blockReportUserPopUp() {
+  void blockReportUserPopUp(){
     openBlockSelectionDialog(
-        context: Get.context!,
-        userId: authorId,
-        contentId: post?.id ?? '',
-        reportType: 'POST',
-        userBlockVoidCallback: () {
-          if (isGuestUser()) {
-            createProfileScreen();
-
-            return;
-          }
-          Get.find<FeedController>().userBlocked(
-              otherUserId: post?.authorId ?? '', type: postFilteredType);
-        },
-        reportCallback: (params) {
-          if (isGuestUser()) {
-            createProfileScreen();
-
-            return;
-          }
-          Get.find<FeedController>().postReport(
-              postId: post?.id ?? '', type: postFilteredType, params: params);
-        });
+      context: Get.context!,
+      userId: authorId,
+      contentId: post?.id??'',
+      reportType: 'POST',
+      userBlockVoidCallback: () {
+        Get.find<FeedController>().userBlocked(
+            otherUserId: post?.authorId??'',
+            type: postType
+        );
+      },
+      reportCallback: (params) async {
+        Get.find<FeedController>().postReport(
+            postId: post?.id??'',
+            type: postType,
+            params: params
+        );
+      }
+    );
   }
 }

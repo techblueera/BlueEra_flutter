@@ -26,7 +26,7 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
   VideoPlayerController? _controller;
   String _videoPath = '';
   Duration? _videoDuration;
-  VideoType videoType = VideoType.short;
+  Video videoType = Video.short;
 
   @override
   void initState() {
@@ -95,10 +95,10 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
 
     if (aspectRatio >= 1.5) {
       // Roughly 16:9 or wider
-      videoType = VideoType.video; // long video
+      videoType = Video.video; // long video
     } else {
       // Roughly vertical (e.g., 9:16)
-      videoType = VideoType.short;
+      videoType = Video.short;
     }
     log("videoType --> $videoType");
     setState(() {});
@@ -167,7 +167,7 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
             right: SizeConfig.size20,
             child: CustomBtn(
               onTap: () async {
-                if (videoType == VideoType.short && (_videoDuration?.inSeconds ?? 0) > 600) {
+                if (videoType == Video.short && (_videoDuration?.inSeconds ?? 0) > 600) {
                   await showCommonDialog(
                     context: context,
                     text: "The selected video is longer than 600 seconds.",

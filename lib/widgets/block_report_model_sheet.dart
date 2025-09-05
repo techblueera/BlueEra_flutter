@@ -76,6 +76,7 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
                 Get.back();
                 showDialog(
                   context: context,
+                  barrierDismissible: false,
                   builder: (BuildContext context) {
                     return Dialog(
                       insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),

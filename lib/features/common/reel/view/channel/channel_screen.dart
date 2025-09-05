@@ -279,12 +279,12 @@ class _ChannelScreenState extends State<ChannelScreen> {
     };
   }
 
-  Videos _getVideosType() {
+  VideoType _getVideosType() {
     return switch (channelController.selectedFilter) {
-      SortBy.Latest => Videos.latest,
-      SortBy.Popular => Videos.popular,
-      SortBy.Oldest => Videos.oldest,
-      SortBy.UnderProgress => Videos.underProgress,
+      SortBy.Latest => VideoType.latest,
+      SortBy.Popular => VideoType.popular,
+      SortBy.Oldest => VideoType.oldest,
+      SortBy.UnderProgress => VideoType.underProgress,
     };
   }
 

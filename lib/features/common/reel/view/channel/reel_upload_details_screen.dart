@@ -34,11 +34,11 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
-enum VideoType { video, short }
+enum Video { video, short }
 
 class ReelUploadDetailsScreen extends StatefulWidget {
   final String videoPath;
-  final VideoType videoType;
+  final Video videoType;
   final String? videoId;
   final PostVia? postVia;
   const ReelUploadDetailsScreen({super.key, required this.videoPath, required this.videoType, required this.videoId, this.postVia});
@@ -237,15 +237,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           children: [
                             Builder(builder: (context) {
                               final height = (widget.videoType ==
-                                  VideoType.video)
+                                  Video.video)
                                   ? SizeConfig.size220
                                   : SizeConfig.size250;
                               final width = (widget.videoType ==
-                                  VideoType.video)
+                                  Video.video)
                                   ? SizeConfig.size320
                                   : SizeConfig.size180;
                               final addBtnWidth = (widget.videoType ==
-                                  VideoType.video)
+                                  Video.video)
                                   ? SizeConfig.size220
                                   : SizeConfig.size140;
                               return Stack(
@@ -331,7 +331,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.size20),
 
-                      if (widget.videoType == VideoType.video) ...[
+                      if (widget.videoType == Video.video) ...[
                         CommonTextField(
                           textEditController: _videoTitle,
                           maxLength: 50,
@@ -383,7 +383,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           autovalidateMode: _autoValidate,
                         ),
                       ],
-                      if (widget.videoType == VideoType.short) ...[
+                      if (widget.videoType == Video.short) ...[
                         CommonTextField(
                           textEditController: _shortDescription,
                           maxLength: 120,
@@ -466,7 +466,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                       ),
 
 
-                      if (widget.videoType == VideoType.short) ...[
+                      if (widget.videoType == Video.short) ...[
                         SizedBox(height: SizeConfig.size20),
                         _optionTile(
                           icon: "assets/svg/music_icon.svg",
@@ -1156,7 +1156,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   void selectImage(BuildContext context) async {
     final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
         context,
-        cropAspectRatio: (widget.videoType == VideoType.video)
+        cropAspectRatio: (widget.videoType == Video.video)
             ? CropAspectRatio(width: 16, height: 9)
             : CropAspectRatio(width: 9, height: 16));
     if (croppedPath != null) {
@@ -1369,7 +1369,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           ApiKeys.isBrandPromotion: _isBrandPromotion,
         };
 
-        if (widget.videoType == VideoType.video) {
+        if (widget.videoType == Video.video) {
           baseData.addAll({
             ApiKeys.type: 'long',
             ApiKeys.title: _videoTitle.text,
@@ -1479,7 +1479,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   Future<void> updateVideoDetails() async {
     Map<String, dynamic> requestData = {};
 
-    if (widget.videoType == VideoType.video) {
+    if (widget.videoType == Video.video) {
       requestData = {
         ApiKeys.type: 'long',
         ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile

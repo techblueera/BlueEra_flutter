@@ -271,7 +271,7 @@ class _ReportDialogState extends State<ReportDialog> {
                           ApiKeys.reportedTo: widget.otherUserId,
                         };
 
-                        Navigator.pop(context);
+
                         widget.reportCallback(params);
                       }
                     },

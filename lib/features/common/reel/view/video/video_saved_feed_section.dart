@@ -122,16 +122,20 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
                   contentId: videoFeedItem.video?.id??'',
                   userBlockVoidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
-                      videoType: Videos.saved,
+                      videoType: VideoType.saved,
                       otherUserId: videoFeedItem.video?.userId??'',
                     );
                   },
                   reportCallback: (params){
-
+                    Get.find<VideoController>().videoPostReport(
+                        videoId: videoFeedItem.video?.id??'',
+                        videoType: VideoType.saved,
+                        params: params
+                    );
                   }
               );
             },
-            videoType: Videos.saved,
+            videoType: VideoType.saved,
           );
 
         },

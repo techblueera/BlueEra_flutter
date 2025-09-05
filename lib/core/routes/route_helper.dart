@@ -375,7 +375,7 @@ class RouteHelper {
       case RouteConstant.CreateReelScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final videoPath = args[ApiKeys.videoPath] as String;
-        final videoType = args[ApiKeys.videoType] as VideoType;
+        final videoType = args[ApiKeys.videoType] as Video;
         final videoId = args[ApiKeys.videoId] as String?;
         final argPostVia = args[ApiKeys.argPostVia] as PostVia?;
         return MaterialPageRoute(
@@ -604,8 +604,12 @@ class RouteHelper {
       case RouteConstant.videoPlayerScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
+        final videoType = args[ApiKeys.videoType] as VideoType;
         return MaterialPageRoute(
-          builder: (_) => VideoPlayerScreen(videoItem: videoItem),
+          builder: (_) => VideoPlayerScreen(
+            videoItem: videoItem,
+              videoType: videoType
+          ),
         );
       case RouteConstant.journeyPlanningScreen:
         return MaterialPageRoute(

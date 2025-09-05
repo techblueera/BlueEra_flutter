@@ -35,6 +35,7 @@ class VideoController extends GetxController{
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
   ApiResponse videoViewResponse = ApiResponse.initial('Initial');
+  ApiResponse reportVideoPostResponse = ApiResponse.initial('Initial');
 
   RxList<ShortFeedItem> videoFeedPosts = <ShortFeedItem>[].obs;
   ShortFeedItem? videoFeedItem;
@@ -165,7 +166,6 @@ class VideoController extends GetxController{
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      log('error--> $e');
       log('error--> $s');
       videoPostsResponse.value =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -336,7 +336,7 @@ class VideoController extends GetxController{
 
   /// GET CHANNEL VIDEOS (LATEST, POPULAR, OLDEST, etc.)
   Future<void> getVideosByType(
-      Videos videos,
+      VideoType videos,
       String channelOrUserId,
       String authorId,
       bool isOwnVideos, {
@@ -345,7 +345,7 @@ class VideoController extends GetxController{
         PostVia? postVia,
       }) async {
     switch (videos) {
-      case Videos.latest:
+      case VideoType.latest:
         await _fetchVideos(
           videos: videos,
           page: latestVideosPage,
@@ -363,7 +363,7 @@ class VideoController extends GetxController{
         );
         break;
 
-      case Videos.popular:
+      case VideoType.popular:
         await _fetchVideos(
           videos: videos,
           page: popularVideosPage,
@@ -381,7 +381,7 @@ class VideoController extends GetxController{
         );
         break;
 
-      case Videos.oldest:
+      case VideoType.oldest:
         await _fetchVideos(
           videos: videos,
           page: oldestVideosPage,
@@ -399,7 +399,7 @@ class VideoController extends GetxController{
         );
         break;
 
-      case Videos.underProgress:
+      case VideoType.underProgress:
         await _fetchVideos(
           videos: videos,
           page: underProgressVideosPage,
@@ -440,7 +440,7 @@ class VideoController extends GetxController{
 
   /// Utility to get post list by type
   Future<void> _fetchVideos({
-    required Videos? videos,
+    required VideoType? videos,
     required int page,
     required bool isInitialLoad,
     required RxList<ShortFeedItem> targetList,
@@ -471,10 +471,10 @@ class VideoController extends GetxController{
 
       ResponseModel response;
       if(postVia == PostVia.channel || postVia == PostVia.profile) {
-        if (videos == Videos.latest || videos == Videos.popular || videos == Videos.oldest) {
+        if (videos == VideoType.latest || videos == VideoType.popular || videos == VideoType.oldest) {
           params[ApiKeys.sortBy] = videos!.queryValue;
           params[ApiKeys.status] = VideoStatus.published.queryValue;
-        } else if (videos == Videos.underProgress) {
+        } else if (videos == VideoType.underProgress) {
           params[ApiKeys.status] = VideoStatus.processing.queryValue;
         } else {
           params[ApiKeys.status] = VideoStatus.draft.queryValue;
@@ -526,51 +526,51 @@ class VideoController extends GetxController{
     }
   }
 
-  RxBool isInitialLoading(Videos videos) {
+  RxBool isInitialLoading(VideoType videos) {
     switch (videos) {
-      case Videos.latest:
+      case VideoType.latest:
         return isLatestVideosLoading;
-      case Videos.popular:
+      case VideoType.popular:
         return isPopularVideosLoading;
-      case Videos.oldest:
+      case VideoType.oldest:
         return isOldestVideosLoading;
-      case Videos.underProgress:
+      case VideoType.underProgress:
         return isUnderProgressVideosLoading;
-      case Videos.draft:
+      case VideoType.draft:
         return isDraftVideosLoading;
       default:
         return false.obs; // fallback for videoFeed, saved
     }
   }
 
-  bool isHasMoreData(Videos videos) {
+  bool isHasMoreData(VideoType videos) {
     switch (videos) {
-      case Videos.latest:
+      case VideoType.latest:
         return isLatestVideosHasMoreData;
-      case Videos.popular:
+      case VideoType.popular:
         return isPopularVideosHasMoreData;
-      case Videos.oldest:
+      case VideoType.oldest:
         return isOldestVideosHasMoreData;
-      case Videos.underProgress:
+      case VideoType.underProgress:
         return isUnderProgressVideosHasMoreData;
-      case Videos.draft:
+      case VideoType.draft:
         return isDraftVideosHasMoreData;
       default:
         return false; // for videoFeed, saved
     }
   }
 
-  RxBool isMoreDataLoading(Videos videos) {
+  RxBool isMoreDataLoading(VideoType videos) {
     switch (videos) {
-      case Videos.latest:
+      case VideoType.latest:
         return isLatestVideosMoreDataLoading;
-      case Videos.popular:
+      case VideoType.popular:
         return isPopularVideosMoreDataLoading;
-      case Videos.oldest:
+      case VideoType.oldest:
         return isOldestVideosMoreDataLoading;
-      case Videos.underProgress:
+      case VideoType.underProgress:
         return isUnderProgressVideosMoreDataLoading;
-      case Videos.draft:
+      case VideoType.draft:
         return isDraftVideosMoreDataLoading;
       default:
         return false.obs; // fallback for videoFeed, saved
@@ -579,32 +579,32 @@ class VideoController extends GetxController{
 
 
   /// Utility to get post list by type
-  RxList<ShortFeedItem> getListByType({required Videos videoType}) {
+  RxList<ShortFeedItem> getListByType({required VideoType videoType}) {
     switch (videoType) {
-      case Videos.videoFeed:
+      case VideoType.videoFeed:
         return videoFeedPosts;
-      case Videos.saved:
+      case VideoType.saved:
         return savedVideos;
-      case Videos.latest:
+      case VideoType.latest:
         return latestVideosPosts;
-      case Videos.popular:
+      case VideoType.popular:
         return popularVideosPosts;
-      case Videos.oldest:
+      case VideoType.oldest:
         return oldestVideosPosts;
-      case Videos.underProgress:
+      case VideoType.underProgress:
         return underProgressVideosPosts;
-      case Videos.draft:
+      case VideoType.draft:
         return draftVideosPosts;
     }
   }
 
   /// Delete Video
-  Future<void> videoDelete({required Videos video, required String videoId}) async {
+  Future<void> videoDelete({required VideoType video, required String videoId}) async {
     final list = getListByType(videoType: video);
     final index = list.indexWhere((v) => v.video?.id == videoId);
 
       try {
-        if (video == Videos.saved) {
+        if (video == VideoType.saved) {
           await HiveServices().deleteVideoById(videoId);
         } else {
           final response = await ChannelRepo().deleteVideo(videoId: videoId);
@@ -623,7 +623,7 @@ class VideoController extends GetxController{
     }
 
   ///USER BLOCK...
-  Future<void> userBlocked({required Videos videoType,required String otherUserId}) async {
+  Future<void> userBlocked({required VideoType videoType,required String otherUserId}) async {
     final list = getListByType(videoType: videoType);
 
     try {
@@ -657,12 +657,12 @@ class VideoController extends GetxController{
   }
 
   ///VIDEO POST REPOST...
-  Future<void> postReport({
-    required Videos videos,
+  Future<void> videoPostReport({
+    required VideoType videoType,
     required String videoId,
     required Map<String, dynamic> params
   }) async {
-    final list = getListByType(videoType: videos);
+    final list = getListByType(videoType: videoType);
     final index = list.indexWhere((v) => v.video?.id == videoId);
 
     try {
@@ -670,7 +670,7 @@ class VideoController extends GetxController{
       final response = await AuthRepo().report(params: params);
 
       if (response.isSuccess) {
-        blockUserResponse = ApiResponse.complete(response);
+        reportVideoPostResponse = ApiResponse.complete(response);
         if (index != -1) list.removeAt(index);
         showDialog(
             context: Get.context!,
@@ -689,11 +689,11 @@ class VideoController extends GetxController{
             ));
 
       } else {
-        blockUserResponse =  ApiResponse.error('error');
+        reportVideoPostResponse =  ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      blockUserResponse =  ApiResponse.error('error');
+      reportVideoPostResponse =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
     }
@@ -702,12 +702,12 @@ class VideoController extends GetxController{
 
   ///UPDATE VIDEO Thumbnail...
   Future<void> updateVideoThumbnail({
-    required Videos videos,
+    required VideoType videoType,
     required String videoId,
     required String thumbnail,
   }) async {
     final reelUploadDetailsController = Get.put(ReelUploadDetailsController());
-    final list = getListByType(videoType: videos);
+    final list = getListByType(videoType: videoType);
     final index = list.indexWhere((v) => v.video?.id == videoId);
 
     try {

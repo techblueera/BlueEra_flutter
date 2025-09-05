@@ -38,7 +38,7 @@ class VideoChannelSection extends StatefulWidget {
 
 class _VideoChannelSectionState extends State<VideoChannelSection> {
   final VideoController videosController = Get.put<VideoController>(VideoController());
-  Videos videos = Videos.latest;
+  VideoType videos = VideoType.latest;
 
   @override
   void initState() {
@@ -60,11 +60,11 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
   setVideosType(){
     videos = switch (widget.sortBy) {
-      SortBy.Latest       => Videos.latest,
-      SortBy.Popular      => Videos.popular,
-      SortBy.Oldest       => Videos.oldest,
-      SortBy.UnderProgress=> Videos.underProgress,
-      null                => Videos.latest, // default for null
+      SortBy.Latest       => VideoType.latest,
+      SortBy.Popular      => VideoType.popular,
+      SortBy.Oldest       => VideoType.oldest,
+      SortBy.UnderProgress=> VideoType.underProgress,
+      null                => VideoType.latest, // default for null
     };
   }
 
@@ -148,7 +148,11 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
                       );
                     },
                       reportCallback: (params){
-
+                        Get.find<VideoController>().videoPostReport(
+                            videoId: videoFeedItem.video?.id??'',
+                            videoType: videos,
+                            params: params
+                        );
                       }
                   );
                 },

@@ -10,6 +10,7 @@ import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
 import 'package:get/get.dart';
+
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:mappls_gl/mappls_gl.dart';
@@ -35,6 +36,7 @@ class MessageCard extends StatefulWidget {
       this.name,
       required this.isInitialMessage,
       this.contactNo});
+
   final Messages message;
   final String? conversationId;
   final String? userId;
@@ -56,6 +58,7 @@ class _MessageCardState extends State<MessageCard>
   final chatViewController = Get.find<ChatViewController>();
 
   final chatThemeController = Get.find<ChatThemeController>();
+
   @override
   void initState() {
     super.initState();
@@ -328,9 +331,7 @@ class _MessageCardState extends State<MessageCard>
                           child: Stack(
                             children: [
                               MapplsMap(
-                                onMapCreated:
-                                    (MapplsMapController controller) async {
-                                  mapController = controller;
+                                onStyleLoadedCallback: () async {
                                   if (_currentPosition.latitude != 0.0 &&
                                       _currentPosition.longitude != 0.0) {
                                     await mapController?.addSymbol(
@@ -342,6 +343,10 @@ class _MessageCardState extends State<MessageCard>
                                     );
                                     setState(() {});
                                   }
+                                },
+                                onMapCreated:
+                                    (MapplsMapController controller) async {
+                                  mapController = controller;
                                 },
                                 initialCameraPosition: CameraPosition(
                                   target: _currentPosition,

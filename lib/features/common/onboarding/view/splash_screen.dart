@@ -53,6 +53,7 @@ import 'package:permission_handler/permission_handler.dart';
 
       // ✅ Check if app was updated
       final logoutRequired = await _shouldLogoutAfterUpdate();
+      log('logout required--> $logoutRequired');
 
       Timer(const Duration(seconds: 2), () async {
         if (logoutRequired) {
