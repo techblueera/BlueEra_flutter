@@ -415,7 +415,6 @@ abstract class BaseService {
   final String userFeedReport = "userfeed-service/report/add-reports";
   final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
-  final String userFeedReport = "userfeed-service/report/add-reports";
   final String socialLinksUpdate = "channel-service/channels/social-links/";
 
 }

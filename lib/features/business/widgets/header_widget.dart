@@ -113,8 +113,8 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                       InkWell(
                         onTap: () async {
                           final link = profileDeepLink(userId: widget.userId);
-                          final message =
-                              "Check out this business on BlueEra:\n$link\n}";
+
+                          final message = "See my profile on BlueEra:\n$link\n";
                           await SharePlus.instance.share(ShareParams(
                             text: message,
                             subject: widget.businessName,

@@ -59,7 +59,7 @@ class _PersonalProfileSetupScreenState
   List<String> postTab = [];
   int selectedIndex = 0;
   List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.UnderProgress;
+  SortBy selectedFilter = SortBy.Latest;
 
   @override
   void initState() {
@@ -73,10 +73,9 @@ class _PersonalProfileSetupScreenState
     super.didChangeDependencies();
   }
 
+
   setFilters() {
-    filters = SortBy.values
-        .where((e) => e == SortBy.Latest || e == SortBy.UnderProgress)
-        .toList();
+    filters = SortBy.values.toList();
   }
 
   Future<void> _loadInitialData() async {
