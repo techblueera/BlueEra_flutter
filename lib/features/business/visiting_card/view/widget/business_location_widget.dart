@@ -11,12 +11,14 @@ class BusinessLocationWidget extends StatefulWidget {
   final double longitude;
   final String businessName;
   final bool isTitleShow;
+  final String? locationText;
 
   const BusinessLocationWidget(
       {super.key,
       required this.latitude,
       required this.longitude,
       required this.businessName,
+        this.locationText,
       this.isTitleShow = true});
 
   @override
@@ -37,79 +39,85 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
     setState(() {});
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.isTitleShow)
-            CustomText(
-              "Business Location",
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          SizedBox(height: 15),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            // Adjust border radius here
-            child: SizedBox(
-              width: double.infinity,
-              height: 180, // ✅ Set a fixed height (adjust as needed)
-              child: Stack(
-                children: [
-                  MapplsMap(
-                    onMapCreated: (controller) => _onMapCreated(controller),
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.latitude, widget.longitude),
-                      zoom: 14.0,
-                    ),
-                    myLocationEnabled: false,
-                    compassEnabled: false,
-                    rotateGesturesEnabled: true,
-                    tiltGesturesEnabled: true,
-                    zoomGesturesEnabled: true,
-                    scrollGesturesEnabled: true,
-                  ),
-                  Positioned(
-                    right: SizeConfig.size10,
-                    bottom: SizeConfig.size10,
-                    child: InkWell(
-                      onTap: () async {
-                       logs("TTTTT");
-    final Uri googleMapUrl = Uri.parse(
-        "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
 
-    if (await canLaunchUrl(googleMapUrl)) {
-      await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
-    } else {
-      throw "Could not open Google Maps";
-    }
-                      },
-                      child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(5)),
-                          height: SizeConfig.size40,
-                          width: SizeConfig.size40,
-                          child: Icon(
-                            Icons.directions,
-                            color: AppColors.white,
-                          )),
-                    ),
-                  )
-                ],
-              ),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+      ),
+      elevation: SizeConfig.size4,
+      color: AppColors.white,
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on_outlined,
+                    color: AppColors.black1A),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                    child: CustomText(
+                      widget.locationText,
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.black1A,
+                    )),
+              ],
             ),
-          ),
-        ],
+            SizedBox(height: SizeConfig.size10),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(SizeConfig.size12),
+                  child: Image.asset(
+                    "assets/images/map.jpeg",
+                    height: SizeConfig.size180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final Uri googleMapUrl = Uri.parse(
+                          "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
+
+                      if (await canLaunchUrl(googleMapUrl)) {
+                      await launchUrl(googleMapUrl,
+                      mode: LaunchMode.externalApplication);
+                      } else {
+                      throw "Could not open Google Maps";
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(SizeConfig.size12),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.blueDF, width: 2),
+                      ),
+                      child: Transform.rotate(
+                        angle: -0.6,
+                        child: const Icon(
+                          Icons.send_outlined,
+                          color: AppColors.blueDF,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
+
   }
 }

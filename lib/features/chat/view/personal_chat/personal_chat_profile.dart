@@ -35,6 +35,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:readmore/readmore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
@@ -205,7 +206,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Column(
                   children: [
@@ -221,12 +222,14 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                             image: NetworkImage(user?.profileImage ?? ""),
                           )),
                     ),
-                    CustomText(
-                      "View Channel",
-                      color: AppColors.skyBlueDF,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColors.skyBlueDF,
+                    CustomBtn(
+                      onTap: () {},
+                      title: "Follow",
+                      fontWeight: FontWeight.bold,
+                      height: SizeConfig.size24,
+                      bgColor: AppColors.skyBlueDF,
+                      width: SizeConfig.size60,
+                      radius: SizeConfig.size5,
                     ),
                   ],
                 ),
@@ -243,7 +246,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                             child: Row(
                               children: [
                                 Container(
-                                   width: 80,
+                                  width: 80,
                                   child: CustomText(
                                     user?.name ?? "",
                                     maxLines: 1,
@@ -265,28 +268,91 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           SizedBox(
                             width: SizeConfig.size10,
                           ),
-                          CustomBtn(
-                            onTap: () {},
-                            title: "Follow",
-                            fontWeight: FontWeight.bold,
-                            height: SizeConfig.size24,
-                            bgColor: AppColors.skyBlueDF,
-                            width: SizeConfig.size60,
-                            radius: SizeConfig.size12,
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size4,
-                          ),
-                          Icon(Icons.more_vert)
+
+                          // CustomBtn(
+                          //   onTap: () {},
+                          //   title: "Follow",
+                          //   fontWeight: FontWeight.bold,
+                          //   height: SizeConfig.size24,
+                          //   bgColor: AppColors.skyBlueDF,
+                          //   width: SizeConfig.size60,
+                          //   radius: SizeConfig.size12,
+                          // ),
+                          // SizedBox(
+                          //   width: SizeConfig.size4,
+                          // ),
+                          // Icon(Icons.more_vert),
+
+                          PopupMenuButton(
+                              onSelected: (value) {},
+                              itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                        value: 1, child: CustomText("Share")),
+                                    PopupMenuItem(
+                                        value: 2, child: CustomText("Mute")),
+                                    PopupMenuItem(
+                                        value: 3, child: CustomText("Block"))
+                                  ])
                         ],
                       ),
-                      SizedBox(height: SizeConfig.size1),
-                      CustomText(
-                        user?.contactNo ?? '',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+
+                      // SizedBox(height: SizeConfig.),
+                      // CustomText(
+                      //   user?.contactNo ?? '',
+                      //   fontWeight: FontWeight.bold,
+                      //   fontSize: 14,
+                      // ),
+                      InkWell(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return buildProfilePopup(
+                                  contact: user?.contactNo ?? "",
+                                  dob:
+                                      "${user?.dateOfBirth?.month ?? ""},${user?.dateOfBirth?.date ?? ""}",
+                                  email: user?.email ?? "",
+                                  location:
+                                      "${user?.userLocation?.lat ?? ""},${user?.userLocation?.lon ?? ""}",
+                                  channel: user?.accountType ?? "",
+                                  designation: user?.designation ?? "",
+                                  name: user?.name ?? "");
+                            },
+                          );
+                        },
+                        child: CustomText(
+                          "Personal Details",
+                          color: AppColors.skyBlueDF,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.skyBlueDF,
+                        ),
                       ),
-                      SizedBox(height: SizeConfig.size6),
+                      SizedBox(
+                        height: SizeConfig.small,
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today,
+                              size: SizeConfig.size16, color: AppColors.black),
+                          SizedBox(width: SizeConfig.size1),
+                          CustomText(
+                            "Join US: ",
+                            overflow: TextOverflow.ellipsis,
+                            color: AppColors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          Expanded(
+                            child: CustomText(
+                              "${user?.dateOfBirth?.date ?? ""} ${getMonthNameFromMonth(user?.dateOfBirth?.month ?? 0)},${user?.dateOfBirth?.year ?? ""}",
+                              overflow: TextOverflow.ellipsis,
+                              color: AppColors.black,
+                            ),
+                          )
+                        ],
+                      ),
+
+                      SizedBox(height: SizeConfig.size10),
                       Row(
                         children: [
                           _buildTag(user?.username ?? ""),
@@ -297,84 +363,43 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                       SizedBox(
                         height: SizeConfig.size8,
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Icon(Icons.location_on_outlined,
-                                    size: SizeConfig.size16,
-                                    color: AppColors.black),
-                                SizedBox(width: SizeConfig.size1),
-                                Expanded(
-                                  child: CustomText(
-                                    user?.location ?? "",
-                                    overflow: TextOverflow.ellipsis,
-                                    color: AppColors.black,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size8,
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Icon(Icons.calendar_today,
-                                    size: SizeConfig.size16,
-                                    color: AppColors.black),
-                                SizedBox(width: SizeConfig.size1),
-                                Expanded(
-                                  child: CustomText(
-                                    "${user?.dateOfBirth?.date} ${getMonthNameFromMonth(user?.dateOfBirth?.month ?? 0)},${user?.dateOfBirth?.year}",
-                                    overflow: TextOverflow.ellipsis,
-                                    color: AppColors.black,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size8,
-                      ),
+
+                      // SizedBox(
+                      //   height: SizeConfig.size8,
+                      // ),
                       Row(
                         children: [
-                          RichText(
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              text: TextSpan(
-                                  text:
-                                      "${viewProfileController.postsCount.value} ",
-                                  style: TextStyle(
-                                    color: AppColors.black,
-                                    fontSize: 16,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                        text: "Posts",
-                                        style: TextStyle(
-                                            color: AppColors.coloGreyText))
-                                  ])),
-                          SizedBox(
-                            height: SizeConfig.size20,
-                            child: VerticalDivider(
-                              width: SizeConfig.size14,
-                              color: AppColors.borderGray,
-                              thickness: 1,
-                            ),
-                          ),
+                          // RichText(
+                          //     maxLines: 1,
+                          //     overflow: TextOverflow.ellipsis,
+                          //     text: TextSpan(
+                          //         text:
+                          //             "${viewProfileController.postsCount.value} ",
+                          //         style: TextStyle(
+                          //           color: AppColors.black,
+                          //           fontSize: 16,
+                          //         ),
+                          //         children: [
+                          //           TextSpan(
+                          //               text: "Posts",
+                          //               style: TextStyle(
+                          //                   color: AppColors.coloGreyText))
+                          //         ])),
+                          // SizedBox(
+                          //   height: SizeConfig.size20,
+                          //   child: VerticalDivider(
+                          //     width: SizeConfig.size14,
+                          //     color: AppColors.borderGray,
+                          //     thickness: 1,
+                          //   ),
+                          // ),
                           Expanded(
                             child: RichText(
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 text: TextSpan(
                                     text:
-                                        "${controller.userData.value?.followersCount.toString()} ",
+                                        "${(controller.userData.value?.followersCount ?? "").toString()} ",
                                     style: TextStyle(
                                       color: AppColors.black,
                                       fontSize: 16,
@@ -400,7 +425,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                 overflow: TextOverflow.ellipsis,
                                 text: TextSpan(
                                     text:
-                                        "${controller.userData.value?.followersCount.toString()} ",
+                                        "${(controller.userData.value?.followersCount ?? "").toString()} ",
                                     style: TextStyle(
                                       color: AppColors.black,
                                       fontSize: 16,
@@ -444,6 +469,158 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     );
   }
 
+  _launchUrl(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  Widget buildProfilePopup(
+      {required String contact,
+      required String email,
+      required String dob,
+      required String location,
+      required String channel,
+      required String name,
+      required String designation}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          children: [
+            Center(
+              child: Card(
+                elevation: 10,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          InkWell(
+                              onTap: () => Get.back(),
+                              child: Icon(Icons.close)),
+                        ],
+                      ),
+                      Text(
+                        designation,
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                      Divider(thickness: 2, height: 30, color: Colors.grey),
+                      buildInfoRow(
+                        Icons.phone,
+                        'Contact',
+                        contact,
+                        "tel:$contact",
+                      ),
+                      const SizedBox(height: 20), // Spacer
+                      buildInfoRow(
+                        Icons.email,
+                        'Email',
+                        email,
+                        Uri(
+                          scheme: 'mailto',
+                          path: 'smith@example.com',
+                          queryParameters: {
+                            'subject': 'Example Subject & Symbols are allowed!',
+                          },
+                        ).toString(),
+                      ),
+                      const SizedBox(height: 20), // Spacer
+                      buildInfoRow(Icons.cake, 'Birth Day', dob, ""),
+                      const SizedBox(height: 20), // Spacer
+                      buildInfoRow(
+                        Icons.location_on,
+                        'Location',
+                        'Lucknow, Utter Pradesh',
+                        "https://www.google.com/maps/search/?api=1&query=${location}'",
+                      ),
+                      const SizedBox(height: 20), // Spacer
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Icon(Icons.video_call_outlined),
+                          SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "View Channel",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                channel,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildInfoRow(IconData icon, String label, String value, String url) {
+    return InkWell(
+      onTap: () {
+        _launchUrl(url);
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(icon),
+          SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+              SizedBox(height: 2),
+              Text(value),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTag(
     String text, {
     Color borderColor = AppColors.greyA5,
@@ -468,7 +645,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     required int selectedIndex,
     required Function(int) onTabSelected,
   }) {
-    final tabs = ["Overview", "Product", "Reviews", "Post", "Jobs"];
+    final tabs = ["Overview", "Reviews", "Post", "Jobs"];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -522,7 +699,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               CustomText(
-                "Rating Summary",
+                "Testimonial Summary",
                 fontSize: SizeConfig.size20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.black,
@@ -544,23 +721,26 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            RatingBar.builder(
-                              initialRating: rating,
-                              minRating: 1,
-                              direction: Axis.horizontal,
-                              allowHalfRating: false,
-                              itemCount: 5,
-                              itemSize: 36,
-                              unratedColor: Colors.grey.shade400,
-                              itemBuilder: (context, _) => const Icon(
-                                Icons.star,
-                                color: Colors.amber,
+                            AbsorbPointer(
+                              absorbing: true,
+                              child: RatingBar.builder(
+                                initialRating: rating,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: false,
+                                itemCount: 5,
+                                itemSize: 36,
+                                unratedColor: Colors.grey.shade400,
+                                itemBuilder: (context, _) => const Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                                onRatingUpdate: (rate) {},
                               ),
-                              onRatingUpdate: (rate) {},
                             ),
                             SizedBox(height: SizeConfig.size4),
                             CustomText(
-                              "${totalReviews.toString()} Reviews",
+                              "${(totalReviews ?? "").toString()} Reviews",
                               fontSize: SizeConfig.size14,
                               color: AppColors.coloGreyText,
                             ),
@@ -645,6 +825,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
   Widget buildTestimonialsCard() {
     return TestimonialListingWidget(userId: userId);
+    // return Text("userId: userId");
   }
 
   Widget buildPostCard() {
@@ -693,86 +874,86 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                       children: [
                         CustomText(
                           "Top 10 AI Tools You Should Know in 2025",
-                          fontSize: SizeConfig.size16,
+                          fontSize: SizeConfig.size14,
                           fontWeight: FontWeight.bold,
                         ),
                         SizedBox(height: SizeConfig.size4),
                         CustomText(
                           "Stay Ahead with These Game-Changing AI Tools",
-                          fontSize: SizeConfig.size14,
+                          fontSize: SizeConfig.size12,
                           color: AppColors.coloGreyText,
                         ),
-                        SizedBox(height: SizeConfig.size10),
-                        TextField(
-                          decoration: InputDecoration(
-                            hintText: "Your Comment.....",
-                            fillColor: AppColors.whiteF3,
-                            filled: true,
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size12,
-                                vertical: SizeConfig.size10),
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(SizeConfig.size12),
-                              borderSide:
-                                  BorderSide(color: AppColors.coloGreyText),
-                            ),
-                          ),
-                        ),
+                        // SizedBox(height: SizeConfig.size10),
                       ],
                     ),
                   ),
-                  SizedBox(height: SizeConfig.size12),
-                  Divider(
-                    endIndent: SizeConfig.size16,
-                    indent: SizeConfig.size16,
-                    height: 8,
-                    color: AppColors.greyA5,
-                    thickness: 1,
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size16,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Row(
-                        children: const [
-                          CustomText("5K+"),
-                          SizedBox(width: 6),
-                          Icon(Icons.thumb_up_alt, color: AppColors.skyBlueDF),
-                        ],
-                      ),
-                      SizedBox(
-                          height: SizeConfig.size24,
-                          child: VerticalDivider(
-                            color: AppColors.coloGreyText,
-                            width: 2,
-                            thickness: 1,
-                          )),
-                      Row(
-                        children: const [
-                          CustomText("310"),
-                          SizedBox(width: 6),
-                          Icon(Icons.comment_outlined,
-                              color: AppColors.coloGreyText),
-                        ],
-                      ),
-                      SizedBox(
-                          height: SizeConfig.size24,
-                          child: VerticalDivider(
-                            color: AppColors.coloGreyText,
-                            width: 2,
-                            thickness: 1,
-                          )),
-                      Row(
-                        children: const [
-                          Text("50"),
-                          SizedBox(width: 6),
-                          Icon(Icons.ios_share, color: AppColors.coloGreyText),
-                        ],
-                      ),
-                    ],
+                  // SizedBox(height: SizeConfig.size12),
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 50,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 4, horizontal: 8),
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: AppColors.borderGray, width: 2),
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Row(children: [
+                              const CircleAvatar(
+                                radius: 16,
+                                backgroundImage: AssetImage(
+                                    "assets/images/profile_logo.png"),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: RichText(
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  text: const TextSpan(
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 13),
+                                    children: [
+                                      TextSpan(
+                                          text: "Sathi : ",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      TextSpan(
+                                          text:
+                                              "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum Dolor Amet"),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Icon(Icons.edit,
+                                  size: 18, color: Colors.grey[600]),
+                            ]),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 50,
+                          width: 50,
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: AppColors.borderGray, width: 2),
+                              borderRadius: BorderRadius.circular(12)),
+                          child: PopupMenuButton(
+                              onSelected: (value) {},
+                              itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                        value: 1, child: CustomText("Re-post")),
+                                    PopupMenuItem(
+                                        value: 2, child: CustomText("Share")),
+                                    PopupMenuItem(
+                                        value: 3, child: CustomText("Save"))
+                                  ]),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(
                     height: SizeConfig.size16,
@@ -868,13 +1049,13 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
   Widget customVideoCard() {
     return Card(
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SizeConfig.size16),
+        borderRadius: BorderRadius.circular(12),
       ),
-      elevation: SizeConfig.size4,
       color: AppColors.white,
       child: Padding(
-        padding: EdgeInsets.all(SizeConfig.size12),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -885,182 +1066,114 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
               color: AppColors.black,
             ),
             SizedBox(
-              height: SizeConfig.size8,
+              height: SizeConfig.size2,
             ),
-            Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(SizeConfig.size12),
-                  border: Border.all(color: AppColors.borderGray, width: 2)),
+            Card(
+              elevation: 10,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: AppColors.white,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Stack(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(SizeConfig.size12),
-                              ),
-                              child: Stack(
-                                children: [
-                                  Image.asset(
-                                    "assets/images/first.jpg",
-                                    height: SizeConfig.size220,
-                                    width: double.infinity,
-                                    fit: BoxFit.fill,
-                                  ),
-                                  Positioned(
-                                    bottom: 8,
-                                    left: 12,
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: SizeConfig.size12,
-                                          vertical: SizeConfig.size4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.black1A,
-                                        borderRadius: BorderRadius.circular(
-                                            SizeConfig.size12),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.thumb_up,
-                                              size: SizeConfig.size20,
-                                              color: Colors.blue),
-                                          SizedBox(width: 4),
-                                          Icon(Icons.favorite,
-                                              size: SizeConfig.size20,
-                                              color: Colors.red),
-                                          SizedBox(width: 4),
-                                          Icon(Icons.emoji_emotions,
-                                              size: SizeConfig.size20,
-                                              color: Colors.amber),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            "5k+",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: SizeConfig.size20,
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        ),
+                        child: Image.asset(
+                          'assets/images/video_preview.png',
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            shape: BoxShape.circle,
                           ),
-                          SizedBox(
-                            width: SizeConfig.size6,
+                          padding: const EdgeInsets.all(6),
+                          child: const Icon(
+                            Icons.volume_off,
+                            size: 16,
+                            color: Colors.white,
                           ),
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(SizeConfig.size12),
-                              ),
-                              child: Stack(
-                                children: [
-                                  Image.asset(
-                                    "assets/images/first.jpg",
-                                    height: SizeConfig.size220,
-                                    width: double.infinity,
-                                    fit: BoxFit.fill,
-                                  ),
-                                  Positioned(
-                                    right: 8,
-                                    bottom: 8,
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: SizeConfig.size12,
-                                          vertical: SizeConfig.size4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.black1A,
-                                        borderRadius: BorderRadius.circular(
-                                            SizeConfig.size12),
-                                      ),
-                                      child: Text(
-                                        "02:53",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: SizeConfig.size20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: SizeConfig.size12,
-                                          vertical: SizeConfig.size4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.black1A,
-                                        borderRadius: BorderRadius.circular(
-                                            SizeConfig.size12),
-                                      ),
-                                      child: Icon(
-                                        Icons.volume_off,
-                                        color: Colors.white,
-                                        size: SizeConfig.size20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        ],
+                          child: const Text(
+                            "02:53",
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.all(SizeConfig.size12),
+                    padding: const EdgeInsets.all(8.0),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: SizeConfig.size40,
-                          width: SizeConfig.size40,
-                          decoration: BoxDecoration(
-                              color: AppColors.red,
-                              border: Border.all(
-                                  color: AppColors.skyBlueDF, width: 2),
-                              borderRadius:
-                                  BorderRadius.circular(SizeConfig.size12),
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      "assets/images/brand_logo.png"))),
+                        const CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.black,
+                          child: Icon(Icons.play_arrow, color: Colors.white),
                         ),
-                        SizedBox(width: SizeConfig.size8),
+                        const SizedBox(width: 8),
+
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                "Trying MC’s Burger for the first time!!! let's go and check ",
+                            children: const [
+                              Text(
+                                "Trying MC’s Burger for the first time!!! "
+                                "Trying MC’s Burger for the...",
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                fontWeight: FontWeight.w500,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
                               ),
                               SizedBox(height: 4),
-                              CustomText(
+                              Text(
                                 "TechSavvy   3.5 lakhs views   12 days ago",
-                                color: AppColors.borderGray,
-                                fontSize: SizeConfig.size12,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.grid_view,
-                            size: SizeConfig.size20,
-                            color: AppColors.borderGray),
+
+                        /// Menu button
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.more_vert, size: 18),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -1599,5 +1712,35 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       caseSensitive: false,
     );
     return youTubeRegex.hasMatch(url.trim());
+  }
+
+  Widget_alterRow(
+      {IconData? icon, required String? title, required String? subtitle}) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 18,
+        ),
+        SizedBox(
+          width: 4,
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              title,
+              fontSize: SizeConfig.size1,
+              fontWeight: FontWeight.bold,
+            ),
+            CustomText(
+              subtitle,
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+            ),
+          ],
+        )
+      ],
+    );
   }
 }

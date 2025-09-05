@@ -97,7 +97,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   }
 
   void _navigateToProfile({required String authorId}) {
-      if (widget.type=="BUSINESS") {
+      if (widget.type?.toUpperCase()=="BUSINESS") {
         print("HERE IS DIFFERECE FOR PERSONAL AND INDIVIDUAL");
         Get.to(() => BusinessChatProfile(userId: widget.businessId??''));
       }else{

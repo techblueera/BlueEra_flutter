@@ -63,18 +63,26 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
             Obx(() {
               if (visitController?.testimonialsList?.isEmpty ?? false) {
                 {
-                  return Center(child: CustomText("No testimonial found"));
+                  // return Center(child: CustomText("No testimonial found"));
                 }
               }
-              if (visitController?.testimonialsList?.isNotEmpty ?? false) {
+              // if (visitController?.testimonialsList?.isNotEmpty ?? false || true) {
+              if (true) {
                 return ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
-                    itemCount: visitController?.testimonialsList?.length,
+                    itemCount: 1, //visitController?.testimonialsList?.length,
                     itemBuilder: (context, index) {
-                      Testimonials data =
-                          visitController?.testimonialsList?[index] ??
-                              Testimonials();
+                      // return Text("data");
+                      Testimonials data = Testimonials(
+                        updatedAt: DateTime.now().toString(),
+                        description: "desctfnsdkfsdf ",
+                        fromUser:
+                            FromUser(designation: "designmsatoi", name: "Nae"),
+                        title: "tilte",
+                      );
+                      // Testimonials data  =visitController?.testimonialsList?[index] ??
+                      Testimonials();
                       return Container(
                         padding: EdgeInsets.all(SizeConfig.size12),
                         decoration: BoxDecoration(
@@ -83,6 +91,7 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                             border:
                                 Border.all(color: AppColors.whiteDB, width: 2)),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             InkWell(
                               onTap: () {
@@ -143,6 +152,7 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                             SizedBox(height: SizeConfig.size10),
                             CustomText(
                               data.description,
+                              textAlign: TextAlign.start,
                               fontSize: SizeConfig.size14,
                               color: AppColors.grayText,
                             ),
@@ -155,47 +165,70 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                             SizedBox(
                               height: SizeConfig.size16,
                             ),
+
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                Row(
-                                  children: const [
-                                    CustomText("5K+"),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.thumb_up_alt,
-                                        color: AppColors.skyBlueDF),
-                                  ],
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                          color: AppColors.borderGray,
+                                          width: 2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    height: 50.0,
+                                    child: Row(
+                                      children: <Widget>[
+                                        CircleAvatar(
+                                          radius: 20,
+                                          backgroundImage: NetworkImage(
+                                            data.fromUser?.profileImage ?? "",
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: TextFormField(
+                                            textAlign: TextAlign.left,
+                                            style: TextStyle(fontSize: 11.0),
+                                            decoration: InputDecoration(
+                                                disabledBorder:
+                                                    InputBorder.none,
+                                                enabledBorder: InputBorder.none,
+                                                errorBorder: InputBorder.none,
+                                                focusedBorder: InputBorder.none,
+                                                focusedErrorBorder:
+                                                    InputBorder.none,
+                                                suffixIcon:
+                                                    Icon(Icons.edit_outlined),
+                                                suffixIconConstraints:
+                                                    BoxConstraints(),
+                                                contentPadding:
+                                                    new EdgeInsets.symmetric(
+                                                        vertical: 0.0),
+                                                border: InputBorder.none,
+                                                hintText: 'Enter comment',
+                                                hintStyle:
+                                                    TextStyle(fontSize: 11.0)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                                 SizedBox(
-                                    height: SizeConfig.size24,
-                                    child: VerticalDivider(
-                                      color: AppColors.coloGreyText,
-                                      width: 2,
-                                      thickness: 1,
-                                    )),
-                                Row(
-                                  children: const [
-                                    CustomText("310"),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.comment_outlined,
-                                        color: AppColors.coloGreyText),
-                                  ],
+                                  width: SizeConfig.small,
                                 ),
-                                SizedBox(
-                                    height: SizeConfig.size24,
-                                    child: VerticalDivider(
-                                      color: AppColors.coloGreyText,
-                                      width: 2,
-                                      thickness: 1,
-                                    )),
-                                Row(
-                                  children: const [
-                                    Text("50"),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.ios_share,
-                                        color: AppColors.coloGreyText),
-                                  ],
-                                ),
+                                Container(
+                                    decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                            color: AppColors.borderGray,
+                                            width: 2)),
+                                    height: 50,
+                                    width: 50,
+                                    child: Icon(Icons.share)),
                               ],
                             ),
                           ],
