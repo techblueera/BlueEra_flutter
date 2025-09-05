@@ -201,6 +201,7 @@ class _CreateBusinessAccountStepTwoState
                   ),
 
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
                         readOnly: true,
