@@ -25,7 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class VideoController extends GetxController{
-  ApiResponse videoPostsResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> videoPostsResponse = ApiResponse.initial('Initial').obs;
   ApiResponse videoLikeResponse = ApiResponse.initial('Initial');
   ApiResponse videoUnlikeResponse = ApiResponse.initial('Initial');
   ApiResponse followChannelResponse = ApiResponse.initial('Initial');
@@ -140,7 +140,7 @@ class VideoController extends GetxController{
       }
 
       if (response.isSuccess) {
-        videoPostsResponse =  ApiResponse.complete(response);
+        videoPostsResponse.value =  ApiResponse.complete(response);
         final videoFeedModelResponse = VideoResponse.fromJson(response.response?.data);
           List<ShortFeedItem> videoFeedItem = videoFeedModelResponse.data?.videos??[];
           if(page==1){
@@ -161,13 +161,13 @@ class VideoController extends GetxController{
             isMoreDataAvailable = false;
           }
       } else {
-        videoPostsResponse =  ApiResponse.error('error');
+        videoPostsResponse.value =  ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
       log('error--> $e');
       log('error--> $s');
-      videoPostsResponse =  ApiResponse.error('error');
+      videoPostsResponse.value =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;

@@ -1,13 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BlockPostModalSheet extends StatefulWidget {
-  const BlockPostModalSheet({
+class BlockReportPostModalSheet extends StatefulWidget {
+  const BlockReportPostModalSheet({
     super.key,
     required this.reportType,
     required this.otherUserId,
@@ -23,10 +24,10 @@ class BlockPostModalSheet extends StatefulWidget {
   final Function(Map<String, dynamic>) reportCallback;
 
   @override
-  State<BlockPostModalSheet> createState() => _BlockPostModalSheetState();
+  State<BlockReportPostModalSheet> createState() => _BlockReportPostModalSheetState();
 }
 
-class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
+class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
   final LayerLink _layerLink = LayerLink(); // To link the target and follower
   final LayerLink _layerLink2 = LayerLink(); // To link the target and follower
 
@@ -140,7 +141,15 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
             InkWell(
               onTap: () {
                 Navigator.pop(context);
-                widget.userBlockVoidCallback();
+                showDialog(
+                  context: context,
+                  builder: (context) => BlockUserDialog(
+                    onConfirm: () {
+                      widget.userBlockVoidCallback();
+                    },
+                  ),
+                );
+
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

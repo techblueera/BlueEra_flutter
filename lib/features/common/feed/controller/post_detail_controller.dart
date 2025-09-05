@@ -1,12 +1,13 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/feed/controller/post_idresponse.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:get/get.dart';
 
 class PostDetailController extends GetxController {
   String? postId;
-  PostByIdResponseModalClass? postByIdResponseModalClass;
+  Post? post;
 
   @override
   void onInit() {
@@ -24,9 +25,8 @@ class PostDetailController extends GetxController {
   Future<void> postByID({required String id}) async {
     ResponseModel response = await PostRepo().postByIDApi(id: id);
     if (response.isSuccess) {
-      postByIdResponseModalClass =
-          PostByIdResponseModalClass.fromJson(response.response!.data);
-
+      PostByIdResponseModalClass postByIdResponseModalClass = PostByIdResponseModalClass.fromJson(response.response?.data);
+      post = postByIdResponseModalClass.data;
       update();
     }
   }

@@ -271,23 +271,21 @@ class SelectProfilePictureDialog {
     }
     return null;
   }
+
   static Future<String?> pickFromGallery(BuildContext context, {CropAspectRatio? cropAspectRatio}) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      Future.delayed(Duration.zero, () async {
         final croppedPath = await SelectProfilePictureDialog.cropImage(
             context,
             pickedFile.path,
             cropAspectRatio: cropAspectRatio ?? CropAspectRatio(width: 10, height: 10)
         );
         return croppedPath;
-      });
     }
     return null;
   }
-
 
   ///New Cropper
   static Future<String> cropImage(BuildContext context, String filePath, {CropAspectRatio? cropAspectRatio}) async {

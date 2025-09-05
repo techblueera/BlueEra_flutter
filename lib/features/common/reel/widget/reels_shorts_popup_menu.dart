@@ -3,11 +3,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -61,7 +63,7 @@ class ReelShortPopUpMenu extends StatelessWidget {
                 confirmText: AppLocalizations.of(context)!.yes,
                 cancelText: AppLocalizations.of(context)!.no);
           }else if(value == 'Change Thumbnail'){
-
+            pickImageFromGallery(context);
           }
         },
         icon: Icon(Icons.more_vert, color: popUpMenuColor ?? AppColors.white),
@@ -69,4 +71,19 @@ class ReelShortPopUpMenu extends StatelessWidget {
       ),
     );
   }
+
+  void pickImageFromGallery(BuildContext context) async {
+    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+        context,
+        cropAspectRatio: CropAspectRatio(width: 9, height: 16));
+    print('cropped path--> $croppedPath');
+    if(croppedPath!=null){
+      await Get.find<ShortsController>().updateShortThumbnail(
+          shortId: shortFeedItem.video?.id ?? '',
+          shorts: shorts,
+          thumbnail: croppedPath
+      );
+    }
+  }
+
 }

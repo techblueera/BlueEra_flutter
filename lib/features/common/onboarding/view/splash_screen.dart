@@ -52,17 +52,17 @@ import 'package:permission_handler/permission_handler.dart';
       if (isLoginStatus == null) isLoginStatus = "false";
 
       // ✅ Check if app was updated
-      // final logoutRequired = await _shouldLogoutAfterUpdate();
+      final logoutRequired = await _shouldLogoutAfterUpdate();
 
       Timer(const Duration(seconds: 2), () async {
-        // if (logoutRequired) {
-        //   // 🔴 Force user to login again after update
-        //   Navigator.of(context).pushNamedAndRemoveUntil(
-        //     RouteHelper.getOnboardingSliderScreenRoute(),
-        //         (Route<dynamic> route) => false,
-        //   );
-        //   return;
-        // }
+        if (logoutRequired) {
+          // 🔴 Force user to login again after update
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteHelper.getOnboardingSliderScreenRoute(),
+                (Route<dynamic> route) => false,
+          );
+          return;
+        }
 
         if (isLoginStatus == "true") {
           if (await _initDeepLinks()) {

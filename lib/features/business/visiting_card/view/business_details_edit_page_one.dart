@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
@@ -61,6 +62,7 @@ class _BusinessDetailsEditPageOneState
   final cityController = TextEditingController();
 
   final othersCatController = TextEditingController();
+  // final landmarkController = TextEditingController();
 
   ContactType? selectedType = ContactType.Mobile;
   final viewBusinessDetailsController =
@@ -68,6 +70,8 @@ class _BusinessDetailsEditPageOneState
 
   bool validate = false;
   SizeOfBusiness? selectedBusiness;
+
+  final locationController = Get.put(LocationController());
 
   SizeOfBusiness? getBusinessFromString(String? input) {
     if (input == null) return null;
@@ -110,6 +114,8 @@ class _BusinessDetailsEditPageOneState
       // Assuming not present in model
       othersCatController.text = data.natureOfBusiness ?? "";
 
+      // landmarkController.text = data.natureOfBusiness ?? "";
+
       viewBusinessDetailsController.setStartLocation(
           widget.prevBusinessDetails?.businessLocation?.lat?.toDouble(),
           widget.prevBusinessDetails?.businessLocation?.lon?.toDouble(),
@@ -120,8 +126,28 @@ class _BusinessDetailsEditPageOneState
       } else if (data.businessNumber?.officeLandlineNo?.number != null) {
         selectedType = ContactType.Landline;
       }
+
+      if(fullBusinessAddressTextController.text.isEmpty &&
+          cityController.text.isEmpty &&
+          picCodeController.text.isEmpty
+        ){
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          updateAddressFromLocation();
+        });
+      }
+
     }
   }
+
+  Future<void> updateAddressFromLocation() async {
+    final locationData = await locationController.checkPermissionAndSetData();
+    if (locationData != null) {
+      fullBusinessAddressTextController.text = locationData.fullAddress;
+      cityController.text = locationData.city;
+      picCodeController.text = locationData.pinCode;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -451,46 +477,41 @@ class _BusinessDetailsEditPageOneState
                       height: SizeConfig.size20,
                     ),
 
-                    InkWell(
-                      onTap: () async {
-                        Navigator.pushNamed(
-                          context,
-                          RouteHelper.getSearchLocationScreenRoute(),
-                          arguments: {
-                            'onPlaceSelected': (
-                              double? lat,
-                              double? lng,
-                              String? address,
-                            ) {
-                              if (address != null) {
-                                fullBusinessAddressTextController.text =
-                                    address;
-                                viewBusinessDetailsController.setStartLocation(
-                                    lat, lng, address);
-                                setState(() {});
-                              }
-                            },
-                            ApiKeys.fromScreen: ""
-                          },
-                        );
-                      },
-                      child: CommonTextField(
-                        readOnly: true,
-                        maxLine: 3,
-
-                        textEditController: fullBusinessAddressTextController,
-                        inputLength: AppConstants.inputCharterLimit50,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                        title: appLocalizations?.fullBusinessAddress,
-                        hintText: appLocalizations?.fullBusinessAddress,
-                        isValidate: false,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommonTextField(
+                          readOnly: true,
+                          maxLine: 3,
+                          textEditController: fullBusinessAddressTextController,
+                          inputLength: AppConstants.inputCharterLimit50,
+                          keyBoardType: TextInputType.text,
+                          title: appLocalizations?.fullBusinessAddress,
+                          regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                          hintText: appLocalizations?.fullBusinessAddress,
+                          isValidate: false,
+                        ),
+                        _buildAddressField()
+                      ],
                     ),
                     SizedBox(
-                      height: SizeConfig.size28,
+                      height: SizeConfig.size20,
                     ),
+
+                    ///ENTER Landmark ......
+                    // CommonTextField(
+                    //   textEditController: landmarkController,
+                    //   inputLength: AppConstants.inputCharterLimit200,
+                    //   keyBoardType: TextInputType.text,
+                    //   regularExpression:
+                    //   RegularExpressionUtils.alphabetSpacePattern,
+                    //   title: 'Floor / Building Name / Landmark',
+                    //   hintText: 'Floor / Building Name / Landmark',
+                    //   isValidate: false,
+                    // ),
+                    // SizedBox(
+                    //   height: SizeConfig.size20,
+                    // ),
 
                     ///ENTER NAME CONTROLLER......
                     CommonTextField(
@@ -502,6 +523,7 @@ class _BusinessDetailsEditPageOneState
                       title: appLocalizations?.city,
                       hintText: appLocalizations?.city,
                       isValidate: false,
+                      readOnly: true,
                     ),
                     SizedBox(
                       height: SizeConfig.size20,
@@ -516,6 +538,7 @@ class _BusinessDetailsEditPageOneState
                       title: "Pin Code",
                       hintText: "345434",
                       isValidate: true,
+                      readOnly: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter Pin Code";
@@ -651,5 +674,39 @@ class _BusinessDetailsEditPageOneState
           ? imageByPart
           : null,
     };
+  }
+
+  Widget _buildAddressField() {
+    return Obx(() {
+      if (locationController.isFetchingAddress.value) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      }
+
+      if (!locationController.fetchAddressFromGeo.value) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: GestureDetector(
+            onTap: () =>  updateAddressFromLocation(),
+            child: CustomText(
+              'GPS location not found (Tap to fetch)',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.red,
+              decoration: TextDecoration.underline,
+              decorationColor: AppColors.red,
+            ),
+          ),
+        );
+      }
+
+      return SizedBox();
+    });
   }
 }

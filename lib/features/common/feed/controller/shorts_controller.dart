@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -16,7 +17,9 @@ import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -29,6 +32,7 @@ class ShortsController extends GetxController{
   ApiResponse deleteShortResponse = ApiResponse.initial('Initial');
   ApiResponse savedShortsResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
+  ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
 
   RxList<ShortFeedItem> trendingVideoFeedPosts = <ShortFeedItem>[].obs;
   int trendingVideoFeedCurrentPage = 1;
@@ -637,8 +641,8 @@ class ShortsController extends GetxController{
 
 
   /// Utility to get post list by type
-  RxList<ShortFeedItem> getListByType({required Shorts shortsType}) {
-    switch (shortsType) {
+  RxList<ShortFeedItem> getListByType({required Shorts shorts}) {
+    switch (shorts) {
       case Shorts.trending:
         return trendingVideoFeedPosts;
       case Shorts.nearBy:
@@ -663,7 +667,7 @@ class ShortsController extends GetxController{
 
   /// Delete Post
   Future<void> shortDelete({required Shorts shortsType, required String videoId}) async {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
     final index = list.indexWhere((v) => v.video?.id == videoId);
 
     try {
@@ -683,7 +687,7 @@ class ShortsController extends GetxController{
 
   ///USER BLOCK(PARTIAL AND FULL)...
   Future<void> userBlocked({required Shorts shortsType, required String otherUserId}) async {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
 
     try {
       Map<String, dynamic> params = {
@@ -732,17 +736,15 @@ class ShortsController extends GetxController{
 
   /// Update like count for a specific video across all lists
   void updateVideoLikeCount({required Shorts shortsType, required String videoId, required bool isLiked, required int newLikeCount}) {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
     _updateVideoInList(list, videoId, isLiked: isLiked, newLikeCount: newLikeCount);
   }
 
   /// Update comment count for a specific video across all lists
   void updateVideoCommentCount({required Shorts shortsType, required String videoId, required int newCommentCount}) {
-    final list = getListByType(shortsType: shortsType);
+    final list = getListByType(shorts: shortsType);
     _updateVideoInList(list, videoId, newCommentCount: newCommentCount);
   }
-
-
 
   /// Update saved state for a specific video across all lists
   void updateVideoSavedState({required String videoId, required bool isSaved}) {
@@ -806,5 +808,91 @@ class ShortsController extends GetxController{
 
     savedShorts.addAll(filteredList);
   }
+
+  ///UPDATE SHORT Thumbnail...
+  Future<void> updateShortThumbnail({
+    required Shorts shorts,
+    required String shortId,
+    required String thumbnail,
+  }) async {
+    final reelUploadDetailsController = Get.put(ReelUploadDetailsController());
+    final list = getListByType(shorts: shorts);
+    final index = list.indexWhere((s) => s.video?.id == shortId);
+
+    try {
+      double progress = 0.0;
+
+      void updateProgress(double value) {
+        progress = value.clamp(0.0, 1.0);
+        UploadProgressDialog.update(progress); // ✅ use new dialog updater
+      }
+
+      // ✅ Show dialog
+      UploadProgressDialog.show(initialProgress: progress);
+
+      final coverFile = File(thumbnail);
+      final coverInfo = getFileInfo(coverFile);
+
+      // 1. Init upload
+      await reelUploadDetailsController.uploadInit(
+        queryParams: {
+          ApiKeys.fileName: coverInfo['fileName'],
+          ApiKeys.fileType: coverInfo['mimeType'],
+        },
+        isVideoUpload: false,
+      );
+      updateProgress(0.2);
+
+      // 2. Upload to S3 (20% → 90%)
+      await reelUploadDetailsController.uploadFileToS3(
+        file: coverFile,
+        fileType: coverInfo['mimeType']!,
+        preSignedUrl:
+        reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ?? "",
+        onProgress: (total) {
+          // total is 0.0 - 1.0
+          final combined = 0.2 + total * 0.7;
+          updateProgress(combined);
+        },
+      );
+
+      updateProgress(0.9);
+
+      // 3. Save new thumbnail URL from backend
+      final newCoverUrl =
+          reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '';
+
+      ResponseModel? response = await ChannelRepo().updateVideoDetails(
+        videoId: shortId,
+        params: {ApiKeys.coverUrl: newCoverUrl},
+      );
+
+      updateProgress(1.0);
+      if (response.isSuccess) {
+
+        final videoItem = list[index];
+
+        list[index] = videoItem.copyWith(
+          video: videoItem.video?.copyWith(
+            coverUrl: reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
+          ),
+        );
+
+        updateVideoThumbnailResponse = ApiResponse.complete(response);
+      } else {
+        updateVideoThumbnailResponse = ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e) {
+      updateVideoThumbnailResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      // ✅ Always close the dialog (GetX version, no context needed)
+      UploadProgressDialog.close();
+    }
+  }
+
 
 }

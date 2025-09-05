@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -253,7 +253,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
             return AutoPlayVideoCard(
               videoItem: videoFeedItem,
               globalMuteNotifier: globalMuteNotifier,
-              videoType: Videos.videoFeed,
+              videos: Videos.videoFeed,
               onTapOption: () {
                 openBlockSelectionDialog(
                   context: context,
@@ -284,7 +284,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
     return Obx(() {
 
       if(videoController.isLoading.isFalse){
-        if(videoController.videoPostsResponse.status == Status.COMPLETE){
+        if(videoController.videoPostsResponse.value.status == Status.COMPLETE){
 
           // Show empty state when no videos are available
           if (videoController.videoFeedPosts.isEmpty) {
@@ -293,7 +293,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
 
           // Show video list when data is available
           return _buildVideoList();
-        }else if(videoController.videoPostsResponse.status == Status.ERROR){
+        }else if(videoController.videoPostsResponse.value.status == Status.ERROR){
           return LoadErrorWidget(
             errorMessage: 'Failed to load videos',
             onRetry: () {

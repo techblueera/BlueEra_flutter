@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/theme/themes.dart';
@@ -43,7 +44,7 @@ Future<void> main() async {
   appVersion = packageInfo.version;
 
   ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.dev);
+  await projectKeys(environmentType: AppConstants.prod);
 
   ///APP ORIENTATIONS....
   SystemChrome.setPreferredOrientations([

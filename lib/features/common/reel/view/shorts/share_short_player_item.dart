@@ -106,7 +106,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
         // Find the video in any of the lists to get the most up-to-date state
         ShortFeedItem? updatedVideo;
         final currentList =
-            shortsController.getListByType(shortsType: widget.shorts);
+            shortsController.getListByType(shorts: widget.shorts);
         for (final list in [currentList]) {
           final index = list.indexWhere((v) => v.video?.id == videoId);
           if (index != -1) {

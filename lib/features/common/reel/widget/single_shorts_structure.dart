@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -42,12 +45,14 @@ class SingleShortStructure extends StatefulWidget {
 }
 
 class _SingleShortStructureState extends State<SingleShortStructure> {
-late final shortItem;
+ShortFeedItem? shortItem;
 late bool canShowMenu;
+late String thumbnail;
 
   @override
   void initState() {
    shortItem = widget.shortItem;
+   thumbnail = shortItem?.video?.coverUrl ?? '';
 
    canShowMenu =
       // Case 1: Channel match
@@ -61,10 +66,24 @@ late bool canShowMenu;
       (shortItem?.author?.accountType == AppConstants.business &&
       shortItem?.author?.id != businessUserId);
       super.initState();
-      print('canShowMenu--> $canShowMenu');
+
   }
 
-  @override
+    // this will if changes in sort by cause page is already loaded
+    @override
+    void didUpdateWidget(covariant SingleShortStructure oldWidget) {
+      super.didUpdateWidget(oldWidget);
+
+      /// this is the case when post api is calling when sort by changed
+      if (oldWidget.shortItem != widget.shortItem) {
+        shortItem = widget.shortItem;
+        thumbnail = shortItem?.video?.coverUrl ?? '';
+        print('thumbnail--> $thumbnail');
+      }
+    }
+
+
+@override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(0),
@@ -93,10 +112,10 @@ late bool canShowMenu;
                 ClipRRect(
                     borderRadius:
                         BorderRadius.circular(widget.borderRadius ?? 0),
-                    child: CachedNetworkImage(
+                    child: isNetworkImage(thumbnail) ? CachedNetworkImage(
                       height: widget.imageHeight ?? SizeConfig.size220,
                       fit: BoxFit.cover,
-                      imageUrl: shortItem?.video?.coverUrl ?? '',
+                      imageUrl: thumbnail,
                       errorWidget: (context, url, error) => Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.white, width: 1),
@@ -112,7 +131,11 @@ late bool canShowMenu;
                           ),
                         ),
                       ),
-                    )),
+                    ) : Image.file(
+                      File(shortItem?.video?.coverUrl ?? ''),
+                      height: widget.imageHeight ?? SizeConfig.size220,
+                      fit: BoxFit.cover,
+                    ),),
 
                 // total views
                 Positioned(
@@ -149,9 +172,9 @@ late bool canShowMenu;
 
                     if (canShowMenu && shortItem != null)
                     ReelShortPopUpMenu(
-                    shortFeedItem: shortItem,
+                    shortFeedItem: shortItem!,
                     shorts: widget.shorts,
-                                      ),
+                    ),
 
                 if (widget.shorts == Shorts.underProgress) ...[
                   Positioned.fill(

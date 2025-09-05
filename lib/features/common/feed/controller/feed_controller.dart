@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class FeedController extends GetxController{
-  ApiResponse postsResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
   ApiResponse likeDislikeResponse = ApiResponse.initial('Initial');
   ApiResponse deletePostResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
@@ -324,7 +324,7 @@ class FeedController extends GetxController{
 
     try {
       if (response.isSuccess) {
-        postsResponse = ApiResponse.complete(response);
+        postsResponse.value = ApiResponse.complete(response);
         final postResponse = PostResponse.fromJson(response.response?.data);
 
         if (page == 1) {
@@ -359,11 +359,11 @@ class FeedController extends GetxController{
           onPageIncrement();
         }
       } else {
-        postsResponse = ApiResponse.error('error');
+        postsResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      postsResponse = ApiResponse.error('error');
+      postsResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
