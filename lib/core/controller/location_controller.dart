@@ -75,7 +75,7 @@ class LocationController extends GetxController {
         return LocationDataModel(
           fullAddress: address,
           city: city,
-          pinCode: pinCode,
+          pinCode: pinCode, lat: position.latitude.toString(), long: position.longitude.toString(),
         );
       } else {
         fetchAddressFromGeo.value = false;

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -145,6 +147,11 @@ class _BusinessDetailsEditPageOneState
       fullBusinessAddressTextController.text = locationData.fullAddress;
       cityController.text = locationData.city;
       picCodeController.text = locationData.pinCode;
+      viewBusinessDetailsController
+          .addressLong?.value =double.parse( locationData.long);
+      viewBusinessDetailsController
+          .addressLat?.value = double.parse( locationData.lat);
+
     }
   }
 
@@ -665,9 +672,13 @@ class _BusinessDetailsEditPageOneState
           ? othersCatController.text
           : selectedBusiness?.displayName ?? '',
       ApiKeys.city_state_pincode: cityController.text,
-      ApiKeys.address: viewBusinessDetailsController.businessAddress.value,
-      ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
-      ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+      ApiKeys.address: fullBusinessAddressTextController.text,
+      // ApiKeys.address: viewBusinessDetailsController.businessAddress.value,
+
+      "business_location":jsonEncode({
+        ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
+        ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+      }),
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,
       ApiKeys.logo_image: viewBusinessDetailsController.isImageUpdated.value

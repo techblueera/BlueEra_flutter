@@ -90,7 +90,10 @@ class _CreateBusinessAccountStepTwoState
       fullBusinessAddressTextController.text = locationData.fullAddress;
       cityController.text = locationData.city;
       picCodeController.text = locationData.pinCode;
-    }
+     viewBusinessDetailsController.addressLat?.value=double.parse(locationData.lat);
+    viewBusinessDetailsController.addressLong?.value=double.parse(locationData.long);
+
+  }
   }
 
 
@@ -411,14 +414,17 @@ class _CreateBusinessAccountStepTwoState
                                     ApiKeys.city_state_pincode:
                                         cityController.text,
                                     ApiKeys.address:
-                                        viewBusinessDetailsController
-                                            .businessAddress.value,
-                                    ApiKeys.lat: viewBusinessDetailsController
-                                        .addressLat?.value
-                                        .toString(),
-                                    ApiKeys.lon: viewBusinessDetailsController
-                                        .addressLong?.value
-                                        .toString(),
+                                    fullBusinessAddressTextController.text,
+                                    // ApiKeys.lat: viewBusinessDetailsController
+                                    //     .addressLat?.value
+                                    //     .toString(),
+                                    // ApiKeys.lon: viewBusinessDetailsController
+                                    //     .addressLong?.value
+                                    //     .toString(),
+                                    "business_location":jsonEncode({
+                                      ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
+                                      ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+                                    }),
                                     ApiKeys.pincode: picCodeController.text,
                                     ApiKeys.website_url: websiteController.text,
                                     ApiKeys.business_description:
