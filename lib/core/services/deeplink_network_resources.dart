@@ -11,7 +11,7 @@ final deepLinkNetworkResources = DeepLinkNetworkResources();
 
 class DeepLinkNetworkResources {
   /// Get Video By ID for deep link handling
-  Future<VideoFeedItem?> getVideoById(String videoId) async {
+  Future<ShortFeedItem?> getVideoById(String videoId) async {
     try {
       logs('DEEPLINK_DEBUG: Fetching video with ID: $videoId');
       final response = await FeedRepo().getVideoById(videoId: videoId);
@@ -32,7 +32,7 @@ class DeepLinkNetworkResources {
             final videoData = videosData['videos'][0];
             logs('DEEPLINK_DEBUG: Extracted video data from nested structure');
 
-            final videoFeedItem = VideoFeedItem.fromJson(videoData);
+            final videoFeedItem = ShortFeedItem.fromJson(videoData);
 
             // Log the parsed video details
             logs('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video URL: ${videoFeedItem.video?.videoUrl}');
