@@ -18,7 +18,7 @@ import 'package:get/get.dart';
 class ReelVideoPopUpMenu extends StatelessWidget {
   final ShortFeedItem videoFeedItem;
   final Color? popUpMenuColor;
-  final Videos video;
+  final VideoType video;
 
   const ReelVideoPopUpMenu({
     super.key,
@@ -42,7 +42,7 @@ class ReelVideoPopUpMenu extends StatelessWidget {
             RouteHelper.getCreateReelScreenRoute(),
             arguments: {
               ApiKeys.videoPath: videoFeedItem.video?.videoUrl??'',
-              ApiKeys.videoType: VideoType.video,
+              ApiKeys.videoType: Video.video,
               ApiKeys.videoId: videoFeedItem.videoId,
               ApiKeys.argPostVia: videoFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,
             },

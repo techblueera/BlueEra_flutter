@@ -588,6 +588,8 @@ class FeedController extends GetxController{
       }
     } catch (_) {
       reportPostResponse = ApiResponse.error('error');
+    }finally{
+      Get.back();
     }
   }
 

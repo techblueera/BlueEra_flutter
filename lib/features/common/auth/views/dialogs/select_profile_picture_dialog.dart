@@ -260,14 +260,12 @@ class SelectProfilePictureDialog {
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      Future.delayed(Duration.zero, () async {
         final croppedPath = await SelectProfilePictureDialog.cropImage(
             context,
             pickedFile.path,
             cropAspectRatio: cropAspectRatio ?? CropAspectRatio(width: 10, height: 10)
         );
         return croppedPath;
-      });
     }
     return null;
   }

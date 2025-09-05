@@ -20,7 +20,7 @@ import '../../../../core/constants/shared_preference_utils.dart';
 class PostAuthorHeader extends StatelessWidget {
   final Post? post;
   final String authorId;
-  final PostType postFilteredType;
+  final PostType postType;
   final VoidCallback? onTapAvatar;
   final VoidCallback? onTapOptions;
   final String? postedAgo;
@@ -29,7 +29,7 @@ class PostAuthorHeader extends StatelessWidget {
     super.key,
     required this.post,
     required this.authorId,
-    required this.postFilteredType,
+    required this.postType,
     this.onTapAvatar,
     this.onTapOptions,
     this.postedAgo,
@@ -67,8 +67,8 @@ class PostAuthorHeader extends StatelessWidget {
               onTap: () {
                 if (((authorId == userId) ||
                     (post?.user?.business_id == businessId)) &&
-                    (postFilteredType == PostType.myPosts ||
-                        postFilteredType == PostType.saved)) {
+                    (postType == PostType.myPosts ||
+                        postType == PostType.saved)) {
                   return;
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
@@ -116,7 +116,7 @@ class PostAuthorHeader extends StatelessWidget {
             else
               FeedPopUpMenu(
                 post: post ?? Post(id: ''),
-                postFilteredType: postFilteredType,
+                postFilteredType: postType,
               )
           else if (post?.user?.accountType == AppConstants.business)
             if (id != businessId)
@@ -133,7 +133,7 @@ class PostAuthorHeader extends StatelessWidget {
             else
               FeedPopUpMenu(
                   post: post ?? Post(id: ''),
-                  postFilteredType: postFilteredType
+                  postFilteredType: postType
               )
 
         ],
@@ -150,13 +150,13 @@ class PostAuthorHeader extends StatelessWidget {
       userBlockVoidCallback: () {
         Get.find<FeedController>().userBlocked(
             otherUserId: post?.authorId??'',
-            type: postFilteredType
+            type: postType
         );
       },
-      reportCallback: (params){
+      reportCallback: (params) async {
         Get.find<FeedController>().postReport(
             postId: post?.id??'',
-            type: postFilteredType,
+            type: postType,
             params: params
         );
       }

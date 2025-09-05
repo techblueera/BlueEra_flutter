@@ -23,7 +23,7 @@ import 'package:get/get.dart';
 class VideoCard extends StatelessWidget {
   final ShortFeedItem videoItem;
   final VoidCallback onTapOption;
-  final Videos videoType;
+  final VideoType videoType;
   final VoidCallback? voidCallback;
 
   const VideoCard({
@@ -40,12 +40,15 @@ class VideoCard extends StatelessWidget {
     final mainContent = GestureDetector(
       onTap: voidCallback ??
               () {
-            if (videoType == Videos.underProgress) return;
+            if (videoType == VideoType.underProgress) return;
 
             Navigator.pushNamed(
               context,
               RouteHelper.getVideoPlayerScreenRoute(),
-              arguments: {ApiKeys.videoItem: videoItem},
+              arguments: {
+                ApiKeys.videoItem: videoItem,
+                ApiKeys.videoType: videoType
+              },
             );
           },
       child: Stack(
@@ -137,7 +140,7 @@ class VideoCard extends StatelessWidget {
         ),
 
         // Overlay if video is under progress
-        if (videoType == Videos.underProgress)
+        if (videoType == VideoType.underProgress)
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -161,7 +164,7 @@ class VideoCard extends StatelessWidget {
     if (croppedPath != null) {
       await Get.find<VideoController>().updateVideoThumbnail(
         videoId: videoItem.video?.id ?? '',
-        videos: videoType,
+        videoType: videoType,
         thumbnail: croppedPath,
       );
     }

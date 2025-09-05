@@ -27,14 +27,14 @@ import '../../../../core/api/apiService/api_keys.dart';
 class AutoPlayVideoCard extends StatefulWidget {
   final ShortFeedItem videoItem;
   final ValueNotifier<bool>? globalMuteNotifier;
-  final Videos videos;
+  final VideoType videoType;
   final VoidCallback onTapOption;
 
   const AutoPlayVideoCard({
     super.key,
     required this.videoItem,
     this.globalMuteNotifier,
-    required this.videos,
+    required this.videoType,
     required this.onTapOption,
   });
 
@@ -196,13 +196,16 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
     return CommonVideoCard(
       mainContent: mainContent,
       videoItem: widget.videoItem,
-      videoType: widget.videos,
+      videoType: widget.videoType,
       onTapOption: widget.onTapOption,
       onTapCard: () {
         Navigator.pushNamed(
           context,
           RouteHelper.getVideoPlayerScreenRoute(),
-          arguments: {ApiKeys.videoItem: widget.videoItem},
+          arguments: {
+            ApiKeys.videoItem: widget.videoItem,
+            ApiKeys.video: widget.videoType
+          },
         );
       },
     );
@@ -216,7 +219,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
     if (croppedPath != null) {
       await Get.find<VideoController>().updateVideoThumbnail(
         videoId: widget.videoItem.video?.id ?? '',
-        videos: widget.videos,
+        videoType: widget.videoType,
         thumbnail: croppedPath,
       );
     }

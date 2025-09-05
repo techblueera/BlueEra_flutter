@@ -110,10 +110,13 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.userBusinessId, data.data?.business);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.authToken, data.token);
+              await SharedPreferenceUtils.setSecureValue(
+                  SharedPreferenceUtils.isUserLogin, "true");
 
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
               await getUserAuthToken();
+              await getUserLoginStatus();
               final viewProfileController =
               Get.put(ViewBusinessDetailsController());
 
@@ -178,8 +181,9 @@ class AuthController extends GetxController {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
+    } catch (e,s) {
       logs("ERROR ${e}");
+      logs("STACK TRACE: $s");
       otpVerificationResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }

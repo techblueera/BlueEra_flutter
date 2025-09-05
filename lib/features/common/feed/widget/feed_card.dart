@@ -94,7 +94,7 @@ class _FeedCardState extends State<FeedCard> {
           authorSection: () => PostAuthorHeader(
               post: _post,
               authorId: _post?.authorId ?? '0',
-              postFilteredType: widget.postFilteredType,
+              postType: widget.postFilteredType,
               onTapAvatar: _shouldShowProfileNavigation()
                   ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
                   : null,
@@ -135,7 +135,7 @@ class _FeedCardState extends State<FeedCard> {
           authorSection: () => PostAuthorHeader(
             post: _post,
             authorId: _post?.authorId ?? '0',
-            postFilteredType: widget.postFilteredType,
+            postType: widget.postFilteredType,
             onTapAvatar: _shouldShowProfileNavigation()
                 ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
                 : null,

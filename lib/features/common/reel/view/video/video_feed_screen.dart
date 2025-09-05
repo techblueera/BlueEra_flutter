@@ -253,7 +253,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
             return AutoPlayVideoCard(
               videoItem: videoFeedItem,
               globalMuteNotifier: globalMuteNotifier,
-              videos: Videos.videoFeed,
+              videoType: VideoType.videoFeed,
               onTapOption: () {
                 openBlockSelectionDialog(
                   context: context,
@@ -262,12 +262,16 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
                   contentId: videoFeedItem.video?.id??'',
                   userBlockVoidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
-                      videoType: Videos.videoFeed,
+                      videoType: VideoType.videoFeed,
                       otherUserId: videoFeedItem.video?.userId ?? '',
                     );
                   },
                     reportCallback: (params){
-
+                      Get.find<VideoController>().videoPostReport(
+                          videoId: videoFeedItem.video?.id??'',
+                          videoType: VideoType.videoFeed,
+                          params: params
+                      );
                     }
                 );
               },

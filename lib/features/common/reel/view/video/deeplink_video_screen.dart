@@ -352,7 +352,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
                   videoItem: videoFeedItem,
                   voidCallback: () => _navigateToVideoPlayer(videoFeedItem),
                   onTapOption: () => _showBlockDialog(videoFeedItem),
-                  videoType: Videos.videoFeed,
+                  videoType: VideoType.videoFeed,
                 );
               },
             );
@@ -388,26 +388,18 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
         contentId: videoFeedItem.video?.id??'',
         userBlockVoidCallback: () async {
           await Get.find<VideoController>().userBlocked(
-            videoType: Videos.videoFeed,
+            videoType: VideoType.videoFeed,
             otherUserId: videoFeedItem.video?.userId ?? '',
           );
         },
         reportCallback: (params){
-
+          Get.find<VideoController>().videoPostReport(
+              videoId: videoFeedItem.video?.id??'',
+              videoType: VideoType.videoFeed,
+              params: params
+          );
         }
     );
-   /*  openBlockSelectionDialog(
-      context: context,
-      userBlockVoidCallback: () async {
-        await Get.find<VideoController>().userBlocked(
-          videoType: Videos.videoFeed,
-          otherUserId: videoFeedItem.video?.userId ?? '',
-        );
-      },
-      postBlockVoidCallback: (){
-
-      }
-    );*/
   }
 
   Widget _buildExpandedWidget() {

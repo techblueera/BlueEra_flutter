@@ -402,7 +402,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                         );
                       },
                         reportCallback: (params){
-
+                          Get.find<ShortsController>().shortPostReport(
+                              videoId: videoItem.video?.id??'',
+                              shorts: widget.shorts,
+                              params: params
+                          );
                         }
                     );
                   },

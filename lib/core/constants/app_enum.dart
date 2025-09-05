@@ -1080,7 +1080,7 @@ extension ShortsX on Shorts {
   }
 }
 
-enum Videos {
+enum VideoType {
   videoFeed,
   saved,
   latest,
@@ -1090,23 +1090,23 @@ enum Videos {
   draft,
 }
 
-extension VideosX on Videos {
+extension VideosX on VideoType {
   /// Label for UI display
   String get label {
     switch (this) {
-      case Videos.videoFeed:
+      case VideoType.videoFeed:
         return 'Video Feed';
-      case Videos.saved:
+      case VideoType.saved:
         return 'Saved';
-      case Videos.latest:
+      case VideoType.latest:
         return 'Latest';
-      case Videos.popular:
+      case VideoType.popular:
         return 'Popular';
-      case Videos.oldest:
+      case VideoType.oldest:
         return 'Oldest';
-      case Videos.underProgress:
+      case VideoType.underProgress:
         return 'Under Progress';
-      case Videos.draft:
+      case VideoType.draft:
         return 'Draft';
     }
   }
@@ -1114,19 +1114,19 @@ extension VideosX on Videos {
   /// Query value for API
   String get queryValue {
     switch (this) {
-      case Videos.videoFeed:
+      case VideoType.videoFeed:
         return 'video_feed';
-      case Videos.saved:
+      case VideoType.saved:
         return 'saved';
-      case Videos.latest:
+      case VideoType.latest:
         return 'latest';
-      case Videos.popular:
+      case VideoType.popular:
         return 'popular';
-      case Videos.oldest:
+      case VideoType.oldest:
         return 'oldest';
-      case Videos.underProgress:
+      case VideoType.underProgress:
         return 'under_progress';
-      case Videos.draft:
+      case VideoType.draft:
         return 'draft';
     }
   }
