@@ -1,10 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/widget/receive_req_dialoge.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -29,10 +32,12 @@ class ChatMainScreen extends StatefulWidget {
       this.isNewGroupUI,
       this.message,
       this.isForwardUI});
+
   final String? forwardId;
   final bool? isForwardUI;
   final bool? isNewGroupUI;
   final Messages? message;
+
   @override
   _ChatMainScreenState createState() => _ChatMainScreenState();
 }
@@ -88,6 +93,15 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        onPressed: () {
+          Get.toNamed(RouteHelper.getChatContactsRoute());
+        },
+      ),
+      bottomSheet: Padding(padding: EdgeInsets.only(bottom: 120.0)),
       body: SafeArea(
         child: Stack(
           children: [
@@ -100,15 +114,14 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                     children: [
                       (_isFromForward())
                           ? SizedBox()
-                          : InkWell(
-                              onTap: () => Navigator.pushNamed(
-                                    context,
-                                    RouteHelper.getChatContactsRoute(),
-                                  ),
-                              child: SvgPicture.asset(
-                                AppIconAssets.chat_contact,
-                                color: Colors.black,
-                              )),
+                          : Obx(() {
+                              return CachedAvatarWidget(
+                                  imageUrl:
+                                      Get.find<AuthController>().imgPath.value,
+                                  size: SizeConfig.size30,
+                                  borderRadius: 5.0,
+                                  showProfileOnFullScreen: false);
+                            }),
                       SizedBox(width: SizeConfig.size8),
                       Expanded(
                         child: Container(
@@ -158,8 +171,11 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                               ),
                               onSelected: (value) {
                                 if (value == "create_group") {
-                                  Get.to(()=>ContactsPage(from: 'Group',));
-                              ///  Navigator.push(context, MaterialPageRoute(builder: (context) => BusinessChatProfile(userId: '',),));
+                                  Get.to(() => ContactsPage(
+                                        from: 'Group',
+                                      ));
+
+                                  ///  Navigator.push(context, MaterialPageRoute(builder: (context) => BusinessChatProfile(userId: '',),));
                                   // Navigator.push(
                                   //     context,
                                   //     MaterialPageRoute(
@@ -212,7 +228,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                   unselectedLabelColor: Colors.black54,
                   indicatorColor: Colors.lightBlue,
                   labelPadding: EdgeInsets.all(0),
-                  physics: BouncingScrollPhysics(), // allow swipe
+                  physics: BouncingScrollPhysics(),
+                  // allow swipe
                   indicatorPadding: EdgeInsets.only(right: 2),
                   labelStyle:
                       TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
