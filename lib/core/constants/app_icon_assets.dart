@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 
 class AppIconAssets {
   static const iconPath = AppConstants.baseSvgAssetsPath;
+  static String color_pallate_Icon = "${iconPath}color_pallate_Icon.svg";
   static String edit_pen_icon = "${iconPath}create_manual_product.svg";
   static String appIcon = "${AppConstants.baseIconAssetsPath}app_icon.svg";
   static String back_arrow = "${iconPath}back_arrow.svg";

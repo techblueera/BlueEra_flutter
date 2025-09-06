@@ -80,6 +80,8 @@ dependencies:
   flutter_upgrade_version: ^1.1.8
   flutter_image_compress: ^2.4.0
   any_link_preview: ^3.0.3
+  flex_color_picker: ^3.7.0
+  ll_dropdown_menu: ^0.8.3
 #  pro_image_editor: ^11.3.0
 
 dependency_overrides:

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/date_picker.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +16,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:ll_dropdown_menu/ll_dropdown_menu.dart';
 import '../listing_form_screen_controller.dart';
 
 import '../listing_form_screen_controller.dart';
+import 'package:BlueEra/widgets/hierarchical_dropdown.dart';
 
 class Step1Section extends StatelessWidget {
   final ManualListingScreenController controller;
@@ -25,94 +28,259 @@ class Step1Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
+    return  Padding(
+      padding:   EdgeInsets.only(top: SizeConfig.size20,bottom: SizeConfig.size20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomFormCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMediaUploadSection(controller),
-                SizedBox(height: SizeConfig.size16),
-                CommonTextField(
-                  textEditController: controller.productNameController,
-                  hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
-                  title: "Product Name",
-                  validator: controller.validateProductName,
-                  showLabel: true,
-                ),
-                SizedBox(height: SizeConfig.size16),
-                Obx(() {
-                  return Column(
-                    children: List.generate(controller.categoryLevels.length, (i) {
-                      final level = controller.categoryLevels[i];
-                      final items = level.items.map((e) => e.name).toList();
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: SizeConfig.size12),
-                        child: _buildDropdownField(
-                          label: i == 0 ? 'Category' : 'Subcategory $i',
-                          hint: i == 0 ? 'Select a category' : 'Select a subcategory',
-                          items: items,
-                          validator: (value) => i == 0 && value == null ? 'Please select a category' : null,
-                          onChanged: (val) => controller.onLevelChanged(i, val),
-                          value: level.selectedName.isEmpty ? null : level.selectedName,
-                        ),
-                      );
-                    }),
-                  );
-                }),
-                GestureDetector(
-                  onTap: () {
-                    Get.snackbar(
-                      'Feature Coming Soon',
-                      'New category creation will be available soon',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CustomText(
-                        "New Category",
-                        color: AppColors.primaryColor,
-                      ),
-                      SizedBox(width: SizeConfig.size4),
-                      CustomText(
-                        "+",
-                        color: AppColors.primaryColor,
-                        fontSize: SizeConfig.size30,
-                      ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomFormCard(
+               padding: EdgeInsets.all(SizeConfig.size16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildMediaUploadSection(controller),
+                  SizedBox(height: SizeConfig.size16),
+                  CommonTextField(
+                    textEditController: controller.productNameController,
+                    hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
+                    title: "Product Name",
+                    validator: controller.validateProductName,
+                    showLabel: true,
+                  ),
+                  SizedBox(height: SizeConfig.size16),
+                   CustomText(
+                'Category',
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
+              ),
+             SizedBox(height: SizeConfig.size16),
+                   
+      
+                  // Test the new HierarchicalDropdown
+                  HierarchicalDropdown(
+                    // labelText: 'Category',
+                    hintText: 'Select Category',
+                    options: [
+                      HierarchicalNode(label: 'Electronics', children: [
+                        HierarchicalNode(label: 'Mobiles', children: const [
+                          HierarchicalNode(label: 'Android'),
+                          HierarchicalNode(label: 'iOS'),
+                        ]),
+                        HierarchicalNode(label: 'Laptops', children: const [
+                          HierarchicalNode(label: 'Gaming'),
+                          HierarchicalNode(label: 'Ultrabooks'),
+                        ]),
+                        HierarchicalNode(label: 'Cameras', children: const [
+                          HierarchicalNode(label: 'DSLR'),
+                          HierarchicalNode(label: 'Mirrorless'),
+                        ]),
+                      ]),
+                      HierarchicalNode(label: 'Fashion', children: [
+                        HierarchicalNode(label: 'Men', children: const [
+                          HierarchicalNode(label: 'Shirts'),
+                          HierarchicalNode(label: 'Jeans'),
+                        ]),
+                        HierarchicalNode(label: 'Women', children: const [
+                          HierarchicalNode(label: 'Dresses'),
+                          HierarchicalNode(label: 'Skirts'),
+                        ]),
+                      ]),
                     ],
+                    onSelected: (path) {
+                      final selected = path.map((e) => e.label).join(' / ');
+                      Get.snackbar('Selected', selected, snackPosition: SnackPosition.BOTTOM);
+                    },
+                  ),
+                  // Obx(() {
+                  //   return Column(
+                  //     children: List.generate(controller.categoryLevels.length, (i) {
+                  //       final level = controller.categoryLevels[i];
+                  //       final items = level.items.map((e) => e.name).toList();
+                  //       return Padding(
+                  //         padding: EdgeInsets.only(bottom: SizeConfig.size12),
+                  //         child: _buildDropdownField(
+                  //           label: i == 0 ? 'Category' : 'Subcategory $i',
+                  //           hint: i == 0 ? 'Select a category' : 'Select a subcategory',
+                  //           items: items,
+                  //           validator: (value) => i == 0 && value == null ? 'Please select a category' : null,
+                  //           onChanged: (val) => controller.onLevelChanged(i, val),
+                  //           value: level.selectedName.isEmpty ? null : level.selectedName,
+                  //         ),
+                  //       );
+                  //     }),
+                  //   );
+                  // }),
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     Get.snackbar(
+                  //       'Feature Coming Soon',
+                  //       'New category creation will be available soon',
+                  //       snackPosition: SnackPosition.BOTTOM,
+                  //     );
+                  //   },
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.end,
+                  //     children: [
+                  //       CustomText(
+                  //         "New Category",
+                  //         color: AppColors.primaryColor,
+                  //       ),
+                  //       SizedBox(width: SizeConfig.size4),
+                  //       CustomText(
+                  //         "+",
+                  //         color: AppColors.primaryColor,
+                  //         fontSize: SizeConfig.size30,
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+                  SizedBox(height: SizeConfig.size16),
+                  _buildTagsSection(controller), 
+                ],
+              ),
+            ),
+            CustomFormCard(
+               padding: EdgeInsets.all(SizeConfig.size16),
+              child: CommonTextField(
+                textEditController: controller.productNameController,
+                hintText: 'E.g. Samsung',
+                title: "Brand ( if any )",
+                validator: controller.validateProductName,
+                showLabel: true,
+              ),
+            ),
+             
+            CustomFormCard(
+               padding: EdgeInsets.all(SizeConfig.size16),
+              child: _buildProductFeaturesSection(controller),
+            ),
+                
+            CustomFormCard(
+               padding: EdgeInsets.all(SizeConfig.size16),
+              child: Column(children: [
+                
+               
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                'Add More Details',
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
+              ),
+             
+              GestureDetector(
+                onTap: controller.toggleMoreDetails,
+                child: Container(
+                  width: 32,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: AppColors.white,
+                    size: 20,
                   ),
                 ),
-                SizedBox(height: SizeConfig.size16),
-                _buildTagsSection(controller),
-                SizedBox(height: SizeConfig.size16),
-              ],
+              ),
+            ],
+          ),
+          //  Obx(() {
+          //     if (controller.moreDetailsStep1.isEmpty) return const SizedBox.shrink();
+          //     return Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         // CustomText(
+          //         //   'More Details',
+          //         //   fontSize: SizeConfig.medium,
+          //         //   fontWeight: FontWeight.w600,
+          //         //   color: AppColors.black,
+          //         // ),
+          //         SizedBox(height: SizeConfig.size8),
+          //         ListView.separated(
+          //           shrinkWrap: true,
+          //           physics: const NeverScrollableScrollPhysics(),
+          //           itemCount: controller.moreDetailsStep1.length,
+          //           separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size8),
+          //           itemBuilder: (context, index) {
+          //             final item = controller.moreDetailsStep1[index];
+          //             return Container(
+          //               decoration: BoxDecoration(
+          //                 border: Border.all(color: AppColors.secondaryTextColor.withOpacity(0.2)),
+          //                 borderRadius: BorderRadius.circular(8),
+          //               ),
+          //               padding: EdgeInsets.all(SizeConfig.size12),
+          //               child: Row(
+          //                 crossAxisAlignment: CrossAxisAlignment.start,
+          //                 children: [
+          //                   Expanded(
+          //                     child: Column(
+          //                       crossAxisAlignment: CrossAxisAlignment.start,
+          //                       children: [
+          //                         CustomText(
+          //                           item['title'] ?? '',
+          //                           fontSize: SizeConfig.medium,
+          //                           fontWeight: FontWeight.w600,
+          //                           color: AppColors.black,
+          //                         ),
+          //                         SizedBox(height: SizeConfig.size4),
+          //                         CustomText(
+          //                           item['details'] ?? '',
+          //                           color: AppColors.secondaryTextColor,
+          //                         ),
+          //                       ],
+          //                     ),
+          //                   ),
+          //                   IconButton(
+          //                     tooltip: 'Remove',
+          //                     icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+          //                     onPressed: () => controller.removeMoreDetailAtStep1(index),
+          //                   )
+          //                 ],
+          //               ),
+          //             );
+          //           },
+          //         ),
+          //       ],
+          //     );
+          //   }),
+         
+         
+              ],),
             ),
-          ),
-          CustomFormCard(
-            child: CommonTextField(
-              textEditController: controller.productNameController,
-              hintText: 'E.g. Samsung',
-              title: "Brand ( if any )",
-              validator: controller.validateProductName,
-              showLabel: true,
-            ),
-          ),
-          SizedBox(height: SizeConfig.size16),
-          CustomFormCard(
-            child: _buildProductFeaturesSection(controller),
-          ),
-          SizedBox(height: SizeConfig.size16),
-          CustomFormCard(
-            child: _buildDescriptionSection(controller),
-          ),
-          SizedBox(height: SizeConfig.size16),
-        ],
-      ),
+            // SizedBox(height: SizeConfig.size12),
+            // Render added details list
+             
+             // CustomFormCard(
+             //   padding: EdgeInsets.all(SizeConfig.size16),
+             //   child: _buildDescriptionSection(controller),
+             // ),
+                Container(
+
+                         padding:   EdgeInsets.all(SizeConfig.size4),
+      margin:   EdgeInsets.symmetric(vertical: SizeConfig.size5,horizontal: SizeConfig.size20),
+                        child: Row(
+                            children: [
+                              // Create Button (only button before creation)
+                              Expanded(
+                                child: CustomBtn(
+                                  title: 'Create',
+                                  onTap: controller.markCreated,
+                                  bgColor: AppColors.primaryColor,
+                                  textColor: AppColors.white,
+                                  height: 45,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ),
+         
+           ],
+         ),
     );
   }
 
@@ -120,111 +288,121 @@ class Step1Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          'Upload product Video',
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        SizedBox(
-          height: 80,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              GestureDetector(
-                key: const ValueKey('video'),
-                onTap: () {
-                  final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
-                  if (hasVideo) {
-                    Get.snackbar(
-                      'Limit reached',
-                      'You can upload only one video. Remove the existing one to replace.',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  } else {
-                    controller.pickVideo();
-                  }
-                },
-                onLongPress: () {
-                  final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
-                  if (hasVideo) {
-                    controller.videoLocalPath.value = null;
-                  }
-                },
-                child: Container(
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.fillColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.greyE5, width: 1),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Obx(() {
-                    final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (hasVideo)
-                          Container(
-                            color: Colors.black12,
-                            child: Center(
-                              child: Icon(Icons.videocam, color: AppColors.primaryColor.withOpacity(0.9)),
-                            ),
-                          )
-                        else
-                          Center(
-                            child: Icon(
-                              Icons.videocam,
-                              color: AppColors.secondaryTextColor.withOpacity(0.3),
-                            ),
-                          ),
-                        if (hasVideo)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: GestureDetector(
-                              onTap: () => controller.videoLocalPath.value = null,
-                              child: Container(
-                                width: 22,
-                                height: 22,
-                                decoration: const BoxDecoration(
-                                  color: Colors.black54,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.close, size: 14, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.videocam, size: 12, color: Colors.white70),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size16),
-        CustomText(
-          'Upload product Images',
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
+        // CustomText(
+        //   'Upload product Video',
+        //   fontSize: SizeConfig.medium,
+        //   color: AppColors.black,
+        // ),
+        // SizedBox(height: SizeConfig.size8),
+        // SizedBox(
+        //   height: 80,
+        //   child: ListView(
+        //     scrollDirection: Axis.horizontal,
+        //     children: [
+        //       GestureDetector(
+        //         key: const ValueKey('video'),
+        //         onTap: () {
+        //           final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
+        //           if (hasVideo) {
+        //             Get.snackbar(
+        //               'Limit reached',
+        //               'You can upload only one video. Remove the existing one to replace.',
+        //               snackPosition: SnackPosition.BOTTOM,
+        //             );
+        //           } else {
+        //             controller.pickVideo();
+        //           }
+        //         },
+        //         onLongPress: () {
+        //           final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
+        //           if (hasVideo) {
+        //             controller.videoLocalPath.value = null;
+        //           }
+        //         },
+        //         child: Container(
+        //           width: 80,
+        //           decoration: BoxDecoration(
+        //             color: AppColors.fillColor,
+        //             borderRadius: BorderRadius.circular(8),
+        //             border: Border.all(color: AppColors.greyE5, width: 1),
+        //           ),
+        //           clipBehavior: Clip.antiAlias,
+        //           child: Obx(() {
+        //             final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
+        //             return Stack(
+        //               fit: StackFit.expand,
+        //               children: [
+        //                 if (hasVideo)
+        //                   Container(
+        //                     color: Colors.black12,
+        //                     child: Center(
+        //                       child: Icon(Icons.videocam, color: AppColors.primaryColor.withOpacity(0.9)),
+        //                     ),
+        //                   )
+        //                 else
+        //                   Center(
+        //                     child: Icon(
+        //                       Icons.videocam,
+        //                       color: AppColors.secondaryTextColor.withOpacity(0.3),
+        //                     ),
+        //                   ),
+        //                 if (hasVideo)
+        //                   Positioned(
+        //                     top: 4,
+        //                     right: 4,
+        //                     child: GestureDetector(
+        //                       onTap: () => controller.videoLocalPath.value = null,
+        //                       child: Container(
+        //                         width: 22,
+        //                         height: 22,
+        //                         decoration: const BoxDecoration(
+        //                           color: Colors.black54,
+        //                           shape: BoxShape.circle,
+        //                         ),
+        //                         child: const Icon(Icons.close, size: 14, color: Colors.white),
+        //                       ),
+        //                     ),
+        //                   ),
+        //                 Positioned(
+        //                   right: 4,
+        //                   bottom: 4,
+        //                   child: Container(
+        //                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        //                     decoration: BoxDecoration(
+        //                       color: Colors.black54,
+        //                       borderRadius: BorderRadius.circular(10),
+        //                     ),
+        //                     child: const Row(
+        //                       mainAxisSize: MainAxisSize.min,
+        //                       children: [
+        //                         Icon(Icons.videocam, size: 12, color: Colors.white70),
+        //                       ],
+        //                     ),
+        //                   ),
+        //                 ),
+        //               ],
+        //             );
+        //           }),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // SizedBox(height: SizeConfig.size16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              'Upload product Images',
+              fontSize: SizeConfig.medium,
+              color: AppColors.black,
+            ),
+            CustomText(
+              'Min-2 / Max-5',
+              fontSize: SizeConfig.medium,
+              color: AppColors.black,
+            ),
+          ],
         ),
         SizedBox(height: SizeConfig.size8),
         SizedBox(
@@ -236,16 +414,23 @@ class Step1Section extends StatelessWidget {
               mainAxisSpacing: 8,
               childAspectRatio: 1,
             ),
-            itemCount: 4, // up to 4 images
+            itemCount: 5, // up to 4 images
             itemBuilder: (context, index) {
               final imgIdx = index;
               return GestureDetector(
                 key: ValueKey('img_$imgIdx'),
                 onTap: () {
-                  if (controller.imageLocalPaths.length >= 4) {
+                   if(controller.imageLocalPaths.length < 2){
                     Get.snackbar(
                       'Limit reached',
-                      'You can upload up to 4 images only.',
+                      'You must upload at least 2 images only.',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  } 
+                  else if (controller.imageLocalPaths.length >= 5) {
+                    Get.snackbar(
+                      'Limit reached',
+                      'You can upload up to 5 images only.',
                       snackPosition: SnackPosition.BOTTOM,
                     );
                   } else {
@@ -282,40 +467,8 @@ class Step1Section extends StatelessWidget {
                               color: AppColors.secondaryTextColor.withOpacity(0.3),
                             ),
                           ),
-                        if (hasImage)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: GestureDetector(
-                              onTap: () => controller.removeImageAt(imgIdx),
-                              child: Container(
-                                width: 22,
-                                height: 22,
-                                decoration: const BoxDecoration(
-                                  color: Colors.black54,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.close, size: 14, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.photo, size: 12, color: Colors.white70),
-                              ],
-                            ),
-                          ),
-                        ),
+                         
+                        
                       ],
                     );
                   }),
@@ -495,35 +648,50 @@ class Step1Section extends StatelessWidget {
         Obx(() => Column(
           children: List.generate(controller.featureControllers.length, (i) {
             return Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: EdgeInsets.only(bottom: SizeConfig.size10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Expanded(
-                    child: CommonTextField(
-                      title: 'Feature ${i + 1}',
-                      hintText: 'E.g. Vorem ipsum dolor sit amet,',
-                      textEditController: controller.featureControllers[i],
-                      maxLine: 2,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  if (controller.featureControllers.length > 1)
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => controller.removeFeature(i),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: EdgeInsets.only(top: SizeConfig.size20),
-                          child: Icon(
-                            Icons.delete_outline,
-                            color: AppColors.primaryColor,
-                            size: 22,
-                          ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        //TODO:  here in textfiled for feature i want to make charator limit to max 140 charactors 
+                        child: Column(
+                           crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            CommonTextField(
+                              title: 'Feature ${i + 1}',
+                              hintText: 'E.g. Vorem ipsum dolor sit amet,',
+                              textEditController: controller.featureControllers[i],
+                              maxLine: 2,
+                              maxLength: 140,
+                            ),
+                           Obx(() => CustomText(
+                              '${controller.featureCharCounts[i].value}/140',
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.black,
+                            )),
+                          ],
                         ),
                       ),
-                    ),
+                      // if (controller.featureControllers.length > 2) SizedBox(width: SizeConfig.size8),
+                      // if (controller.featureControllers.length > 2)
+                      //   Material(
+                      //     color: Colors.transparent,
+                      //     child: InkWell(
+                      //       onTap: () => controller.removeFeature(i),
+                      //       borderRadius: BorderRadius.circular(8),
+                      //       child: Icon(
+                      //         Icons.delete_outline,
+                      //         color: AppColors.primaryColor,
+                      //         size: 22,
+                      //       ),
+                      //     ),
+                      //   ),
+                    ],
+                  ),
+                
                 ],
               ),
             );
@@ -537,7 +705,7 @@ class Step1Section extends StatelessWidget {
               Image.asset("assets/icons/add_icon.png",
                   color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size10),
-              CustomText("Add More Option", color: AppColors.primaryColor),
+              CustomText("Add More Feature", color: AppColors.primaryColor),
             ],
           ),
         ),
@@ -565,92 +733,65 @@ class Step1Section extends StatelessWidget {
               )
             : const SizedBox.shrink()),
         SizedBox(height: SizeConfig.size20),
-        CustomText(
-          'Options',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size12),
-        Obx(() => Column(
-          children: List.generate(controller.optionAttributeControllers.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CommonTextField(
-                      title: 'Attribute',
-                      hintText: 'e.g. Color',
-                      textEditController: controller.optionAttributeControllers[i],
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  Expanded(
-                    child: CommonTextField(
-                      title: 'Value',
-                      hintText: 'e.g. Black',
-                      textEditController: controller.optionValueControllers[i],
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  if (controller.optionAttributeControllers.length > 1)
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => controller.removeOption(i),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: const Icon(Icons.delete_outline, color: AppColors.primaryColor),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        )),
-        SizedBox(height: SizeConfig.size8),
-        GestureDetector(
-          onTap: controller.addOption,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add Option", color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(
-              'Add More Details',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-            GestureDetector(
-              onTap: controller.toggleMoreDetails,
-              child: Container(
-                width: 32,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
+        // CustomText(
+        //   'Options',
+        //   fontSize: SizeConfig.medium,
+        //   fontWeight: FontWeight.bold,
+        //   color: AppColors.black,
+        // ),
+        // SizedBox(height: SizeConfig.size12),
+        // Obx(() => Column(
+        //   children: List.generate(controller.optionAttributeControllers.length, (i) {
+        //     return Padding(
+        //       padding: EdgeInsets.only(bottom: SizeConfig.size12),
+        //       child: Row(
+        //         children: [
+        //           Expanded(
+        //             child: CommonTextField(
+        //               title: 'Attribute',
+        //               hintText: 'e.g. Color',
+        //               textEditController: controller.optionAttributeControllers[i],
+        //             ),
+        //           ),
+        //           SizedBox(width: SizeConfig.size8),
+        //           Expanded(
+        //             child: CommonTextField(
+        //               title: 'Value',
+        //               hintText: 'e.g. Black',
+        //               textEditController: controller.optionValueControllers[i],
+        //             ),
+        //           ),
+        //           SizedBox(width: SizeConfig.size8),
+        //           if (controller.optionAttributeControllers.length > 1)
+        //             Material(
+        //               color: Colors.transparent,
+        //               child: InkWell(
+        //                 onTap: () => controller.removeOption(i),
+        //                 borderRadius: BorderRadius.circular(8),
+        //                 child: Padding(
+        //                   padding: const EdgeInsets.all(8.0),
+        //                   child: const Icon(Icons.delete_outline, color: AppColors.primaryColor),
+        //                 ),
+        //               ),
+        //             ),
+        //         ],
+        //       ),
+        //     );
+        //   }),
+        // )),
+        // SizedBox(height: SizeConfig.size8),
+        // GestureDetector(
+        //   onTap: controller.addOption,
+        //   child: Row(
+        //     children: [
+        //       Image.asset("assets/icons/add_icon.png",
+        //           color: AppColors.primaryColor),
+        //       SizedBox(width: SizeConfig.size10),
+        //       CustomText("Add Option", color: AppColors.primaryColor),
+        //     ],
+        //   ),
+        // ),
+        
       ],
     );
   }

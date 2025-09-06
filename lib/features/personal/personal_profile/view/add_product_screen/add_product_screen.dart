@@ -90,6 +90,7 @@ class AddProductScreen extends StatelessWidget {
             // Form Content
             Expanded(
               child: CustomFormCard(
+            
                 margin: EdgeInsets.fromLTRB(SizeConfig.size16, 0, SizeConfig.size16, 0),
                  borderRadius: const BorderRadius.only(
       topLeft: Radius.circular(16),

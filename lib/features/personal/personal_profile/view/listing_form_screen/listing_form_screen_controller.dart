@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/category_response.dart';
@@ -10,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 
 // Represents one level in the category hierarchy
 class CategoryLevel {
@@ -47,9 +49,21 @@ class ManualListingScreenController extends GetxController {
   final TextEditingController availableStockController = TextEditingController();
   final TextEditingController tagsController = TextEditingController();
   final TextEditingController linkController = TextEditingController();
+  final TextEditingController microsizeController = TextEditingController();
+  final TextEditingController smallsizeController = TextEditingController();
+  final TextEditingController mediumsizeController = TextEditingController();
+  final TextEditingController largesizeController = TextEditingController();
+  final TextEditingController extralargesizeController = TextEditingController();
+  
+  // Product validity (duration) controls
+  final TextEditingController validityValueController = TextEditingController();
+  final RxString validityUnit = 'Day'.obs; // Day, Week, Month, Year
+  final List<String> validityUnits = const ['Day', 'Week', 'Month', 'Year'];
+
   // Form Controllers
   final TextEditingController titleController = TextEditingController();
   final TextEditingController variantController = TextEditingController();
+  
   // Media state
   final RxString videoPublicUrl = ''.obs;
   final RxString videoFileKey = ''.obs;
@@ -90,6 +104,12 @@ class ManualListingScreenController extends GetxController {
     TextEditingController(),
   ].obs;
 
+  // Character count tracking for features
+  final RxList<RxInt> featureCharCounts = <RxInt>[
+    0.obs,
+    0.obs,
+  ].obs;
+
   // Dynamic options (attribute/value pairs)
   final RxList<TextEditingController> optionAttributeControllers = <TextEditingController>[
     TextEditingController(),
@@ -100,11 +120,33 @@ class ManualListingScreenController extends GetxController {
 
   // UI state
   final RxBool showLinkField = false.obs;
+  final RxBool isCreated = false.obs;
+  // Separated custom details for Step 1 and Step 3
+  final RxList<Map<String, String>> moreDetailsStep1 = <Map<String, String>>[].obs;
+  final RxList<Map<String, String>> moreDetailsStep3 = <Map<String, String>>[].obs;
+
+  // Color selection state
+  final Rx<Color> selectedColor = AppColors.primaryColor.obs;
+  final RxString selectedColorHex = ''.obs;
+  final RxString selectedColorName = ''.obs;
+
+  // Multiple selected colors
+  final RxList<SelectedColorInfo> selectedColors = <SelectedColorInfo>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     getTopLevelCategoriesList();
+    // Set up listeners for existing feature controllers
+    for (int i = 0; i < featureControllers.length; i++) {
+      _setupFeatureListener(i);
+    }
+  }
+
+  void _setupFeatureListener(int index) {
+    featureControllers[index].addListener(() {
+      featureCharCounts[index].value = featureControllers[index].text.length;
+    });
   }
 
   @override
@@ -120,6 +162,12 @@ class ManualListingScreenController extends GetxController {
     availableStockController.dispose();
     tagsController.dispose();
     linkController.dispose();
+    microsizeController.dispose();
+    smallsizeController.dispose();
+    mediumsizeController.dispose();
+    largesizeController.dispose();
+    extralargesizeController.dispose();
+    validityValueController.dispose();
     for (final c in featureControllers) {
       c.dispose();
     }
@@ -129,7 +177,7 @@ class ManualListingScreenController extends GetxController {
     for (final c in optionValueControllers) {
       c.dispose();
     }
- titleController.dispose();
+    titleController.dispose();
     variantController.dispose();
     super.onClose();
   }
@@ -145,9 +193,28 @@ class ManualListingScreenController extends GetxController {
   // Toggle Methods
   void toggleNonReturnable() { isNonReturnable.value = !isNonReturnable.value; }
 
-  void toggleMoreDetails() {
+  Future<void> toggleMoreDetails() async {
     showMoreDetails.value = !showMoreDetails.value;
-    Get.to(()=>AddMoreDetailsScreen());
+    final result = await Get.dialog(
+      const AddMoreDetailsDialog(),
+      barrierDismissible: false,
+    );
+    _addMoreDetailFromResultToList(result, moreDetailsStep1);
+  }
+  Future<void> openMoreDetailsForStep2() async {
+    final result = await Get.dialog(
+      const AddMoreDetailsDialogStep2(),
+      barrierDismissible: false,
+    );
+    // _addMoreDetailFromResultToList(result, moreDetailsStep2);
+  }
+
+  Future<void> openMoreDetailsForStep3() async {
+    final result = await Get.dialog(
+      const AddMoreDetailsDialogStep3(),
+      barrierDismissible: false,
+    );
+    _addMoreDetailFromResultToList(result, moreDetailsStep3);
   }
 
   // Add Tag
@@ -161,6 +228,25 @@ class ManualListingScreenController extends GetxController {
         colorText: Colors.white,
       );
       tagsController.clear();
+    }
+  }
+
+  // Mark product as created (controls bottom bar visibility)
+  Future<void> markCreated() async {
+    if (!isCreated.value) {
+      isCreated.value = true;
+       if (currentStep.value < totalSteps) {
+      currentStep.value += 1;
+    } else {
+      await submitFinal();
+    }
+      // Get.snackbar(
+      //   'Product',
+      //   'Product is created',
+      //   snackPosition: SnackPosition.BOTTOM,
+      //   backgroundColor: Colors.green,
+      //   colorText: Colors.white,
+      // );
     }
   }
 
@@ -206,7 +292,15 @@ class ManualListingScreenController extends GetxController {
     if (int.parse(value) < 0) return 'Stock cannot be negative';
     return null;
   }
-   // Validation Methods
+  
+  String? validateValidityValue(String? value) {
+    if (value == null || value.isEmpty) return 'Validity duration is required';
+    final n = int.tryParse(value);
+    if (n == null) return 'Please enter a valid number';
+    if (n <= 0) return 'Duration must be greater than 0';
+    return null;
+  }
+
   String? validateTitle(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Title is required';
@@ -324,7 +418,12 @@ class ManualListingScreenController extends GetxController {
         'addProductFeatures': jsonEncode(buildFeaturesPayload()),
         'options': jsonEncode(buildOptionsPayload()),
         'linkOrReferealWebsite': linkController.text.trim(),
-        'addMoreDetails': '[{"title":"Material","details":"100% Genuine Leather"}]',
+        'addMoreDetails': jsonEncode([
+          ...moreDetailsStep1,
+          ...moreDetailsStep3,
+        ]),
+        'validity_duration': validityValueController.text.trim(),
+        'validity_unit': validityUnit.value,
 
         // Meta
         'type': 'Product',
@@ -447,12 +546,17 @@ class ManualListingScreenController extends GetxController {
   // Features management
   void addFeature() {
     featureControllers.add(TextEditingController());
+    featureCharCounts.add(0.obs);
+    _setupFeatureListener(featureControllers.length - 1);
   }
 
   void removeFeature(int index) {
     if (index >= 0 && index < featureControllers.length) {
       final ctrl = featureControllers.removeAt(index);
       ctrl.dispose();
+    }
+    if (index >= 0 && index < featureCharCounts.length) {
+      featureCharCounts.removeAt(index);
     }
   }
 
@@ -597,12 +701,16 @@ class ManualListingScreenController extends GetxController {
 
   Future<void> pickImages() async {
     try {
-      // Allow multiple selection, but clamp total to 4
+      // Allow multiple selection; cap total images to 5 (UI handles warnings/min checks)
+      final remaining = 5 - imageLocalPaths.length;
+      if (remaining <= 0) return; // already at max
+
       final List<XFile> files = await _picker.pickMultiImage();
       if (files.isEmpty) return;
-      final remaining = 4 - imageLocalPaths.length;
-      if (remaining <= 0) return;
+
+      // Truncate to allowed remaining quota
       final addList = files.take(remaining).map((f) => f.path).toList();
+      if (addList.isEmpty) return;
       imageLocalPaths.addAll(addList);
     } catch (e) {
       _showError('Image pick failed: $e');
@@ -614,4 +722,66 @@ class ManualListingScreenController extends GetxController {
       imageLocalPaths.removeAt(index);
     }
   }
+
+  // Update color selection and derive name and hex
+  void updateSelectedColor(Color color) {
+    selectedColor.value = color;
+    selectedColorHex.value = ColorTools.colorCode(color);
+    selectedColorName.value = ColorTools.nameThatColor(color);
+  }
+
+  // Add picked color to the list (avoids duplicates by hex code)
+  void addOrUpdateSelectedColor(Color color) {
+    updateSelectedColor(color);
+    final hex = ColorTools.colorCode(color);
+    final name = ColorTools.nameThatColor(color);
+    final exists = selectedColors.indexWhere((e) => e.hex == hex);
+    if (exists == -1) {
+      selectedColors.add(SelectedColorInfo(color: color, name: name, hex: hex));
+    } else {
+      // Update existing entry in case name differs
+      selectedColors[exists] = SelectedColorInfo(color: color, name: name, hex: hex);
+    }
+  }
+
+  void removeSelectedColorAt(int index) {
+    if (index >= 0 && index < selectedColors.length) {
+      selectedColors.removeAt(index);
+    }
+  }
+
+  void onValidityUnitChanged(String? unit) {
+    if (unit == null) return;
+    validityUnit.value = unit;
+  }
+
+  void _addMoreDetailFromResultToList(dynamic result, RxList<Map<String, String>> target) {
+    if (result is Map) {
+      final title = (result['title'] ?? '').toString().trim();
+      final variant = (result['variant'] ?? '').toString().trim();
+      if (title.isNotEmpty && variant.isNotEmpty) {
+        target.add({'title': title, 'details': variant});
+      }
+    }
+  }
+
+  void removeMoreDetailAtStep1(int index) {
+    if (index >= 0 && index < moreDetailsStep1.length) {
+      moreDetailsStep1.removeAt(index);
+    }
+  }
+
+  void removeMoreDetailAtStep3(int index) {
+    if (index >= 0 && index < moreDetailsStep3.length) {
+      moreDetailsStep3.removeAt(index);
+    }
+  }
+}
+
+class SelectedColorInfo {
+  final Color color;
+  final String name;
+  final String hex; // e.g. #FF5722
+
+  const SelectedColorInfo({required this.color, required this.name, required this.hex});
 }

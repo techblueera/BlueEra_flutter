@@ -65,76 +65,37 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         }
       },
       child: Scaffold(
-        bottomNavigationBar:   // Bottom Action Buttons
-              Obx(() => Container(
-                    padding: EdgeInsets.all(SizeConfig.size16),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Save as Draft Button
-                        Expanded(
-                          child: Container(
-                            height: 45,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: AppColors.primaryColor, width: 1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: controller.saveAsDraft,
-                                borderRadius: BorderRadius.circular(8),
-                                child: const Center(
-                                  child: CustomText(
-                                    'Save as draft',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(width: SizeConfig.size12),
-
-                        // Post Product Button
-                        Expanded(
-                            child: CustomBtn(
-                          title: controller.currentStep.value ==
-                                  ManualListingScreenController.totalSteps
-                              ? 'Submit'
-                              : 'Next',
-                          onTap: controller.onNext,
-                          bgColor: AppColors.primaryColor,
-                          textColor: AppColors.white,
-                          height: 45,
-                        )),
-                      ],
-                    ),
-                  )),
-             
-        backgroundColor: AppColors.white,
-        appBar: CommonBackAppBar(
-          title: "Product Details",
-          onBackTap: () {
-            if (controller.currentStep.value > 1) {
-              controller.onBack();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+        backgroundColor: AppColors.appBackgroundColor,
+        
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: Obx(() => CommonBackAppBar(
+            title: controller.currentStep.value == 1 
+                ? "Product Details"
+                : controller.currentStep.value == 2
+                    ? "Add Variant"
+                    : "Pricing and warranty",
+            onBackTap: () {
+              if (controller.currentStep.value > 1) {
+                controller.onBack();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+            showRightTextButton: true,
+rightTextButtonText: "Step-${controller.currentStep.value}/${ManualListingScreenController.totalSteps}",
+rightTextButtonColor: AppColors.black,
+// onRightTextButtonTap: () {}, // Optional callback
+            // actionText: "Step-${controller.currentStep.value}/${ManualListingScreenController.totalSteps}",
+            // actionTextColor: AppColors.black,
+            // actionOnTap: () {
+            //   if (controller.currentStep.value < 3) {
+            //     controller.currentStep.value += 1;
+            //   } else {
+            //     controller.createListing();
+            //   }
+            // },
+          )),
         ),
         body: SafeArea(
           child: Column(

@@ -27,7 +27,7 @@ class CustomFormCard extends StatelessWidget {
     return Container(
       width: width ?? double.infinity,
       padding: padding ?? EdgeInsets.all(SizeConfig.size4),
-      margin: margin ?? EdgeInsets.all(SizeConfig.size16),
+      margin: margin ?? EdgeInsets.symmetric(vertical: SizeConfig.size5,horizontal: SizeConfig.size20),
       decoration: BoxDecoration(
         color: color ?? AppColors.white,
         borderRadius: borderRadius ?? BorderRadius.circular(16),
