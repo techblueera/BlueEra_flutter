@@ -57,7 +57,7 @@ class HomeScreenController extends GetxController{
             businessProfileDetails.data?.ownerDetails?[0].name);
 
         await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.businessUserId,
+            SharedPreferenceUtils.businessUserIdKey,
             businessProfileDetails.data?.userId);
 
         await getBusinessData();

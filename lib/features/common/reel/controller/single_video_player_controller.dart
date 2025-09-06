@@ -26,7 +26,7 @@ class SingleVideoPlayerController extends GetxController {
   final RxString errorMessage = ''.obs;
 
   // Current video item
-  VideoFeedItem? _currentVideoItem;
+  ShortFeedItem? _currentVideoItem;
 
   // Lifecycle flags
   bool _isClosed = false;
@@ -36,7 +36,7 @@ class SingleVideoPlayerController extends GetxController {
   InterstitialAdService get interstitialService => _interstitialService;
   VideoPlayerController? get videoPlayerController => _videoPlayerController;
   ChewieController? get chewieController => _chewieController;
-  VideoFeedItem? get currentVideoItem => _currentVideoItem;
+  ShortFeedItem? get currentVideoItem => _currentVideoItem;
   bool get hasController => _chewieController != null;
 
   @override
@@ -50,7 +50,7 @@ class SingleVideoPlayerController extends GetxController {
 
   /// Initialize video with the given video item
   Future<void> initializeVideo(
-      VideoFeedItem videoItem, {
+      ShortFeedItem videoItem, {
         bool autoPlay = false,
         bool showAd = true,
         Function? onAdShow,
@@ -297,7 +297,7 @@ class SingleVideoPlayerController extends GetxController {
 
   /// Switch to new video (delegates to initialize; uses hot-swap)
   Future<void> switchVideo(
-      VideoFeedItem newVideoItem, {
+      ShortFeedItem newVideoItem, {
         bool autoPlay = false,
         bool showAd = true,
       }) async {

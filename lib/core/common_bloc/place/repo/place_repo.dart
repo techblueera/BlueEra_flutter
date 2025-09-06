@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PlaceRepo{
 
@@ -33,6 +34,22 @@ class PlaceRepo{
       showProgress: false,
       params: {
         'place_id': placeId,
+        'key': googleMapKey,
+      },
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> getGeoCode({
+    required Position position,
+  }) async {
+    ResponseModel response = await ApiBaseHelper().getHTTP(
+      googleGeoCode,
+      showProgress: false,
+      params: {
+        'latlng': '${position.latitude},${position.longitude}',
         'key': googleMapKey,
       },
       onError: (error) {},

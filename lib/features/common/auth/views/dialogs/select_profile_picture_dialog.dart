@@ -33,7 +33,12 @@ class SelectProfilePictureDialog {
   }
 
 
-  static Future showLogoDialog(BuildContext context, String title, {bool? isOnlyCamera = true, bool? isGallery = true, bool? isCircleCrop = true}) async {
+  static Future showLogoDialog(BuildContext context, String title,
+      { bool? isOnlyCamera = true,
+        bool? isGallery = true,
+        bool? isCircleCrop = true,
+        CropAspectRatio? cropAspectRatio
+      }) async {
     final appLocalizations = AppLocalizations.of(context);
 
     final result = await showDialog(
@@ -109,9 +114,12 @@ class SelectProfilePictureDialog {
                                   // }
 
                                   Future.delayed(Duration.zero, () async {
-                                    final croppedPath = await cropImage(context, pickedFile.path);
+                                    final croppedPath = await cropImage(
+                                        context,
+                                        pickedFile.path,
+                                        cropAspectRatio: cropAspectRatio
+                                    );
                                     Navigator.pop(context, croppedPath);
-                                    // Navigator.pop(context, pickedFile.path);
                                   });
                                 }
                               },
@@ -134,7 +142,11 @@ class SelectProfilePictureDialog {
                                   // }
 
                                   Future.delayed(Duration.zero, () async {
-                                    final croppedPath = await cropImage(context, pickedFile.path);
+                                    final croppedPath = await cropImage(
+                                        context,
+                                        pickedFile.path,
+                                        cropAspectRatio: cropAspectRatio
+                                    );
                                     Navigator.pop(context, croppedPath);
                                     // Navigator.pop(context, pickedFile.path);
                                   });
@@ -241,6 +253,36 @@ class SelectProfilePictureDialog {
     );
 
     return result;
+  }
+
+  static Future<String?> pickFromCamera(BuildContext context, {CropAspectRatio? cropAspectRatio}) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+        final croppedPath = await SelectProfilePictureDialog.cropImage(
+            context,
+            pickedFile.path,
+            cropAspectRatio: cropAspectRatio ?? CropAspectRatio(width: 10, height: 10)
+        );
+        return croppedPath;
+    }
+    return null;
+  }
+
+  static Future<String?> pickFromGallery(BuildContext context, {CropAspectRatio? cropAspectRatio}) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+        final croppedPath = await SelectProfilePictureDialog.cropImage(
+            context,
+            pickedFile.path,
+            cropAspectRatio: cropAspectRatio ?? CropAspectRatio(width: 10, height: 10)
+        );
+        return croppedPath;
+    }
+    return null;
   }
 
   ///New Cropper

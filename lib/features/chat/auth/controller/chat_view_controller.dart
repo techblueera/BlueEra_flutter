@@ -160,9 +160,11 @@ print('objectwww${connectivityResult}');
 
       chatSocket.listenEvent('ChatList', (data) async {
 print('chatListEvent');
+
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData,data: data);
         getPersonalFilteredChatListModel?.value=parsedData;
+        print('total chats are--> ${getPersonalFilteredChatListModel?.value.chatList?.length}');
         await localStorageHelper.saveChatList(parsedData.chatList ?? [],parsedData.type??'');
       });
 
@@ -454,7 +456,7 @@ print('chatListEvent');
 
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
-print('messages${event == "ChatList" && isFromInitial != true}');
+  print('messages${event == "ChatList" && isFromInitial != true}');
     if (event == "ChatList" && isFromInitial != true) {
       print("emitted");
       final connectivityResult = await NetworkUtils.isConnected();

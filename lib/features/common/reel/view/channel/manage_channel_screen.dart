@@ -22,7 +22,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
-
 class ManageChannelScreen extends StatefulWidget {
   const ManageChannelScreen({super.key});
 
@@ -67,7 +66,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       Get.put<ManageChannelController>(ManageChannelController());
 
   bool get hasExistingLogo =>
-      _channelData!=null &&
+      _channelData != null &&
       _channelData?.logoUrl != null &&
       _channelData!.logoUrl.isNotEmpty;
 
@@ -154,7 +153,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
-        title: (_channelData!=null) ? "Update Channel" : "Create Channel",
+        title: (_channelData != null) ? "Update Channel" : "Create Channel",
       ),
       body: Form(
         key: _formKey,
@@ -303,7 +302,9 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                 ),
 
                 SizedBox(height: SizeConfig.size20),
-          Align(alignment: Alignment.centerLeft,child: CustomText("Create Your Own Username")),
+                Align(
+                    alignment: Alignment.centerLeft,
+                    child: CustomText("Create Your Own Username")),
 
                 // SizedBox(height: SizeConfig.size5),
 
@@ -502,7 +503,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                         onTap: () => _onSubmit(),
                         height: SizeConfig.size40,
                         radius: 8,
-                        title: (_channelData!=null) ? 'Update' : 'Create',
+                        title: (_channelData != null) ? 'Update' : 'Create',
                         borderColor: AppColors.primaryColor,
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
@@ -533,15 +534,15 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
 
     bool isFormValid = _formKey.currentState?.validate() ?? false;
     print("Form validation result: $isFormValid");
-      // await authController.getCheckUsernameController(
-      //     value: userNameController.text);
-      // if (authController.userNameList.isNotEmpty) {
-      //   commonSnackBar(message: "Select user name");
-      //   return;
-      // }
+    // await authController.getCheckUsernameController(
+    //     value: userNameController.text);
+    // if (authController.userNameList.isNotEmpty) {
+    //   commonSnackBar(message: "Select user name");
+    //   return;
+    // }
 
     if (isFormValid) {
-      if (_channelData==null && _profileImage == null && !hasExistingLogo) {
+      if (_channelData == null && _profileImage == null && !hasExistingLogo) {
         commonSnackBar(
             message: "Please add your brand logo or profile picture.");
         return;
@@ -618,9 +619,16 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       print("Social Links Data: $socialLinkRequestData");
       // return;
       try {
-        if (_channelData!=null) {
+        if (_channelData != null) {
           await manageChannelController.updateChannel(
               reqData: requestData, socialLinkReqData: socialLinkRequestData);
+          if (_channelData?.socialLinks.isNotEmpty ?? false) {
+            await manageChannelController.socialLinks(
+                id: channelId, reqData: socialLinkRequestData);
+          } else {
+            await manageChannelController.socialLinks(
+                id: channelId, reqData: socialLinkRequestData);
+          }
         } else {
           if (channelId.isEmpty) {
             await manageChannelController.createChannel(

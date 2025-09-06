@@ -145,8 +145,10 @@ print("url=== ${url}");
   }
 
   ///UPDATE VIDEO DETAILS...
-  Future<ResponseModel> updateVideoDetails(
-      {required String videoId, required Map<String, dynamic> params}) async {
+  Future<ResponseModel> updateVideoDetails({
+        required String videoId,
+        required Map<String, dynamic> params
+  }) async {
     String video = videos(videoId);
     final response = await ApiBaseHelper().putHTTP(
       video,

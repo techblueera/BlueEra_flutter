@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
   await getUserLoginData();
   await getChannelId();
   unFocus();
+  Get.put(NavigationHelperController());
   Get.put(GlobalMessageService());
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
@@ -85,17 +87,8 @@ Future<void> main() async {
   /// initializeMappls Map
   await initializeMappls();
 
- //  /// Initialize Google Mobile Ads
- // if(kDebugMode) {
- //   RequestConfiguration configuration = RequestConfiguration(
- //     testDeviceIds: ["D1B1EDEBD01A314C64BEB76BFB7777ED"],
- //   );
- //   MobileAds.instance.updateRequestConfiguration(configuration);
- // }
-
   await MobileAds.instance.initialize();
 
-  Get.put(NavigationHelperController());
   cameras = await availableCameras();
   runApp(MyApp());
 }

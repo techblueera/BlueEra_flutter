@@ -34,7 +34,7 @@ import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 
 class ShareShortPlayerItem extends StatefulWidget {
-  final VideoFeedItem videoItem;
+  final ShortFeedItem videoItem;
   final bool autoPlay;
   final bool shouldPreload;
   final VoidCallback onTapOption;
@@ -591,7 +591,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -611,7 +611,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -631,7 +631,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized),
         ],

@@ -279,12 +279,12 @@ class _ChannelScreenState extends State<ChannelScreen> {
     };
   }
 
-  Videos _getVideosType() {
+  VideoType _getVideosType() {
     return switch (channelController.selectedFilter) {
-      SortBy.Latest => Videos.latest,
-      SortBy.Popular => Videos.popular,
-      SortBy.Oldest => Videos.oldest,
-      SortBy.UnderProgress => Videos.underProgress,
+      SortBy.Latest => VideoType.latest,
+      SortBy.Popular => VideoType.popular,
+      SortBy.Oldest => VideoType.oldest,
+      SortBy.UnderProgress => VideoType.underProgress,
     };
   }
 
@@ -364,7 +364,13 @@ class _ChannelScreenState extends State<ChannelScreen> {
                               SizedBox(height: SizeConfig.size5),
                               _buildTabButtons(),
                             ],
-                            _buildTabView(),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15
+                              ),
+                              child: _buildTabView(),
+                            ),
                           ],
                         ),
                       ),
@@ -640,6 +646,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
                           child: commonButtonWithIcon(
                             height: SizeConfig.size36,
                             onTap: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                                return;
+                              }
                               channelController.followUnfollowChannel(
                                   channelId: widget.channelId,
                                   isFollowing:
@@ -655,7 +665,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
                             radius: SizeConfig.size8,
                           ),
                         )),
-                    SizedBox(width: SizeConfig.size8),
+                   /* SizedBox(width: SizeConfig.size8),
                     Expanded(
                       child: commonButtonWithIcon(
                         height: SizeConfig.size36,
@@ -668,7 +678,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
                         isPrefix: false,
                         radius: SizeConfig.size8,
                       ),
-                    )
+                    )*/
                   ],
                 ),
               ],
@@ -857,6 +867,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       constraints: BoxConstraints(),
       onSelected: (VisitingChannelMenuAction value) {
+        if (isGuestUser()) {
+          createProfileScreen();
+          return;
+        }
         switch (value) {
           case VisitingChannelMenuAction.reportChannel:
             if (onReport != null) onReport();

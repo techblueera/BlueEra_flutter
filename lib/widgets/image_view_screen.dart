@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ImageViewScreen extends StatefulWidget {
    String? subTitle;
@@ -102,12 +103,14 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
             // Back Button
             Positioned(
               top: SizeConfig.size25,
-              left: SizeConfig.size10,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+              left: SizeConfig.size15,
+              child: SafeArea(
+                child: IconButton(
+                  icon: Icon(Icons.chevron_left, color: Colors.white, size: SizeConfig.size40),
+                  onPressed: () {
+                    Get.back();
+                  },
+                ),
               ),
             ),
 

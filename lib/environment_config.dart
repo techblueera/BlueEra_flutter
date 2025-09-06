@@ -26,7 +26,7 @@ String googleAutocomplete =
 String googlePlaceId =
     "https://maps.googleapis.com/maps/api/place/details/json";
 String googleGeoCode =
-    "https://maps.googleapis.com/maps/api/geocode/json?latlng=";
+    "https://maps.googleapis.com/maps/api/geocode/json";
 String googleCountryCode = "&language=en&components=country:IN";
 
 // String privacyLink = "https://doc-hosting.flycricket.io/blueera-privacy-policy/63a9d073-d49c-46a4-a5e3-e7c3647a0756/privacy";

@@ -192,6 +192,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     if (onProfileTap != null) {
                       onProfileTap!();
                     } else {
+                      logs("ACCOUNT TYPE === ${accountTypeGlobal}");
                       if (isGuestUser()) {
                         createProfileScreen();
                       } else if (isIndividualUser()) {
@@ -344,7 +345,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       value == PostCreationMenu.message ||
                       value == PostCreationMenu.poll) {
                     postVia(context, value);
-                  } else if (value == 'Place') {
+                  } else if (value == PostCreationMenu.place) {
                     Navigator.pushNamed(
                       context,
                       RouteHelper.getAddPlaceStepOneScreenRoute(),

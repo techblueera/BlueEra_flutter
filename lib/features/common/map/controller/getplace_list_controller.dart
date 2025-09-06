@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 // Adjust import path
@@ -18,7 +20,7 @@ class PlaceController extends GetxController {
           (response.response!.data as List).map((e) => PlaceList.fromJson(e)),
         );
         allPlaces.value = places;
-        print("dngksafjb ${allPlaces.length}");
+        print("allPlaces--> ${allPlaces.length}");
       } else {
         print("API failed with status: ${response.statusCode}");
       }
@@ -47,5 +49,5 @@ class PlaceController extends GetxController {
       isLoading.value = false;
     }
   }
-  
+
 }

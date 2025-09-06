@@ -206,7 +206,7 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (feedController.isLoading.isFalse) {
-        if (feedController.postsResponse.status == Status.COMPLETE ||
+        if (feedController.postsResponse.value.status == Status.COMPLETE ||
             widget.postFilterType == PostType.saved) {
           List<Post> posts = feedController.getListByType(widget.postFilterType);
 
@@ -292,7 +292,7 @@ class _FeedScreenState extends State<FeedScreen> {
           }
 
           return content;
-        } else if (feedController.postsResponse.status == Status.ERROR) {
+        } else if (feedController.postsResponse.value.status == Status.ERROR) {
           return LoadErrorWidget(
             errorMessage: 'Failed to load posts',
             onRetry: () {

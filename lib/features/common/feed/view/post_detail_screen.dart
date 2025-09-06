@@ -36,13 +36,10 @@ class PostDeatilPage extends StatelessWidget {
             ),
             body: Column(
               children: [
-                controller.postByIdResponseModalClass != null
+                controller.post != null
                     ? FeedCard(
                         index: 0,
-
-                        post: Post.fromJson(controller
-                            .postByIdResponseModalClass!.data!
-                            .toJson()),
+                        post: controller.post,
                         postFilteredType: PostType
                             .otherPosts, //controller.postByIdResponseModalClass.data.type,
                       )

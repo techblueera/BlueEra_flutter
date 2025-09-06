@@ -31,6 +31,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
 ;    return Obx(() {
       if (chatViewController.personalChatListResponse.value.status == Status.COMPLETE) {
         GetChatListModel? data = chatViewController.getPersonalChatListModel?.value;
+        print('data?.chatList length--> ${data?.chatList?.length}');
         return RefreshIndicator(
           onRefresh: () async{
             chatViewController.emitEvent("ChatList", {

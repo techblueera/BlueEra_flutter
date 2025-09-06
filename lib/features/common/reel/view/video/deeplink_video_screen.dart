@@ -5,8 +5,8 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
- 
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/common_methods.dart' as CommonMethods;
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -35,7 +35,7 @@ import 'package:share_plus/share_plus.dart';
 
 class DeeplinkVideoScreen extends StatefulWidget {
   // final String videoId;
-  final VideoFeedItem? videoItem; // Optional, will be fetched if null
+  final ShortFeedItem? videoItem; // Optional, will be fetched if null
   
   const DeeplinkVideoScreen({
     super.key, 
@@ -352,7 +352,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
                   videoItem: videoFeedItem,
                   voidCallback: () => _navigateToVideoPlayer(videoFeedItem),
                   onTapOption: () => _showBlockDialog(videoFeedItem),
-                  videoType: Videos.videoFeed,
+                  videoType: VideoType.videoFeed,
                 );
               },
             );
@@ -362,7 +362,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     );
   }
 
-  Future<void> _navigateToVideoPlayer(VideoFeedItem videoFeedItem) async {
+  Future<void> _navigateToVideoPlayer(ShortFeedItem videoFeedItem) async {
     // Pause current video before navigation using centralized controller
     videoPlayerController.pauseForNavigation();
 
@@ -379,7 +379,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     videoPlayerController.resumeAfterNavigation();
   }
 
-  void _showBlockDialog(VideoFeedItem videoFeedItem) {
+  void _showBlockDialog(ShortFeedItem videoFeedItem) {
 
     openBlockSelectionDialog(
         context: context,
@@ -388,26 +388,18 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
         contentId: videoFeedItem.video?.id??'',
         userBlockVoidCallback: () async {
           await Get.find<VideoController>().userBlocked(
-            videoType: Videos.videoFeed,
+            videoType: VideoType.videoFeed,
             otherUserId: videoFeedItem.video?.userId ?? '',
           );
         },
         reportCallback: (params){
-
+          Get.find<VideoController>().videoPostReport(
+              videoId: videoFeedItem.video?.id??'',
+              videoType: VideoType.videoFeed,
+              params: params
+          );
         }
     );
-   /*  openBlockSelectionDialog(
-      context: context,
-      userBlockVoidCallback: () async {
-        await Get.find<VideoController>().userBlocked(
-          videoType: Videos.videoFeed,
-          otherUserId: videoFeedItem.video?.userId ?? '',
-        );
-      },
-      postBlockVoidCallback: (){
-
-      }
-    );*/
   }
 
   Widget _buildExpandedWidget() {
@@ -489,6 +481,10 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
                       children: [
                         Obx(() => CustomBtn(
                           onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
                                   channelId: videoController.videoFeedItem?.channel?.id ?? ''

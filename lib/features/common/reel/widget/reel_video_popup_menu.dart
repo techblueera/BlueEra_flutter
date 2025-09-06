@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
@@ -13,15 +16,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ReelVideoPopUpMenu extends StatelessWidget {
-  final VideoFeedItem videoFeedItem;
+  final ShortFeedItem videoFeedItem;
   final Color? popUpMenuColor;
-  final Videos videoType;
+  final VideoType video;
 
   const ReelVideoPopUpMenu({
     super.key,
     required this.videoFeedItem,
     this.popUpMenuColor,
-    required this.videoType
+    required this.video
   });
 
   @override
@@ -39,7 +42,7 @@ class ReelVideoPopUpMenu extends StatelessWidget {
             RouteHelper.getCreateReelScreenRoute(),
             arguments: {
               ApiKeys.videoPath: videoFeedItem.video?.videoUrl??'',
-              ApiKeys.videoType: videoFeedItem.video?.type == 'long' ? VideoType.video : VideoType.short,
+              ApiKeys.videoType: Video.video,
               ApiKeys.videoId: videoFeedItem.videoId,
               ApiKeys.argPostVia: videoFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,
             },
@@ -47,11 +50,11 @@ class ReelVideoPopUpMenu extends StatelessWidget {
         } else if (value == 'Delete Video') {
           await showCommonDialog(
               context: context,
-              text: (videoFeedItem.video?.type == 'long') ? 'Are you sure you want to delete this video?' : 'Are you sure you want to delete this short?',
+              text: 'Are you sure you want to delete this video?',
               confirmCallback: () {
-                logs("videoFeedItem.video?.id === ${videoFeedItem.video?.id }");
+                logs("videoFeedItem.video?.id === ${videoFeedItem.video?.id}");
                 Get.back();
-                Get.find<VideoController>().videoDelete(videoType: videoType, videoId: videoFeedItem.video?.id ?? '');
+                Get.find<VideoController>().videoDelete(video: video, videoId: videoFeedItem.video?.id ?? '');
               },
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog
@@ -64,5 +67,8 @@ class ReelVideoPopUpMenu extends StatelessWidget {
       itemBuilder: (context) => popupVideoMenuItems(),
     );
   }
+
+
+
 }
 

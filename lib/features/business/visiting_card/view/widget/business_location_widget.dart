@@ -26,8 +26,27 @@ class BusinessLocationWidget extends StatefulWidget {
 class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
   late MapplsMapController mapController;
 
+  // Future<void> _onMapCreated(MapplsMapController controller) async {
+  //   mapController = controller;
+  //   mapController.onStyleLoadedCallback = () async {
+  //     await mapController.addSymbol(
+  //       SymbolOptions(
+  //         geometry: LatLng(widget.latitude, widget.longitude),
+  //         iconSize: 1.2,
+  //         iconImage: "marker-icon", // default marker
+  //       ),
+  //     );
+  //    };
+  //   setState(() {});
+  // }
+
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
+  }
+
+
+  Future<void> _onStyleLoaded() async {
+    // ✅ Now it’s safe to add symbols
     await mapController.addSymbol(
       SymbolOptions(
         geometry: LatLng(widget.latitude, widget.longitude),
@@ -36,7 +55,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
     );
     setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +82,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
               child: Stack(
                 children: [
                   MapplsMap(
+                    onStyleLoadedCallback: _onStyleLoaded,
                     onMapCreated: (controller) => _onMapCreated(controller),
                     initialCameraPosition: CameraPosition(
                       target: LatLng(widget.latitude, widget.longitude),

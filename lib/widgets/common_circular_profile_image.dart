@@ -94,6 +94,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
 
     widget.imagePath = await SelectProfilePictureDialog.showLogoDialog(
         context, titleOfDialog ?? "");
+    print('image path-> ${widget.imagePath}');
     if (widget.imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...
       widget.onImageUpdate(widget.imagePath ?? "");

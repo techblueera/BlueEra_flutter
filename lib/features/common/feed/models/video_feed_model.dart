@@ -50,7 +50,7 @@ class VideoResponse {
 class VideoFeedData {
   final bool? success;
   final String? feedType;
-  final List<VideoFeedItem>? videos;
+  final List<ShortFeedItem>? videos;
   final Metadata? metadata;
 
   VideoFeedData({
@@ -64,7 +64,7 @@ class VideoFeedData {
     return VideoFeedData(
       success: json['success'],
       feedType: json['feedType'],
-      videos: (json['videos'] as List?)?.map((e) => VideoFeedItem.fromJson(e)).toList(),
+      videos: (json['videos'] as List?)?.map((e) => ShortFeedItem.fromJson(e)).toList(),
       metadata: json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
     );
   }
@@ -72,7 +72,7 @@ class VideoFeedData {
   VideoFeedData copyWith({
     bool? success,
     String? feedType,
-    List<VideoFeedItem>? videos,
+    List<ShortFeedItem>? videos,
     Metadata? metadata,
   }) {
     return VideoFeedData(
@@ -84,7 +84,7 @@ class VideoFeedData {
   }
 }
 
-class VideoFeedItem {
+class ShortFeedItem {
   final String? videoId;
   final int? position;
   final dynamic score;
@@ -95,7 +95,7 @@ class VideoFeedItem {
   final Interactions? interactions;
   final VideoItemMetadata? metadata;
 
-  VideoFeedItem({
+  ShortFeedItem({
     this.videoId,
     this.position,
     this.score,
@@ -107,8 +107,8 @@ class VideoFeedItem {
     this.metadata,
   });
 
-  factory VideoFeedItem.fromJson(Map<String, dynamic> json) {
-    return VideoFeedItem(
+  factory ShortFeedItem.fromJson(Map<String, dynamic> json) {
+    return ShortFeedItem(
       videoId: json['videoId'],
       position: json['position'],
       score: json['score'],
@@ -133,7 +133,7 @@ class VideoFeedItem {
     'metadata': metadata?.toJson(),
   };
 
-  VideoFeedItem copyWith({
+  ShortFeedItem copyWith({
     String? videoId,
     int? position,
     dynamic score,
@@ -144,7 +144,7 @@ class VideoFeedItem {
     Interactions? interactions,
     VideoItemMetadata? metadata,
   }) {
-    return VideoFeedItem(
+    return ShortFeedItem(
       videoId: videoId ?? this.videoId,
       position: position ?? this.position,
       score: score ?? this.score,
@@ -971,8 +971,8 @@ class Pagination {
 }
 
 extension VideoHiveMapper on VideoFeedItemHive {
-  VideoFeedItem toVideoFeedItem() {
-    return VideoFeedItem(
+  ShortFeedItem toVideoFeedItem() {
+    return ShortFeedItem(
       videoId: videoId,
       position: position,
       score: score,

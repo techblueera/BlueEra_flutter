@@ -44,7 +44,7 @@ class HomeCacheService {
   }
 
   /// Cache videos data
-  Future<void> cacheVideos(List<VideoFeedItem> videos) async {
+  Future<void> cacheVideos(List<ShortFeedItem> videos) async {
     try {
       if (videos.isEmpty) return;
       
@@ -63,7 +63,7 @@ class HomeCacheService {
   }
 
   /// Cache shorts data
-  Future<void> cacheShorts(List<VideoFeedItem> shorts) async {
+  Future<void> cacheShorts(List<ShortFeedItem> shorts) async {
     try {
       if (shorts.isEmpty) return;
       
@@ -114,7 +114,7 @@ class HomeCacheService {
   }
 
   /// Get cached videos
-  Future<List<VideoFeedItem>?> getCachedVideos() async {
+  Future<List<ShortFeedItem>?> getCachedVideos() async {
     try {
       final box = Hive.box(_videosCacheBox);
       final cacheData = box.get('videos');
@@ -130,7 +130,7 @@ class HomeCacheService {
         return null;
       }
       
-      return data.map((json) => VideoFeedItem.fromJson(json)).toList();
+      return data.map((json) => ShortFeedItem.fromJson(json)).toList();
     } catch (e) {
       await clearCache(_videosCacheBox);
       return null;
@@ -138,7 +138,7 @@ class HomeCacheService {
   }
 
   /// Get cached shorts
-  Future<List<VideoFeedItem>?> getCachedShorts() async {
+  Future<List<ShortFeedItem>?> getCachedShorts() async {
     try {
       final box = Hive.box(_shortsCacheBox);
       final cacheData = box.get('shorts');
@@ -154,7 +154,7 @@ class HomeCacheService {
         return null;
       }
       
-      return data.map((json) => VideoFeedItem.fromJson(json)).toList();
+      return data.map((json) => ShortFeedItem.fromJson(json)).toList();
     } catch (e) {
       await clearCache(_shortsCacheBox);
       return null;

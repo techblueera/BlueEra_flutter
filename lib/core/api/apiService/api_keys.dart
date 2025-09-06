@@ -320,4 +320,8 @@ class ApiKeys {
   static const pincode = "pincode";
   static const business_description = "business_description";
   static const channelData = "channelData";
+  static const reportType = "report_type";
+  static const reportCase = "report_case";
+  static const contentId = "content_id";
+  static const reportedTo = "reported_to";
 }

@@ -129,7 +129,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
   // inside onMapCreated
   void _onMapCreated(MapplsMapController mapController) async {
     _mapController = mapController;
-    _initializeLocationAndMarkers(context);
   }
 
   /// Initial location fetch + marker setup
@@ -370,6 +369,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                   ),
                   myLocationEnabled: true,
                   onMapCreated: _onMapCreated,
+                  onStyleLoadedCallback: ()=> _initializeLocationAndMarkers(context),
                   // zoomControlsEnabled: false,
                   // we use our custom zoom controls
                   // mapType: MapType.normal,

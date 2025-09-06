@@ -346,18 +346,21 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                           height: (message != null) ? 150 : 218,
                           width: 254,
                           child: MapplsMap(
-                            onMapCreated: (MapplsMapController controller) async {
-                              mapController = controller;
+                            onStyleLoadedCallback: () async {
                               if (_currentPosition.latitude != 0.0 && _currentPosition.longitude != 0.0) {
                                 await mapController?.addSymbol(
-                                  SymbolOptions(
-                                    geometry: _currentPosition,
-                                    iconSize: 1.2,
-                                    // iconImage: "marker-15"
-                                  ),
-                                );
-                                setState(() {});
-                              }
+                                   SymbolOptions(
+                                  geometry: _currentPosition,
+                                  iconSize: 1.2,
+                                  // iconImage: "marker-15"
+                                ),
+                              );
+                              setState(() {});
+                            }
+                            },
+                            onMapCreated: (MapplsMapController controller) async {
+                              mapController = controller;
+
                             },
                             initialCameraPosition: CameraPosition(
                               target: _currentPosition,

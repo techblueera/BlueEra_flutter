@@ -8,7 +8,7 @@ import 'package:get/state_manager.dart';
 class FullScreenShortController extends GetxController{
   ApiResponse shortVideoLikeResponse = ApiResponse.initial('Initial');
   ApiResponse shortVideoUnlikeResponse = ApiResponse.initial('Initial');
-  VideoFeedItem? videoItem;
+  ShortFeedItem? videoItem;
   RxBool isLiked = false.obs;
   RxInt likes = 0.obs;
   RxInt comments = 0.obs;

@@ -1,4 +1,5 @@
   import 'dart:async';
+import 'dart:developer';
 
   import 'package:BlueEra/core/api/apiService/api_keys.dart';
   import 'package:BlueEra/core/constants/app_colors.dart';
@@ -7,14 +8,18 @@
   import 'package:BlueEra/core/constants/shared_preference_utils.dart';
   import 'package:BlueEra/core/constants/size_config.dart';
   import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location_permission_handler.dart';
   import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/map/view/location_service.dart';
   import 'package:BlueEra/widgets/custom_text_cm.dart';
   import 'package:BlueEra/widgets/local_assets.dart';
   import 'package:app_links/app_links.dart';
   import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
   import 'package:get/get.dart';
   import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
   import '../../../../core/services/notifications/one_signal_services.dart';
 
   class SplashScreen extends StatefulWidget {
@@ -28,7 +33,13 @@ import 'package:package_info_plus/package_info_plus.dart';
     @override
     void initState() {
       super.initState();
+      askLocationPermission();
       _openNextScreen();
+    }
+
+    Future<void> askLocationPermission() async {
+      final result = await LocationPermissionHandler.requestLocationPermission();
+
     }
 
     void _openNextScreen() async {
@@ -41,17 +52,18 @@ import 'package:package_info_plus/package_info_plus.dart';
       if (isLoginStatus == null) isLoginStatus = "false";
 
       // ✅ Check if app was updated
-      // final logoutRequired = await _shouldLogoutAfterUpdate();
+      final logoutRequired = await _shouldLogoutAfterUpdate();
+      log('logout required--> $logoutRequired');
 
       Timer(const Duration(seconds: 2), () async {
-        // if (logoutRequired) {
-        //   // 🔴 Force user to login again after update
-        //   Navigator.of(context).pushNamedAndRemoveUntil(
-        //     RouteHelper.getOnboardingSliderScreenRoute(),
-        //         (Route<dynamic> route) => false,
-        //   );
-        //   return;
-        // }
+        if (logoutRequired) {
+          // 🔴 Force user to login again after update
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteHelper.getOnboardingSliderScreenRoute(),
+                (Route<dynamic> route) => false,
+          );
+          return;
+        }
 
         if (isLoginStatus == "true") {
           if (await _initDeepLinks()) {
@@ -195,4 +207,5 @@ import 'package:package_info_plus/package_info_plus.dart';
         },
       );
     }
+
   }

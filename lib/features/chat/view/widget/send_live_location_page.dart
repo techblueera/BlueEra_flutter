@@ -85,10 +85,9 @@ class _SendLocationPageState extends State<SendLocationPage> {
             height: 250,
             child:
             MapplsMap(
+              onStyleLoadedCallback: _addMarker,
               onMapCreated: (MapplsMapController controller) async {
                 mapController = controller;
-                await _addMarker();
-
               },
               initialCameraPosition: CameraPosition(
                 target:  _currentPosition!,

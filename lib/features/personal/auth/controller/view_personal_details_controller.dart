@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -26,11 +27,12 @@ class ViewPersonalDetailsController extends GetxController {
   final RxInt followingCount = 0.obs;
   final RxInt followersCount = 0.obs;
   Rx<ApiResponse> viewPersonalResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getFollowerViewCountResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getFollowerViewCountResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<PersonalProfileDetailsModel> personalProfileDetails =
       PersonalProfileDetailsModel().obs;
   RxBool isSocialEdit = false.obs, isSelfVideo = false.obs;
-RxString isYoutubeEdit="".obs;
+  RxString isYoutubeEdit = "".obs;
   RxString youtube = ''.obs;
   RxString twitter = ''.obs;
   RxString linkedin = ''.obs;
@@ -44,110 +46,122 @@ RxString isYoutubeEdit="".obs;
   // RxBool isLoading = false.obs;
   RxString introVideoUrl = ''.obs;
 
-  RxList<Projects>? projectsList=<Projects>[].obs;
-  RxList<Experiences>? experiencesList=<Experiences>[].obs;
+  RxList<Projects>? projectsList = <Projects>[].obs;
+  RxList<Experiences>? experiencesList = <Experiences>[].obs;
+
   // RxList<Projects>? projectsList=<Projects>[].obs;
-  RxString overView=''.obs;
+  RxString overView = ''.obs;
 
   Future<void> viewPersonalProfile() async {
     final personalController= Get.put(PersonalCreateProfileController());
 
     // try {
-      viewPersonalResponse.value = ApiResponse.initial("Initial");
+    viewPersonalResponse.value = ApiResponse.initial("Initial");
 
-      // await getUserLoginBusinessId();
-      ResponseModel responseModel =
-          await PersonalProfileRepo().viewParticularPersonalProfile();
+    // await getUserLoginBusinessId();
+    ResponseModel responseModel =
+    await PersonalProfileRepo().viewParticularPersonalProfile();
 
-          // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
-      // ResponseModel response = await UserRepo().getUserById(userId: userId);
+    // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
+    // ResponseModel response = await UserRepo().getUserById(userId: userId);
 
-      if (responseModel.isSuccess) {
+    if (responseModel.isSuccess) {
 
-        final data = responseModel.response?.data;
-        personalProfileDetails.value =
-            PersonalProfileDetailsModel.fromJson(data);
+      final data = responseModel.response?.data;
+      personalProfileDetails.value =
+          PersonalProfileDetailsModel.fromJson(data);
 
-        ///SET SOCIAL DATA LINK...
-        setSocialLink(data);
-        personalController.imagePath?.value =
-            personalProfileDetails.value.user?.profileImage ??
-                "";
-        ///SET SKILL...
-        personalController.skillsList.clear();
-        personalController
-            .skillsList
-            .addAll(personalProfileDetails.value.user?.skills ?? []);
-       ///SET OVERVIEW
-        overView.value=personalProfileDetails.value.user?.objective??"";
-        ///SET PROJECT...
-        projectsList?.clear();
-        projectsList?.addAll(personalProfileDetails.value.user?.projects??[]);
-        ///SET PROJECT...
-        experiencesList?.clear();
-        experiencesList?.addAll(personalProfileDetails.value.user?.experiences??[]);
-        Get.find<AuthController>().imgPath.value=personalProfileDetails.value.user?.profileImage??"";
-        await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
+      ///SET SOCIAL DATA LINK...
+      setSocialLink(data);
+      personalController.imagePath?.value =
+          personalProfileDetails.value.user?.profileImage ??
+              "";
+      ///SET SKILL...
+      personalController.skillsList.clear();
+      personalController
+          .skillsList
+          .addAll(personalProfileDetails.value.user?.skills ?? []);
+      ///SET OVERVIEW
+      overView.value=personalProfileDetails.value.user?.objective??"";
+      ///SET PROJECT...
+      projectsList?.clear();
+      projectsList?.addAll(personalProfileDetails.value.user?.projects??[]);
+      ///SET PROJECT...
+      experiencesList?.clear();
+      experiencesList?.addAll(personalProfileDetails.value.user?.experiences??[]);
+      Get.find<AuthController>().imgPath.value=personalProfileDetails.value.user?.profileImage??"";
+      // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
+      await SharedPreferenceUtils.userLoggedInIndivisualGuest(
+        businesId: "",
+        loginUserId_: "${personalProfileDetails.value.user?.id}",
+        contactNo: "${personalProfileDetails.value.user?.contactNo}",
+        getUserName: "${personalProfileDetails.value.user?.name}",
+        profileImage: "${personalProfileDetails.value.user?.profileImage}",
+        designation: "${personalProfileDetails.value.user?.designation}",
+      );
+      await getUserLoginData();
 
-        // followersCount.value = personalProfileDetails.value.followersCount??0  ;
-        // followingCount.value =personalProfileDetails.value.followingCount??0  ;
-        // postsCount.value = personalProfileDetails.value.totalPosts??0  ;
-        viewPersonalResponse.value = ApiResponse.complete(responseModel);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
+      // followersCount.value = personalProfileDetails.value.followersCount??0  ;
+      // followingCount.value =personalProfileDetails.value.followingCount??0  ;
+      // postsCount.value = personalProfileDetails.value.totalPosts??0  ;
+      viewPersonalResponse.value = ApiResponse.complete(responseModel);
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+    }
     // } catch (e) {
     //   viewPersonalResponse.value = ApiResponse.error('error');
     // }
   }
-Future<void> viewPersonalProfiles( String number) async {
-    final personalController= Get.find<PersonalCreateProfileController>();
+  Future<void> viewPersonalProfiles(String number) async {
+    final personalController = Get.find<PersonalCreateProfileController>();
 
     // try {
-      viewPersonalResponse.value = ApiResponse.initial("Initial");
+    viewPersonalResponse.value = ApiResponse.initial("Initial");
 
-      // await getUserLoginBusinessId();
-      ResponseModel responseModel =
-          await PersonalProfileRepo().viewParticularPersonalProfiles(number);
-          
-          // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
-      // ResponseModel response = await UserRepo().getUserById(userId: userId);
+    // await getUserLoginBusinessId();
+    ResponseModel responseModel =
+        await PersonalProfileRepo().viewParticularPersonalProfiles(number);
 
-      if (responseModel.isSuccess) {
+    // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
+    // ResponseModel response = await UserRepo().getUserById(userId: userId);
 
-        final data = responseModel.response?.data;
-        personalProfileDetails.value =
-            PersonalProfileDetailsModel.fromJson(data);
+    if (responseModel.isSuccess) {
+      final data = responseModel.response?.data;
+      personalProfileDetails.value = PersonalProfileDetailsModel.fromJson(data);
 
-        ///SET SOCIAL DATA LINK...
-        setSocialLink(data);
+      ///SET SOCIAL DATA LINK...
+      setSocialLink(data);
 
-        ///SET SKILL...
-        personalController.skillsList.clear();
-        personalController
-            .skillsList
-            .addAll(personalProfileDetails.value.user?.skills ?? []);
-       ///SET OVERVIEW
-        overView.value=personalProfileDetails.value.user?.objective??"";
-        ///SET PROJECT...
-        projectsList?.clear();
-        projectsList?.addAll(personalProfileDetails.value.user?.projects??[]);
-        ///SET PROJECT...
-        experiencesList?.clear();
-        experiencesList?.addAll(personalProfileDetails.value.user?.experiences??[]);
-        // followersCount.value = personalProfileDetails.value.followersCount??0  ;
-        // followingCount.value =personalProfileDetails.value.followingCount??0  ;
-        // postsCount.value = personalProfileDetails.value.totalPosts??0  ;
-        viewPersonalResponse.value = ApiResponse.complete(responseModel);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
+      ///SET SKILL...
+      personalController.skillsList.clear();
+      personalController.skillsList
+          .addAll(personalProfileDetails.value.user?.skills ?? []);
+
+      ///SET OVERVIEW
+      overView.value = personalProfileDetails.value.user?.objective ?? "";
+
+      ///SET PROJECT...
+      projectsList?.clear();
+      projectsList?.addAll(personalProfileDetails.value.user?.projects ?? []);
+
+      ///SET PROJECT...
+      experiencesList?.clear();
+      experiencesList
+          ?.addAll(personalProfileDetails.value.user?.experiences ?? []);
+      // followersCount.value = personalProfileDetails.value.followersCount??0  ;
+      // followingCount.value =personalProfileDetails.value.followingCount??0  ;
+      // postsCount.value = personalProfileDetails.value.totalPosts??0  ;
+      viewPersonalResponse.value = ApiResponse.complete(responseModel);
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+    }
     // } catch (e) {
     //   viewPersonalResponse.value = ApiResponse.error('error');
     // }
   }
+
   ///SET SOCIAL LINK DATA
   setSocialLink(data) async {
     youtube.value = data['user']['social_links']['youtube'] ?? '';
@@ -155,7 +169,7 @@ Future<void> viewPersonalProfiles( String number) async {
     linkedin.value = data['user']['social_links']['linkedin'] ?? '';
     instagram.value = data['user']['social_links']['instagram'] ?? '';
     website.value = data['user']['social_links']['website'] ?? '';
-    final introVideoController= Get.find<IntroductionVideoController>();
+    final introVideoController = Get.find<IntroductionVideoController>();
 
     // logs("personalProfileDetails.value.user?.introVideo=== 1 ${ personalProfileDetails.value.user?.introVideo }");
     introVideoController.videoUrl.value =
@@ -163,9 +177,8 @@ Future<void> viewPersonalProfiles( String number) async {
     // logs("personalProfileDetails.value.user?.introVideo=== 2 ${   introVideoController.videoUrl.value }");
 
     if (introVideoController.videoUrl.value.isNotEmpty) {
-    await  introVideoController.initializeVideoPlayerFromNetwork(
+      await introVideoController.initializeVideoPlayerFromNetwork(
           introVideoController.videoUrl.value);
-
     } else {
       introVideoController.hasUploadedVideo.value = false;
     }
@@ -183,7 +196,8 @@ Future<void> viewPersonalProfiles( String number) async {
           followersCount.value = data['followersCount'] ?? 0;
           followingCount.value = data['followingCount'] ?? 0;
           postsCount.value = data['totalPosts'] ?? 0;
-          getFollowerViewCountResponse.value = ApiResponse.complete(responseModel);
+          getFollowerViewCountResponse.value =
+              ApiResponse.complete(responseModel);
 
           // if (data['user'] != null) {
           //   personalProfileDetails.value =

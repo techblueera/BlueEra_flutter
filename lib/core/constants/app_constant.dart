@@ -809,6 +809,7 @@ List<PopupMenuEntry<String>> popupShortsMenuItems() {
   final items = <Map<String, dynamic>>[
     {'title': 'Edit Short'},
     {'title': 'Delete Short'},
+    {'title': 'Change Thumbnail'},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];

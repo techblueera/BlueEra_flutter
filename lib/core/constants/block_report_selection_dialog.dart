@@ -1,5 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/widgets/block_model_sheet.dart';
+import 'package:BlueEra/widgets/block_report_model_sheet.dart';
 import 'package:flutter/material.dart';
 
 void openBlockSelectionDialog(
@@ -16,7 +16,7 @@ void openBlockSelectionDialog(
     builder: (BuildContext context) {
       return Dialog(
         backgroundColor: AppColors.white,
-        child: BlockPostModalSheet(
+        child: BlockReportPostModalSheet(
           reportType: reportType,
           contentId: contentId,
           otherUserId: userId,
