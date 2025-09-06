@@ -57,7 +57,6 @@ class _ResumeProfileHeaderState extends State<ResumeProfileHeader> {
                           "Edit Profile Picture",
                           isOnlyCamera: true,
                           isGallery: true,
-                          isCircleCrop: true,
                         );
                         if (newPath != null &&
                             newPath is String &&

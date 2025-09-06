@@ -59,8 +59,25 @@ class PhotoPostController extends GetxController {
       for (final image in images) {
         if (selectedPhotos.length >= maxPhotos) break;
 
-        final compressedFile = await SelectProfilePictureDialog().compressImage(File(image.path));
+        final originalSize = await File(image.path).length();
+
+        final compressedFile = await SelectProfilePictureDialog.compressImage(File(image.path));
+
+        final newSize = await compressedFile?.length(); // in bytes
+
         if (compressedFile != null) {
+          final newSize = await compressedFile.length();
+
+          // 📊 Calculate reduction
+          final reductionBytes = originalSize - newSize;
+          final reductionPercent = (reductionBytes / originalSize * 100).toStringAsFixed(2);
+
+          print(
+            "✅ Image compressed successfully: "
+                "${_formatBytes(originalSize)} → ${_formatBytes(newSize)} "
+                "(${reductionPercent}% reduced)",
+          );
+
           selectedPhotos.add(compressedFile.path);
           selectedPhotoFiles.add(compressedFile);
 
@@ -70,6 +87,15 @@ class PhotoPostController extends GetxController {
       }
 
       updatePhotoPost(); // your existing UI update
+  }
+
+  /// Helper to format bytes into KB/MB
+  String _formatBytes(int bytes, [int decimals = 2]) {
+    if (bytes <= 0) return "0 B";
+    const suffixes = ["B", "KB", "MB", "GB"];
+    final i = (bytes.bitLength / 10).floor(); // log2(1024) ~ 10
+    final size = bytes / (1 << (i * 10));
+    return "${size.toStringAsFixed(decimals)} ${suffixes[i]}";
   }
 
   void removePhoto(int index) {

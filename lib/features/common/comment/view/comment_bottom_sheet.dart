@@ -546,6 +546,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                             focusNode: commentController.replyFocusNode,
                             controller: commentController.sendMessageController,
                             style: TextStyle(color: Colors.black),
+                            onChanged: (value){
+                              commentController.sendMessageController.text = value;
+                              setState(() {});
+                            },
                             decoration: InputDecoration(
                               hintText: "Write a comment...",
                               hintStyle: TextStyle(
@@ -567,6 +571,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
+                (commentController.sendMessageController.text.isNotEmpty) ?
                 InkWell(
                   onTap: () {
                     if (commentController
@@ -589,6 +594,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         width: 21,
                         imagePath: AppIconAssets.send_message_chat),
                   ),
+                ) : Container(
+                  padding: EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                      color: AppColors.greyB3,
+                      borderRadius: BorderRadius.circular(18)),
+                  child: LocalAssets(
+                      height: 21,
+                      width: 21,
+                      imagePath: AppIconAssets.send_message_chat),
                 )
               ],
             ),

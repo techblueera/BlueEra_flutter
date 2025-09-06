@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -108,6 +109,23 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userName, getUserName);
   }
 
+
+  static Future<void> userLoggedInBusiness({
+    required String profileImage,
+    required String businessName,
+    required String businessOwnerName,
+    required String businessId,
+    required String loginBusinessUserId,
+
+  }) async {
+    await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userBusinessId, businessId);
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, profileImage);
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessName, businessName);
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessOwnerName, businessOwnerName);
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.loginUserId, loginBusinessUserId);
+  }
+
   /// Store the refresh token securely
   ///SET STORAGE VALUE...
   static Future<void> setBaseUrlSecureValue(
@@ -190,6 +208,7 @@ async {
       SharedPreferenceUtils.userLoginMobile) ??
       "";
 }
+
 ///GET USER DATA....
 getUserLoginData() async {
   authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
@@ -220,14 +239,35 @@ getUserLoginData() async {
   userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.userProfession) ??
       "";
-logs("userProfileGlobal==== $userProfileGlobal");
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
   has_reel_profile_status = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.has_reel_profile) ??
       "false";
+
   businessUserId = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessUserIdKey) ??
       "";
+
+  businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessName) ??
+      "";
+
+  businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessOwnerName) ??
+      "";
+
+  // 68bc0dbe8608e759dbfd35e8
+  logs("userId==== $userId");
+  logs("accountTypeGlobal==== $accountTypeGlobal");
+  logs("userProfileGlobal==== $userProfileGlobal");
+  logs("userProfileGlobal==== $userProfileGlobal");
+  if(accountTypeGlobal == AppConstants.business){
+    logs("businessId==== $businessId");
+    logs("businessNameGlobal==== $businessNameGlobal");
+    logs("businessOwnerNameGlobal==== $businessOwnerNameGlobal");
+  }
+
+
   // if (has_reel_profile_status == "true") {
   //   reel_profile_id_global = await SharedPreferenceUtils.getSecureValue(
   //           SharedPreferenceUtils.reel_profile_id) ??
@@ -269,15 +309,15 @@ getChannelId() async {
 }
 
 /// GET Business Data...
-getBusinessData() async {
-  businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessName) ??
-      "";
-  businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessOwnerName) ??
-      "";
-  businessUserId = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessUserIdKey) ??
-      "";
-}
+// getBusinessData() async {
+//   businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
+//       SharedPreferenceUtils.businessName) ??
+//       "";
+//   businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
+//       SharedPreferenceUtils.businessOwnerName) ??
+//       "";
+//   businessUserId = await SharedPreferenceUtils.getSecureValue(
+//       SharedPreferenceUtils.businessUserIdKey) ??
+//       "";
+// }
 

@@ -74,7 +74,7 @@ class _StoreScreenState extends State<StoreScreen> {
             children: [
               /// Main Scrollable Area with Dynamic Padding
 
-                   AnimatedPadding(
+             AnimatedPadding(
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeInOut,
                     padding: EdgeInsets.only(
@@ -264,7 +264,7 @@ class _StoreScreenState extends State<StoreScreen> {
                 children: [
                   CustomText(
                     LocationService.userCurrentAddress.isNotEmpty
-                        ? LocationService.userCurrentAddress.where((e) => e.isNotEmpty).join(', ')
+                        ? LocationService.userCurrentAddress.take(3).where((e) => e.isNotEmpty).join(', ')
                         : "Get current location",
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w500,

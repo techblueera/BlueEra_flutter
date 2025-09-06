@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -16,83 +15,74 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class SelectProfilePictureDialog {
-  static Map<int, CroppableImageData?> _data = {};
+  static final Map<int, CroppableImageData?> _data = {};
 
-  static Future<File?> pickFile(BuildContext context) async {
+  static Future<String?> _handlePick(
+      BuildContext context, {
+        required ImageSource source,
+        CropAspectRatio? cropAspectRatio,
+      }) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(source: source);
 
-    if (pickedFile != null) {
-      // if (!isAllowedImageExtension(pickedFile.path)) {
-      //   commonSnackBar(message: 'Only JPG, JPEG, and PNG files are allowed.');
-      //   return null;
-      // }
-      return File(pickedFile.path);
-    }
-    return null;
+    if (pickedFile == null) return null;
+
+    final originalFile = File(pickedFile.path);
+    final originalSize = await originalFile.length();
+
+    final compressedFile = await compressImage(originalFile);
+    final finalImage = compressedFile ?? originalFile;
+
+    final newSize = await finalImage.length();
+    _printCompressionStats(originalSize, newSize, compressedFile != null);
+
+    final croppedPath = await cropImage(
+      context,
+      finalImage.path,
+      cropAspectRatio: cropAspectRatio,
+    );
+    return croppedPath;
   }
 
+  /// Camera picker
+  static Future<String?> pickFromCamera(BuildContext context,
+      {CropAspectRatio? cropAspectRatio}) {
+    return _handlePick(context,
+        source: ImageSource.camera, cropAspectRatio: cropAspectRatio);
+  }
 
-  static Future showLogoDialog(BuildContext context, String title,
-      { bool? isOnlyCamera = true,
+  /// Gallery picker
+  static Future<String?> pickFromGallery(BuildContext context,
+      {CropAspectRatio? cropAspectRatio}) {
+    return _handlePick(context,
+        source: ImageSource.gallery, cropAspectRatio: cropAspectRatio);
+  }
+
+  /// Show dialog for logo/photo picker
+  static Future showLogoDialog(
+      BuildContext context,
+      String title, {
+        bool? isOnlyCamera = true,
         bool? isGallery = true,
-        bool? isCircleCrop = true,
-        CropAspectRatio? cropAspectRatio
+        CropAspectRatio? cropAspectRatio,
       }) async {
     final appLocalizations = AppLocalizations.of(context);
 
-    final result = await showDialog(
+    return showDialog(
       context: context,
       builder: (context) {
         return Dialog(
           backgroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    color: AppColors.primaryColor,
-                    padding: const EdgeInsets.all(1.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Spacer(),
-                        // SizedBox(width: SizeConfig.size50,),
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: SizeConfig.size20,
-                                horizontal: SizeConfig.size20,
-                              ),
-                              child: CustomText(
-                                title,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                color: Colors.white,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Spacer(),
-
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          splashRadius: 24,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size10),
+                  _DialogHeader(title: title),
                   Padding(
                     padding: EdgeInsets.all(SizeConfig.size20),
                     child: Row(
@@ -104,24 +94,9 @@ class SelectProfilePictureDialog {
                               iconPath: AppIconAssets.camera_sky,
                               label: appLocalizations?.takeOne ?? "",
                               onTap: () async {
-                                final picker = ImagePicker();
-                                final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
-                                if (pickedFile != null) {
-                                  // if (!isAllowedImageExtension(pickedFile.path)) {
-                                  //   commonSnackBar(message: 'Only JPG, JPEG, and PNG files are allowed.');
-                                  //   return;
-                                  // }
-
-                                  Future.delayed(Duration.zero, () async {
-                                    final croppedPath = await cropImage(
-                                        context,
-                                        pickedFile.path,
-                                        cropAspectRatio: cropAspectRatio
-                                    );
-                                    Navigator.pop(context, croppedPath);
-                                  });
-                                }
+                                final path = await pickFromCamera(context,
+                                    cropAspectRatio: cropAspectRatio);
+                                Navigator.pop(context, path);
                               },
                             ),
                           ),
@@ -129,28 +104,12 @@ class SelectProfilePictureDialog {
                           Expanded(
                             child: _OptionButton(
                               iconPath: AppIconAssets.gallery_sky,
-                              label: appLocalizations?.selectFromGallery ?? "",
+                              label:
+                              appLocalizations?.selectFromGallery ?? "",
                               onTap: () async {
-
-                                final picker = ImagePicker();
-                                final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-                                if (pickedFile != null) {
-                                  // if (!isAllowedImageExtension(pickedFile.path)) {
-                                  //   commonSnackBar(message: 'Only JPG, JPEG, and PNG files are allowed.');
-                                  //   return;
-                                  // }
-
-                                  Future.delayed(Duration.zero, () async {
-                                    final croppedPath = await cropImage(
-                                        context,
-                                        pickedFile.path,
-                                        cropAspectRatio: cropAspectRatio
-                                    );
-                                    Navigator.pop(context, croppedPath);
-                                    // Navigator.pop(context, pickedFile.path);
-                                  });
-                                }
+                                final path = await pickFromGallery(context,
+                                    cropAspectRatio: cropAspectRatio);
+                                Navigator.pop(context, path);
                               },
                             ),
                           ),
@@ -165,81 +124,51 @@ class SelectProfilePictureDialog {
         );
       },
     );
-
-    return result;
   }
 
-  static Future showVideoDialog(BuildContext context, String title, {required VoidCallback onPickFromCamera, required VoidCallback onPickFromGallery}) async {
+  /// Show dialog for video picker
+  static Future showVideoDialog(
+      BuildContext context,
+      String title, {
+        required VoidCallback onPickFromCamera,
+        required VoidCallback onPickFromGallery,
+      }) async {
     final appLocalizations = AppLocalizations.of(context);
 
-    final result = await showDialog(
+    return showDialog(
       context: context,
       builder: (context) {
         return Dialog(
           backgroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 400),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    color: AppColors.primaryColor,
-                    padding: const EdgeInsets.all(1.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Spacer(),
-                        // SizedBox(width: SizeConfig.size50,),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: SizeConfig.size20,
-                              horizontal: SizeConfig.size20,
-                            ),
-                            child: CustomText(
-                              title,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              color: Colors.white,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        // Spacer(),
-
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          splashRadius: 24,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size10),
+                  _DialogHeader(title: title),
                   Padding(
                     padding: EdgeInsets.all(SizeConfig.size20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                          Expanded(
-                            child: _OptionButton(
-                              iconPath: AppIconAssets.camera_sky,
-                              label: appLocalizations?.takeOne ?? "",
-                              onTap: () => onPickFromCamera(),
-                            ),
+                        Expanded(
+                          child: _OptionButton(
+                            iconPath: AppIconAssets.camera_sky,
+                            label: appLocalizations?.takeOne ?? "",
+                            onTap: onPickFromCamera,
                           ),
-                          Expanded(
-                            child: _OptionButton(
-                              iconPath: AppIconAssets.gallery_sky,
-                              label: appLocalizations?.selectFromGallery ?? "",
-                              onTap: () => onPickFromGallery(),
-                            ),
+                        ),
+                        Expanded(
+                          child: _OptionButton(
+                            iconPath: AppIconAssets.gallery_sky,
+                            label: appLocalizations?.selectFromGallery ?? "",
+                            onTap: onPickFromGallery,
                           ),
+                        ),
                       ],
                     ),
                   ),
@@ -251,59 +180,24 @@ class SelectProfilePictureDialog {
         );
       },
     );
-
-    return result;
   }
 
-  static Future<String?> pickFromCamera(BuildContext context, {CropAspectRatio? cropAspectRatio}) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
-    if (pickedFile != null) {
-        final croppedPath = await SelectProfilePictureDialog.cropImage(
-            context,
-            pickedFile.path,
-            cropAspectRatio: cropAspectRatio ?? CropAspectRatio(width: 10, height: 10)
-        );
-        return croppedPath;
-    }
-    return null;
-  }
-
-  static Future<String?> pickFromGallery(BuildContext context, {CropAspectRatio? cropAspectRatio}) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-        final croppedPath = await SelectProfilePictureDialog.cropImage(
-            context,
-            pickedFile.path,
-            cropAspectRatio: cropAspectRatio ?? CropAspectRatio(width: 10, height: 10)
-        );
-        return croppedPath;
-    }
-    return null;
-  }
-
-  ///New Cropper
-  static Future<String> cropImage(BuildContext context, String filePath, {CropAspectRatio? cropAspectRatio}) async {
+  /// Cropper
+  static Future<String> cropImage(BuildContext context, String filePath,
+      {CropAspectRatio? cropAspectRatio}) async {
     final imageFile = File(filePath);
     final fileImage = FileImage(imageFile);
 
-    // Show loading dialog first
+    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    // Preload the image while loading indicator is up
     await precacheImage(fileImage, context);
 
-    // Remove loading dialog before showing cropper
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(); // close loading
 
     final completer = Completer<String>();
 
@@ -333,8 +227,7 @@ class SelectProfilePictureDialog {
     return completer.future;
   }
 
-
-  /// Save a ui.Image as a PNG file to temporary storage.
+  /// Save image
   static Future<File?> _saveUiImageToFile(ui.Image image, int page) async {
     try {
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
@@ -353,7 +246,8 @@ class SelectProfilePictureDialog {
     }
   }
 
-  Future<File?> compressImage(File rawFile, {int quality = 70}) async {
+  /// Compression
+  static Future<File?> compressImage(File rawFile, {int quality = 70}) async {
     final dir = await getTemporaryDirectory();
     final targetPath =
         '${dir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -362,14 +256,72 @@ class SelectProfilePictureDialog {
       rawFile.absolute.path,
       targetPath,
       quality: quality,
-      minWidth: 1080,   // optional down-scale
+      minWidth: 1080,
       minHeight: 1080,
     );
 
     return result != null ? File(result.path) : null;
   }
+
+  /// Print compression stats
+  static void _printCompressionStats(
+      int originalSize, int newSize, bool attempted) {
+    if (!attempted) {
+      print("❌ Compression failed or skipped (using original image)");
+      return;
+    }
+    if (newSize < originalSize) {
+      final reduction =
+      ((originalSize - newSize) / originalSize * 100).toStringAsFixed(2);
+      print(
+          "✅ Image compressed successfully: $originalSize → $newSize bytes (Reduced $reduction%)");
+    } else {
+      print("⚠️ Compression attempted but size did not reduce");
+    }
+  }
 }
 
+/// Dialog header widget
+class _DialogHeader extends StatelessWidget {
+  final String title;
+
+  const _DialogHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.primaryColor,
+      padding: const EdgeInsets.all(1.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: SizeConfig.size20,
+                horizontal: SizeConfig.size20,
+              ),
+              child: CustomText(
+                title,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                color: Colors.white,
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close, color: Colors.white),
+            splashRadius: 24,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Option button widget
 class _OptionButton extends StatelessWidget {
   final String iconPath;
   final String label;
