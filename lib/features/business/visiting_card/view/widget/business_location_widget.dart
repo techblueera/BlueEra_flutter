@@ -144,7 +144,9 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                 ),
               ],
             ),
-          ],
+            ))
+
+      ],
         ),
       ),
     );
