@@ -56,7 +56,6 @@ class _FeedScreenState extends State<FeedScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
-    });
 
     // Only add scroll listener if this is an individual page (not in parent scroll)
     if (!widget.isInParentScroll) {
@@ -69,6 +68,7 @@ class _FeedScreenState extends State<FeedScreen> {
         fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
       }
+    });
     });
 
   }
@@ -206,7 +206,7 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (feedController.isLoading.isFalse) {
-        if (feedController.postsResponse.status == Status.COMPLETE ||
+        if (feedController.postsResponse.value.status == Status.COMPLETE ||
             widget.postFilterType == PostType.saved) {
           List<Post> posts = feedController.getListByType(widget.postFilterType);
 
@@ -292,7 +292,7 @@ class _FeedScreenState extends State<FeedScreen> {
           }
 
           return content;
-        } else if (feedController.postsResponse.status == Status.ERROR) {
+        } else if (feedController.postsResponse.value.status == Status.ERROR) {
           return LoadErrorWidget(
             errorMessage: 'Failed to load posts',
             onRetry: () {

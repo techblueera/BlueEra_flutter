@@ -1,26 +1,33 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BlockPostModalSheet extends StatefulWidget {
-  const BlockPostModalSheet({
+class BlockReportPostModalSheet extends StatefulWidget {
+  const BlockReportPostModalSheet({
     super.key,
-    required this.postBlockVoidCallback,
-    required this.userBlockVoidCallback
+    required this.reportType,
+    required this.otherUserId,
+    required this.contentId,
+    required this.userBlockVoidCallback,
+    required this.reportCallback
   });
 
-  final VoidCallback postBlockVoidCallback;
+  final String reportType;
+  final String otherUserId;
+  final String contentId;
   final VoidCallback userBlockVoidCallback;
+  final Function(Map<String, dynamic>) reportCallback;
 
   @override
-  State<BlockPostModalSheet> createState() => _BlockPostModalSheetState();
+  State<BlockReportPostModalSheet> createState() => _BlockReportPostModalSheetState();
 }
 
-class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
+class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
   final LayerLink _layerLink = LayerLink(); // To link the target and follower
   final LayerLink _layerLink2 = LayerLink(); // To link the target and follower
 
@@ -32,7 +39,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
     AppLocalizations.of(context);
 
     return Container(
-        width: 500,
+        // width: 500,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
             color: AppColors.white,
@@ -45,7 +52,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
               children: [
                 Expanded(
                   child: CustomText(
-                    AppLocalizations.of(context)!.blockUser,
+                    'Report / Block',
                     fontSize: SizeConfig.extraLarge22,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w700,
@@ -69,6 +76,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                 Get.back();
                 showDialog(
                   context: context,
+                  barrierDismissible: false,
                   builder: (BuildContext context) {
                     return Dialog(
                       insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
@@ -78,31 +86,36 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                         child: Material(
                           color: AppColors.white,
                           child: ReportDialog(
-                            reportReasons: {
-                              AppLocalizations.of(context)!.inappropriateContent: false,
-                              AppLocalizations.of(context)!.promotesHatredViolence: false,
-                              AppLocalizations.of(context)!.fraudOrScam: false,
-                              AppLocalizations.of(context)!.contentIsSpam: false,
-                            },
-                            reportType: 'POST',
-                            contentId: 0,
-                            reportTo: 0,
-                            postModelIndex: 0,
+                              reportType: widget.reportType,
+                              reportReasons: {
+                                'Sexual content': false,
+                                'Voilent or repulsive content': false,
+                                'Hateful or abusive content': false,
+                                'Harrasement or bullying': false,
+                                'Harmful or dangerous act': false,
+                                'Suicide, self harm or eating disorder ': false,
+                                'Misinformation': false,
+                                'Child abuse': false,
+                                'Promotes terrorism': false,
+                                'Spam or misleading': false,
+                                'Legal issue': false,
+                              },
+                              contentId: widget.contentId,
+                              otherUserId: widget.otherUserId,
+                              reportCallback: (params)=> widget.reportCallback(params),
                           ),
                         ),
                       ),
                     );
                   },
                 );
-                // widget.postBlockVoidCallback();
-                // Get.find<FeedController>().userBlocked(isPartialBlocked: true, otherUserId: widget.userId);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: CustomText(
-                      'Report',
+                      'Report Post',
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -129,8 +142,15 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
             InkWell(
               onTap: () {
                 Navigator.pop(context);
-                widget.userBlockVoidCallback();
-                // Get.find<FeedController>().userBlocked(isPartialBlocked: true, otherUserId: widget.userId);
+                showDialog(
+                  context: context,
+                  builder: (context) => BlockUserDialog(
+                    onConfirm: () {
+                      widget.userBlockVoidCallback();
+                    },
+                  ),
+                );
+
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,7 +204,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                AppLocalizations.of(context)!.partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra,
+                'Reported posts are reviewed by BlueEra. Repeated violations may lead to account restrictions.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     color: Colors.white, fontSize: 16), // White text
@@ -222,7 +242,7 @@ class _BlockPostModalSheetState extends State<BlockPostModalSheet> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                AppLocalizations.of(context)!.fullyBlockedUserCannotSeeYourProfileOrPostsOnBlueEra,
+                'Reported posts are reviewed by BlueEra. When you block someone, you won’t see their posts, and their posts will be removed from feed.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     color: Colors.white, fontSize: 16), // White text

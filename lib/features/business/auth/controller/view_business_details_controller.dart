@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
@@ -108,6 +109,8 @@ class ViewBusinessDetailsController extends GetxController {
           selectedCategoryOfBusiness.value = null;
           selectedSubCategoryOfBusinessNew.value = null;
         }
+        Get.find<AuthController>().imgPath.value=   businessProfileDetails?.data?.logo??"";
+
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.userProfile,
             businessProfileDetails?.data?.logo);
@@ -129,7 +132,10 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().updateBusinessProfileDetails(params);
+      await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
+
+      // ResponseModel responseModel =
+      //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);

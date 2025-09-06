@@ -27,7 +27,7 @@ class ChannelController extends GetxController{
   int limit = 20;
   RxBool isInitialLoading = true.obs;
   SortBy selectedFilter = SortBy.Latest;
-RxString channelLogo="".obs;
+  RxString channelLogo="".obs;
   RxBool isChannelFollow = false.obs;
   bool isMuteChannel = false;
 

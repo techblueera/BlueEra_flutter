@@ -5,8 +5,8 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
-// import 'package:BlueEra/core/constants/common_dialogs.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/common_methods.dart' as CommonMethods;
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -29,20 +29,18 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:chewie/chewie.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class DeeplinkVideoScreen extends StatefulWidget {
-  final String videoId;
-  final VideoFeedItem? videoItem; // Optional, will be fetched if null
+  // final String videoId;
+  final ShortFeedItem? videoItem; // Optional, will be fetched if null
   
   const DeeplinkVideoScreen({
     super.key, 
-    required this.videoId,
-    this.videoItem,
+    // required this.videoId,
+    required this.videoItem,
   });
 
   @override
@@ -67,7 +65,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     // Initialize the video player controller
     videoPlayerController = Get.put(
       SingleVideoPlayerController(), 
-      tag: widget.videoId
+      tag: widget.videoItem?.video?.id ?? ''
     );
     
     _initializeVideoData();
@@ -89,7 +87,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
       } else {
         // Fetch video data by ID
         print('DEEPLINK_DEBUG: Fetching video by ID');
-        await _fetchVideoById();
+   
       }
     } catch (e) {
       print('DEEPLINK_DEBUG: Error in _initializeVideoData: $e');
@@ -100,26 +98,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     }
   }
 
-  Future<void> _fetchVideoById() async {
-    try {
-      print('DEEPLINK_DEBUG: Starting _fetchVideoById with videoId: ${widget.videoId}');
-      final videoData = await videoController.getVideoById(widget.videoId);
-      print('DEEPLINK_DEBUG: getVideoById returned: ${videoData != null ? "VideoFeedItem" : "null"}');
-      
-      if (videoData != null) {
-        videoController.videoFeedItem = videoData;
-        _setupVideoPlayer();
-      } else {
-        throw Exception('Video not found');
-      }
-    } catch (e) {
-      print('DEEPLINK_DEBUG: Error in _fetchVideoById: $e');
-      setState(() {
-        errorMessage = 'Video not found or unavailable';
-        isLoading = false;
-      });
-    }
-  }
+  
 
   void _setupVideoPlayer() {
     if (videoController.videoFeedItem != null) {
@@ -217,7 +196,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
 
   @override
   void dispose() {
-    Get.delete<SingleVideoPlayerController>(tag: widget.videoId);
+    Get.delete<SingleVideoPlayerController>(tag: widget.videoItem?.video?.id ?? '');
     super.dispose();
   }
 
@@ -373,7 +352,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
                   videoItem: videoFeedItem,
                   voidCallback: () => _navigateToVideoPlayer(videoFeedItem),
                   onTapOption: () => _showBlockDialog(videoFeedItem),
-                  videoType: Videos.videoFeed,
+                  videoType: VideoType.videoFeed,
                 );
               },
             );
@@ -383,7 +362,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     );
   }
 
-  Future<void> _navigateToVideoPlayer(VideoFeedItem videoFeedItem) async {
+  Future<void> _navigateToVideoPlayer(ShortFeedItem videoFeedItem) async {
     // Pause current video before navigation using centralized controller
     videoPlayerController.pauseForNavigation();
 
@@ -391,7 +370,6 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => DeeplinkVideoScreen(
-          videoId: videoFeedItem.videoId ?? '',
           videoItem: videoFeedItem,
         ),
       ),
@@ -401,16 +379,27 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     videoPlayerController.resumeAfterNavigation();
   }
 
-  void _showBlockDialog(VideoFeedItem videoFeedItem) {
-    // openBlockSelectionDialog(
-    //   context: context,
-    //   voidCallback: () async {
-    //     await Get.find<VideoController>().userBlocked(
-    //       videoType: Videos.videoFeed,
-    //       otherUserId: videoFeedItem.video?.userId ?? '',
-    //     );
-    //   },
-    // );
+  void _showBlockDialog(ShortFeedItem videoFeedItem) {
+
+    openBlockSelectionDialog(
+        context: context,
+        reportType: 'VIDEO_POST',
+        userId: videoFeedItem.video?.userId??'',
+        contentId: videoFeedItem.video?.id??'',
+        userBlockVoidCallback: () async {
+          await Get.find<VideoController>().userBlocked(
+            videoType: VideoType.videoFeed,
+            otherUserId: videoFeedItem.video?.userId ?? '',
+          );
+        },
+        reportCallback: (params){
+          Get.find<VideoController>().videoPostReport(
+              videoId: videoFeedItem.video?.id??'',
+              videoType: VideoType.videoFeed,
+              params: params
+          );
+        }
+    );
   }
 
   Widget _buildExpandedWidget() {
@@ -492,6 +481,10 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
                       children: [
                         Obx(() => CustomBtn(
                           onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
                                   channelId: videoController.videoFeedItem?.channel?.id ?? ''
@@ -551,11 +544,11 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
 
   /// Simple, consistent share experience (like header_widget.dart)
   Future<void> _shareVideoSimple() async {
-    final id = videoController.videoFeedItem?.video?.id ?? widget.videoId;
+    final id = videoController.videoFeedItem?.video?.id ?? widget.videoItem?.video?.id ?? '';
     final link = videoDeepLink(videoId: id);
-    final title = videoController.videoFeedItem?.video?.title ?? 'BlueEra Video';
+    final title = videoController.videoFeedItem?.video?.title ?? widget.videoItem?.video?.title ?? 'BlueEra Video';
 
-    final message = "Check out this video on BlueEra:\n$link\n";
+    final message = "Watch on BlueEra App:\n$link\n";
 
     await SharePlus.instance.share(ShareParams(
       text: message,
@@ -632,7 +625,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
           Get.to(() => VisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??''));
         }
       }else{
-        if (videoController.videoFeedItem?.author?.id == businessId) {
+        if (videoController.videoFeedItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoController.videoFeedItem?.author?.id??''));

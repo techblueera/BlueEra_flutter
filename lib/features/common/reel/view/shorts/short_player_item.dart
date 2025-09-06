@@ -33,7 +33,7 @@ import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 
 class ShortPlayerItem extends StatefulWidget {
-  final VideoFeedItem videoItem;
+  final ShortFeedItem videoItem;
   final bool autoPlay;
   final bool shouldPreload;
   final VoidCallback onTapOption;
@@ -84,9 +84,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         final videoId = widget.videoItem.video?.id ?? '0';
 
         // Find the video in any of the lists to get the most up-to-date state
-        VideoFeedItem? updatedVideo;
+        ShortFeedItem? updatedVideo;
         final currentList =
-            shortsController.getListByType(shortsType: widget.shorts);
+            shortsController.getListByType(shorts: widget.shorts);
         for (final list in [currentList]) {
           final index = list.indexWhere((v) => v.video?.id == videoId);
           if (index != -1) {
@@ -573,7 +573,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: widget.videoItem,
+                  shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -593,12 +593,12 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: widget.videoItem,
+                  shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
-            if (fullScreenShortController.videoItem?.author?.id != businessId)
+            if (fullScreenShortController.videoItem?.author?.id != businessUserId)
               IconButton(
                 onPressed: () {
                   if (isGuestUser()) {
@@ -613,7 +613,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: widget.videoItem,
+                  shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts),
         ],
@@ -844,7 +844,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
         }
       } else {
-        if (fullScreenShortController.videoItem?.author?.id == businessId) {
+        if (fullScreenShortController.videoItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(
@@ -915,7 +915,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     final link = shortDeepLink(shortId: id);
     final title = widget.videoItem.video?.title ?? 'BlueEra Short';
 
-    final message = "Check out this Short video on BlueEra:\n$link\n";
+    final message = "Watch on BlueEra App:\n$link\n";
 
     await SharePlus.instance.share(ShareParams(
       text: message,

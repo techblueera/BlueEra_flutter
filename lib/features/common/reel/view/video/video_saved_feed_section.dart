@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
  import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
@@ -117,18 +117,25 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
             onTapOption: () {
               openBlockSelectionDialog(
                   context: context,
+                  reportType: 'VIDEO_POST',
+                  userId: videoFeedItem.video?.userId??'',
+                  contentId: videoFeedItem.video?.id??'',
                   userBlockVoidCallback: () async {
                     await Get.find<VideoController>().userBlocked(
-                      videoType: Videos.saved,
+                      videoType: VideoType.saved,
                       otherUserId: videoFeedItem.video?.userId??'',
                     );
                   },
-                  postBlockVoidCallback: (){
-
+                  reportCallback: (params){
+                    Get.find<VideoController>().videoPostReport(
+                        videoId: videoFeedItem.video?.id??'',
+                        videoType: VideoType.saved,
+                        params: params
+                    );
                   }
               );
             },
-            videoType: Videos.saved,
+            videoType: VideoType.saved,
           );
 
         },

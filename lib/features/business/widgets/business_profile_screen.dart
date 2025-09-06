@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -48,7 +46,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   }
 
   void setFilters(){
-    filters = SortBy.values.where((e) => e == SortBy.Latest || e == SortBy.UnderProgress).toList();
+    filters = SortBy.values.toList();
   }
 
   @override
@@ -105,17 +103,17 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case 'Profile':
         return BusinessProfileWidget();
       case 'My Posts':
-        return FeedScreen(
+         return FeedScreen(
           key: ValueKey('feedScreen_my_posts'),
           postFilterType: PostType.myPosts,
           id: businessId,
           isInParentScroll: true
         );
       case 'Shorts':
-           return ShortsChannelSection(
+         return ShortsChannelSection(
           isOwnShorts: true,
           channelId: '',
-          authorId: businessId,
+          authorId: businessUserId,
           showShortsInGrid: true,
           sortBy: selectedFilter,
           postVia: PostVia.profile,
@@ -123,10 +121,11 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case "Videos":
       return VideoChannelSection(
             isOwnVideos: true,
-            channelId: channelId,
-            authorId:userId,
+            channelId: '',
+            authorId: businessUserId,
             isScroll: false,
             postVia: PostVia.profile,
+            sortBy: selectedFilter,
         );
       default:
         return const Center(child: CustomText('Coming soon'));
@@ -154,7 +153,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                         });
                       },
                       child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label, // use .label for display text
+                        filter.label, // use .label for display text
                         decoration: TextDecoration.underline,
                         color: isSelected ? Colors.blue : Colors.black54,
                         decorationColor: isSelected ? Colors.blue : Colors.black54,

@@ -33,7 +33,7 @@ class ManageChannelController extends GetxController {
           channelId,
         );
 
-        socialLinks(id: createChannelModel.data.id, reqData: socialLinkReqData);
+       await socialLinks(id: createChannelModel.data.id, reqData: socialLinkReqData);
       } else {
         createChannelResponse = ApiResponse.error('error');
         commonSnackBar(
@@ -47,6 +47,32 @@ class ManageChannelController extends GetxController {
 
   ///CREATE CHANNEL...
   Future<void> socialLinks(
+      {required String id, required List<Map<String, String>> reqData}) async {
+    if (reqData.isEmpty) {
+      Get.back();
+      return;
+    }
+    try {
+      channelId = id;
+      ResponseModel response =
+          await ChannelRepo().updateSocialLinks(bodyRequest: reqData);
+
+      if (response.isSuccess) {
+        socialLinksResponse = ApiResponse.complete(response);
+        Get.back();
+      } else {
+        socialLinksResponse = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      socialLinksResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  ///UPDATE CHANNEL...
+  Future<void> socialLinksUpdate(
       {required String id, required List<Map<String, String>> reqData}) async {
     if (reqData.isEmpty) {
       Get.back();

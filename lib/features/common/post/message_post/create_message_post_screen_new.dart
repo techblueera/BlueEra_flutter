@@ -143,19 +143,8 @@ class _CreateMessagePostScreenNewState
                       onTap: () {
                         msgController.isAddTitle.value = true;
                       },
-                      child: Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.addBlueIcon,
-                            imgColor: AppColors.primaryColor,
-                          ),
-                          SizedBox(width: SizeConfig.size10),
-                          CustomText(
-                            'Add Your Message Title (Optional)',
-                            fontSize: SizeConfig.large,
-                            color: AppColors.primaryColor,
-                          )
-                        ],
+                      child: AddLinkRow(
+                        title: 'Add Your Message Title',
                       ),
                     );
                   }
@@ -207,43 +196,6 @@ class _CreateMessagePostScreenNewState
                   return SizedBox();
                 }),
                 SizedBox(height: SizeConfig.size15),
-                AddLinkRow(),
-                // Add Tag People / Organization button
-                GestureDetector(
-                  onTap: () async {
-                    await Get.to(() => TagUserScreen());
-                    // The result will be handled by the TagUserController
-                  },
-                  child: Row(
-                    children: [
-                      Icon(Icons.add, color: AppColors.primaryColor, size: 20),
-                      SizedBox(width: SizeConfig.size4),
-                      CustomText(
-                        'Add Tag People / Organization',
-
-                        fontSize: SizeConfig.large,
-                        color: AppColors.primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Selected users chips
-                Obx(() => tagUserController.selectedUsers.isNotEmpty
-                    ? Padding(
-                        padding: EdgeInsets.only(top: SizeConfig.size16),
-                        child: Wrap(
-                          children: tagUserController.selectedUsers
-                              .map((user) => UserChip(
-                                    user: user,
-                                    onRemove: () => tagUserController
-                                        .removeSelectedUser(user),
-                                  ))
-                              .toList(),
-                        ),
-                      )
-                    : const SizedBox.shrink()),
-                SizedBox(height: SizeConfig.size15),
 
                 Obx(() {
                   if (!msgController.isAddLink.value) {
@@ -251,19 +203,8 @@ class _CreateMessagePostScreenNewState
                       onTap: () {
                         msgController.isAddLink.value = true;
                       },
-                      child: Row(
-                        children: [
-                          LocalAssets(
-                            imagePath: AppIconAssets.addBlueIcon,
-                            imgColor: AppColors.primaryColor,
-                          ),
-                          SizedBox(width: SizeConfig.size10),
-                          CustomText(
-                            'Add Link (Reference / Website)',
-                            fontSize: SizeConfig.large,
-                            color: AppColors.primaryColor,
-                          )
-                        ],
+                      child: AddLinkRow(
+                        title: 'Add Link (Reference / Website)',
                       ),
                     );
                   }
@@ -294,7 +235,7 @@ class _CreateMessagePostScreenNewState
                         ),
                         HttpsTextField(
                             controller:
-                                msgController.referenceLinkController.value,
+                            msgController.referenceLinkController.value,
                             hintText: "Add website link"),
                       ],
                     );
@@ -302,6 +243,34 @@ class _CreateMessagePostScreenNewState
                   return SizedBox();
                 }),
                 SizedBox(height: SizeConfig.size15),
+                // Add Tag People / Organization button
+                GestureDetector(
+                  onTap: () async {
+                    await Get.to(() => TagUserScreen());
+                    // The result will be handled by the TagUserController
+                  },
+                  child: AddLinkRow(
+                    title: 'Add Tag People / Organization',
+                  ),
+                ),
+
+                // Selected users chips
+                Obx(() => tagUserController.selectedUsers.isNotEmpty
+                    ? Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.size16),
+                        child: Wrap(
+                          children: tagUserController.selectedUsers
+                              .map((user) => UserChip(
+                                    user: user,
+                                    onRemove: () => tagUserController
+                                        .removeSelectedUser(user),
+                                  ))
+                              .toList(),
+                        ),
+                      )
+                    : const SizedBox.shrink()),
+                SizedBox(height: SizeConfig.size15),
+
                 // Continue button
                 Obx(() {
                   return CustomBtn(
@@ -375,7 +344,9 @@ class _CreateMessagePostScreenNewState
 }
 
 class AddLinkRow extends StatelessWidget {
-  const AddLinkRow({super.key});
+  const AddLinkRow({super.key, required this.title});
+
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -392,20 +363,22 @@ class AddLinkRow extends StatelessWidget {
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: TextStyle(fontSize: SizeConfig.large, color: Colors.black),
               children: [
                 TextSpan(
-                  text: "Add Link (Reference / Website) ",
-                  style:  TextStyle(
+                  text: title,
+                  style: TextStyle(
                     color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w500,
+                    fontSize: SizeConfig.large,
+
+                    // fontWeight: FontWeight.w500,
                   ),
                 ),
                 TextSpan(
-                  text: "(Optional)",
+                  text: " (Optional)",
                   style: TextStyle(
                     color: Colors.grey.shade600,
-                    fontSize: 14,
+                    fontSize: SizeConfig.large,
                   ),
                 ),
               ],

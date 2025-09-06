@@ -65,46 +65,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.white,
-        appBar: CommonBackAppBar(
-          title: "Product Details",
-          onBackTap: () {
-            if (controller.currentStep.value > 1) {
-              controller.onBack();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // Form Content
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  // padding: EdgeInsets.all(SizeConfig.size16),
-                  child: Form(
-                    key: controller.formKey,
-                    child: Obx(() => IndexedStack(
-                          index: controller.currentStep.value - 1,
-                          children: [
-                            Expanded(
-                              child: CustomFormCard(
-                                child: Step1Section(controller: controller),
-                                padding: EdgeInsets.all(SizeConfig.size16),
-                                // margin: EdgeInsets.fromLTRB(SizeConfig.size16, 0, SizeConfig.size16, 0),
-                              ),
-                            ),
-                            CustomFormCard(child: Step2Section(controller: controller)),
-                            CustomFormCard(child: Step3Section(controller: controller)),
-                          ],
-                        )),
-                  ),
-                ),
-              ),
-
-              // Bottom Action Buttons
+        bottomNavigationBar:   // Bottom Action Buttons
               Obx(() => Container(
                     padding: EdgeInsets.all(SizeConfig.size16),
                     decoration: BoxDecoration(
@@ -163,290 +124,46 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                       ],
                     ),
                   )),
-            ],
-          ),
+             
+        backgroundColor: AppColors.white,
+        appBar: CommonBackAppBar(
+          title: "Product Details",
+          onBackTap: () {
+            if (controller.currentStep.value > 1) {
+              controller.onBack();
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildDropdownField({
-    required String label,
-    required String hint,
-    required List<String> items,
-    required String? Function(String?) validator,
-    required void Function(String?) onChanged,
-    String? value,
-  }) {
-    // Ensure the bound value always exists in the current items to avoid assertion errors
-    final String? effectiveValue =
-        (value != null && items.contains(value)) ? value : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          label,
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16,
-            vertical: 11, // Keep this small
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.greyE5, width: 1),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButtonFormField<String>(
-              value: effectiveValue,
-              validator: validator,
-              onChanged: onChanged,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                // This removes the inner border
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                errorBorder: InputBorder.none,
-                focusedErrorBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                isDense: true,
-              ),
-              icon: const Icon(
-                Icons.keyboard_arrow_down,
-                color: AppColors.grey9B,
-                size: 20,
-              ),
-              dropdownColor: AppColors.white,
-              borderRadius: BorderRadius.circular(8),
-              elevation: 2,
-              style: TextStyle(
-                color: AppColors.black,
-                fontSize: SizeConfig.medium,
-              ),
-              menuMaxHeight: 200,
-              hint: CustomText(
-                hint,
-                color: AppColors.secondaryTextColor,
-              ),
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: TextStyle(
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.black,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExpiryDateSection(ManualListingScreenController controller) {
-    return Container(
-      constraints: BoxConstraints(
-        minHeight: 80,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            'Add Expiry Date (Optional)',
-            fontSize: SizeConfig.medium,
-            // fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-          SizedBox(height: SizeConfig.size8),
-          Obx(() => RestrictedDatePicker(
-                selectedDay: controller.selectedDay.value == 0
-                    ? null
-                    : controller.selectedDay.value,
-                selectedMonth: controller.selectedMonth.value == 0
-                    ? null
-                    : controller.selectedMonth.value,
-                selectedYear: controller.selectedYear.value == 0
-                    ? null
-                    : controller.selectedYear.value,
-                onDayChanged: controller.onDayChanged,
-                onMonthChanged: controller.onMonthChanged,
-                onYearChanged: controller.onYearChanged,
-                isFutureYear: true,
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTagsSection(ManualListingScreenController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Add Tags / Keywords',
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16,
-            vertical: SizeConfig.size10,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.greyE5, width: 1),
-          ),
-          child: Row(
+        body: SafeArea(
+          child: Column(
             children: [
-              Image.asset("assets/icons/tag_icon.png"),
-              SizedBox(width: SizeConfig.size12),
+              // Form Content
               Expanded(
-                child: TextField(
-                  controller: controller.tagsController,
-                  decoration: const InputDecoration(
-                    hintText: 'Tag people',
-                    hintStyle: TextStyle(
-                      color: AppColors.grey9B,
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  // padding: EdgeInsets.all(SizeConfig.size16),
+                  child: Form(
+                    key: controller.formKey,
+                    child: Obx(() {
+                          final step = controller.currentStep.value;
+                          if (step == 1) {
+                            return Step1Section(controller: controller);
+                          } else if (step == 2) {
+                            return Step2Section(controller: controller);
+                          } else {
+                            return Step3Section(controller: controller);
+                          }
+                        }),
                   ),
                 ),
-              ),
-              GestureDetector(
-                onTap: controller.addTag,
-                child: Image.asset("assets/icons/add_icon.png"),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
-
-  Widget _buildMediaUploadSection(ManualListingScreenController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Upload product Images/ Videos',
-          fontSize: SizeConfig.medium,
-          // fontWeight: FontWeight.w600,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size12),
-        SizedBox(
-          height: 80,
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 1,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1,
-            ),
-            itemCount: 5,
-            itemBuilder: (context, index) => Container(
-              decoration: BoxDecoration(
-                color: AppColors.fillColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.greyE5, width: 1),
-              ),
-              child: Container(
-                child: Icon(
-                  Icons.photo,
-                  color: AppColors.secondaryTextColor.withOpacity(0.3),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionSection(ManualListingScreenController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Short Description',
-          fontSize: SizeConfig.medium,
-          // fontWeight: FontWeight.w600,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        CommonTextField(
-          // textEditController: controller.shortDescriptionController,
-          hintText: "Lorem ipsum dolor sit amet conseceter adisping...",
-          maxLine: 3,
-        )
-      ],
-    );
-  }
-
-  Widget _buildNonReturnableSection(ManualListingScreenController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(
-          'This is a non-returnable product',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w500,
-          color: AppColors.black,
-        ),
-        Obx(() => CustomSwitch(
-              containerHeight: 25,
-              containerWidth: 50,
-              value: controller.isNonReturnable.value,
-              onChanged: (value) => controller.toggleNonReturnable(),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildMoreDetailsSection(ManualListingScreenController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(
-          'Add More Details',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-        GestureDetector(
-          onTap: controller.toggleMoreDetails,
-          child: Container(
-            width: 32,
-            height: 30,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor,
-              borderRadius: BorderRadius.circular(6),
-              // shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.add,
-              color: AppColors.white,
-              size: 20,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+ 
 }

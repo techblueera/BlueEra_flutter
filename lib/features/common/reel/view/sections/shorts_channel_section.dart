@@ -96,7 +96,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
 
       if(shortsController.isInitialLoading(shorts).isFalse){
         if(shortsController.shortsResponse.status == Status.COMPLETE){
-          final channelShorts = shortsController.getListByType(shortsType: shorts);
+          final channelShorts = shortsController.getListByType(shorts: shorts);
 
           if (channelShorts.isEmpty) {
             return Center(
@@ -129,7 +129,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
                 shortItem: channelShortsItem,
                 initialIndex: index,
                 imageHeight: SizeConfig.size200,
-                imageWidth: SizeConfig.size130,
+                // imageWidth: SizeConfig.size130,
                 borderRadius: 10.0,
               );
             },

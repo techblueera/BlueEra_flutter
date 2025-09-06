@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -47,8 +48,12 @@ class PersonalProfileSetupScreen extends StatefulWidget {
 class _PersonalProfileSetupScreenState
     extends State<PersonalProfileSetupScreen> {
   final viewProfileController = Get.put(ViewPersonalDetailsController());
+
   final personalCreateProfileController =
-      Get.put(PersonalCreateProfileController());
+  Get.isRegistered<PersonalCreateProfileController>()
+      ? Get.find<PersonalCreateProfileController>()
+      : Get.put(PersonalCreateProfileController());
+
   final introVideoController = Get.put(IntroductionVideoController());
   final youtubeController = TextEditingController();
   List<String> postTab = [];
@@ -68,8 +73,9 @@ class _PersonalProfileSetupScreenState
     super.didChangeDependencies();
   }
 
-  setFilters(){
-    filters = SortBy.values.where((e) => e == SortBy.Latest || e == SortBy.UnderProgress).toList();
+
+  setFilters() {
+    filters = SortBy.values.toList();
   }
 
   Future<void> _loadInitialData() async {
@@ -97,7 +103,9 @@ class _PersonalProfileSetupScreenState
 
   bool _shouldShowBioSection() {
     final bio = viewProfileController.personalProfileDetails.value.user?.bio;
-    return bio != null && bio.trim().isNotEmpty;
+    return bio != null && bio
+        .trim()
+        .isNotEmpty;
   }
 
   bool _hasAnyLinks() {
@@ -111,7 +119,7 @@ class _PersonalProfileSetupScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold( 
+    return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
         title: '',
@@ -128,17 +136,19 @@ class _PersonalProfileSetupScreenState
       //   Get.to(()=>AddAccountScreen());
       //
       // }),
-      body: isGuestUser() ? PositiveCustomBtn(onTap: (){}, title: "Logout"): Obx(() {
+      body: isGuestUser()
+          ? PositiveCustomBtn(onTap: () {}, title: "Logout")
+          : Obx(() {
         if (viewProfileController.viewPersonalResponse.value.status ==
             Status.COMPLETE) {
-          final user = viewProfileController.personalProfileDetails.value.user;
-          final validIndexes = user?.profession == SELF_EMPLOYED
-              ? {3, 4}
-              : {2, 3};
+          final user =
+              viewProfileController.personalProfileDetails.value.user;
+          final validIndexes =
+          user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
           String profession = user?.profession ?? "OTHERS";
           postTab = [
             if (viewProfileController
-                    .personalProfileDetails.value.user?.profession ==
+                .personalProfileDetails.value.user?.profession ==
                 SELF_EMPLOYED)
               'My Portfolio',
             'About Me',
@@ -151,7 +161,8 @@ class _PersonalProfileSetupScreenState
             child: SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size8, horizontal: SizeConfig.size20),
+                  vertical: SizeConfig.size8,
+                  horizontal: SizeConfig.size20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -161,66 +172,77 @@ class _PersonalProfileSetupScreenState
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+
                         Padding(
                           padding: EdgeInsets.only(
                               right: SizeConfig.size18,
                               top: SizeConfig.size4),
-                          child: CommonProfileImage(
-                            imagePath: personalCreateProfileController
-                                .imagePath?.value ??
-                                "",
-                            onImageUpdate: (image) async {
-                              personalCreateProfileController
-                                  .imagePath?.value = image;
+                          child: Obx(() {
+                            logs("COMMON CALLL");
+                            return CommonProfileImage(
+                              imagePath: personalCreateProfileController
+                                  .imagePath?.value ??
+                                  "",
+                              onImageUpdate: (image) async {
+                                logs("image==== $image");
+                                personalCreateProfileController
+                                    .imagePath?.value = image;
 
-                              dynamic dataImage = await multiPartImage(
-                                imagePath: personalCreateProfileController
-                                    .imagePath?.value ??
-                                    "",
-                              );
-                              var reqProfile = {
-                                ApiKeys.profile_image: dataImage
-                              };
-                              print("Update Params: $reqProfile");
-                              await personalCreateProfileController
-                                  .updateUserProfileDetails(
-                                  params: reqProfile,
-                                  isFromProfileOnly: true);
-                            },
-                            dialogTitle: 'Upload Profile Picture',
-                          ),
+                                dynamic dataImage = await multiPartImage(
+                                  imagePath: image ??
+                                      "",
+                                );
+                                var reqProfile = {
+                                  ApiKeys.profile_image: dataImage
+                                };
+                                print("Update Params: $reqProfile");
+                                await personalCreateProfileController
+                                    .updateUserProfileDetails(
+                                    params: reqProfile,
+                                    isFromProfileOnly: true);
+                                setState(() {
+
+                                });
+                              },
+                              dialogTitle: 'Upload Profile Picture',
+                            );
+                          }),
                         ),
                         Expanded(
                           child: Padding(
-                            padding: EdgeInsets.only(top: SizeConfig.size10),
+                            padding:
+                            EdgeInsets.only(top: SizeConfig.size10),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   mainAxisSize: MainAxisSize.max,
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                      CrossAxisAlignment.center,
                                       children: [
                                         ConstrainedBox(
                                           constraints: BoxConstraints(
                                               maxWidth:
-                                                  SizeConfig.screenWidth / 3),
+                                              SizeConfig.screenWidth /
+                                                  3),
                                           child: CustomText(
                                             viewProfileController
-                                                    .personalProfileDetails
-                                                    .value
-                                                    .user
-                                                    ?.name ??
+                                                .personalProfileDetails
+                                                .value
+                                                .user
+                                                ?.name ??
                                                 '',
                                             fontSize: SizeConfig.large,
                                             fontWeight: FontWeight.bold,
                                             maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            overflow:
+                                            TextOverflow.ellipsis,
                                           ),
                                         ),
                                         SizedBox(
@@ -248,9 +270,12 @@ class _PersonalProfileSetupScreenState
                                           },
                                           child: CircleAvatar(
                                             radius: 14,
-                                            backgroundColor: AppColors.primaryColor,
-                                            child: Icon(Icons.edit_outlined,
-                                                size: 14, color: Colors.white),
+                                            backgroundColor:
+                                            AppColors.primaryColor,
+                                            child: Icon(
+                                                Icons.edit_outlined,
+                                                size: 14,
+                                                color: Colors.white),
                                           ),
                                         ),
                                       ],
@@ -288,14 +313,16 @@ class _PersonalProfileSetupScreenState
                                 ),
                                 const SizedBox(height: 2),
                                 CustomText(profession,
-                                    color: Color.fromRGBO(107, 124, 147, 1)),
+                                    color:
+                                    Color.fromRGBO(107, 124, 147, 1)),
                                 SizedBox(height: SizeConfig.size12),
                                 Obx(() {
                                   return Padding(
-                                    padding: const EdgeInsets.only(right: 38.0),
+                                    padding: const EdgeInsets.only(
+                                        right: 38.0),
                                     child: Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceBetween,
                                       children: [
                                         StatBlock(
                                           count: viewProfileController
@@ -328,9 +355,9 @@ class _PersonalProfileSetupScreenState
                   ),
                   SizedBox(height: SizeConfig.size16),
 
-                  if ((viewProfileController
-                              .personalProfileDetails.value.isProfileCreated ??
-                          false) &&
+                  if ((viewProfileController.personalProfileDetails.value
+                      .isProfileCreated ??
+                      false) &&
                       isResumeShow(
                           designation: viewProfileController
                               .personalProfileDetails
@@ -340,7 +367,8 @@ class _PersonalProfileSetupScreenState
                     CustomBtn(
                       isValidate: true,
                       onTap: () {
-                        Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+                        Get.toNamed(
+                            RouteHelper.getCreateResumeScreenRoute());
                       },
                       title: "My Resume",
                       bgColor: AppColors.white,
@@ -373,7 +401,6 @@ class _PersonalProfileSetupScreenState
 
                   SizedBox(height: SizeConfig.size16),
                   _buildTabContent(selectedIndex),
-
                 ],
               ),
             ),
@@ -403,17 +430,17 @@ class _PersonalProfileSetupScreenState
       case 'Shorts':
         return ShortsChannelSection(
           isOwnShorts: true,
-          channelId: channelId,
+          channelId: '',
           authorId: userId,
           showShortsInGrid: true,
           sortBy: selectedFilter,
           postVia: PostVia.profile,
         );
       case 'Videos':
-        return  VideoChannelSection(
+        return VideoChannelSection(
           isOwnVideos: true,
           sortBy: selectedFilter,
-          channelId: channelId,
+          channelId: '',
           authorId: userId,
           isScroll: false,
           postVia: PostVia.profile,
@@ -424,8 +451,8 @@ class _PersonalProfileSetupScreenState
           visitUserID: userId,
           isSelfTestimonial: true,
         );
-      // case 'Channels':
-      // return ChannelsWidget();
+    // case 'Channels':
+    // return ChannelsWidget();
       default:
         return const Center(child: Text('Unknown Tab'));
     }
@@ -518,14 +545,14 @@ class _PersonalProfileSetupScreenState
                   SizedBox(height: SizeConfig.size10),
                   CustomBtn(
                     isValidate:
-                        viewProfileController.isYoutubeEdit.value.isNotEmpty,
+                    viewProfileController.isYoutubeEdit.value.isNotEmpty,
                     onTap: viewProfileController.isYoutubeEdit.value.isNotEmpty
                         ? () async {
-                            if (youtubeController.text.isEmpty) {
-                              commonSnackBar(
-                                  message: "Enter youtube link here...");
-                              return;
-                            }
+                      if (youtubeController.text.isEmpty) {
+                        commonSnackBar(
+                            message: "Enter youtube link here...");
+                        return;
+                      }
 /*
                       for (var field in selectedInputFieldsPersonalProfile) {
                         String name = field.name.toLowerCase();
@@ -549,22 +576,22 @@ class _PersonalProfileSetupScreenState
                             break;
                         }
                       }*/
-                            await personalCreateProfileController
-                                .updateUserProfileDetails(
-                              params: {
-                                ApiKeys.id: userId,
-                                ApiKeys.youtube: youtubeController.text,
-                                // ApiKeys.twitter: viewProfileController.twitter.value,
-                                // ApiKeys.linkedin:
-                                //     viewProfileController.linkedin.value,
-                                // ApiKeys.instagram:
-                                //     viewProfileController.instagram.value,
-                                // ApiKeys.website: viewProfileController.website.value,
-                              },
-                            );
-                            viewProfileController.isSocialEdit.value = false;
-                            // await viewProfileController.viewPersonalProfile();
-                          }
+                      await personalCreateProfileController
+                          .updateUserProfileDetails(
+                        params: {
+                          ApiKeys.id: userId,
+                          ApiKeys.youtube: youtubeController.text,
+                          // ApiKeys.twitter: viewProfileController.twitter.value,
+                          // ApiKeys.linkedin:
+                          //     viewProfileController.linkedin.value,
+                          // ApiKeys.instagram:
+                          //     viewProfileController.instagram.value,
+                          // ApiKeys.website: viewProfileController.website.value,
+                        },
+                      );
+                      viewProfileController.isSocialEdit.value = false;
+                      // await viewProfileController.viewPersonalProfile();
+                    }
                         : null,
                     title: "Save",
                   ),
@@ -633,7 +660,8 @@ class _PersonalProfileSetupScreenState
 
   Widget _filterButtons() {
     return SingleChildScrollView(
-        padding: EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+        padding:
+        EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
@@ -652,10 +680,12 @@ class _PersonalProfileSetupScreenState
                         });
                       },
                       child: CustomText(
-                        (filter == SortBy.Latest) ? 'Published' : filter.label, // use .label for display text
+                        (filter == SortBy.Latest) ? 'Published' : filter.label,
+                        // use .label for display text
                         decoration: TextDecoration.underline,
                         color: isSelected ? Colors.blue : Colors.black54,
-                        decorationColor: isSelected ? Colors.blue : Colors.black54,
+                        decorationColor:
+                        isSelected ? Colors.blue : Colors.black54,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -664,7 +694,6 @@ class _PersonalProfileSetupScreenState
               ),
             )
           ],
-        )
-    );
+        ));
   }
 }

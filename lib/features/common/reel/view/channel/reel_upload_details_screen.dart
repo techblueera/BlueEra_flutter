@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -24,18 +25,20 @@ import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
-enum VideoType { video, short }
+enum Video { video, short }
 
 class ReelUploadDetailsScreen extends StatefulWidget {
   final String videoPath;
-  final VideoType videoType;
+  final Video videoType;
   final String? videoId;
   final PostVia? postVia;
   const ReelUploadDetailsScreen({super.key, required this.videoPath, required this.videoType, required this.videoId, this.postVia});
@@ -140,7 +143,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     }
   }
 
-  void setVideoMetaData(VideoFeedItem VideoFeedItemMetaData) async {
+  void setVideoMetaData(ShortFeedItem VideoFeedItemMetaData) async {
     // final response = await reelUploadDetailsController.getVideosDetails(videoId: widget.videoId ?? '');
 
     if (VideoFeedItemMetaData.video?.type == 'long') {
@@ -234,15 +237,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           children: [
                             Builder(builder: (context) {
                               final height = (widget.videoType ==
-                                  VideoType.video)
+                                  Video.video)
                                   ? SizeConfig.size220
                                   : SizeConfig.size250;
                               final width = (widget.videoType ==
-                                  VideoType.video)
+                                  Video.video)
                                   ? SizeConfig.size320
                                   : SizeConfig.size180;
                               final addBtnWidth = (widget.videoType ==
-                                  VideoType.video)
+                                  Video.video)
                                   ? SizeConfig.size220
                                   : SizeConfig.size140;
                               return Stack(
@@ -328,7 +331,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.size20),
 
-                      if (widget.videoType == VideoType.video) ...[
+                      if (widget.videoType == Video.video) ...[
                         CommonTextField(
                           textEditController: _videoTitle,
                           maxLength: 50,
@@ -380,7 +383,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           autovalidateMode: _autoValidate,
                         ),
                       ],
-                      if (widget.videoType == VideoType.short) ...[
+                      if (widget.videoType == Video.short) ...[
                         CommonTextField(
                           textEditController: _shortDescription,
                           maxLength: 120,
@@ -463,7 +466,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                       ),
 
 
-                      if (widget.videoType == VideoType.short) ...[
+                      if (widget.videoType == Video.short) ...[
                         SizedBox(height: SizeConfig.size20),
                         _optionTile(
                           icon: "assets/svg/music_icon.svg",
@@ -1151,13 +1154,19 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
 
   void selectImage(BuildContext context) async {
-    String imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, "Upload Channel Logo");
-    _commonCoverImage = imagePath;
-    if (_commonCoverImage?.isNotEmpty ?? false) {
-      setState(() {});
+    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+        context,
+        cropAspectRatio: (widget.videoType == Video.video)
+            ? CropAspectRatio(width: 16, height: 9)
+            : CropAspectRatio(width: 9, height: 16));
+    if (croppedPath != null) {
+      _commonCoverImage = croppedPath;
+      if (_commonCoverImage?.isNotEmpty ?? false) {
+        setState(() {});
+      }
     }
   }
+
 
   Future<void> _onSubmit({required String visibleTo}) async {
     visibility = visibleTo;
@@ -1268,10 +1277,11 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
     void updateProgress(double value) {
       progress = value.clamp(0.0, 1.0);
-      updateUploadingProgress(progress);
+      UploadProgressDialog.update(progress);
     }
 
-    showUploadingProgressDialog(context: context, progress: progress);
+    // ✅ Show the dialog (GetX version, no context needed)
+    UploadProgressDialog.show(initialProgress: progress);
 
     final videoFile = File(widget.videoPath);
     final coverFile = File(_commonCoverImage!);
@@ -1279,207 +1289,197 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     final videoInfo = getFileInfo(videoFile);
     final coverInfo = getFileInfo(coverFile);
 
-    // 1. Init both uploads (20%)
-    await Future.wait([
-      reelUploadDetailsController.uploadInit(
-        queryParams: {
-          ApiKeys.fileName: videoInfo['fileName'],
-          ApiKeys.fileType: videoInfo['mimeType']
-        },
-        isVideoUpload: true,
-      ),
-      reelUploadDetailsController.uploadInit(
-        queryParams: {
-          ApiKeys.fileName: coverInfo['fileName'],
-          ApiKeys.fileType: coverInfo['mimeType']
-        },
-        isVideoUpload: false,
-      ),
-    ]);
-    updateProgress(0.2);
+    try {
+      // 1. Init both uploads (20%)
+      await Future.wait([
+        reelUploadDetailsController.uploadInit(
+          queryParams: {
+            ApiKeys.fileName: videoInfo['fileName'],
+            ApiKeys.fileType: videoInfo['mimeType']
+          },
+          isVideoUpload: true,
+        ),
+        reelUploadDetailsController.uploadInit(
+          queryParams: {
+            ApiKeys.fileName: coverInfo['fileName'],
+            ApiKeys.fileType: coverInfo['mimeType']
+          },
+          isVideoUpload: false,
+        ),
+      ]);
+      updateProgress(0.2);
 
-    // 2. Upload files with combined progress (20% → 90%)
-    double videoProgress = 0.0;
-    double coverProgress = 0.0;
+      // 2. Upload files with combined progress (20% → 90%)
+      double videoProgress = 0.0;
+      double coverProgress = 0.0;
 
-    void updateCombinedProgress() {
-      // 20% init + 70% file uploads
-      final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
-      updateProgress(combined);
-    }
-
-    await Future.wait([
-      reelUploadDetailsController.uploadFileToS3(
-        file: videoFile,
-        fileType: videoInfo['mimeType']!,
-        preSignedUrl: reelUploadDetailsController.uploadInitVideoFile?.uploadUrl??"",
-        onProgress: (total) {
-          videoProgress = total; // total in 0.0 - 1.0
-          updateCombinedProgress();
-        },
-      ),
-      reelUploadDetailsController.uploadFileToS3(
-        file: coverFile,
-        fileType: coverInfo['mimeType']!,
-        preSignedUrl: reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl??"",
-        onProgress: (total) {
-          coverProgress = total;
-          updateCombinedProgress();
-        },
-      ),
-    ]);
-
-    updateProgress(0.9);
-
-    Map<String, dynamic> requestData = {};
-    if (widget.videoType == VideoType.video) {
-      requestData = {
-        ApiKeys.type: 'long',
-        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
-            ?.publicUrl ?? '',
-        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile
-            ?.fileKey ?? '',
-        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile
-            ?.publicUrl ?? '',
-        ApiKeys.title: _videoTitle.text,
-        ApiKeys.visibility: visibility,
-        if(widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
-        if(_videoDescription.text.isNotEmpty) ApiKeys
-            .description: _videoDescription.text,
-        if(tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
-        if(selectedLocation != null &&
-            (selectedLocation?.isNotEmpty ?? false)) ApiKeys
-            .location: selectedLocation,
-        if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
-        if(_commonKeywords.text.isNotEmpty) ApiKeys.keywords: _commonKeywords
-            .text
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList(),
-        ApiKeys.isMatureContent: _is18Plus,
-        ApiKeys.allowComments: _showComments,
-        ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
-        ApiKeys.isBrandPromotion: _isBrandPromotion,
-      };
-      if (_isBrandPromotion) {
-        if (_brandPromotionLink.text.isNotEmpty)
-          requestData[ApiKeys.brandPromotionLink] = _brandPromotionLink.text;
+      void updateCombinedProgress() {
+        // 20% init + 70% file uploads
+        final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
+        updateProgress(combined);
       }
-    } else {
-      requestData = {
-        ApiKeys.type: 'short',
-        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile
-            ?.fileKey ?? '',
-        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
-            ?.publicUrl ?? '',
-        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile
-            ?.publicUrl ?? '',
-        ApiKeys.visibility: visibility,
-        ApiKeys.title: _shortDescription.text,
-        // if(channelId.isNotEmpty)
-        if(widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
-        if(tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
-        if(selectedLocation != null &&
-            (selectedLocation?.isNotEmpty ?? false)) ApiKeys
-            .location: selectedLocation,
-        if(songData != null) ApiKeys.song: songData,
-        if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
-            .text,
-        if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
-        if(_commonKeywords.text.isNotEmpty) ApiKeys.keywords: _commonKeywords
-            .text
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList(),
-        ApiKeys.isMatureContent: _is18Plus,
-        ApiKeys.allowComments: _showComments,
-        ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
-        ApiKeys.isBrandPromotion: _isBrandPromotion,
-      };
-      if (_isBrandPromotion) {
-        if (_brandPromotionLink.text.isNotEmpty)
-          requestData[ApiKeys.brandPromotionLink] = _brandPromotionLink.text;
+
+      await Future.wait([
+        reelUploadDetailsController.uploadFileToS3(
+          file: videoFile,
+          fileType: videoInfo['mimeType']!,
+          preSignedUrl: reelUploadDetailsController.uploadInitVideoFile?.uploadUrl ?? "",
+          onProgress: (total) {
+            videoProgress = total;
+            updateCombinedProgress();
+          },
+        ),
+        reelUploadDetailsController.uploadFileToS3(
+          file: coverFile,
+          fileType: coverInfo['mimeType']!,
+          preSignedUrl: reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ?? "",
+          onProgress: (total) {
+            coverProgress = total;
+            updateCombinedProgress();
+          },
+        ),
+      ]);
+
+      updateProgress(0.9);
+
+      /// ✅ Common request data builder
+      Map<String, dynamic> buildRequestData() {
+        final baseData = <String, dynamic>{
+          ApiKeys.videoUrl:
+          reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+          ApiKeys.videoKey:
+          reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+          ApiKeys.coverUrl:
+          reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
+          ApiKeys.visibility: visibility,
+          if (widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
+          if (tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
+          if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
+            ApiKeys.location: selectedLocation,
+          if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
+          if (_commonKeywords.text.isNotEmpty)
+            ApiKeys.keywords: _commonKeywords.text
+                .split(',')
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList(),
+          ApiKeys.isMatureContent: _is18Plus,
+          ApiKeys.allowComments: _showComments,
+          ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
+          ApiKeys.isBrandPromotion: _isBrandPromotion,
+        };
+
+        if (widget.videoType == Video.video) {
+          baseData.addAll({
+            ApiKeys.type: 'long',
+            ApiKeys.title: _videoTitle.text,
+            if (_videoDescription.text.isNotEmpty)
+              ApiKeys.description: _videoDescription.text,
+          });
+        } else {
+          baseData.addAll({
+            ApiKeys.type: 'short',
+            ApiKeys.title: _shortDescription.text,
+            if (songData != null) ApiKeys.song: songData,
+            if (_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink.text,
+          });
+        }
+
+        if (_isBrandPromotion && _brandPromotionLink.text.isNotEmpty) {
+          baseData[ApiKeys.brandPromotionLink] = _brandPromotionLink.text;
+        }
+
+        return baseData;
       }
+
+      final requestData = buildRequestData();
+
+      await reelUploadDetailsController.uploadVideo(
+        postVia: widget.postVia,
+        reqData: requestData,
+        onProgress: (value) => updateProgress(value),
+      );
+
+    } catch (e) {
+      /// ❌ On error also close dialog
+      UploadProgressDialog.close();
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     }
-    await reelUploadDetailsController.uploadVideo(
-      reqData: requestData,
-      onProgress: (value) => updateProgress(value),
-    );
   }
-  Future<void> uploadVideoNewsync() async {
-    double progress = 0.0;
-
-    // void updateProgress(double value) {
-    //   progress = value.clamp(0.0, 1.0);
-    //   updateUploadingProgress(progress);
-    // }
-
-    showUploadingProgressDialog(context: context, progress: progress);
 
 
-    Map<String, dynamic> requestData = {};
-    if (widget.videoType == VideoType.video) {
-      requestData = {
-        ApiKeys.type: 'long',
-        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
-            ?.publicUrl ?? '',
-        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile
-            ?.fileKey ?? '',
-        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile
-            ?.publicUrl ?? '',
-        ApiKeys.title: _videoTitle.text,
-        ApiKeys.visibility: visibility,
-        if(widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
-        if(_videoDescription.text.isNotEmpty) ApiKeys
-            .description: _videoDescription.text,
-        if(tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
-        if(selectedLocation != null &&
-            (selectedLocation?.isNotEmpty ?? false)) ApiKeys
-            .location: selectedLocation,
-        if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
-            .text,
-        if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
-        if(_commonKeywords.text.isNotEmpty) ApiKeys.keywords: _commonKeywords
-            .text
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList(),
-        ApiKeys.isMatureContent: _is18Plus,
-        ApiKeys.allowComments: _showComments,
-        ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
-        ApiKeys.isBrandPromotion: _isBrandPromotion,
-      };
-      if (_isBrandPromotion) {
-        if (_brandPromotionLink.text.isNotEmpty)
-          requestData[ApiKeys.brandPromotionLink] = _brandPromotionLink.text;
-      }
-    }
-    
-    // Close the progress dialog
-    Navigator.of(context).pop();
-    
-    // Start background upload using workmanager
-    await WorkmanagerUploadService.startVideoUpload(
-      videoPath: widget.videoPath,
-      coverPath: _commonCoverImage!,
-      requestData: requestData,
-      isLongVideo: widget.videoType == VideoType.video,
-    );
-
-    // Navigate back to the previous screen
-    Get.until(
-      (route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute(),
-    );
-  }
+  // Future<void> uploadVideoNewsync() async {
+  //   double progress = 0.0;
+  //
+  //   // void updateProgress(double value) {
+  //   //   progress = value.clamp(0.0, 1.0);
+  //   //   updateUploadingProgress(progress);
+  //   // }
+  //
+  //   showUploadingProgressDialog(context: context, progress: progress);
+  //
+  //
+  //   Map<String, dynamic> requestData = {};
+  //   if (widget.videoType == VideoType.video) {
+  //     requestData = {
+  //       ApiKeys.type: 'long',
+  //       ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
+  //           ?.publicUrl ?? '',
+  //       ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile
+  //           ?.fileKey ?? '',
+  //       ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile
+  //           ?.publicUrl ?? '',
+  //       ApiKeys.title: _videoTitle.text,
+  //       ApiKeys.visibility: visibility,
+  //       if(widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
+  //       if(_videoDescription.text.isNotEmpty) ApiKeys
+  //           .description: _videoDescription.text,
+  //       if(tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
+  //       if(selectedLocation != null &&
+  //           (selectedLocation?.isNotEmpty ?? false)) ApiKeys
+  //           .location: selectedLocation,
+  //       if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
+  //           .text,
+  //       if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
+  //       if(_commonKeywords.text.isNotEmpty) ApiKeys.keywords: _commonKeywords
+  //           .text
+  //           .split(',')
+  //           .map((e) => e.trim())
+  //           .where((e) => e.isNotEmpty)
+  //           .toList(),
+  //       ApiKeys.isMatureContent: _is18Plus,
+  //       ApiKeys.allowComments: _showComments,
+  //       ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
+  //       ApiKeys.isBrandPromotion: _isBrandPromotion,
+  //     };
+  //     if (_isBrandPromotion) {
+  //       if (_brandPromotionLink.text.isNotEmpty)
+  //         requestData[ApiKeys.brandPromotionLink] = _brandPromotionLink.text;
+  //     }
+  //   }
+  //
+  //   // Close the progress dialog
+  //   Navigator.of(context).pop();
+  //
+  //   // Start background upload using workmanager
+  //   await WorkmanagerUploadService.startVideoUpload(
+  //     videoPath: widget.videoPath,
+  //     coverPath: _commonCoverImage!,
+  //     requestData: requestData,
+  //     isLongVideo: widget.videoType == VideoType.video,
+  //   );
+  //
+  //   // Navigate back to the previous screen
+  //   Get.until(
+  //     (route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute(),
+  //   );
+  // }
 
   /// update video details (this video update is only completed for channels not for profile)
   Future<void> updateVideoDetails() async {
     Map<String, dynamic> requestData = {};
 
-    if (widget.videoType == VideoType.video) {
+    if (widget.videoType == Video.video) {
       requestData = {
         ApiKeys.type: 'long',
         ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
@@ -1557,63 +1557,63 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         videoId: widget.videoId ?? '', reqData: requestData);
   }
 
-  late void Function(double) _updateProgressUI;
-
-  void updateUploadingProgress(double progress) {
-    _updateProgressUI(progress);
-  }
-
-  void showUploadingProgressDialog({
-    required BuildContext context,
-    required double progress,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) {
-        return AlertDialog(
-          title: const Text(
-            "Uploading...",
-            style: TextStyle(fontSize: 14),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SizeConfig.size10),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              _updateProgressUI = (double newProgress) {
-                setState(() {
-                  progress = newProgress;
-                });
-              };
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 8,
-                  ),
-                  LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    backgroundColor: Colors.grey[300],
-                    color: Colors.blue,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "${(progress * 100).toStringAsFixed(0)}% completed",
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+  // late void Function(double) _updateProgressUI;
+  //
+  // void updateUploadingProgress(double progress) {
+  //   _updateProgressUI(progress);
+  // }
+  //
+  // void showUploadingProgressDialog({
+  //   required BuildContext context,
+  //   required double progress,
+  // }) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) {
+  //       return AlertDialog(
+  //         title: const Text(
+  //           "Uploading...",
+  //           style: TextStyle(fontSize: 14),
+  //         ),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(SizeConfig.size10),
+  //         ),
+  //         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+  //         content: StatefulBuilder(
+  //           builder: (context, setState) {
+  //             _updateProgressUI = (double newProgress) {
+  //               setState(() {
+  //                 progress = newProgress;
+  //               });
+  //             };
+  //
+  //             return Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               crossAxisAlignment: CrossAxisAlignment.center,
+  //               children: [
+  //                 SizedBox(
+  //                   height: 8,
+  //                 ),
+  //                 LinearProgressIndicator(
+  //                   value: progress,
+  //                   minHeight: 6,
+  //                   backgroundColor: Colors.grey[300],
+  //                   color: Colors.blue,
+  //                 ),
+  //                 const SizedBox(height: 12),
+  //                 Text(
+  //                   "${(progress * 100).toStringAsFixed(0)}% completed",
+  //                   style: const TextStyle(fontSize: 14),
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
 
 

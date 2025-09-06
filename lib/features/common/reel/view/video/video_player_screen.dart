@@ -1,11 +1,9 @@
 import 'dart:developer';
-import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -18,7 +16,6 @@ import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
-import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
@@ -28,17 +25,16 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:chewie/chewie.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 // Import your new controller
 
 class VideoPlayerScreen extends StatefulWidget {
-  final VideoFeedItem videoItem;
-  const VideoPlayerScreen({super.key, required this.videoItem});
+  final ShortFeedItem videoItem;
+  final VideoType videoType;
+  const VideoPlayerScreen({super.key, required this.videoItem, required this.videoType});
 
   @override
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
@@ -51,6 +47,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool isCollapsed = false;
   final GlobalKey _contentKey = GlobalKey();
   bool _isMeasured = false;
+  bool isUploadFromChannel = false;
+
   double _calculatedHeight = SizeConfig.size300;
 
   @override
@@ -61,6 +59,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoPlayerController = Get.put(SingleVideoPlayerController(), tag: widget.videoItem.videoId);
 
     videoController.videoFeedItem = widget.videoItem;
+    isUploadFromChannel = videoController.videoFeedItem?.channel?.id != null;
 
     /// measure height for sliver approach
     _measureHeaderHeight();
@@ -96,7 +95,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoController.likes.value = videoController.videoFeedItem?.video?.stats?.likes ?? 0;
     videoController.comments.value = videoController.videoFeedItem?.video?.stats?.comments ?? 0;
 
-    if (videoController.videoFeedItem?.channel?.id != null) {
+    if (isUploadFromChannel) {
       videoController.isChannelFollow.value = videoController.videoFeedItem?.channel?.isFollowing ?? false;
     }
   }
@@ -261,7 +260,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   videoItem: videoFeedItem,
                   voidCallback: () => _navigateToVideoPlayer(videoFeedItem),
                   onTapOption: () => _showBlockDialog(videoFeedItem),
-                  videoType: Videos.videoFeed,
+                  videoType: VideoType.videoFeed,
                 );
               },
             );
@@ -271,14 +270,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
-  Future<void> _navigateToVideoPlayer(VideoFeedItem videoFeedItem) async {
+  Future<void> _navigateToVideoPlayer(ShortFeedItem videoFeedItem) async {
     // Pause current video before navigation using centralized controller
     videoPlayerController.pauseForNavigation();
 
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => VideoPlayerScreen(videoItem: videoFeedItem),
+        builder: (_) => VideoPlayerScreen(
+          videoItem: videoFeedItem,
+          videoType: widget.videoType
+        ),
       ),
     );
 
@@ -286,18 +288,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     videoPlayerController.resumeAfterNavigation();
   }
 
-  void _showBlockDialog(VideoFeedItem videoFeedItem) {
+  void _showBlockDialog(ShortFeedItem videoFeedItem) {
     openBlockSelectionDialog(
       context: context,
+      reportType: 'VIDEO_POST',
+      userId: videoFeedItem.video?.userId??'',
+      contentId: videoFeedItem.video?.id??'',
       userBlockVoidCallback: () async {
         await Get.find<VideoController>().userBlocked(
-          videoType: Videos.videoFeed,
+          videoType: VideoType.videoFeed,
           otherUserId: videoFeedItem.video?.userId ?? '',
         );
       },
-      postBlockVoidCallback: (){
-
-      }
+        reportCallback: (params){
+          Get.find<VideoController>().videoPostReport(
+              videoId: videoFeedItem.video?.id??'',
+              videoType: widget.videoType,
+              params: params
+          );
+        }
     );
   }
 
@@ -323,8 +332,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         onCommentButtonPressed: _onCommentPressed,
         onSavedUnSavedButtonPressed: _onSavedPressed,
         onShareButtonPressed: () async {
-         
-         
           await _shareVideoSimple();
         },
       ),
@@ -337,7 +344,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final link = videoDeepLink(videoId: id);
     final title = widget.videoItem.video?.title ?? 'BlueEra Video';
 
-    final message = "Check out this video on BlueEra:\n$link\n";
+    final message = "Watch on BlueEra App:\n$link\n";
 
     await SharePlus.instance.share(ShareParams(
       text: message,
@@ -402,29 +409,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     child: InkWell(
                       onTap: ()=> _openProfile(),
                       child: ChannelProfileHeader(
-                        imageUrl: videoController.videoFeedItem?.channel?.id != null
+                        imageUrl: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.logoUrl ?? ''
                             : videoController.videoFeedItem?.author?.profileImage ?? '',
-                        title: videoController.videoFeedItem?.channel?.id != null
+                        title: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.name ?? ''
                             : videoController.videoFeedItem?.author?.username ?? '',
-                        subtitle: videoController.videoFeedItem?.channel?.id != null
+                        subtitle: isUploadFromChannel
                             ? videoController.videoFeedItem?.channel?.username ?? ''
-                            : (videoController.videoFeedItem?.author?.accountType == AppConstants.individual)
-                            ? videoController.videoFeedItem?.author?.designation ?? "OTHERS"
-                            : videoController.videoFeedItem?.author?.designation ?? '',
+                            : videoController.videoFeedItem?.author?.designation ?? "OTHERS",
                         avatarSize: SizeConfig.size40,
                         isVerifiedTickShow: true,
                       ),
                     ),
                   ),
 
-                  if (videoController.videoFeedItem?.channel?.id != null)
+                  if (isUploadFromChannel)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Obx(() => CustomBtn(
                           onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                              return;
+                            }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
                                   channelId: videoController.videoFeedItem?.channel?.id ?? ''
@@ -459,7 +468,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       await Get.find<VideoController>().videoUnLike(
           videoId: videoController.videoFeedItem?.video?.id ?? '0'
       );
-      log('videoController after unlike video--> ${videoController.isLiked.value}');
       widget.videoItem.interactions?.isLiked = false;
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) - 1;
     } else {
@@ -496,6 +504,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void _openProfile() {
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
     if(videoController.videoFeedItem?.channel?.id!=null){
       Navigator.pushNamed(
           context,
@@ -517,7 +529,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           Get.to(() => VisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??''));
         }
       }else{
-        if (videoController.videoFeedItem?.author?.id == businessId) {
+        if (videoController.videoFeedItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(businessId: videoController.videoFeedItem?.author?.id??''));

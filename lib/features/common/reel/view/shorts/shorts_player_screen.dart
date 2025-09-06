@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -16,7 +16,7 @@ import 'package:get/get.dart';
 
 class ShortsPlayerScreen extends StatefulWidget {
   final Shorts shorts;
-  final List<VideoFeedItem> initialShorts;
+  final List<ShortFeedItem> initialShorts;
   final int initialIndex;
 
   const ShortsPlayerScreen(
@@ -180,7 +180,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     }
   }
 
-  List<VideoFeedItem>? _getCurrentFeedList(ShortsController controller) {
+  List<ShortFeedItem>? _getCurrentFeedList(ShortsController controller) {
     switch (widget.shorts) {
       case Shorts.trending:
         return controller.trendingVideoFeedPosts;
@@ -273,7 +273,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     _playerKeys[currentIndex]?.currentState?.playVideo();
   }
 
-  Future<void> _blockUserAndAdvance({required VideoFeedItem videoItem, required String otherUserId}) async {
+  Future<void> _blockUserAndAdvance({required ShortFeedItem videoItem, required String otherUserId}) async {
     final controller = shortsFeedController;
     final currentFeedList = _getCurrentFeedList(controller);
     final String? currentId = videoItem.video?.id;
@@ -391,15 +391,22 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                   shouldPreload: _preloadedVideos.containsKey(index),
                   onTapOption: () {
                     openBlockSelectionDialog(
-                        context: context,
-                        userBlockVoidCallback: () async {
-                          await _blockUserAndAdvance(
-                            videoItem: videoItem,
-                            otherUserId: videoItem.video?.userId ?? '',
+                      context: context,
+                      reportType: 'VIDEO_POST',
+                      userId: videoItem.video?.userId??'',
+                      contentId: videoItem.video?.id??'',
+                      userBlockVoidCallback: () async {
+                        await _blockUserAndAdvance(
+                          videoItem: videoItem,
+                          otherUserId: videoItem.video?.userId ?? '',
+                        );
+                      },
+                        reportCallback: (params){
+                          Get.find<ShortsController>().shortPostReport(
+                              videoId: videoItem.video?.id??'',
+                              shorts: widget.shorts,
+                              params: params
                           );
-                        },
-                        postBlockVoidCallback: (){
-
                         }
                     );
                   },

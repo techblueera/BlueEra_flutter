@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -11,12 +12,14 @@ String userNameGlobal = '';
 String userProfessionGlobal = '';
 String userId = '';
 String businessId = '';
+String businessUserId = '';
 String userMobileGlobal = '';
 String isUserLoginGlobal = '';
 String has_reel_profile_status = 'false';
 String reel_profile_id_global = '';
 
 String userProfileGlobal = '';
+// String userProfile_global = '';
 String channelId = '';
 
 String businessNameGlobal = '';
@@ -49,33 +52,56 @@ class SharedPreferenceUtils {
   static const lastVersion = 'last_version';
   static const lastGreetingCallKey = 'last_greeting_call_key';
   static const userProfession = 'user_profession';
-  static const businessName = 'business_name';
-  static const businessOwnerName = 'business_owner_name';
+  static const businessName = 'user_profession';
+  static const businessOwnerName = 'user_profession';
+  static const businessUserIdKey = 'business_user_id';
 
-  static Future<void> userLoggedIn({
+  static Future<void>   userLoggedIn({
     required String loginUserId_,
     required String businesId,
     required String contactNo,
     required String autToken,
-    required String name,
+    required String getUserName,
     required String profileImage,
-    required String profession,
+    required String designation,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(authToken, autToken);
-    await SharedPreferenceUtils.setSecureValue(userName, name);
+    await SharedPreferenceUtils.setSecureValue(userName, getUserName);
     await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
-    await SharedPreferenceUtils.setSecureValue(userProfession, profession);
+    await SharedPreferenceUtils.setSecureValue(userProfession, designation);
+  }
+  static Future<void> userLoggedInIndivisualGuest({
+    required String loginUserId_,
+    required String businesId,
+    required String contactNo,
+    required String getUserName,
+    required String profileImage,
+    required String designation,
+
+  }) async {
+    await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
+    await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
+    await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
+    await SharedPreferenceUtils.setSecureValue(userName, getUserName);
+    await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
+    await SharedPreferenceUtils.setSecureValue(userProfession, designation);
+    await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
+
   }
 
   static Future<void> guestUserLoggedIn({
+    required String loginUserId_,
+
     required String contactNo,
     required String autToken,
     required String getUserName,
   }) async {
+    await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
+
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(authToken, autToken);
@@ -110,8 +136,7 @@ class SharedPreferenceUtils {
   static Future<void> clearPreference() async {
     try {
       final workManagerBaseUrl =
-          await SharedPreferenceUtils.getBaseUrlSecureValue();
-      // logs("workManagerBaseUrl===== $workManagerBaseUrl");
+      await SharedPreferenceUtils.getBaseUrlSecureValue();
       await _secureStorage.deleteAll();
       authTokenGlobal = '';
       accountTypeGlobal = '';
@@ -123,10 +148,10 @@ class SharedPreferenceUtils {
       reel_profile_id_global = '';
       userNameGlobal = '';
       userProfileGlobal = '';
-      userProfessionGlobal = '';
-      businessNameGlobal = '';
-      businessOwnerNameGlobal = '';
       channelId = '';
+      userProfessionGlobal = '';
+      businessUserId = '';
+      Get.find<AuthController>().imgPath.value="";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
     } on Exception catch (e) {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
@@ -139,51 +164,70 @@ class SharedPreferenceUtils {
 ///LOGIN USER STATUS...
 getUserLoginStatus() async {
   isUserLoginGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.isUserLogin) ??
+      SharedPreferenceUtils.isUserLogin) ??
       "false";
 }
 
 getUserLoginBusinessId() async {
   businessId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userBusinessId) ??
+      SharedPreferenceUtils.userBusinessId) ??
       "";
 }
 
+getUserLoginAccountType() async {
+  accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.accountType) ??
+      "";
+}
+
+getUserAuthToken() async {
+  authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.authToken);
+}
+getMobileNo()
+async {
+  userMobileGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userLoginMobile) ??
+      "";
+}
 ///GET USER DATA....
 getUserLoginData() async {
   authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.authToken);
   accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.accountType) ??
+      SharedPreferenceUtils.accountType) ??
       '';
 
   // userName = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userName) ?? "";
   userId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.loginUserId) ??
+      SharedPreferenceUtils.loginUserId) ??
       "";
   businessId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userBusinessId) ??
+      SharedPreferenceUtils.userBusinessId) ??
       "";
   userMobileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userLoginMobile) ??
+      SharedPreferenceUtils.userLoginMobile) ??
       "";
 
   userProfileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfile) ??
+      SharedPreferenceUtils.userProfile) ??
       "";
 
   userNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userName) ??
+      SharedPreferenceUtils.userName) ??
       "";
 
   userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfession) ??
+      SharedPreferenceUtils.userProfession) ??
       "";
-
+logs("userProfileGlobal==== $userProfileGlobal");
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
   has_reel_profile_status = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.has_reel_profile) ??
+      SharedPreferenceUtils.has_reel_profile) ??
       "false";
+  businessUserId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessUserIdKey) ??
+      "";
   // if (has_reel_profile_status == "true") {
   //   reel_profile_id_global = await SharedPreferenceUtils.getSecureValue(
   //           SharedPreferenceUtils.reel_profile_id) ??
@@ -192,42 +236,48 @@ getUserLoginData() async {
 }
 ///GET USER DATA....
 getGuestUserLoginData() async {
+  userId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.loginUserId) ??
+      "";
+  businessId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userBusinessId) ??
+      "";
   authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.authToken);
   accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.accountType) ??
+      SharedPreferenceUtils.accountType) ??
       '';
 
 
   userMobileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userLoginMobile) ??
+      SharedPreferenceUtils.userLoginMobile) ??
       "";
 
 
   userNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userName) ??
+      SharedPreferenceUtils.userName) ??
       "";
+
 
 }
 
 /// GET CHANNEL ID...
 getChannelId() async {
   channelId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.channel_Id) ??
+      SharedPreferenceUtils.channel_Id) ??
       "";
 }
 
 /// GET Business Data...
 getBusinessData() async {
-  userProfileGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.userProfile) ??
-      "";
-
   businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessName) ??
       "";
   businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessOwnerName) ??
+      "";
+  businessUserId = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessUserIdKey) ??
       "";
 }
 

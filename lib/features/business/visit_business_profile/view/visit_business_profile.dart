@@ -1,9 +1,12 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
@@ -38,11 +41,13 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
     // 'Reviews',
     // 'Our Branches'
   ];
-
+  List<SortBy>? filters;
+  SortBy selectedFilter = SortBy.Latest;
 
   @override
   void initState() {
     super.initState();
+    setFilters();
     _tabController = TabController(length: tabs.length, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Ensure your VisitPersonalProfileTabs updates
@@ -58,6 +63,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
     super.dispose();
   }
 
+  setFilters() {
+    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,22 +162,39 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                   ),
 
                   // Shorts tab
-                  ShortsChannelSection(
-                    // scrollController: _scrollController,
-                    isOwnShorts: false,
-                    showShortsInGrid: true,
-                    channelId: '',
-                    sortBy: SortBy.Latest,
-                    authorId: widget.businessId,
-                    postVia: PostVia.profile,
+                  Column(
+                    children: [
+                      _filterButtons(),
+
+                      SizedBox(height: SizeConfig.size8),
+
+                      ShortsChannelSection(
+                        // scrollController: _scrollController,
+                        isOwnShorts: false,
+                        showShortsInGrid: true,
+                        channelId: '',
+                        sortBy: selectedFilter,
+                        authorId: widget.businessId,
+                        postVia: PostVia.profile,
+                      ),
+                    ],
                   ),
 
-                  VideoChannelSection(
-                    isOwnVideos: false,
-                    channelId: '',
-                    authorId: widget.businessId,
-                    isScroll: false,
-                    postVia: PostVia.profile,
+                  Column(
+                    children: [
+                      _filterButtons(),
+
+                      SizedBox(height: SizeConfig.size8),
+
+                      VideoChannelSection(
+                        isOwnVideos: false,
+                        channelId: '',
+                        authorId: widget.businessId,
+                        isScroll: false,
+                        sortBy: selectedFilter,
+                        postVia: PostVia.profile,
+                      ),
+                    ],
                   ),
 
                   FeedScreen(
@@ -190,6 +215,44 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
         },
       ),
     );
+  }
+
+  Widget _filterButtons() {
+    return SingleChildScrollView(
+        padding:
+        EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+        child: Row(
+          children: [
+            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
+            SizedBox(width: SizeConfig.size10),
+            Padding(
+              padding: EdgeInsets.only(right: 20),
+              child: Row(
+                children: filters?.map((filter) {
+                  final isSelected = selectedFilter == filter;
+                  return Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size14),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedFilter = filter;
+                        });
+                      },
+                      child: CustomText(
+                        filter.label,
+                        decoration: TextDecoration.underline,
+                        color: isSelected ? Colors.blue : Colors.black54,
+                        decorationColor:
+                        isSelected ? Colors.blue : Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                }).toList()??[],
+              ),
+            )
+          ],
+        ));
   }
 
 }

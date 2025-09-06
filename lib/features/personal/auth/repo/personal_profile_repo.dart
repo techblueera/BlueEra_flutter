@@ -22,7 +22,8 @@ class PersonalProfileRepo extends BaseService {
     required Map<String, dynamic> formData,
   }) async {
     final response = await ApiBaseHelper().putHTTP(
-      "$updateUserProfile/$userId",
+      "$updateIndividualAccountUser$userId",
+      // "$updateUserProfile/$userId",
       params: formData,
       isMultipart: true,
       onError: (error) {

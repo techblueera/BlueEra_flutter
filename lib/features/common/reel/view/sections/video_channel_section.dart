@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/block_selection_dialog.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
@@ -38,7 +38,7 @@ class VideoChannelSection extends StatefulWidget {
 
 class _VideoChannelSectionState extends State<VideoChannelSection> {
   final VideoController videosController = Get.put<VideoController>(VideoController());
-  Videos videos = Videos.latest;
+  VideoType videos = VideoType.latest;
 
   @override
   void initState() {
@@ -60,11 +60,11 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
   setVideosType(){
     videos = switch (widget.sortBy) {
-      SortBy.Latest       => Videos.latest,
-      SortBy.Popular      => Videos.popular,
-      SortBy.Oldest       => Videos.oldest,
-      SortBy.UnderProgress=> Videos.underProgress,
-      null                => Videos.latest, // default for null
+      SortBy.Latest       => VideoType.latest,
+      SortBy.Popular      => VideoType.popular,
+      SortBy.Oldest       => VideoType.oldest,
+      SortBy.UnderProgress=> VideoType.underProgress,
+      null                => VideoType.latest, // default for null
     };
   }
 
@@ -110,7 +110,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
           return ListView.builder(
             itemCount: channelVideos.length +
-                (videosController.isLoading.value ? 1 : 0),
+                (videosController.isMoreDataLoading(videos).value ? 1 : 0),
             padding: EdgeInsets.only(
                 left: SizeConfig.paddingXSL,
                 right: SizeConfig.paddingXSL,
@@ -137,16 +137,22 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
                 videoItem: videoFeedItem,
                 onTapOption: () {
                   openBlockSelectionDialog(
-                      context: context,
-                     userBlockVoidCallback: () async {
-                        print('call');
-                         await Get.find<VideoController>().userBlocked(
-                           videoType: videos,
-                           otherUserId: videoFeedItem.video?.userId??'',
-                         );
-                     },
-                      postBlockVoidCallback: (){
-
+                    context: context,
+                    reportType: 'VIDEO_POST',
+                    userId: videoFeedItem.video?.userId??'',
+                    contentId: videoFeedItem.video?.id??'',
+                    userBlockVoidCallback: () async {
+                      await Get.find<VideoController>().userBlocked(
+                        videoType: videos,
+                        otherUserId: videoFeedItem.video?.userId??'',
+                      );
+                    },
+                      reportCallback: (params){
+                        Get.find<VideoController>().videoPostReport(
+                            videoId: videoFeedItem.video?.id??'',
+                            videoType: videos,
+                            params: params
+                        );
                       }
                   );
                 },

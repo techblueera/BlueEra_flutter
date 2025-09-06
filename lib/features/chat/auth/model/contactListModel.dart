@@ -149,7 +149,7 @@ class ExistingNotConnected {
       this.v,});
 
   ExistingNotConnected.fromJson(dynamic json) {
-    id = json['_id'];
+    id = json['id'];
     name = json['name'];
     gender = json['gender'];
     contactNo = json['contact_no'];

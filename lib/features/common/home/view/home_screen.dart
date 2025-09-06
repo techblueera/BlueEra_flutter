@@ -5,7 +5,9 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
@@ -18,6 +20,10 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+
+import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
+import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 
 enum SavedFeedTab {
   posts,
@@ -58,9 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     if(accountTypeGlobal.toUpperCase() == AppConstants.business){
       homeScreenController.getBusinessProfileData();
-    }else{
-
-    }
+    }else{}
     getPackageData();
     searchController.addListener(() {
       setState(() {});
@@ -262,7 +266,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return
       Scaffold(
-
         body: SafeArea(
           top: false,
           child: Obx(()=> Stack(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -15,6 +16,7 @@ class CommonProfileImage extends StatefulWidget {
   String? dialogTitle;
   final double size;
   final Function(String) onImageUpdate;
+  final bool isOwnProfile;
 
   CommonProfileImage({
     Key? key,
@@ -22,6 +24,7 @@ class CommonProfileImage extends StatefulWidget {
     required this.dialogTitle,
     required this.onImageUpdate,
     this.size = 100,
+    this.isOwnProfile = true
   }) : super(key: key);
 
   @override
@@ -29,14 +32,13 @@ class CommonProfileImage extends StatefulWidget {
 }
 
 class _CommonProfileImageState extends State<CommonProfileImage> {
-  bool isNetworkUrl(String path) {
-    return path.startsWith('http://') || path.startsWith('https://');
-  }
+
 
   @override
   Widget build(BuildContext context) {
+    print('image--> ${widget.imagePath}');
     return InkWell(
-      onTap: () => selectImage(context,widget.dialogTitle??"Upload Picture"),
+      onTap: (widget.isOwnProfile) ? () => selectImage(context,widget.dialogTitle??"Upload Picture") : null,
       child: Stack(
         children: [
           Container(
@@ -52,7 +54,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
                   ? ClipOval(
                       child: ((widget.imagePath != null) &&
                               (widget.imagePath?.isNotEmpty ?? false) &&
-                              (isNetworkUrl(widget.imagePath ?? "")))
+                              (isNetworkImage(widget.imagePath ?? "")))
                           ? NetWorkOcToAssets(imgUrl: widget.imagePath??"")
                           : Image(
                               image: FileImage(File(widget.imagePath??""))
@@ -65,6 +67,8 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
                   : LocalAssets(imagePath: AppIconAssets.user_out_line),
             ),
           ),
+
+          if (widget.isOwnProfile)
           Positioned(
             bottom: 0,
             right: 0,
@@ -90,6 +94,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
 
     widget.imagePath = await SelectProfilePictureDialog.showLogoDialog(
         context, titleOfDialog ?? "");
+    print('image path-> ${widget.imagePath}');
     if (widget.imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...
       widget.onImageUpdate(widget.imagePath ?? "");

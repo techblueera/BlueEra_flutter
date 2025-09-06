@@ -1744,6 +1744,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -1759,8 +1760,10 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
+import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -1807,9 +1810,10 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
             CommonProfileImage(
               imagePath: viewBusinessDetailsController.imagePath?.value ?? "",
               onImageUpdate: (image) async {
+                logs("image=== $image");
                 viewBusinessDetailsController.imagePath?.value = image;
                 dioObj.MultipartFile? imageByPart;
-                if (viewBusinessDetailsController.isImageUpdated.value) {
+                // if (viewBusinessDetailsController.isImageUpdated.value) {
                   if (viewBusinessDetailsController
                           .imagePath?.value.isNotEmpty ??
                       false) {
@@ -1822,13 +1826,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                         viewBusinessDetailsController.imagePath?.value ?? "",
                         filename: fileName);
                   }
-                }
+                // }
                 dynamic reqData = {
                   ApiKeys.businessId: businessId,
                   ApiKeys.logo_image:
-                      viewBusinessDetailsController.isImageUpdated.value
-                          ? imageByPart
-                          : null,
+                  imageByPart,
                 };
 
                 await Get.find<ViewBusinessDetailsController>()
@@ -2769,21 +2771,42 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         GestureDetector(
           onTap: () async {
             if (imagePath == "") {
+
+              final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                  context,
+                  cropAspectRatio: CropAspectRatio(width: 9, height: 16));
+              if(imgStr!=null){
+                saveBusinessImages(
+                    imgStr, controller.imgDeleteL3, controller);
+              }
+
+
               // _pickImage(index); // Pick an image if the slot is empty
               // uploadFromGallery ? _pickImage(index) :
-
-              String? imgStr = await SelectProfilePictureDialog.showLogoDialog(
-                  context, "Upload store live image",
-                  isOnlyCamera: true, isGallery: true, isCircleCrop: false);
-              if (imgStr != null && imgStr.isNotEmpty) {
-                setState(() {
+              //
+              // String? imgStr = await SelectProfilePictureDialog.showLogoDialog(
+              //     context, "Upload store live image",
+              //     isOnlyCamera: true, isGallery: true, isCircleCrop: false);
+              // if (imgStr != null && imgStr.isNotEmpty) {
+              //   setState(() {
                   // viewBusinessDetailsController.imgUploadL2.add(imgStr);
-                  saveBusinessImages(
-                      imgStr, controller.imgDeleteL3, controller);
+                  // saveBusinessImages(
+                  //     imgStr, controller.imgDeleteL3, controller);
+              //
+              //     // Send updated list to the parent widget
+              //   });
+              // }
 
-                  // Send updated list to the parent widget
-                });
-              }
+            }else{
+              navigatePushTo(
+                context,
+                ImageViewScreen(
+                  subTitle: '',
+                  appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                  imageUrls: controller.imgLocalL3,
+                  initialIndex: index,
+                ),
+              );
             }
           },
           child: Container(

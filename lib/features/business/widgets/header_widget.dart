@@ -38,15 +38,16 @@ class _HeaderWidgetState extends State<HeaderWidget> {
   late VisitProfileController controller;
   final viewBusiness = Get.find<ViewBusinessDetailsController>();
   final chatViewController = Get.find<ChatViewController>();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     controller = Get.put(VisitProfileController());
   }
+
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
         Row(
@@ -54,46 +55,45 @@ class _HeaderWidgetState extends State<HeaderWidget> {
           children: [
             InkWell(
               onTap: () {
-               // navigatePushTo(context, BusinessDetailsEditPageOne());
+                // navigatePushTo(context, BusinessDetailsEditPageOne());
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(40),
                 child: widget.logoUrl.isNotEmpty
                     ? CachedNetworkImage(
-                  imageUrl: widget.logoUrl,
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      Container(
+                        imageUrl: widget.logoUrl,
                         height: 80,
                         width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(40),
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          child: Icon(Icons.business, color: Colors.grey),
                         ),
-                        child: Icon(Icons.business, color: Colors.grey),
-                      ),
-                  errorWidget: (context, url, error) =>
-                      Container(
-                        height: 80,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(40),
+                        errorWidget: (context, url, error) => Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          child: Icon(Icons.business, color: Colors.grey),
                         ),
-                        child: Icon(Icons.business, color: Colors.grey),
-                      ),
-                )
+                      )
                     : Container(
-                  height: 80,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: Icon(Icons.business, color: Colors.grey, size: 40),
-                ),
+                        height: 80,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(40),
+                        ),
+                        child:
+                            Icon(Icons.business, color: Colors.grey, size: 40),
+                      ),
               ),
             ),
             const SizedBox(width: 12),
@@ -113,18 +113,20 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                       InkWell(
                         onTap: () async {
                           final link = profileDeepLink(userId: widget.userId);
-                          final message = "Check out this business on BlueEra:\n$link\n}";
+
+                          final message = "See my profile on BlueEra:\n$link\n";
                           await SharePlus.instance.share(ShareParams(
                             text: message,
                             subject: widget.businessName,
                           ));
                         },
-                        child: Image.asset( 
-                        'assets/images/arrow.png',
-                        height: 25,
-                        width: 25,
-                        fit: BoxFit.cover,
-                      ),)
+                        child: Image.asset(
+                          'assets/images/arrow.png',
+                          height: 25,
+                          width: 25,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -146,29 +148,31 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                   ),
                   const SizedBox(height: 8),
                   // Location
-                  (widget.location == '') ? SizedBox() : Row(
-                    children: [
-                      Image.asset(
-                        'assets/images/location.jpg',
-                        height: 20,
-                        width: 20,
-                        fit: BoxFit.cover,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          widget.location,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                  (widget.location == '')
+                      ? SizedBox()
+                      : Row(
+                          children: [
+                            Image.asset(
+                              'assets/images/location.jpg',
+                              height: 20,
+                              width: 20,
+                              fit: BoxFit.cover,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                widget.location,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -188,6 +192,11 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                       side: BorderSide(color: AppColors.primaryColor),
                       backgroundColor: AppColors.primaryColor),
                   onPressed: () async {
+                    if (isGuestUser()) {
+                      createProfileScreen();
+
+                      return;
+                    }
                     if (controller.isFollow.value) {
                       await controller.unFollowUserController(
                           candidateResumeId: widget.userId);
@@ -196,7 +205,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                           candidateResumeId: widget.userId);
                     }
 
-                  // await  viewBusiness.viewBusinessProfileById(widget.businessId);
+                    // await  viewBusiness.viewBusinessProfileById(widget.businessId);
 
                     // Handle follow action
                   },
@@ -207,9 +216,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                       children: [
                         SizedBox(width: SizeConfig.paddingXSmall),
                         CustomText(
-                          controller.isFollow.value
-                              ? "Unfollow"
-                              : "Follow",
+                          controller.isFollow.value ? "Unfollow" : "Follow",
                           color: AppColors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -227,54 +234,103 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       side: BorderSide(color: AppColors.primaryColor)),
-                  onPressed: () async{
+                  onPressed: () async {
+                    if (isGuestUser()) {
+                      createProfileScreen();
 
-                    // if(chatViewController.newVisitContactApiResponse?.value
-                    //     ?.message?.isContact != null && (chatViewController
-                    //     .newVisitContactApiResponse?.value?.message
-                    //     ?.isContact ?? false)){
-                    //   openAnyOneChatFunction(
-                    //       isInitialMessage: true,
-                    //       userId:details.data?.otherUserId??'',
-                    //       conversationId:details.data?.otherUserId??'',
-                    //       contactName:details.message?.contact?.name,
-                    //       contactNo:details.message?.contact?.contactNo ,
-                    //       isFromContactList: true
-                    //   );
-                    //
-                    // }else
-
-                  if(chatViewController.newVisitContactApiResponse?.value?.data?.conversationStatus== "business"||chatViewController.newVisitContactApiResponse?.value?.data?.conversationStatus== "contact"){
-                        chatViewController.openAnyOneChatFunction(
+                      return;
+                    }
+                    if (chatViewController.newVisitContactApiResponse?.value
+                                ?.data?.conversationStatus ==
+                            "business" ||
+                        chatViewController.newVisitContactApiResponse?.value
+                                ?.data?.conversationStatus ==
+                            "contact") {
+                      chatViewController.openAnyOneChatFunction(
                           type: "business",
-                            profileImage: chatViewController.newVisitContactApiResponse?.value?.data?.sender?.profileImage,
-                            isInitialMessage: true,
-                            userId:chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId??'',
-                            conversationId:chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId??'',
-                            contactName:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.name??widget.businessName,
-                            contactNo:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.contact,
-                            businessId:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.businessId ,
-                            isFromContactList: true
-                        );
-                    }else{
-                        chatViewController.openAnyOneChatFunction(
-                            type: "personal",
-                            profileImage: chatViewController.newVisitContactApiResponse?.value?.data?.sender?.profileImage,
-                            isInitialMessage: false,
-                            userId:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.id??"",
-                            conversationId:chatViewController.newVisitContactApiResponse?.value?.data?.conversationId??'',
-                            contactName:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.name??"",
-                            contactNo:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.contact??"",
-                              businessId:chatViewController.newVisitContactApiResponse?.value?.data?.sender?.businessId ??'',
-                            isFromContactList: false
-                        );
-
-                      }
+                          profileImage: chatViewController
+                              .newVisitContactApiResponse
+                              ?.value
+                              ?.data
+                              ?.sender
+                              ?.profileImage,
+                          isInitialMessage: true,
+                          userId: chatViewController.newVisitContactApiResponse
+                                  ?.value?.data?.otherUserId ??
+                              '',
+                          conversationId: chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.otherUserId ??
+                              '',
+                          contactName: chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.sender
+                                  ?.name ??
+                              widget.businessName,
+                          contactNo: chatViewController
+                              .newVisitContactApiResponse
+                              ?.value
+                              ?.data
+                              ?.sender
+                              ?.contact,
+                          businessId: chatViewController
+                              .newVisitContactApiResponse
+                              ?.value
+                              ?.data
+                              ?.sender
+                              ?.businessId,
+                          isFromContactList: true);
+                    } else {
+                      chatViewController.openAnyOneChatFunction(
+                          type: "personal",
+                          profileImage: chatViewController
+                              .newVisitContactApiResponse
+                              ?.value
+                              ?.data
+                              ?.sender
+                              ?.profileImage,
+                          isInitialMessage: false,
+                          userId: chatViewController.newVisitContactApiResponse
+                                  ?.value?.data?.sender?.id ??
+                              "",
+                          conversationId: chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.conversationId ??
+                              '',
+                          contactName: chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.sender
+                                  ?.name ??
+                              "",
+                          contactNo: chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.sender
+                                  ?.contact ??
+                              "",
+                          businessId: chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.sender
+                                  ?.businessId ??
+                              '',
+                          isFromContactList: false);
+                    }
                   },
-
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: CustomText("Chat",
+                    child: CustomText(
+                      "Chat",
                       // (chatViewController.newVisitContactApiResponse?.value
                       //     ?.message?.isContact != null && (chatViewController
                       //     .newVisitContactApiResponse?.value?.message

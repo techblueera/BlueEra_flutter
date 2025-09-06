@@ -34,19 +34,19 @@ import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 
 class ShareShortPlayerItem extends StatefulWidget {
-  final String videoId;
+  final ShortFeedItem videoItem;
   final bool autoPlay;
   final bool shouldPreload;
   final VoidCallback onTapOption;
-  final Shorts shorts;
+   
 
   const ShareShortPlayerItem({
     super.key,
-    required this.videoId,
+    required this.videoItem,
     required this.autoPlay,
     this.shouldPreload = false,
     required this.onTapOption,
-    required this.shorts,
+  
   });
 
   @override
@@ -80,43 +80,45 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
 
   Future<void> _fetchVideoDataAndSetup() async {
     try {
-      // Fetch video data using VideoController
-      final videoController = Get.put(VideoController());
-      final videoData = await videoController.getVideoById(widget.videoId);
-      
-      if (videoData != null) {
-        fullScreenShortController.videoItem = videoData;
+ 
+        fullScreenShortController.videoItem = widget.videoItem;
         getAndSetData();
         _setupVideoAfterFetch();
-      } else {
+      
+    } catch (e) {
+      if (mounted && !_isDisposed) {
         setState(() => _hasError = true);
       }
-    } catch (e) {
-      setState(() => _hasError = true);
     }
   }
 
   void _setupVideoAfterFetch() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_isDisposed) {
-        // Sync initial state from ShortsController lists to ensure consistency
-        final shortsController = Get.find<ShortsController>();
-        final videoId = fullScreenShortController.videoItem?.video?.id ?? '0';
+        // For shared videos, we don't need to sync with ShortsController lists
+        // since they're not part of any feed
+        
+        // // Sync initial state from ShortsController lists to ensure consistency
+        // final shortsController = Get.find<ShortsController>();
+        // final videoId = fullScreenShortController.videoItem?.video?.id ?? '0';
+        //
+        // // Find the video in any of the lists to get the most up-to-date state
+        // VideoFeedItem? updatedVideo;
+        // final currentList =
+        //     shortsController.getListByType(shortsType: widget.shorts);
+        // for (final list in [currentList]) {
+        //   final index = list.indexWhere((v) => v.video?.id == videoId);
+        //   if (index != -1) {
+        //     updatedVideo = list[index];
+        //     break;
+        //   }
+        // }
+        //
+        // // Use updated video data if found, otherwise use widget data
+        // final videoToUse = updatedVideo ?? fullScreenShortController.videoItem;
 
-        // Find the video in any of the lists to get the most up-to-date state
-        VideoFeedItem? updatedVideo;
-        final currentList =
-            shortsController.getListByType(shortsType: widget.shorts);
-        for (final list in [currentList]) {
-          final index = list.indexWhere((v) => v.video?.id == videoId);
-          if (index != -1) {
-            updatedVideo = list[index];
-            break;
-          }
-        }
-
-        // Use updated video data if found, otherwise use widget data
-        final videoToUse = updatedVideo ?? fullScreenShortController.videoItem;
+        // For shared videos, just use the fetched video data directly
+        final videoToUse = fullScreenShortController.videoItem;
 
         fullScreenShortController.isLiked.value =
             videoToUse?.interactions?.isLiked ?? false;
@@ -414,15 +416,18 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SafeArea(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          _buildVideoPlayer(),
-          _buildPlayPauseOverlay(),
-          _buildActionButtons(),
-          _buildVideoInfo(),
-        ],
+    return Material(
+      color: Colors.transparent,
+      child: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildVideoPlayer(),
+            _buildPlayPauseOverlay(),
+            _buildActionButtons(),
+            _buildVideoInfo(),
+          ],
+        ),
       ),
     );
   }
@@ -586,7 +591,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
@@ -606,12 +611,12 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
-            if (fullScreenShortController.videoItem?.author?.id != businessId)
+            if (fullScreenShortController.videoItem?.author?.id != businessUserId)
               IconButton(
                 onPressed: () {
                   if (isGuestUser()) {
@@ -626,7 +631,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               )
             else
               ReelShortPopUpMenu(
-                  videoFeedItem: fullScreenShortController.videoItem!,
+                  shortFeedItem: fullScreenShortController.videoItem!,
                   popUpMenuColor: AppColors.black,
                   shorts: Shorts.personalized),
         ],
@@ -830,7 +835,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
         }
       } else {
-        if (fullScreenShortController.videoItem?.author?.id == businessId) {
+        if (fullScreenShortController.videoItem?.author?.id == businessUserId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfile(
@@ -883,11 +888,11 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
 
   /// Simple, consistent share experience using buildDeepLink
   Future<void> _shareVideoSimple() async {
-    final id = fullScreenShortController.videoItem?.video?.id ?? widget.videoId;
+    final id = fullScreenShortController.videoItem?.video?.id  ?? '0';
     final link = shortDeepLink(shortId: id);
     final title = fullScreenShortController.videoItem?.video?.title ?? 'BlueEra Short';
 
-    final message = "Check out this Short video on BlueEra:\n$link\n";
+    final message = "Watch on BlueEra App:\n$link\n";
 
     await SharePlus.instance.share(ShareParams(
       text: message,

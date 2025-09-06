@@ -40,13 +40,16 @@ class ManualListingScreenController extends GetxController {
   final TextEditingController skuController = TextEditingController();
   final TextEditingController shortDescriptionController = TextEditingController();
   final TextEditingController warrantyController = TextEditingController();
+  final TextEditingController guidelineController = TextEditingController();
   final TextEditingController brandController = TextEditingController();
   final TextEditingController mrpController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController availableStockController = TextEditingController();
   final TextEditingController tagsController = TextEditingController();
   final TextEditingController linkController = TextEditingController();
-
+  // Form Controllers
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController variantController = TextEditingController();
   // Media state
   final RxString videoPublicUrl = ''.obs;
   final RxString videoFileKey = ''.obs;
@@ -78,7 +81,7 @@ class ManualListingScreenController extends GetxController {
   RxInt selectedYear = 0.obs;
 
   // Wizard step management (1..3)
-  final RxInt currentStep = 2.obs; // TEMP: start at Step 2 (Media) to update uploads faster
+  final RxInt currentStep = 1.obs; // TEMP: start at Step 2 (Media) to update uploads faster
   static const int totalSteps = 3;
 
   // Dynamic product features (details-only fields; title generated as "Feature n")
@@ -110,6 +113,7 @@ class ManualListingScreenController extends GetxController {
     skuController.dispose();
     shortDescriptionController.dispose();
     warrantyController.dispose();
+    guidelineController.dispose();
     brandController.dispose();
     mrpController.dispose();
     sellingPriceController.dispose();
@@ -125,6 +129,8 @@ class ManualListingScreenController extends GetxController {
     for (final c in optionValueControllers) {
       c.dispose();
     }
+ titleController.dispose();
+    variantController.dispose();
     super.onClose();
   }
 
@@ -199,6 +205,36 @@ class ManualListingScreenController extends GetxController {
     if (int.tryParse(value) == null) return 'Please enter a valid number';
     if (int.parse(value) < 0) return 'Stock cannot be negative';
     return null;
+  }
+   // Validation Methods
+  String? validateTitle(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Title is required';
+    }
+    if (value.trim().length < 2) {
+      return 'Title must be at least 2 characters';
+    }
+    return null;
+  }
+
+  String? validateVariant(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Variant is required';
+    }
+    if (value.trim().length < 2) {
+      return 'Variant must be at least 2 characters';
+    }
+    return null;
+  }
+  // Cancel Action
+  void cancel() {
+    Get.back();
+  }
+
+  // Clear Form
+  void clearForm() {
+    titleController.clear();
+    variantController.clear();
   }
 
   // Step-wise validation

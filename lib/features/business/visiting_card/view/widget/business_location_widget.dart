@@ -28,8 +28,27 @@ class BusinessLocationWidget extends StatefulWidget {
 class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
   late MapplsMapController mapController;
 
+  // Future<void> _onMapCreated(MapplsMapController controller) async {
+  //   mapController = controller;
+  //   mapController.onStyleLoadedCallback = () async {
+  //     await mapController.addSymbol(
+  //       SymbolOptions(
+  //         geometry: LatLng(widget.latitude, widget.longitude),
+  //         iconSize: 1.2,
+  //         iconImage: "marker-icon", // default marker
+  //       ),
+  //     );
+  //    };
+  //   setState(() {});
+  // }
+
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
+  }
+
+
+  Future<void> _onStyleLoaded() async {
+    // ✅ Now it’s safe to add symbols
     await mapController.addSymbol(
       SymbolOptions(
         geometry: LatLng(widget.latitude, widget.longitude),
@@ -67,25 +86,36 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                     )),
               ],
             ),
-            SizedBox(height: SizeConfig.size10),
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(SizeConfig.size12),
-                  child: Image.asset(
-                    "assets/images/map.jpeg",
-                    height: SizeConfig.size180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+          SizedBox(height: 15),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            // Adjust border radius here
+            child: SizedBox(
+              width: double.infinity,
+              height: 180, // ✅ Set a fixed height (adjust as needed)
+              child: Stack(
+                children: [
+                  MapplsMap(
+                    onMapCreated: (controller) => _onMapCreated(controller),
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(widget.latitude, widget.longitude),
+                      zoom: 14.0,
+                    ),
+                    myLocationEnabled: false,
+                    compassEnabled: false,
+                    rotateGesturesEnabled: true,
+                    tiltGesturesEnabled: true,
+                    zoomGesturesEnabled: true,
+                    scrollGesturesEnabled: true,
                   ),
-                ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: GestureDetector(
-                    onTap: () async {
-                      final Uri googleMapUrl = Uri.parse(
-                          "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
+                  Positioned(
+                    right: SizeConfig.size10,
+                    bottom: SizeConfig.size10,
+                    child: InkWell(
+                      onTap: () async {
+                       logs("TTTTT");
+    final Uri googleMapUrl = Uri.parse(
+        "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
 
                       if (await canLaunchUrl(googleMapUrl)) {
                       await launchUrl(googleMapUrl,

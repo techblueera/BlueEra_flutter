@@ -1,11 +1,19 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../listing_form_screen_controller.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/date_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Step3Section extends StatelessWidget {
   final ManualListingScreenController controller;
@@ -16,167 +24,163 @@ class Step3Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Product Name
+        CommonTextField(
+          textEditController: controller.productNameController,
+          hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
+          title: "Product Name",
+          validator: controller.validateProductName,
+          showLabel: true,
+        ),
+        SizedBox(height: SizeConfig.size16),
+        CommonTextField(
+          textEditController: controller.productNameController,
+          hintText: 'E.g. TSH-RED-s-0001',
+          title: "Product SKU Number (Optional)",
+          validator: controller.validateProductName,
+          showLabel: true,
+        ),
+        SizedBox(height: SizeConfig.size16),
+        CommonTextField(
+          textEditController: controller.productNameController,
+          hintText: 'E.g. 1554367',
+          title: "Product Id Number",
+          validator: controller.validateProductName,
+          showLabel: true,
+        ),
+       
+        // Category + Subcategory pickers (single Obx)
+      
+        SizedBox(height: SizeConfig.size16),
+        CustomText("Category folder"),
+        SizedBox(height: SizeConfig.size16),
+        Container(
+          width: double.infinity,
+          height: 44,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: AppColors.secondaryTextColor.withOpacity(0.2))),
+          padding: EdgeInsets.all(8),
+          child: CustomText(
+            "Choose Category Folder",
+            color: AppColors.secondaryTextColor,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size16),
+        // Brand
+        CommonTextField(
+          textEditController: controller.brandController,
+          title: 'Brand',
+          hintText: 'E.g. Boat',
+          validator: controller.validateBrand,
+          showLabel: true,
+        ),
+        SizedBox(height: SizeConfig.size16),
+        // MRP
+        CommonTextField(
+          textEditController: controller.mrpController,
+          title: 'MRP (Original Price)',
+          hintText: 'E.g. ₹1499',
+          keyBoardType: TextInputType.number,
+          validator: controller.validateMRP,
+          showLabel: true,
+        ),
+        SizedBox(height: SizeConfig.size16),
+        // Selling Price
+        CommonTextField(
+          textEditController: controller.sellingPriceController,
+          title: 'Selling Price (RS.)',
+          hintText: 'E.g. ₹500',
+          keyBoardType: TextInputType.number,
+          validator: controller.validateSellingPrice,
+          showLabel: true,
+        ),
+        SizedBox(height: SizeConfig.size16),
+        // Available Stock
+        CommonTextField(
+          textEditController: controller.availableStockController,
+          title: 'Available Stock',
+          hintText: 'E.g. Text',
+          keyBoardType: TextInputType.number,
+          validator: controller.validateAvailableStock,
+          showLabel: true,
+        ),
+        SizedBox(height: SizeConfig.size16),
+        // Expiry Date
+        _buildExpiryDateSection(controller),
+        // Non-returnable Toggle
+          _buildNonReturnableSection(controller),
+          SizedBox(height: SizeConfig.size16),
+          
+          // Warranty
+          CommonTextField(
+            title: "Product Warranty",
+            hintText: "Eg. 1 Years",
+            textEditController: controller.warrantyController,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          
+          // Guidelines
+          CommonTextField(
+            title: "User Guideline",
+            hintText: "Lorem ipsum dolor sit amit, adisping...",
+            textEditController: controller.guidelineController,
+            maxLine: 3,
+          ),
+          SizedBox(height: SizeConfig.size16),
+      
+      ],
+    );
+ 
+ 
+  
+  }
+   Widget _buildExpiryDateSection(ManualListingScreenController controller) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 80),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            'Add Expiry Date (Optional)',
+            fontSize: SizeConfig.medium,
+            color: AppColors.black,
+          ),
+          SizedBox(height: SizeConfig.size8),
+          Obx(() => RestrictedDatePicker(
+                selectedDay: controller.selectedDay.value == 0 ? null : controller.selectedDay.value,
+                selectedMonth: controller.selectedMonth.value == 0 ? null : controller.selectedMonth.value,
+                selectedYear: controller.selectedYear.value == 0 ? null : controller.selectedYear.value,
+                onDayChanged: controller.onDayChanged,
+                onMonthChanged: controller.onMonthChanged,
+                onYearChanged: controller.onYearChanged,
+                isFutureYear: true,
+              )),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildNonReturnableSection(ManualListingScreenController controller) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
         CustomText(
-          'Add Product Features',
+          'This is a non-returnable product',
           fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w500,
           color: AppColors.black,
         ),
-        SizedBox(height: SizeConfig.size16),
-        // Features list
-        Obx(() => Column(
-              children: List.generate(controller.featureControllers.length, (i) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: SizeConfig.size16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: CommonTextField(
-                          title: 'Feature ${i + 1}',
-                          hintText: 'E.g. Vorem ipsum dolor sit amet,',
-                          textEditController: controller.featureControllers[i],
-                          maxLine: 2,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      if (controller.featureControllers.length > 1)
-                        InkWell(
-                          onTap: () => controller.removeFeature(i),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: EdgeInsets.only(top: SizeConfig.size20),
-                            child: Icon(
-                              Icons.delete_outline,
-                              color: AppColors.primaryColor,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              }),
+        Obx(() => CustomSwitch(
+              containerHeight: 25,
+              containerWidth: 50,
+              value: controller.isNonReturnable.value,
+              onChanged: (value) => controller.toggleNonReturnable(),
             )),
-        SizedBox(height: SizeConfig.size16),
-        GestureDetector(
-          onTap: controller.addFeature,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add More Option", color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size16),
-        // Add Link
-        GestureDetector(
-          onTap: controller.showLinkField.toggle,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add Link (Reference / Website)",
-                  color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        Obx(() => controller.showLinkField.value
-            ? Padding(
-                padding: EdgeInsets.only(top: SizeConfig.size12),
-                child: CommonTextField(
-                  title: "Link (Reference / Website)",
-                  hintText: "https://example.com",
-                  textEditController: controller.linkController,
-                ),
-              )
-            : const SizedBox.shrink()),
-        SizedBox(height: SizeConfig.size20),
-        // Options (attribute/value)
-        CustomText(
-          'Options',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size12),
-        Obx(() => Column(
-              children: List.generate(controller.optionAttributeControllers.length, (i) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: SizeConfig.size12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CommonTextField(
-                          title: 'Attribute',
-                          hintText: 'e.g. Color',
-                          textEditController: controller.optionAttributeControllers[i],
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      Expanded(
-                        child: CommonTextField(
-                          title: 'Value',
-                          hintText: 'e.g. Black',
-                          textEditController: controller.optionValueControllers[i],
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      if (controller.optionAttributeControllers.length > 1)
-                        InkWell(
-                          onTap: () => controller.removeOption(i),
-                          child: const Icon(Icons.delete_outline, color: AppColors.primaryColor),
-                        ),
-                    ],
-                  ),
-                );
-              }),
-            )),
-        SizedBox(height: SizeConfig.size8),
-        GestureDetector(
-          onTap: controller.addOption,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add Option", color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size24),
-        // Add More Details launcher (kept as before)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(
-              'Add More Details',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-            GestureDetector(
-              onTap: controller.toggleMoreDetails,
-              child: Container(
-                width: 32,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
+
+
 }
