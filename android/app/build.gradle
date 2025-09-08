@@ -30,7 +30,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "ai.bluecs.app"
+    namespace "ai.bluecs.np"
     compileSdk 36
     ndkVersion "27.0.12077973"
 
@@ -50,7 +50,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "ai.bluecs.app"
+        applicationId "ai.bluecs.np"
         minSdkVersion 24
         targetSdkVersion 36
         versionCode 66

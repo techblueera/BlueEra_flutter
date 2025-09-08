@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -144,7 +145,7 @@ class BusinessProfilePersonalNewScreen extends StatelessWidget {
                       ),
                       SizedBox(height: SizeConfig.size1),
                       CustomText(
-                        "+91 23434544353",
+                        "$countryCode 23434544353",
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),

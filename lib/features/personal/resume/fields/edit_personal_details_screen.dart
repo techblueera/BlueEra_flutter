@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -110,7 +111,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       SizedBox(height: SizeConfig.paddingL),
                       CommonTextField(
                         title: "Phone Number",
-                        hintText: "E.g. +91 1234567890",
+                        hintText: "E.g. ${countryCode} 1234567890",
                         textEditController: phoneController,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,

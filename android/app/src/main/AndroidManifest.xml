@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ai.bluecs.app">
+    package="ai.bluecs.np">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -38,7 +38,7 @@
         android:enableOnBackInvokedCallback="true"
         android:fullBackupOnly="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="BlueEra"
+        android:label="BlueEra Nepal"
         android:largeHeap="true"
 
         android:requestLegacyExternalStorage="true">

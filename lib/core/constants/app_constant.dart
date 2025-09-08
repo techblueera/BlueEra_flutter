@@ -31,13 +31,9 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 
 class AppConstants {
-  static const String appName = 'BlueEra';
-  static const String shareAppMsg = 'Created By BlueEra jobs app!\n\n'
-      "Hey! I'm using BlueEraJobs and join me there. "
-      "I'm sending you an invite—download the app, and let's connect! "
-      "at https://bluecs.in/app";
-  static const String iosAppId = "6745372448";
-  static const String androidPackageName = "ai.bluecs.app";
+  static const String appName = 'BlueEra Nepal';
+  static const String iosAppId = "";
+  static const String androidPackageName = "ai.bluecs.np";
   static const String androidPlayStoreUrl =
       "https://play.google.com/store/apps/details?id=$androidPackageName";
   static const String iosAppStoreUrl =
@@ -157,7 +153,8 @@ class AppConstants {
         : false;
   }
 }
-
+String countryCode="+977";
+String countryCodeWithoutPlus="977";
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
 
@@ -475,44 +472,6 @@ openPersonalProfile({required String? userID}) {
 //       label: loc.insightful),
 // ];
 
-final List<Map<String, dynamic>> drawerItems = [
-  {
-    "title": "Earn with BlueEra",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.earnWithBEIcon,
-  },
-  {
-    "title": "Orders & Bookings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.orderBookingIcon,
-  },
-  {
-    "title": "=Payment Settings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.paymentIcon,
-  },
-  {
-    "title": "Channel Settings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.channelIcon,
-  },
-  {
-    "title": "My Documents",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.documentIcon,
-  },
-  {
-    "title": "Profile Settings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.personIcon,
-  },
-];
 
 List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   final bool isBusiness =

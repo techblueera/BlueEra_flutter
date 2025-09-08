@@ -1,4 +1,4 @@
-package ai.bluecs.app
+package ai.bluecs.np
 
 import android.os.Bundle
 import android.view.LayoutInflater

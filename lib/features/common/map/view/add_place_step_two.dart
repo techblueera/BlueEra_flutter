@@ -68,7 +68,7 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
                         child: CommonTextField(
                           textEditController: controller.mobileCodeController,
                           isValidate: false,
-                          hintText: "+91",
+                          hintText: countryCode,
                           maxLength: 4,
                           keyBoardType: TextInputType.phone,
                           contentPadding: EdgeInsets.symmetric(

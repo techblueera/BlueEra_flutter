@@ -117,7 +117,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                       border: Border.all(color: Colors.grey.shade400),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text("+91"),
+                    child: CustomText(countryCode),
                   ),
                   SizedBox(width: SizeConfig.size12),
                   Expanded(

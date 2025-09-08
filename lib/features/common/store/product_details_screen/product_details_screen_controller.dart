@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -98,7 +99,7 @@ class ProductDetailsScreenController extends GetxController {
     'city': 'Mumbai',
     'state': 'Maharashtra',
     'pincode': '400001',
-    'phone': '+91 98765 43210',
+    'phone': '$countryCode 98765 43210',
   }.obs;
 
   // Product Specifications

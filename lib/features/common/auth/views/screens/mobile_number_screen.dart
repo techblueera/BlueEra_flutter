@@ -81,7 +81,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       Container(
                         height: SizeConfig.size45,
                         width: SizeConfig.size57,
-                        child: CustomText("+91", fontSize: SizeConfig.large),
+                        child: CustomText(countryCode, fontSize: SizeConfig.large),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           border: Border.all(

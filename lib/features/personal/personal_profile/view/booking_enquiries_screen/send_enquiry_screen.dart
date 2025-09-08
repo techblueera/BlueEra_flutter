@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -86,7 +87,7 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
                       border: Border.all(color: Colors.grey.shade400),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text("+91"),
+                    child: CustomText(countryCode),
                   ),
                   SizedBox(width: SizeConfig.size12),
                   Expanded(

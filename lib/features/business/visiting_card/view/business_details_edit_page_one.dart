@@ -663,7 +663,7 @@ class _BusinessDetailsEditPageOneState
       },
       ApiKeys.type_of_business:
           viewBusinessDetailsController.selectedBusinessType?.value.name ?? '',
-      ApiKeys.office_mob_no_Pre: 91,
+      ApiKeys.office_mob_no_Pre: countryCodeWithoutPlus,
       if (mobileController.text.isNotEmpty)
         ApiKeys.office_mob_no_number: mobileController.text,
       if (landlineCodeController.text.isNotEmpty)
