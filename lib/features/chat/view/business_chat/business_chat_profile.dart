@@ -849,7 +849,7 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsetsGeometry.all(SizeConfig.size10),
+                    padding: EdgeInsets.all(SizeConfig.size10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
