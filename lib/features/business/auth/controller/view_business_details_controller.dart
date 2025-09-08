@@ -115,8 +115,9 @@ class ViewBusinessDetailsController extends GetxController {
           profileImage: businessProfileDetails?.data?.logo??'',
           businessName: businessProfileDetails?.data?.businessName??'',
           businessOwnerName: businessProfileDetails?.data?.ownerDetails?[0].name??'',
-          businessId: businessProfileDetails!.data!.id!,
-          loginBusinessUserId: businessProfileDetails!.data!.userId!,
+          businessId: businessProfileDetails?.data?.id??"",
+          loginBusinessUserId: businessProfileDetails?.data?.userId??"",
+          userNameAt: "",
         );
 
         await getUserLoginData();

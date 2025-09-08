@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen.dart';
+import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -120,7 +121,8 @@ class _CreateMessagePostScreenNewState
                   keyBoardType: TextInputType.multiline,
                   textInputAction: TextInputAction.none,
                   onChange: (val) {
-                    msgController.messageText.value = val;
+                    msgController.postText.value = val;
+
                   },
                 ),
                 SizedBox(
@@ -277,32 +279,13 @@ class _CreateMessagePostScreenNewState
                       isValidate: msgController.postText.value.isNotEmpty,
                       onTap: msgController.postText.value.isNotEmpty
                           ? () async {
-                              msgController.isCursorHide.value = false;
-                              // FocusManager.instance.primaryFocus?.unfocus();
                               await Future.delayed(Duration(milliseconds: 200));
 
                               ///FOR ADD POST...
                               if (!msgController.isMsgPostEdit) {
-                                File? file;
-                                RenderRepaintBoundary boundary =
-                                    previewContainerKey
-                                            .currentContext!
-                                            .findRenderObject()
-                                        as RenderRepaintBoundary;
-                                ui.Image image =
-                                    await boundary.toImage(pixelRatio: 3.0);
-                                ByteData? byteData = await image.toByteData(
-                                    format: ui.ImageByteFormat.png);
-                                Uint8List pngBytes =
-                                    byteData!.buffer.asUint8List();
 
-                                // 2. Save to file
-                                final directory = await getTemporaryDirectory();
-                                file = File(
-                                    '${directory.path}/screenshot_${DateTime.now().microsecondsSinceEpoch}.png');
-                                await file.writeAsBytes(pngBytes);
-                                Get.to(() => MessagePostPreviewScreen(
-                                      imagePath: file?.path,
+                                Get.to(() => MessagePostPreviewScreenNew(
+                                      imagePath: "",
                                       postVia: widget.postVia,
                                     ));
                                 return;
@@ -325,7 +308,7 @@ class _CreateMessagePostScreenNewState
                                   }).toList();
                                 }
 
-                                Get.to(() => MessagePostPreviewScreen(
+                                Get.to(() => MessagePostPreviewScreenNew(
                                       imagePath: "",
                                     ));
                                 return;
