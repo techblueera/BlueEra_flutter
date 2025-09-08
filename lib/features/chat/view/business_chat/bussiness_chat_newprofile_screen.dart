@@ -1,11 +1,5 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -14,398 +8,251 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:readmore/readmore.dart';
 
-import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_enum.dart';
-import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
-
-class BusinessChatProfile extends StatefulWidget {
-  final String userId;
-  const BusinessChatProfile({super.key, required this.userId});
-
-  @override
-  State<BusinessChatProfile> createState() => BusinessChatProfileState();
-}
-
-class BusinessChatProfileState extends State<BusinessChatProfile>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final controller = Get.put(ViewBusinessDetailsController());
-  // final ScrollController _scrollController = ScrollController();
-  final List<String> tabs = [
-    'Overview',
-    'Product',
-    'Reviews',
-    'Posts',
-    //
-    // 'Our Branches'
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: tabs.length, vsync: this);
-    _tabController.addListener(() {
-      setState(() {}); // Ensure your VisitPersonalProfileTabs updates
-    });
-
-    controller.viewBusinessProfileById(widget.userId);
-    controller.getAllProductsApi({ApiKeys.limit: 0});
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  final List<Map<String, dynamic>> products = [
-    {
-      "imageUrl":
-          "https://slicecover.com/cdn/shop/files/14proSMCskyblue.png?v=1709805718&width=2000",
-      "title": "Apple iPhone 16",
-      "price": "₹61,499",
-      "originalPrice": "₹98,000",
-      "discount": "50% Off",
-      "shop": "Pervez Mobile Shop",
-      "rating": "4.8 ",
-      'reviews': "48 reviews"
-    },
-    {
-      "imageUrl":
-          "https://slicecover.com/cdn/shop/files/14proSMCskyblue.png?v=1709805718&width=2000",
-      "title": "Apple iPhone 16",
-      "price": "₹61,499",
-      "originalPrice": "₹98,000",
-      "discount": "50% Off",
-      "shop": "Pervez Mobile Shop",
-      "rating": "4.8 (48 reviews)",
-      'reviews': "48 reviews"
-    },
-    {
-      "imageUrl":
-          "https://slicecover.com/cdn/shop/files/14proSMCskyblue.png?v=1709805718&width=2000",
-      "title": "Apple iPhone 16",
-      "price": "₹61,499",
-      "originalPrice": "₹98,000",
-      "discount": "50% Off",
-      "shop": "Pervez Mobile Shop",
-      "rating": "4.8 ",
-      'reviews': "48 reviews"
-    },
-  ];
+class BussinessProfileNewscreen extends StatelessWidget {
+  const BussinessProfileNewscreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    print("sdns${widget.userId}");
-    // if(isOwnChannel){
-    //       response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-    //     }else {
-    //       response = await ChannelRepo().getAllChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
-    //     }
-    // BussinessProfileNewscreen
-
-    return Scaffold(
-      appBar: CommonBackAppBar(),
-      body: GetBuilder<ViewBusinessDetailsController>(
-        builder: (controller) {
-          if (controller.viewBusinessResponse.status == Status.LOADING) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          // if (controller.viewBusinessResponse.status == Status.ERROR) {
-          //   return  Center(child: CustomText("No business found"));
-          // }
-          final businessData = controller.visitedBusinessProfileDetails?.data;
-          print(businessData?.userId ?? "" + "=======================");
-          return DefaultTabController(
-            length: tabs.length,
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverToBoxAdapter(
-                  child: widget_profileHeader(businessData),
-                ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _CustomTabBarDelegate(
-                    VisitPersonalProfileTabs(
-                      onTab: (index) {
-                        if (index == 3) {
-                          Map<String, dynamic> data = {
-                            ApiKeys.businessId: widget.userId
-                          };
-                          controller.getParticularRatingApi(data);
-                        }
-                      },
-                      tabs: tabs,
-                      tabController: _tabController,
-                    ),
-                  ),
-                ),
-              ],
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Profile tab
-                  SingleChildScrollView(
-                    padding:
-                        const EdgeInsets.only(left: 12, right: 12, top: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        buildRatingSummary(
-                          rating: (businessData?.rating??0).toDouble(),
-                          totalReviews: 18,
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        BusinessLocationWidget(
-                          latitude:
-                              businessData?.businessLocation?.lat?.toDouble() ??
-                                  0.0,
-                          longitude:
-                              businessData?.businessLocation?.lon?.toDouble() ??
-                                  0.0,
-                          businessName: businessData?.businessName ?? "N/A",
-                          isTitleShow: true,
-                          locationText: businessData?.address??"",
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        buildHorizontalProductList(),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        buildReviewCard(),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        buildPostCard(),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        buildJobCard(),
-                        SizedBox(
-                          height: 100,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // product tab
-                  productTab(),
-                  reviewTab(),
-                  FeedScreen(
-                    key: const ValueKey('feedScreen_others_posts'),
-                    postFilterType: PostType.otherPosts,
-                    id: businessData?.userId,
-                  ),
-
-                  // Reviews tab
-                  // const Center(child: Text("No reviews yet")),
-                  //
-                  // // Our Branches tab
-                  // const Center(child: Text("No branches yet")),
-                ],
-              ),
-            ),
-          );
-        },
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size10),
+      child: Column(
+        children: [
+          widget_profileHeader(),
+          SizedBox(
+            height: SizeConfig.size12,
+          ),
+          buildCustomTabRow(
+            selectedIndex: 0,
+            onTabSelected: (p0) {},
+          ),
+          SizedBox(
+            height: SizeConfig.size8,
+          ),
+          buildRatingSummary(
+            rating: 3,
+            totalReviews: 18,
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          buildLocationContainer(
+            address:
+                "Form ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum.",
+            onSendLocation: () {
+              print("Send location tapped!");
+            },
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          buildHorizontalProductList(),
+          SizedBox(
+            height: 20,
+          ),
+          buildReviewCard(),
+          SizedBox(
+            height: 20,
+          ),
+          buildPostCard(),
+          SizedBox(
+            height: 20,
+          ),
+          buildJobCard(),
+          SizedBox(
+            height: 100,
+          ),
+        ],
       ),
     );
   }
 
-  widget_profileHeader(BusinessProfileDetails? businessData) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(SizeConfig.size16),
-        ),
-        elevation: SizeConfig.size4,
-        child: Padding(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: EdgeInsets.all(SizeConfig.size10),
-                    padding: EdgeInsets.all(SizeConfig.size3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
-                    child: CircleAvatar(
-                      radius: SizeConfig.size28,
-                      backgroundColor: AppColors.red,
-                      child: Image.asset("assets/images/brand_logo.png"),
-                    ),
+  widget_profileHeader() {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+      ),
+      elevation: SizeConfig.size4,
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: EdgeInsets.all(SizeConfig.size10),
+                  padding: EdgeInsets.all(SizeConfig.size3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomText(
-                                businessData?.userId ?? "",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                fontSize: SizeConfig.size18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(
-                              width: SizeConfig.size16,
-                            ),
-                            CustomBtn(
-                              onTap: () {},
-                              title: businessData?.is_following == true
-                                  ? "Unfollow"
-                                  : "Follow",
+                  child: CircleAvatar(
+                    radius: SizeConfig.size28,
+                    backgroundColor: AppColors.red,
+                    child: Image.asset("assets/images/brand_logo.png"),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomText(
+                              "McDonalds King Burger",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: SizeConfig.size18,
                               fontWeight: FontWeight.bold,
-                              height: SizeConfig.size30,
-                              bgColor: AppColors.skyBlueDF,
-                              width: SizeConfig.size60,
-                              radius: SizeConfig.size12,
                             ),
-                            SizedBox(
-                              width: SizeConfig.size4,
-                            ),
-                            Icon(Icons.more_vert)
-                          ],
-                        ),
-                        SizedBox(height: SizeConfig.size6),
-                        Row(
-                          children: [
-                            _buildTag("Restaurant"),
-                            SizedBox(width: SizeConfig.size6),
-                            _buildTag("Closed",
-                                borderColor: AppColors.red,
-                                textColor: AppColors.red),
-                            SizedBox(width: SizeConfig.size6),
-                            _buildTag("14.2 KM Far"),
-                          ],
-                        )
-                      ],
-                    ),
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size16,
+                          ),
+                          CustomBtn(
+                            onTap: () {},
+                            title: "Follow",
+                            fontWeight: FontWeight.bold,
+                            height: SizeConfig.size30,
+                            bgColor: AppColors.skyBlueDF,
+                            width: SizeConfig.size60,
+                            radius: SizeConfig.size12,
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size4,
+                          ),
+                          Icon(Icons.more_vert)
+                        ],
+                      ),
+                      SizedBox(height: SizeConfig.size6),
+                      Row(
+                        children: [
+                          _buildTag("Restaurant"),
+                          SizedBox(width: SizeConfig.size6),
+                          _buildTag("Closed",
+                              borderColor: AppColors.red,
+                              textColor: AppColors.red),
+                          SizedBox(width: SizeConfig.size6),
+                          _buildTag("14.2 KM Far"),
+                        ],
+                      )
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                CustomText(
+                  "View Channel",
+                  color: AppColors.skyBlueDF,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColors.skyBlueDF,
+                ),
+                SizedBox(
+                  width: SizeConfig.size12,
+                ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on_outlined,
+                          size: SizeConfig.size16, color: AppColors.black),
+                      SizedBox(width: SizeConfig.size1),
+                      Expanded(
+                        child: CustomText(
+                          "Gomti Nagar, Lucknow",
+                          overflow: TextOverflow.ellipsis,
+                          color: AppColors.black,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size6),
+            ReadMoreText(
+              "Korem ipsum dolor sit amet, consectetur adipiscing elit. Nunc "
+              "vulputate libero et velit interdum, ac Korem ipsum dolor sit amet, consectetur adipiscing elit. Nunc Korem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ",
+              trimMode: TrimMode.Line,
+              trimLines: 2,
+              colorClickableText: AppColors.primaryColor,
+              trimCollapsedText: ' Show more',
+              trimExpandedText: ' Show less',
+              moreStyle: AppFontStyle.styleW500(
+                  AppColors.primaryColor, SizeConfig.size14),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            Container(
+              padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size12, horizontal: SizeConfig.size24),
+              decoration: BoxDecoration(
+                color: AppColors.lightBlue,
+                borderRadius: BorderRadius.circular(SizeConfig.size12),
               ),
-              Row(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  CustomText(
-                    "View Channel",
-                    color: AppColors.skyBlueDF,
-                    fontWeight: FontWeight.w600,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColors.skyBlueDF,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfo("Rating", "★ 4.8"),
+                      SizedBox(
+                        height: SizeConfig.size6,
+                      ),
+                      _buildInfo("Views", "75"),
+                    ],
                   ),
                   SizedBox(
-                    width: SizeConfig.size12,
-                  ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on_outlined,
-                            size: SizeConfig.size16, color: AppColors.black),
-                        SizedBox(width: SizeConfig.size1),
-                        Expanded(
-                          child: CustomText(
-                            businessData?.address ?? "",
-                            overflow: TextOverflow.ellipsis,
-                            color: AppColors.black,
-                          ),
-                        )
-                      ],
+                    height: SizeConfig.size40,
+                    child: VerticalDivider(
+                      color: AppColors.coloGreyText,
+                      width: 2,
+                      thickness: 1.2,
                     ),
                   ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfo("Inquiries", "25"),
+                      SizedBox(
+                        height: SizeConfig.size6,
+                      ),
+                      _buildInfo("Followers", "50k"),
+                    ],
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size40,
+                    child: VerticalDivider(
+                      color: AppColors.coloGreyText,
+                      width: 2,
+                      thickness: 1.2,
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CustomText(
+                        "Joined :",
+                        fontSize: SizeConfig.size14,
+                        color: AppColors.grayText,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      SizedBox(height: SizeConfig.size6),
+                      CustomText(
+                        "1/1/2024",
+                        fontSize: SizeConfig.size14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ],
+                  )
                 ],
               ),
-              SizedBox(height: SizeConfig.size6),
-              ReadMoreText(
-                businessData?.businessDescription ?? "",
-                trimMode: TrimMode.Line,
-                trimLines: 2,
-                colorClickableText: AppColors.primaryColor,
-                trimCollapsedText: ' Show more',
-                trimExpandedText: ' Show less',
-                moreStyle: AppFontStyle.styleW500(
-                    AppColors.primaryColor, SizeConfig.size14),
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Container(
-                padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size12, horizontal: SizeConfig.size24),
-                decoration: BoxDecoration(
-                  color: AppColors.lightBlue,
-                  borderRadius: BorderRadius.circular(SizeConfig.size12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfo("Rating", "★ ${businessData?.rating ?? 0}"),
-                        SizedBox(
-                          height: SizeConfig.size6,
-                        ),
-                        _buildInfo("Views", "75"),
-                      ],
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size40,
-                      child: VerticalDivider(
-                        color: AppColors.coloGreyText,
-                        width: 2,
-                        thickness: 1.2,
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfo("Inquiries", "25"),
-                        SizedBox(
-                          height: SizeConfig.size6,
-                        ),
-                        _buildInfo("Followers", "50k"),
-                      ],
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size40,
-                      child: VerticalDivider(
-                        color: AppColors.coloGreyText,
-                        width: 2,
-                        thickness: 1.2,
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomText(
-                          "Joined :",
-                          fontSize: SizeConfig.size14,
-                          color: AppColors.grayText,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        SizedBox(height: SizeConfig.size6),
-                        CustomText(
-                            businessData?.dateOfIncorporation==null?"": "${businessData?.dateOfIncorporation?.date??""}/${getMonthName(businessData?.dateOfIncorporation?.month ?? 1)}/${businessData?.dateOfIncorporation?.year??""}",
-                          fontSize: SizeConfig.size14,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -448,6 +295,44 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
           fontSize: SizeConfig.size12,
           color: textColor,
         ));
+  }
+
+  Widget buildCustomTabRow({
+    required int selectedIndex,
+    required Function(int) onTabSelected,
+  }) {
+    final tabs = ["Overview", "Product", "Reviews", "Post", "Jobs"];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(tabs.length, (index) {
+          final isSelected = selectedIndex == index;
+          return GestureDetector(
+            onTap: () => onTabSelected(index),
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size6, vertical: SizeConfig.size8),
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size16, vertical: SizeConfig.size10),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.skyBlueDF : AppColors.white,
+                borderRadius: BorderRadius.circular(SizeConfig.size12),
+                border: Border.all(
+                  color: isSelected ? AppColors.skyBlueDF : AppColors.black,
+                  width: 1,
+                ),
+              ),
+              child: CustomText(
+                tabs[index],
+                color: isSelected ? AppColors.white : AppColors.coloGreyText,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
   }
 
   Widget buildRatingSummary({
@@ -527,6 +412,78 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
                 return Icon(Icons.star_border,
                     color: AppColors.coloGreyText, size: SizeConfig.size32);
               }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildLocationContainer({
+    required String address,
+    required VoidCallback onSendLocation,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+      ),
+      elevation: SizeConfig.size4,
+      color: AppColors.white,
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on_outlined,
+                    color: AppColors.black1A),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                    child: CustomText(
+                  address,
+                  fontSize: SizeConfig.size14,
+                  color: AppColors.black1A,
+                )),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size10),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(SizeConfig.size12),
+                  child: Image.asset(
+                    "assets/images/map_image.jpeg",
+                    height: SizeConfig.size180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: GestureDetector(
+                    onTap: onSendLocation,
+                    child: Container(
+                      padding: EdgeInsets.all(SizeConfig.size12),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.blueDF, width: 2),
+                      ),
+                      child: Transform.rotate(
+                        angle: -0.6,
+                        child: const Icon(
+                          Icons.send_outlined,
+                          color: AppColors.blueDF,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1129,243 +1086,4 @@ class BusinessChatProfileState extends State<BusinessChatProfile>
       ),
     );
   }
-
-  GridView productTab() {
-    return GridView.builder(
-      itemCount: products.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 2 items per row
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.65, // controls height of card
-      ),
-      itemBuilder: (context, index) {
-        final product = products[index];
-        return Container(
-          padding: EdgeInsets.all(10),
-          margin: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 4,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  product["imageUrl"],
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product["title"],
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      product["price"],
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black),
-                    ),
-                    Text(
-                      "${product["discount"]} ${product["originalPrice"]}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.store, size: 14, color: Colors.black54),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            product["shop"],
-                            style: TextStyle(fontSize: 12),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.orange, size: 14),
-                        SizedBox(width: 4),
-                        Text(
-                          product["rating"],
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Card reviewTab() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Row
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage(
-                    "https://randomuser.me/api/portraits/women/44.jpg",
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Courtney Henry",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    Row(
-                      children: const [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        Icon(Icons.star_half, color: Colors.amber, size: 16),
-                        SizedBox(width: 6),
-                        Text("2 mins ago",
-                            style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Review Text
-            const Text(
-              "Yorem ipsum dolor sit amet, consectetur adipiscing elit. "
-              "Nunc vulputate libero et velit interdum, ac aliquet odio mattis. "
-              "Class aptent taciti sociosqu ad litora torquent.",
-              style: TextStyle(fontSize: 14, color: Colors.black87),
-            ),
-            const SizedBox(height: 12),
-
-            // Images
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      "https://www.insidehook.com/wp-content/uploads/2021/07/cokezero-h.jpg?fit=1200%2C800",
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Actions Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.thumb_up, color: Colors.blue),
-                    SizedBox(width: 5),
-                    Text("5k+"),
-                  ],
-                ),
-                Row(
-                  children: const [
-                    Icon(Icons.comment, color: Colors.grey),
-                    SizedBox(width: 5),
-                    Text("310"),
-                  ],
-                ),
-                Row(
-                  children: const [
-                    Icon(Icons.share, color: Colors.grey),
-                    SizedBox(width: 5),
-                    Text("50"),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
-  final VisitPersonalProfileTabs tabBar;
-
-  _CustomTabBarDelegate(this.tabBar);
-
-  @override
-  double get minExtent => 50;
-
-  @override
-  double get maxExtent => 50;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 12),
-      padding: EdgeInsets.only(top: 8),
-      color: AppColors.appBackgroundColor,
-      child: tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_CustomTabBarDelegate oldDelegate) => true;
 }

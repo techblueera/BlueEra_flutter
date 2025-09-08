@@ -11,12 +11,14 @@ class BusinessLocationWidget extends StatefulWidget {
   final double longitude;
   final String businessName;
   final bool isTitleShow;
+  final String? locationText;
 
   const BusinessLocationWidget(
       {super.key,
       required this.latitude,
       required this.longitude,
       required this.businessName,
+        this.locationText,
       this.isTitleShow = true});
 
   @override
@@ -58,19 +60,31 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.isTitleShow)
-            CustomText(
-              "Business Location",
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+      elevation: SizeConfig.size4,
+      color: AppColors.white,
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on_outlined,
+                    color: AppColors.black1A),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                    child: CustomText(
+                      widget.locationText,
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.black1A,
+                    )),
+              ],
             ),
           SizedBox(height: 15),
           ClipRRect(
@@ -82,7 +96,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
               child: Stack(
                 children: [
                   MapplsMap(
-                    onStyleLoadedCallback: _onStyleLoaded,
                     onMapCreated: (controller) => _onMapCreated(controller),
                     initialCameraPosition: CameraPosition(
                       target: LatLng(widget.latitude, widget.longitude),
@@ -104,31 +117,39 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
     final Uri googleMapUrl = Uri.parse(
         "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
 
-    if (await canLaunchUrl(googleMapUrl)) {
-      await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
-    } else {
-      throw "Could not open Google Maps";
-    }
-                      },
-                      child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(5)),
-                          height: SizeConfig.size40,
-                          width: SizeConfig.size40,
-                          child: Icon(
-                            Icons.directions,
-                            color: AppColors.white,
-                          )),
+                      if (await canLaunchUrl(googleMapUrl)) {
+                      await launchUrl(googleMapUrl,
+                      mode: LaunchMode.externalApplication);
+                      } else {
+                      throw "Could not open Google Maps";
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(SizeConfig.size12),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.blueDF, width: 2),
+                      ),
+                      child: Transform.rotate(
+                        angle: -0.6,
+                        child: const Icon(
+                          Icons.send_outlined,
+                          color: AppColors.blueDF,
+                          size: 28,
+                        ),
+                      ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            ))
+
+      ],
+        ),
       ),
     );
+
   }
 }

@@ -49,7 +49,7 @@ class VisitPersonalProfileTabs extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: selected
-                        ? const Color.fromRGBO(217, 235, 255, 1)
+                        ? AppColors.skyBlueDF
                         : Colors.white,
                     borderRadius: BorderRadius.circular(10),
                     border: selected
@@ -63,7 +63,7 @@ class VisitPersonalProfileTabs extends StatelessWidget {
                       tabs[index],
                       style: TextStyle(
                         color: selected
-                            ? Colors.black
+                            ? Colors.white
                             : const Color.fromRGBO(110, 109, 109, 1),
                         fontWeight: FontWeight.w500,
                         fontSize: 14,
