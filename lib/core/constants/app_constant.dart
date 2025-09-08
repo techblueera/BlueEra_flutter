@@ -31,7 +31,6 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 
 class AppConstants {
-  static const String appName = 'BlueEra Nepal';
   static const String iosAppId = "";
   static const String androidPackageName = "ai.bluecs.np";
   static const String androidPlayStoreUrl =

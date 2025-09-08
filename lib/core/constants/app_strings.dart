@@ -1,7 +1,7 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 
 class AppStrings {
-  static const String appName = "BlueEra";
+  static const String appName = "BlueEra Nepal";
   static String mobileIsRequired = "Please enter 10 digits mobile number";
   static String landlineIsRequired = "Please enter 6-8 digits landline number";
   static String required = '*Required';

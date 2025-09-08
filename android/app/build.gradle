@@ -53,8 +53,8 @@ android {
         applicationId "ai.bluecs.np"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 66
-        versionName "13.40.11"
+        versionCode 1
+        versionName "1.0.0"
     }
     signingConfigs {
         release {
