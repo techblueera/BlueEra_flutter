@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -66,6 +68,7 @@ class _PostActionsBarState extends State<PostActionsBar> {
       _totalComment = widget.totalComment ?? 0;
       _isLiked = widget.isLiked;
       _isPostAlreadySaved = widget.isPostAlreadySaved ?? false;
+      log('_isPostAlreadySaved-- $_isPostAlreadySaved');
     }
   }
 

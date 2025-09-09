@@ -7,10 +7,10 @@ import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/feed/hive_model/video_hive_model.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
@@ -29,7 +29,7 @@ import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'features/common/feed/hive_model/post_hive_model.dart';
+ 
 import 'core/services/home_cache_service.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 
@@ -62,24 +62,8 @@ Future<void> main() async {
   /// Hive Database
   await Hive.initFlutter();
 
-  /// Hive Tables for posts
-  Hive.registerAdapter(PostHiveModelAdapter());
-  Hive.registerAdapter(PollAdapter());
-  Hive.registerAdapter(PollOptionAdapter());
-  Hive.registerAdapter(UserAdapter());
-  await Hive.openBox<PostHiveModel>('savedPosts');
-
-  /// Hive Tables for videos/shorts
-  Hive.registerAdapter(VideoFeedItemHiveAdapter());
-  Hive.registerAdapter(VideoDataHiveAdapter());
-  Hive.registerAdapter(AuthorHiveAdapter());
-  Hive.registerAdapter(ChannelHiveAdapter());
-  Hive.registerAdapter(CategoryHiveAdapter());
-  Hive.registerAdapter(TaggedUserHiveAdapter());
-  Hive.registerAdapter(LocationHiveAdapter());
-  Hive.registerAdapter(SongHiveAdapter());
-  Hive.registerAdapter(StatsHiveAdapter());
-  await Hive.openBox<VideoFeedItemHive>('savedVideos');
+  /// Initialize Home Feed Cache Service
+  await HiveServices.init();
 
   /// Initialize Home Cache Service
   await HomeCacheService.init();
@@ -94,12 +78,10 @@ Future<void> main() async {
 }
 
 Future<void> initializeMappls() async {
-  MapplsAccountManager.setMapSDKKey('7bcc45cef8c687a050402dbd88bdde16');
-  MapplsAccountManager.setRestAPIKey('7bcc45cef8c687a050402dbd88bdde16');
-  MapplsAccountManager.setAtlasClientId(
-      '96dHZVzsAusiRU8_v7__Lme21MTOvTKFvJFyMCpUZQ-DjqUdfP_NqyXMwSnsdCRrb1ftHTtt-plKdAJTzjnhUw==');
-  MapplsAccountManager.setAtlasClientSecret(
-      'lrFxI-iSEg82Qjz1J8dUxpCA2o1ePCYyYAZjePa8-Us7fJAE_HGPruKUEikt FMnPEmMo_PRhKKQi7owz4QDM_5JFVXBbI1mkl');
+  MapplsAccountManager.setMapSDKKey(AppConstants.restApiKey);
+  MapplsAccountManager.setRestAPIKey(AppConstants.restApiKey);
+  MapplsAccountManager.setAtlasClientId(AppConstants.atlasClientId);
+  MapplsAccountManager.setAtlasClientSecret(AppConstants.atlasClientSecret);
 }
 
 late List<CameraDescription> cameras;

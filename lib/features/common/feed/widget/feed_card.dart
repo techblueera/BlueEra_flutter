@@ -231,7 +231,8 @@ class _FeedCardState extends State<FeedCard> {
     Get.find<FeedController>().savePostToLocalDB(
         postId: _post?.id ?? '0',
         type: widget.postFilteredType,
-        sortBy: widget.sortBy);
+        sortBy: widget.sortBy
+    );
   }
 
   Future<void> _onShareButtonPressed() async {

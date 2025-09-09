@@ -58,8 +58,6 @@ class _ReportDialogState extends State<ReportDialog> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> reportCase = [];
-
     return SingleChildScrollView(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -77,11 +75,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    widget.reportType == 'POST'
-                        ? AppLocalizations.of(context)!.reportPost
-                        : widget.reportType == 'COMMENT'
-                        ? AppLocalizations.of(context)!.reportComment
-                        : AppLocalizations.of(context)!.reportUser,
+                    AppLocalizations.of(context)!.reportPost,
                     fontSize: SizeConfig.screenWidth * .05,
                     fontWeight: FontWeight.bold,
                   ),
@@ -244,11 +238,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 valueListenable: isValidate,
                 builder: (context, value, child) {
                   return CustomBtn(
-                    title: widget.reportType == 'POST'
-                        ? AppLocalizations.of(context)!.reportPost
-                        : widget.reportType == 'COMMENT'
-                        ? AppLocalizations.of(context)!.reportComment
-                        : AppLocalizations.of(context)!.reportAndBlockUser,
+                    title: AppLocalizations.of(context)!.reportPost,
                     width: SizeConfig.screenWidth,
                     isValidate: value,
                     onTap: () {

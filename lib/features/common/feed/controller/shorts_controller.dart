@@ -12,7 +12,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/feed/hive_model/video_hive_model.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -730,8 +729,7 @@ class ShortsController extends GetxController{
       // commonSnackBar(message: 'Short removed.');
       return false;
     }else{
-      final hiveModel = VideoFeedItemHive.fromJson(videoFeedItem.toJson());
-      await HiveServices().saveVideo(hiveModel);
+      await HiveServices().saveVideoJson(videoFeedItem);
       // commonSnackBar(message: 'Short saved.');
       return true;
     }
@@ -802,11 +800,9 @@ class ShortsController extends GetxController{
   /// Get All Saved Shorts
   void getAllSavedShorts() {
     savedShorts.clear();
-    List<VideoFeedItemHive> savedVideoFeed = HiveServices().getAllSavedVideos();
-    // Filter by type (e.g. "shorts", "reel", etc.)
+    List<ShortFeedItem> savedVideoFeed = HiveServices().getAllSavedVideos();
     final filteredList = savedVideoFeed
         .where((e) => e.video?.type == 'short') // <-- replace 'short' with your desired type
-        .map((e) => e.toVideoFeedItem())
         .toList();
 
     savedShorts.addAll(filteredList);

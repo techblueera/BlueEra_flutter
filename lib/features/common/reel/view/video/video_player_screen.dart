@@ -436,11 +436,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                             }
                             if (videoController.isChannelFollow.isTrue) {
                               videoController.unFollowChannel(
-                                  channelId: videoController.videoFeedItem?.channel?.id ?? ''
+                                  channelId: videoController.videoFeedItem?.channel?.id ?? '',
+                                  videoType: widget.videoType
                               );
                             } else {
                               videoController.followChannel(
-                                  channelId: videoController.videoFeedItem?.channel?.id ?? ''
+                                  channelId: videoController.videoFeedItem?.channel?.id ?? '',
+                                  videoType: widget.videoType
                               );
                             }
                           },
@@ -477,6 +479,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       widget.videoItem.interactions?.isLiked = true;
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) + 1;
     }
+
+    // Sync controller state and propagate to lists
+    final isLiked = widget.videoItem.interactions?.isLiked ?? false;
+    final likes = widget.videoItem.video?.stats?.likes ?? 0;
+    videoController.isLiked.value = isLiked;
+    videoController.likes.value = likes;
+    Get.find<VideoController>().updateVideoLikeCount(
+      videoType: widget.videoType,
+      videoId: widget.videoItem.video?.id ?? '0',
+      isLiked: isLiked,
+      newLikeCount: likes,
+    );
   }
 
   void _onCommentPressed() {
@@ -491,6 +505,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           onNewCommentCount: (int newCommentCount) {
             videoController.comments.value = newCommentCount;
             widget.videoItem.video?.stats?.comments = videoController.comments.value;
+            // propagate to controller lists
+            Get.find<VideoController>().updateVideoCommentCount(
+              videoType: widget.videoType,
+              videoId: widget.videoItem.video?.id ?? '0',
+              newCommentCount: newCommentCount,
+            );
           }
       ),
     );

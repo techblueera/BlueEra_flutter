@@ -12,7 +12,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/feed/hive_model/video_hive_model.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -235,20 +234,6 @@ class VideoController extends GetxController{
         isLiked.value = !(isLiked.value);
         likes.value = likes.value + 1;
 
-        // final currentVideo = videoItem.value;
-        // final currentStats = currentVideo.videoData?.videoData?.stats;
-        //
-        // videoItem.value = currentVideo.copyWith(
-        //   videoData: currentVideo.videoData?.copyWith(
-        //     videoData: currentVideo.videoData?.videoData?.copyWith(
-        //       stats: currentStats?.copyWith(
-        //         isLiked: !(currentStats.isLiked??false),
-        //         likes: currentStats.likes??0 + 1,
-        //       ),
-        //     ),
-        //   ),
-        // );
-
       } else {
         videoLikeResponse =  ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -282,9 +267,12 @@ class VideoController extends GetxController{
   }
 
   ///FOLLOW CHANNEL...
-  Future<void> followChannel({required String channelId}) async {
-    try {
+  Future<void> followChannel({
+    required String channelId,
+    required VideoType videoType
+  }) async {
 
+    try {
       final response = await ChannelRepo().followChannel(channelId: channelId);
 
       if (response.isSuccess) {
@@ -293,8 +281,15 @@ class VideoController extends GetxController{
         // Update the _videoItem with updated channel
         videoFeedItem = videoFeedItem?.copyWith(
           channel: videoFeedItem?.channel?.copyWith(
-            isFollowing: !isChannelFollow.value,
+            isFollowing: isChannelFollow.value,
           ),
+        );
+
+        // Propagate to lists
+        updateChannelFollowState(
+          videoType: videoType,
+          channelId: channelId,
+          isFollowing: isChannelFollow.value,
         );
       } else {
         followChannelResponse =  ApiResponse.error('error');
@@ -308,7 +303,10 @@ class VideoController extends GetxController{
   }
 
   ///UNFOLLOW CHANNEL...
-  Future<void> unFollowChannel({required String channelId}) async {
+  Future<void> unFollowChannel({
+    required String channelId,
+    required VideoType videoType
+  }) async {
     try {
 
       final response = await ChannelRepo().unFollowChannel(channelId: channelId);
@@ -320,8 +318,15 @@ class VideoController extends GetxController{
         // Update the _videoItem with updated channel
         videoFeedItem = videoFeedItem?.copyWith(
           channel: videoFeedItem?.channel?.copyWith(
-            isFollowing: !isChannelFollow.value,
+            isFollowing: isChannelFollow.value,
           ),
+        );
+
+        // Propagate to lists
+        updateChannelFollowState(
+          videoType: videoType,
+          channelId: channelId,
+          isFollowing: isChannelFollow.value,
         );
       } else {
         unFollowChannelResponse =  ApiResponse.error('error');
@@ -598,6 +603,78 @@ class VideoController extends GetxController{
     }
   }
 
+  /// Update like count for a specific video in a list
+  void updateVideoLikeCount({
+    required VideoType videoType,
+    required String videoId,
+    required bool isLiked,
+    required int newLikeCount,
+  }) {
+    final list = getListByType(videoType: videoType);
+    _updateVideoInList(list, videoId, isLiked: isLiked, newLikeCount: newLikeCount);
+
+    // Also update saved list if present
+    _updateVideoInList(savedVideos, videoId, isLiked: isLiked, newLikeCount: newLikeCount);
+  }
+
+  /// Update comment count for a specific video in a list
+  void updateVideoCommentCount({
+    required VideoType videoType,
+    required String videoId,
+    required int newCommentCount,
+  }) {
+    final list = getListByType(videoType: videoType);
+    _updateVideoInList(list, videoId, newCommentCount: newCommentCount);
+
+  }
+
+  /// Helper to update a video's fields in a given list and refresh
+  void _updateVideoInList(
+    RxList<ShortFeedItem> list,
+    String videoId, {
+    bool? isLiked,
+    int? newLikeCount,
+    int? newCommentCount,
+  }) {
+    final index = list.indexWhere((v) => v.video?.id == videoId);
+    if (index == -1) return;
+
+    final item = list[index];
+
+    if (isLiked != null) {
+      // item.interactions ??= Interactions();
+      item.interactions!.isLiked = isLiked;
+    }
+
+    if (item.video?.stats != null) {
+      if (newLikeCount != null) {
+        item.video!.stats!.likes = newLikeCount;
+      }
+      if (newCommentCount != null) {
+        item.video!.stats!.comments = newCommentCount;
+      }
+    }
+
+    list.refresh();
+  }
+
+  /// Propagate channel follow state across all lists containing videos from that channel
+  void updateChannelFollowState({
+    required VideoType videoType,
+    required String channelId,
+    required bool isFollowing,
+  }) {
+    final list = getListByType(videoType: videoType);
+
+    for (int i = 0; i < list.length; i++) {
+        final v = list[i];
+        if (v.channel?.id == channelId) {
+           v.channel?.copyWith(isFollowing: isFollowing);
+        }
+      }
+      list.refresh();
+  }
+
   /// Delete Video
   Future<void> videoDelete({required VideoType video, required String videoId}) async {
     final list = getListByType(videoType: video);
@@ -785,33 +862,27 @@ class VideoController extends GetxController{
     }
   }
 
-  /// Save Video To LOCAL DB
+  /// Save Video To LOCAL DB (JSON-based)
   Future<bool> saveVideosToLocalDB({required ShortFeedItem videoFeedItem}) async {
     bool isSaved = HiveServices().isVideoSaved(videoFeedItem.videoId??'');
     if(isSaved){
       await HiveServices().deleteVideoById(videoFeedItem.videoId??'');
-      // commonSnackBar(message: 'Video removed.');
       return false;
     }else{
-      final hiveModel = VideoFeedItemHive.fromJson(videoFeedItem.toJson());
-      await HiveServices().saveVideo(hiveModel);
-      // commonSnackBar(message: 'Video saved.');
+      await HiveServices().saveVideoJson(videoFeedItem);
       return true;
     }
   }
 
   /// Get All Saved Videos
   void getAllSavedVideos() {
-    // isSavedVideosLoading.value = true;
     savedVideos.clear();
-    List<VideoFeedItemHive> savedVideoFeed = HiveServices().getAllSavedVideos();
+    List<ShortFeedItem> savedVideoFeed = HiveServices().getAllSavedVideos();
     final filteredList = savedVideoFeed
         .where((e) => e.video?.type == 'long')
-        .map((e) => e.toVideoFeedItem())
         .toList();
 
     savedVideos.addAll(filteredList);
-    // isSavedVideosLoading.value = false;
   }
 
   /// Get Video By ID for deep link handling

@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/feed/hive_model/post_hive_model.dart';
+ 
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -561,7 +561,7 @@ class FeedController extends GetxController{
 
     try {
       final response = await AuthRepo().report(params: params);
-
+      Get.back();
       if (response.isSuccess) {
         reportPostResponse = ApiResponse.complete(response);
         if (index != -1) list.removeAt(index);
@@ -580,16 +580,12 @@ class FeedController extends GetxController{
                 ),
               ),
             ));
-
-        // final block = BlockUserResponse.fromJson(response.response?.data);
-        // commonSnackBar(message: block.message, isFromHomeScreen: true);
       } else {
         reportPostResponse = ApiResponse.error('error');
       }
     } catch (_) {
-      reportPostResponse = ApiResponse.error('error');
-    }finally{
       Get.back();
+      reportPostResponse = ApiResponse.error('error');
     }
   }
 
@@ -654,22 +650,21 @@ class FeedController extends GetxController{
       }else{
         await HiveServices().deletePostById(postId);
         list.removeAt(index);
-        list[index] = current.copyWith(isPostSavedLocal: !isSaved);
+        list[index] = current.copyWith(isPostSavedLocal: false);
       }
      // commonSnackBar(message: 'Post removed.');
     } else {
-      final hiveModel = PostHiveModel.fromJson(current.toJson());
-      await HiveServices().savePost(hiveModel);
-      list[index] = current.copyWith(isPostSavedLocal: isSaved);
-     // commonSnackBar(message: 'Post saved.');
+      await HiveServices().savePostJson(current);
+      list[index] = current.copyWith(isPostSavedLocal: true);
+      // commonSnackBar(message: 'Post saved.');
     }
   }
 
   /// Get All Saved Posts
   void getAllSavedPost() {
     savedPosts.clear();
-    List<PostHiveModel> savedPostModels = HiveServices().getAllSavedPosts();
-    savedPosts.addAll(savedPostModels.map((e) => e.toPost()));
+    List<Post> savedPostModels = HiveServices().getAllSavedPosts();
+    savedPosts.addAll(savedPostModels);
   }
 
   /// LocalSearch
