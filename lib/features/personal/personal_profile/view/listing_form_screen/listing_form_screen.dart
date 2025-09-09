@@ -1,12 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_switch_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/date_picker.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/step4_section.dart'; 
+import 'package:BlueEra/widgets/common_back_app_bar.dart'; 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -70,11 +64,8 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: Obx(() => CommonBackAppBar(
-            title: controller.currentStep.value == 1 
-                ? "Product Details"
-                : controller.currentStep.value == 2
-                    ? "Add Variant"
-                    : "Pricing and warranty",
+            title:  _getTitle(controller.currentStep.value),
+
             onBackTap: () {
               if (controller.currentStep.value > 1) {
                 controller.onBack();
@@ -108,14 +99,19 @@ rightTextButtonColor: AppColors.black,
                   child: Form(
                     key: controller.formKey,
                     child: Obx(() {
-                          final step = controller.currentStep.value;
-                          if (step == 1) {
-                            return Step1Section(controller: controller);
-                          } else if (step == 2) {
-                            return Step2Section(controller: controller);
-                          } else {
-                            return Step3Section(controller: controller);
-                          }
+                          switch (controller.currentStep.value) {
+  case 1:
+    return Step1Section(controller: controller);
+  case 2:
+    return Step2Section(controller: controller);
+  case 3:
+    return Step3Section(controller: controller);
+  case 4:
+    return Step4Section(controller: controller);
+  default:
+    return const SizedBox.shrink();
+}
+
                         }),
                   ),
                 ),
@@ -126,5 +122,21 @@ rightTextButtonColor: AppColors.black,
       ),
     );
   }
+  
+  String _getTitle(int step) {
+  switch (step) {
+    case 1:
+      return "Product Details";
+    case 2:
+      return "Product Media";
+    case 3:
+      return "Add Variant";
+    case 4:
+      return "Pricing and Warranty";
+    default:
+      return "Listing Form";
+  }
+}
+
  
 }

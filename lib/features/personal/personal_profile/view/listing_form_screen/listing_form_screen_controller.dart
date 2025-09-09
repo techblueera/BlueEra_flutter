@@ -96,7 +96,7 @@ class ManualListingScreenController extends GetxController {
 
   // Wizard step management (1..3)
   final RxInt currentStep = 1.obs; // TEMP: start at Step 2 (Media) to update uploads faster
-  static const int totalSteps = 3;
+  static const int totalSteps = 4;
 
   // Dynamic product features (details-only fields; title generated as "Feature n")
   final RxList<TextEditingController> featureControllers = <TextEditingController>[
@@ -132,6 +132,9 @@ class ManualListingScreenController extends GetxController {
 
   // Multiple selected colors
   final RxList<SelectedColorInfo> selectedColors = <SelectedColorInfo>[].obs;
+
+  // Tags list to maintain added tags
+  final RxList<String> addedTags = <String>[].obs;
 
   @override
   void onInit() {
@@ -220,14 +223,33 @@ class ManualListingScreenController extends GetxController {
   // Add Tag
   void addTag() {
     if (tagsController.text.isNotEmpty) {
-      Get.snackbar(
-        'Tag Added',
-        'Tag "${tagsController.text}" added successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      final tagText = tagsController.text.trim();
+      // Check if tag already exists to avoid duplicates
+      if (!addedTags.contains(tagText)) {
+        addedTags.add(tagText);
+        // Get.snackbar(
+        //   'Tag Added',
+        //   'Tag "$tagText" added successfully',
+        //   snackPosition: SnackPosition.BOTTOM,
+        //   backgroundColor: Colors.green,
+        //   colorText: Colors.white,
+        // );
+      } else {
+        Get.snackbar(
+          'Duplicate Tag',
+          'Tag "$tagText" already exists',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      }
       tagsController.clear();
+    }
+  }
+
+  void removeTag(int index) {
+    if (index >= 0 && index < addedTags.length) {
+      addedTags.removeAt(index);
     }
   }
 
@@ -359,12 +381,13 @@ class ManualListingScreenController extends GetxController {
 
   bool _validateStep2() { return true; }
   bool _validateStep3() { return true; }
-
+  bool _validateStep4() { return true; }
   bool validateCurrentStep() {
     switch (currentStep.value) {
       case 1: return _validateStep1();
       case 2: return _validateStep2();
       case 3: return _validateStep3();
+      case 4: return _validateStep4();
       default: return false;
     }
   }
@@ -381,7 +404,7 @@ class ManualListingScreenController extends GetxController {
   void onBack() { if (currentStep.value > 1) currentStep.value -= 1; }
 
   Future<void> submitFinal() async {
-    if (!_validateStep1() || !_validateStep2() || !_validateStep3()) return;
+    if (!_validateStep1() || !_validateStep2() || !_validateStep3() || !_validateStep4()) return;
     isLoading.value = true;
     try {
       // Resolve final category id: prefer deepest selected level
@@ -405,7 +428,7 @@ class ManualListingScreenController extends GetxController {
         'expiry_time[Date]': selectedDay.value == 0 ? null : selectedDay.value,
         'expiry_time[month]': selectedMonth.value == 0 ? null : selectedMonth.value,
         'expiry_time[year]': selectedYear.value == 0 ? null : selectedYear.value,
-        'tags': tagsController.text.trim(),
+        'tags': addedTags.join(', '),
 
         // Step 2
         'media': <dio.MultipartFile>[],

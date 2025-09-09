@@ -37,6 +37,8 @@ class AddProductScreenController extends GetxController {
   final RxList<ProductItem> filteredProducts = <ProductItem>[].obs;
   final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
 
+  final RxBool showSelected = false.obs;
+
   final int maxSelectionLimit = 10;
 
   @override
@@ -52,6 +54,9 @@ class AddProductScreenController extends GetxController {
     super.onClose();
   }
 
+void toggleShowSelected() {
+  showSelected.value = !showSelected.value;
+}
   void _initializeProducts() {
     // Initialize with sample products
     allProducts.value = [
@@ -239,5 +244,9 @@ class AddProductScreenController extends GetxController {
 
   void dismissErrorBanner() {
     showErrorBanner.value = false;
+  }
+
+  void clearSelectedProducts() {
+    selectedProducts.value = [];
   }
 } 

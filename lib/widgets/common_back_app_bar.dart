@@ -88,7 +88,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.rightTextButtonColor,
     this.onRightTextButtonTap,
     this.isShowCursor,
-    this.currentCity, this.isGuestLogout,
+    this.currentCity, this.isGuestLogout,this.extraActions,
   });
 
   // final AppBar? appBar;
@@ -149,6 +149,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? rightTextButtonColor;
   final OnTab? onRightTextButtonTap;
   final String? currentCity;
+  final List<Widget>? extraActions;
 
   @override
   Widget build(BuildContext context) {
@@ -654,6 +655,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+          if (extraActions != null) ...extraActions!,
       ],
     );
   }

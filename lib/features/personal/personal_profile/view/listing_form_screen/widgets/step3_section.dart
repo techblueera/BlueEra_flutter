@@ -1,16 +1,16 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
- 
+import 'package:flex_color_picker/flex_color_picker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 
 class Step3Section extends StatelessWidget {
   final ManualListingScreenController controller;
@@ -18,403 +18,413 @@ class Step3Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: SizeConfig.size16),
-        CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product Name
-              // CommonTextField(
-              //   textEditController: controller.productNameController,
-              //   hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
-              //   title: "Product Name",
-              //   validator: controller.validateProductName,
-              //   showLabel: true,
-              // ),
-              // SizedBox(height: SizeConfig.size16),
-              // CommonTextField(
-              //   textEditController: controller.productNameController,
-              //   hintText: 'E.g. TSH-RED-s-0001',
-              //   title: "Product SKU Number (Optional)",
-              //   validator: controller.validateProductName,
-              //   showLabel: true,
-              // ),
-              // SizedBox(height: SizeConfig.size16),
-              // CommonTextField(
-              //   textEditController: controller.productNameController,
-              //   hintText: 'E.g. 1554367',
-              //   title: "Product Id Number",
-              //   validator: controller.validateProductName,
-              //   showLabel: true,
-              // ),
-              //
-              // // Category + Subcategory pickers (single Obx)
-              //
-              // SizedBox(height: SizeConfig.size16),
-              // CustomText("Category folder"),
-              // SizedBox(height: SizeConfig.size16),
-              // Container(
-              //   width: double.infinity,
-              //   height: 44,
-              //   decoration: BoxDecoration(
-              //       borderRadius: BorderRadius.circular(10),
-              //       border: Border.all(
-              //           color: AppColors.secondaryTextColor.withOpacity(0.2))),
-              //   padding: EdgeInsets.all(8),
-              //   child: CustomText(
-              //     "Choose Category Folder",
-              //     color: AppColors.secondaryTextColor,
-              //   ),
-              // ),
-              // SizedBox(height: SizeConfig.size16),
-              // // Brand
-              // CommonTextField(
-              //   textEditController: controller.brandController,
-              //   title: 'Brand',
-              //   hintText: 'E.g. Boat',
-              //   validator: controller.validateBrand,
-              //   showLabel: true,
-              // ),
-              SizedBox(height: SizeConfig.size16),
-              // MRP
-              CommonTextField(
-                textEditController: controller.mrpController,
-                title: 'MRP (Original Price)',
-                hintText: 'E.g. ₹1499',
-                keyBoardType: TextInputType.number,
-                validator: controller.validateMRP,
-                showLabel: true,
-              ),
-              SizedBox(height: SizeConfig.size16),
-              // Selling Price
-              CommonTextField(
-                textEditController: controller.sellingPriceController,
-                title: 'Selling Price',
-                hintText: 'E.g. ₹500',
-                keyBoardType: TextInputType.number,
-                validator: controller.validateSellingPrice,
-                showLabel: true,
-              ),
-              SizedBox(height: SizeConfig.size16),
-              // // Available Stock
-              // CommonTextField(
-              //   textEditController: controller.availableStockController,
-              //   title: 'Available Stock',
-              //   hintText: 'E.g. Text',
-              //   keyBoardType: TextInputType.number,
-              //   validator: controller.validateAvailableStock,
-              //   showLabel: true,
-              // ),
-              // SizedBox(height: SizeConfig.size16),
-              // Expiry Date
-              //
-              // // Non-returnable Toggle
-              // _buildNonReturnableSection(controller),
-              // SizedBox(height: SizeConfig.size16),
-              //
-              // Warranty
-              CommonTextField(
-                title: "Product Warranty",
-                hintText: "Eg. 1 Years",
-                textEditController: controller.warrantyController,
-              ),
-              SizedBox(height: SizeConfig.size12),
-              //
-              // Validity duration (unit + value)
-              //
-              CustomText('Add Expiry Duration (Optional)'),
-               SizedBox(height: SizeConfig.size12),
-              Obx(() => Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: _buildDropdownField(
-                          // label: '',
-                          hint: 'Select unit',
-                          items: controller.validityUnits,
-                          validator: (_) => null,
-                          onChanged: controller.onValidityUnitChanged,
-                          value: controller.validityUnit.value,
+    return Padding(
+      padding: EdgeInsets.all(SizeConfig.size20),
+      child: Column(
+        children: [
+          Container(
+            
+            padding: EdgeInsets.all(SizeConfig.size20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title Field
+                CustomText(
+                  'Color',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.black,
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () async {
+                      // Open color picker dialog and add chosen color to the list
+                      Color tempColor = controller.selectedColor.value;
+                      final bool accepted = await ColorPicker(
+                        color: controller.selectedColor.value,
+                        onColorChanged: (c) {
+                          tempColor = c;
+                        },
+                        pickersEnabled: const <ColorPickerType, bool>{
+                          ColorPickerType.both: true,
+                        },
+                        heading: const Text('Select color'),
+                        subheading: const Text('Select color shade'),
+                        showColorName: true,
+                        showColorCode: true,
+                      ).showPickerDialog(
+                        context,
+                        constraints: const BoxConstraints(
+                          minHeight: 460,
+                          minWidth: 300,
+                          maxWidth: 360,
                         ),
-                      ),
-                      SizedBox(width: SizeConfig.size12),
-                      Expanded(
-                        flex: 1,
-                        child: CommonTextField(
-                          textEditController: controller.validityValueController,
-                          hintText: 'e.g. 6',
-                          keyBoardType: TextInputType.number,
-                          validator: controller.validateValidityValue,
-                          showLabel: false,
-                        ),
-                      ),
-                    ],
-                  )),
-              SizedBox(height: SizeConfig.size16),
-              //  Row(
-              //    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //    children: [
-              //      CustomText(
-              //        'Add More Details',
-              //        fontSize: SizeConfig.medium,
-              //       //  fontWeight: FontWeight.bold,
-              //        color: AppColors.black,
-              //      ),
-              //      GestureDetector(
-              //        onTap: controller.openMoreDetailsForStep3,
-              //        child: Container(
-              //          width: 32,
-              //          height: 30,
-              //          decoration: BoxDecoration(
-              //            color: AppColors.primaryColor,
-              //            borderRadius: BorderRadius.circular(6),
-              //          ),
-              //          child: const Icon(
-              //            Icons.add,
-              //            color: AppColors.white,
-              //            size: 20,
-              //          ),
-              //        ),
-              //      ),
-              //    ],
-              //  ),
-              // SizedBox(height: SizeConfig.size8),
-              // // Render added details list (shared across steps)
-              // Obx(() {
-              //   if (controller.moreDetailsStep3.isEmpty) return const SizedBox.shrink();
-              //   return Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       // CustomText(
-              //       //   'More Details',
-              //       //   fontSize: SizeConfig.medium,
-              //       //   // fontWeight: FontWeight.w600,
-              //       //   color: AppColors.black,
-              //       // ),
-              //       SizedBox(height: SizeConfig.size4),
-              //       ListView.separated(
-              //         shrinkWrap: true,
-              //         physics: const NeverScrollableScrollPhysics(),
-              //         itemCount: controller.moreDetailsStep3.length,
-              //         separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size8),
-              //         itemBuilder: (context, index) {
-              //           final item = controller.moreDetailsStep3[index];
-              //           return Container(
-              //             decoration: BoxDecoration(
-              //               border: Border.all(color: AppColors.secondaryTextColor.withOpacity(0.2)),
-              //               borderRadius: BorderRadius.circular(8),
-              //             ),
-              //             padding: EdgeInsets.all(SizeConfig.size12),
-              //             child: Row(
-              //               crossAxisAlignment: CrossAxisAlignment.start,
-              //               children: [
-              //                 Expanded(
-              //                   child: Column(
-              //                     crossAxisAlignment: CrossAxisAlignment.start,
-              //                     children: [
-              //                       CustomText(
-              //                         item['title'] ?? '',
-              //                         fontSize: SizeConfig.medium,
-              //                         fontWeight: FontWeight.w600,
-              //                         color: AppColors.black,
-              //                       ),
-              //                       SizedBox(height: SizeConfig.size4),
-              //                       CustomText(
-              //                         item['details'] ?? '',
-              //                         color: AppColors.secondaryTextColor,
-              //                       ),
-              //                     ],
-              //                   ),
-              //                 ),
-              //                 IconButton(
-              //                   tooltip: 'Remove',
-              //                   icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              //                   onPressed: () => controller.removeMoreDetailAtStep3(index),
-              //                 ),
-              //               ],
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //     ],
-              //   );
-              // }),
-              //      SizedBox(height: SizeConfig.size12),
-              // // Guidelines
-              CommonTextField(
-                title: "User Guideline",
-                hintText: "Lorem ipsum dolor sit amit, adisping...",
-                textEditController: controller.guidelineController,
-                maxLine: 3,
-              ),
-              //
-              // SizedBox(height: SizeConfig.size16),
-              SizedBox(height: SizeConfig.size20),
-              Row(
-                children: [
-                  // Save as Draft Button
-                  Expanded(
+                        barrierDismissible: true,
+                      );
+                      if (accepted) {
+                        controller.addOrUpdateSelectedColor(tempColor);
+                      }
+                    },
                     child: Container(
                       height: 45,
+                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                            color: AppColors.primaryColor, width: 1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Material(
                         color: Colors.transparent,
-                        child: InkWell(
-                          onTap: controller.saveAsDraft,
-                          borderRadius: BorderRadius.circular(8),
-                          child: const Center(
-                            child: CustomText(
-                              'Save as draft',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryColor,
-                            ),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.primaryColor.withOpacity(0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            AppIconAssets.color_pallate_Icon,
+                            width: 20,
+                            height: 20,
+                            colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
                           ),
-                        ),
+                          SizedBox(width: SizeConfig.size10),
+                          const CustomText(
+                            'Select Color',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.black,
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.add, color: AppColors.black),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size12),
-                  // Post Product Button
-                  Expanded(
-                      child: CustomBtn(
-                    title: controller.currentStep.value ==
-                            ManualListingScreenController.totalSteps
-                        ? 'Submit'
-                        : 'Next',
-                    onTap: controller.onNext,
-                    bgColor: AppColors.primaryColor,
-                    textColor: AppColors.white,
-                    height: 45,
-                  )),
-                ],
-              )
-            ],
+                ),
+                SizedBox(height: SizeConfig.size12),
+                Obx(() {
+                  final items = controller.selectedColors;
+                  if (items.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Selected Colors',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      Wrap(
+                        spacing: SizeConfig.size8,
+                        runSpacing: SizeConfig.size8,
+                        children: [
+                          for (int index = 0; index < items.length; index++)
+                            _ColorChip(
+                              color: items[index].color,
+                              name: items[index].name,
+                              hex: items[index].hex,
+                              onRemove: () => controller.removeSelectedColorAt(index),
+                            ),
+                        ],
+                      ),
+                    ],
+                  );
+                }),
+                
+                SizedBox(height: SizeConfig.size12),
+                
+                // Variant Field
+                CustomText(
+                  'Material',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.black,
+                ),
+                SizedBox(height: SizeConfig.size8),
+                CommonTextField(
+                  textEditController: controller.variantController,
+                  hintText: 'e.g. Cotton, Leather, Metal....',
+                  validator: controller.validateVariant,
+                  showLabel: false,
+                ),
+                 SizedBox(height: SizeConfig.size16),
+                 Row(
+               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+               children: [
+                 CustomText(
+                   'Add More Details',
+                   fontSize: SizeConfig.medium,
+                  //  fontWeight: FontWeight.bold,
+                   color: AppColors.black,
+                 ),
+                 GestureDetector(
+                   onTap: controller.openMoreDetailsForStep2,
+                   child: Container(
+                     width: 32,
+                     height: 30,
+                     decoration: BoxDecoration(
+                       color: AppColors.primaryColor,
+                       borderRadius: BorderRadius.circular(6),
+                     ),
+                     child: const Icon(
+                       Icons.add,
+                       color: AppColors.white,
+                       size: 20,
+                     ),
+                   ),
+                 ),
+               ],
+             ),
+               
+             
+              ],
+            ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExpiryDateSection(ManualListingScreenController controller) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 80),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            'Add Expiry Date (Optional)',
-            fontSize: SizeConfig.medium,
-            color: AppColors.black,
-          ),
-          SizedBox(height: SizeConfig.size8),
-          Obx(() => RestrictedDatePicker(
-                selectedDay: controller.selectedDay.value == 0 ? null : controller.selectedDay.value,
-                selectedMonth: controller.selectedMonth.value == 0 ? null : controller.selectedMonth.value,
-                selectedYear: controller.selectedYear.value == 0 ? null : controller.selectedYear.value,
-                onDayChanged: controller.onDayChanged,
-                onMonthChanged: controller.onMonthChanged,
-                onYearChanged: controller.onYearChanged,
-                isFutureYear: true,
-              )),
+          SizedBox(height: SizeConfig.size10),
+        Container(
+          padding: EdgeInsets.all(SizeConfig.size20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                
+                // Variant Field
+                CustomText(
+                  'Types & Variant',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.black,
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomTextContainer(text: 'Micro',)
+                     ,SizedBox(width: SizeConfig.size10),
+                    Flexible(
+                      child: CommonTextField(
+                        textEditController: controller.microsizeController,
+                        hintText: 'e.g. 5x7....',
+                        validator: controller.validateVariant,
+                        showLabel: false,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomTextContainer(text: 'Small'),
+                    SizedBox(width: SizeConfig.size10),
+                    Flexible(
+                      child: CommonTextField(
+                        textEditController: controller.smallsizeController,
+                        hintText: 'e.g. 6x9....',
+                        validator: controller.validateVariant,
+                        showLabel: false,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomTextContainer(text: 'Medium'),
+                    SizedBox(width: SizeConfig.size10),
+                    Flexible(
+                      child: CommonTextField(
+                        textEditController: controller.mediumsizeController,
+                        hintText: 'e.g. 8x10....',
+                        validator: controller.validateVariant,
+                        showLabel: false,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomTextContainer(text: 'Large'),
+                    SizedBox(width: SizeConfig.size10),
+                    Flexible(
+                      child: CommonTextField(
+                        textEditController: controller.largesizeController,
+                        hintText: 'e.g. 10x12....',
+                        validator: controller.validateVariant,
+                        showLabel: false,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomTextContainer(text: 'Extra Large'),
+                    SizedBox(width: SizeConfig.size10),
+                    Flexible(
+                      child: CommonTextField(
+                        textEditController: controller.extralargesizeController,
+                        hintText: 'e.g. 12x16....',
+                        validator: controller.validateVariant,
+                        showLabel: false,
+                      ),
+                    ),
+                  ],
+                ),
+                 SizedBox(height: SizeConfig.size20),
+                Row(
+                            children: [
+                              // Save as Draft Button
+                              Expanded(
+                                child: Container(
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: AppColors.primaryColor, width: 1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: controller.saveAsDraft,
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: const Center(
+                                        child: CustomText(
+                                          'Save as draft',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size12),
+                              // Post Product Button
+                              Expanded(
+                                  child: CustomBtn(
+                                title: controller.currentStep.value ==
+                                        ManualListingScreenController.totalSteps
+                                    ? 'Submit'
+                                    : 'Next',
+                                onTap: controller.onNext,
+                                bgColor: AppColors.primaryColor,
+                                textColor: AppColors.white,
+                                height: 45,
+                              )),
+                            ],
+                          )
+                 
+              ],
+            ),
+        )
         ],
       ),
     );
   }
+}
 
-  Widget _buildNonReturnableSection(ManualListingScreenController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(
-          'This is a non-returnable product',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w500,
-          color: AppColors.black,
-        ),
-        Obx(() => CustomSwitch(
-              containerHeight: 25,
-              containerWidth: 50,
-              value: controller.isNonReturnable.value,
-              onChanged: (value) => controller.toggleNonReturnable(),
-            )),
-      ],
-    );
-  }
+class CustomTextContainer extends StatelessWidget {
+      const CustomTextContainer({
+    super.key,
+    required this.text,
+  });
 
-  Widget _buildDropdownField({
-    // required String label,
-    required String hint,
-    required List<String> items,
-    required String? Function(String?) validator,
-    required ValueChanged<String?> onChanged,
-    String? value,
-  }) {
-    final String? effectiveValue = (value != null && items.contains(value)) ? value : null;
+  final String text;
 
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: SizeConfig.screenWidth,
+      height: 45,
+      width: 110,
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12,vertical: SizeConfig.size8),
       decoration: BoxDecoration(
-        color: AppColors.white, // White background like CommonTextField
-        borderRadius: BorderRadius.circular(12), // Rounded corners like CommonTextField
-        boxShadow: [AppShadows.textFieldShadow], // Same shadow as CommonTextField
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.colorTextDarkGrey.withOpacity(0.4)),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: DropdownButtonFormField<String>(
-        value: effectiveValue,
-        validator: validator,
-        onChanged: onChanged,
-        isExpanded: true,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          focusedErrorBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.paddingM, // Same padding as CommonTextField
-            vertical: SizeConfig.paddingXSL,
+      child:  CustomText(
+                      text,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black,
+                    ),);
+  }
+}
+
+class _ColorChip extends StatelessWidget {
+  final Color color;
+  final String name;
+  final String hex;
+  final VoidCallback onRemove;
+
+  const _ColorChip({required this.color, required this.name, required this.hex, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-          isDense: true,
-        ),
-        icon: const Icon(
-          Icons.keyboard_arrow_down,
-          color: AppColors.grey9B,
-          size: 20,
-        ),
-        dropdownColor: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        elevation: 2,
-        style: TextStyle(
-          color: AppColors.black,
-          fontSize: SizeConfig.large, // Same font size as CommonTextField
-        ),
-        menuMaxHeight: 200,
-        hint: CustomText(
-          hint,
-          color: AppColors.secondaryTextColor,
-        ),
-        items: items.map((String item) {
-          return DropdownMenuItem<String>(
-            value: item,
-            child: Text(
-              item,
-              style: TextStyle(
-                fontSize: SizeConfig.large, // Match CommonTextField font size
-                color: AppColors.black,
-              ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(color: Colors.black12),
             ),
-          );
-        }).toList(),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$name · $hex',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.close, size: 16),
+          ),
+        ],
       ),
     );
   }

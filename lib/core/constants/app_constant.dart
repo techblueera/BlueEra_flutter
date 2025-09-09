@@ -157,6 +157,7 @@ class AppConstants {
         : false;
   }
 }
+ 
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
