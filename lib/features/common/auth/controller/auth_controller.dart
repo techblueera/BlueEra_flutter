@@ -77,6 +77,10 @@ class AuthController extends GetxController {
     }
   }
 
+ /// dummy response
+ /// {"success":true,"message":"Login successful","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOnsiX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGI5IiwiYWNjb3VudF90eXBlIjoiQlVTSU5FU1MiLCJjb250YWN0X25vIjoiMTMwMDAwMDAwNSIsImJ1c2luZXNzX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGJiIn0sImlhdCI6MTc1NzE0MDMwMywiZXhwIjoxNzcyNjkyMzAzfQ.c1xZ_-gADtDAlLz_dslvhWaC99rIHg-qxJIVblB2yx8","data":{"_id":"68b2da7ec812c11434960db9","account_type":"BUSINESS","contact_no":"1300000005","business":"68b2da7ec812c11434960dbb"},"user":true,"isBlocked":false,"blockedType":null}
+ ///  68b04d58e194411532d5707e
+
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
     Map<String, dynamic> requestData = {
@@ -110,13 +114,10 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.userBusinessId, data.data?.business);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.authToken, data.token);
-              await SharedPreferenceUtils.setSecureValue(
-                  SharedPreferenceUtils.isUserLogin, "true");
 
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
               await getUserAuthToken();
-              await getUserLoginStatus();
               final viewProfileController =
               Get.put(ViewBusinessDetailsController());
 

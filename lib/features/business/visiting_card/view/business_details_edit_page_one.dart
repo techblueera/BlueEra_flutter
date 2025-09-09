@@ -136,6 +136,8 @@ class _BusinessDetailsEditPageOneState
         WidgetsBinding.instance.addPostFrameCallback((_) {
           updateAddressFromLocation();
         });
+      }else{
+        locationController.fetchAddressFromGeo.value = true;
       }
 
     }

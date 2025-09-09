@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -61,6 +62,11 @@ class RatingReviewCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () {
+                    if (isGuestUser()) {
+                      createProfileScreen();
+
+                      return;
+                    }
                     _showRatingDialog(context);
                   },
                   child: const Center(

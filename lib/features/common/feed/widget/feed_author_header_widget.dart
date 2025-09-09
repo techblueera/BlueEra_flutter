@@ -148,12 +148,22 @@ class PostAuthorHeader extends StatelessWidget {
       contentId: post?.id??'',
       reportType: 'POST',
       userBlockVoidCallback: () {
+        if (isGuestUser()) {
+          createProfileScreen();
+
+          return;
+        }
         Get.find<FeedController>().userBlocked(
             otherUserId: post?.authorId??'',
             type: postType
         );
       },
       reportCallback: (params) async {
+        if (isGuestUser()) {
+          createProfileScreen();
+
+          return;
+        }
         Get.find<FeedController>().postReport(
             postId: post?.id??'',
             type: postType,

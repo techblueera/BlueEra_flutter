@@ -136,7 +136,7 @@ class CreatedBy {
     sId = json['_id'];
     accountType = json['account_type'];
     username = json['username'];
-    profilePic = json['profile_pic'];
+    profilePic = json['profile_image'];
     designation = json['designation'];
     name = json['name'];
     businessName = json['business_name'];
@@ -148,7 +148,7 @@ class CreatedBy {
     data['_id'] = sId;
     data['account_type'] = accountType;
     data['username'] = username;
-    data['profile_pic'] = profilePic;
+    data['profile_image'] = profilePic;
     data['designation'] = designation;
     data['name'] = name;
     data['business_name'] = businessName;

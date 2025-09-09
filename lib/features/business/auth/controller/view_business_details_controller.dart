@@ -111,9 +111,13 @@ class ViewBusinessDetailsController extends GetxController {
         }
         Get.find<AuthController>().imgPath.value=   businessProfileDetails?.data?.logo??"";
 
-        await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.userProfile,
-            businessProfileDetails?.data?.logo);
+        await SharedPreferenceUtils.userLoggedInBusiness(
+          profileImage: businessProfileDetails?.data?.logo??'',
+          businessName: businessProfileDetails?.data?.businessName??'',
+          businessOwnerName: businessProfileDetails?.data?.ownerDetails?[0].name??'',
+          businessId: businessProfileDetails!.data!.id!,
+          loginBusinessUserId: businessProfileDetails!.data!.userId!,
+        );
 
         await getUserLoginData();
 

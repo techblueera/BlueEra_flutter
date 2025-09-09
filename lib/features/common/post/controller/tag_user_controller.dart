@@ -27,6 +27,9 @@ class TagUserController extends GetxController {
   }
 
   void fetchUsers() async {
+    final photoPostController = Get.isRegistered<PhotoPostController>()
+        ? Get.find<PhotoPostController>()
+        : Get.put(PhotoPostController());
     isLoading.value = true;
     try {
       ResponseModel response = await ChannelRepo().getAllUsers();
@@ -36,15 +39,15 @@ class TagUserController extends GetxController {
         allUsers.value = getAllUsers.data;
 
 
-        if (Get.find<PhotoPostController>().isPhotoPostEdit) {
-          if (Get.find<PhotoPostController>()
+        if (photoPostController.isPhotoPostEdit) {
+          if (photoPostController
               .postData
               ?.value
               .taggedUsers
               ?.isNotEmpty ??
               false) {
             final taggedIds =
-                Get.find<PhotoPostController>().postData?.value.taggedUsers ??
+                photoPostController.postData?.value.taggedUsers ??
                     [];
 
             selectedUsers.value = allUsers.where((user) {

@@ -1878,7 +1878,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ),
 
                     CustomText(
-                      "${details?.natureOfBusiness}",
+                      (details?.subCategoryDetails !=null && details?.subCategoryDetails?.name !=null)
+                          ? details?.subCategoryDetails?.name
+                            : (details?.categoryDetails !=null && details?.categoryDetails?.name != null)
+                              ? details?.categoryDetails?.name
+                                    : details?.natureOfBusiness,
                       fontWeight: FontWeight.w400,
                       fontSize: 18,
                       maxLines: 1,

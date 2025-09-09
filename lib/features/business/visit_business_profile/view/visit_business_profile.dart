@@ -36,7 +36,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
   final List<String> tabs = [
     'Profile',
     'Shorts',
-    'Videos'
+    'Videos',
     'Posts',
     // 'Reviews',
     // 'Our Branches'
@@ -100,7 +100,12 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                           userId: businessData?.userId??"",
                           businessName: businessData?.businessName ?? "Business Name",
                           logoUrl: businessData?.logo ?? "",
-                          businessType: businessData?.typeOfBusiness ?? "Business",
+                          // businessType: businessData?.typeOfBusiness ?? "Business",
+                          businessType:  (businessData?.subCategoryDetails !=null && businessData?.subCategoryDetails?.name !=null)
+                              ? businessData?.subCategoryDetails?.name ?? ''
+                              : (businessData?.categoryDetails !=null && businessData?.categoryDetails?.name != null)
+                              ? businessData?.categoryDetails?.name ?? ''
+                              : (businessData?.natureOfBusiness ?? 'OTHERS'),
                           location: "${businessData?.address ?? ''}",
                         ),
                         const SizedBox(height: 30),
@@ -228,7 +233,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
             Padding(
               padding: EdgeInsets.only(right: 20),
               child: Row(
-                children: filters!.map((filter) {
+                children: filters?.map((filter) {
                   final isSelected = selectedFilter == filter;
                   return Padding(
                     padding: EdgeInsets.only(right: SizeConfig.size14),
@@ -248,7 +253,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                       ),
                     ),
                   );
-                }).toList(),
+                }).toList()??[],
               ),
             )
           ],

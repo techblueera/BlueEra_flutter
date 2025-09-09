@@ -204,7 +204,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
           RouteHelper.getVideoPlayerScreenRoute(),
           arguments: {
             ApiKeys.videoItem: widget.videoItem,
-            ApiKeys.video: widget.videoType
+            ApiKeys.videoType: widget.videoType
           },
         );
       },

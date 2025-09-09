@@ -62,9 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    if(accountTypeGlobal.toUpperCase() == AppConstants.business){
-      homeScreenController.getBusinessProfileData();
-    }else{}
+    // if(accountTypeGlobal.toUpperCase() == AppConstants.business){
+    //   homeScreenController.getBusinessProfileData();
+    // }else{}
     getPackageData();
     searchController.addListener(() {
       setState(() {});

@@ -618,7 +618,7 @@ class BusinessProfilePersonalNewScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsetsGeometry.all(SizeConfig.size10),
+                    padding: EdgeInsets.all(SizeConfig.size10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -758,8 +758,8 @@ class BusinessProfilePersonalNewScreen extends StatelessWidget {
                     ),
                     alignment: Alignment.bottomRight,
                     child: Container(
-                      margin: EdgeInsetsGeometry.all(SizeConfig.size12),
-                      padding: EdgeInsetsGeometry.symmetric(
+                      margin: EdgeInsets.all(SizeConfig.size12),
+                      padding: EdgeInsets.symmetric(
                           vertical: SizeConfig.size6,
                           horizontal: SizeConfig.size12),
                       decoration: BoxDecoration(

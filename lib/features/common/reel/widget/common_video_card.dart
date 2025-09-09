@@ -73,7 +73,14 @@ class CommonVideoCard extends StatelessWidget {
 
               // 👇 common footer
               GestureDetector(
-                onTap: () => _openProfile(context, videoItem),
+                onTap:(){
+                  if (isGuestUser()) {
+                    createProfileScreen();
+
+                    return;
+                  }
+                  onTapOption();
+                },
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.size5,
@@ -100,32 +107,35 @@ class CommonVideoCard extends StatelessWidget {
                       ),
                       SizedBox(width: SizeConfig.size8),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              videoItem.video?.title ?? '',
-                              color: AppColors.mainTextColor,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w400,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            SizedBox(height: SizeConfig.size2),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: CustomText(
-                                    "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
-                                    fontSize: SizeConfig.small11,
-                                    color: AppColors.secondaryTextColor,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                        child: InkWell(
+                          onTap: ()=> _openProfile(context, videoItem),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                videoItem.video?.title ?? '',
+                                color: AppColors.mainTextColor,
+                                fontSize: SizeConfig.large,
+                                fontWeight: FontWeight.w400,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: SizeConfig.size2),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: CustomText(
+                                      "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
+                                      fontSize: SizeConfig.small11,
+                                      color: AppColors.secondaryTextColor,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            )
-                          ],
+                                ],
+                              )
+                            ],
+                          ),
                         ),
                       ),
                       _buildOptions(videoItem),
@@ -145,7 +155,14 @@ class CommonVideoCard extends StatelessWidget {
     if (videoItem.channel?.id != null) {
       if (videoItem.channel?.id != channelId) {
         return IconButton(
-          onPressed: onTapOption,
+          onPressed:(){
+            if (isGuestUser()) {
+              createProfileScreen();
+
+              return;
+            }
+            onTapOption();
+          },
           icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
         );
       }
@@ -167,8 +184,14 @@ class CommonVideoCard extends StatelessWidget {
         );
       }
       return IconButton(
-        onPressed: onTapOption,
-        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+        onPressed:(){
+          if (isGuestUser()) {
+            createProfileScreen();
+
+            return;
+          }
+          onTapOption();
+        },        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
       );
     }
 
@@ -183,8 +206,14 @@ class CommonVideoCard extends StatelessWidget {
         );
       }
       return IconButton(
-        onPressed: onTapOption,
-        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+        onPressed:(){
+          if (isGuestUser()) {
+            createProfileScreen();
+
+            return;
+          }
+          onTapOption();
+        },        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
       );
     }
 
