@@ -158,7 +158,7 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
               child: Padding(
                 padding: EdgeInsets.only(top: SizeConfig.size80),
                 child: EmptyStateWidget(
-                  message: 'No videoe saved.',
+                  message: 'No videos saved.',
                 ),
               ),
             );

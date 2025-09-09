@@ -44,7 +44,6 @@ class _FeedCardState extends State<FeedCard> {
   void initState() {
     super.initState();
     _post = widget.post;
-    print('post account type-> ${_post?.user?.accountType??''}');
   }
 
   @override

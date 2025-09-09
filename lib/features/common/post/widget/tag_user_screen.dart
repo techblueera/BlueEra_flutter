@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
@@ -9,10 +10,41 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class TagUserScreen extends StatelessWidget {
-  final controller = Get.find<TagUserController>();
+class TagUserScreen extends StatefulWidget {
 
   TagUserScreen({Key? key}) : super(key: key);
+
+  @override
+  State<TagUserScreen> createState() => _TagUserScreenState();
+}
+
+class _TagUserScreenState extends State<TagUserScreen> {
+  final controller = Get.find<TagUserController>();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    _scrollController.addListener(_scrollListener);
+    super.initState();
+  }
+
+
+  void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    final isAtBottom = position.pixels >= position.maxScrollExtent - 200; // 100px threshold
+
+    if (isAtBottom) {
+      controller.fetchUsers();
+    }
+  }
+
+  @override
+  dispose(){
+    _scrollController.removeListener(_scrollListener);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,8 +114,7 @@ class TagUserScreen extends StatelessWidget {
                     Expanded(
                       child: Obx(() {
                         if (controller.isLoading.value) {
-                          return const Center(
-                              child: CircularProgressIndicator());
+                          return const Center(child: CircularProgressIndicator());
                         }
 
                         if (controller.filteredUsers.isEmpty) {
@@ -96,6 +127,9 @@ class TagUserScreen extends StatelessWidget {
                           );
                         }
 
+                        final itemCount =
+                            controller.filteredUsers.length + (controller.isLoadingMore.value ? 1 : 0);
+
                         return Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -103,19 +137,36 @@ class TagUserScreen extends StatelessWidget {
                             border: Border.all(color: Colors.grey.shade300),
                           ),
                           child: ListView.builder(
-                            itemCount: controller.filteredUsers.length,
+                            controller: _scrollController,
+                            itemCount: itemCount,
                             itemBuilder: (context, index) {
+                              if (index == controller.filteredUsers.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+
                               final user = controller.filteredUsers[index];
                               return UserListItem(
                                 user: user,
-                                onTap: () =>
-                                    controller.toggleUserSelection(user),
+                                onTap: () => controller.toggleUserSelection(user),
                               );
                             },
                           ),
                         );
                       }),
-                    ),
+                    )
+
                   ],
                 ),
               ),

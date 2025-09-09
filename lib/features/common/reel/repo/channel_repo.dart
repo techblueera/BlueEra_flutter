@@ -159,17 +159,6 @@ print("url=== ${url}");
     return response;
   }
 
-  ///Get All users...
-  Future<ResponseModel> getAllUsers() async {
-    final response = await ApiBaseHelper().getHTTP(
-      allUsers,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   ///GET ALL Songs...
   Future<ResponseModel> getAllSongs(
       {required Map<String, dynamic> queryParams}) async {

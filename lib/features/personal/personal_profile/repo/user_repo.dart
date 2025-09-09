@@ -104,4 +104,16 @@ class UserRepo extends BaseService {
     return response;
   }
 
+  ///Get All users...
+  Future<ResponseModel> getAllUsers({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      allUsers,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

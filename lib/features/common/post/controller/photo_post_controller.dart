@@ -18,8 +18,10 @@ import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../../core/constants/size_config.dart';
+
+
+enum SymbolDuration { hours24, days7 }
 
 class PhotoPostController extends GetxController {
   TextEditingController descriptionTextEdit = TextEditingController();
@@ -45,6 +47,9 @@ class PhotoPostController extends GetxController {
 
   bool isPhotoPostEdit = false;
 
+  Rx<SymbolDuration> selected = SymbolDuration.hours24.obs;
+
+
   void addPhotos() async {
     // if (selectedPhotos.length >= maxPhotos) {
     //   commonSnackBar(
@@ -55,7 +60,6 @@ class PhotoPostController extends GetxController {
     // }
 
       final List<XFile>? images = await _picker.pickMultiImage();
-      print('images--> $images');
 
       if (images == null || images.isEmpty) return;
 
@@ -293,4 +297,9 @@ class PhotoPostController extends GetxController {
     longitude.value = null;
     updatePhotoPost();
   }
+
+  void select(SymbolDuration duration) {
+    selected.value = duration;
+  }
+
 }
