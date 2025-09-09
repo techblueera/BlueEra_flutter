@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -45,16 +46,28 @@ class PhotoPostController extends GetxController {
   bool isPhotoPostEdit = false;
 
   void addPhotos() async {
-    if (selectedPhotos.length >= maxPhotos) {
-      commonSnackBar(
-        message: 'You can only upload up to $maxPhotos photos',
-      );
-
-      return;
-    }
+    // if (selectedPhotos.length >= maxPhotos) {
+    //   commonSnackBar(
+    //     message: 'You can only upload up to $maxPhotos photos',
+    //   );
+    //
+    //   return;
+    // }
 
       final List<XFile>? images = await _picker.pickMultiImage();
-      if (images == null) return;
+      print('images--> $images');
+
+      if (images == null || images.isEmpty) return;
+
+      int totalImage = selectedPhotos.length + images.length;
+      log('total images--> $totalImage');
+      if (totalImage > maxPhotos) {
+        commonSnackBar(
+          message: 'You can only upload up to $maxPhotos photos',
+        );
+
+        return;
+      }
 
       for (final image in images) {
         if (selectedPhotos.length >= maxPhotos) break;
@@ -62,8 +75,6 @@ class PhotoPostController extends GetxController {
         final originalSize = await File(image.path).length();
 
         final compressedFile = await SelectProfilePictureDialog.compressImage(File(image.path));
-
-        final newSize = await compressedFile?.length(); // in bytes
 
         if (compressedFile != null) {
           final newSize = await compressedFile.length();
@@ -81,12 +92,14 @@ class PhotoPostController extends GetxController {
           selectedPhotos.add(compressedFile.path);
           selectedPhotoFiles.add(compressedFile);
 
-          // Get.to(()=> PhotoPostEditingScreen(images: selectedPhotos));
-
         }
       }
 
-      updatePhotoPost(); // your existing UI update
+    List<String> selectedEditPhotos = await Get.to(()=> PhotoPostEditingScreen(images: selectedPhotos));
+    selectedPhotos.addAll(selectedEditPhotos);
+    selectedPhotoFiles.addAll(selectedEditPhotos.map((path) => File(path)).toList());
+
+    updatePhotoPost(); // your existing UI update
   }
 
   /// Helper to format bytes into KB/MB
