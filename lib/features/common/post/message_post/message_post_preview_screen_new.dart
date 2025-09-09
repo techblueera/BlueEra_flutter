@@ -85,7 +85,7 @@ class _MessagePostPreviewScreenNewState
                                     ? businessOwnerNameGlobal
                                     : "",
                             userName:
-                                isIndividualUser() ? userNameAtGlobal : businessNameGlobal,
+                                isIndividualUser() ? "userNameAtGlobal" : businessNameGlobal,
                             subtitle:
                                 isIndividualUser() ? businessNameGlobal : "",
                           ),

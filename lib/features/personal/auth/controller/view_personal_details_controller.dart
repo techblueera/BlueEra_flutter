@@ -98,7 +98,7 @@ class ViewPersonalDetailsController extends GetxController {
         getUserName: "${personalProfileDetails.value.user?.name}",
         profileImage: "${personalProfileDetails.value.user?.profileImage}",
         designation: "${personalProfileDetails.value.user?.designation}",
-        userNameAt: "${personalProfileDetails.value.user?.username}",
+        // userNameAt: "${personalProfileDetails.value.user?.username}",
       );
       await getUserLoginData();
 

@@ -1,15 +1,12 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
-import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
@@ -18,10 +15,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -40,8 +34,6 @@ class CreateMessagePostScreenNew extends StatefulWidget {
 
 class _CreateMessagePostScreenNewState
     extends State<CreateMessagePostScreenNew> {
-  final previewContainerKey = GlobalKey();
-
   final msgController = Get.put(MessagePostController());
   final tagUserController = Get.put(TagUserController());
 
@@ -113,7 +105,7 @@ class _CreateMessagePostScreenNewState
                 CommonTextField(
                   textEditController: msgController.descriptionMessage.value,
                   hintText:
-                      "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                      "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                   title: "Your Message",
                   maxLine: 5,
                   maxLength: 1000,
@@ -122,7 +114,6 @@ class _CreateMessagePostScreenNewState
                   textInputAction: TextInputAction.none,
                   onChange: (val) {
                     msgController.postText.value = val;
-
                   },
                 ),
                 SizedBox(
@@ -131,7 +122,7 @@ class _CreateMessagePostScreenNewState
                 Align(
                   alignment: Alignment.centerRight,
                   child: Obx(() => CustomText(
-                        "${msgController.messageText.value.length}/1000",
+                        "${msgController.postText.value.length}/1000",
                         color: Colors.grey,
                         fontSize: 12,
                       )),
@@ -237,7 +228,7 @@ class _CreateMessagePostScreenNewState
                         ),
                         HttpsTextField(
                             controller:
-                            msgController.referenceLinkController.value,
+                                msgController.referenceLinkController.value,
                             hintText: "Add website link"),
                       ],
                     );
@@ -283,7 +274,6 @@ class _CreateMessagePostScreenNewState
 
                               ///FOR ADD POST...
                               if (!msgController.isMsgPostEdit) {
-
                                 Get.to(() => MessagePostPreviewScreenNew(
                                       imagePath: "",
                                       postVia: widget.postVia,
@@ -307,11 +297,17 @@ class _CreateMessagePostScreenNewState
                                     return isTagged;
                                   }).toList();
                                 }
-
-                                Get.to(() => MessagePostPreviewScreenNew(
-                                      imagePath: "",
-                                    ));
-                                return;
+                                if (isOnlyHttpsLink(
+                                    msgController.postText.value)) {
+                                  Get.to(() => MessagePostPreviewScreenNew(
+                                        imagePath: "",
+                                      ));
+                                  return;
+                                } else {
+                                  commonSnackBar(
+                                      message: "Only https links are allowed");
+                                  return;
+                                }
                               }
                             }
                           : null,
@@ -323,6 +319,11 @@ class _CreateMessagePostScreenNewState
         ),
       ),
     );
+  }
+
+  bool isOnlyHttpsLink(String message) {
+    final regex = RegExp(r'^(https:\/\/[^\s]+)$');
+    return regex.hasMatch(message.trim());
   }
 }
 
