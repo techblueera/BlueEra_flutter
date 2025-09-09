@@ -1019,6 +1019,56 @@ List<PopupMenuEntry<String>> popupInventoryCategoryItems() {
   return entries;
 }
 
+
+List<PopupMenuEntry<String>> photoPostMenuItems() {
+  final items = <Map<String, dynamic>>[
+    {'title': 'Square', 'icon': Icons.square_outlined},
+    {'title': 'Portrait', 'icon': Icons.crop_portrait_outlined},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    final menu = items[i];
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        child: Row(
+          children: [
+            Icon(menu['icon'], color: AppColors.grey5B),
+            SizedBox(width: SizeConfig.size5),
+            CustomText(
+              menu['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
 final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
   SocialInputFieldsModel(
     name: 'YouTube',
@@ -1263,6 +1313,7 @@ String? getNativeAdUnitId() {
   } else if (Platform.isIOS) {
     return iosNativeAdUnitId; // iOS test ad unit ID
   }
+  return null;
 }
 
 String? getInterstitialAdUnitId() {

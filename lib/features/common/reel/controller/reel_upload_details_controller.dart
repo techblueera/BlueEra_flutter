@@ -54,7 +54,7 @@ class ReelUploadDetailsController extends GetxController {
           ApiKeys.channelId: channelId,
           ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual)
               ? userId
-              : businessUserId
+              : userId
         },
       );
     } else {
@@ -191,7 +191,7 @@ class ReelUploadDetailsController extends GetxController {
             arguments: {
               ApiKeys.argAccountType: accountTypeGlobal.toUpperCase(),
               ApiKeys.channelId: channelId,
-              ApiKeys.authorId: isIndividualUser() ? userId : businessUserId,
+              ApiKeys.authorId: isIndividualUser() ? userId : userId,
             },
           );
         } else {

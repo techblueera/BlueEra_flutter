@@ -99,7 +99,7 @@ Future<void> initializeMappls() async {
   MapplsAccountManager.setAtlasClientId(
       '96dHZVzsAusiRU8_v7__Lme21MTOvTKFvJFyMCpUZQ-DjqUdfP_NqyXMwSnsdCRrb1ftHTtt-plKdAJTzjnhUw==');
   MapplsAccountManager.setAtlasClientSecret(
-      'lrFxI-iSEg82Qjz1J8dUxpCA2o1ePCYyYAZjePa8-Us7fJAE_HGPruKUEikFMnPEmMo_PRhKKQi7owz4QDM_5JFVXBbI1mkl');
+      'lrFxI-iSEg82Qjz1J8dUxpCA2o1ePCYyYAZjePa8-Us7fJAE_HGPruKUEikt FMnPEmMo_PRhKKQi7owz4QDM_5JFVXBbI1mkl');
 }
 
 late List<CameraDescription> cameras;

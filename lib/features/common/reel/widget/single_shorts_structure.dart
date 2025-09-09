@@ -64,7 +64,7 @@ late String thumbnail;
       
       // Case 3: Author is business and not equal to businessUserId
       (shortItem?.author?.accountType == AppConstants.business &&
-      shortItem?.author?.id != businessUserId);
+      shortItem?.author?.id != userId);
       super.initState();
 
   }
@@ -113,7 +113,9 @@ late String thumbnail;
                     borderRadius:
                         BorderRadius.circular(widget.borderRadius ?? 0),
                     child: isNetworkImage(thumbnail) ? CachedNetworkImage(
-                      height: widget.imageHeight ?? SizeConfig.size220,
+                      width: double.infinity,
+                      height: double.infinity,
+                      // height: widget.imageHeight ?? SizeConfig.size220,
                       fit: BoxFit.cover,
                       imageUrl: thumbnail,
                       errorWidget: (context, url, error) => Container(
@@ -132,8 +134,10 @@ late String thumbnail;
                         ),
                       ),
                     ) : Image.file(
-                      File(shortItem?.video?.coverUrl ?? ''),
-                      height: widget.imageHeight ?? SizeConfig.size220,
+                      File(
+                        shortItem?.video?.coverUrl ?? ''),
+                      width: double.infinity,
+                      height: double.infinity,
                       fit: BoxFit.cover,
                     ),),
 

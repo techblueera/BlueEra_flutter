@@ -59,7 +59,6 @@ class CommonVideoCard extends StatelessWidget {
       child: Card(
         elevation: 0,
         color: AppColors.white,
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide.none,
@@ -197,7 +196,7 @@ class CommonVideoCard extends StatelessWidget {
 
     // 3️⃣ If Business account
     if (videoItem.author?.accountType == AppConstants.business) {
-      final isMyBusiness = videoItem.author?.id == businessUserId;
+      final isMyBusiness = videoItem.author?.id == userId;
       if (isMyBusiness) {
         return ReelVideoPopUpMenu(
           videoFeedItem: videoItem,
@@ -249,7 +248,7 @@ class CommonVideoCard extends StatelessWidget {
 
     // 3️⃣ If Business account
     if (videoItem.author?.accountType?.toUpperCase() == AppConstants.business) {
-      final isMyBusiness = videoItem.author?.id == businessUserId;
+      final isMyBusiness = videoItem.author?.id == userId;
       if (isMyBusiness) {
         navigatePushTo(context, BusinessOwnProfileScreen());
       } else {

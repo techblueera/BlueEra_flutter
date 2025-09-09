@@ -13,7 +13,6 @@ String userNameGlobal = '';
 String userProfessionGlobal = '';
 String userId = '';
 String businessId = '';
-String businessUserId = '';
 String userMobileGlobal = '';
 String isUserLoginGlobal = '';
 String has_reel_profile_status = 'false';
@@ -168,13 +167,10 @@ class SharedPreferenceUtils {
       userProfileGlobal = '';
       channelId = '';
       userProfessionGlobal = '';
-      businessUserId = '';
       Get.find<AuthController>().imgPath.value="";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
     } on Exception catch (e) {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
-
-      // TODO
     }
   }
 }
@@ -244,10 +240,6 @@ getUserLoginData() async {
       SharedPreferenceUtils.has_reel_profile) ??
       "false";
 
-  businessUserId = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessUserIdKey) ??
-      "";
-
   businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessName) ??
       "";
@@ -308,16 +300,4 @@ getChannelId() async {
       "";
 }
 
-/// GET Business Data...
-// getBusinessData() async {
-//   businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
-//       SharedPreferenceUtils.businessName) ??
-//       "";
-//   businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
-//       SharedPreferenceUtils.businessOwnerName) ??
-//       "";
-//   businessUserId = await SharedPreferenceUtils.getSecureValue(
-//       SharedPreferenceUtils.businessUserIdKey) ??
-//       "";
-// }
 

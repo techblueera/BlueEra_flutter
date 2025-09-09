@@ -1135,7 +1135,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
         Get.to(() => VisitProfileScreen(authorId: authorId));
       }
     } else {
-      if (authorId == businessUserId) {
+      if (authorId == userId) {
         Get.to(() => BusinessOwnProfileScreen());
       } else {
         Get.to(() => VisitBusinessProfile(businessId: authorId));
