@@ -19,8 +19,9 @@ class ChatSocketService {
 
   Future<void> connectToSocket() async {
     try {
+
       print("Attempting to connect to socket...");
-      _socket = IO.io('http://13.235.132.21:3000/',
+      _socket = IO.io('http://35.154.103.157:3000/',
       // _socket = IO.io('http://13.127.15.108:3000/',
         IO.OptionBuilder()
             .setTransports(['websocket'])

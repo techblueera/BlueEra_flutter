@@ -24,6 +24,7 @@ String channelId = '';
 
 String businessNameGlobal = '';
 String businessOwnerNameGlobal = '';
+String userNameAtGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -52,28 +53,10 @@ class SharedPreferenceUtils {
   static const lastVersion = 'last_version';
   static const lastGreetingCallKey = 'last_greeting_call_key';
   static const userProfession = 'user_profession';
-  static const businessName = 'user_profession';
-  static const businessOwnerName = 'user_profession';
-  static const businessUserIdKey = 'business_user_id';
+  static const businessName = 'business_name';
+  static const businessOwnerName = 'business_owner_name';
+  static const userNameAtKey = 'userNameAt';
 
-  static Future<void>   userLoggedIn({
-    required String loginUserId_,
-    required String businesId,
-    required String contactNo,
-    required String autToken,
-    required String getUserName,
-    required String profileImage,
-    required String designation,
-  }) async {
-    await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
-    await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
-    await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
-    await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
-    await SharedPreferenceUtils.setSecureValue(authToken, autToken);
-    await SharedPreferenceUtils.setSecureValue(userName, getUserName);
-    await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
-    await SharedPreferenceUtils.setSecureValue(userProfession, designation);
-  }
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
     required String businesId,
@@ -81,7 +64,7 @@ class SharedPreferenceUtils {
     required String getUserName,
     required String profileImage,
     required String designation,
-
+    required String userNameAt,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
@@ -90,7 +73,7 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
     await SharedPreferenceUtils.setSecureValue(userProfession, designation);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
-
+    await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
   }
 
   static Future<void> guestUserLoggedIn({
@@ -115,7 +98,7 @@ class SharedPreferenceUtils {
     required String businessOwnerName,
     required String businessId,
     required String loginBusinessUserId,
-
+    required String userNameAt,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userBusinessId, businessId);
@@ -123,6 +106,7 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessName, businessName);
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessOwnerName, businessOwnerName);
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.loginUserId, loginBusinessUserId);
+    await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
   }
 
   /// Store the refresh token securely
@@ -167,6 +151,7 @@ class SharedPreferenceUtils {
       userProfileGlobal = '';
       channelId = '';
       userProfessionGlobal = '';
+      userNameAtGlobal = '';
       Get.find<AuthController>().imgPath.value="";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
     } on Exception catch (e) {
@@ -248,23 +233,10 @@ getUserLoginData() async {
       SharedPreferenceUtils.businessOwnerName) ??
       "";
 
-  // 68bc0dbe8608e759dbfd35e8
-  logs("userId==== $userId");
-  logs("accountTypeGlobal==== $accountTypeGlobal");
-  logs("userProfileGlobal==== $userProfileGlobal");
-  logs("userProfileGlobal==== $userProfileGlobal");
-  if(accountTypeGlobal == AppConstants.business){
-    logs("businessId==== $businessId");
-    logs("businessNameGlobal==== $businessNameGlobal");
-    logs("businessOwnerNameGlobal==== $businessOwnerNameGlobal");
-  }
+  userNameAtGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userNameAtKey) ??
+      "";
 
-
-  // if (has_reel_profile_status == "true") {
-  //   reel_profile_id_global = await SharedPreferenceUtils.getSecureValue(
-  //           SharedPreferenceUtils.reel_profile_id) ??
-  //       "";
-  // }
 }
 ///GET USER DATA....
 getGuestUserLoginData() async {
