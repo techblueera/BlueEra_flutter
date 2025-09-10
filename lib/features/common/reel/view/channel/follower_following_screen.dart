@@ -1,9 +1,11 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reel/controller/follower_controller.dart';
 import 'package:BlueEra/features/common/reel/models/follow_following_res_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -78,27 +80,38 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    (followFollowerController.followingList?.isEmpty ?? true)
-                        ? const _NotFoundView()
-                        : ListView.builder(
 
-                            itemCount:
-                                followFollowerController.followingList?.length,
-                            itemBuilder: (context, index) {
-                              return _buildUserTile(followFollowerController
-                                      .followingList?[index] ??
-                                  FollowFollowingData());
-                            },
-                          ),
-                    (followFollowerController.followerList?.isEmpty ?? true)
-                        ? const _NotFoundView()
-                        : ListView.builder(
-                            itemCount:
-                                followFollowerController.followerList?.length,
-                            itemBuilder: (context, index) => _buildUserTile(
-                                followFollowerController.followerList?[index] ??
-                                    FollowFollowingData()),
-                          ),
+                    followFollowerController.isFollowingLoading.isFalse ?
+                    (followFollowerController.followingResponse.value.status == Status.COMPLETE
+                         && (followFollowerController.followingList.isNotEmpty))
+                        ? ListView.builder(
+                      itemCount: followFollowerController.followingList.length,
+                      itemBuilder: (context, index) {
+                        FollowingData singleFollowingDta = followFollowerController.followingList[index];
+                        return _buildUserTile(
+                          singleFollowingDta.following,
+                        );
+                      },
+                    )
+                        : EmptyStateWidget(
+                      message: 'Not following anyone',
+                      imageSize: SizeConfig.size120,
+                    ) : Center(child: CircularProgressIndicator()),
+
+
+                    followFollowerController.isFollowerLoading.isFalse ?
+                    (followFollowerController.followerResponse.value.status == Status.COMPLETE
+                            && (followFollowerController.followerList.isNotEmpty ?? false))
+                        ? ListView.builder(
+                      itemCount: followFollowerController.followerList.length,
+                      itemBuilder: (context, index) => _buildUserTile(
+                          followFollowerController.followerList[index].follower),
+                    )
+                        : EmptyStateWidget(
+                      message: 'No followers',
+                      imageSize: SizeConfig.size120,
+                    ) : Center(child: CircularProgressIndicator()),
+
                   ],
                 ),
               ),
@@ -109,14 +122,14 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
     );
   }
 
-  Widget _buildUserTile(FollowFollowingData user) {
+  Widget _buildUserTile(FollowingFollower? user) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
       child: Row(
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundImage: NetworkImage(user.follower?.profileImage ?? ""),
+            backgroundImage: NetworkImage(user?.profileImage ?? ""),
             backgroundColor: Colors.grey.shade100,
           ),
           const SizedBox(width: 16),
@@ -125,10 +138,10 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  user.follower?.name ?? "",
+                  user?.name ?? "",
                 ),
                 CustomText(
-                  user.follower?.username ?? "",
+                  user?.username ?? "",
                   fontSize: SizeConfig.small,
                 ),
               ],
@@ -187,32 +200,3 @@ class _FollowButtonState extends State<_FollowButton> {
   }
 }
 
-class _NotFoundView extends StatelessWidget {
-  const _NotFoundView();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/not_found.png',
-            width: SizeConfig.size180,
-            fit: BoxFit.fitWidth,
-          ),
-          SizedBox(height: SizeConfig.size20),
-          Text(
-            'No Result Found',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: SizeConfig.size30),
-        ],
-      ),
-    );
-  }
-}

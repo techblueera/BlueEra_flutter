@@ -57,6 +57,12 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size16),
                   _buildTagPeopleSection(),
+
+                  // _buildAddSongSection(),
+                  // SizedBox(height: SizeConfig.size5),
+                  // _buildSymbolDurationSection(),
+
+                  // SizedBox(height: SizeConfig.size15),
                   _buildNatureOfPostSection(),
                   SizedBox(height: SizeConfig.size32),
                   _buildPreviewButton(),
@@ -206,6 +212,102 @@ class PhotoPostPreviewScreen extends StatelessWidget {
             : const SizedBox.shrink()),
 
         SizedBox(height: SizeConfig.size15),
+      ],
+    );
+  }
+
+  Widget _buildAddSongSection(){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Add Tag People / Organization button
+        GestureDetector(
+          onTap: () async {
+            // final result = await Navigator.pushNamed(
+            //   context,
+            //   RouteHelper.getGetAllSongsScreenRoute(),
+            //   arguments: {
+            //     ApiKeys.videoPath: 'widget.videoPath',
+            //   },
+            // ) as Map<String, dynamic>?;
+            //
+            // if (result != null && result.isNotEmpty) {
+            //   setState(() {
+            //     controller.songData = result;
+            //   });
+            //   log("songData--> ${controller.songData}");
+            // }
+          },
+          child: Row(
+            children: [
+              LocalAssets(
+                imagePath: AppIconAssets.addBlueIcon,
+                imgColor: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size4),
+              CustomText(
+                'Add Song',
+                color: AppColors.primaryColor,
+                fontSize: SizeConfig.large,
+              ),
+            ],
+          ),
+        ),
+
+        // Selected users chips
+        Obx(() => tagUserController.selectedUsers.isNotEmpty
+            ? Padding(
+          padding: EdgeInsets.only(top: SizeConfig.size16),
+          child: Wrap(
+            children: tagUserController.selectedUsers
+                .map((user) => UserChip(
+              user: user,
+              onRemove: () =>
+                  tagUserController.removeSelectedUser(user),
+            ))
+                .toList(),
+          ),
+        )
+            : const SizedBox.shrink()),
+
+        SizedBox(height: SizeConfig.size15),
+      ],
+    );
+  }
+
+  Widget _buildSymbolDurationSection() {
+    final selected = controller.selected.value;
+
+    String label = "";
+    if (selected == SymbolDuration.hours24) label = "24 hours";
+    if (selected == SymbolDuration.days7) label = "7 days";
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+
+      children: [
+        const SizedBox(height: 4),
+        CustomText(
+          "How long should we show this symbol?",
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w500,
+          color: AppColors.black,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(label,
+                color: AppColors.black,
+                fontWeight: FontWeight.w400,
+                fontSize: SizeConfig.large),
+            Checkbox(
+              value: true,
+              onChanged: null,
+              activeColor: AppColors.primaryColor,
+              checkColor: AppColors.white,
+            ),
+          ],
+        ),
       ],
     );
   }

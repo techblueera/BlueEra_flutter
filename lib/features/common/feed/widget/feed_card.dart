@@ -44,7 +44,6 @@ class _FeedCardState extends State<FeedCard> {
   void initState() {
     super.initState();
     _post = widget.post;
-    print('post account type-> ${_post?.user?.accountType??''}');
   }
 
   @override
@@ -232,7 +231,8 @@ class _FeedCardState extends State<FeedCard> {
     Get.find<FeedController>().savePostToLocalDB(
         postId: _post?.id ?? '0',
         type: widget.postFilteredType,
-        sortBy: widget.sortBy);
+        sortBy: widget.sortBy
+    );
   }
 
   Future<void> _onShareButtonPressed() async {

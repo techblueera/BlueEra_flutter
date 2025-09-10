@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -335,12 +336,24 @@ class _PersonalProfileSetupScreenState
                                               .followersCount.value
                                               .toString(),
                                           label: "Followers",
+                                          callback: (){
+                                            Get.to(()=> FollowersFollowingPage(
+                                              tabIndex: 1,
+                                              userID: userId,
+                                            ));
+                                          },
                                         ),
                                         StatBlock(
                                           count: viewProfileController
                                               .followingCount.value
                                               .toString(),
                                           label: "Following",
+                                          callback: (){
+                                            Get.to(()=> FollowersFollowingPage(
+                                              tabIndex: 0,
+                                              userID: userId,
+                                            ));
+                                          },
                                         ),
                                       ],
                                     ),

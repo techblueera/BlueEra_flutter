@@ -1,10 +1,11 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_users.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
 
 class TagUserController extends GetxController {
@@ -14,11 +15,15 @@ class TagUserController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString searchQuery = ''.obs;
   final int maxTagLimit = 6;
+  int page = 1;
+  int limit = 50;
+  RxBool isLoadingMore = false.obs;
+  RxBool isHasMoreData = true.obs;
 
   @override
   void onInit() {
     super.onInit();
-    fetchUsers();
+    fetchUsers(isInitialLoad: true);
     debounce(
       searchQuery,
       (_) => filterUsers(),
@@ -26,28 +31,55 @@ class TagUserController extends GetxController {
     );
   }
 
-  void fetchUsers() async {
-    final photoPostController = Get.isRegistered<PhotoPostController>()
-        ? Get.find<PhotoPostController>()
-        : Get.put(PhotoPostController());
-    isLoading.value = true;
+  void fetchUsers({bool isInitialLoad = false}) async {
+
+    if(isInitialLoad){
+      page = 1;
+      isHasMoreData.value = true;
+      isLoadingMore.value = true;
+      isLoadingMore.value = false;
+    }
+
+    Map<String, dynamic> params = {
+      ApiKeys.page: page,
+      ApiKeys.limit: limit,
+    };
+
+    if (isHasMoreData.isFalse || isLoadingMore.isTrue) return;
+
+    isLoadingMore.value = true;
+
     try {
-      ResponseModel response = await ChannelRepo().getAllUsers();
+      print('api call');
+      ResponseModel response = await UserRepo().getAllUsers(params: params);
 
       if (response.statusCode == 200) {
         GetAllUsers getAllUsers = GetAllUsers.fromJson(response.response?.data);
-        allUsers.value = getAllUsers.data;
+        List<UsersData> data = getAllUsers.data;
 
+        if (page == 1) {
+          allUsers.value = data;
+          filteredUsers.value = data;
+        }else{
+          allUsers.addAll(data);
+          allUsers.addAll(data);
+        }
 
-        if (photoPostController.isPhotoPostEdit) {
-          if (photoPostController
+        if (data.length < limit) {
+          isHasMoreData.value = false;
+        } else {
+          page++;
+        }
+
+        if (Get.find<PhotoPostController>().isPhotoPostEdit) {
+          if (Get.find<PhotoPostController>()
               .postData
               ?.value
               .taggedUsers
               ?.isNotEmpty ??
               false) {
             final taggedIds =
-                photoPostController.postData?.value.taggedUsers ??
+                Get.find<PhotoPostController>().postData?.value.taggedUsers ??
                     [];
 
             selectedUsers.value = allUsers.where((user) {
@@ -71,6 +103,7 @@ class TagUserController extends GetxController {
       print('Error fetching users: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
     }
   }
 

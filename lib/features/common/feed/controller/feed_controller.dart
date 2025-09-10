@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/all_like_users_list_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -8,7 +9,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/feed/hive_model/post_hive_model.dart';
+ 
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -25,6 +26,7 @@ class FeedController extends GetxController{
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse pollAnswerResponse = ApiResponse.initial('Initial');
   ApiResponse reportPostResponse = ApiResponse.initial('Initial');
+  ApiResponse allLikeUsersOfPostResponse = ApiResponse.initial('Initial');
   RxList<Post> allPosts = <Post>[].obs;
   RxList<Post> myPosts = <Post>[].obs;
   RxList<Post> otherPosts = <Post>[].obs;
@@ -36,7 +38,6 @@ class FeedController extends GetxController{
   RxBool isTargetHasMoreData = true.obs;
   RxBool isTargetMoreDataLoading = false.obs;
   int allPage = 1, myPage = 1, otherPage = 1, latestPostsPage = 1, popularPostsPage = 1, oldestPostsPage = 1;
-  int limit = 20;
   var postFilterType = "latest";
 
   // New variables for enhanced pagination
@@ -45,6 +46,8 @@ class FeedController extends GetxController{
   final int initialFetchLimit = 40;
   final int displayLimit = 20;
 
+  RxList<LikeUserData> allLikeUsersList = <LikeUserData>[].obs;
+  RxBool allLikeUsersListLoading = true.obs;
 
   /// Fetch posts based on filter
   Future<void> getPostsByType(
@@ -479,26 +482,114 @@ class FeedController extends GetxController{
   }
 
   /// Like/Unlike
-  Future<void> postLikeDislike({required String postId, required PostType type, SortBy? sortBy}) async {
+// Keep track of the pending API call per post
+  Map<String, Future<void>?> _pendingLikeCalls = {};
+
+// Keep track of the last intended state per post
+  Map<String, bool> _lastIntendedLikeState = {};
+
+  Future<void> postLikeDislike({
+    required String postId,
+    required PostType type,
+    SortBy? sortBy,
+  }) async {
     final list = getListByType(type);
     final index = list.indexWhere((p) => p.id == postId);
 
     if (index == -1) return;
 
+    final post = list[index];
+
+    // 🔹 Calculate new state
+    final newIsLiked = !(post.isLiked ?? false);
+    final newLikesCount = (post.likesCount ?? 0) + (newIsLiked ? 1 : -1);
+
+    // 🔹 Store the user's last intended state
+    _lastIntendedLikeState[postId] = newIsLiked;
+
+    // 🔹 Optimistic update instantly
+    list[index] = post.copyWith(
+      isLiked: newIsLiked,
+      likesCount: newLikesCount,
+    );
+
+    // 🔹 If there's already a pending call, just update the intended state and return
+    if (_pendingLikeCalls[postId] != null) {
+      return; // The pending call will check _lastIntendedLikeState before making API call
+    }
+
+    // 🔹 Start the debounced API call
+    _pendingLikeCalls[postId] = _debouncedApiCall(postId, list);
+  }
+
+  Future<void> _debouncedApiCall(String postId, List<dynamic> list) async {
+    // Wait for debounce period (let user finish rapid tapping)
+    await Future.delayed(const Duration(milliseconds: 400));
+
     try {
-      final response = await FeedRepo().likePost(postId: postId);
-      if (response.isSuccess) {
-        final post = list[index];
-        list[index] = post.copyWith(
-          isLiked: !(post.isLiked ?? false),
-          likesCount: (post.likesCount ?? 0) + ((post.isLiked ?? false) ? -1 : 1),
+      // 🔹 Get the user's FINAL intended state
+      final finalIntendedState = _lastIntendedLikeState[postId];
+      print('finalIntendedState -- > $finalIntendedState');
+      if (finalIntendedState == null) return;
+
+      // 🔹 Get current post to check if we need to make API call
+      final currentIndex = list.indexWhere((p) => p.id == postId);
+      if (currentIndex == -1) return;
+
+      final currentPost = list[currentIndex];
+      final currentLikeState = currentPost.isLiked ?? false;
+
+      // 🔹 Only make API call if the final intended state matches current UI state
+      if (currentLikeState == finalIntendedState) {
+        final response = await FeedRepo().likePost(
+          postId: postId,
         );
-        likeDislikeResponse = ApiResponse.complete(response);
-      } else {
-        likeDislikeResponse = ApiResponse.error('error');
+
+        if (response.isSuccess) {
+          likeDislikeResponse = ApiResponse.complete(response);
+
+          // 🔹 Optional: Update with server response to ensure consistency
+          if (response.data != null) {
+            final serverPost = response.data;
+            final finalIndex = list.indexWhere((p) => p.id == postId);
+            if (finalIndex != -1) {
+              list[finalIndex] = list[finalIndex].copyWith(
+                isLiked: serverPost.isLiked ?? finalIntendedState,
+                likesCount: serverPost.likesCount,
+              );
+            }
+          }
+        } else {
+          // 🔹 Revert optimistic update on API failure
+          _revertOptimisticUpdate(postId, list, finalIntendedState);
+          likeDislikeResponse = ApiResponse.error('Failed to update like status');
+        }
       }
-    } catch (_) {
-      likeDislikeResponse = ApiResponse.error('error');
+    } catch (e) {
+      // 🔹 Revert optimistic update on network error
+      final finalIntendedState = _lastIntendedLikeState[postId];
+      if (finalIntendedState != null) {
+        _revertOptimisticUpdate(postId, list, finalIntendedState);
+      }
+      likeDislikeResponse = ApiResponse.error('Network error occurred');
+    } finally {
+      // 🔹 Cleanup
+      _pendingLikeCalls[postId] = null;
+      _lastIntendedLikeState.remove(postId);
+    }
+  }
+
+  void _revertOptimisticUpdate(String postId, List<dynamic> list, bool intendedState) {
+    final currentIndex = list.indexWhere((p) => p.id == postId);
+    if (currentIndex != -1) {
+      final currentPost = list[currentIndex];
+      final revertedLikeState = !intendedState;
+      final revertedCount = (currentPost.likesCount ?? 0) + (intendedState ? -1 : 1);
+
+      list[currentIndex] = currentPost.copyWith(
+        isLiked: revertedLikeState,
+        likesCount: revertedCount,
+      );
     }
   }
 
@@ -561,7 +652,7 @@ class FeedController extends GetxController{
 
     try {
       final response = await AuthRepo().report(params: params);
-
+      Get.back();
       if (response.isSuccess) {
         reportPostResponse = ApiResponse.complete(response);
         if (index != -1) list.removeAt(index);
@@ -580,16 +671,12 @@ class FeedController extends GetxController{
                 ),
               ),
             ));
-
-        // final block = BlockUserResponse.fromJson(response.response?.data);
-        // commonSnackBar(message: block.message, isFromHomeScreen: true);
       } else {
         reportPostResponse = ApiResponse.error('error');
       }
     } catch (_) {
-      reportPostResponse = ApiResponse.error('error');
-    }finally{
       Get.back();
+      reportPostResponse = ApiResponse.error('error');
     }
   }
 
@@ -654,22 +741,21 @@ class FeedController extends GetxController{
       }else{
         await HiveServices().deletePostById(postId);
         list.removeAt(index);
-        list[index] = current.copyWith(isPostSavedLocal: !isSaved);
+        list[index] = current.copyWith(isPostSavedLocal: false);
       }
      // commonSnackBar(message: 'Post removed.');
     } else {
-      final hiveModel = PostHiveModel.fromJson(current.toJson());
-      await HiveServices().savePost(hiveModel);
-      list[index] = current.copyWith(isPostSavedLocal: isSaved);
-     // commonSnackBar(message: 'Post saved.');
+      await HiveServices().savePostJson(current);
+      list[index] = current.copyWith(isPostSavedLocal: true);
+      // commonSnackBar(message: 'Post saved.');
     }
   }
 
   /// Get All Saved Posts
   void getAllSavedPost() {
     savedPosts.clear();
-    List<PostHiveModel> savedPostModels = HiveServices().getAllSavedPosts();
-    savedPosts.addAll(savedPostModels.map((e) => e.toPost()));
+    List<Post> savedPostModels = HiveServices().getAllSavedPosts();
+    savedPosts.addAll(savedPostModels);
   }
 
   /// LocalSearch
@@ -703,7 +789,33 @@ class FeedController extends GetxController{
     list[postIndex] = post.copyWith(
       commentsCount: newCommentCount,
     );
+  }
 
+  /// Like/Unlike
+  Future<void> getAllLikesUser({required String postId, bool isInitialLoading = false}) async {
+
+    if(isInitialLoading){
+      allLikeUsersListLoading.value = true;
+    }
+
+    try {
+
+      allLikeUsersList.clear();
+      final response = await FeedRepo().allLikesOfPost(postId: postId);
+      if (response.isSuccess) {
+        allLikeUsersOfPostResponse = ApiResponse.complete(response);
+        AllLikeUsersListModel allLikeUsersListModel = AllLikeUsersListModel.fromJson(response.response?.data);
+        allLikeUsersList.value = allLikeUsersListModel.data ?? [];
+      } else {
+        allLikeUsersOfPostResponse = ApiResponse.error('error');
+        commonSnackBar(message: response.message);
+      }
+    } catch (e) {
+      allLikeUsersOfPostResponse = ApiResponse.error('error');
+      commonSnackBar(message: e.toString());
+    }finally{
+      allLikeUsersListLoading.value = false;
+    }
   }
 
 }

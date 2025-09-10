@@ -7,42 +7,45 @@ import 'package:get/get.dart';
 class FollowerController extends GetxController {
   Rx<ApiResponse> followerResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> followingResponse = ApiResponse.initial('Initial').obs;
-  RxList<FollowFollowingData>? followerList = <FollowFollowingData>[].obs;
-  RxList<FollowFollowingData>? followingList = <FollowFollowingData>[].obs;
+  RxList<FollowerData> followerList = <FollowerData>[].obs;
+  RxList<FollowingData> followingList = <FollowingData>[].obs;
+
+  RxBool isFollowerLoading = true.obs;
+  RxBool isFollowingLoading = true.obs;
 
   ///GET CHANNEL DETAILS...
   Future<void> getFollowerController({required String userID}) async {
+
     try {
-      followerList?.clear();
-      ResponseModel response =
-          await FollowerRepo().getFollowerList(userId: userID);
+      ResponseModel response = await FollowerRepo().getFollowerList(userId: userID);
 
       if (response.isSuccess) {
-        FollowFollowingResModel followerResModel =
-            FollowFollowingResModel.fromJson(response.response?.data);
-        followerList?.addAll(followerResModel.data ?? []);
         followerResponse.value = ApiResponse.complete(response);
+        FollowerResModel followerResModel = FollowerResModel.fromJson(response.response?.data);
+        followerList.value = followerResModel.data ?? [];
       }
     } catch (e) {
       followerResponse.value = ApiResponse.error('error');
+    }finally{
+      isFollowerLoading.value = false;
     }
   }
 
   ///GET CHANNEL DETAILS...
   Future<void> getFollowingController({required String userID}) async {
     try {
-      followingList?.clear();
-      ResponseModel response =
-          await FollowerRepo().getFollowingList(userId: userID);
+      ResponseModel response = await FollowerRepo().getFollowingList(userId: userID);
 
       if (response.isSuccess) {
-        FollowFollowingResModel followerResModel =
-            FollowFollowingResModel.fromJson(response.response?.data);
-        followingList?.addAll(followerResModel.data ?? []);
         followingResponse.value = ApiResponse.complete(response);
+        FollowingResModel followingResModel = FollowingResModel.fromJson(response.response?.data);
+        followingList.value = followingResModel.data ?? [];
       }
-    } catch (e) {
+    } catch (e, s) {
+      print('s-- $s');
       followingResponse.value = ApiResponse.error('error');
+    } finally{
+      isFollowingLoading.value = false;
     }
   }
 }

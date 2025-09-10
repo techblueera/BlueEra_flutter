@@ -324,4 +324,5 @@ class ApiKeys {
   static const reportCase = "report_case";
   static const contentId = "content_id";
   static const reportedTo = "reported_to";
+  static const visibilityDuration = "visibility_duration";
 }

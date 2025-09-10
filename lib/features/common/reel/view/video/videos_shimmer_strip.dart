@@ -8,80 +8,78 @@ class VideosShimmerStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            // Cover image placeholder
-            Container(
+    return Container(
+      margin: EdgeInsets.all(SizeConfig.size15),
+      child: Column(
+        children: [
+          // Cover image placeholder
+          Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
               width: SizeConfig.screenWidth,
               height: SizeConfig.size170,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(8)),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
             ),
-            // Meta row (avatar + texts)
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size15, horizontal: SizeConfig.size10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar circle
-                  Container(
+          ),
+
+          // Meta row (avatar + texts)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: SizeConfig.size15,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Avatar circle
+                Shimmer.fromColors(
+                  baseColor: Colors.grey.shade300,
+                  highlightColor: Colors.grey.shade100,
+                  child: Container(
                     width: SizeConfig.size34,
                     height: SizeConfig.size34,
                     decoration: const BoxDecoration(
-                      color: AppColors.white,
+                      color: Colors.white,
                       shape: BoxShape.circle,
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size8),
-                  // Title + 3 lines
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: SizeConfig.size14,
-                          color: AppColors.white,
-                        ),
-                        SizedBox(height: SizeConfig.size4),
-                        Container(
-                          width: SizeConfig.screenWidth * .4,
-                          height: SizeConfig.size12,
-                          color: AppColors.white,
-                        ),
-                        SizedBox(height: SizeConfig.size4),
-                        Container(
-                          width: SizeConfig.screenWidth * .25,
-                          height: SizeConfig.size12,
-                          color: AppColors.white,
-                        ),
-                      ],
-                    ),
+                ),
+                SizedBox(width: SizeConfig.size8),
+
+                // Title + 3 lines
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      shimmerBox(double.infinity, SizeConfig.size20),
+                      SizedBox(height: SizeConfig.size4),
+                      shimmerBox(SizeConfig.screenWidth * .4, SizeConfig.size12),
+                      SizedBox(height: SizeConfig.size4),
+                    ],
                   ),
-                  // Menu icon
-                  Container(
-                    width: SizeConfig.size18,
-                    height: SizeConfig.size18,
-                    color: AppColors.white,
-                  ),
-                ],
-              ),
+                ),
+
+                // Menu icon
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Small helper to reduce repetition
+  Widget shimmerBox(double width, double height) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        width: width,
+        height: height,
+        color: Colors.white,
       ),
     );
   }

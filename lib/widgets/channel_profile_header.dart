@@ -60,7 +60,7 @@ class ChannelProfileHeader extends StatelessWidget {
                   );
                 },
             child: CachedAvatarWidget(
-                imageUrl: imageUrl, size: avatarSize, borderColor: borderColor,borderRadius: 25,),
+                imageUrl: imageUrl, size: avatarSize, borderColor: borderColor,borderRadius: 25),
           ),
           SizedBox(width: SizeConfig.size8),
           Expanded(

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -12,6 +13,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -39,18 +41,8 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
   final controller = Get.put(PhotoPostController());
   final tagUserController = Get.put(TagUserController());
 
-  // TagUserController tagUserController = Get.put(TagUserController());
-
-  @override
-  void dispose() {
-    Get.delete<PhotoPostController>();
-    Get.delete<TagUserController>();
-    super.dispose();
-  }
-
   @override
   void initState() {
-    // TODO: implement initState
     controller.isPhotoPostEdit = widget.isEdit;
     logs("controller.isPhotoPostEdit==== ${controller.isPhotoPostEdit}");
     if (widget.isEdit) {
@@ -60,6 +52,14 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
       controller.natureOfPostTextEdit.text = widget.post?.natureOfPost ?? "";
     }
     super.initState();
+  }
+
+
+  @override
+  void dispose() {
+    Get.delete<PhotoPostController>();
+    Get.delete<TagUserController>();
+    super.dispose();
   }
 
   @override
@@ -86,8 +86,24 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText('Upload Photos',
-                      fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText('Upload Photos',
+                          fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+
+                      Obx(()=> controller.selectedPhotos.isNotEmpty ?
+                      InkWell(
+                        onTap: ()=> controller.updatePhotoAfterEditing(),
+                        child: CustomText(
+                            'Edit',
+                            color: AppColors.primaryColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w600),
+                      ) : SizedBox())
+
+                    ],
+                  ),
                   SizedBox(height: SizeConfig.size16),
                   _buildPhotoUploadSection(),
                   (!controller.isPhotoPostEdit)
@@ -99,7 +115,12 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size24),
                   _buildTagPeopleSection(),
-                  // SizedBox(height: SizeConfig.size24),
+
+                  // _buildAddSongSection(),
+                  // SizedBox(height: SizeConfig.size5),
+                  // _buildSymbolDurationSection(),
+
+                  SizedBox(height: SizeConfig.size15),
                   _buildNatureOfPostSection(),
                   SizedBox(height: SizeConfig.size32),
                   _buildContinueButton(),
@@ -299,6 +320,133 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
         SizedBox(height: SizeConfig.size15),
       ],
     );
+  }
+
+  Widget _buildAddSongSection(){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Add Tag People / Organization button
+        GestureDetector(
+          onTap: () async {
+            final result = await Navigator.pushNamed(
+              context,
+              RouteHelper.getGetAllSongsScreenRoute(),
+              arguments: {
+                ApiKeys.videoPath: 'widget.videoPath',
+              },
+            ) as Map<String, dynamic>?;
+
+            if (result != null && result.isNotEmpty) {
+              setState(() {
+                controller.songData = result;
+              });
+              log("songData--> ${controller.songData}");
+            }
+          },
+          child: Row(
+            children: [
+              LocalAssets(
+                imagePath: AppIconAssets.addBlueIcon,
+                imgColor: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size4),
+              CustomText(
+                'Add Song',
+                color: AppColors.primaryColor,
+                fontSize: SizeConfig.large,
+              ),
+            ],
+          ),
+        ),
+
+        // Selected users chips
+        Obx(() => tagUserController.selectedUsers.isNotEmpty
+            ? Padding(
+          padding: EdgeInsets.only(top: SizeConfig.size16),
+          child: Wrap(
+            children: tagUserController.selectedUsers
+                .map((user) => UserChip(
+              user: user,
+              onRemove: () =>
+                  tagUserController.removeSelectedUser(user),
+            ))
+                .toList(),
+          ),
+        )
+            : const SizedBox.shrink()),
+
+        SizedBox(height: SizeConfig.size15),
+      ],
+    );
+  }
+
+  Widget _buildSymbolDurationSection() {
+    return Obx(() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          CustomText(
+            "How long should we show this symbol?",
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w500,
+            color: AppColors.black,
+          ),
+          const SizedBox(height: 8),
+
+          // 1. 24 hours
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                   CustomText("1.  ",color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large),
+                  CustomText("24 hours",
+                      color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large
+                  ),
+                ],
+              ),
+              Checkbox(
+                value: controller.selected.value == SymbolDuration.hours24,
+                onChanged: (_) => controller.select(SymbolDuration.hours24),
+                activeColor: AppColors.primaryColor,
+                checkColor: AppColors.white,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                visualDensity: VisualDensity.compact,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0))
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 4),
+
+          // 2. 7 days
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  CustomText("2.  ", color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large),
+                  CustomText("7 days",
+                      color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large
+                  ),
+                ],
+              ),
+              Checkbox(
+                value: controller.selected.value == SymbolDuration.days7,
+                onChanged: (_) => controller.select(SymbolDuration.days7),
+                activeColor: AppColors.primaryColor,
+                checkColor: AppColors.white,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                visualDensity: VisualDensity.compact,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0))
+              ),
+            ],
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildNatureOfPostSection() {

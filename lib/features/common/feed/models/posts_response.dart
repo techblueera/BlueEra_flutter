@@ -1,5 +1,3 @@
-import 'package:BlueEra/features/common/feed/hive_model/post_hive_model.dart';
-
 class PostResponse {
   final bool success;
   final String? message;
@@ -477,65 +475,3 @@ class Pagination {
   }
 }
 
-extension PostHiveMapper on PostHiveModel {
-  Post toPost() {
-    return Post(
-      id: id,
-      authorId: authorId,
-      message: message,
-      location: location,
-      latitude: latitude,
-      longitude: longitude,
-      title: title,
-      subTitle: subTitle,
-      type: type,
-      natureOfPost: natureOfPost,
-      referenceLink: referenceLink,
-      commentsCount: commentsCount,
-      likesCount: likesCount,
-      repostCount: repostCount,
-      viewsCount: viewsCount,
-      sharesCount: sharesCount,
-      totalEngagement: totalEngagement,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      quesOptions: quesOptions,
-      taggedUsers: taggedUsers != null
-          ? taggedUsers!.map((u) => User(
-        username: u.username,
-        profileImage: u.profileImage,
-        designation: u.designation,
-        accountType: u.accountType,
-        name: u.name,
-        businessName: u.businessName,
-      )).toList()
-          : null,
-      media: media,
-      isLiked: isLiked,
-      poll: poll != null
-          ? Poll(
-        question: poll!.question,
-        options: poll!.options
-            .map((o) => PollOption(
-          text: o.text,
-          isCorrect: o.isCorrect,
-          votes: o.votes,
-        ))
-            .toList(),
-      )
-          : null,
-      user: user != null
-          ? User(
-        username: user!.username,
-        profileImage: user!.profileImage,
-        designation: user!.designation,
-        accountType: user!.accountType,
-        name: user!.name,
-        businessName: user!.businessName,
-      )
-          : null,
-      isPostSavedLocal: isPostSavedLocal
-    );
-  }
-
-}

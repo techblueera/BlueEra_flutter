@@ -25,6 +25,7 @@ class CommentController extends GetxController {
   RxBool isLoading = true.obs;
   RxnString replyingToUser = RxnString();
   RxInt totalCommentCount = 0.obs;
+  RxBool isSendCommentLoading = false.obs;
 
   // ValueNotifier<int> commentCount = ValueNotifier<int>(0);
 
@@ -73,6 +74,9 @@ class CommentController extends GetxController {
   ///Add Posts Comments...
   Future<void> addPostComment(
       {required Map<String, dynamic> params, required String postId}) async {
+
+    isSendCommentLoading.value = true;
+
     try {
       final response = await CommentRepo().addComment(params: params);
 
@@ -91,7 +95,7 @@ class CommentController extends GetxController {
       addCommentsResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      isLoading.value = false;
+      isSendCommentLoading.value = false;
     }
   }
 
@@ -184,6 +188,8 @@ class CommentController extends GetxController {
   ///Add Video Comments...
   Future<void> addVideoComment(
       {required Map<String, dynamic> params, required String videoId}) async {
+    isSendCommentLoading.value = true;
+
     try {
       final response = await CommentRepo().addVideoComment(params: params);
 
@@ -202,7 +208,7 @@ class CommentController extends GetxController {
       addCommentsResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      isLoading.value = false;
+      isSendCommentLoading.value = false;
     }
   }
 

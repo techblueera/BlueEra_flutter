@@ -42,6 +42,9 @@ class AppConstants {
       "https://play.google.com/store/apps/details?id=$androidPackageName";
   static const String iosAppStoreUrl =
       "https://apps.apple.com/us/app/id$iosAppId";
+  static const String restApiKey = "a6f5ddfd96e84ced3f33a8a3cafdb19c";
+  static const String atlasClientId = "96dHZVzsAuvBjpRKk-XkdFPxMu6nuV_ogPhzHpnmnZbB_eW36B2pVC_mEz-N8dBhlKCLJ0ywLeDEfzlAB0sUDdrdDIdOLSmz";
+  static const String atlasClientSecret = "lrFxI-iSEg-L0_lxA1gBnHlNVhgrO4gVhgfaG2JLq1HCR6kyMOTRZMc8_YcuTqdzn3I09RWsahz1OMwDOnJh55yHytA5u9FOprqt6OhzqY8=";
   static const String prod = 'production';
   static const String qa = 'QA';
   static const String dev = 'Dev';

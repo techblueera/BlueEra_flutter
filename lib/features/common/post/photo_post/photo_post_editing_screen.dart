@@ -1,88 +1,81 @@
+import 'dart:developer';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/photo_post/single_photo_post_editing_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PhotoPostEditingScreen extends StatefulWidget {
-  List<String> images;
-
-  PhotoPostEditingScreen({
-    Key? key,
-    required this.images,
-  }) : super(key: key);
+  PhotoPostEditingScreen({Key? key}) : super(key: key);
 
   @override
   State<PhotoPostEditingScreen> createState() => _PhotoPostEditingScreenState();
 }
 
 class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
+  final PhotoPostController photoPostController = Get.find<PhotoPostController>();
+  final CarouselSliderController _carouselController = CarouselSliderController();
+
   int _selectedFilterIndex = 0;
   String _selectedAspect = 'Portrait';
   int maxPhotos = 5;
 
-  // Sample filter data
+  List<String> selectedPhotos = [];
+  List<GlobalKey> _imageKeys = [];
+
   final List<Map<String, dynamic>> _filters = [
     {'name': 'Original', 'color': Colors.transparent},
-
-    // Classic
     {'name': 'B&W', 'color': Colors.grey},
-    {'name': 'Sepia', 'color': const Color(0xFF704214)}, // warm brown
+    {'name': 'Sepia', 'color': const Color(0xFF704214)},
     {'name': 'Vintage', 'color': Colors.brown},
-
-    // Warm tones
     {'name': 'Warm', 'color': Colors.orange},
     {'name': 'Sunset', 'color': Colors.deepOrangeAccent},
     {'name': 'Golden', 'color': Colors.amber},
-
-    // Cool tones
     {'name': 'Cool', 'color': Colors.blue},
     {'name': 'Ocean', 'color': Colors.teal},
     {'name': 'Frost', 'color': Colors.cyanAccent},
-
-    // Bright & vibrant
     {'name': 'Bright', 'color': Colors.yellow},
     {'name': 'Neon', 'color': Colors.pinkAccent},
     {'name': 'Lively', 'color': Colors.greenAccent},
-
-    // Moody
     {'name': 'Dark', 'color': Colors.black54},
     {'name': 'Matte', 'color': const Color(0xFF2E2E2E)},
     {'name': 'Drama', 'color': Colors.indigo},
-
-    // Artistic
     {'name': 'Pastel', 'color': Colors.purpleAccent},
     {'name': 'Dreamy', 'color': Colors.lightBlueAccent},
     {'name': 'Cinematic', 'color': Colors.deepPurple},
   ];
 
-
   @override
   void initState() {
+    selectedPhotos = List.from(photoPostController.selectedPhotos);
+    _imageKeys = List.generate(selectedPhotos.length, (_) => GlobalKey());
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: 'Edit Photo'
-      ),
+          title: 'Edit Photo',
+          isLeading: true,
+          onBackTap: () {
+            HapticFeedback.lightImpact();
+            Navigator.pop(context, selectedPhotos);
+          }),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.only(
@@ -99,31 +92,15 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
             ),
             child: Column(
               children: [
-                // Image Carousel Section
                 _buildImageCarousel(),
-
-                // Add More Button
-                if (widget.images.isNotEmpty &&
-                    widget.images.length < maxPhotos)
-                _buildAddMoreButton()
+                if (selectedPhotos.isNotEmpty && selectedPhotos.length < maxPhotos)
+                  _buildAddMoreButton()
                 else
-                  SizedBox(
-                    height: SizeConfig.size25,
-                  ),
-
-                // Filter Thumbnails
+                  SizedBox(height: SizeConfig.size25),
                 _buildFilterThumbnails(),
-
-                // Action Buttons
-                // _buildActionButtons(),
-
                 SizedBox(height: SizeConfig.size10),
-
-                // Continue Button
                 _buildContinueButton(),
-
                 SizedBox(height: SizeConfig.size10),
-
               ],
             ),
           ),
@@ -135,98 +112,101 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
   Widget _buildImageCarousel() {
     final double viewportFraction = _selectedAspect == 'Square' ? 0.8 : 0.6;
 
-    return Stack(
-      children: [
-        CarouselSlider.builder(
-          itemCount: widget.images.length,
-          options: CarouselOptions(
-            viewportFraction: viewportFraction,
-            enlargeCenterPage: true,
-            enableInfiniteScroll: false,
-            aspectRatio: 1.1
-          ),
-          itemBuilder: (context, index, realIdx) {
-            final double aspectRatio = _selectedAspect == 'Square' ? 1.0 : 3/4; // 1:1 or 3:4
-
-
-            return Center(
-              child: Stack(
-                children: [
-                  InkWell(
-                    onTap:() async {
-                      String? editedImages = await Get.to(()=> SinglePhotoPostEditingScreen(photo: File(widget.images[index])));
-                      if(editedImages!=null) {
-                        setState(() {
-                          widget.images[index] = editedImages;
-                        });
-                      }
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: AppColors.whiteFE,
-                          borderRadius: BorderRadius.circular(12.0),
-                          border: Border.all(color: AppColors.mainTextColor.withValues(alpha: 0.5), width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                                blurRadius: 2.0,
-                                offset: Offset(0, 1),
-                                color: Color(0x14000000)
-                            )
-                          ]
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(_filters[_selectedFilterIndex]['color'], BlendMode.overlay),
-                          child: Image.file(
-                            File(widget.images[index]),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
+    return CarouselSlider.builder(
+      carouselController: _carouselController,
+      itemCount: selectedPhotos.length,
+      options: CarouselOptions(
+        viewportFraction: viewportFraction,
+        enlargeCenterPage: true,
+        enableInfiniteScroll: false,
+        aspectRatio: 1.1,
+      ),
+      itemBuilder: (context, index, realIdx) {
+        return Center(
+          child: Stack(
+            children: [
+              InkWell(
+                onTap: () async {
+                  String? editedImage = await Get.to(() =>
+                      SinglePhotoPostEditingScreen(photo: File(selectedPhotos[index])));
+                  if (editedImage != null) {
+                    setState(() {
+                      selectedPhotos[index] = editedImage;
+                    });
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.whiteFE,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                        color: AppColors.mainTextColor.withValues(alpha: 0.5), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                          blurRadius: 2.0, offset: Offset(0, 1), color: Color(0x14000000))
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child:
+                    (_selectedFilterIndex == 0) ?
+                    Image.file(
+                      File(photoPostController.originalPhotos[index]),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ) :
+                    RepaintBoundary(
+                      key: _imageKeys[index],
+                      child: ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          _filters[_selectedFilterIndex]['color'],
+                          BlendMode.overlay,
+                        ),
+                        child: Image.file(
+                          File(selectedPhotos[index]),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
                         ),
                       ),
                     ),
                   ),
-
-                  // --- Close button --------------------------
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: InkWell(
-                      onTap: (){
-                        widget.images.removeAt(index);
-                        if(widget.images.length == 0){
-                          Navigator.pop(context);
-                          return;
-                        }
-                        setState(() {});
-                      },
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.mainTextColor.withValues(alpha: 0.8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.close,
-                            color: Colors.white, size: 18),
-                      ),
-                    ),
-                  ),
-
-                  // --- Crop button ---------------------------
-                  Positioned(
-                    bottom: 6,
-                    right: 6,
-                    child: _photoPhotoPopUpMenu(),
-                  ),
-                ],
+                ),
               ),
-            );
-          },
-        ),
-      ],
+              Positioned(
+                top: 12,
+                right: 12,
+                child: InkWell(
+                  onTap: () {
+                    selectedPhotos.removeAt(index);
+                    photoPostController.originalPhotos.removeAt(index);
+                    _imageKeys.removeAt(index);
+                    if (selectedPhotos.isEmpty) {
+                      Navigator.pop(context);
+                      return;
+                    }
+                    setState(() {});
+                  },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.mainTextColor.withValues(alpha: 0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close, color: Colors.white, size: 18),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 6,
+                right: 6,
+                child: _photoPhotoPopUpMenu(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -237,18 +217,13 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
         children: [
           TextButton(
             onPressed: () {
-              // Handle add more images
               HapticFeedback.lightImpact();
               addPhotos();
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.add,
-                  color: Colors.blue[600],
-                  size: 18,
-                ),
+                Icon(Icons.add, color: Colors.blue[600], size: 18),
                 const SizedBox(width: 6),
                 Text(
                   'Add More',
@@ -278,7 +253,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
           return FittedBox(
             fit: BoxFit.scaleDown,
             child: Padding(
-              padding:  const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.only(right: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -292,7 +267,6 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                     child: Container(
                       width: SizeConfig.size50,
                       height: SizeConfig.size50,
-                      // margin: const EdgeInsets.only(right: 12),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: isSelected
@@ -305,7 +279,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                           fit: StackFit.expand,
                           children: [
                             Image.file(
-                              File(widget.images[0]), // Use first image for preview
+                              File(selectedPhotos[0]),
                               fit: BoxFit.cover,
                             ),
                             if (index > 0)
@@ -340,86 +314,21 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
     );
   }
 
-
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size30, horizontal: SizeConfig.size15),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildActionButton(
-            icon: Icons.auto_awesome_outlined,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // Handle enhance
-            },
-          ),
-          SizedBox(width: SizeConfig.size10),
-          _buildActionButton(
-            icon: Icons.music_note_outlined,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // Handle music
-            },
-          ),
-          SizedBox(width: SizeConfig.size10),
-          _buildActionButton(
-            icon: Icons.file_download_outlined,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // Handle download
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: SizeConfig.size40,
-          decoration: BoxDecoration(
-            color: AppColors.whiteFE,
-            borderRadius: BorderRadius.circular(4.0),
-            border: Border.all(color: AppColors.greyE5, width: 1),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 2.0,
-                offset: Offset(0, 1),
-                color: Color(0x14000000)
-              )
-            ]
-          ),
-          child: Icon(
-            icon,
-            color: Colors.black87,
-            size: 24,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildContinueButton() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
       child: PositiveCustomBtn(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            Navigator.pop(context, widget.images);
-          },
-          title: "Continue"),
+        onTap: () async {
+          HapticFeedback.lightImpact();
+          final filteredFiles = await exportAllFilteredPhotos();
+          Navigator.pop(context, filteredFiles.map((f) => f.path).toList());
+        },
+        title: "Continue",
+      ),
     );
-
   }
 
-   PopupMenuButton _photoPhotoPopUpMenu() {
+  PopupMenuButton _photoPhotoPopUpMenu() {
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
       offset: const Offset(-6, 36),
@@ -428,22 +337,17 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       onSelected: (value) async {
         setState(() {
-          _selectedAspect = value; // update carousel viewportFraction
+          _selectedAspect = value;
         });
       },
       icon: Container(
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: AppColors.mainTextColor.withValues(alpha: 0.8),
-          shape: BoxShape.circle
-        ),
+            color: AppColors.mainTextColor.withValues(alpha: 0.8),
+            shape: BoxShape.circle),
         alignment: Alignment.center,
-        child: const Icon(
-            Icons.crop,
-            color: Colors.white,
-            size: 18
-        ),
+        child: const Icon(Icons.crop, color: Colors.white, size: 18),
       ),
       itemBuilder: (context) => photoPostMenuItems(),
     );
@@ -452,28 +356,62 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
   void addPhotos() async {
     final ImagePicker _picker = ImagePicker();
     final List<XFile>? images = await _picker.pickMultiImage();
-
     if (images == null || images.isEmpty) return;
 
-    int totalImage = widget.images.length + images.length;
-    // print('total images')
+    int totalImage = selectedPhotos.length + images.length;
     if (totalImage > maxPhotos) {
-      commonSnackBar(
-        message: 'You can only upload up to $maxPhotos photos',
-      );
-
+      commonSnackBar(message: 'You can only upload up to $maxPhotos photos');
       return;
     }
 
     for (final image in images) {
-
       final compressedFile = await SelectProfilePictureDialog.compressImage(File(image.path));
-
-      if (compressedFile != null) widget.images.add(compressedFile.path);
-
+      if (compressedFile != null) {
+        selectedPhotos.add(compressedFile.path);
+        photoPostController.originalPhotos.add(compressedFile.path);
+        _imageKeys.add(GlobalKey());
+      }
     }
-
     setState(() {});
   }
 
+  Future<List<File>> exportAllFilteredPhotos() async {
+    List<File> exported = [];
+    log('image lengt--- ${_imageKeys.length}');
+
+    for (int i = 0; i < _imageKeys.length; i++) {
+      // Animate carousel to ensure RepaintBoundary is mounted
+      _carouselController.animateToPage(i,
+          duration: const Duration(milliseconds: 220), curve: Curves.easeInOut);
+
+      await Future.delayed(const Duration(milliseconds: 300));
+      final file = await _exportFilteredPhoto(_imageKeys[i], i);
+      if (file != null) exported.add(file);
+    }
+
+    log('exported--- ${exported.length}');
+    return exported;
+  }
+
+  Future<File?> _exportFilteredPhoto(GlobalKey key, int index) async {
+    try {
+      final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return null;
+
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) return null;
+
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+      final dir = await getTemporaryDirectory();
+      final file =
+      File('${dir.path}/filtered_${DateTime.now().millisecondsSinceEpoch}_$index.png');
+      await file.writeAsBytes(pngBytes);
+
+      return file;
+    } catch (e) {
+      print("Error exporting image $index: $e");
+      return null;
+    }
+  }
 }

@@ -576,6 +576,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                 (commentController.sendMessageController.text.isNotEmpty) ?
                 InkWell(
                   onTap: () {
+                    if (commentController.isSendCommentLoading.isTrue) return;
+
                     if (commentController
                         .sendMessageController.value.text.isNotEmpty) {
                       // Use appropriate add comment method based on comment type
@@ -591,7 +593,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     decoration: BoxDecoration(
                         color: Colors.blue,
                         borderRadius: BorderRadius.circular(18)),
-                    child: LocalAssets(
+                    child: commentController.isSendCommentLoading.isTrue
+                        ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                        : LocalAssets(
                         height: 21,
                         width: 21,
                         imagePath: AppIconAssets.send_message_chat),
@@ -631,12 +642,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     if (commentController.sendMessageController.value.text.isNotEmpty) {
       Map<String, dynamic> params = {
         ApiKeys.videoId: widget.id,
-        // Note: Using post_id as per your existing video comment structure
         ApiKeys.content: "${commentController.sendMessageController.text}",
       };
       if (commentController.parentCommentId != null)
         params[ApiKeys.parentId] = commentController.parentCommentId;
-      commentController.addVideoComment(params: params, videoId: widget.id);
+        commentController.addVideoComment(params: params, videoId: widget.id);
     }
   }
 
