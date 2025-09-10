@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/photo_post_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -16,12 +17,15 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
+
 class MessagePostController extends GetxController {
   /// ADD MSG POST
   Rx<ApiResponse> addPostMessage = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> editPostMessage = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deletePostMessage = ApiResponse.initial('Initial').obs;
-  RxString selectedBgImage = ''.obs, selectedFontFamily = ''.obs,uploadMsgPostUrl="".obs;
+  RxString selectedBgImage = ''.obs,
+      selectedFontFamily = ''.obs,
+      uploadMsgPostUrl = "".obs;
   RxBool isLoading = false.obs;
 
   Rx<Color> selectedColor = Colors.white.obs;
@@ -47,26 +51,31 @@ class MessagePostController extends GetxController {
   RxBool isCursorHide = true.obs;
   String? postId;
   final RxList<String> selectedPhotos = <String>[].obs;
-  final RxList<File> selectedPhotoFiles = <File>[].obs;
   final int maxPhotos = 5; // Updated to 5 as per requirement
   final int minPhotos = 1; // Minimum 1 photo required
   bool isPhotoPostEdit = false;
 
   ///ADD MESSAGE POST...
-  Future<void> addMsgPostController(
-      {required Map<String, dynamic>? bodyReq,}) async {
-
+  Future<void> addMsgPostController({
+    required Map<String, dynamic>? bodyReq,
+  }) async {
     try {
       ResponseModel responseModel = isMsgPostEdit
-          ? await PostRepo()
-              .updatePostRepo(postId: postId ,bodyReq: bodyReq, isMultiPartPost: true,)
-          : await PostRepo()
-              .addPostRepo(bodyReq: bodyReq, isMultiPartPost: true,);
+          ? await PostRepo().updatePostRepo(
+              postId: postId,
+              bodyReq: bodyReq,
+              isMultiPartPost: true,
+            )
+          : await PostRepo().addPostRepo(
+              bodyReq: bodyReq,
+              isMultiPartPost: true,
+            );
       final data = responseModel.response?.data;
       clearData();
       if (responseModel.isSuccess) {
         commonSnackBar(message: data['message'] ?? AppStrings.success);
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = true;
+        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+            true;
         Get.until((route) =>
             route.settings.name ==
             RouteHelper.getBottomNavigationBarScreenRoute());
@@ -81,19 +90,21 @@ class MessagePostController extends GetxController {
     }
   }
 
-
   ///ADD MESSAGE POST...
-  Future<void> addMsgPostControllerNew(
-      {required dioObj.FormData bodyReq,}) async {
-
+  Future<void> addMsgPostControllerNew({
+    required dioObj.FormData bodyReq,
+  }) async {
     try {
-      ResponseModel responseModel = await PostRepo()
-              .addPostNewRepo(formData: bodyReq, isMultiPartPost: true,);
+      ResponseModel responseModel = await PostRepo().addPostNewRepo(
+        formData: bodyReq,
+        isMultiPartPost: true,
+      );
       final data = responseModel.response?.data;
       clearData();
       if (responseModel.isSuccess) {
         commonSnackBar(message: data['message'] ?? AppStrings.success);
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = true;
+        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+            true;
         Get.until((route) =>
             route.settings.name ==
             RouteHelper.getBottomNavigationBarScreenRoute());
@@ -130,37 +141,51 @@ class MessagePostController extends GetxController {
   final ImagePicker _picker = ImagePicker();
 
   void removePhoto(int index) {
-    if (index >= 0 && index < images.length) {
-      images.removeAt(index);
+    if (index >= 0 && index < imagesList.length) {
+      imagesList.removeAt(index);
       // images.removeAt(index);
     }
   }
+
   final Rx<PhotoPost> photoPost = PhotoPost(photoUrls: []).obs;
-
-
 
   ///new code
   final ImagePicker picker = ImagePicker();
 
   // Store up to 5 images
-  RxList<XFile> images = <XFile>[].obs;
+  RxList<MessagePostImageModel> imagesList = <MessagePostImageModel>[].obs;
 
   // Aspect ratio (default Square 1:1)
   RxDouble aspectRatio = 1.0.obs;
 
   Future<void> pickImage() async {
-    if (images.length >= 5) {
+    if (imagesList.length >= 5) {
       commonSnackBar(message: "Limit Reached You can select max 5 images");
       return;
     }
 
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      images.add(image);
+      imagesList.add(MessagePostImageModel(
+          id: 0,
+          imageFile: image,
+          imgCropMode:  AppConstants.Landscape));
     }
   }
+}
 
-  void setAspectRatio(double ratio) {
-    aspectRatio.value = ratio;
-  }
+class MessagePostImageModel {
+  final int? id;
+  final XFile? imageFile;
+  final String? imgWidth;
+  final String? imgHeight;
+  final String? imgCropMode;
+
+  MessagePostImageModel({
+    required this.id,
+    required this.imageFile,
+    this.imgWidth,
+    this.imgHeight,
+    this.imgCropMode,
+  });
 }

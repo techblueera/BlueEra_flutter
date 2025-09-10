@@ -32,7 +32,7 @@ class UserChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              user.name,
+              "@${user.name}",
               fontSize: SizeConfig.size14,
               color: Colors.black87,
             ),

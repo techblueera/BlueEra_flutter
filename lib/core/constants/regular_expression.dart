@@ -23,7 +23,11 @@ class RegularExpressionUtils {
   static final String date = r"[0-9a-zA-Z/,\- ]";
 
 }
-
+bool containsHttpButNotHttps(String text) {
+  // બધા http links શોધો
+  final httpRegex = RegExp(r'http:\/\/[^\s]+');
+  return httpRegex.hasMatch(text);
+}
 /// VALIDATION METHOD
 class ValidationMethod {
   /// EMAIL VALIDATION METHOD
