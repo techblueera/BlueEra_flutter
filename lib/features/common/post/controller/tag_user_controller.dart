@@ -32,6 +32,9 @@ class TagUserController extends GetxController {
   }
 
   void fetchUsers({bool isInitialLoad = false}) async {
+    final photoPostController = Get.isRegistered<PhotoPostController>()
+        ? Get.find<PhotoPostController>()
+        : Get.put(PhotoPostController());
 
     if(isInitialLoad){
       page = 1;
@@ -71,15 +74,15 @@ class TagUserController extends GetxController {
           page++;
         }
 
-        if (Get.find<PhotoPostController>().isPhotoPostEdit) {
-          if (Get.find<PhotoPostController>()
+        if (photoPostController.isPhotoPostEdit) {
+          if (photoPostController
               .postData
               ?.value
               .taggedUsers
               ?.isNotEmpty ??
               false) {
             final taggedIds =
-                Get.find<PhotoPostController>().postData?.value.taggedUsers ??
+                photoPostController.postData?.value.taggedUsers ??
                     [];
 
             selectedUsers.value = allUsers.where((user) {
