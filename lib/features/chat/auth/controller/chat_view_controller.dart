@@ -173,6 +173,7 @@ print('chatListEvent');
             GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent('messageReceived', (data) async {
+        log("ksdjcksjdcnskdc ${data}");
 
         final parsedData = GetListOfMessageData.fromJson(data);
         
@@ -241,8 +242,6 @@ print('chatListEvent');
         if (userOpenUserId.value == data['user_id']) {
           if (data['is_online']) {
             userOnlineStatus.value = "Online";
-          } else {
-            userOnlineStatus.value = "Offline";
           }
         } else {
           userOnlineStatus.value = "Offline";
@@ -429,19 +428,18 @@ print('chatListEvent');
       );
     }
   }
-
   Future<void> getLocalConversation(String conversationId, userId) async {
     final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
-    if (connectivityResult) {
-          print('Datadaaa$conversationId');
-      loadOfflineMessages(conversationId);
-    }
-    else if (openedConversation.contains(conversationId)) {
-      print('Datadaaa$conversationId');
-      loadOfflineMessages(conversationId);
-    }
-    else {
+    // if (connectivityResult) {
+    //       print('Datadaaa$conversationId');
+    //   loadOfflineMessages(conversationId);
+    // }
+    // else if (openedConversation.contains(conversationId)) {
+    //   print('Datadaaa$conversationId');
+    //   loadOfflineMessages(conversationId);
+    // }
+    // else {
           print('Datadaaa$conversationId');
       emitEvent("messageReceived", {
         ApiKeys.conversation_id: conversationId,
@@ -449,14 +447,14 @@ print('chatListEvent');
         ApiKeys.is_online_user: userId,
         ApiKeys.per_page_message: 30,
       });
-    }
+    // }
 
 
   }
 
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
-  print('messages${event == "ChatList" && isFromInitial != true}');
+  print('Chat Emitted Event - ${event} ${event == "ChatList" && isFromInitial != true}');
     if (event == "ChatList" && isFromInitial != true) {
       print("emitted");
       final connectivityResult = await NetworkUtils.isConnected();
@@ -473,7 +471,7 @@ print('chatListEvent');
     }
 
     if(event=="messageReceived"&&(conversationId??"")!=userOpenConversationId){
-      
+
 
       getListOfMessageResponse.value= ApiResponse.initial('Initial');
     }
@@ -742,6 +740,7 @@ print("MessageRespone:${responseModel.isSuccess}");
     }
     return null;
   }
+
 
   Future<bool> forwardMessageApi(
     Map<String, dynamic> params,

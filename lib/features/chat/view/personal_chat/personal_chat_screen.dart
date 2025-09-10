@@ -65,7 +65,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   @override
   void initState() {
-    print('lsdnvsl${widget.businessId}');
+
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatViewController.listenUserNewMessages(

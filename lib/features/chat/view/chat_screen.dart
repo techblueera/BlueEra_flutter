@@ -23,7 +23,6 @@ import '../auth/controller/chat_view_controller.dart';
 import '../auth/controller/group_chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
 import 'business_chat/business_chat_list.dart';
-import 'group_chat/group_chat_list.dart';
 
 class ChatMainScreen extends StatefulWidget {
   const ChatMainScreen(
@@ -57,10 +56,11 @@ class _ChatMainScreenState extends State<ChatMainScreen>
       chatViewController.socketConnected.value = false;
     }
     chatViewController.chatMainTabController = TabController(
-      length: 4,
+      length: 3,
       vsync: this,
       initialIndex: chatViewController.selectedChatTabIndex.value,
     );
+
     chatViewController.chatMainTabController.addListener(() {
       if (!chatViewController.chatMainTabController.indexIsChanging &&
           chatViewController.chatMainTabController.index ==
@@ -93,14 +93,17 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton:
+      (_isFromForward())?SizedBox():Padding(
+          padding: const EdgeInsets.only(bottom: 30.0),
+          child : FloatingActionButton(
         child: Icon(Icons.add),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         onPressed: () {
           Get.toNamed(RouteHelper.getChatContactsRoute());
         },
-      ),
+      )),
       bottomSheet: Padding(padding: EdgeInsets.only(bottom: 120.0)),
       body: SafeArea(
         child: Stack(
@@ -113,7 +116,11 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                   child: Row(
                     children: [
                       (_isFromForward())
-                          ? SizedBox()
+                          ? InkWell(
+                          onTap: (){
+                            Navigator.pop(context);
+                          },
+                          child: Icon(Icons.arrow_back_ios))
                           : Obx(() {
                               return CachedAvatarWidget(
                                   imageUrl:
@@ -310,6 +317,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
                           bool value =
                               await chatViewController.forwardMessageApi(data);
+                          print("dfncvkdjfvdf ${value}");
+
                           if (value) {
                             chatViewController.emitEvent(
                                 "ChatList", {ApiKeys.type: "personal"});

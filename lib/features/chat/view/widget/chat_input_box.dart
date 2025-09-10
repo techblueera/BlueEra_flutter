@@ -285,7 +285,6 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                           child: Row(crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-
                               Row(
                                 children: [
                                   InkWell(
@@ -520,8 +519,12 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                               }
                             } else {
                               if (isRecording) {
-                                submitRecordedAudio(recordedFilePath ?? "");
-                             
+                                await submitRecordedAudio(recordedFilePath ?? "");
+                                setState(() {
+                                  isRecording = false;
+                                  isReadyToSend = false;
+                                  isPaused = false;
+                                });
                               }
                             }
                           },

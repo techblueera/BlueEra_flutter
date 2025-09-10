@@ -84,7 +84,6 @@ class _MessageCardState extends State<MessageCard>
 
   @override
   Widget build(BuildContext context) {
-    print("converstionId:${widget.conversationId}");
     final theme = Theme.of(context);
 
     final text = widget.message.message ?? '';
@@ -92,7 +91,6 @@ class _MessageCardState extends State<MessageCard>
     bool isReceive;
 
     if (widget.message.myMessage != null) {
-      print("lastmsg${widget.message.message}");
       isReceive = !(widget.message.myMessage ?? true);
       print(
           'MessageCard: Using myMessage field - myMessage: ${widget.message.myMessage}, isReceive: $isReceive');
@@ -161,7 +159,7 @@ class _MessageCardState extends State<MessageCard>
         messageWidget = PdfPreviewCard(
           message: widget.message,
           chatThemeController: chatThemeController,
-          isMyMessage: !isReceive,
+          isMyMessage: isReceive,
           pdfUrl:
               '${(widget.message.url == null) ? widget.message.docFileName : widget.message.url?.first.url}',
           fileName:
@@ -247,7 +245,7 @@ class _MessageCardState extends State<MessageCard>
 
   Widget _buildReceivedMessage(
       Messages message, String text, String time, bool isReceive) {
-    print("hhhhhhhh$message,$text,$time,$isReceive");
+
     return MessageBubble(
       messages: message,
       message: text,

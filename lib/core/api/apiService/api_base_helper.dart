@@ -167,7 +167,7 @@ class ApiBaseHelper {
             formData.fields.add(MapEntry(key, value.toString()));
           }
         });
-
+        print("skdjcndskljcnsdkjcsd A");
         response = await baseAPI.post(
           url,
           data: formData,
@@ -177,6 +177,7 @@ class ApiBaseHelper {
           }),
         );
       } else if (isArrayReq) {
+        print("skdjcndskljcnsdkjcsd B");
         response = await baseAPI.post(
           url,
           data: params,
@@ -186,10 +187,14 @@ class ApiBaseHelper {
           onSendProgress: onSendProgress,
         );
       } else {
+        print("skdjcndskljcnsdkjcsd C ** ");
         response = await baseAPI.post(
           url,
           data: params,
           onSendProgress: onSendProgress,
+          options: Options(headers: {
+            'Content-Type': 'application/json',
+          }),
         );
       }
 
