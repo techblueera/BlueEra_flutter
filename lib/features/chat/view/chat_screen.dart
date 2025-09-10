@@ -70,10 +70,10 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         chatViewController.onSelectChatTab(index);
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
-        } else if (index == 1) {
+        }/* else if (index == 1) {
           groupChatViewController
               .emitEvent("ChatList", {ApiKeys.type: "group"});
-        } else if (index == 2) {
+        } */else if (index == 1) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
         }
       }
@@ -171,7 +171,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                             ),
                       (_isFromForward())
                           ? SizedBox()
-                          : PopupMenuButton<String>(
+                          : SizedBox()/*PopupMenuButton<String>(
                               icon: SvgPicture.asset(
                                 AppIconAssets.chat_info_more,
                                 color: Colors.black,
@@ -208,7 +208,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                                   child: Text("New Group"),
                                 ),
                               ],
-                            ),
+                            ),*/
                     ],
                   ),
                 ),
@@ -242,7 +242,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                       TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   tabs: [
                     Tab(text: "Personal"),
-                    Tab(text: "Group"),
+                    // Tab(text: "Group"),
                     Tab(text: "Business"),
                     Tab(text: "Orders"),
                   ],
@@ -255,7 +255,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                         PersonalChatsList(
                             isForwardUI: widget.isForwardUI,
                             isNewGroupUI: widget.isNewGroupUI),
-                        GroupChatList(),
+                        // GroupChatList(),
                         BusinessChatsList(
                           isForwardUI: widget.isForwardUI,
                           isNewGroupUI: widget.isNewGroupUI,

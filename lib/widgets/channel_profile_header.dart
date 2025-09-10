@@ -84,7 +84,7 @@ class ChannelProfileHeader extends StatelessWidget {
                           color: titleColor ?? AppColors.secondaryTextColor,
                         ),
                       ),
-                      if (userName != null || (userName?.isNotEmpty ?? false))
+                      if (userName != null && (userName?.isNotEmpty ?? false))
                         Expanded(
                           child: Padding(
                             padding: EdgeInsets.only(top: 3),

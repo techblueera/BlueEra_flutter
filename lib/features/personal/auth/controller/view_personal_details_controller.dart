@@ -105,7 +105,8 @@ class ViewPersonalDetailsController extends GetxController {
         contactNo: "${personalProfileDetails.value.user?.contactNo}",
         getUserName: "${personalProfileDetails.value.user?.name}",
         profileImage: "${personalProfileDetails.value.user?.profileImage}",
-        designation: "${personalProfileDetails.value.user?.designation}",
+        designation: "${personalProfileDetails.value.user?.profession}",
+        userNameAt: "${personalProfileDetails.value.user?.username}",
       );
       await getUserLoginData();
 
@@ -177,7 +178,9 @@ class ViewPersonalDetailsController extends GetxController {
     linkedin.value = data['user']['social_links']['linkedin'] ?? '';
     instagram.value = data['user']['social_links']['instagram'] ?? '';
     website.value = data['user']['social_links']['website'] ?? '';
-    final introVideoController = Get.find<IntroductionVideoController>();
+    final introVideoController = Get.isRegistered<IntroductionVideoController>()
+        ? Get.find<IntroductionVideoController>()
+        : Get.put(IntroductionVideoController());
 
     // logs("personalProfileDetails.value.user?.introVideo=== 1 ${ personalProfileDetails.value.user?.introVideo }");
     introVideoController.videoUrl.value =

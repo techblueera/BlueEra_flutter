@@ -12,18 +12,37 @@ import 'package:BlueEra/features/common/post/controller/photo_post_controller.da
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as GET;
+import 'package:image_picker/image_picker.dart';
 
 class PostRepo extends BaseService {
   ///ADD POST MSG/PHOTO/QA...
   Future<ResponseModel> addPostRepo(
       {required Map<String, dynamic>? bodyReq,
       required bool? isMultiPartPost}) async {
+    logs("REQ ${bodyReq}");
     final response = await ApiBaseHelper().postHTTP(addPost,
         params: bodyReq,
         onError: (error) {},
         onSuccess: (data) {},
         isMultipart: isMultiPartPost ?? true);
 
+    return response;
+  }
+
+  Future<ResponseModel> addPostNewRepo(
+      {required FormData? formData,
+      required bool? isMultiPartPost}) async {
+
+    final response = await ApiBaseHelper().postMultiImage(
+      addPost,
+      params: formData,
+      isArrayReq: true,
+      isMultipart: true,
+      showProgress: false,
+      onSendProgress: (sent, total) {
+        double progress = sent / total;
+      },
+    );
     return response;
   }
 

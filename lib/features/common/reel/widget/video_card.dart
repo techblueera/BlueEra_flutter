@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -101,8 +100,7 @@ class VideoCard extends StatelessWidget {
 
           // Change Thumbnail button
           if ((videoItem.channel?.id != null && videoItem.channel?.id == channelId) ||
-              (videoItem.author?.accountType == AppConstants.individual && videoItem.author?.id == userId) ||
-              (videoItem.author?.accountType == AppConstants.business && videoItem.author?.id == businessUserId))
+              videoItem.author?.id == userId)
           Positioned(
             right: SizeConfig.size10,
             top: SizeConfig.size12,
@@ -129,30 +127,33 @@ class VideoCard extends StatelessWidget {
       ),
     );
 
-    return Stack(
-      children: [
-        CommonVideoCard(
-          mainContent: mainContent,
-          videoItem: videoItem,
-          videoType: videoType,
-          onTapOption: onTapOption,
-          onTapCard: voidCallback,
-        ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size10),
+      child: Stack(
+        children: [
+          CommonVideoCard(
+            mainContent: mainContent,
+            videoItem: videoItem,
+            videoType: videoType,
+            onTapOption: onTapOption,
+            onTapCard: voidCallback,
+          ),
 
-        // Overlay if video is under progress
-        if (videoType == VideoType.underProgress)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.black65,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Center(
-                child: LocalAssets(imagePath: AppIconAssets.progressIndicator),
+          // Overlay if video is under progress
+          if (videoType == VideoType.underProgress)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.black65,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Center(
+                  child: LocalAssets(imagePath: AppIconAssets.progressIndicator),
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 

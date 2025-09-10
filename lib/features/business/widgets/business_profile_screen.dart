@@ -113,7 +113,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
          return ShortsChannelSection(
           isOwnShorts: true,
           channelId: '',
-          authorId: businessUserId,
+          authorId: userId,
           showShortsInGrid: true,
           sortBy: selectedFilter,
           postVia: PostVia.profile,
@@ -122,7 +122,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       return VideoChannelSection(
             isOwnVideos: true,
             channelId: '',
-            authorId: businessUserId,
+            authorId: userId,
             isScroll: false,
             postVia: PostVia.profile,
             sortBy: selectedFilter,

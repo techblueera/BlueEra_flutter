@@ -248,6 +248,9 @@ class ApiBaseHelper {
   }) async {
     try {
       logs("------URL----$url");
+      logs("------URL files----${params.files}");
+      logs("------URL fields ----${params.fields}");
+
       showProgressDialog = showProgress;
       Response response;
       response = await baseAPI.post(

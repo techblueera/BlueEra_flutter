@@ -1,15 +1,21 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/photo_post_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
-
+import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart' as dioObj;
 class MessagePostController extends GetxController {
   /// ADD MSG POST
   Rx<ApiResponse> addPostMessage = ApiResponse.initial('Initial').obs;
@@ -40,17 +46,49 @@ class MessagePostController extends GetxController {
   bool isMsgPostEdit = false;
   RxBool isCursorHide = true.obs;
   String? postId;
+  final RxList<String> selectedPhotos = <String>[].obs;
+  final RxList<File> selectedPhotoFiles = <File>[].obs;
+  final int maxPhotos = 5; // Updated to 5 as per requirement
+  final int minPhotos = 1; // Minimum 1 photo required
+  bool isPhotoPostEdit = false;
 
   ///ADD MESSAGE POST...
   Future<void> addMsgPostController(
-      {required Map<String, dynamic>? bodyReq}) async {
+      {required Map<String, dynamic>? bodyReq,}) async {
 
     try {
       ResponseModel responseModel = isMsgPostEdit
           ? await PostRepo()
               .updatePostRepo(postId: postId ,bodyReq: bodyReq, isMultiPartPost: true,)
           : await PostRepo()
-              .addPostRepo(bodyReq: bodyReq, isMultiPartPost: true);
+              .addPostRepo(bodyReq: bodyReq, isMultiPartPost: true,);
+      final data = responseModel.response?.data;
+      clearData();
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: data['message'] ?? AppStrings.success);
+        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = true;
+        Get.until((route) =>
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
+        addPostMessage.value = ApiResponse.complete(responseModel);
+      } else {
+        commonSnackBar(
+            message: data['message'] ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs("ERROR ${e.toString()}");
+      addPostMessage.value = ApiResponse.error('error');
+    }
+  }
+
+
+  ///ADD MESSAGE POST...
+  Future<void> addMsgPostControllerNew(
+      {required dioObj.FormData bodyReq,}) async {
+
+    try {
+      ResponseModel responseModel = await PostRepo()
+              .addPostNewRepo(formData: bodyReq, isMultiPartPost: true,);
       final data = responseModel.response?.data;
       clearData();
       if (responseModel.isSuccess) {
@@ -87,5 +125,42 @@ class MessagePostController extends GetxController {
 
   void changeFontFamily(String family) {
     selectedFontFamily.value = family;
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  void removePhoto(int index) {
+    if (index >= 0 && index < images.length) {
+      images.removeAt(index);
+      // images.removeAt(index);
+    }
+  }
+  final Rx<PhotoPost> photoPost = PhotoPost(photoUrls: []).obs;
+
+
+
+  ///new code
+  final ImagePicker picker = ImagePicker();
+
+  // Store up to 5 images
+  RxList<XFile> images = <XFile>[].obs;
+
+  // Aspect ratio (default Square 1:1)
+  RxDouble aspectRatio = 1.0.obs;
+
+  Future<void> pickImage() async {
+    if (images.length >= 5) {
+      commonSnackBar(message: "Limit Reached You can select max 5 images");
+      return;
+    }
+
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      images.add(image);
+    }
+  }
+
+  void setAspectRatio(double ratio) {
+    aspectRatio.value = ratio;
   }
 }

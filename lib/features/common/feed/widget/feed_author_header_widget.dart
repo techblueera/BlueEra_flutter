@@ -68,6 +68,7 @@ class PostAuthorHeader extends StatelessWidget {
               onTap: () {
                 if (((authorId == userId) ||
                     (post?.user?.business_id == businessId)) &&
+
                     (postType == PostType.myPosts ||
                         postType == PostType.saved)) {
                   return;

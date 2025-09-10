@@ -5,9 +5,13 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_delete_conformation_dialog.dart';
@@ -313,15 +317,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
           0;
     }
 
-    // int? likeCount = comment.replies
-    //     ?.where((r) => r.sId == commentId) // filter
-    //     .map((r) => r.likesCount) // select LikeCount
-    //     .firstWhere(
-    //       // first or default
-    //       (_) => true,
-    //       orElse: () => 0,
-    //     );
-
     String profilePic = !isReplyTemplate
         ? comment.createdBy?.profilePic ?? ''
         : reply?.createdBy?.profilePic ?? '';
@@ -334,8 +329,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
         !isReplyTemplate ? comment.timeAgo ?? '' : reply?.timeAgo ?? '';
     bool isLiked =
         !isReplyTemplate ? comment.isLiked ?? false : reply?.isLiked ?? false;
-    // https://api.blueera.ai/api/post-service/post/delete-comment/68b031130d1759ef2203b628
-    // https://api.blueera.ai/api/post/delete-comment/68b037a417f14689f4e97b3a
+
 
     return InkWell(
       onLongPress: () async {
@@ -355,6 +349,14 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               },
               confirmText: AppLocalizations.of(context)!.yes,
               cancelText: AppLocalizations.of(context)!.no);
+      },
+      onTap: (){
+        onProfileTap(
+          context,
+          userId: userId,
+          commentUser: comment.createdBy,
+          replyUser: reply?.createdBy,
+        );
       },
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -654,4 +656,38 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       });
     }
   }
+
+  void onProfileTap(BuildContext context, {
+    required String userId,
+    required CreatedBy? commentUser,
+    CreatedBy? replyUser,
+  }) {
+
+    // Decide whose profile was clicked → reply user takes priority
+    final targetUser = replyUser ?? commentUser;
+
+    if (targetUser == null) return;
+
+    final isSelf = userId == targetUser.sId;
+    final accountType = targetUser.accountType?.toUpperCase();
+    if (accountType == AppConstants.individual) {
+      if (isSelf) {
+        navigatePushTo(context, PersonalProfileSetupScreen());
+      } else {
+        Get.to(() => VisitProfileScreen(authorId: targetUser.sId ?? ''));
+      }
+    } else if (accountType == AppConstants.business) {
+      if (isSelf) {
+        navigatePushTo(context, BusinessOwnProfileScreen());
+      } else {
+        print('targetUser.sId--> ${targetUser.sId}');
+
+       Get.to(() => VisitBusinessProfile(
+          businessId: targetUser.sId ?? '',
+        ));
+      }
+    }
+  }
+
+
 }

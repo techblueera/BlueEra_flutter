@@ -95,7 +95,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                       : SizedBox(
                           height: SizeConfig.size15,
                         ),
-                  SizedBox(height: SizeConfig.size5),
+                  SizedBox(height: SizeConfig.size15),
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size24),
                   _buildTagPeopleSection(),

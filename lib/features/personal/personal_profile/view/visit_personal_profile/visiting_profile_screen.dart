@@ -468,7 +468,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
             Padding(
               padding: EdgeInsets.only(right: 20),
               child: Row(
-                children: filters!.map((filter) {
+                children: filters?.map((filter) {
                   final isSelected = selectedFilter == filter;
                   return Padding(
                     padding: EdgeInsets.only(right: SizeConfig.size14),
@@ -488,7 +488,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                       ),
                     ),
                   );
-                }).toList(),
+                }).toList()??[],
               ),
             )
           ],
