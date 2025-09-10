@@ -149,12 +149,12 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.0),
                     child:
-                    (_selectedFilterIndex == 0) ?
-                    Image.file(
-                      File(photoPostController.originalPhotos[index]),
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    ) :
+                    // (_selectedFilterIndex == 0) ?
+                    // Image.file(
+                    //   File(photoPostController.originalPhotos[index]),
+                    //   fit: BoxFit.cover,
+                    //   width: double.infinity,
+                    // ) :
                     RepaintBoundary(
                       key: _imageKeys[index],
                       child: ColorFiltered(
@@ -396,6 +396,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
   Future<File?> _exportFilteredPhoto(GlobalKey key, int index) async {
     try {
       final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      print('boundary--$boundary');
       if (boundary == null) return null;
 
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);

@@ -119,8 +119,8 @@ class PostRepo extends BaseService {
       if (natureOfPost.isNotEmpty)
       formData.fields
           .add(MapEntry(ApiKeys.nature_of_post, natureOfPost));
-        formData.fields
-            .add(MapEntry(ApiKeys.visibilityDuration, visibilityDuration));
+      // formData[ApiKeys.visibilityDuration] = visibilityDuration;
+
       final response = await ApiBaseHelper().postMultiImage(
         addPost,
         params: formData,
