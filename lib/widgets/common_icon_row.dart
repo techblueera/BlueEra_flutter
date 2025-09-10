@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class CommonIconRow extends StatelessWidget {
   final Widget imageIcon;
   final VoidCallback? onTap;
+  final VoidCallback? onTextCallback;
   final String? image;
   final String? text;
 
@@ -14,6 +15,7 @@ class CommonIconRow extends StatelessWidget {
     Key? key,
     required this.imageIcon,
     this.onTap,
+    this.onTextCallback,
     this.image,
     this.text,
   }) : super(key: key);
@@ -21,12 +23,14 @@ class CommonIconRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        onTap?.call();
-      },
+      // onTap: () {
+      //   onTap?.call();
+      // },
       child: Container(
         height: 25,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center,mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (image != null)
               Padding(
@@ -34,19 +38,24 @@ class CommonIconRow extends StatelessWidget {
                 child: LocalAssets(imagePath: image!),
               ),
             if (text != null) ...[
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: CustomText(
-                  "$text",
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w600,
+              InkWell(
+                onTap: ()=> onTextCallback?.call(),
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: CustomText(
+                    "$text",
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              SizedBox(width: SizeConfig.size3),
+              SizedBox(width: SizeConfig.size5),
             ],
             Align(
               alignment: Alignment.bottomLeft,
-              child: imageIcon,
+              child: InkWell(
+                  onTap: () => onTap?.call(),
+                  child: imageIcon),
             ),
           ],
         ),

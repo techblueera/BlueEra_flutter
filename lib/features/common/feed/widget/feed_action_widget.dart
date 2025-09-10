@@ -8,6 +8,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/widgets/common_divider.dart';
 import 'package:BlueEra/widgets/common_icon_row.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
 import 'package:flutter/material.dart';
 
 class PostActionsBar extends StatefulWidget {
@@ -68,7 +69,6 @@ class _PostActionsBarState extends State<PostActionsBar> {
       _totalComment = widget.totalComment ?? 0;
       _isLiked = widget.isLiked;
       _isPostAlreadySaved = widget.isPostAlreadySaved ?? false;
-      log('_isPostAlreadySaved-- $_isPostAlreadySaved');
     }
   }
 
@@ -96,6 +96,18 @@ class _PostActionsBarState extends State<PostActionsBar> {
                     imagePath: AppIconAssets.unlikeIcon,
                     imgColor: AppColors.secondaryTextColor),
             text: _totalLikes.toString(),
+            onTextCallback: (){
+              if(_totalLikes < 1){
+                return;
+              }
+
+              showDialog(
+                context: context,
+                builder: (context) => PostLikeUserListDialog(
+                  postId: widget.post?.id ?? '',
+                ),
+              );
+            },
           ),
           CommonVerticalDivider(),
 

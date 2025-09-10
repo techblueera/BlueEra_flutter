@@ -622,13 +622,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
         if (_channelData != null) {
           await manageChannelController.updateChannel(
               reqData: requestData, socialLinkReqData: socialLinkRequestData);
-          if (_channelData?.socialLinks.isNotEmpty ?? false) {
-            await manageChannelController.socialLinks(
-                id: channelId, reqData: socialLinkRequestData);
-          } else {
-            await manageChannelController.socialLinks(
-                id: channelId, reqData: socialLinkRequestData);
-          }
+
         } else {
           if (channelId.isEmpty) {
             await manageChannelController.createChannel(

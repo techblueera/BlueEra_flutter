@@ -324,7 +324,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   void getAndSetData() {
-    print("changes:${fullScreenShortController.videoItem?.channel?.id}");
     if (fullScreenShortController.videoItem?.channel?.id != null) {
       profileImage =
           fullScreenShortController.videoItem?.channel?.logoUrl ?? '';

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
@@ -47,8 +48,11 @@ class PostRepo extends BaseService {
     double? longitude,
     PostVia? postVia,
     void Function(double progress) onProgress,
+    String natureOfPost,
+    String visibilityDuration
   ) async {
     try {
+      log('natureOfPost-- $natureOfPost');
       FormData formData = FormData();
 
       String? tagUserIds = GET.Get.find<TagUserController>()
@@ -93,6 +97,11 @@ class PostRepo extends BaseService {
         formData.fields.add(MapEntry(ApiKeys.longitude,
             GET.Get.find<PhotoPostController>().longitude.toString()));
       }
+      if (natureOfPost.isNotEmpty)
+      formData.fields
+          .add(MapEntry(ApiKeys.nature_of_post, natureOfPost));
+        formData.fields
+            .add(MapEntry(ApiKeys.visibilityDuration, visibilityDuration));
       final response = await ApiBaseHelper().postMultiImage(
         addPost,
         params: formData,

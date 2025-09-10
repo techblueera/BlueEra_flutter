@@ -85,6 +85,7 @@ class SelectableCommonListView extends StatelessWidget {
             leading: CachedAvatarWidget(
               imageUrl: profileImage,
               size: SizeConfig.size42,
+              borderRadius: SizeConfig.size25,
             ),
             title: CustomText(
               name,

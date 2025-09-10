@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -12,6 +13,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -84,8 +86,24 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText('Upload Photos',
-                      fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText('Upload Photos',
+                          fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+
+                      Obx(()=> controller.selectedPhotos.isNotEmpty ?
+                      InkWell(
+                        onTap: ()=> controller.updatePhotoAfterEditing(),
+                        child: CustomText(
+                            'Edit',
+                            color: AppColors.primaryColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w600),
+                      ) : SizedBox())
+
+                    ],
+                  ),
                   SizedBox(height: SizeConfig.size16),
                   _buildPhotoUploadSection(),
                   (!controller.isPhotoPostEdit)
@@ -97,9 +115,13 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size24),
                   _buildTagPeopleSection(),
+
                   // _buildAddSongSection(),
+                  // SizedBox(height: SizeConfig.size5),
                   // _buildSymbolDurationSection(),
-                  // SizedBox(height: SizeConfig.size24),
+
+                  SizedBox(height: SizeConfig.size15),
+                  _buildNatureOfPostSection(),
                   SizedBox(height: SizeConfig.size32),
                   _buildContinueButton(),
                 ],
@@ -307,8 +329,20 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
         // Add Tag People / Organization button
         GestureDetector(
           onTap: () async {
-            await Get.to(() => TagUserScreen());
-            // The result will be handled by the TagUserController
+            final result = await Navigator.pushNamed(
+              context,
+              RouteHelper.getGetAllSongsScreenRoute(),
+              arguments: {
+                ApiKeys.videoPath: 'widget.videoPath',
+              },
+            ) as Map<String, dynamic>?;
+
+            if (result != null && result.isNotEmpty) {
+              setState(() {
+                controller.songData = result;
+              });
+              log("songData--> ${controller.songData}");
+            }
           },
           child: Row(
             children: [
@@ -367,11 +401,9 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             children: [
               Row(
                 children: [
-                  const Text("1.  ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                   CustomText("1.  ",color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large),
                   CustomText("24 hours",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
+                      color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large
                   ),
                 ],
               ),
@@ -382,6 +414,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                 checkColor: AppColors.white,
                 materialTapTargetSize: MaterialTapTargetSize.padded,
                 visualDensity: VisualDensity.compact,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0))
               ),
             ],
           ),
@@ -394,11 +427,9 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             children: [
               Row(
                 children: [
-                  const Text("2.  ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  CustomText("2.  ", color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large),
                   CustomText("7 days",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
+                      color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large
                   ),
                 ],
               ),
@@ -409,6 +440,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                 checkColor: AppColors.white,
                 materialTapTargetSize: MaterialTapTargetSize.padded,
                 visualDensity: VisualDensity.compact,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0))
               ),
             ],
           ),

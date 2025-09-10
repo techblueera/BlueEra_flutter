@@ -9,7 +9,7 @@ class FollowerRepo extends BaseService {
   }) async {
     ResponseModel response = await ApiBaseHelper().getHTTP(
       "${followersList}$userId",
-      // TODO: Update this URL to the correct endpoint
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -22,7 +22,7 @@ class FollowerRepo extends BaseService {
   }) async {
     ResponseModel response = await ApiBaseHelper().getHTTP(
       "${followingList}$userId",
-      // TODO: Update this URL to the correct endpoint
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

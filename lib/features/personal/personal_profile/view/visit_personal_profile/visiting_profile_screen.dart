@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
@@ -288,12 +289,10 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                         label: "Posts"),
                                     InkWell(
                                       onTap: () {
-                                        // Get.to(FollowersFollowingPage(
-                                        //   tabIndex: 1,
-                                        //   userID: controller
-                                        //           .userData.value?.user?.id ??
-                                        //       "",
-                                        // ));
+                                        Get.to(()=> FollowersFollowingPage(
+                                          tabIndex: 1,
+                                          userID: controller.userData.value?.user?.id ?? "",
+                                        ));
                                       },
                                       child: StatBlock(
                                           count: controller.followerCount.value
@@ -302,12 +301,10 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                     ),
                                     InkWell(
                                       onTap: () {
-                                        // Get.to(FollowersFollowingPage(
-                                        //   tabIndex: 0,
-                                        //   userID: controller
-                                        //           .userData.value?.user?.id ??
-                                        //       "",
-                                        // ));
+                                        Get.to(()=> FollowersFollowingPage(
+                                          tabIndex: 0,
+                                          userID: controller.userData.value?.user?.id ?? "",
+                                        ));
                                       },
                                       child: StatBlock(
                                           count: controller.userData.value

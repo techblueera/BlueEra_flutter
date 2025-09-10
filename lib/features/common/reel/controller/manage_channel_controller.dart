@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -47,11 +49,12 @@ class ManageChannelController extends GetxController {
 
   ///CREATE CHANNEL...
   Future<void> socialLinks(
-      {required String id, required List<Map<String, String>> reqData}) async {
-    if (reqData.isEmpty) {
+      {required String id, required List<Map<String, String>>? reqData}) async {
+    if (reqData == null || reqData.isEmpty) {
       Get.back();
       return;
     }
+
     try {
       channelId = id;
       ResponseModel response =
@@ -73,11 +76,12 @@ class ManageChannelController extends GetxController {
 
   ///UPDATE CHANNEL...
   Future<void> socialLinksUpdate(
-      {required String id, required List<Map<String, String>> reqData}) async {
-    if (reqData.isEmpty) {
-      Get.back();
+      {required String id, required List<Map<String, String>>? reqData}) async {
+    if (reqData == null || reqData.isEmpty) {
+      Get.back(result: true);
       return;
     }
+
     try {
       channelId = id;
       ResponseModel response =
@@ -103,9 +107,7 @@ class ManageChannelController extends GetxController {
     List<Map<String, String>>? socialLinkReqData,
   }) async {
     try {
-      String? channelId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.channel_Id);
-      if (channelId == null || channelId.isEmpty) {
+      if (channelId.isEmpty) {
         commonSnackBar(message: "Channel ID not found");
         return;
       }
@@ -120,10 +122,8 @@ class ManageChannelController extends GetxController {
         commonSnackBar(
             message: response.message ?? "Channel updated successfully");
 
-        await ChannelRepo().getChannelDetails(channelOrUserId: userId);
-        await SocialLinks();
+        await socialLinksUpdate(id: channelId, reqData: socialLinkReqData);
 
-        Get.back(result: true);
       } else {
         updateChannelResponse = ApiResponse.error('error');
         commonSnackBar(

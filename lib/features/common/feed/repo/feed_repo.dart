@@ -157,6 +157,7 @@ class FeedRepo extends BaseService{
     );
     return response;
   }
+
   Future<ResponseModel> viewVideo({required String videoId}) async {
 
     String videoViews = videoView(videoId);
@@ -229,5 +230,15 @@ class FeedRepo extends BaseService{
     return response;
   }
 
+  Future<ResponseModel> allLikesOfPost({required String postId}) async {
+    String allLikesOfPost = postAllLikes(postId);
+    final response = await ApiBaseHelper().getHTTP(
+      allLikesOfPost,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

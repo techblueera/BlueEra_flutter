@@ -29,8 +29,8 @@ class PhotoPostController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
   final Rx<PhotoPost> photoPost = PhotoPost(photoUrls: []).obs;
-  final RxList<String> selectedPhotos = <String>[].obs;
-  final RxList<File> selectedPhotoFiles = <File>[].obs;
+  RxList<String> selectedPhotos = <String>[].obs;
+  RxList<File> selectedPhotoFiles = <File>[].obs;
   final RxList<String> taggedPeople = <String>[].obs;
   final RxString description = ''.obs;
   final RxString natureOfPost = ''.obs;
@@ -48,7 +48,7 @@ class PhotoPostController extends GetxController {
   bool isPhotoPostEdit = false;
 
   Rx<SymbolDuration> selected = SymbolDuration.hours24.obs;
-
+  Map<String, dynamic>? songData;
 
   void addPhotos() async {
     // if (selectedPhotos.length >= maxPhotos) {
@@ -74,7 +74,7 @@ class PhotoPostController extends GetxController {
       }
 
       for (final image in images) {
-        if (selectedPhotos.length >= maxPhotos) break;
+        if (totalImage > maxPhotos) break;
 
         final originalSize = await File(image.path).length();
 
@@ -93,17 +93,17 @@ class PhotoPostController extends GetxController {
                 "(${reductionPercent}% reduced)",
           );
 
+          originalPhotos.add(compressedFile.path);
           selectedPhotos.add(compressedFile.path);
           selectedPhotoFiles.add(compressedFile);
+
+          log('selected Photos -- ${selectedPhotos.length}');
 
         }
       }
 
-    List<String> selectedEditPhotos = await Get.to(()=> PhotoPostEditingScreen(images: selectedPhotos));
-    selectedPhotos.addAll(selectedEditPhotos);
-    selectedPhotoFiles.addAll(selectedEditPhotos.map((path) => File(path)).toList());
+      updatePhotoAfterEditing();
 
-    updatePhotoPost(); // your existing UI update
   }
 
   /// Helper to format bytes into KB/MB
@@ -206,8 +206,9 @@ class PhotoPostController extends GetxController {
         postVia,
         (progress) {
           _updateProgressUI(progress);
-
         },
+        natureOfPost.value,
+        (selected == SymbolDuration.hours24) ? "1" : "7",
       );
 
       Navigator.of(Get.context!, rootNavigator: true).pop();
@@ -301,5 +302,22 @@ class PhotoPostController extends GetxController {
   void select(SymbolDuration duration) {
     selected.value = duration;
   }
+
+  List<String> originalPhotos = [];
+
+  Future<void> updatePhotoAfterEditing() async {
+    // pass a fresh copy to editing screen
+    List<String> selectedEditPhotos = await Get.to(() =>
+        PhotoPostEditingScreen()
+    );
+
+    // ✅ Keep originals safe, only update working copies
+    // originalPhotos =
+    selectedPhotos.value = List<String>.from(selectedEditPhotos);
+    selectedPhotoFiles.value = selectedEditPhotos.map((p) => File(p)).toList();
+
+    updatePhotoPost(); // refresh UI
+  }
+
 
 }
