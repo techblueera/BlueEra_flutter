@@ -77,6 +77,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
         }
       }
+      chatViewController.update();
     });
   }
 
@@ -93,13 +94,19 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          Get.toNamed(RouteHelper.getChatContactsRoute());
-        },
+      floatingActionButton:   GetBuilder<ChatViewController>(
+        init: chatViewController,
+        builder: (controller) {
+          print("objectobjectobjectobjectobjectobjectobject");
+          return  chatViewController.chatMainTabController.index==0? FloatingActionButton(
+            child: Icon(Icons.add),
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            onPressed: () {
+              Get.toNamed(RouteHelper.getChatContactsRoute());
+            },
+          ):SizedBox();
+        }
       ),
       bottomSheet: Padding(padding: EdgeInsets.only(bottom: 120.0)),
       body: SafeArea(

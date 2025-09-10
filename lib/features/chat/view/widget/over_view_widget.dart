@@ -280,10 +280,10 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
           const SizedBox(height: 16),
 
           /// 🧑‍ Testimonials
-          const Text(
-            'Testimonials',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+          // const Text(
+          //   'Testimonials',
+          //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          // ),
           TestimonialListingWidget(userId: widget.userId),
 
           const SizedBox(height: 16),

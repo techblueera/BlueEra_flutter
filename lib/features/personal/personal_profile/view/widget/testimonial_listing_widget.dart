@@ -219,16 +219,22 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                                 SizedBox(
                                   width: SizeConfig.small,
                                 ),
-                                Container(
-                                    decoration: BoxDecoration(
-                                        color: AppColors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: AppColors.borderGray,
-                                            width: 2)),
-                                    height: 50,
-                                    width: 50,
-                                    child: Icon(Icons.share)),
+                                InkWell(
+                                  onTap: () {
+
+                                  },
+                                  child: Container(
+                                      decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: AppColors.borderGray,
+                                              width: 2)),
+                                      height: 50,
+                                      width: 50,
+                                      child:Image.asset("assets/images/share.png")),
+                                )
+
                               ],
                             ),
                           ],

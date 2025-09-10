@@ -124,11 +124,12 @@ class VisitProfileController extends GetxController {
       if (responseModel.isSuccess) {
         isFollow.value = true;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
+        followerCount++;
       } else {
         isFollow.value = false;
 
         followUnFollowResponse.value = ApiResponse.error('error');
-
+ 
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
@@ -154,6 +155,7 @@ class VisitProfileController extends GetxController {
       if (responseModel.isSuccess) {
         isFollow.value = false;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
+        followerCount--;
       } else {
         isFollow.value = true;
 

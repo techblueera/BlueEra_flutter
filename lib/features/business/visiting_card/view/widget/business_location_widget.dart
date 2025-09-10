@@ -18,7 +18,7 @@ class BusinessLocationWidget extends StatefulWidget {
       required this.latitude,
       required this.longitude,
       required this.businessName,
-        this.locationText,
+      this.locationText,
       this.isTitleShow = true});
 
   @override
@@ -46,7 +46,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
     mapController = controller;
   }
 
-
   Future<void> _onStyleLoaded() async {
     // ✅ Now it’s safe to add symbols
     await mapController.addSymbol(
@@ -60,7 +59,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
@@ -80,76 +78,74 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                 SizedBox(width: SizeConfig.size6),
                 Expanded(
                     child: CustomText(
-                      widget.locationText,
-                      fontSize: SizeConfig.size14,
-                      color: AppColors.black1A,
-                    )),
+                  widget.locationText,
+                  fontSize: SizeConfig.size14,
+                  color: AppColors.black1A,
+                )),
               ],
             ),
-          SizedBox(height: 15),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            // Adjust border radius here
-            child: SizedBox(
-              width: double.infinity,
-              height: 180, // ✅ Set a fixed height (adjust as needed)
-              child: Stack(
-                children: [
-                  MapplsMap(
-                    onMapCreated: (controller) => _onMapCreated(controller),
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.latitude, widget.longitude),
-                      zoom: 14.0,
-                    ),
-                    myLocationEnabled: false,
-                    compassEnabled: false,
-                    rotateGesturesEnabled: true,
-                    tiltGesturesEnabled: true,
-                    zoomGesturesEnabled: true,
-                    scrollGesturesEnabled: true,
-                  ),
-                  Positioned(
-                    right: SizeConfig.size10,
-                    bottom: SizeConfig.size10,
-                    child: InkWell(
-                      onTap: () async {
-                       logs("TTTTT");
-    final Uri googleMapUrl = Uri.parse(
-        "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
-
-                      if (await canLaunchUrl(googleMapUrl)) {
-                      await launchUrl(googleMapUrl,
-                      mode: LaunchMode.externalApplication);
-                      } else {
-                      throw "Could not open Google Maps";
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(SizeConfig.size12),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.blueDF, width: 2),
+            SizedBox(height: 15),
+            ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                // Adjust border radius here
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 180, // ✅ Set a fixed height (adjust as needed)
+                  child: Stack(
+                    children: [
+                      MapplsMap(
+                        onMapCreated: (controller) => _onMapCreated(controller),
+                        initialCameraPosition: CameraPosition(
+                          target: LatLng(widget.latitude, widget.longitude),
+                          zoom: 14.0,
+                        ),
+                        myLocationEnabled: false,
+                        compassEnabled: false,
+                        rotateGesturesEnabled: true,
+                        tiltGesturesEnabled: true,
+                        zoomGesturesEnabled: true,
+                        scrollGesturesEnabled: true,
                       ),
-                      child: Transform.rotate(
-                        angle: -0.6,
-                        child: const Icon(
-                          Icons.send_outlined,
-                          color: AppColors.blueDF,
-                          size: 28,
+                      Positioned(
+                        right: SizeConfig.size10,
+                        bottom: SizeConfig.size10,
+                        child: InkWell(
+                          onTap: () async {
+                            final Uri googleMapUrl = Uri.parse(
+                                "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
+
+                            if (await canLaunchUrl(googleMapUrl)) {
+                              await launchUrl(googleMapUrl,
+                                  mode: LaunchMode.externalApplication);
+                            } else {
+                              throw "Could not open Google Maps";
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(SizeConfig.size12),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: AppColors.skyBlueDF, width: 1),
+                            ),
+                            child: Transform.rotate(
+                              angle: -0.6,
+                              child: const Icon(
+                                Icons.send_outlined,
+                                color: AppColors.skyBlueDF,
+                                size: 28,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            ))
-
-      ],
+                ))
+          ],
         ),
       ),
     );
-
   }
 }

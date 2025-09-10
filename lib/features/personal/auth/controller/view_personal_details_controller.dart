@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,6 +9,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:get/get.dart';
@@ -19,6 +22,8 @@ import '../repo/personal_profile_repo.dart';
 class ViewPersonalDetailsController extends GetxController {
   @override
   void onInit() {
+
+    getAllPostApi();
     // TODO: implement onInit
     super.onInit();
   }
@@ -38,6 +43,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxString linkedin = ''.obs;
   RxString instagram = ''.obs;
   RxString website = ''.obs;
+  Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
 
   SortBy selectedFilter = SortBy.Latest;
 
@@ -51,6 +57,8 @@ class ViewPersonalDetailsController extends GetxController {
 
   // RxList<Projects>? projectsList=<Projects>[].obs;
   RxString overView = ''.obs;
+
+
 
   Future<void> viewPersonalProfile() async {
     final personalController= Get.put(PersonalCreateProfileController());
@@ -217,4 +225,33 @@ class ViewPersonalDetailsController extends GetxController {
       // commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {}
   }
+
+   Future<void> getAllPostApi(
+     ) async {
+    final Map<String, dynamic> queryParams = {
+      ApiKeys.page: 1,
+      ApiKeys.limit:10,
+      ApiKeys.filter: "latest"
+    };
+
+    // if (query == null) {
+      queryParams[ApiKeys.refresh] = refresh;
+    // }
+
+    try {
+      ResponseModel response =
+          await FeedRepo().getAllMyPosts(queryParams: queryParams);
+          if(response.isSuccess){
+  postsResponse.value = ApiResponse.complete(response);
+        final postResponse = PostResponse.fromJson(response.response?.data);
+          }else{
+             postsResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          }
+    } catch (e) {
+        postsResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
 }
