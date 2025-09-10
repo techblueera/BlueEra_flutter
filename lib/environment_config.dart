@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
-String? baseUrl, razorpayKey, androidNativeAdUnitId, iosNativeAdUnitId, androidRewardedAdUnitId, androidInterstitialAdUnitId, iosInterstitialAdUnitId;
+String? baseUrl, razorpayKey,  chatSocketUrl, androidNativeAdUnitId, iosNativeAdUnitId, androidRewardedAdUnitId, androidInterstitialAdUnitId, iosInterstitialAdUnitId;
 bool isProdEnvironment = false;
 String blueEraPostLink = "BlueEraPostLink";
 
@@ -45,6 +45,7 @@ Future<void> projectKeys({required String environmentType}) async {
     androidNativeAdUnitId = 'ca-app-pub-4151367085462604/2589840945'; // native adUnit Id for android
     androidRewardedAdUnitId = 'ca-app-pub-4151367085462604/5476692884';
     androidInterstitialAdUnitId = 'ca-app-pub-4151367085462604/9740221584';
+    chatSocketUrl = 'http://15.207.121.239:3000/';
     iosNativeAdUnitId = 'ca-app-pub-4151367085462604/4295806298';
     iosInterstitialAdUnitId = 'ca-app-pub-4151367085462604/6615650203';
   } else if (environmentType == AppConstants.dev) {
@@ -55,6 +56,7 @@ Future<void> projectKeys({required String environmentType}) async {
     androidRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
     androidInterstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
     iosNativeAdUnitId = 'ca-app-pub-3940256099942544/3986624511';
+    chatSocketUrl = 'http://15.207.121.239:3000/';
     iosInterstitialAdUnitId = 'ca-app-pub-3940256099942544/4411468910';
   } else if (environmentType == AppConstants.qa) {
     isProdEnvironment = false;
