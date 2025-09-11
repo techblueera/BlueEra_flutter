@@ -130,6 +130,7 @@ class _MessageCardState extends State<MessageCard>
       case "video":
       case "image":
         messageWidget = VideoAndImageCardWidget(
+
           message: widget.message,
           time: time,
           isReceive: isReceive,

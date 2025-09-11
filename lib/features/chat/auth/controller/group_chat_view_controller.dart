@@ -101,11 +101,11 @@ class GroupChatViewController extends GetxController {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
     }else if (chatListModel.type=="personal"){
-      print('persionalChatlist');
+
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
     }else if (chatListModel.type=="group"){
-      print("trigger");
+
       // if (data != null) {
         getGroupChatListModel?.value = GroupChatListModel.fromJson(data??{});
       // } else {
@@ -183,7 +183,6 @@ print("data1");
             final currentUserId = userId; // Global variable from shared_preference_utils.dart
             final senderId = message.senderId;
             message.myMessage = currentUserId == senderId;
-            print('GroupChatViewController: messageReceived - Setting myMessage - currentUserId: "$currentUserId", senderId: "$senderId", myMessage: ${message.myMessage}');
           }
         }
       }

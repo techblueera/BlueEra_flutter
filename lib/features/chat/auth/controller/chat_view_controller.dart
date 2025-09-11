@@ -120,7 +120,6 @@ class ChatViewController extends GetxController {
 
 
   void onSearchChatList(String searchQuery) {
-    print("search query: $searchQuery, .. ${getPersonalFilteredChatListModel?.value.chatList?.length} tab: ${selectedChatTabIndex.value}");
 
     if (selectedChatTabIndex.value == 0) {
       // ✅ Always search on the original full list (not filtered list)
@@ -145,26 +144,21 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> connectSocket() async {
-print('connectedSoccet');
     // if (socketConnectedCalled.value == false) {
       if (socketConnected.value == false) {
         await chatSocket.connectToSocket();
         socketConnected.value = true;
       }
-      print('object');
       final connectivityResult = await NetworkUtils.isConnected();
-print('objectwww${connectivityResult}');
       if (connectivityResult) {
         await loadChatListFromLocal("personal");
       }
 
       chatSocket.listenEvent('ChatList', (data) async {
-print('chatListEvent');
 
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData,data: data);
         getPersonalFilteredChatListModel?.value=parsedData;
-        print('total chats are--> ${getPersonalFilteredChatListModel?.value.chatList?.length}');
         await localStorageHelper.saveChatList(parsedData.chatList ?? [],parsedData.type??'');
       });
 
@@ -185,7 +179,6 @@ print('chatListEvent');
             final currentUserId = userId; // Global variable from shared_preference_utils.dart
             final senderId = message.senderId;
             message.myMessage = currentUserId == senderId;
-            print('ChatViewController: messageReceived - Setting myMessage - currentUserId: "$currentUserId", senderId: "$senderId", myMessage: ${message.myMessage}');
           }
         }
       }
@@ -211,7 +204,6 @@ print('chatListEvent');
         }
       });
       chatSocket.listenEvent('newMessageReceived', (data) {
-      print('helllo');
         Messages? message = Messages.fromJson(data['message']);
   log('personal Data: $message');
        
@@ -220,7 +212,6 @@ print('chatListEvent');
           final currentUserId = userId; // Global variable from shared_preference_utils.dart
           final senderId = message.senderId;
           message.myMessage = currentUserId == senderId;
-          print('ChatViewController: Setting myMessage - currentUserId: "$currentUserId", senderId: "$senderId", myMessage: ${message.myMessage}');
         }
 
         if (message.conversation?.type == "personal") {
@@ -271,7 +262,6 @@ print('chatListEvent');
    
     Future.delayed(Duration.zero, () {
       if (connectivityResult) {
- print("ConnectivityResult:$connectivityResult");
         msg.sendPendingMsgParams = params;
         localStorageHelper.saveSingleMessageToConversationId(
             conversationId, msg,
@@ -432,15 +422,12 @@ print('chatListEvent');
     final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
     // if (connectivityResult) {
-    //       print('Datadaaa$conversationId');
     //   loadOfflineMessages(conversationId);
     // }
     // else if (openedConversation.contains(conversationId)) {
-    //   print('Datadaaa$conversationId');
     //   loadOfflineMessages(conversationId);
     // }
     // else {
-          print('Datadaaa$conversationId');
       emitEvent("messageReceived", {
         ApiKeys.conversation_id: conversationId,
         ApiKeys.page: 1,
@@ -454,9 +441,7 @@ print('chatListEvent');
 
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
-  print('Chat Emitted Event - ${event} ${event == "ChatList" && isFromInitial != true}');
     if (event == "ChatList" && isFromInitial != true) {
-      print("emitted");
       final connectivityResult = await NetworkUtils.isConnected();
       if (connectivityResult) {
         final localChats = await localStorageHelper.getChatListFromLocal(data[ApiKeys.type]);
@@ -624,11 +609,10 @@ print('chatListEvent');
 
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
+
     try {
-      print('SEND start: sendMessage params=' + params.toString());
       clearMessageControllerCommon();
       if (replyMessage?.value?.id != null) {
-        print("step!1:");
         replyMessage?.value = Messages();
       }
       if (sendFiles != null &&
@@ -644,9 +628,7 @@ print('chatListEvent');
       }
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
-print("MessageRespone:${responseModel.isSuccess}");
       if (responseModel.isSuccess) {
-        print('SEND success: sendMessage response ok');
         if (sendFiles != null &&
             sendFiles.isNotEmpty &&
             params[ApiKeys.message_type] == 'video') {
@@ -659,14 +641,11 @@ print("MessageRespone:${responseModel.isSuccess}");
 
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
-        print("MessageUser:$message");
         if (message.subType != "comment") {
-          print('UI UPDATE: append sent message id=' + (message.id ?? '')); 
           getListOfMessageData?.add(message);
          
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
- log("DataListMsg:${message}");
           saveSingleMessageToLocal(
               params[ApiKeys.conversation_id], message, params);
         } else if (message.subType == 'comment') {
@@ -688,13 +667,11 @@ print("MessageRespone:${responseModel.isSuccess}");
         clearMessageControllerCommon();
         return true;
       } else {
-        print('SEND failure: sendMessage isSuccess=false msg=' + (responseModel.message ?? ''));
         clearMessageControllerCommon();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print('SEND error: sendMessage threw e=' + e.toString());
       clearMessageControllerCommon();
       if (e == "Something went wrong") {
         final now = DateTime.now().toUtc();
@@ -839,7 +816,6 @@ log("AllMembers:$dataList");
   }
 
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
-    print('SEND start: sendInitialMessage params=' + params.toString());
     try {
 
       clearMessageControllerCommon();
@@ -847,10 +823,8 @@ log("AllMembers:$dataList");
           await ChatViewRepo().sendMessageToUser(params);
 
       if (responseModel.isSuccess) {
-        print('SEND success: sendInitialMessage response ok');
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
-        print('UI UPDATE: append initial sent message id=' + (message.id ?? ''));
         getListOfMessageData?.add(message);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
@@ -859,7 +833,6 @@ log("AllMembers:$dataList");
         emitEvent("ChatList", {ApiKeys.type: "personal"}, true);
         clearMessageControllerCommon();
       } else {
-        print('SEND failure: sendInitialMessage isSuccess=false msg=' + (responseModel.message ?? ''));
         clearMessageControllerCommon();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -939,7 +912,6 @@ log("AllMembers:$dataList");
     String? messageId,
   }) async {
     try {
-      print('SEND start: generateUploadUrlsApi params=' + params.toString() + ', files=' + listFile.length.toString() + ', isInitial=' + isInitialMessage.toString());
       VideoUploadProgress.value = "0";
       final connectivityResult = await NetworkUtils.isConnected();
       if (listFile.isNotEmpty &&
@@ -963,7 +935,6 @@ log("AllMembers:$dataList");
       clearMessageControllerCommon();
 
       if (!responseModel.isSuccess) {
-        print('SEND failure: generateUploadUrlsApi isSuccess=false msg=' + (responseModel.message ?? ''));
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         return;
@@ -1004,12 +975,10 @@ log("AllMembers:$dataList");
         ApiKeys.message_type: messageType,
         ApiKeys.url: urlList,
       };
-      print('SEND start: sendMessageLargeFile payload=' + messagePayload.toString());
       sendMessageLargeFile(
           messagePayload, listFile, isPendingMessage, messageId);
       generateUploadUrlResponse.value = ApiResponse.complete(uploadModel);
     } catch (e) {
-      print('SEND error: generateUploadUrlsApi threw e=' + e.toString());
       clearMessageControllerCommon();
       if (e == "Something went wrong") {
         final now = DateTime.now().toUtc();
@@ -1049,7 +1018,6 @@ log("AllMembers:$dataList");
       bool? isPendingMessage,
       String? messageId]) async {
     try {
-      print('SEND start: sendMessageLargeFile params=' + params.toString() + ', pending=' + (isPendingMessage?.toString() ?? 'null') + ', messageId=' + (messageId ?? ''));
       if (replyMessage?.value?.id != null) {
         replyMessage?.value = Messages();
       }
@@ -1057,7 +1025,6 @@ log("AllMembers:$dataList");
           await ChatViewRepo().sendMessageToUserLargeFile(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
-        print('SEND success: sendMessageLargeFile response ok');
         if (sendFiles != null &&
             sendFiles.isNotEmpty &&
             params[ApiKeys.message_type] == 'video' &&
@@ -1070,7 +1037,6 @@ log("AllMembers:$dataList");
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-          print('UI UPDATE: append sent media message id=' + (message.id ?? ''));
           if (isPendingMessage != null && isPendingMessage) {
             Messages? msg = getListOfMessageData
                 ?.firstWhere((element) => element.id == messageId);
@@ -1107,13 +1073,11 @@ log("AllMembers:$dataList");
         clearMessageControllerCommon();
         return true;
       } else {
-        print('SEND failure: sendMessageLargeFile isSuccess=false msg=' + (responseModel.message ?? ''));
         clearMessageControllerCommon();
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print('SEND error: sendMessageLargeFile threw e=' + e.toString());
       if (sendFiles != null &&
           sendFiles.isNotEmpty &&
           params[ApiKeys.message_type] == 'video') {
