@@ -55,6 +55,153 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
 
   @override
   Widget build(BuildContext context) {
+
+  /*  return Container(
+      decoration: BoxDecoration(
+          border: Border.all(
+              color: AppColors.whiteDB, width: 2),
+          borderRadius:
+          BorderRadius.circular(SizeConfig.size12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FeedMediaCarouselWidget(
+            subTitle: _post.subTitle??"",
+            taggedUser: _post.taggedUsers ?? [],
+            mediaUrls: _post.media ?? [],
+            *//*  buildTranslationWidget: () =>
+              (subTitle.isNotEmpty) || (natureOfPost.isNotEmpty)
+                  ? TranslationButton(
+                onTap: () {
+                  translateToOtherLan();
+                },
+              )
+                  : SizedBox(),*//*
+            postedAgo: timeAgo(
+                _post.createdAt != null ? _post.createdAt! : DateTime.now()),
+            totalViews:
+            _post.viewsCount != null ? _post.viewsCount.toString() : '0',
+          ),
+          // ClipRRect(
+          //     borderRadius: BorderRadius.only(
+          //         topLeft:
+          //         Radius.circular(SizeConfig.size12),
+          //         topRight:
+          //         Radius.circular(SizeConfig.size12)),
+          //     child:
+          //     Image.network(data.media?.first ?? "")
+          //
+          // ),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  _post.title,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.bold,
+                ),
+                SizedBox(height: SizeConfig.size4),
+                CustomText(
+                  subTitle,
+                  fontSize: SizeConfig.size12,
+                  color: AppColors.coloGreyText,
+                ),
+                // SizedBox(height: SizeConfig.size10),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    padding: EdgeInsets.symmetric(
+                        vertical: 4, horizontal: 8),
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            color: AppColors.borderGray,
+                            width: 2),
+                        borderRadius:
+                        BorderRadius.circular(12)),
+                    child: Row(children: [
+                      CircleAvatar(
+                        radius: 16,
+                        child: Image.network(
+                            _post.user?.profileImage ??
+                                ""),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: RichText(
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          text: TextSpan(
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 13),
+                            children: [
+                              TextSpan(
+                                  text: "Sathi: ",
+                                  style: TextStyle(
+                                      fontWeight:
+                                      FontWeight
+                                          .bold)),
+                              TextSpan(
+                                  text:
+                                  "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum Dolor Amet"),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.edit,
+                          size: 18,
+                          color: Colors.grey[600]),
+                    ]),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: AppColors.borderGray,
+                          width: 2),
+                      borderRadius:
+                      BorderRadius.circular(12)),
+                  child: PopupMenuButton(
+                      onSelected: (value) {},
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                            value: 1,
+                            child: CustomText(
+                                "Re-post")),
+                        PopupMenuItem(
+                            value: 2,
+                            child:
+                            CustomText("Share")),
+                        PopupMenuItem(
+                            value: 3,
+                            child: CustomText("Save"))
+                      ]),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: SizeConfig.size16,
+          ),
+        ],
+      ),
+    );*/
+
+
     return FeedCardWidget(
         childWidget: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

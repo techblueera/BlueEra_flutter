@@ -75,9 +75,9 @@ class PostAuthorHeader extends StatelessWidget {
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
-                  if (userId == authorId) {
+                  /*if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
-                  } else {
+                  } else */{
                     // Get.to(() => VisitProfileScreen(authorId: authorId));
                     Get.to(() => PersonalChatProfile(userId: authorId,));
                   }

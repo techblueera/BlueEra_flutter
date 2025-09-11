@@ -103,7 +103,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
       print("kjnlhhhn");
       Get.to(() => PersonalChatProfile(
             userId: authorId,
-            contactNumber: widget.contactNo,
+            contactNumber: widget.contactNo,isTestimonialRating: true,
           ));
     }
 

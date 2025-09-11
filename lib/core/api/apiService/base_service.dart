@@ -416,5 +416,7 @@ abstract class BaseService {
   final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
   final String socialLinksUpdate = "channel-service/channels/social-links/";
+  final String getCountRating="user-service/business/getCountOfRating/";
+    String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
 
 }

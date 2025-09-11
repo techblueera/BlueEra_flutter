@@ -11,8 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class TestimonialListingWidget extends StatefulWidget {
-  const TestimonialListingWidget({super.key, required this.userId});
-
+  const TestimonialListingWidget(
+      {super.key, required this.userId, this.showBorder = true});
+  final bool showBorder;
   final String? userId;
 
   @override
@@ -40,56 +41,53 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SizeConfig.size16),
-      ),
-      elevation: SizeConfig.size4,
-      color: AppColors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              "Testimonials",
-              fontSize: SizeConfig.size20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-            SizedBox(
-              height: SizeConfig.size8,
-            ),
-            Obx(() {
-              if (visitController?.testimonialsList?.isEmpty ?? false) {
-                {
-                  // return Center(child: CustomText("No testimonial found"));
-                }
+    return Padding(
+      padding: EdgeInsets.all(widget.showBorder == false ? 0 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // CustomText(
+          //   "Testimonials",
+          //   fontSize: SizeConfig.size20,
+          //   fontWeight: FontWeight.bold,
+          //   color: AppColors.black,
+          // ),
+          // SizedBox(
+          //   height: SizeConfig.size8,
+          // ),
+          Obx(() {
+            if (visitController?.testimonialsList?.value?.isEmpty ?? false) {
+              {
+                // return Center(child: CustomText("No testimonial found"));
               }
-              // if (visitController?.testimonialsList?.isNotEmpty ?? false || true) {
-              if (true) {
-                return ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: 1, //visitController?.testimonialsList?.length,
-                    itemBuilder: (context, index) {
-                      // return Text("data");
-                      Testimonials data = Testimonials(
-                        updatedAt: DateTime.now().toString(),
-                        description: "desctfnsdkfsdf ",
-                        fromUser:
-                            FromUser(designation: "designmsatoi", name: "Nae"),
-                        title: "tilte",
-                      );
-                      // Testimonials data  =visitController?.testimonialsList?[index] ??
-                      Testimonials();
-                      return Container(
+            }
+            if (visitController?.testimonialsList?.value.isNotEmpty ??
+                false || true) {
+              // if (true) {
+              return ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: visitController?.testimonialsList?.value.length,
+                  itemBuilder: (context, index) {
+                    Testimonials data =
+                        visitController?.testimonialsList?.value[index] ??
+                            Testimonials();
+                    return Card(
+                      // margin: EdgeInsets.all(widget.showBorder==false?16: 0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(SizeConfig.size16),
+                      ),
+                      elevation: SizeConfig.size4,
+                      color: AppColors.white,
+                      child: Container(
                         padding: EdgeInsets.all(SizeConfig.size12),
                         decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(SizeConfig.size12),
-                            border:
-                                Border.all(color: AppColors.whiteDB, width: 2)),
+                            border: widget.showBorder == false
+                                ? null
+                                : Border.all(
+                                    color: AppColors.whiteDB, width: 2)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -156,12 +154,12 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                               fontSize: SizeConfig.size14,
                               color: AppColors.grayText,
                             ),
-                            SizedBox(height: SizeConfig.size10),
-                            Divider(
-                              height: 8,
-                              color: AppColors.greyA5,
-                              thickness: 1,
-                            ),
+                            // SizedBox(height: SizeConfig.size10),
+                            // Divider(
+                            //   height: 8,
+                            //   color: AppColors.greyA5,
+                            //   thickness: 1,
+                            // ),
                             SizedBox(
                               height: SizeConfig.size16,
                             ),
@@ -207,7 +205,8 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                                                     new EdgeInsets.symmetric(
                                                         vertical: 0.0),
                                                 border: InputBorder.none,
-                                                hintText: 'Enter comment',
+                                                hintText:
+                                                    'Write your comment..',
                                                 hintStyle:
                                                     TextStyle(fontSize: 11.0)),
                                           ),
@@ -220,32 +219,31 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
                                   width: SizeConfig.small,
                                 ),
                                 InkWell(
-                                  onTap: () {
-
-                                  },
+                                  onTap: () {},
                                   child: Container(
                                       decoration: BoxDecoration(
                                           color: AppColors.white,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                           border: Border.all(
                                               color: AppColors.borderGray,
                                               width: 2)),
                                       height: 50,
                                       width: 50,
-                                      child:Image.asset("assets/images/share.png")),
+                                      child: Image.asset(
+                                          "assets/images/share.png")),
                                 )
-
                               ],
                             ),
                           ],
                         ),
-                      );
-                    });
-              }
-              return SizedBox();
-            }),
-          ],
-        ),
+                      ),
+                    );
+                  });
+            }
+            return SizedBox();
+          }),
+        ],
       ),
     );
   }

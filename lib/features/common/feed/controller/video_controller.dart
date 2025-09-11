@@ -361,6 +361,7 @@ class VideoController extends GetxController{
           isOwnVideos: isOwnVideos,
           postVia: postVia,
         );
+        update();
         break;
 
       case VideoType.popular:

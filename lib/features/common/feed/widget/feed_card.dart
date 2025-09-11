@@ -116,7 +116,7 @@ class _FeedCardState extends State<FeedCard> {
               _onSavedUnSavedButtonPressed();
             },
             onShareButtonPressed: () async {
-              _onShareButtonPressed();
+              onShareButtonPressed(_post!);
             },
           ),
         );
@@ -160,7 +160,7 @@ class _FeedCardState extends State<FeedCard> {
             },
             onShareButtonPressed: () {
               try {
-                _onShareButtonPressed();
+                onShareButtonPressed(_post!);
               } catch (e) {
                 print("feed card share failed $e");
               }
@@ -235,10 +235,14 @@ class _FeedCardState extends State<FeedCard> {
         sortBy: widget.sortBy);
   }
 
-  Future<void> _onShareButtonPressed() async {
-   try {
- 
-   logs("linkShare====${_post!.id} and ${_post!.media?.isNotEmpty}");
+
+}
+
+
+Future<void> onShareButtonPressed(Post _post) async {
+  try {
+
+    logs("linkShare====${_post!.id} and ${_post!.media?.isNotEmpty}");
 
     XFile? xFile;
     if (_post!.media != null && _post!.media!.isNotEmpty) {
@@ -252,28 +256,27 @@ class _FeedCardState extends State<FeedCard> {
         subject: _post!.title,
         previewThumbnail: xFile));
 
-     if (xFile != null) {
+    if (xFile != null) {
       final file = File(xFile.path);
       if (await file.exists()) {
         await file.delete();
         print("🗑️ File deleted from cache.");
       }
     }
-   } catch (e) {
-     print("feed card share failed inside _onShareButtonPressed $e");
-   }
+  } catch (e) {
+    print("feed card share failed inside _onShareButtonPressed $e");
   }
+}
 
-  Future<XFile> urlToCachedXFile(String fileUrl) async {
-    // Get temp (cache) directory
-    final tempDir = await getTemporaryDirectory();
-    final fileName = fileUrl.split('/').last; // keep original name if possible
-    final filePath = "${tempDir.path}/$fileName";
+Future<XFile> urlToCachedXFile(String fileUrl) async {
+  // Get temp (cache) directory
+  final tempDir = await getTemporaryDirectory();
+  final fileName = fileUrl.split('/').last; // keep original name if possible
+  final filePath = "${tempDir.path}/$fileName";
 
-    // Download file into cache
-    await Dio().download(fileUrl, filePath);
+  // Download file into cache
+  await Dio().download(fileUrl, filePath);
 
-    // Return as XFile
-    return XFile(filePath);
-  }
+  // Return as XFile
+  return XFile(filePath);
 }

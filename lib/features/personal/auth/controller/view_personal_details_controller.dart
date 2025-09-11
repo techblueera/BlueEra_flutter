@@ -23,7 +23,7 @@ class ViewPersonalDetailsController extends GetxController {
   @override
   void onInit() {
 
-    getAllPostApi();
+    // getAllPostApi();
     // TODO: implement onInit
     super.onInit();
   }
@@ -44,6 +44,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxString instagram = ''.obs;
   RxString website = ''.obs;
   Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
+ Rx<PostResponse?> postRes=Rx(null);
 
   SortBy selectedFilter = SortBy.Latest;
 
@@ -229,24 +230,25 @@ class ViewPersonalDetailsController extends GetxController {
     } finally {}
   }
 
-   Future<void> getAllPostApi(
+   Future<void> getAllPostApi(String id
      ) async {
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: 1,
       ApiKeys.limit:10,
-      ApiKeys.filter: "latest"
+      ApiKeys.filter: "latest",
     };
 
     // if (query == null) {
       queryParams[ApiKeys.refresh] = refresh;
     // }
-
+    queryParams[ApiKeys.authorId] = id;
     try {
       ResponseModel response =
-          await FeedRepo().getAllMyPosts(queryParams: queryParams);
+          await FeedRepo().getAllOtherPosts(queryParams: queryParams);
           if(response.isSuccess){
   postsResponse.value = ApiResponse.complete(response);
-        final postResponse = PostResponse.fromJson(response.response?.data);
+          postRes.value = PostResponse.fromJson(response.response?.data);
+          update();
           }else{
              postsResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
