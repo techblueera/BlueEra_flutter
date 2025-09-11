@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/response/get_countRating_response_modal.dart';
@@ -25,6 +27,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_media_carosal_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
+import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
@@ -40,8 +43,12 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/link_tile
 import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_bio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/testimonial_listing_widget.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/svg.dart';
@@ -53,7 +60,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
-// import '../../auth/controller/view_personal_details_controller.dart';
 
 class PersonalChatProfile extends StatefulWidget {
   final String userId;
@@ -77,7 +83,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       Get.put(PersonalCreateProfileController());
   final VideoController videosController =
       Get.put<VideoController>(VideoController());
-  VideoType videos = VideoType.latest;
+  VideoType videoType = VideoType.latest;
 
   final ShortsController shortsController =
       Get.put<ShortsController>(ShortsController());
@@ -86,6 +92,10 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   List<String> postTab = [];
   int selectedIndex = 0;
   late VisitProfileController controller;
+  final GlobalKey _cardKey = GlobalKey();
+  double _cardHeight = 0;
+
+
   @override
   void initState() {
     super.initState();
@@ -97,11 +107,6 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     controller.getRatingSummary(userId: widget.userId);
 
     _loadInitialData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
   }
 
   Future<void> _loadInitialData() async {
@@ -117,7 +122,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       true,
     );
 
-    videosController.getVideosByType(videos, widget.channelId, widget.userId, false,
+    videosController.getVideosByType(videoType, widget.channelId, widget.userId, false,
         );
 
     _updateTextControllers();
@@ -213,9 +218,22 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
           channelId: '',
           authorId: widget.userId,
           showShortsInGrid: true,
+          postVia: PostVia.profile,
         );
       case 4:
-        return videoTab();
+        return VideoChannelSection(
+          isOwnVideos: true,
+          channelId: '',
+          authorId: userId,
+          postVia: PostVia.profile,
+          boxShadow: [
+              BoxShadow(
+                  color: Color(0xFA999999),
+                  offset: Offset(0, 0.65),
+                  blurRadius: 1.3
+              )
+            ]
+        );
       default:
         return Text("Not implemented");
     }
@@ -264,11 +282,17 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         // SizedBox(
         //   height: 20,
         // ),
-        buildHorizontalSortsList(),
+        Obx(()=> buildHorizontalSortsList()),
+
         // SizedBox(
         //   height: 20,
         // ),
-        customVideoCard(),
+
+        Obx(()=> customVideoCard()),
+
+        SizedBox(
+          height: 20,
+        ),
       ],
     );
   }
@@ -289,17 +313,30 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
               children: [
                 Column(
                   children: [
-                    Container(
-                      height: SizeConfig.size60,
-                      width: SizeConfig.size60,
-                      margin: EdgeInsets.all(SizeConfig.size10),
-                      padding: EdgeInsets.all(SizeConfig.size3),
-                      decoration: BoxDecoration(
-                          color: AppColors.skyBlueDF,
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: NetworkImage(user?.profileImage ?? ""),
-                          )),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 10.0,
+                          left: 10.0,
+                          right: 10.0,
+                          bottom: 10.0,
+                      ),
+                      child: InkWell(
+                        onTap: (){
+                          navigatePushTo(
+                            context,
+                            ImageViewScreen(
+                              appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                              imageUrls: [user?.profileImage ?? ""],
+                              initialIndex: 0,
+                            ),
+                          );
+                        },
+                        child: CachedAvatarWidget(
+                            imageUrl: user?.profileImage ?? "",
+                            size: SizeConfig.size60,
+                            borderRadius: SizeConfig.size30)
+                        ,
+                      ),
                     ),
                     CustomBtn(
                       onTap: () {
@@ -476,7 +513,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           ),
                           Expanded(
                             child: CustomText(
-                              "${getMonthNameFromMonth(user?.dateOfBirth?.month ?? 0)},${user?.dateOfBirth?.year ?? ""}",
+                              "${getMonthName(user?.dateOfBirth?.month ?? 0)}, ${user?.dateOfBirth?.year ?? ""}",
                               overflow: TextOverflow.ellipsis,
                               color: AppColors.black,
                             ),
@@ -525,23 +562,31 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           //     thickness: 1,
                           //   ),
                           // ),
-                          Expanded(
-                            child: RichText(
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                text: TextSpan(
-                                    text:
-                                        "${(controller.userData.value?.followingCount ?? "").toString()} ",
-                                    style: TextStyle(
-                                      color: AppColors.black,
-                                      fontSize: 16,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                          text: "Following",
-                                          style: TextStyle(
-                                              color: AppColors.coloGreyText))
-                                    ])),
+                          Flexible(
+                            child: InkWell(
+                              onTap: (){
+                                Get.to(()=> FollowersFollowingPage(
+                                  tabIndex: 0,
+                                  userID: controller.userData.value?.user?.id ?? "",
+                                ));
+                              },
+                              child: RichText(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  text: TextSpan(
+                                      text:
+                                          "${(controller.userData.value?.followingCount ?? "").toString()} ",
+                                      style: TextStyle(
+                                        color: AppColors.black,
+                                        fontSize: 16,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                            text: "Following",
+                                            style: TextStyle(
+                                                color: AppColors.coloGreyText))
+                                      ])),
+                            ),
                           ),
                           SizedBox(
                             height: SizeConfig.size20,
@@ -551,24 +596,32 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                               thickness: 1,
                             ),
                           ),
-                          Expanded(
-                            child: RichText(
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                text: TextSpan(
-                                    text:
-                                        "${(controller.userData.value?.followersCount ?? "").toString()} ",
-                                    style: TextStyle(
-                                      color: AppColors.black,
-                                      fontSize: 16,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                          text: "Followers",
-                                          style: TextStyle(
-                                            color: AppColors.coloGreyText,
-                                          ))
-                                    ])),
+                          Flexible(
+                            child: InkWell(
+                              onTap: (){
+                                Get.to(()=> FollowersFollowingPage(
+                                  tabIndex: 1,
+                                  userID: controller.userData.value?.user?.id ?? "",
+                                ));
+                              },
+                              child: RichText(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  text: TextSpan(
+                                      text:
+                                          "${(controller.userData.value?.followersCount ?? "").toString()} ",
+                                      style: TextStyle(
+                                        color: AppColors.black,
+                                        fontSize: 16,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                            text: "Followers",
+                                            style: TextStyle(
+                                              color: AppColors.coloGreyText,
+                                            ))
+                                      ])),
+                            ),
                           ),
                         ],
                       )
@@ -1377,7 +1430,22 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
     // ? List.from(controller.postsResponse.value.data.data.data[0])
     // : [];
+
     if (posts.isEmpty) return SizedBox();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_cardKey.currentContext != null) {
+        final box = _cardKey.currentContext!.findRenderObject() as RenderBox;
+        final newHeight = box.size.height;
+
+        if (_cardHeight != newHeight) {
+          setState(() {
+            _cardHeight = newHeight;
+          });
+        }
+      }
+    });
+
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
@@ -1408,193 +1476,170 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                       textAlign: TextAlign.center,
                     ))
                   : SizedBox(
-                      height: 400,
-                      width: Get.width,
-                      child: ListView.separated(
-                          shrinkWrap: true,
-                          itemCount: posts.length,
-                          scrollDirection: Axis.horizontal,
-                          separatorBuilder: (context, index) => SizedBox(
-                                width: 12,
-                              ),
-                          itemBuilder: (context, index) {
-                            var data = posts[index];
-                            FeedType? feedType =
-                                FeedType.fromValue(data.type?.toUpperCase());
-                            return Container(
+                height: _cardHeight > 0 ? _cardHeight : 400,
+                width: Get.width,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: posts.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    var data = posts[index];
+                    FeedType? feedType =
+                    FeedType.fromValue(data.type?.toUpperCase());
+
+                    return Container(
+                      key: index == 0 ? _cardKey : null,
+                      width: Get.width * 0.9,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.whiteDB, width: 2),
+                        borderRadius: BorderRadius.circular(SizeConfig.size12),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(SizeConfig.size12),
+                              topRight: Radius.circular(SizeConfig.size12),
+                            ),
+                            child: SizedBox(
                               width: Get.width * 0.9,
-                              decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: AppColors.whiteDB, width: 2),
-                                  borderRadius:
-                                      BorderRadius.circular(SizeConfig.size12)),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft:
-                                            Radius.circular(SizeConfig.size12),
-                                        topRight:
-                                            Radius.circular(SizeConfig.size12)),
-                                    child: SizedBox(
-                                      width: Get.width * 0.9,
-                                      child: feedType == FeedType.qaPost
-                                          ? FeedPollOptionsWidget(
-                                              question:
-                                                  data.poll?.question ?? "",
-                                              postId: data.id,
-                                              poll: data.poll,
-                                              postFilteredType: PostType.latest,
-                                              postedAgo: timeAgo(
-                                                  data?.createdAt != null
-                                                      ? data!.createdAt!
-                                                      : DateTime.now()),
-                                              message: data.message,
-                                            )
-                                          : FeedMediaCarouselWidget(
-                                              subTitle: data.subTitle ?? "",
-                                              taggedUser:
-                                                  data.taggedUsers ?? [],
-                                              mediaUrls: data.media ?? [],
-                                              postedAgo: timeAgo(
-                                                  data.createdAt != null
-                                                      ? data.createdAt!
-                                                      : DateTime.now()),
-                                              totalViews: data.viewsCount !=
-                                                      null
-                                                  ? data.viewsCount.toString()
-                                                  : '0',
-                                            ),
-                                    ),
+                              child: feedType == FeedType.qaPost
+                                  ? FeedPollOptionsWidget(
+                                question: data.poll?.question ?? "",
+                                postId: data.id,
+                                poll: data.poll,
+                                postFilteredType: PostType.latest,
+                                postedAgo: timeAgo(
+                                  data.createdAt ?? DateTime.now(),
+                                ),
+                                message: data.message,
+                              )
+                                  : FeedMediaCarouselWidget(
+                                subTitle: data.subTitle ?? "",
+                                taggedUser: data.taggedUsers ?? [],
+                                mediaUrls: data.media ?? [],
+                                postedAgo: timeAgo(
+                                  data.createdAt ?? DateTime.now(),
+                                ),
+                                totalViews: (data.viewsCount ?? 0).toString(),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(SizeConfig.size10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (data.title?.isNotEmpty ?? false) ...[
+                                  CustomText(
+                                    data.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    fontSize: SizeConfig.size14,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.all(SizeConfig.size10),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (data.title?.isNotEmpty ??
-                                            false) ...{
-                                          CustomText(
-                                            data.title,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: SizeConfig.size14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          SizedBox(height: SizeConfig.size4),
-                                        },
-                                        CustomText(
-                                          data.subTitle,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          fontSize: SizeConfig.size12,
-                                          color: AppColors.coloGreyText,
-                                        ),
-                                      ],
+                                  SizedBox(height: SizeConfig.size4),
+                                ],
+                                CustomText(
+                                  data.subTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  fontSize: SizeConfig.size12,
+                                  color: AppColors.coloGreyText,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    height: 50,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: AppColors.borderGray, width: 2),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 12),
                                     child: Row(
                                       children: [
-                                        Expanded(
-                                          child: Container(
-                                            height: 50,
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 4, horizontal: 8),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(
-                                                    color: AppColors.borderGray,
-                                                    width: 2),
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                            child: Row(children: [
-                                              CircleAvatar(
-                                                radius: 16,
-                                                child: Image.network(
-                                                    data.user?.profileImage ??
-                                                        ""),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: RichText(
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                  text: TextSpan(
-                                                    style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 13),
-                                                    children: [
-                                                      TextSpan(
-                                                          text: "Sathi: ",
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold)),
-                                                      TextSpan(
-                                                          text:
-                                                              "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum Dolor Amet"),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              Icon(Icons.edit,
-                                                  size: 18,
-                                                  color: Colors.grey[600]),
-                                            ]),
+                                        CircleAvatar(
+                                          radius: 16,
+                                          backgroundImage: NetworkImage(
+                                            data.user?.profileImage ?? "",
                                           ),
                                         ),
                                         const SizedBox(width: 8),
-                                        Container(
-                                          height: 50,
-                                          width: 50,
-                                          decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: AppColors.borderGray,
-                                                  width: 2),
-                                              borderRadius:
-                                                  BorderRadius.circular(12)),
-                                          child: PopupMenuButton(
-                                              onSelected: (value) {
-                                                if (value == 2) {
-                                                  onShareButtonPressed(data);
-                                                } else if (value == 3) {
-                                                  Get.find<FeedController>()
-                                                      .savePostToLocalDB(
-                                                          postId:
-                                                              data?.id ?? '0',
-                                                          type: PostType.latest,
-                                                          sortBy:
-                                                              SortBy.Latest);
-                                                }
-                                              },
-                                              itemBuilder: (context) => [
-                                                    PopupMenuItem(
-                                                        value: 1,
-                                                        child: CustomText(
-                                                            "Re-post")),
-                                                    PopupMenuItem(
-                                                        value: 2,
-                                                        child: CustomText(
-                                                            "Share")),
-                                                    PopupMenuItem(
-                                                        value: 3,
-                                                        child:
-                                                            CustomText("Save"))
-                                                  ]),
+                                        Expanded(
+                                          child: RichText(
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                            text: const TextSpan(
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 13,
+                                              ),
+                                              children: [
+                                                TextSpan(
+                                                  text: "Sathi: ",
+                                                  style: TextStyle(
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                                TextSpan(
+                                                    text:
+                                                    "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum"),
+                                              ],
+                                            ),
+                                          ),
                                         ),
+                                        Icon(Icons.edit,
+                                            size: 18, color: Colors.grey),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            );
-                          }),
-                    ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: AppColors.borderGray, width: 2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: PopupMenuButton(
+                                    onSelected: (value) {
+                                      if (value == 2) {
+                                        onShareButtonPressed(data);
+                                      } else if (value == 3) {
+                                        Get.find<FeedController>().savePostToLocalDB(
+                                          postId: data.id ?? '0',
+                                          type: PostType.latest,
+                                          sortBy: SortBy.Latest,
+                                        );
+                                      }
+                                    },
+                                    itemBuilder: (context) => const [
+                                      PopupMenuItem(value: 1, child: Text("Re-post")),
+                                      PopupMenuItem(value: 2, child: Text("Share")),
+                                      PopupMenuItem(value: 3, child: Text("Save")),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -1603,10 +1648,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   }
 
   Widget buildHorizontalSortsList() {
-    return GetBuilder<ShortsController>(
-      init: shortsController,
-      builder: (controller) {
-        if (shortsController.isInitialLoading(Shorts.latest).isFalse) {
+    if (shortsController.isInitialLoading(Shorts.latest).isFalse) {
           if (shortsController.shortsResponse.status == Status.COMPLETE) {
             final channelShorts =
                 shortsController.getListByType(shorts: Shorts.latest);
@@ -1647,7 +1689,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                 RouteHelper.getShortsPlayerScreenRoute(),
                                 arguments: {
                                   ApiKeys.shorts: Shorts.latest,
-                                  ApiKeys.videoItem: false,
+                                  ApiKeys.videoItem: channelShorts,
                                   ApiKeys.initialIndex: 0,
                                 },
                               );
@@ -1709,20 +1751,14 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             );
           }
         }
-        return SizedBox();
-      },
-    );
+    return SizedBox();
   }
 
   Widget customVideoCard() {
-    return GetBuilder<VideoController>(
-      init: videosController,
-      builder: (controller) {
-        if (videosController.isInitialLoading(videos).isFalse) {
+    if (videosController.isInitialLoading(videoType).isFalse) {
           if (videosController.channelVideosResponse.status ==
               Status.COMPLETE) {
-            final channelVideos =
-                videosController.getListByType(videoType: videos);
+            final channelVideos = videosController.getListByType(videoType: videoType);
             if (channelVideos.isNotEmpty) {
               return Card(
                 elevation: 2,
@@ -1742,148 +1778,25 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                         color: AppColors.black,
                       ),
                       SizedBox(
-                        height: SizeConfig.size2,
+                        height: SizeConfig.size8,
                       ),
                       SizedBox(
                         height: 310,
-                        child: ListView.builder(
-                            itemCount: channelVideos.length,
-                            itemBuilder: (context, index) {
-                              var data = channelVideos[index];
-                              return InkWell(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    RouteHelper.getVideoPlayerScreenRoute(),
-                                    arguments: {
-                                      ApiKeys.videoItem: data,
-                                      ApiKeys.videoType: VideoType.latest
-                                    },
-                                  );
-                                },
-                                child: Card(
-                                  elevation: 10,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  color: AppColors.white,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.only(
-                                              topLeft: Radius.circular(12),
-                                              topRight: Radius.circular(12),
-                                            ),
-                                            child: Image.asset(
-                                              'assets/images/video_preview.png',
-                                              height: 200,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                          Positioned(
-                                            top: 8,
-                                            right: 8,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.black
-                                                    .withOpacity(0.6),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              padding: const EdgeInsets.all(6),
-                                              child: const Icon(
-                                                Icons.volume_off,
-                                                size: 16,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 8,
-                                            right: 8,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black
-                                                    .withOpacity(0.8),
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                              ),
-                                              child: const Text(
-                                                "02:53",
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const CircleAvatar(
-                                              radius: 18,
-                                              backgroundColor: Colors.black,
-                                              child: Icon(Icons.play_arrow,
-                                                  color: Colors.white),
-                                            ),
-                                            const SizedBox(width: 8),
-
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: const [
-                                                  Text(
-                                                    "Trying MC’s Burger for the first time!!! "
-                                                    "Trying MC’s Burger for the...",
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 4),
-                                                  Text(
-                                                    "TechSavvy   3.5 lakhs views   12 days ago",
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-
-                                            /// Menu button
-                                            IconButton(
-                                              onPressed: () {},
-                                              icon: const Icon(Icons.more_vert,
-                                                  size: 18),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
+                        child: VideoChannelSection(
+                          isOwnVideos: true,
+                          channelId: '',
+                          isParentScroll: false,
+                          authorId: widget.userId,
+                          postVia: PostVia.profile,
+                          padding: 4.0,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFA999999),
+                              offset: Offset(0, 0.65),
+                              blurRadius: 1.3
+                            )
+                          ]
+                        ),
                       ),
                     ],
                   ),
@@ -1892,12 +1805,9 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             }
           }
         }
-        return SizedBox();
-      },
-    );
+    return SizedBox();
+
   }
-
-
 
   Widget oldBuild(BuildContext context) {
     return Scaffold(
@@ -2110,7 +2020,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                           ),
                                         ),
                                         SizedBox(width: SizeConfig.size3),
-                                        Expanded(
+                                        Flexible(
                                           child: FittedBox(
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.center,
@@ -2123,7 +2033,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                           ),
                                         ),
                                         SizedBox(width: SizeConfig.size5),
-                                        Expanded(
+                                        Flexible(
                                           child: FittedBox(
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.centerRight,
@@ -2181,7 +2091,8 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             key: ValueKey('feedScreen_user_posts_${widget.userId}'),
             postFilterType: PostType.otherPosts,
             isInParentScroll: true,
-            id: widget.userId);
+            id: widget.userId
+        );
       // case 'Achievements':
       // return AchievementsWidget();
       case 'Testimonials':
@@ -2494,7 +2405,6 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       channelId: '',
       authorId: widget.userId,
       sortBy: SortBy.Popular,
-      isScroll: false,
       postVia: PostVia.profile,
     );
     return Column(
@@ -2536,36 +2446,5 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         customVideoCard(),
       ],
     );
-  }
-}
-
-String getMonthNameFromMonth(int mon) {
-  switch (mon) {
-    case 1:
-      return "Jan";
-    case 2:
-      return "Feb";
-    case 3:
-      return "Mar";
-    case 4:
-      return "Apr";
-    case 5:
-      return "May";
-    case 6:
-      return "Jun";
-    case 7:
-      return "Jul";
-    case 8:
-      return "Aug";
-    case 9:
-      return "Sep";
-    case 10:
-      return "Oct";
-    case 11:
-      return "Nov";
-    case 12:
-      return "Dec";
-    default:
-      return "";
   }
 }

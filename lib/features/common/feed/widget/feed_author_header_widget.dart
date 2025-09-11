@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -10,8 +11,6 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.d
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -75,11 +74,12 @@ class PostAuthorHeader extends StatelessWidget {
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
+                  log('account type-- ${post?.user?.accountType?.toUpperCase()}');
                   /*if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
                   } else */{
                     // Get.to(() => VisitProfileScreen(authorId: authorId));
-                    Get.to(() => PersonalChatProfile(userId: authorId,));
+                    Get.to(() => PersonalChatProfile(userId: authorId));
                   }
                 }
                 if (post?.user?.accountType?.toUpperCase() ==

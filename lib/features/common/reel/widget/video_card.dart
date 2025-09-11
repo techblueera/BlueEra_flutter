@@ -24,6 +24,7 @@ class VideoCard extends StatelessWidget {
   final VoidCallback onTapOption;
   final VideoType videoType;
   final VoidCallback? voidCallback;
+  final List<BoxShadow>? boxShadow;
 
   const VideoCard({
     super.key,
@@ -31,6 +32,7 @@ class VideoCard extends StatelessWidget {
     required this.onTapOption,
     required this.videoType,
     this.voidCallback,
+    this.boxShadow,
   });
 
   @override
@@ -137,6 +139,7 @@ class VideoCard extends StatelessWidget {
             videoType: videoType,
             onTapOption: onTapOption,
             onTapCard: voidCallback,
+            boxShadow: boxShadow,
           ),
 
           // Overlay if video is under progress

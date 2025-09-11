@@ -45,7 +45,7 @@ import 'package:BlueEra/features/common/reel/view/channel/channel_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/manage_channel_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
 import 'package:BlueEra/features/common/reel/view/music/add_song_screen.dart';
-import 'package:BlueEra/features/common/reel/view/music/get_all_songs_screen.dart';
+import 'package:BlueEra/features/common/reel/view/music/all_songs_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/tag_people_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/full_video_preview_screen.dart';

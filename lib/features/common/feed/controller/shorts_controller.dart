@@ -429,7 +429,7 @@ class ShortsController extends GetxController{
           isOwnShorts: isOwnShorts,
           postVia: postVia,
         );
-        update();
+        // update();
         break;
 
       case Shorts.popular:

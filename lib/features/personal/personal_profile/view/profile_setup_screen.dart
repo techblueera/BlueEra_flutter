@@ -455,7 +455,6 @@ class _PersonalProfileSetupScreenState
           sortBy: selectedFilter,
           channelId: '',
           authorId: userId,
-          isScroll: false,
           postVia: PostVia.profile,
         );
       case 'Testimonials':

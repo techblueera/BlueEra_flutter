@@ -94,7 +94,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton:
-      (_isFromForward())?SizedBox():Padding(
+      (_isFromForward()) ? SizedBox() : Padding(
           padding: const EdgeInsets.only(bottom: 30.0),
           child : FloatingActionButton(
         child: Icon(Icons.add),

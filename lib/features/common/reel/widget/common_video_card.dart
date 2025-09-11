@@ -27,6 +27,7 @@ class CommonVideoCard extends StatelessWidget {
   final VideoType videoType;
   final VoidCallback onTapOption;
   final VoidCallback? onTapCard;
+  final List<BoxShadow>? boxShadow;
 
   const CommonVideoCard({
     super.key,
@@ -35,6 +36,7 @@ class CommonVideoCard extends StatelessWidget {
     required this.videoType,
     required this.onTapOption,
     this.onTapCard,
+    this.boxShadow,
   });
 
   @override
@@ -56,12 +58,12 @@ class CommonVideoCard extends StatelessWidget {
           onTapCard!();
         }
       },
-      child: Card(
-        elevation: 0,
-        color: AppColors.white,
-        shape: RoundedRectangleBorder(
+      child: Container(
+        // elevation: 0,
+        decoration: BoxDecoration(
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide.none,
+          boxShadow: boxShadow
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -115,7 +117,7 @@ class CommonVideoCard extends StatelessWidget {
                                 videoItem.video?.title ?? '',
                                 color: AppColors.mainTextColor,
                                 fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w400,
+                                fontWeight: FontWeight.w600,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -125,10 +127,11 @@ class CommonVideoCard extends StatelessWidget {
                                   Expanded(
                                     child: CustomText(
                                       "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
-                                      fontSize: SizeConfig.small11,
+                                      fontSize: SizeConfig.small,
                                       color: AppColors.secondaryTextColor,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
+                                      fontWeight: FontWeight.w400,
                                     ),
                                   ),
                                 ],

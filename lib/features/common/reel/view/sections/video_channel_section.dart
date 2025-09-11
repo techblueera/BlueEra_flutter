@@ -14,20 +14,25 @@ import 'package:get/get.dart';
 
 class VideoChannelSection extends StatefulWidget {
   final bool isOwnVideos;
-  final bool isScroll;
+  final bool isParentScroll;
   final SortBy? sortBy;
   final String channelId;
   final String authorId;
   final PostVia? postVia;
+  final double? padding;
+  final List<BoxShadow>? boxShadow;
   final VoidCallback? onLoadMore; // Callback for pagination
+
 
   const VideoChannelSection({
     super.key,
     this.onLoadMore,
     this.postVia,
     this.isOwnVideos = false,
-    this.isScroll = true,
+    this.isParentScroll = true,
     this.sortBy,
+    this.padding,
+    this.boxShadow,
     required this.channelId,
     required this.authorId
   });
@@ -112,13 +117,13 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
             itemCount: channelVideos.length +
                 (videosController.isMoreDataLoading(videos).value ? 1 : 0),
             padding: EdgeInsets.only(
-                left: SizeConfig.paddingXSL,
-                right: SizeConfig.paddingXSL,
-                bottom: SizeConfig.paddingXSL,
-                top: SizeConfig.paddingM
+                left: widget.padding ?? SizeConfig.paddingXSL,
+                right: widget.padding ?? SizeConfig.paddingXSL,
+                bottom: widget.padding ?? SizeConfig.paddingXSL,
+                top: widget.padding ?? SizeConfig.paddingXSL
             ),
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(), // Prevent scrolling conflicts
+            physics: (widget.isParentScroll) ?  NeverScrollableScrollPhysics(): AlwaysScrollableScrollPhysics(), // Prevent scrolling conflicts
             itemBuilder: (context, index) {
               if (index >= channelVideos.length) {
                 return Container(
@@ -147,7 +152,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
                         otherUserId: videoFeedItem.video?.userId??'',
                       );
                     },
-                      reportCallback: (params){
+                    reportCallback: (params){
                         Get.find<VideoController>().videoPostReport(
                             videoId: videoFeedItem.video?.id??'',
                             videoType: videos,
@@ -156,7 +161,8 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
                       }
                   );
                 },
-                videoType: videos
+                videoType: videos,
+                boxShadow: widget.boxShadow,
               );
             },
           );

@@ -70,7 +70,6 @@ class _CommonDraftSectionState extends State<CommonDraftSection> {
              isOwnVideos: widget.isOwnProfile,
              channelId: widget.channelId,
              authorId: widget.authorId,
-             isScroll: false,
              postVia: PostVia.channel,
          )
       ],

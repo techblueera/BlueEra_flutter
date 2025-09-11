@@ -80,7 +80,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     NetworkUtils.removeListener((connected) {});
     super.dispose();
   }

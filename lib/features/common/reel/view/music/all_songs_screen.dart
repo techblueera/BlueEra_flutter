@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/reel/models/get_all_songs_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/half_width_tab_indicator.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -173,20 +174,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
     }
 
     if (songs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LocalAssets(imagePath: AppIconAssets.emptyIcon),
-            SizedBox(height: SizeConfig.size20),
-            CustomText(
-              "No Result Found",
-              fontSize: SizeConfig.extraLarge,
-              color: AppColors.grey9A,
-            ),
-          ],
-        ),
-      );
+      return EmptyStateWidget(message: 'No Songs found.');
     }
 
     return ListView.builder(
@@ -282,20 +270,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
     }
 
     if (favouriteSongs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LocalAssets(imagePath: AppIconAssets.emptyIcon),
-            SizedBox(height: SizeConfig.size20),
-            CustomText(
-              "No Result Found",
-              fontSize: SizeConfig.extraLarge,
-              color: AppColors.grey9A,
-            ),
-          ],
-        ),
-      );
+      return  EmptyStateWidget(message: 'No favourite Songs.');;
     }
 
     return ListView.builder(

@@ -581,7 +581,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
                           ),
                           Expanded(
                             child: CustomText(
-                              "${getMonthNameFromMonth(channelController.channelData.value?.createdAt.month??0)},${channelController.channelData.value?.createdAt.year}",
+                              "${getMonthName(channelController.channelData.value?.createdAt.month??0)},${channelController.channelData.value?.createdAt.year}",
                               overflow: TextOverflow.ellipsis,
                               color: AppColors.black,
                             ),
@@ -1143,7 +1143,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
           sortBy: channelController.selectedFilter,
           channelId: widget.channelId,
           authorId: widget.authorId,
-          isScroll: false,
           postVia: PostVia.channel,
         );
 

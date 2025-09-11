@@ -123,7 +123,6 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
             isOwnVideos: true,
             channelId: '',
             authorId: userId,
-            isScroll: false,
             postVia: PostVia.profile,
             sortBy: selectedFilter,
         );
