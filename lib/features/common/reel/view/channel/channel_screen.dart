@@ -384,7 +384,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
   }
 
   Widget _buildHeaderSection() {
-    return Card(
+   /* return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
@@ -703,7 +703,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
           ],
         ),
       ),
-    );
+    );*/
     return Obx(() => Padding(
           padding: EdgeInsets.only(
               left: SizeConfig.size15,
@@ -1456,7 +1456,8 @@ class _ChannelScreenState extends State<ChannelScreen> {
       if (authorId == userId) {
         Get.to(() => PersonalProfileSetupScreen());
       } else {
-        Get.to(() => VisitProfileScreen(authorId: authorId));
+        Get.to(() => PersonalChatProfile(userId: authorId));
+        // Get.to(() => VisitProfileScreen(authorId: authorId));
       }
     } else {
       if (authorId == userId) {

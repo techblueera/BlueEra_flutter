@@ -70,7 +70,7 @@ class PersonalChatProfile extends StatefulWidget {
       {super.key,
       required this.userId,
       this.contactNumber,
-      this.channelId='',
+      this.channelId = '',
       this.isTestimonialRating = false});
 
   @override
@@ -78,42 +78,56 @@ class PersonalChatProfile extends StatefulWidget {
 }
 
 class _PersonalChatProfileState extends State<PersonalChatProfile> {
-  final viewProfileController = Get.put(ViewPersonalDetailsController());
-  final personalCreateProfileController =
-      Get.put(PersonalCreateProfileController());
-  final VideoController videosController =
-      Get.put<VideoController>(VideoController());
+    VisitProfileController? controller;
+  late ViewPersonalDetailsController viewProfileController;
+  late PersonalCreateProfileController personalCreateProfileController;
+  late VideoController videosController;
+  late ShortsController shortsController;
   VideoType videoType = VideoType.latest;
-
-  final ShortsController shortsController =
-      Get.put<ShortsController>(ShortsController());
 
   final youtubeController = TextEditingController();
   List<String> postTab = [];
   int selectedIndex = 0;
-  late VisitProfileController controller;
+
   final GlobalKey _cardKey = GlobalKey();
   double _cardHeight = 0;
-
 
   @override
   void initState() {
     super.initState();
-    controller = Get.put(VisitProfileController());
+    pullAllController();
+  }
 
-    // controller.fetchUserById(userId: "689deb7aac8beb10537e3107");
-    controller.fetchUserById(userId: widget.userId);
-    controller.getCountRatingByUser(userId: widget.userId);
-    controller.getRatingSummary(userId: widget.userId);
+  void pullAllController() async {
+    await Get.delete<VisitProfileController>();
+    await Get.delete<ViewPersonalDetailsController>();
+    await Get.delete<PersonalCreateProfileController>();
+    await Get.delete<VideoController>();
+    await Get.delete<ShortsController>();
+
+    controller = Get.put(VisitProfileController());
+    setState(() {
+
+    });
+    viewProfileController = Get.put(ViewPersonalDetailsController());
+    personalCreateProfileController =
+        Get.put(PersonalCreateProfileController());
+    videosController = Get.put(VideoController());
+    shortsController = Get.put(ShortsController());
+
+    controller!.fetchUserById(userId: widget.userId);
+    controller!.getCountRatingByUser(userId: widget.userId);
+    controller!.getRatingSummary(userId: widget.userId);
 
     _loadInitialData();
   }
 
+
+
   Future<void> _loadInitialData() async {
-    await viewProfileController
-        .viewPersonalProfiles(widget.contactNumber ?? "");
+    // await viewProfileController.viewPersonalProfiles(widget.contactNumber ?? "");
     await viewProfileController.UserFollowersAndPostsCount(widget.userId);
-    await controller.getTestimonialController(userID: widget.userId);
+    await controller!.getTestimonialController(userID: widget.userId);
     await viewProfileController.getAllPostApi(widget.userId);
     shortsController.getShortsByType(
       Shorts.latest,
@@ -122,8 +136,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       true,
     );
 
-    videosController.getVideosByType(videoType, widget.channelId, widget.userId, false,
-        );
+    videosController.getVideosByType(videoType, '', widget.userId, true);
 
     _updateTextControllers();
   }
@@ -176,10 +189,10 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         padding: EdgeInsets.symmetric(
             horizontal: SizeConfig.size4, vertical: SizeConfig.size10),
         child: SingleChildScrollView(
-          child: Column(
+          child:controller !=null? Column(
             children: [
               Obx(
-                () => widget_profileHeader(controller.userData.value?.user),
+                () => widget_profileHeader(controller!.userData.value?.user),
               ),
               SizedBox(
                 height: SizeConfig.size12,
@@ -197,7 +210,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
               ),
               _buildTabWidget(selectedIndex),
             ],
-          ),
+          ):CircularProgressIndicator(),
         ),
       ),
     );
@@ -222,18 +235,16 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         );
       case 4:
         return VideoChannelSection(
-          isOwnVideos: true,
-          channelId: '',
-          authorId: userId,
-          postVia: PostVia.profile,
-          boxShadow: [
+            isOwnVideos: true,
+            channelId: '',
+            authorId: widget.userId,
+            postVia: PostVia.profile,
+            boxShadow: [
               BoxShadow(
                   color: Color(0xFA999999),
                   offset: Offset(0, 0.65),
-                  blurRadius: 1.3
-              )
-            ]
-        );
+                  blurRadius: 1.3)
+            ]);
       default:
         return Text("Not implemented");
     }
@@ -245,12 +256,12 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         Obx(
           () => buildRatingSummary(
             rating: double.parse(
-                (controller.getRattingSummaryResponse.value?.data?.avgRating ??
+                (controller!.getRattingSummaryResponse.value?.data?.avgRating ??
                         0)
                     .toString()),
             totalReviews: "5,455",
-            reviewData: controller.getCountRattingResponse.value?.data ?? [],
-            totalRating: controller.getCountRattingResponse.value?.data
+            reviewData: controller!.getCountRattingResponse.value?.data ?? [],
+            totalRating: controller!.getCountRattingResponse.value?.data
                     ?.map(
                       (e) => e.count!,
                     )
@@ -261,14 +272,14 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
           ),
         ),
         SizedBox(
-          height: controller.testimonialsList?.value.isEmpty ?? true ? 0 : 12,
+          height: controller!.testimonialsList?.value.isEmpty ?? true ? 0 : 12,
         ),
         Obx(
           () {
-            return controller.testimonialsList?.value.isEmpty ?? true
+            return controller!.testimonialsList?.value.isEmpty ?? true
                 ? SizedBox()
                 : buildTestimonialsCard(
-                    controller.testimonialsList?.value ?? []);
+                    controller!.testimonialsList?.value ?? []);
           },
         ),
         SizedBox(
@@ -282,13 +293,13 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         // SizedBox(
         //   height: 20,
         // ),
-        Obx(()=> buildHorizontalSortsList()),
+        Obx(() => buildHorizontalSortsList()),
 
         // SizedBox(
         //   height: 20,
         // ),
 
-        Obx(()=> customVideoCard()),
+        Obx(() => customVideoCard()),
 
         SizedBox(
           height: 20,
@@ -315,17 +326,18 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(
-                          top: 10.0,
-                          left: 10.0,
-                          right: 10.0,
-                          bottom: 10.0,
+                        top: 10.0,
+                        left: 10.0,
+                        right: 10.0,
+                        bottom: 10.0,
                       ),
                       child: InkWell(
-                        onTap: (){
+                        onTap: () {
                           navigatePushTo(
                             context,
                             ImageViewScreen(
-                              appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                              appBarTitle:
+                                  AppLocalizations.of(context)!.imageViewer,
                               imageUrls: [user?.profileImage ?? ""],
                               initialIndex: 0,
                             ),
@@ -334,27 +346,26 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                         child: CachedAvatarWidget(
                             imageUrl: user?.profileImage ?? "",
                             size: SizeConfig.size60,
-                            borderRadius: SizeConfig.size30)
-                        ,
+                            borderRadius: SizeConfig.size30),
                       ),
                     ),
                     CustomBtn(
                       onTap: () {
-                        controller.isFollow.value
-                            ? controller
+                        controller!.isFollow.value
+                            ? controller!
                                 .unFollowUserController(
                                     candidateResumeId: user?.id)
-                                .then((value) => controller.fetchUserById(
+                                .then((value) => controller!.fetchUserById(
                                       userId: widget.userId,
                                     ))
-                            : controller
+                            : controller!
                                 .followUserController(
                                     candidateResumeId: user?.id)
-                                .then((value) => controller.fetchUserById(
+                                .then((value) => controller!.fetchUserById(
                                       userId: widget.userId,
                                     ));
                       },
-                      title: controller.isFollow.value ? "UnFollow" : "Follow",
+                      title: controller!.isFollow.value ? "UnFollow" : "Follow",
                       fontWeight: FontWeight.bold,
                       height: SizeConfig.size24,
                       bgColor: AppColors.skyBlueDF,
@@ -448,8 +459,11 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                       PopupMenuItem(
                                           value: 1,
                                           child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Icon(Icons.share),
+                                              Image.asset(
+                                                  "assets/images/share.jpg"),
                                               CustomText("Share"),
                                             ],
                                           )),
@@ -564,18 +578,20 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           // ),
                           Flexible(
                             child: InkWell(
-                              onTap: (){
-                                Get.to(()=> FollowersFollowingPage(
-                                  tabIndex: 0,
-                                  userID: controller.userData.value?.user?.id ?? "",
-                                ));
+                              onTap: () {
+                                Get.to(() => FollowersFollowingPage(
+                                      tabIndex: 0,
+                                      userID:
+                                          controller!.userData.value?.user?.id ??
+                                              "",
+                                    ));
                               },
                               child: RichText(
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   text: TextSpan(
                                       text:
-                                          "${(controller.userData.value?.followingCount ?? "").toString()} ",
+                                          "${(controller!.userData.value?.followingCount ?? "").toString()} ",
                                       style: TextStyle(
                                         color: AppColors.black,
                                         fontSize: 16,
@@ -598,18 +614,20 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           ),
                           Flexible(
                             child: InkWell(
-                              onTap: (){
-                                Get.to(()=> FollowersFollowingPage(
-                                  tabIndex: 1,
-                                  userID: controller.userData.value?.user?.id ?? "",
-                                ));
+                              onTap: () {
+                                Get.to(() => FollowersFollowingPage(
+                                      tabIndex: 1,
+                                      userID:
+                                          controller!.userData.value?.user?.id ??
+                                              "",
+                                    ));
                               },
                               child: RichText(
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   text: TextSpan(
                                       text:
-                                          "${(controller.userData.value?.followersCount ?? "").toString()} ",
+                                          "${(controller!.userData.value?.followersCount ?? "").toString()} ",
                                       style: TextStyle(
                                         color: AppColors.black,
                                         fontSize: 16,
@@ -1476,170 +1494,188 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                       textAlign: TextAlign.center,
                     ))
                   : SizedBox(
-                height: _cardHeight > 0 ? _cardHeight : 400,
-                width: Get.width,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: posts.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    var data = posts[index];
-                    FeedType? feedType =
-                    FeedType.fromValue(data.type?.toUpperCase());
+                      height: _cardHeight > 0 ? _cardHeight : 400,
+                      width: Get.width,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: posts.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          var data = posts[index];
+                          FeedType? feedType =
+                              FeedType.fromValue(data.type?.toUpperCase());
 
-                    return Container(
-                      key: index == 0 ? _cardKey : null,
-                      width: Get.width * 0.9,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.whiteDB, width: 2),
-                        borderRadius: BorderRadius.circular(SizeConfig.size12),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(SizeConfig.size12),
-                              topRight: Radius.circular(SizeConfig.size12),
+                          return Container(
+                            key: index == 0 ? _cardKey : null,
+                            width: Get.width * 0.9,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: AppColors.whiteDB, width: 2),
+                              borderRadius:
+                                  BorderRadius.circular(SizeConfig.size12),
                             ),
-                            child: SizedBox(
-                              width: Get.width * 0.9,
-                              child: feedType == FeedType.qaPost
-                                  ? FeedPollOptionsWidget(
-                                question: data.poll?.question ?? "",
-                                postId: data.id,
-                                poll: data.poll,
-                                postFilteredType: PostType.latest,
-                                postedAgo: timeAgo(
-                                  data.createdAt ?? DateTime.now(),
-                                ),
-                                message: data.message,
-                              )
-                                  : FeedMediaCarouselWidget(
-                                subTitle: data.subTitle ?? "",
-                                taggedUser: data.taggedUsers ?? [],
-                                mediaUrls: data.media ?? [],
-                                postedAgo: timeAgo(
-                                  data.createdAt ?? DateTime.now(),
-                                ),
-                                totalViews: (data.viewsCount ?? 0).toString(),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(SizeConfig.size10),
                             child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (data.title?.isNotEmpty ?? false) ...[
-                                  CustomText(
-                                    data.title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    fontSize: SizeConfig.size14,
-                                    fontWeight: FontWeight.bold,
+                                ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(SizeConfig.size12),
+                                    topRight:
+                                        Radius.circular(SizeConfig.size12),
                                   ),
-                                  SizedBox(height: SizeConfig.size4),
-                                ],
-                                CustomText(
-                                  data.subTitle,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: SizeConfig.size12,
-                                  color: AppColors.coloGreyText,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 50,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4, horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: AppColors.borderGray, width: 2),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 16,
-                                          backgroundImage: NetworkImage(
-                                            data.user?.profileImage ?? "",
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: RichText(
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            text: const TextSpan(
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 13,
-                                              ),
-                                              children: [
-                                                TextSpan(
-                                                  text: "Sathi: ",
-                                                  style: TextStyle(
-                                                      fontWeight: FontWeight.bold),
-                                                ),
-                                                TextSpan(
-                                                    text:
-                                                    "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum"),
-                                              ],
+                                  child: SizedBox(
+                                    width: Get.width * 0.9,
+                                    child: feedType == FeedType.qaPost
+                                        ? FeedPollOptionsWidget(
+                                            question: data.poll?.question ?? "",
+                                            postId: data.id,
+                                            poll: data.poll,
+                                            postFilteredType: PostType.latest,
+                                            postedAgo: timeAgo(
+                                              data.createdAt ?? DateTime.now(),
                                             ),
+                                            message: data.message,
+                                          )
+                                        : FeedMediaCarouselWidget(
+                                            subTitle: data.subTitle ?? "",
+                                            taggedUser: data.taggedUsers ?? [],
+                                            mediaUrls: data.media ?? [],
+                                            postedAgo: timeAgo(
+                                              data.createdAt ?? DateTime.now(),
+                                            ),
+                                            totalViews: (data.viewsCount ?? 0)
+                                                .toString(),
                                           ),
-                                        ),
-                                        Icon(Icons.edit,
-                                            size: 18, color: Colors.grey),
-                                      ],
-                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  height: 50,
-                                  width: 50,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: AppColors.borderGray, width: 2),
-                                    borderRadius: BorderRadius.circular(12),
+                                Padding(
+                                  padding: EdgeInsets.all(SizeConfig.size10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (data.title?.isNotEmpty ?? false) ...[
+                                        CustomText(
+                                          data.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          fontSize: SizeConfig.size14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        SizedBox(height: SizeConfig.size4),
+                                      ],
+                                      CustomText(
+                                        data.subTitle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        fontSize: SizeConfig.size12,
+                                        color: AppColors.coloGreyText,
+                                      ),
+                                    ],
                                   ),
-                                  child: PopupMenuButton(
-                                    onSelected: (value) {
-                                      if (value == 2) {
-                                        onShareButtonPressed(data);
-                                      } else if (value == 3) {
-                                        Get.find<FeedController>().savePostToLocalDB(
-                                          postId: data.id ?? '0',
-                                          type: PostType.latest,
-                                          sortBy: SortBy.Latest,
-                                        );
-                                      }
-                                    },
-                                    itemBuilder: (context) => const [
-                                      PopupMenuItem(value: 1, child: Text("Re-post")),
-                                      PopupMenuItem(value: 2, child: Text("Share")),
-                                      PopupMenuItem(value: 3, child: Text("Save")),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          height: 50,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4, horizontal: 8),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                                color: AppColors.borderGray,
+                                                width: 2),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 16,
+                                                backgroundImage: NetworkImage(
+                                                  data.user?.profileImage ?? "",
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: RichText(
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  text: const TextSpan(
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 13,
+                                                    ),
+                                                    children: [
+                                                      TextSpan(
+                                                        text: "Sathi: ",
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      TextSpan(
+                                                          text:
+                                                              "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum"),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              Icon(Icons.edit,
+                                                  size: 18, color: Colors.grey),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        height: 50,
+                                        width: 50,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: AppColors.borderGray,
+                                              width: 2),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: PopupMenuButton(
+                                          onSelected: (value) {
+                                            if (value == 2) {
+                                              onShareButtonPressed(data);
+                                            } else if (value == 3) {
+                                              Get.find<FeedController>()
+                                                  .savePostToLocalDB(
+                                                postId: data.id ?? '0',
+                                                type: PostType.latest,
+                                                sortBy: SortBy.Latest,
+                                              );
+                                            }
+                                          },
+                                          itemBuilder: (context) => const [
+                                            PopupMenuItem(
+                                                value: 1,
+                                                child: Text("Re-post")),
+                                            PopupMenuItem(
+                                                value: 2, child: Text("Share")),
+                                            PopupMenuItem(
+                                                value: 3, child: Text("Save")),
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
             ],
           ),
         ),
@@ -1649,164 +1685,160 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
   Widget buildHorizontalSortsList() {
     if (shortsController.isInitialLoading(Shorts.latest).isFalse) {
-          if (shortsController.shortsResponse.status == Status.COMPLETE) {
-            final channelShorts =
-                shortsController.getListByType(shorts: Shorts.latest);
-            if (channelShorts.isEmpty) {
-              return SizedBox();
-            }
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(SizeConfig.size16),
-              ),
-              elevation: SizeConfig.size4,
-              color: AppColors.white,
-              child: Padding(
-                padding: EdgeInsets.all(SizeConfig.size12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      "Shorts",
-                      fontSize: SizeConfig.size20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size8,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size240,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: channelShorts.length,
-                        itemBuilder: (context, index) {
-                          ShortFeedItem data = channelShorts[index];
-                          return InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                RouteHelper.getShortsPlayerScreenRoute(),
-                                arguments: {
-                                  ApiKeys.shorts: Shorts.latest,
-                                  ApiKeys.videoItem: channelShorts,
-                                  ApiKeys.initialIndex: 0,
-                                },
-                              );
+      if (shortsController.shortsResponse.status == Status.COMPLETE) {
+        final channelShorts =
+            shortsController.getListByType(shorts: Shorts.latest);
+        if (channelShorts.isEmpty) {
+          return SizedBox();
+        }
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SizeConfig.size16),
+          ),
+          elevation: SizeConfig.size4,
+          color: AppColors.white,
+          child: Padding(
+            padding: EdgeInsets.all(SizeConfig.size12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  "Shorts",
+                  fontSize: SizeConfig.size20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                ),
+                SizedBox(
+                  height: SizeConfig.size8,
+                ),
+                SizedBox(
+                  height: SizeConfig.size240,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: channelShorts.length,
+                    itemBuilder: (context, index) {
+                      ShortFeedItem data = channelShorts[index];
+                      return InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            RouteHelper.getShortsPlayerScreenRoute(),
+                            arguments: {
+                              ApiKeys.shorts: Shorts.latest,
+                              ApiKeys.videoItem: channelShorts,
+                              ApiKeys.initialIndex: 0,
                             },
-                            child: Container(
-                              width: SizeConfig.size160,
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius:
-                                    BorderRadius.circular(SizeConfig.size12),
-                                image: DecorationImage(
-                                    image: NetworkImage(data.video?.coverUrl ??
-                                            "" // "assets/images/camera_stand.png",
-                                        ),
-                                    fit: BoxFit.cover),
-                                border: Border.all(
-                                    color: AppColors.whiteDB, width: 2),
-                              ),
-                              alignment: Alignment.bottomRight,
-                              child: Container(
-                                margin: EdgeInsets.all(SizeConfig.size12),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: SizeConfig.size2,
-                                    horizontal: SizeConfig.size8),
-                                decoration: BoxDecoration(
-                                    color: AppColors.black30,
-                                    borderRadius: BorderRadius.circular(
-                                        SizeConfig.size12)),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.visibility_outlined,
-                                      color: AppColors.white,
-                                    ),
-                                    SizedBox(
-                                      width: SizeConfig.size4,
-                                    ),
-                                    CustomText(
-                                      (data.video?.stats?.views ?? "")
-                                          .toString(),
-                                      color: AppColors.white,
-                                      fontSize: SizeConfig.size16,
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
                           );
                         },
-                        separatorBuilder: (context, index) => SizedBox(
-                          width: SizeConfig.size12,
+                        child: Container(
+                          width: SizeConfig.size160,
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius:
+                                BorderRadius.circular(SizeConfig.size12),
+                            image: DecorationImage(
+                                image: NetworkImage(data.video?.coverUrl ??
+                                        "" // "assets/images/camera_stand.png",
+                                    ),
+                                fit: BoxFit.cover),
+                            border:
+                                Border.all(color: AppColors.whiteDB, width: 2),
+                          ),
+                          alignment: Alignment.bottomRight,
+                          child: Container(
+                            margin: EdgeInsets.all(SizeConfig.size12),
+                            padding: EdgeInsets.symmetric(
+                                vertical: SizeConfig.size2,
+                                horizontal: SizeConfig.size8),
+                            decoration: BoxDecoration(
+                                color: AppColors.black30,
+                                borderRadius:
+                                    BorderRadius.circular(SizeConfig.size12)),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.visibility_outlined,
+                                  color: AppColors.white,
+                                ),
+                                SizedBox(
+                                  width: SizeConfig.size4,
+                                ),
+                                CustomText(
+                                  (data.video?.stats?.views ?? "").toString(),
+                                  color: AppColors.white,
+                                  fontSize: SizeConfig.size16,
+                                )
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                      );
+                    },
+                    separatorBuilder: (context, index) => SizedBox(
+                      width: SizeConfig.size12,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          }
-        }
+              ],
+            ),
+          ),
+        );
+      }
+    }
     return SizedBox();
   }
 
   Widget customVideoCard() {
     if (videosController.isInitialLoading(videoType).isFalse) {
-          if (videosController.channelVideosResponse.status ==
-              Status.COMPLETE) {
-            final channelVideos = videosController.getListByType(videoType: videoType);
-            if (channelVideos.isNotEmpty) {
-              return Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                color: AppColors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "Videos",
-                        fontSize: SizeConfig.size20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size8,
-                      ),
-                      SizedBox(
-                        height: 310,
-                        child: VideoChannelSection(
-                          isOwnVideos: true,
-                          channelId: '',
-                          isParentScroll: false,
-                          authorId: widget.userId,
-                          postVia: PostVia.profile,
-                          padding: 4.0,
-                          boxShadow: [
-                            BoxShadow(
+      if (videosController.channelVideosResponse.status == Status.COMPLETE) {
+        final channelVideos =
+            videosController.getListByType(videoType: videoType);
+        if (channelVideos.isNotEmpty) {
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: AppColors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    "Videos",
+                    fontSize: SizeConfig.size20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.black,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size8,
+                  ),
+                  SizedBox(
+                    height: 310,
+                    child: VideoChannelSection(
+                        isOwnVideos: true,
+                        channelId: '',
+                        isParentScroll: false,
+                        authorId: widget.userId,
+                        postVia: PostVia.profile,
+                        padding: 4.0,
+                        boxShadow: [
+                          BoxShadow(
                               color: Color(0xFA999999),
                               offset: Offset(0, 0.65),
-                              blurRadius: 1.3
-                            )
-                          ]
-                        ),
-                      ),
-                    ],
+                              blurRadius: 1.3)
+                        ]),
                   ),
-                ),
-              );
-            }
-          }
+                ],
+              ),
+            ),
+          );
         }
+      }
+    }
     return SizedBox();
-
   }
 
   Widget oldBuild(BuildContext context) {
@@ -1827,7 +1859,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       //
       // }),
       body: Obx(() {
-        final user = controller.userData.value?.user;
+        final user = controller!.userData.value?.user;
         logs(
             "viewProfileController.viewPersonalResponse.value.status  ${viewProfileController.viewPersonalResponse.value.status}");
         if (viewProfileController.viewPersonalResponse.value.status ==
@@ -2012,7 +2044,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.centerLeft,
                                             child: StatBlock(
-                                              count: controller
+                                              count: controller!
                                                   .userData.value!.totalPosts
                                                   .toString(),
                                               label: "Posts",
@@ -2025,7 +2057,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.center,
                                             child: StatBlock(
-                                              count: controller.userData.value!
+                                              count: controller!.userData.value!
                                                   .followersCount
                                                   .toString(),
                                               label: "Followers",
@@ -2038,7 +2070,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                             fit: BoxFit.scaleDown,
                                             alignment: Alignment.centerRight,
                                             child: StatBlock(
-                                              count: controller.userData.value!
+                                              count: controller!.userData.value!
                                                   .followingCount
                                                   .toString(),
                                               label: "Following",
@@ -2091,8 +2123,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             key: ValueKey('feedScreen_user_posts_${widget.userId}'),
             postFilterType: PostType.otherPosts,
             isInParentScroll: true,
-            id: widget.userId
-        );
+            id: widget.userId);
       // case 'Achievements':
       // return AchievementsWidget();
       case 'Testimonials':
@@ -2344,11 +2375,11 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       children: [
         buildRatingSummary(
           rating: double.parse(
-              (controller.getRattingSummaryResponse.value?.data?.avgRating ?? 0)
+              (controller!.getRattingSummaryResponse.value?.data?.avgRating ?? 0)
                   .toString()),
           totalReviews: "5,455",
-          reviewData: controller.getCountRattingResponse.value?.data ?? [],
-          totalRating: controller.getCountRattingResponse.value?.data
+          reviewData: controller!.getCountRattingResponse.value?.data ?? [],
+          totalRating: controller!.getCountRattingResponse.value?.data
                   ?.map(
                     (e) => e.count!,
                   )
@@ -2391,7 +2422,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         ),
         SizedBox(height: 4),
         TestimonialsScreen(
-          userName: controller.userData.value?.user?.name ?? 'N/A',
+          userName: controller!.userData.value?.user?.name ?? 'N/A',
           visitUserID: widget.userId,
           isSelfTestimonial: false,
         )

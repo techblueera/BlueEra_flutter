@@ -12,6 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -836,20 +837,23 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       if (fullScreenShortController.videoItem?.author?.accountType
               ?.toUpperCase() ==
           AppConstants.individual) {
-        if (fullScreenShortController.videoItem?.author?.id == userId) {
-          navigatePushTo(context, PersonalProfileSetupScreen());
-        } else {
-          Get.to(() => VisitProfileScreen(
-              authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
-        }
+        Get.to(PersonalChatProfile(userId:fullScreenShortController.videoItem?.author?.id??"" ));
+        // if (fullScreenShortController.videoItem?.author?.id == userId) {
+        //   navigatePushTo(context, PersonalProfileSetupScreen());
+        // } else {
+        //   Get.to(PersonalProfileSetupScreen());
+        //   // Get.to(() => VisitProfileScreen(
+        //   //     authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
+        // }
       } else {
-        if (fullScreenShortController.videoItem?.author?.id == userId) {
-          navigatePushTo(context, BusinessOwnProfileScreen());
-        } else {
-          Get.to(() => VisitBusinessProfile(
-              businessId:
-                  fullScreenShortController.videoItem?.author?.id ?? ''));
-        }
+        Get.to(VisitBusinessProfile(businessId:fullScreenShortController.videoItem?.author?.id??"" ));
+        // if (fullScreenShortController.videoItem?.author?.id == userId) {
+        //   navigatePushTo(context, BusinessOwnProfileScreen());
+        // } else {
+        //   Get.to(() => VisitBusinessProfile(
+        //       businessId:
+        //           fullScreenShortController.videoItem?.author?.id ?? ''));
+        // }
       }
     }
   }

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reel_video_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
@@ -241,22 +242,28 @@ class CommonVideoCard extends StatelessWidget {
     // 2️⃣ If Individual account
     if (videoItem.author?.accountType?.toUpperCase() == AppConstants.individual) {
       final isMyProfile = videoItem.author?.id == userId;
-      if (isMyProfile) {
-        navigatePushTo(context, PersonalProfileSetupScreen());
-      } else {
-        Get.to(() => VisitProfileScreen(authorId: videoItem.author?.id ?? ''));
-      }
+      navigatePushTo(context, PersonalChatProfile(userId: videoItem.author?.id ?? ''));
+      // if (isMyProfile) {
+      //   // navigatePushTo(context, PersonalProfileSetupScreen());
+      //   navigatePushTo(context, PersonalChatProfile(userId: videoItem.author?.id ?? ''));
+      // } else {
+      //   Get.to(() =>
+      //   // PersonalProfileSetupScreen(),
+      //    VisitProfileScreen(authorId: videoItem.author?.id ?? '')
+      //   );
+      // }
       return;
     }
 
     // 3️⃣ If Business account
     if (videoItem.author?.accountType?.toUpperCase() == AppConstants.business) {
       final isMyBusiness = videoItem.author?.id == userId;
-      if (isMyBusiness) {
-        navigatePushTo(context, BusinessOwnProfileScreen());
-      } else {
-        Get.to(() => VisitBusinessProfile(businessId: videoItem.author?.id ?? ''));
-      }
+      Get.to(() => VisitBusinessProfile(businessId: videoItem.author?.id ?? ''));
+      // if (isMyBusiness) {
+      //   navigatePushTo(context, BusinessOwnProfileScreen());
+      // } else {
+      //   Get.to(() => VisitBusinessProfile(businessId: videoItem.author?.id ?? ''));
+      // }
       return;
     }
   }

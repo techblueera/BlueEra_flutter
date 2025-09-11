@@ -47,11 +47,12 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
   @override
   void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchChannelVideos(isInitialLoad: true,postVia: widget.postVia);
-    });
+    print('call api');
     setVideosType();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchChannelVideos(isInitialLoad: true, postVia: widget.postVia);
+    });
+    super.initState();
   }
 
   @override
