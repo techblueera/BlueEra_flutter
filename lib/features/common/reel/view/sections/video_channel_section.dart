@@ -20,6 +20,7 @@ class VideoChannelSection extends StatefulWidget {
   final String authorId;
   final PostVia? postVia;
   final VoidCallback? onLoadMore; // Callback for pagination
+  final bool showOnlyOne;
 
   const VideoChannelSection({
     super.key,
@@ -29,7 +30,7 @@ class VideoChannelSection extends StatefulWidget {
     this.isScroll = true,
     this.sortBy,
     required this.channelId,
-    required this.authorId
+    required this.authorId,   this.showOnlyOne = false,
   });
 
   @override
@@ -107,6 +108,13 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
               ),
             );
           }
+           if(widget.showOnlyOne){
+              return VideoCard(
+                videoItem: channelVideos[0],
+                onTapOption: () {},
+                videoType: videos
+              );
+            }
 
           return ListView.builder(
             itemCount: channelVideos.length +
@@ -120,6 +128,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(), // Prevent scrolling conflicts
             itemBuilder: (context, index) {
+            
               if (index >= channelVideos.length) {
                 return Container(
                   padding: EdgeInsets.all(SizeConfig.size20),
@@ -132,6 +141,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
               }
 
               final videoFeedItem = channelVideos[index];
+             
 
               return VideoCard(
                 videoItem: videoFeedItem,

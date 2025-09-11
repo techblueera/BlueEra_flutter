@@ -96,6 +96,16 @@ class JobRepo extends BaseService {
     );
     return response;
   }
+   Future<ResponseModel> getVisitedBusineesAllJobsRepo(String userId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      ((accountTypeGlobal.toUpperCase() == AppConstants.business))
+          ? "$getAllJobs?postedBy=$userId"
+          : "$getAllJobs?status=Open",
+      onError: (error) {},
+      onSuccess: (res) {},
+    );
+    return response;
+  }
 
   /// GET JOB DETAILS BY ID
   Future<ResponseModel> getJobDetailsRepo({required String jobId}) async {

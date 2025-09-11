@@ -890,6 +890,59 @@ List<PopupMenuEntry<String>> popupProductMenuItems() {
   return entries;
 }
 
+List<PopupMenuEntry<String>> popupvisitBusinessProfileMenuItems() {
+  final items = <Map<String, dynamic>>[
+    {'icon': Icons.share_outlined, 'title': 'Share', 'isIcon': true},
+    // {'icon': Icons.report_gmailerrorred_outlined, 'title': 'Report', 'isIcon': true},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size40,
+        value: items[i]['title'],
+        child: Row(
+          children: [
+            Icon(
+              items[i]['icon'],
+              size: 20,
+              color: AppColors.black30,
+            ),
+            SizedBox(width: SizeConfig.size12),
+            CustomText(
+              items[i]['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
+
 List<PopupMenuEntry<String>> popupInventoryMenuItems() {
   final items = <Map<String, dynamic>>[
     {'icon': Icons.edit_outlined, 'title': 'Edit', 'isIcon': true},

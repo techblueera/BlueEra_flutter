@@ -68,6 +68,37 @@ class JobScreenController extends GetxController {
     }
   }
 
+ Future<void> getVisitedBusineesAllJobsRepo(String userId) async {
+    try {
+      isLoading.value = true;
+      final response = await _jobRepo.getVisitedBusineesAllJobsRepo(userId);
+      if (response.isSuccess) {
+        final rawData = response.response!.data;
+        // Handle different response structures
+        Map<String, dynamic> jobData;
+        if (rawData['data'] != null &&
+            rawData['data'] is Map<String, dynamic>) {
+          jobData = {
+            'message': rawData['message'],
+            ...rawData['data'],
+          };
+        } else {
+          jobData = Map<String, dynamic>.from(rawData);
+        }
+        jobsData?.clear();
+        jobsModel = GetAllJobPostsModel.fromJson(jobData);
+        jobsData?.value = jobsModel?.jobs ?? [];
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> updateJobPostDetailsApi(
       {required String jobId, required Map<String, dynamic> params}) async {
     try {

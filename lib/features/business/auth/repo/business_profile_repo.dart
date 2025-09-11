@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -96,15 +95,6 @@ class BusinessProfileRepo extends BaseService {
     );
   }
 
-  Future<ResponseModel> submitRatingToBusiness(String businessId, Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-      "$postBusinessRating/$businessId",
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
   Future<ResponseModel> getAllProductsApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
       "$getAllProducts",
@@ -122,9 +112,64 @@ class BusinessProfileRepo extends BaseService {
       onSuccess: (data) {},
     );
     return response;
+    // final String getParticularRating = 'user-service/business/rating';
+  }
+Future<ResponseModel> businessRatingsSummary(String businessId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$getParticularRating/$businessId/summary",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+      // final String getParticularRating = 'user-service/business/rating';
+  }
+ Future<ResponseModel> getAllBusinessRatings(String businessId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$getParticularRating/$businessId",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+      // final String getParticularRating = 'user-service/business/rating';
+  }
+  
+  Future<ResponseModel> submitRatingToBusiness(String businessId, Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "$postBusinessRating/$businessId",
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+      // final String postBusinessRating = 'user-service/business/rating';
+  }
+ Future<ResponseModel> getCountOfRatingRepo(String businessId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$getCountOfRating/$businessId",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
   }
 
+  Future<ResponseModel> getBusinessStats(String businessId) async {
+    final response =
+    await ApiBaseHelper().getHTTP(
+        "$businessStats/$businessId",
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
 
+    return response;
+  }
 
+  Future<ResponseModel> getRatingsByFiltersRepo(int rating, String businessId) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "$getRatingByFilters/$rating",
+      params: {"business_id": businessId},
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

@@ -37,6 +37,7 @@ dependencies:
   readmore: ^3.0.0
   visibility_detector: ^0.4.0+2
   # MAP
+  
 #  google_maps_flutter: ^2.12.3
   geolocator: ^14.0.1
   geocoding: ^4.0.0

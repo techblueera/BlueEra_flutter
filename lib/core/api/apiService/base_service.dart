@@ -37,7 +37,7 @@ abstract class BaseService {
   final String bookings = 'booking-enquiry-service/bookings';
    String receivedBooking(String channelId) =>
        'booking-enquiry-service/bookings/summary/by-videos?channelId=$channelId';
-   String  receivedEnquiry(String channelId) =>
+   String receivedEnquiry(String channelId) =>
        'booking-enquiry-service/inquiries/summary/by-videos?channelId=$channelId';
    String receivedVideoBooking(String channelId,String videoId)=>
        'booking-enquiry-service/bookings?channelId=$channelId&videoId=$videoId';
@@ -58,6 +58,8 @@ abstract class BaseService {
   final String checkFavourite = 'video-service/favorites/check';
   final String songsSearch = 'video-service/songs/search';
   final String favouriteSearch = 'video-service/favorites/search';
+  
+  final String businessStats = 'user-service/business/businessStats';
 
   final String updateBusinessDescription =
       'user-service/business/updateBusinessDescription';
@@ -313,6 +315,8 @@ abstract class BaseService {
   final String getUserByIdUrl = "user-service/user/getUserById";
   final String bussinessProfileById = "/user-service/business";
   final String postBusinessRating = 'user-service/business/rating';
+  final String getCountOfRating = 'user-service/business/getCountOfRating';
+  final String getRatingByFilters = 'user-service/business/get-rating-by-filters';
 
   ///SUBSCRIPTION....
   final String subscriptionCreate =

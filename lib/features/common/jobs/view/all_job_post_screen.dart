@@ -135,7 +135,9 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                   itemCount: jobScreenController.jobsData?.length,
                   itemBuilder: (context, index) {
                     Jobs? job = jobScreenController.jobsData?[index];
-                    return Padding(
+                    return 
+                    
+                    Padding(
                       padding: EdgeInsets.only(bottom: SizeConfig.size10),
                       child: InkWell(
                         onTap: () {
@@ -589,6 +591,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                         ),
                       ),
                     );
+                  
+                  
                   },
                 ),
         );

@@ -1,6 +1,14 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart' as widget;
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/model/getCountOfRatingModel.dart';
+import 'package:BlueEra/features/business/auth/model/rating_feedback_model.dart';
+import 'package:BlueEra/features/business/auth/model/rating_response_summary.dart';
+import 'package:BlueEra/features/business/auth/model/visitingbusinessprofilestats.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
@@ -8,6 +16,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
@@ -30,8 +39,13 @@ class ViewBusinessDetailsController extends GetxController {
   ApiResponse businessVerifyResponse = ApiResponse.initial('Initial');
   ApiResponse businessGetAllProductResponse = ApiResponse.initial('Initial');
   ApiResponse getParticularRatingResponse = ApiResponse.initial('Initial');
-    Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
-
+  ApiResponse getAllBusinessRatingsResponse = ApiResponse.initial('Initial');
+  ApiResponse getCountOfRatingResponse = ApiResponse.initial('Initial');
+  ApiResponse getRatingByFiltersResponse = ApiResponse.initial('Initial');
+  
+  ApiResponse<ResponseModel> businessRatingsSummaryResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
+    
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
       GetBusinessVerifyViewModel().obs;
@@ -39,7 +53,9 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Rx<File?> selectedVideo = Rx<File?>(null);
   ViewBusinessProfileModel? visitedBusinessProfileDetails;
-
+     BusinessData? businessStatsData;
+     
+  Rx<Post> post = Post(id: '').obs;
   // RxList<String> imgUploadL2 = <String>[].obs;
   RxList<String> imgLocalL3 = <String>[].obs;
   RxList<int> imgDeleteL3 = <int>[].obs;
@@ -70,12 +86,35 @@ class ViewBusinessDetailsController extends GetxController {
       GetParticularReviewListModel().obs;
   Rx<ChannelModel>? channelModel;
 
+  // RATINGS AND REVIEWS
+  Rx<RatingSummaryResponse> ratingSummaryResponse = RatingSummaryResponse().obs;
+   List<RatingDistribution> ratingDistributionList = [];
+    List<FeedbackData> feedBackdataList = [];
+
   // Method to set start location data
   void setStartLocation(double? lat, double? lng, String address) {
     if (lat != null) addressLat?.value = lat;
     if (lng != null) addressLong?.value = lng;
     businessAddress.value = address;
   }
+
+  void handleWidgetProfileHeaderOption(String option, BusinessProfileDetails? data) {
+  switch (option) {
+    case 'Share':
+      final link = profileDeepLink(userId: data?.userId ?? '');
+      final message = "See my profile on BlueEra:\n$link\n";
+      SharePlus.instance.share(ShareParams(
+        text: message,
+        subject: data?.businessName ?? '',
+      ));
+      // commonSnackBar(message: "Product Shared.");
+      break;
+    case 'Report':
+      commonSnackBar(message: "Product Reported.");
+      break;
+  }
+}
+
 
   Future<void> viewBusinessProfile() async {
     try {
@@ -137,6 +176,38 @@ class ViewBusinessDetailsController extends GetxController {
       viewBusinessResponse = ApiResponse.error('error');
     }
   }
+
+
+
+  Future<void> getBusinessStats(String businessId) async {
+    try {
+      await getUserLoginBusinessId();
+      ResponseModel responseModel =
+          await BusinessProfileRepo().getBusinessStats(businessId);
+
+      if (responseModel.isSuccess) {
+        logs('getBusinessStats responseModel.response?.data ${responseModel.response?.data}');
+         // Parse the API response
+// Map<String, dynamic> jsonResponse = json.decode(response.body);
+VisitBusinessProfileStatsModel apiResponse = VisitBusinessProfileStatsModel.fromJson(responseModel.response?.data);
+ logs('getBusinessStats  apiResponse ${apiResponse.data.toJson()}');
+   businessStatsData = apiResponse.data;
+// // Access the data
+// print(apiResponse.success); // true
+// print(apiResponse.data.businessId); // "689e28a978385d314533ec66"
+// print(apiResponse.data.avgRating); // "5.00"
+// print(apiResponse.data.totalRatings); // 1
+        update();
+      } else {
+        // commonSnackBar(
+        //     message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      // viewBusinessResponse = ApiResponse.error('error');
+    }
+  }
+
+
 
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
     try {
@@ -330,6 +401,11 @@ class ViewBusinessDetailsController extends GetxController {
   }
 
   final visitingcontroller = Get.put(VisitProfileController());
+  
+  
+
+  
+  
 
   Future<void> viewBusinessProfileById(String userId) async {
     try {
@@ -399,6 +475,47 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
+  Future<void> getCountOfRatingApiRepo(String businessId) async {
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().getCountOfRatingRepo(businessId);
+
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+        logs(" akrid data $data");
+        // getCountOfRatingResponse = ApiResponse.complete(responseModel);
+        RatingDistributionResponse ratingDistributionResponse = RatingDistributionResponse.fromJson(data);
+         ratingDistributionList = ratingDistributionResponse.data;
+        logs(" akrid ratingDistributionResponse ${ratingDistributionList}");
+    
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      getCountOfRatingResponse = ApiResponse.error('error');
+    }
+  }
+
+  Future<void> getRatingsByFiltersApi(int rating, String businessId) async {
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().getRatingsByFiltersRepo(rating, businessId);
+
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+        getRatingByFiltersResponse = ApiResponse.complete(responseModel);
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      getRatingByFiltersResponse = ApiResponse.error('error');
+    }
+  }
+
   Future<bool> submitBusinessRating({
     required String businessId,
     required int rating,
@@ -427,34 +544,96 @@ class ViewBusinessDetailsController extends GetxController {
       return false;
     }
   }
-//  
-  // Future<void> getAllPostApi(
-  //    ) async {
-  //   final Map<String, dynamic> queryParams = {
-  //     ApiKeys.page: 1,
-  //     ApiKeys.limit:10,
-  //     ApiKeys.filter: "latest"
-  //   };
+ 
+ Future<void> businessRatingsSummary(String businessId) async {
+    // https://api.blueera.ai/api/user-service/business/rating/689e28a978385d314533ec66
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().businessRatingsSummary(  businessId);
 
-  //   // if (query == null) {
-  //     queryParams[ApiKeys.refresh] = refresh;
-  //   // }
+      if (responseModel.isSuccess) {
+       
+        businessRatingsSummaryResponse = ApiResponse.complete(responseModel);
+        if ( businessRatingsSummaryResponse.status == Status.COMPLETE) {
+ 
+    ratingSummaryResponse.value = RatingSummaryResponse.fromJson(businessRatingsSummaryResponse.data?.response?.data);
 
-  //   try {
-  //     ResponseModel response =
-  //         await FeedRepo().getAllMyPosts(queryParams: queryParams);
-  //         if(response.isSuccess){
-  // postsResponse.value = ApiResponse.complete(response);
-  //       final postResponse = PostResponse.fromJson(response.response?.data);
-  //         }else{
-  //            postsResponse.value = ApiResponse.error('error');
-  //       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-  //         }
-  //   } catch (e) {
-  //       postsResponse.value = ApiResponse.error('error');
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
+    print("akrid ratingSummaryResponse ${ratingSummaryResponse.value.data.toJson()}");
+
+
+}
+
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      getAllBusinessRatingsResponse = ApiResponse.error('error');
+    }
+  }
+ 
+
+  Future<void> getAllBusinessRatingsApi(String businessId) async {
+    // https://api.blueera.ai/api/user-service/business/rating/689e28a978385d314533ec66
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().getAllBusinessRatings(  businessId);
+
+      if (responseModel.isSuccess) {
+       
+        getAllBusinessRatingsResponse = ApiResponse.complete(responseModel);
+        if ( getAllBusinessRatingsResponse.status == Status.COMPLETE) {
+  final ratingsData =  getAllBusinessRatingsResponse.data?.response?.data;
+  logs("akrid ratingsData ${ratingsData}");
+  // logs(ratingsData.toString());
+  // Map<String, dynamic> jsonResponse = json.decode(getAllBusinessRatingsResponse.data?.response?.data);
+FeedbackResponse feedbackResponse = FeedbackResponse.fromJson(ratingsData);
+  feedBackdataList = feedbackResponse.data;
+logs("akrid Feedback ${feedBackdataList.length}");
+ 
+}
+
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      getAllBusinessRatingsResponse = ApiResponse.error('error');
+    }
+  }
+ 
+
+  Future<void> getAllPostApi(
+     String userId,
+     ) async {
+    final Map<String, dynamic> queryParams = {
+      ApiKeys.page: 1,
+      ApiKeys.limit:1,
+      ApiKeys.filter: "latest",
+      ApiKeys.authorId: userId
+    };
+      queryParams[ApiKeys.refresh] = refresh;
+    try {
+      ResponseModel  response = await FeedRepo().getAllOtherPosts(queryParams: queryParams);
+          if(response.isSuccess){
+            logs("akrid response.response?.data.toString() ${response.response?.data}");
+            logs("akrid response.response?.data.toString() ${response.response?.data.runtimeType}");
+            postsResponse.value = ApiResponse.complete(response);
+            logs("akrid postsResponse.value.data?.data ${postsResponse.value.data?.data}");
+              post.value  = Post.fromJson( postsResponse.value.data?.data.first);
+            logs("akrid post ${post}");
+            update();
+          }else{
+             postsResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          }
+    } catch (e) {
+        postsResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
 
 
 }
