@@ -115,12 +115,10 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size24),
                   _buildTagPeopleSection(),
-
-                  // _buildAddSongSection(),
-                  // SizedBox(height: SizeConfig.size5),
-                  // _buildSymbolDurationSection(),
-                  // SizedBox(height: SizeConfig.size15),
-
+                  _buildAddSongSection(),
+                  SizedBox(height: SizeConfig.size5),
+                  _buildSymbolDurationSection(),
+                  SizedBox(height: SizeConfig.size15),
                   _buildNatureOfPostSection(),
                   SizedBox(height: SizeConfig.size32),
                   _buildContinueButton(),
@@ -329,11 +327,12 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
         // Add Tag People / Organization button
         GestureDetector(
           onTap: () async {
+          if(controller.selectedPhotos.isNotEmpty) {
             final result = await Navigator.pushNamed(
               context,
-              RouteHelper.getGetAllSongsScreenRoute(),
+              RouteHelper.getAllSongsScreenRoute(),
               arguments: {
-                ApiKeys.videoPath: 'widget.videoPath',
+                ApiKeys.filePath: controller.selectedPhotos,
               },
             ) as Map<String, dynamic>?;
 
@@ -343,6 +342,9 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
               });
               log("songData--> ${controller.songData}");
             }
+          } else{
+            commonSnackBar(message: 'Please upload at least one photo to add song');
+          }
           },
           child: Row(
             children: [

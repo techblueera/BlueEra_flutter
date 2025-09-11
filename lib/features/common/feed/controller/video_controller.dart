@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -64,6 +65,7 @@ class VideoController extends GetxController{
   RxBool isSavedVideosLoading = true.obs;
   RxBool isVideoSavedInDb = false.obs;
 
+  final Map<String, Timer> _likeApiTimers = {};
 
   /// View Video
   Future<void> videoView({required String videoId}) async {
@@ -224,46 +226,54 @@ class VideoController extends GetxController{
 
   ///VIDEO LIKE...
   Future<void> videoLike({required String videoId}) async {
-    try {
+    // Cancel existing timer for this specific video
+    _likeApiTimers[videoId]?.cancel();
 
-      final response = await FeedRepo().likeVideo(videoId: videoId);
+    // Start new debounced timer for this video
+    _likeApiTimers[videoId] = Timer(const Duration(milliseconds: 400), () async {
+      try {
+        final response = await FeedRepo().likeVideo(videoId: videoId);
 
-      if (response.isSuccess) {
-        videoLikeResponse = ApiResponse.complete(response);
-
-        isLiked.value = !(isLiked.value);
-        likes.value = likes.value + 1;
-
-      } else {
-        videoLikeResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        if (response.isSuccess) {
+          videoLikeResponse = ApiResponse.complete(response);
+        } else {
+          videoLikeResponse = ApiResponse.error('error');
+          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        }
+      } catch (e) {
+        videoLikeResponse = ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        // Clean up timer after API call completes
+        _likeApiTimers.remove(videoId);
       }
-    } catch (e) {
-      videoLikeResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
+    });
   }
 
   ///VIDEO UnLIKE...
   Future<void> videoUnLike({required String videoId}) async {
-    try {
+    // Cancel existing timer for this specific video
+    _likeApiTimers[videoId]?.cancel();
 
-      final response = await FeedRepo().unlikeVideo(videoId: videoId);
+    // Start new debounced timer for this video
+    _likeApiTimers[videoId] = Timer(const Duration(milliseconds: 400), () async {
+      try {
+        final response = await FeedRepo().unlikeVideo(videoId: videoId);
 
-      if (response.isSuccess) {
-        videoUnlikeResponse = ApiResponse.complete(response);
-        isLiked.value = !(isLiked.value);
-        likes.value =  likes.value - 1;
-      } else {
-        videoUnlikeResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        if (response.isSuccess) {
+          videoUnlikeResponse = ApiResponse.complete(response);
+        } else {
+          videoUnlikeResponse = ApiResponse.error('error');
+          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        }
+      } catch (e) {
+        videoUnlikeResponse = ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        // Clean up timer after API call completes
+        _likeApiTimers.remove(videoId);
       }
-    } catch (e) {
-      videoUnlikeResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
+    });
   }
 
   ///FOLLOW CHANNEL...

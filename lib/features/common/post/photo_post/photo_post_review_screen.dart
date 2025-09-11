@@ -55,10 +55,10 @@ class PhotoPostReviewScreen extends StatelessWidget {
                       SizedBox(height: SizeConfig.size16),
                       _buildTagPeopleSection(),
 
-                      // _buildAddSongSection(),
-                      // SizedBox(height: SizeConfig.size5),
-                      // _buildSymbolDurationSection(),
-                      // SizedBox(height: SizeConfig.size15),
+                      _buildAddSongSection(),
+                      SizedBox(height: SizeConfig.size5),
+                      _buildSymbolDurationSection(),
+                      SizedBox(height: SizeConfig.size15),
 
                       _buildNatureOfPostSection(),
                       SizedBox(height: SizeConfig.size32),
@@ -170,31 +170,19 @@ class PhotoPostReviewScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Add Tag People / Organization button
-        GestureDetector(
-          onTap: ()  {
-            Navigator.pushNamed(
-              Get.context!,
-              RouteHelper.getGetAllSongsScreenRoute(),
-              arguments: {
-                ApiKeys.videoPath: 'widget.videoPath',
-              },
-            ) as Map<String, dynamic>?;
-
-          },
-          child: Row(
-            children: [
-              LocalAssets(
-                imagePath: AppIconAssets.addBlueIcon,
-                imgColor: AppColors.primaryColor,
-              ),
-              SizedBox(width: SizeConfig.size4),
-              CustomText(
-                'Add Song',
-                color: AppColors.primaryColor,
-                fontSize: SizeConfig.large,
-              ),
-            ],
-          ),
+        Row(
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.addBlueIcon,
+              imgColor: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size4),
+            CustomText(
+              'Add Song',
+              color: AppColors.primaryColor,
+              fontSize: SizeConfig.large,
+            ),
+          ],
         ),
 
         // Selected users chips

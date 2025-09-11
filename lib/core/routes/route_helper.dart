@@ -195,7 +195,7 @@ class RouteHelper {
 
   static String getVideoTrimScreenRoute() => RouteConstant.videoTrimScreen;
 
-  static String getGetAllSongsScreenRoute() => RouteConstant.getAllSongsScreen;
+  static String getAllSongsScreenRoute() => RouteConstant.allSongsScreen;
 
   static String getCreateMessagePostScreenRoute() =>
       RouteConstant.CreateMessagePostScreen;
@@ -520,21 +520,27 @@ class RouteHelper {
       //   return MaterialPageRoute(
       //     builder: (_) => VideoTrimScreen(videoPath: videoPath, isFrom: isFrom),
       //   );
-      case RouteConstant.getAllSongsScreen:
+      case RouteConstant.allSongsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final videoPath = args[ApiKeys.videoPath] as String;
+        final videoPath = args[ApiKeys.videoPath] as String?;
+        final images = args[ApiKeys.filePath] as List<String>?;
         return MaterialPageRoute(
-          builder: (_) => GetAllSongsScreen(videoPath: videoPath),
+          builder: (_) => AllSongsScreen(video: videoPath, images: images),
         );
       case RouteConstant.addSongScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final videoPath = args[ApiKeys.videoPath] as String;
+        final videoPath = args[ApiKeys.videoPath] as String?;
+        final images = args[ApiKeys.filePath] as List<String>?;
         final audioUrl = args[ApiKeys.audioUrl] as String;
         final song = args[ApiKeys.song] as Map<String, dynamic>;
 
         return MaterialPageRoute(
           builder: (_) => AddSongScreen(
-              videoPath: videoPath, audioUrl: audioUrl, song: song),
+              video: videoPath,
+              images: images,
+              audioUrl: audioUrl,
+              song: song
+          ),
         );
 
       case RouteConstant.PollInputScreen:

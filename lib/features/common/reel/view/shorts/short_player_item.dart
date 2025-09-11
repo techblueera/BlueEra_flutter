@@ -883,6 +883,51 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     );
   }
 
+
+  // void _onLikeDislikePressed() async {
+  //   final videoId = widget.videoItem.video?.id ?? '0';
+  //   final currentLikedState = fullScreenShortController.isLiked.isTrue;
+  //
+  //   // Update UI immediately for better user experience
+  //   if (currentLikedState) {
+  //     // Currently liked, so unlike
+  //     widget.videoItem.interactions?.isLiked = false;
+  //     widget.videoItem.video?.stats?.likes =
+  //         (widget.videoItem.video?.stats?.likes ?? 1) - 1;
+  //     fullScreenShortController.isLiked.value = false;
+  //   } else {
+  //     // Currently not liked, so like
+  //     widget.videoItem.interactions?.isLiked = true;
+  //     widget.videoItem.video?.stats?.likes =
+  //         (widget.videoItem.video?.stats?.likes ?? 0) + 1;
+  //     fullScreenShortController.isLiked.value = true;
+  //   }
+  //
+  //   // Update UI controller
+  //   fullScreenShortController.likes.value =
+  //       widget.videoItem.video?.stats?.likes ?? 0;
+  //
+  //   // Sync changes back to ShortsController lists immediately
+  //   Get.find<ShortsController>().updateVideoLikeCount(
+  //     shortsType: widget.shorts,
+  //     videoId: videoId,
+  //     isLiked: widget.videoItem.interactions?.isLiked ?? false,
+  //     newLikeCount: widget.videoItem.video?.stats?.likes ?? 0,
+  //   );
+  //
+  //   // Set pending API call state
+  //   fullScreenShortController.pendingLikeStates[videoId] = !currentLikedState; // New state after toggle
+  //
+  //   // Cancel existing timer for this video ID
+  //   fullScreenShortController.likeDebounceTimers[videoId]?.cancel();
+  //
+  //   // Start new timer for this video ID
+  //   fullScreenShortController.likeDebounceTimers[videoId] = Timer(const Duration(milliseconds: 400), () {
+  //     fullScreenShortController.executePendingLikeAction(videoId);
+  //   });
+  // }
+
+
   void _onCommentPressed() {
     showModalBottomSheet(
       context: context,

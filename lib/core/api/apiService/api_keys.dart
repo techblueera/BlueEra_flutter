@@ -325,4 +325,5 @@ class ApiKeys {
   static const contentId = "content_id";
   static const reportedTo = "reported_to";
   static const visibilityDuration = "visibility_duration";
+  static const filePath = "filePath";
 }

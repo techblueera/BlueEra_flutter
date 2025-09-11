@@ -8,24 +8,32 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audio_waveforms/audio_waveforms.dart' hide PlayerState;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
 class AddSongScreen extends StatefulWidget {
-  final String videoPath;
+  final String? video;
+  final List<String>? images;
   final String audioUrl;
   final Map<String, dynamic> song;
 
-  const AddSongScreen({super.key, required this.videoPath, required this.audioUrl, required this.song});
+  const AddSongScreen({
+    super.key,
+    required this.video,
+    required this.images,
+    required this.audioUrl,
+    required this.song
+  });
 
   @override
   State<AddSongScreen> createState() => _AddSongScreenState();
 }
 
 class _AddSongScreenState extends State<AddSongScreen> {
-  late VideoPlayerController _videoPlayerController;
+  VideoPlayerController? _videoPlayerController;
   late final PlayerController _waveformController;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
@@ -37,15 +45,19 @@ class _AddSongScreenState extends State<AddSongScreen> {
     super.initState();
     _waveformController = PlayerController();
     _setupAudioListeners();
-    _setupVideoListeners();
+
+    if(widget.video!=null) {
+      _setupVideoListeners();
+    }
   }
 
   void _setupVideoListeners(){
-  _videoPlayerController = VideoPlayerController.file(File(widget.videoPath))
-  ..initialize().then((_) => setState(() {}))
-  ..setLooping(true)
-  ..setVolume(0.0)
-    ..play();
+      _videoPlayerController = VideoPlayerController.file(File(widget.video!))
+        ..initialize().then((_) => setState(() {}))
+        ..setLooping(true)
+        ..setVolume(0.0)
+        ..play();
+
    }
 
   Future<void> _setupAudioListeners() async {
@@ -113,7 +125,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
   }
 
   void disposeAllController(){
-    _videoPlayerController.dispose();
+    _videoPlayerController?.dispose();
     _audioPlayer.dispose();
     _waveformController.dispose();
   }
@@ -131,19 +143,58 @@ class _AddSongScreenState extends State<AddSongScreen> {
           // fit: StackFit.expand,
           children: [
             Expanded(
-              child: _videoPlayerController.value.isInitialized
-                ? Stack(
+              child: Stack(
                   children: [
-                    Align(
+                    (widget.video!=null) ?
+                    _videoPlayerController!.value.isInitialized
+                        ? Align(
                       alignment: Alignment.center,
                       child: SizedBox(
-                      height: _videoPlayerController.value.size.height,
-                      width: _videoPlayerController.value.size.width,
+                      height: _videoPlayerController?.value.size.height,
+                      width: _videoPlayerController?.value.size.width,
                         child: AspectRatio(
-                            aspectRatio: _videoPlayerController.value.aspectRatio,
-                            child: VideoPlayer(_videoPlayerController),
+                            aspectRatio: _videoPlayerController!.value.aspectRatio,
+                            child: VideoPlayer(_videoPlayerController!),
                           ),
                       ),
+                    )
+                        : const Center(child: CircularProgressIndicator())
+                        : CarouselSlider.builder(
+                      itemCount: widget.images?.length,
+                      options: CarouselOptions(
+                        viewportFraction: 0.8,
+                        enlargeCenterPage: true,
+                        enableInfiniteScroll: false,
+                        aspectRatio: 1.1,
+                      ),
+                      itemBuilder: (context, index, realIdx) {
+                        return Center(
+                          child: Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.whiteFE,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  border: Border.all(
+                                      color: AppColors.mainTextColor.withValues(alpha: 0.5), width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        blurRadius: 2.0, offset: Offset(0, 1), color: Color(0x14000000))
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  child: Image.file(
+                                    File(widget.images![index]),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
 
                     if (_audioFile != null)
@@ -198,7 +249,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
                       ),
                   ],
                 )
-                : const Center(child: CircularProgressIndicator())
+
             ),
             SizedBox(
               height: SizeConfig.size20,

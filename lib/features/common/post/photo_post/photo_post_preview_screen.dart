@@ -57,12 +57,10 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size16),
                   _buildTagPeopleSection(),
-
-                  // _buildAddSongSection(),
-                  // SizedBox(height: SizeConfig.size5),
-                  // _buildSymbolDurationSection(),
-
-                  // SizedBox(height: SizeConfig.size15),
+                  _buildAddSongSection(),
+                  SizedBox(height: SizeConfig.size5),
+                  _buildSymbolDurationSection(),
+                  SizedBox(height: SizeConfig.size15),
                   _buildNatureOfPostSection(),
                   SizedBox(height: SizeConfig.size32),
                   _buildPreviewButton(),

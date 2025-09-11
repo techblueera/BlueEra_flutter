@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_favourite_songs_model.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_songs_model.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/reel/repo/song_repo.dart';
 import 'package:get/get.dart';
 
 class SongController extends GetxController{
@@ -37,10 +37,10 @@ class SongController extends GetxController{
         ApiKeys.page : page,
         ApiKeys.limit: limit
       };
-      ResponseModel response = await ChannelRepo().getAllSongs(queryParams: queryParams);
+      ResponseModel response;
+     response = await SongRepo().getAllSongs(queryParams: queryParams);
 
       if (response.statusCode == 200) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
         GetAllSongsModel getAllSongsModel = GetAllSongsModel.fromJson(response.response?.data);
         songs.value = getAllSongsModel.data;
         getAllSongsResponse = ApiResponse.complete(response);
@@ -64,7 +64,7 @@ class SongController extends GetxController{
         ApiKeys.limit: limit
       };
 
-      ResponseModel response = await ChannelRepo().getAllFavouriteSongs(queryParams: queryParams);
+      ResponseModel response = await SongRepo().getAllFavouriteSongs(queryParams: queryParams);
 
       if (response.statusCode == 200) {
         FavouriteSongsResponse favouriteSongsResponse = FavouriteSongsResponse.fromJson(response.response?.data);
@@ -93,7 +93,7 @@ class SongController extends GetxController{
     try {
       Map<String, dynamic> params = {ApiKeys.songId: songId};
 
-      ResponseModel response = await ChannelRepo().addSongInFavourite(params: params);
+      ResponseModel response = await SongRepo().addSongInFavourite(params: params);
 
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -136,7 +136,7 @@ class SongController extends GetxController{
   /// REMOVE SONG FROM FAVOURITES
   Future<void> removeSongFromFavourite({required String songId}) async {
     try {
-      ResponseModel response = await ChannelRepo().removeSongFromFavourite(songId: songId);
+      ResponseModel response = await SongRepo().removeSongFromFavourite(songId: songId);
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -162,7 +162,7 @@ class SongController extends GetxController{
   /// REMOVE SONG FROM FAVOURITES
   Future<void> removeSongFromFavouriteItemList({required String songId}) async {
     try {
-      ResponseModel response = await ChannelRepo().removeSongFromFavourite(songId: songId);
+      ResponseModel response = await SongRepo().removeSongFromFavourite(songId: songId);
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -195,7 +195,7 @@ class SongController extends GetxController{
   //       'limit': limit
   //     };
   //
-  //     ResponseModel response = await ChannelRepo().searchSongs(params: params);
+  //     ResponseModel response = await SongRepo().searchSongs(params: params);
   //
   //     if (response.statusCode == 200) {
   //       commonSnackBar(message: response.message ?? AppStrings.success);
@@ -227,7 +227,7 @@ class SongController extends GetxController{
         ApiKeys.limit: limit
       };
 
-      ResponseModel response = await ChannelRepo().searchSongs(params: params);
+      ResponseModel response = await SongRepo().searchSongs(params: params);
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -254,7 +254,7 @@ class SongController extends GetxController{
         ApiKeys.limit: limit
       };
 
-      ResponseModel response = await ChannelRepo().searchFavouriteSongs(params: params);
+      ResponseModel response = await SongRepo().searchFavouriteSongs(params: params);
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);

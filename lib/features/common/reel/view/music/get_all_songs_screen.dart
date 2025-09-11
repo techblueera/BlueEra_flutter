@@ -18,21 +18,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GetAllSongsScreen extends StatefulWidget {
-  final String videoPath;
+class AllSongsScreen extends StatefulWidget {
+  final String? video;
+  final List<String>? images;
 
-  const GetAllSongsScreen({super.key, required this.videoPath});
+  const AllSongsScreen({super.key, required this.video, this.images});
 
   @override
-  State<GetAllSongsScreen> createState() => _GetAllSongsScreenState();
+  State<AllSongsScreen> createState() => _AllSongsScreenState();
 }
 
-class _GetAllSongsScreenState extends State<GetAllSongsScreen> with SingleTickerProviderStateMixin {
+class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProviderStateMixin {
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
   late TabController _tabController;
-  // late PlayerController _waveformController;
-  // late AudioPlayer _audioPlayer;
   SongController songController = Get.put(SongController());
 
   @override
@@ -56,7 +55,7 @@ class _GetAllSongsScreenState extends State<GetAllSongsScreen> with SingleTicker
         /// favourite song api calling
         songController.getAllFavouriteSongs();
       }
-      setState(() {});
+      // setState(() {});
     });
   }
 
@@ -202,7 +201,8 @@ class _GetAllSongsScreenState extends State<GetAllSongsScreen> with SingleTicker
             context,
             RouteHelper.getAddSongScreenRoute(),
             arguments: {
-              ApiKeys.videoPath: widget.videoPath,
+              ApiKeys.videoPath: widget.video,
+              ApiKeys.filePath: widget.images,
               ApiKeys.audioUrl: song.externalUrl,
               ApiKeys.song: {
                 ApiKeys.id: song.id,
@@ -310,7 +310,7 @@ class _GetAllSongsScreenState extends State<GetAllSongsScreen> with SingleTicker
             context,
             RouteHelper.getAddSongScreenRoute(),
             arguments: {
-              ApiKeys.videoPath: widget.videoPath,
+              ApiKeys.videoPath: widget.video,
               ApiKeys.audioUrl: favouriteSong.song.externalUrl,
               ApiKeys.song: {
                 "id": favouriteSong.id,

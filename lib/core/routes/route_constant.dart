@@ -29,7 +29,7 @@ class RouteConstant {
   static const String CreateReelScreen = "/CreateReelScreen";
   static const String CustomizeMapScreen = "/CustomizeMapScreen";
   static const String SearchLocationScreen = "/SearchLocationScreen";
-  static const String getAllSongsScreen = "/GetAllSongsScreen";
+  static const String allSongsScreen = "/GetAllSongsScreen";
   static const String addSongScreen = "/AddSongScreen";
   static const String addPlaceStepOne = "/AddPlaceStepOne";
   static const String addPlaceStepTwo = "/AddPlaceStepTwo";

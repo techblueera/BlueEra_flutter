@@ -475,7 +475,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           callBack: () async {
                             final result = await Navigator.pushNamed(
                               context,
-                              RouteHelper.getGetAllSongsScreenRoute(),
+                              RouteHelper.getAllSongsScreenRoute(),
                               arguments: {
                                 ApiKeys.videoPath: widget.videoPath,
                               },

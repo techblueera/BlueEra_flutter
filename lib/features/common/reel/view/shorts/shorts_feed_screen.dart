@@ -175,7 +175,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
 
       if (_allShortsFeedResponseError)
         return LoadErrorWidget(
-            errorMessage: 'Failed to load posts', onRetry: _fetchInitialFeeds);
+            errorMessage: 'Failed to load shorts', onRetry: _fetchInitialFeeds);
 
       return SingleChildScrollView(
         controller: _scrollController,

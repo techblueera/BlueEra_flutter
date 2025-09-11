@@ -466,18 +466,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Future<void> _onLikeDislikePressed() async {
+    final videoId = videoController.videoFeedItem?.video?.id ?? '0';
+
+    // Update UI immediately
     if (videoController.isLiked.isTrue) {
-      await Get.find<VideoController>().videoUnLike(
-          videoId: videoController.videoFeedItem?.video?.id ?? '0'
-      );
+      // Unlike action
       widget.videoItem.interactions?.isLiked = false;
       widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) - 1;
+
+      // Call debounced unlike API
+      Get.find<VideoController>().videoUnLike(videoId: videoId);
     } else {
-      await Get.find<VideoController>().videoLike(
-          videoId: videoController.videoFeedItem?.video?.id ?? '0'
-      );
+      // Like action
       widget.videoItem.interactions?.isLiked = true;
-      widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 1) + 1;
+      widget.videoItem.video?.stats?.likes = (widget.videoItem.video?.stats?.likes ?? 0) + 1;
+
+      // Call debounced like API
+      Get.find<VideoController>().videoLike(videoId: videoId);
     }
 
     // Sync controller state and propagate to lists

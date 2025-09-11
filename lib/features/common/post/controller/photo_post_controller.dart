@@ -181,7 +181,6 @@ class PhotoPostController extends GetxController {
       );
 
 
-
       ResponseModel response = isPhotoPostEdit
           ? await PostRepo().updatePostRepo(
         bodyReq: {
@@ -219,8 +218,7 @@ class PhotoPostController extends GetxController {
               'Your photo post has been created!',
         );
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = true;
-        Get.until((route) =>
-        route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+        Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
         resetForm();
       } else {
         commonSnackBar(
@@ -285,7 +283,6 @@ class PhotoPostController extends GetxController {
       },
     );
   }
-
 
   void resetForm() {
     selectedPhotos.clear();
