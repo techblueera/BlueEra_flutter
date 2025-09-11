@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
@@ -67,16 +68,18 @@ class PostAuthorHeader extends StatelessWidget {
               onTap: () {
                 if (((authorId == userId) ||
                     (post?.user?.business_id == businessId)) &&
+
                     (postType == PostType.myPosts ||
                         postType == PostType.saved)) {
                   return;
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
-                  if (userId == authorId) {
+                  /*if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
-                  } else {
-                    Get.to(() => VisitProfileScreen(authorId: authorId));
+                  } else */{
+                    // Get.to(() => VisitProfileScreen(authorId: authorId));
+                    Get.to(() => PersonalChatProfile(userId: authorId,));
                   }
                 }
                 if (post?.user?.accountType?.toUpperCase() ==

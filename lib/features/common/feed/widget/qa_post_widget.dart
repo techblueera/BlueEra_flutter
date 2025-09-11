@@ -54,7 +54,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
 
                 widget.authorSection(),
 
-                _buildPollOptions(), // QA post specific widget
+                _buildPollOptions(),
 
                 Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15, top: SizeConfig.size15,bottom: 0),

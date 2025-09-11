@@ -6,6 +6,7 @@ import 'package:BlueEra/features/business/business_verification/view/ownership_v
 import 'package:BlueEra/features/business/business_verification/view/select_company_verification_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_details_edit_page_one.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_user_account.dart';

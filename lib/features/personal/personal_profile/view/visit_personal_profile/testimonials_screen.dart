@@ -120,6 +120,7 @@ class _TestimonialsScreenState extends State<TestimonialsScreen> {
 
             TestimonialListingWidget(
               userId: widget.visitUserID,
+              showBorder: false,
             ),
             SizedBox(height: SizeConfig.size30,),
 

@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/model/response/get_countRating_response_modal.dart';
 import 'package:BlueEra/core/api/model/user_profile_res.dart';
+import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -11,9 +13,20 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/widget/over_view_widget.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart'
+    hide User;
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_media_carosal_widget.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
+import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
@@ -35,6 +48,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:readmore/readmore.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../widgets/common_back_app_bar.dart';
@@ -43,9 +57,15 @@ import '../../../../widgets/horizontal_tab_selector.dart';
 
 class PersonalChatProfile extends StatefulWidget {
   final String userId;
+  final String channelId;
   final String? contactNumber;
-  const PersonalChatProfile(
-      {super.key, required this.userId, this.contactNumber});
+  final bool isTestimonialRating;
+  PersonalChatProfile(
+      {super.key,
+      required this.userId,
+      this.contactNumber,
+      this.channelId='',
+      this.isTestimonialRating = false});
 
   @override
   State<PersonalChatProfile> createState() => _PersonalChatProfileState();
@@ -55,7 +75,13 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   final viewProfileController = Get.put(ViewPersonalDetailsController());
   final personalCreateProfileController =
       Get.put(PersonalCreateProfileController());
-  final introVideoController = Get.put(IntroductionVideoController());
+  final VideoController videosController =
+      Get.put<VideoController>(VideoController());
+  VideoType videos = VideoType.latest;
+
+  final ShortsController shortsController =
+      Get.put<ShortsController>(ShortsController());
+
   final youtubeController = TextEditingController();
   List<String> postTab = [];
   int selectedIndex = 0;
@@ -67,6 +93,9 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
     // controller.fetchUserById(userId: "689deb7aac8beb10537e3107");
     controller.fetchUserById(userId: widget.userId);
+    controller.getCountRatingByUser(userId: widget.userId);
+    controller.getRatingSummary(userId: widget.userId);
+
     _loadInitialData();
   }
 
@@ -79,6 +108,17 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     await viewProfileController
         .viewPersonalProfiles(widget.contactNumber ?? "");
     await viewProfileController.UserFollowersAndPostsCount(widget.userId);
+    await controller.getTestimonialController(userID: widget.userId);
+    await viewProfileController.getAllPostApi(widget.userId);
+    shortsController.getShortsByType(
+      Shorts.latest,
+      widget.channelId,
+      widget.userId,
+      true,
+    );
+
+    videosController.getVideosByType(videos, widget.channelId, widget.userId, false,
+        );
 
     _updateTextControllers();
   }
@@ -129,7 +169,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size10, vertical: SizeConfig.size10),
+            horizontal: SizeConfig.size4, vertical: SizeConfig.size10),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -162,6 +202,20 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     switch (index) {
       case 0:
         return overViewTabWidget();
+      case 1:
+        return testimonialsTab();
+      case 2:
+        return buildPostCard(
+            posts: viewProfileController.postRes.value?.data ?? []);
+      case 3:
+        return ShortsChannelSection(
+          isOwnShorts: true,
+          channelId: '',
+          authorId: widget.userId,
+          showShortsInGrid: true,
+        );
+      case 4:
+        return videoTab();
       default:
         return Text("Not implemented");
     }
@@ -170,25 +224,50 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   Widget overViewTabWidget() {
     return Column(
       children: [
-        buildRatingSummary(
-          rating: 3,
-          totalReviews: "5,455",
+        Obx(
+          () => buildRatingSummary(
+            rating: double.parse(
+                (controller.getRattingSummaryResponse.value?.data?.avgRating ??
+                        0)
+                    .toString()),
+            totalReviews: "5,455",
+            reviewData: controller.getCountRattingResponse.value?.data ?? [],
+            totalRating: controller.getCountRattingResponse.value?.data
+                    ?.map(
+                      (e) => e.count!,
+                    )
+                    .reduce(
+                      (value, element) => value + element,
+                    ) ??
+                1,
+          ),
         ),
         SizedBox(
-          height: 20,
+          height: controller.testimonialsList?.value.isEmpty ?? true ? 0 : 12,
         ),
-        buildTestimonialsCard(),
+        Obx(
+          () {
+            return controller.testimonialsList?.value.isEmpty ?? true
+                ? SizedBox()
+                : buildTestimonialsCard(
+                    controller.testimonialsList?.value ?? []);
+          },
+        ),
         SizedBox(
-          height: 20,
+          height: 12,
         ),
-        buildPostCard(),
-        SizedBox(
-          height: 20,
+        Obx(
+          () => buildPostCard(
+              posts: viewProfileController.postRes.value?.data ?? []),
         ),
+
+        // SizedBox(
+        //   height: 20,
+        // ),
         buildHorizontalSortsList(),
-        SizedBox(
-          height: 20,
-        ),
+        // SizedBox(
+        //   height: 20,
+        // ),
         customVideoCard(),
       ],
     );
@@ -201,12 +280,12 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       ),
       elevation: SizeConfig.size4,
       child: Padding(
-        padding: EdgeInsets.all(SizeConfig.size12),
+        padding: EdgeInsets.all(SizeConfig.size4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Column(
                   children: [
@@ -223,14 +302,56 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           )),
                     ),
                     CustomBtn(
-                      onTap: () {},
-                      title: "Follow",
+                      onTap: () {
+                        controller.isFollow.value
+                            ? controller
+                                .unFollowUserController(
+                                    candidateResumeId: user?.id)
+                                .then((value) => controller.fetchUserById(
+                                      userId: widget.userId,
+                                    ))
+                            : controller
+                                .followUserController(
+                                    candidateResumeId: user?.id)
+                                .then((value) => controller.fetchUserById(
+                                      userId: widget.userId,
+                                    ));
+                      },
+                      title: controller.isFollow.value ? "UnFollow" : "Follow",
                       fontWeight: FontWeight.bold,
                       height: SizeConfig.size24,
                       bgColor: AppColors.skyBlueDF,
                       width: SizeConfig.size60,
-                      radius: SizeConfig.size5,
+                      radius: SizeConfig.size8,
                     ),
+
+                    // InkWell(
+                    //   onTap: () {
+                    //     showDialog(
+                    //       context: context,
+                    //       builder: (context) {
+                    //         return buildProfilePopup(
+                    //             contact: user?.contactNo ?? "",
+                    //             dob:
+                    //                 "${user?.dateOfBirth?.month ?? ""},${user?.dateOfBirth?.date ?? ""}",
+                    //             email: user?.email ?? "",
+                    //             location:
+                    //                 "${user?.userLocation?.lat ?? ""},${user?.userLocation?.lon ?? ""}",
+                    //             channel: user?.accountType ?? "",
+                    //             designation: user?.designation ?? "",
+                    //             name: user?.name ?? "");
+                    //       },
+                    //     );
+                    //   },
+                    //   child: CustomText(
+                    //     "View Channel",
+                    //     color: AppColors.skyBlueDF,
+                    //     fontWeight: FontWeight.w600,
+                    //     fontSize: 10,
+                    //     decoration: TextDecoration.underline,
+                    //     decorationColor: AppColors.skyBlueDF,
+                    //   ),
+                    // ),
                   ],
                 ),
                 SizedBox(
@@ -240,68 +361,80 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 80,
-                                  child: CustomText(
-                                    user?.name ?? "",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    fontSize: SizeConfig.size18,
-                                    fontWeight: FontWeight.bold,
+                      SizedBox(
+                        height: 24,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 80,
+                                    child: CustomText(
+                                      (user?.name ?? "").capitalizeFirst,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      fontSize: SizeConfig.size18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(
-                                  width: SizeConfig.size2,
-                                ),
-                                Icon(
-                                  Icons.verified,
-                                  color: AppColors.skyBlueDF,
-                                ),
-                              ],
+                                  SizedBox(
+                                    width: SizeConfig.size2,
+                                  ),
+                                  user?.emailVerified ?? false
+                                      ? Icon(
+                                          Icons.verified,
+                                          color: AppColors.skyBlueDF,
+                                          size: 16,
+                                        )
+                                      : SizedBox(),
+                                ],
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size10,
-                          ),
-
-                          // CustomBtn(
-                          //   onTap: () {},
-                          //   title: "Follow",
-                          //   fontWeight: FontWeight.bold,
-                          //   height: SizeConfig.size24,
-                          //   bgColor: AppColors.skyBlueDF,
-                          //   width: SizeConfig.size60,
-                          //   radius: SizeConfig.size12,
-                          // ),
-                          // SizedBox(
-                          //   width: SizeConfig.size4,
-                          // ),
-                          // Icon(Icons.more_vert),
-
-                          PopupMenuButton(
-                              onSelected: (value) {},
-                              itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                        value: 1, child: CustomText("Share")),
-                                    PopupMenuItem(
-                                        value: 2, child: CustomText("Mute")),
-                                    PopupMenuItem(
-                                        value: 3, child: CustomText("Block"))
-                                  ])
-                        ],
+                            SizedBox(
+                              width: SizeConfig.size10,
+                            ),
+                            PopupMenuButton(
+                                onSelected: (value) async {
+                                  if (value == 1) {
+                                    final link =
+                                        profileDeepLink(userId: widget.userId);
+                                    final message =
+                                        "See my profile on BlueEra:\n$link\n";
+                                    await SharePlus.instance.share(ShareParams(
+                                      text: message,
+                                      subject: user?.name,
+                                    ));
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                      PopupMenuItem(
+                                          value: 1,
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.share),
+                                              CustomText("Share"),
+                                            ],
+                                          )),
+                                      PopupMenuItem(
+                                          value: 2, child: CustomText("Mute")),
+                                      PopupMenuItem(
+                                          value: 3, child: CustomText("Block"))
+                                    ])
+                          ],
+                        ),
                       ),
 
-                      // SizedBox(height: SizeConfig.),
+                      // ""
                       // CustomText(
-                      //   user?.contactNo ?? '',
-                      //   fontWeight: FontWeight.bold,
-                      //   fontSize: 14,
+                      //   "+91 2343543545",
+                      //   color: AppColors.blackD9,
+                      //   fontWeight: FontWeight.w600,
+                      //   fontSize: 15,
                       // ),
+                      SizedBox(
+                        height: SizeConfig.size5,
+                      ),
                       InkWell(
                         onTap: () {
                           showDialog(
@@ -324,27 +457,26 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                           "Personal Details",
                           color: AppColors.skyBlueDF,
                           fontWeight: FontWeight.w600,
+                          fontSize: 12,
                           decoration: TextDecoration.underline,
                           decorationColor: AppColors.skyBlueDF,
                         ),
                       ),
                       SizedBox(
-                        height: SizeConfig.small,
+                        height: SizeConfig.size5,
                       ),
                       Row(
                         children: [
                           Icon(Icons.calendar_today,
                               size: SizeConfig.size16, color: AppColors.black),
-                          SizedBox(width: SizeConfig.size1),
+                          SizedBox(width: SizeConfig.size4),
                           CustomText(
-                            "Join US: ",
-                            overflow: TextOverflow.ellipsis,
-                            color: AppColors.black,
-                            fontWeight: FontWeight.w500,
+                            "Join US:  ",
+                            fontWeight: FontWeight.w600,
                           ),
                           Expanded(
                             child: CustomText(
-                              "${user?.dateOfBirth?.date ?? ""} ${getMonthNameFromMonth(user?.dateOfBirth?.month ?? 0)},${user?.dateOfBirth?.year ?? ""}",
+                              "${getMonthNameFromMonth(user?.dateOfBirth?.month ?? 0)},${user?.dateOfBirth?.year ?? ""}",
                               overflow: TextOverflow.ellipsis,
                               color: AppColors.black,
                             ),
@@ -353,16 +485,16 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                       ),
 
                       SizedBox(height: SizeConfig.size10),
-                      Row(
-                        children: [
-                          _buildTag(user?.username ?? ""),
-                          SizedBox(width: SizeConfig.size6),
-                          _buildTag(user?.designation ?? ""),
-                        ],
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size8,
-                      ),
+                      // Row(
+                      //   children: [
+                      //     _buildTag(user?.username ?? ""),
+                      //     SizedBox(width: SizeConfig.size6),
+                      //     _buildTag(user?.designation ?? ""),
+                      //   ],
+                      // ),
+                      // SizedBox(
+                      //   height: SizeConfig.size8,
+                      // ),
 
                       // SizedBox(
                       //   height: SizeConfig.size8,
@@ -399,7 +531,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                 overflow: TextOverflow.ellipsis,
                                 text: TextSpan(
                                     text:
-                                        "${(controller.userData.value?.followersCount ?? "").toString()} ",
+                                        "${(controller.userData.value?.followingCount ?? "").toString()} ",
                                     style: TextStyle(
                                       color: AppColors.black,
                                       fontSize: 16,
@@ -535,7 +667,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                       ),
                       const SizedBox(height: 20), // Spacer
                       buildInfoRow(
-                        Icons.email,
+                        Icons.email_outlined,
                         'Email',
                         email,
                         Uri(
@@ -547,10 +679,11 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                         ).toString(),
                       ),
                       const SizedBox(height: 20), // Spacer
-                      buildInfoRow(Icons.cake, 'Birth Day', dob, ""),
+                      buildInfoRow(
+                          Icons.calendar_month_outlined, 'Birth Day', dob, ""),
                       const SizedBox(height: 20), // Spacer
                       buildInfoRow(
-                        Icons.location_on,
+                        Icons.location_on_outlined,
                         'Location',
                         'Lucknow, Utter Pradesh',
                         "https://www.google.com/maps/search/?api=1&query=${location}'",
@@ -637,6 +770,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         child: CustomText(
           text,
           fontSize: SizeConfig.size12,
+          overflow: TextOverflow.ellipsis,
           color: textColor,
         ));
   }
@@ -645,7 +779,13 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     required int selectedIndex,
     required Function(int) onTabSelected,
   }) {
-    final tabs = ["Overview", "Reviews", "Post", "Jobs"];
+    final tabs = [
+      "Overview",
+      "Testimonial" "Reviews",
+      "Post",
+      "short",
+      "Video"
+    ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -658,7 +798,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
               margin: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size6, vertical: SizeConfig.size8),
               padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size16, vertical: SizeConfig.size10),
+                  horizontal: SizeConfig.size16, vertical: SizeConfig.size6),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.skyBlueDF : AppColors.white,
                 borderRadius: BorderRadius.circular(SizeConfig.size12),
@@ -684,6 +824,8 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   Widget buildRatingSummary({
     required double rating,
     required String totalReviews,
+    required List<GetCountRattingResponseDatum> reviewData,
+    required int totalRating,
   }) {
     return Card(
       shape: RoundedRectangleBorder(
@@ -699,7 +841,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               CustomText(
-                "Testimonial Summary",
+                "Rating Summary",
                 fontSize: SizeConfig.size20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.black,
@@ -750,9 +892,11 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                     ),
                   ),
                   InkWell(
-                    onTap: () => setState(() {
-                      _isExpanded = !_isExpanded;
-                    }),
+                    onTap: () {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
                     child: Icon(
                       !_isExpanded
                           ? Icons.keyboard_arrow_down
@@ -769,35 +913,81 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
               if (_isExpanded) ...[
                 /// Rating distribution bars
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildRatingRow(5, 0.9),
-                    _buildRatingRow(4, 0.7),
-                    _buildRatingRow(3, 0.5),
-                    _buildRatingRow(2, 0.3),
-                    _buildRatingRow(1, 0.1),
-                  ],
-                ),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: reviewData
+                            .where(
+                              (element) => element.count != 0,
+                            )
+                            .toList()
+                            .map(
+                              (e) => _buildRatingRow(e.rating!,
+                                  (e.count! / (totalRating ?? 0)) * 100),
+                            )
+                            .toList() ??
+                        []),
               ],
-              SizedBox(height: SizeConfig.size20),
-              RatingBar.builder(
-                initialRating: rating,
-                minRating: 1,
-                direction: Axis.horizontal,
-                allowHalfRating: false,
-                itemCount: 5,
-                itemSize: 36,
-                unratedColor: Colors.grey.shade400,
-                itemBuilder: (context, _) => const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
-                onRatingUpdate: (rate) {
-                  setState(() {
-                    rating = rate;
-                  });
-                },
-              ),
+              widget.isTestimonialRating == true
+                  ? SizedBox(height: SizeConfig.size20)
+                  : SizedBox(),
+              widget.isTestimonialRating == true
+                  ? Center(
+                      child: InkWell(
+                        onTap: () => showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (context) => buildRatingReviewWidget(
+                            context,
+                            (rating, review) async {
+                              if (rating == 0) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please select a rating'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+                              final ViewBusinessDetailsController
+                                  _ratingController =
+                                  ViewBusinessDetailsController();
+                              final success = await _ratingController
+                                  .submitBusinessRating(
+                                businessId: widget.userId,
+                                rating: rating,
+                                comment: review,
+                              )
+                                  .then((value) {
+                                if (mounted) {
+                                  Get.back();
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        child: AbsorbPointer(
+                          absorbing: true,
+                          child: RatingBar.builder(
+                            initialRating: 0,
+                            minRating: 1,
+                            direction: Axis.horizontal,
+                            allowHalfRating: false,
+                            itemCount: 5,
+                            itemSize: 36,
+                            unratedColor: Colors.grey.shade400,
+                            itemBuilder: (context, _) => const Icon(
+                              Icons.star_border,
+                              color: Colors.amber,
+                            ),
+                            onRatingUpdate: (rate) {
+                              setState(() {
+                                rating = rate;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    )
+                  : SizedBox(),
             ]),
       ),
     );
@@ -812,7 +1002,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
           const SizedBox(width: 8),
           Expanded(
             child: LinearProgressIndicator(
-              value: percentage,
+              value: percentage.toDouble(),
               backgroundColor: Colors.grey.shade300,
               color: Colors.blue,
               minHeight: 6,
@@ -823,12 +1013,152 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     );
   }
 
-  Widget buildTestimonialsCard() {
-    return TestimonialListingWidget(userId: userId);
-    // return Text("userId: userId");
+  Widget buildRatingReviewWidget(
+    BuildContext context,
+    void Function(int rating, String comments) onSubmit,
+  ) {
+    int rating = 0;
+    final TextEditingController reviewController = TextEditingController();
+
+    return Center(
+      child: Wrap(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Center(
+              child: Card(
+                elevation: 0,
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Rate And Review",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 12),
+
+                          RatingBar.builder(
+                            initialRating: rating.toDouble(),
+                            minRating: 0,
+                            direction: Axis.horizontal,
+                            allowHalfRating: false,
+                            itemCount: 5,
+                            itemSize: 36,
+                            unratedColor: Colors.grey.shade400,
+                            itemBuilder: (context, index) => Icon(
+                              rating >= index ? Icons.star : Icons.star_border,
+                              color: Colors.amber,
+                            ),
+                            onRatingUpdate: (rate) {
+                              setState(() {
+                                rating = rate.toInt();
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ✍ Review Box
+                          Align(
+                              alignment: Alignment.centerLeft,
+                              child: CustomText(
+                                "Write Your Review (Optional)",
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              )),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: reviewController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText:
+                                  'E.g. "Great service, quick response, highly recommended!"',
+                              hintStyle: TextStyle(color: Colors.grey.shade400),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // 📸 Upload
+                          Align(
+                              alignment: Alignment.centerLeft,
+                              child: CustomText(
+                                "Share Image or Video (Optional)",
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ) /*const Text(
+                              "",
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w500),
+                            ),*/
+                              ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.upload_file_outlined),
+                            label: const Text("Upload Image or Video"),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(double.infinity, 48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomBtn(
+                                  onTap: () => Get.back(),
+                                  title: "Cancel",
+                                  radius: 12,
+                                  borderColor: AppColors.skyBlueDF,
+                                  bgColor: AppColors.white,
+                                  textColor: AppColors.skyBlueDF,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: CustomBtn(
+                                  onTap: () =>
+                                      onSubmit(rating, reviewController.text),
+                                  title: "Submit",
+                                  bgColor: AppColors.skyBlueDF,
+                                  textColor: AppColors.white,
+                                  radius: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget buildPostCard() {
+  Widget buildTestimonialsCard(List<Testimonials> list) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
@@ -836,9 +1166,194 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       elevation: SizeConfig.size4,
       color: AppColors.white,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              "Testimonials",
+              fontSize: SizeConfig.size20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.black,
+            ),
+            SizedBox(
+              height: SizeConfig.size8,
+            ),
+            ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: list.length ?? 0,
+                itemBuilder: (context, index) {
+                  Testimonials data = list[index] ?? Testimonials();
+                  return Container(
+                    padding: EdgeInsets.all(SizeConfig.size12),
+                    margin: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(SizeConfig.size12),
+                        border: Border.all(color: AppColors.whiteDB, width: 2)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            if (data.fromUser?.id == userId) {
+                              return;
+                            }
+                            // if (data.fromUser?.accountType?.toUpperCase() ==
+                            //     AppConstants.individual) {
+                            //
+                            //     Get.to(() => VisitProfileScreen1(authorId: data.fromUser?.id??""));
+                            // }
+                            // if (data.fromUser?.accountType?.toUpperCase() ==
+                            //     AppConstants.business) {
+                            //
+                            //     Get.to(() => VisitBusinessProfile(businessId: data.fromUser?.id??""));
+                            // }
+                          },
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundImage: NetworkImage(
+                                  data.fromUser?.profileImage ?? "",
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    '@${data.fromUser?.name ?? ""}',
+                                    fontSize: SizeConfig.size16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  Row(
+                                    children: [
+                                      ...List.generate(
+                                        5,
+                                        (index) => Icon(Icons.star,
+                                            color: AppColors.yellow,
+                                            size: SizeConfig.size16),
+                                      ),
+                                      SizedBox(width: SizeConfig.size6),
+                                      CustomText(
+                                        getTimeAgo(data.updatedAt.toString()),
+                                        color: AppColors.coloGreyText,
+                                        fontSize: SizeConfig.size12,
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        CustomText(
+                          data.description,
+                          textAlign: TextAlign.start,
+                          fontSize: SizeConfig.size14,
+                          color: AppColors.grayText,
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        Divider(
+                          height: 8,
+                          color: AppColors.greyA5,
+                          thickness: 1,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size16,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(
+                                      color: AppColors.borderGray, width: 2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                height: 50.0,
+                                child: Row(
+                                  children: <Widget>[
+                                    CircleAvatar(
+                                      radius: 20,
+                                      backgroundColor: AppColors.black,
+                                      child: Icon(
+                                        Icons.thumb_up_alt_outlined,
+                                        color: AppColors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: TextFormField(
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(fontSize: 11.0),
+                                        decoration: InputDecoration(
+                                            disabledBorder: InputBorder.none,
+                                            enabledBorder: InputBorder.none,
+                                            errorBorder: InputBorder.none,
+                                            focusedBorder: InputBorder.none,
+                                            focusedErrorBorder:
+                                                InputBorder.none,
+                                            suffixIcon:
+                                                Icon(Icons.edit_outlined),
+                                            suffixIconConstraints:
+                                                BoxConstraints(),
+                                            contentPadding:
+                                                new EdgeInsets.symmetric(
+                                                    vertical: 0.0),
+                                            border: InputBorder.none,
+                                            hintText: 'Enter comment',
+                                            hintStyle:
+                                                TextStyle(fontSize: 11.0)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: SizeConfig.small,
+                            ),
+                            InkWell(
+                              onTap: () {},
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                      color: AppColors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: AppColors.borderGray,
+                                          width: 2)),
+                                  height: 50,
+                                  width: 50,
+                                  child:
+                                      Image.asset("assets/images/share.png")),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                })
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildPostCard({required List<Post> posts}) {
+    /*return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+      ),
+      elevation: SizeConfig.size4,
+      color: AppColors.white,
+      child: Padding(
+          padding: const EdgeInsets.all(8),
+        child: Column(
           children: [
             CustomText(
               "Posts",
@@ -848,126 +1363,21 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
             ),
             SizedBox(
               height: SizeConfig.size6,
+              width: Get.width,
             ),
-            Container(
-              decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.whiteDB, width: 2),
-                  borderRadius: BorderRadius.circular(SizeConfig.size12)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(SizeConfig.size12),
-                        topRight: Radius.circular(SizeConfig.size12)),
-                    child: Image.asset(
-                      "assets/images/burger.png",
-                      height: SizeConfig.size200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "Top 10 AI Tools You Should Know in 2025",
-                          fontSize: SizeConfig.size14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        SizedBox(height: SizeConfig.size4),
-                        CustomText(
-                          "Stay Ahead with These Game-Changing AI Tools",
-                          fontSize: SizeConfig.size12,
-                          color: AppColors.coloGreyText,
-                        ),
-                        // SizedBox(height: SizeConfig.size10),
-                      ],
-                    ),
-                  ),
-                  // SizedBox(height: SizeConfig.size12),
-
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 50,
-                            padding: EdgeInsets.symmetric(
-                                vertical: 4, horizontal: 8),
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: AppColors.borderGray, width: 2),
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Row(children: [
-                              const CircleAvatar(
-                                radius: 16,
-                                backgroundImage: AssetImage(
-                                    "assets/images/profile_logo.png"),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: RichText(
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                  text: const TextSpan(
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 13),
-                                    children: [
-                                      TextSpan(
-                                          text: "Sathi : ",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold)),
-                                      TextSpan(
-                                          text:
-                                              "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum Dolor Amet"),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Icon(Icons.edit,
-                                  size: 18, color: Colors.grey[600]),
-                            ]),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          height: 50,
-                          width: 50,
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: AppColors.borderGray, width: 2),
-                              borderRadius: BorderRadius.circular(12)),
-                          child: PopupMenuButton(
-                              onSelected: (value) {},
-                              itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                        value: 1, child: CustomText("Re-post")),
-                                    PopupMenuItem(
-                                        value: 2, child: CustomText("Share")),
-                                    PopupMenuItem(
-                                        value: 3, child: CustomText("Save"))
-                                  ]),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size16,
-                  ),
-                ],
-              ),
-            ),
+            FeedScreen(
+                key: ValueKey('feedScreen_user_posts_${widget.userId}'),
+                postFilterType: PostType.otherPosts,
+                isInParentScroll: true,
+                id: widget.userId),
           ],
         ),
       ),
-    );
-  }
+    );*/
 
-  Widget buildHorizontalSortsList() {
+    // ? List.from(controller.postsResponse.value.data.data.data[0])
+    // : [];
+    if (posts.isEmpty) return SizedBox();
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
@@ -975,241 +1385,519 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       elevation: SizeConfig.size4,
       color: AppColors.white,
       child: Padding(
-        padding: EdgeInsets.all(SizeConfig.size12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              "Sorts",
-              fontSize: SizeConfig.size20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-            SizedBox(
-              height: SizeConfig.size8,
-            ),
-            SizedBox(
-              height: SizeConfig.size240,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 8,
-                itemBuilder: (context, index) {
-                  return Container(
-                    width: SizeConfig.size160,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(SizeConfig.size12),
-                      image: DecorationImage(
-                          image: AssetImage(
-                            "assets/images/camera_stand.png",
-                          ),
-                          fit: BoxFit.cover),
-                      border: Border.all(color: AppColors.whiteDB, width: 2),
-                    ),
-                    alignment: Alignment.bottomRight,
-                    child: Container(
-                      margin: EdgeInsets.all(SizeConfig.size12),
-                      padding: EdgeInsets.symmetric(
-                          vertical: SizeConfig.size6,
-                          horizontal: SizeConfig.size12),
-                      decoration: BoxDecoration(
-                          color: AppColors.black1A,
-                          borderRadius:
-                              BorderRadius.circular(SizeConfig.size12)),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.visibility_outlined,
-                            color: AppColors.white,
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size4,
-                          ),
-                          CustomText(
-                            "25K",
-                            color: AppColors.white,
-                            fontSize: SizeConfig.size16,
-                          )
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                separatorBuilder: (context, index) => SizedBox(
-                  width: SizeConfig.size12,
-                ),
+        padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          // height: 450,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                "Posts",
+                fontSize: SizeConfig.size20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
               ),
-            ),
-          ],
+              SizedBox(
+                height: SizeConfig.size6,
+                width: Get.width,
+              ),
+              posts.isEmpty
+                  ? Center(
+                      child: CustomText(
+                      "No Post found !!",
+                      textAlign: TextAlign.center,
+                    ))
+                  : SizedBox(
+                      height: 400,
+                      width: Get.width,
+                      child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: posts.length,
+                          scrollDirection: Axis.horizontal,
+                          separatorBuilder: (context, index) => SizedBox(
+                                width: 12,
+                              ),
+                          itemBuilder: (context, index) {
+                            var data = posts[index];
+                            FeedType? feedType =
+                                FeedType.fromValue(data.type?.toUpperCase());
+                            return Container(
+                              width: Get.width * 0.9,
+                              decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: AppColors.whiteDB, width: 2),
+                                  borderRadius:
+                                      BorderRadius.circular(SizeConfig.size12)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.only(
+                                        topLeft:
+                                            Radius.circular(SizeConfig.size12),
+                                        topRight:
+                                            Radius.circular(SizeConfig.size12)),
+                                    child: SizedBox(
+                                      width: Get.width * 0.9,
+                                      child: feedType == FeedType.qaPost
+                                          ? FeedPollOptionsWidget(
+                                              question:
+                                                  data.poll?.question ?? "",
+                                              postId: data.id,
+                                              poll: data.poll,
+                                              postFilteredType: PostType.latest,
+                                              postedAgo: timeAgo(
+                                                  data?.createdAt != null
+                                                      ? data!.createdAt!
+                                                      : DateTime.now()),
+                                              message: data.message,
+                                            )
+                                          : FeedMediaCarouselWidget(
+                                              subTitle: data.subTitle ?? "",
+                                              taggedUser:
+                                                  data.taggedUsers ?? [],
+                                              mediaUrls: data.media ?? [],
+                                              postedAgo: timeAgo(
+                                                  data.createdAt != null
+                                                      ? data.createdAt!
+                                                      : DateTime.now()),
+                                              totalViews: data.viewsCount !=
+                                                      null
+                                                  ? data.viewsCount.toString()
+                                                  : '0',
+                                            ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.all(SizeConfig.size10),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (data.title?.isNotEmpty ??
+                                            false) ...{
+                                          CustomText(
+                                            data.title,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            fontSize: SizeConfig.size14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          SizedBox(height: SizeConfig.size4),
+                                        },
+                                        CustomText(
+                                          data.subTitle,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          fontSize: SizeConfig.size12,
+                                          color: AppColors.coloGreyText,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 12),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            height: 50,
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 4, horizontal: 8),
+                                            decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: AppColors.borderGray,
+                                                    width: 2),
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
+                                            child: Row(children: [
+                                              CircleAvatar(
+                                                radius: 16,
+                                                child: Image.network(
+                                                    data.user?.profileImage ??
+                                                        ""),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: RichText(
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  text: TextSpan(
+                                                    style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 13),
+                                                    children: [
+                                                      TextSpan(
+                                                          text: "Sathi: ",
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                      TextSpan(
+                                                          text:
+                                                              "Bharat Mata Ki Jai...❤️🙏 Lorem ipsum Dolor Amet"),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              Icon(Icons.edit,
+                                                  size: 18,
+                                                  color: Colors.grey[600]),
+                                            ]),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          height: 50,
+                                          width: 50,
+                                          decoration: BoxDecoration(
+                                              border: Border.all(
+                                                  color: AppColors.borderGray,
+                                                  width: 2),
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          child: PopupMenuButton(
+                                              onSelected: (value) {
+                                                if (value == 2) {
+                                                  onShareButtonPressed(data);
+                                                } else if (value == 3) {
+                                                  Get.find<FeedController>()
+                                                      .savePostToLocalDB(
+                                                          postId:
+                                                              data?.id ?? '0',
+                                                          type: PostType.latest,
+                                                          sortBy:
+                                                              SortBy.Latest);
+                                                }
+                                              },
+                                              itemBuilder: (context) => [
+                                                    PopupMenuItem(
+                                                        value: 1,
+                                                        child: CustomText(
+                                                            "Re-post")),
+                                                    PopupMenuItem(
+                                                        value: 2,
+                                                        child: CustomText(
+                                                            "Share")),
+                                                    PopupMenuItem(
+                                                        value: 3,
+                                                        child:
+                                                            CustomText("Save"))
+                                                  ]),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                    ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget buildHorizontalSortsList() {
+    return GetBuilder<ShortsController>(
+      init: shortsController,
+      builder: (controller) {
+        if (shortsController.isInitialLoading(Shorts.latest).isFalse) {
+          if (shortsController.shortsResponse.status == Status.COMPLETE) {
+            final channelShorts =
+                shortsController.getListByType(shorts: Shorts.latest);
+            if (channelShorts.isEmpty) {
+              return SizedBox();
+            }
+            return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(SizeConfig.size16),
+              ),
+              elevation: SizeConfig.size4,
+              color: AppColors.white,
+              child: Padding(
+                padding: EdgeInsets.all(SizeConfig.size12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      "Shorts",
+                      fontSize: SizeConfig.size20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size8,
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size240,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: channelShorts.length,
+                        itemBuilder: (context, index) {
+                          ShortFeedItem data = channelShorts[index];
+                          return InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                RouteHelper.getShortsPlayerScreenRoute(),
+                                arguments: {
+                                  ApiKeys.shorts: Shorts.latest,
+                                  ApiKeys.videoItem: false,
+                                  ApiKeys.initialIndex: 0,
+                                },
+                              );
+                            },
+                            child: Container(
+                              width: SizeConfig.size160,
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius:
+                                    BorderRadius.circular(SizeConfig.size12),
+                                image: DecorationImage(
+                                    image: NetworkImage(data.video?.coverUrl ??
+                                            "" // "assets/images/camera_stand.png",
+                                        ),
+                                    fit: BoxFit.cover),
+                                border: Border.all(
+                                    color: AppColors.whiteDB, width: 2),
+                              ),
+                              alignment: Alignment.bottomRight,
+                              child: Container(
+                                margin: EdgeInsets.all(SizeConfig.size12),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: SizeConfig.size2,
+                                    horizontal: SizeConfig.size8),
+                                decoration: BoxDecoration(
+                                    color: AppColors.black30,
+                                    borderRadius: BorderRadius.circular(
+                                        SizeConfig.size12)),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.visibility_outlined,
+                                      color: AppColors.white,
+                                    ),
+                                    SizedBox(
+                                      width: SizeConfig.size4,
+                                    ),
+                                    CustomText(
+                                      (data.video?.stats?.views ?? "")
+                                          .toString(),
+                                      color: AppColors.white,
+                                      fontSize: SizeConfig.size16,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        separatorBuilder: (context, index) => SizedBox(
+                          width: SizeConfig.size12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+        return SizedBox();
+      },
     );
   }
 
   Widget customVideoCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      color: AppColors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              "Videos",
-              fontSize: SizeConfig.size20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-            SizedBox(
-              height: SizeConfig.size2,
-            ),
-            Card(
-              elevation: 10,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              color: AppColors.white,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
+    return GetBuilder<VideoController>(
+      init: videosController,
+      builder: (controller) {
+        if (videosController.isInitialLoading(videos).isFalse) {
+          if (videosController.channelVideosResponse.status ==
+              Status.COMPLETE) {
+            final channelVideos =
+                videosController.getListByType(videoType: videos);
+            if (channelVideos.isNotEmpty) {
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: AppColors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
-                        ),
-                        child: Image.asset(
-                          'assets/images/video_preview.png',
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                      CustomText(
+                        "Videos",
+                        fontSize: SizeConfig.size20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black,
                       ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: const Icon(
-                            Icons.volume_off,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ),
+                      SizedBox(
+                        height: SizeConfig.size2,
                       ),
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            "02:53",
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ),
+                      SizedBox(
+                        height: 310,
+                        child: ListView.builder(
+                            itemCount: channelVideos.length,
+                            itemBuilder: (context, index) {
+                              var data = channelVideos[index];
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteHelper.getVideoPlayerScreenRoute(),
+                                    arguments: {
+                                      ApiKeys.videoItem: data,
+                                      ApiKeys.videoType: VideoType.latest
+                                    },
+                                  );
+                                },
+                                child: Card(
+                                  elevation: 10,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  color: AppColors.white,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(12),
+                                              topRight: Radius.circular(12),
+                                            ),
+                                            child: Image.asset(
+                                              'assets/images/video_preview.png',
+                                              height: 200,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black
+                                                    .withOpacity(0.6),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              padding: const EdgeInsets.all(6),
+                                              child: const Icon(
+                                                Icons.volume_off,
+                                                size: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            bottom: 8,
+                                            right: 8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black
+                                                    .withOpacity(0.8),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: const Text(
+                                                "02:53",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const CircleAvatar(
+                                              radius: 18,
+                                              backgroundColor: Colors.black,
+                                              child: Icon(Icons.play_arrow,
+                                                  color: Colors.white),
+                                            ),
+                                            const SizedBox(width: 8),
+
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: const [
+                                                  Text(
+                                                    "Trying MC’s Burger for the first time!!! "
+                                                    "Trying MC’s Burger for the...",
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    "TechSavvy   3.5 lakhs views   12 days ago",
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                            /// Menu button
+                                            IconButton(
+                                              onPressed: () {},
+                                              icon: const Icon(Icons.more_vert,
+                                                  size: 18),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.black,
-                          child: Icon(Icons.play_arrow, color: Colors.white),
-                        ),
-                        const SizedBox(width: 8),
-
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "Trying MC’s Burger for the first time!!! "
-                                "Trying MC’s Burger for the...",
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                "TechSavvy   3.5 lakhs views   12 days ago",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        /// Menu button
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.more_vert, size: 18),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+                ),
+              );
+            }
+          }
+        }
+        return SizedBox();
+      },
     );
   }
 
-  String getMonthNameFromMonth(int mon) {
-    switch (mon) {
-      case 1:
-        return "Jan";
-      case 2:
-        return "Feb";
-      case 3:
-        return "Mar";
-      case 4:
-        return "Apr";
-      case 5:
-        return "May";
-      case 6:
-        return "Jun";
-      case 7:
-        return "Jul";
-      case 8:
-        return "Aug";
-      case 9:
-        return "Sep";
-      case 10:
-        return "Oct";
-      case 11:
-        return "Nov";
-      case 12:
-        return "Dec";
-      default:
-        return "";
-    }
-  }
+
 
   Widget oldBuild(BuildContext context) {
     return Scaffold(
@@ -1497,11 +2185,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       // case 'Achievements':
       // return AchievementsWidget();
       case 'Testimonials':
-        return TestimonialsScreen(
-          userName: "",
-          visitUserID: userId,
-          isSelfTestimonial: true,
-        );
+        return testimonialsTab();
       case 'Shorts':
         return ShortsChannelSection(
           isOwnShorts: false,
@@ -1742,5 +2426,146 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         )
       ],
     );
+  }
+
+  Widget testimonialsTab() {
+    return Column(
+      children: [
+        buildRatingSummary(
+          rating: double.parse(
+              (controller.getRattingSummaryResponse.value?.data?.avgRating ?? 0)
+                  .toString()),
+          totalReviews: "5,455",
+          reviewData: controller.getCountRattingResponse.value?.data ?? [],
+          totalRating: controller.getCountRattingResponse.value?.data
+                  ?.map(
+                    (e) => e.count!,
+                  )
+                  .reduce(
+                    (value, element) => value + element,
+                  ) ??
+              1,
+        ),
+        SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              CustomText(
+                "Most Relevant",
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.skyBlueDF,
+                color: AppColors.skyBlueDF,
+              ),
+              SizedBox(
+                width: 12,
+              ),
+              CustomText(
+                "Newest",
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.black,
+                color: AppColors.black,
+              ),
+              SizedBox(
+                width: 12,
+              ),
+              CustomText(
+                "Oldest",
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.black,
+                color: AppColors.black,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 4),
+        TestimonialsScreen(
+          userName: controller.userData.value?.user?.name ?? 'N/A',
+          visitUserID: widget.userId,
+          isSelfTestimonial: false,
+        )
+      ],
+    );
+  }
+
+  Widget videoTab() {
+    return VideoChannelSection(
+      isOwnVideos: false,
+      channelId: '',
+      authorId: widget.userId,
+      sortBy: SortBy.Popular,
+      isScroll: false,
+      postVia: PostVia.profile,
+    );
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              CustomText(
+                "Most Relevant",
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.skyBlueDF,
+                color: AppColors.skyBlueDF,
+              ),
+              SizedBox(
+                width: 12,
+              ),
+              CustomText(
+                "Newest",
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.black,
+                color: AppColors.black,
+              ),
+              SizedBox(
+                width: 12,
+              ),
+              CustomText(
+                "Oldest",
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.black,
+                color: AppColors.black,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 8,
+        ),
+        customVideoCard(),
+      ],
+    );
+  }
+}
+
+String getMonthNameFromMonth(int mon) {
+  switch (mon) {
+    case 1:
+      return "Jan";
+    case 2:
+      return "Feb";
+    case 3:
+      return "Mar";
+    case 4:
+      return "Apr";
+    case 5:
+      return "May";
+    case 6:
+      return "Jun";
+    case 7:
+      return "Jul";
+    case 8:
+      return "Aug";
+    case 9:
+      return "Sep";
+    case 10:
+      return "Oct";
+    case 11:
+      return "Nov";
+    case 12:
+      return "Dec";
+    default:
+      return "";
   }
 }

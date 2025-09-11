@@ -6,12 +6,14 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -22,6 +24,7 @@ import 'package:BlueEra/features/common/reel/controller/manage_channel_controlle
 import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
+import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/features/common/store/channel_product_screen/channel_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
@@ -39,6 +42,8 @@ import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dioObj;
+import 'package:readmore/readmore.dart';
+import 'package:share_plus/share_plus.dart';
 
 enum ChannelTab {
   shorts,
@@ -379,6 +384,326 @@ class _ChannelScreenState extends State<ChannelScreen> {
   }
 
   Widget _buildHeaderSection() {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+      ),
+      elevation: SizeConfig.size4,
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    Container(
+                      height: SizeConfig.size60,
+                      width: SizeConfig.size60,
+                      margin: EdgeInsets.all(SizeConfig.size10),
+                      padding: EdgeInsets.all(SizeConfig.size3),
+                      decoration: BoxDecoration(
+                          color: AppColors.skyBlueDF,
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: NetworkImage(channelController.channelLogo.value),
+                          )),
+                    ),
+                    CustomBtn(
+                      onTap: () {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                          return;
+                        }
+                        channelController.followUnfollowChannel(
+                            channelId: widget.channelId,
+                            isFollowing:
+                            channelController.isChannelFollow.value);
+                      },
+                      title: channelController.isChannelFollow.isTrue ? "Follow" : "UnFollow",
+                      fontWeight: FontWeight.bold,
+                      height: SizeConfig.size24,
+                      bgColor: AppColors.skyBlueDF,
+                      width: SizeConfig.size60,
+                      radius: SizeConfig.size8,
+                    ),
+
+                    // InkWell(
+                    //   onTap: () {
+                    //     showDialog(
+                    //       context: context,
+                    //       builder: (context) {
+                    //         return buildProfilePopup(
+                    //             contact: user?.contactNo ?? "",
+                    //             dob:
+                    //                 "${user?.dateOfBirth?.month ?? ""},${user?.dateOfBirth?.date ?? ""}",
+                    //             email: user?.email ?? "",
+                    //             location:
+                    //                 "${user?.userLocation?.lat ?? ""},${user?.userLocation?.lon ?? ""}",
+                    //             channel: user?.accountType ?? "",
+                    //             designation: user?.designation ?? "",
+                    //             name: user?.name ?? "");
+                    //       },
+                    //     );
+                    //   },
+                    //   child: CustomText(
+                    //     "View Channel",
+                    //     color: AppColors.skyBlueDF,
+                    //     fontWeight: FontWeight.w600,
+                    //     fontSize: 10,
+                    //     decoration: TextDecoration.underline,
+                    //     decorationColor: AppColors.skyBlueDF,
+                    //   ),
+                    // ),
+                  ],
+                ),
+                SizedBox(
+                  width: SizeConfig.size8,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 24,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 80,
+                                    child: CustomText(
+                                      (channelController.channelData.value?.name ?? "").capitalizeFirst,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      fontSize: SizeConfig.size18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: SizeConfig.size2,
+                                  ),
+                                  channelController.channelData.value?.verification.isVerified?? false
+                                      ? Icon(
+                                    Icons.verified,
+                                    color: AppColors.skyBlueDF,
+                                    size: 16,
+                                  )
+                                      : SizedBox(),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              width: SizeConfig.size10,
+                            ),
+                            PopupMenuButton(
+                                onSelected: (value) async {
+                                  if (value == 1) {
+                                    final link =
+                                    profileDeepLink(userId: widget.authorId);
+                                    final message =
+                                        "See my profile on BlueEra:\n$link\n";
+                                    await SharePlus.instance.share(ShareParams(
+                                      text: message,
+                                      subject: channelController.channelData.value?.name ?? "",
+                                    ));
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                      value: 1,
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.share),
+                                          CustomText("Share"),
+                                        ],
+                                      )),
+                                  PopupMenuItem(
+                                      value: 2, child: CustomText("Mute")),
+                                  PopupMenuItem(
+                                      value: 3, child: CustomText("Block"))
+                                ])
+                          ],
+                        ),
+                      ),
+
+                      // ""
+                      // CustomText(
+                      //   "+91 2343543545",
+                      //   color: AppColors.blackD9,
+                      //   fontWeight: FontWeight.w600,
+                      //   fontSize: 15,
+                      // ),
+                      SizedBox(
+                        height: SizeConfig.size5,
+                      ),
+                      InkWell(
+                        onTap: () {
+                          // showDialog(
+                          //   context: context,
+                          //   builder: (context) {
+                          //     return buildProfilePopup(
+                          //         contact: channelController.channelData.value.,
+                          //         dob:
+                          //         "${user?.dateOfBirth?.month ?? ""},${user?.dateOfBirth?.date ?? ""}",
+                          //         email: user?.email ?? "",
+                          //         location:
+                          //         "${user?.userLocation?.lat ?? ""},${user?.userLocation?.lon ?? ""}",
+                          //         channel: user?.accountType ?? "",
+                          //         designation: user?.designation ?? "",
+                          //         name: user?.name ?? "");
+                          //   },
+                          // );
+                        },
+                        child: CustomText(
+                          "Personal Details",
+                          color: AppColors.skyBlueDF,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.skyBlueDF,
+                        ),
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size5,
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today,
+                              size: SizeConfig.size16, color: AppColors.black),
+                          SizedBox(width: SizeConfig.size4),
+                          CustomText(
+                            "Join US:  ",
+                            fontWeight: FontWeight.w600,
+                          ),
+                          Expanded(
+                            child: CustomText(
+                              "${getMonthNameFromMonth(channelController.channelData.value?.createdAt.month??0)},${channelController.channelData.value?.createdAt.year}",
+                              overflow: TextOverflow.ellipsis,
+                              color: AppColors.black,
+                            ),
+                          )
+                        ],
+                      ),
+
+                      SizedBox(height: SizeConfig.size10),
+                      // Row(
+                      //   children: [
+                      //     _buildTag(user?.username ?? ""),
+                      //     SizedBox(width: SizeConfig.size6),
+                      //     _buildTag(user?.designation ?? ""),
+                      //   ],
+                      // ),
+                      // SizedBox(
+                      //   height: SizeConfig.size8,
+                      // ),
+
+                      // SizedBox(
+                      //   height: SizeConfig.size8,
+                      // ),
+                      Row(
+                        children: [
+                          // RichText(
+                          //     maxLines: 1,
+                          //     overflow: TextOverflow.ellipsis,
+                          //     text: TextSpan(
+                          //         text:
+                          //             "${viewProfileController.postsCount.value} ",
+                          //         style: TextStyle(
+                          //           color: AppColors.black,
+                          //           fontSize: 16,
+                          //         ),
+                          //         children: [
+                          //           TextSpan(
+                          //               text: "Posts",
+                          //               style: TextStyle(
+                          //                   color: AppColors.coloGreyText))
+                          //         ])),
+                          // SizedBox(
+                          //   height: SizeConfig.size20,
+                          //   child: VerticalDivider(
+                          //     width: SizeConfig.size14,
+                          //     color: AppColors.borderGray,
+                          //     thickness: 1,
+                          //   ),
+                          // ),
+                          Expanded(
+                            child: RichText(
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                text: TextSpan(
+                                    text:
+                                    channelController.channelStats.value?.following.toString() ?? "0",
+                                    style: TextStyle(
+                                      color: AppColors.black,
+                                      fontSize: 16,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                          text: "Following",
+                                          style: TextStyle(
+                                              color: AppColors.coloGreyText))
+                                    ])),
+                          ),
+                          SizedBox(
+                            height: SizeConfig.size20,
+                            child: VerticalDivider(
+                              width: SizeConfig.size14,
+                              color: AppColors.borderGray,
+                              thickness: 1,
+                            ),
+                          ),
+                          Expanded(
+                            child: RichText(
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                text: TextSpan(
+                                    text:
+                                    channelController.channelStats.value?.followers.toString() ?? "0",
+                                    style: TextStyle(
+                                      color: AppColors.black,
+                                      fontSize: 16,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                          text: "Followers",
+                                          style: TextStyle(
+                                            color: AppColors.coloGreyText,
+                                          ))
+                                    ])),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(
+                  width: SizeConfig.size12,
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size6),
+            ReadMoreText(
+              channelController.channelData.value?.bio ?? "",
+              trimMode: TrimMode.Line,
+              trimLines: 2,
+              colorClickableText: AppColors.primaryColor,
+              trimCollapsedText: ' Show more',
+              trimExpandedText: ' Show less',
+              moreStyle: AppFontStyle.styleW500(
+                  AppColors.primaryColor, SizeConfig.size14),
+            ),
+          ],
+        ),
+      ),
+    );
     return Obx(() => Padding(
           padding: EdgeInsets.only(
               left: SizeConfig.size15,

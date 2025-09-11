@@ -4,6 +4,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:get/get.dart';
 
@@ -28,6 +30,7 @@ class ViewBusinessDetailsController extends GetxController {
   ApiResponse businessVerifyResponse = ApiResponse.initial('Initial');
   ApiResponse businessGetAllProductResponse = ApiResponse.initial('Initial');
   ApiResponse getParticularRatingResponse = ApiResponse.initial('Initial');
+    Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
 
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
@@ -109,15 +112,17 @@ class ViewBusinessDetailsController extends GetxController {
           selectedCategoryOfBusiness.value = null;
           selectedSubCategoryOfBusinessNew.value = null;
         }
-        Get.find<AuthController>().imgPath.value=   businessProfileDetails?.data?.logo??"";
+        Get.find<AuthController>().imgPath.value =
+            businessProfileDetails?.data?.logo ?? "";
 
         await SharedPreferenceUtils.userLoggedInBusiness(
-          profileImage: businessProfileDetails?.data?.logo??'',
-          businessName: businessProfileDetails?.data?.businessName??'',
-          businessOwnerName: businessProfileDetails?.data?.ownerDetails?[0].name??'',
-          businessId: businessProfileDetails?.data?.id??"",
-          loginBusinessUserId: businessProfileDetails?.data?.userId??"",
-          userNameAt: "",
+          profileImage: businessProfileDetails?.data?.logo ?? '',
+          businessName: businessProfileDetails?.data?.businessName ?? '',
+          businessOwnerName:
+              businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
+          businessId: businessProfileDetails!.data!.id!,
+          loginBusinessUserId: businessProfileDetails!.data!.userId!,
+            userNameAt: ""
         );
 
         await getUserLoginData();
@@ -126,8 +131,7 @@ class ViewBusinessDetailsController extends GetxController {
         update();
       } else {
         commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong
-        );
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       viewBusinessResponse = ApiResponse.error('error');
@@ -137,7 +141,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-      await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
+          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
 
       // ResponseModel responseModel =
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
@@ -423,4 +427,34 @@ class ViewBusinessDetailsController extends GetxController {
       return false;
     }
   }
+//  
+  // Future<void> getAllPostApi(
+  //    ) async {
+  //   final Map<String, dynamic> queryParams = {
+  //     ApiKeys.page: 1,
+  //     ApiKeys.limit:10,
+  //     ApiKeys.filter: "latest"
+  //   };
+
+  //   // if (query == null) {
+  //     queryParams[ApiKeys.refresh] = refresh;
+  //   // }
+
+  //   try {
+  //     ResponseModel response =
+  //         await FeedRepo().getAllMyPosts(queryParams: queryParams);
+  //         if(response.isSuccess){
+  // postsResponse.value = ApiResponse.complete(response);
+  //       final postResponse = PostResponse.fromJson(response.response?.data);
+  //         }else{
+  //            postsResponse.value = ApiResponse.error('error');
+  //       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+  //         }
+  //   } catch (e) {
+  //       postsResponse.value = ApiResponse.error('error');
+  //     commonSnackBar(message: AppStrings.somethingWentWrong);
+  //   }
+  // }
+
+
 }

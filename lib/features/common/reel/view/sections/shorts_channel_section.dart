@@ -36,7 +36,8 @@ class ShortsChannelSection extends StatefulWidget {
 }
 
 class _ShortsChannelSectionState extends State<ShortsChannelSection> {
-  final ShortsController shortsController = Get.put<ShortsController>(ShortsController());
+  final ShortsController shortsController =
+      Get.put<ShortsController>(ShortsController());
   Shorts shorts = Shorts.latest;
 
   @override
@@ -45,17 +46,17 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchChannelShorts(isInitialLoad: true);
     });
-    
+
     setShortsType();
   }
 
-  setShortsType(){
-     shorts = switch (widget.sortBy) {
-      SortBy.Latest       => Shorts.latest,
-      SortBy.Popular      => Shorts.popular,
-      SortBy.Oldest       => Shorts.oldest,
-      SortBy.UnderProgress=> Shorts.underProgress,
-      null                => Shorts.latest, // default for null
+  setShortsType() {
+    shorts = switch (widget.sortBy) {
+      SortBy.Latest => Shorts.latest,
+      SortBy.Popular => Shorts.popular,
+      SortBy.Oldest => Shorts.oldest,
+      SortBy.UnderProgress => Shorts.underProgress,
+      null => Shorts.latest, // default for null
     };
   }
 
@@ -71,19 +72,19 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
 
   void fetchChannelShorts({bool isInitialLoad = false, bool refresh = false}) {
     shortsController.getShortsByType(
-        shorts,
-        widget.channelId,
-        widget.authorId,
-        widget.isOwnShorts,
-        isInitialLoad: isInitialLoad,
-        refresh: refresh,
-        postVia: widget.postVia,
+      shorts,
+      widget.channelId,
+      widget.authorId,
+      widget.isOwnShorts ,
+      isInitialLoad: isInitialLoad,
+      refresh: refresh,
+      postVia: widget.postVia,
     );
   }
 
   // Method to be called from parent for pagination
   void loadMore() {
-    if (shortsController.isHasMoreData(shorts) && 
+    if (shortsController.isHasMoreData(shorts) &&
         shortsController.isMoreDataLoading(shorts).isFalse) {
       shortsController.isMoreDataLoading(shorts).value = true;
       fetchChannelShorts();
@@ -93,9 +94,8 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-
-      if(shortsController.isInitialLoading(shorts).isFalse){
-        if(shortsController.shortsResponse.status == Status.COMPLETE){
+      if (shortsController.isInitialLoading(shorts).isFalse) {
+        if (shortsController.shortsResponse.status == Status.COMPLETE) {
           final channelShorts = shortsController.getListByType(shorts: shorts);
 
           if (channelShorts.isEmpty) {
@@ -109,62 +109,65 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
             );
           }
 
-          return (widget.showShortsInGrid) ? GridView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(3),
-            scrollDirection: Axis.vertical,
-            itemCount: channelShorts.length,
-            physics: const NeverScrollableScrollPhysics(), // Prevent scrolling conflicts
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 0.7,
-              crossAxisSpacing: 3,   // horizontal gap between items
-              mainAxisSpacing: 3,    // vertical gap between items
-            ),
-            itemBuilder: (context, index) {
-              final channelShortsItem = channelShorts[index];
-              return SingleShortStructure(
-                shorts: shorts,
-                allLoadedShorts: channelShorts,
-                shortItem: channelShortsItem,
-                initialIndex: index,
-                imageHeight: SizeConfig.size200,
-                // imageWidth: SizeConfig.size130,
-                borderRadius: 10.0,
-              );
-            },
-          ) :  SizedBox(
-            height: SizeConfig.size190,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              physics: const AlwaysScrollableScrollPhysics(), // Allow horizontal scrolling
-              itemCount: channelShorts.length,
-              itemBuilder: (context, index) {
-                final channelShortsItem = channelShorts[index];
-                return SingleShortStructure(
-                  shorts: shorts,
-                  allLoadedShorts: channelShorts,
-                  shortItem: channelShortsItem,
-                  initialIndex: index,
-                  imageHeight: SizeConfig.size190,
-                  imageWidth: SizeConfig.size130,
-                  borderRadius: 10.0,
+          return (widget.showShortsInGrid)
+              ? GridView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(3),
+                  scrollDirection: Axis.vertical,
+                  itemCount: channelShorts.length,
+                  physics:
+                      const NeverScrollableScrollPhysics(), // Prevent scrolling conflicts
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 3, // horizontal gap between items
+                    mainAxisSpacing: 3, // vertical gap between items
+                  ),
+                  itemBuilder: (context, index) {
+                    final channelShortsItem = channelShorts[index];
+                    return SingleShortStructure(
+                      shorts: shorts,
+                      allLoadedShorts: channelShorts,
+                      shortItem: channelShortsItem,
+                      initialIndex: index,
+                      imageHeight: SizeConfig.size200,
+                      // imageWidth: SizeConfig.size130,
+                      borderRadius: 10.0,
+                      withBackground: true,
+                    );
+                  },
+                )
+              : SizedBox(
+                  height: SizeConfig.size190,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    physics:
+                        const AlwaysScrollableScrollPhysics(), // Allow horizontal scrolling
+                    itemCount: channelShorts.length,
+                    itemBuilder: (context, index) {
+                      final channelShortsItem = channelShorts[index];
+                      return SingleShortStructure(
+                        shorts: shorts,
+                        allLoadedShorts: channelShorts,
+                        shortItem: channelShortsItem,
+                        initialIndex: index,
+                        imageHeight: SizeConfig.size190,
+                        imageWidth: SizeConfig.size130,
+                        borderRadius: 10.0,
+                      );
+                    },
+                  ),
                 );
-              },
-            ),
-          );
-        }else{
+        } else {
           return LoadErrorWidget(
               errorMessage: 'Failed to load shorts',
-              onRetry: ()=>  fetchChannelShorts(isInitialLoad: true)
-          );
+              onRetry: () => fetchChannelShorts(isInitialLoad: true));
         }
-      }else{
+      } else {
         return Center(child: CircularProgressIndicator());
       }
-
     });
   }
 }

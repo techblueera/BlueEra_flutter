@@ -1,9 +1,12 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/response/get_countRating_response_modal.dart';
+import 'package:BlueEra/core/api/model/response/get_ratting_summary_response_modal.dart';
 import 'package:BlueEra/core/api/model/user_profile_res.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -17,40 +20,48 @@ class VisitProfileController extends GetxController {
   Rx<ApiResponse> addTestimonialResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getTestimonialResponse = ApiResponse.initial('Initial').obs;
   var userData = Rxn<UserProfileRes>();
+  Rx<GetCountRattingResponse?> getCountRattingResponse=Rxn<GetCountRattingResponse>();
+  Rx<GetRattingSummaryResponse?> getRattingSummaryResponse=Rxn<GetRattingSummaryResponse>();
 
   @override
   void onInit() {
+
     super.onInit();
   }
-  final personalController= Get.put(PersonalCreateProfileController());
-  final personalProfileDetails= Get.put(ViewPersonalDetailsController());
+
+  final personalController = Get.put(PersonalCreateProfileController());
+  final personalProfileDetails = Get.put(ViewPersonalDetailsController());
 
   Future<void> fetchUserById({required String userId}) async {
     try {
-
       ResponseModel response = await UserRepo().getUserById(userId: userId);
       if (response.isSuccess && response.response?.data != null) {
-       // print("useralldata:${response.response?.data}");
+        // print("useralldata:${response.response?.data}");
         userData.value = UserProfileRes.fromJson(response.response?.data);
-       //   print("useralldata:${ userData.value}");
+        //   print("useralldata:${ userData.value}");
         isFollow.value = userData.value?.isFollowing ?? false;
         followerCount.value = userData.value?.followersCount ?? 0;
-          print("useralldata:${ userData.value}");
+        print("useralldata:${userData.value}");
+
         ///SET SKILL...
         personalController.skillsList.clear();
-        personalController
-            .skillsList
+        personalController.skillsList
             .addAll(userData.value?.user?.skills ?? []);
+
         ///SET OVERVIEW
-        personalProfileDetails.overView.value=userData.value?.user?.objective??"";
+        personalProfileDetails.overView.value =
+            userData.value?.user?.objective ?? "";
+
         ///SET PROJECT...
         personalProfileDetails.projectsList?.clear();
-        personalProfileDetails. projectsList?.addAll(userData.value?.user?.projects??[]);
+        personalProfileDetails.projectsList
+            ?.addAll(userData.value?.user?.projects ?? []);
 
-  ///SET PROJECT...
+        ///SET PROJECT...
         personalProfileDetails.experiencesList?.clear();
-        personalProfileDetails. experiencesList?.addAll(userData.value?.user?.experiences??[]);
-  print("useralldata:${personalProfileDetails}");
+        personalProfileDetails.experiencesList
+            ?.addAll(userData.value?.user?.experiences ?? []);
+        print("useralldata:${personalProfileDetails}");
         userProfileResponse.value = ApiResponse.complete(response);
       } else {
         userProfileResponse.value =
@@ -63,6 +74,39 @@ class VisitProfileController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
+  // getCountRating Api
+  Future<void> getCountRatingByUser({required String userId}) async {
+    try {
+      ResponseModel response =
+          await UserRepo().getCountRatingUserById(userId: userId);
+      if (response.isSuccess) {
+        getCountRattingResponse.value =
+            GetCountRattingResponse.fromJson(response.data);
+        update();
+      }
+    } catch (e) {}
+  }
+
+
+
+
+  //  ratting Summary Api
+
+    Future<void> getRatingSummary({required String userId}) async {
+    try {
+      ResponseModel response =
+          await UserRepo().getRattingSummaryById(userId: userId);
+      if (response.isSuccess) {
+        getRattingSummaryResponse.value =
+            GetRattingSummaryResponse.fromJson(response.data);
+        update();
+      }
+    } catch (e) {
+
+    }
+  }
+
 
   String getInitials(String? name) {
     if (name == null || name.isEmpty) return 'U';
@@ -124,6 +168,7 @@ class VisitProfileController extends GetxController {
       if (responseModel.isSuccess) {
         isFollow.value = true;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
+        followerCount++;
       } else {
         isFollow.value = false;
 
@@ -154,6 +199,7 @@ class VisitProfileController extends GetxController {
       if (responseModel.isSuccess) {
         isFollow.value = false;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
+        followerCount--;
       } else {
         isFollow.value = true;
 
@@ -199,11 +245,11 @@ class VisitProfileController extends GetxController {
   }
 
   ///GET TESTIMONIAL....
-  RxList<Testimonials>? testimonialsList = <Testimonials>[].obs;
+  Rx<List<Testimonials>>? testimonialsList = Rx([]);
 
   Future<void> getTestimonialController({required String? userID}) async {
     try {
-      testimonialsList?.clear();
+      testimonialsList?.value.clear();
       getTestimonialResponse.value = ApiResponse.initial('Initial');
 
       ///FOR NOW WE SET

@@ -2,13 +2,8 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -48,7 +43,6 @@ class PersonalChatScreen extends StatefulWidget {
   final String? type;
   final bool isInitialMessage;
   final String? contactNo;
-
   @override
   State<PersonalChatScreen> createState() => _PersonalChatScreenState();
 }
@@ -102,23 +96,20 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   }
 
   void _navigateToProfile({required String authorId}) {
-    if (widget.type?.toUpperCase() == AppConstants.business) {
-
-      if (businessId != widget.businessId) {
-        Get.to(() => VisitBusinessProfile(businessId: authorId ?? ''));
-      } else {
-        navigatePushTo(context, BusinessOwnProfileScreen());
-      }
-    } else if ((widget.type?.toUpperCase() == AppConstants.individual)||(widget.type =="personal")) {
-
-      if (userId != authorId) {
-        Get.to(() => VisitProfileScreen(
-              authorId: authorId,
-            ));
-      } else {
-        navigatePushTo(context, PersonalProfileSetupScreen());
-      }
+    if (widget.type?.toUpperCase() == "BUSINESS") {
+      print("HERE IS DIFFERECE FOR PERSONAL AND INDIVIDUAL");
+      Get.to(() => VisitBusinessProfile(businessId: widget.businessId ?? ''));
+    } else {
+      print("kjnlhhhn");
+      Get.to(() => PersonalChatProfile(
+            userId: authorId,
+            contactNumber: widget.contactNo,isTestimonialRating: true,
+          ));
     }
+
+    // } else if (_post?.user?.accountType?.toUpperCase() == AppConstants.business) {
+    //
+    // }
   }
 
   @override
@@ -303,8 +294,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                       PopupMenuButton<String>(
                         icon: Icon(Icons.more_vert,
                             color: AppColors.chat_input_icon_color),
-                        offset: const Offset(20, 60),
-                        // 👈 shift menu 40 pixels downward
+                        offset: const Offset(
+                            20, 60), // 👈 shift menu 40 pixels downward
                         onSelected: (value) {
                           if (value == 'edit') {
                             print("Edit selected");
@@ -339,7 +330,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                     return InkWell(
                       onTap: () {
                         //  Get.to(()=>PersonalChatProfile());
-
                         _navigateToProfile(authorId: widget.userId ?? '');
                       },
                       child: Row(
@@ -455,8 +445,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 15, vertical: 10),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        // light color with 0.5 opacity
+                                        color: Colors.grey.withOpacity(
+                                            0.5), // light color with 0.5 opacity
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: RichText(
@@ -696,8 +686,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   void showMessageEditDialog() {
     Get.dialog(
       AlertDialog(
-        insetPadding: EdgeInsets.symmetric(vertical: 12),
-        // Reduced outer spacing
+        insetPadding:
+            EdgeInsets.symmetric(vertical: 12), // Reduced outer spacing
         contentPadding: const EdgeInsets.only(bottom: 10),
         backgroundColor: AppColors.appBackgroundColor,
         shape: RoundedRectangleBorder(

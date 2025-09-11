@@ -325,7 +325,7 @@ class _StoreScreenState extends State<StoreScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomText(
-                      "Search in${LocationService.userCurrentAddress.last}",
+                      "Search in${LocationService.userCurrentAddress.isEmpty?"":LocationService.userCurrentAddress.last}",
                       fontSize: SizeConfig.extraLarge,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
@@ -335,7 +335,8 @@ class _StoreScreenState extends State<StoreScreen> {
 
                     GestureDetector(
                       onTap: () {
-                        Get.to(() => const StoreSearchSuggestionScreen());
+                        Get.to(() =>   BusinessChatProfile(userId: '',));
+                        // Get.to(() =>   StoreSearchSuggestionScreen());
                       },
                       child: AbsorbPointer(
                         child: Container(
@@ -544,6 +545,7 @@ class _StoreScreenState extends State<StoreScreen> {
                       navigatePushTo(context, BusinessOwnProfileScreen());
                     } else {
                       Get.to(() =>
+                        
                           VisitBusinessProfile(
                               businessId: storeData.id ?? ""));
                     }
