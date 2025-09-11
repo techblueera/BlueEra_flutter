@@ -100,7 +100,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   void initState() {
     super.initState();
     controller = Get.put(VisitProfileController());
-
+    log('author id-- ${widget.userId}');
     // controller.fetchUserById(userId: "689deb7aac8beb10537e3107");
     controller.fetchUserById(userId: widget.userId);
     controller.getCountRatingByUser(userId: widget.userId);
@@ -122,8 +122,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
       true,
     );
 
-    videosController.getVideosByType(videoType, widget.channelId, widget.userId, false,
-        );
+    videosController.getVideosByType(videoType, '', widget.userId, true);
 
     _updateTextControllers();
   }
@@ -224,7 +223,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
         return VideoChannelSection(
           isOwnVideos: true,
           channelId: '',
-          authorId: userId,
+          authorId: widget.userId,
           postVia: PostVia.profile,
           boxShadow: [
               BoxShadow(
