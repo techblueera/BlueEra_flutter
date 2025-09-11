@@ -25,10 +25,13 @@ import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../l10n/app_localizations.dart';
+import 'package:image/image.dart' as img;
 
 class AppConstants {
   static const String appName = 'BlueEra';
@@ -137,18 +140,10 @@ class AppConstants {
   static const Rejected = "Rejected";
   static const SCHEDULES = "SCHEDULES";
   static const rescheduled = "rescheduled";
-
-  // static const String Applied = "Applied";
-  // static const String Screening = "Screening";
-  // static const String Shortlisted = "Shortlisted";
-  // static const String InterviewScheduled = "Interview Scheduled";
-  //
-  // static const String Offered = "Offered";
-  // static const String Hired = "Hired";
-  // static const String Rejected = "Rejected";
-
   static const String Interviewing = "Interviewing";
   static const String Withdrawn = "Withdrawn";
+  static const String Landscape = "Landscape";
+  static const String Square = "Square";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =
@@ -1347,3 +1342,69 @@ const String FARMER = "FARMER";
 const String SENIOR_CITIZEN_RETIRED = "SENIOR_CITIZEN_RETIRED";
 const String STUDENT = "STUDENT";
 const String OTHERS = "OTHERS"; // keep Others last
+//
+// Future<File> resizeAndCrop(File file, int targetWidth, int targetHeight) async {
+//   // Read image bytes
+//   Uint8List bytes = await file.readAsBytes();
+//   img.Image? original = img.decodeImage(bytes);
+//
+//   if (original == null) return file;
+//
+//   // Resize & crop to exact aspect ratio
+//   img.Image resized = img.copyResizeCropSquare(original, size: targetWidth);
+//
+//   // Save to temp file
+//   final tempDir = await getTemporaryDirectory();
+//   String outPath = "${tempDir.path}/resized_image.jpg";
+//   File outFile = File(outPath)
+//     ..writeAsBytesSync(img.encodeJpg(resized, quality: 90));
+//   return outFile;
+// }
+
+Future<File> processImage(File file, String mode) async {
+  Uint8List bytes = await file.readAsBytes();
+  img.Image? original = img.decodeImage(bytes);
+  if (original == null) return file;
+
+  img.Image result;
+logs("modemodemodemode=== $mode");
+  if (mode ==  AppConstants.Landscape) {
+
+    // --- Target ratio 3:4 ---
+    double targetRatio = 16 / 9;
+    // double targetRatio = 3 / 4;
+    double previewWidth = Get.width * targetRatio;
+
+    // Resize first so the shortest side fits
+    img.Image resized = img.copyResize(
+      original,
+      width: previewWidth.toInt(), // pick your desired width
+    );
+
+    // Now crop center to match 3:4
+    int cropHeight = (resized.width / targetRatio).toInt();
+    int offsetY = ((resized.height - cropHeight) / 2).clamp(0, resized.height).toInt();
+
+    result = img.copyCrop(
+      resized,
+      x: 0,
+      y: offsetY,
+      width: resized.width,
+      height: cropHeight,
+    );
+
+  } else {
+    double previewWidth = Get.width * (1/1);
+  // Square 1:1
+  //   int size = 600;
+    result = img.copyResizeCropSquare(original, size: previewWidth.toInt());
+  }
+
+  // Save processed file
+  final tempDir = await getTemporaryDirectory();
+  String outPath = "${tempDir.path}/image_${mode}${DateTime.now().microsecondsSinceEpoch}.jpg";
+  File outFile = File(outPath)
+    ..writeAsBytesSync(img.encodeJpg(result, quality: 90));
+
+  return outFile;
+}

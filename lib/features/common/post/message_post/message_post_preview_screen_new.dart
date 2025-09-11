@@ -4,13 +4,14 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/features/common/post/message_post/insta_slider_widget.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
@@ -18,11 +19,13 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/network_assets.dart';
+import 'package:BlueEra/widgets/highlight_text_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MessagePostPreviewScreenNew extends StatefulWidget {
   final PostVia? postVia;
@@ -75,49 +78,85 @@ class _MessagePostPreviewScreenNewState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ChannelProfileHeader(
-                            imageUrl: userProfileGlobal,
-                            title: isIndividualUser()
-                                ? userNameGlobal
-                                : isBusinessUser()
-                                    ? businessOwnerNameGlobal
-                                    : "",
-                            userName: isIndividualUser()
-                                ? userNameAtGlobal
-                                : businessOwnerNameGlobal,
-                            subtitle: isIndividualUser()
-                                ? userProfessionGlobal
-                                : businessNameGlobal,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ChannelProfileHeader(
+                                  imageUrl: userProfileGlobal,
+                                  title: isIndividualUser()
+                                      ? userNameGlobal
+                                      : isBusinessUser()
+                                          ? businessOwnerNameGlobal
+                                          : "",
+                                  userName: isIndividualUser()
+                                      ? userNameAtGlobal
+                                      : businessOwnerNameGlobal,
+                                  subtitle: isIndividualUser()
+                                      ? userProfessionGlobal
+                                      : businessNameGlobal,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Get.back();
+                                },
+                                child: LocalAssets(
+                                    imagePath: AppIconAssets.round_black_edit),
+                              ),
+                            ],
                           ),
-                          /*   if (widget.imagePath?.isNotEmpty ?? false)
-                            msgPostController.isMsgPostEdit
-                                ? NetWorkOcToAssets(
-                                    imgUrl: msgPostController
-                                        .uploadMsgPostUrl.value)
-                                : Image.file(File(widget.imagePath ?? "")),
-*/
+                          if (msgPostController
+                              .postTitleController.value.text.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: SizeConfig.size50,
+                                  top: SizeConfig.size5,
+                                  bottom: SizeConfig.size5),
+                              child: CustomText(
+                                msgPostController
+                                    .postTitleController.value.text,
+                                color: AppColors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: SizeConfig.large,
+                              ),
+                            ),
                           Padding(
                             padding: EdgeInsets.only(
                                 left: SizeConfig.size50,
-                                top: SizeConfig.size15,
+                                top: msgPostController
+                                        .postTitleController.value.text.isEmpty
+                                    ? SizeConfig.size10
+                                    : 0,
                                 bottom: SizeConfig.size15),
-                            child: CustomText(msgPostController
-                                .descriptionMessage.value.text),
+                            child: HighlightText(
+                                text: msgPostController
+                                    .descriptionMessage.value.text),
                           ),
                           if (msgPostController
                               .referenceLinkController.value.text.isNotEmpty)
                             Padding(
                               padding: EdgeInsets.only(
-                                  top: SizeConfig.size10,
+                                  // top: SizeConfig.size5,
+                                  left: SizeConfig.size50,
                                   bottom: SizeConfig.size15),
-                              child: CustomText(
-                                msgPostController
-                                    .referenceLinkController.value.text,
-                                color: AppColors.primaryColor,
+                              child: InkWell(
+                                onTap: () async {
+                                  final Uri url = Uri.parse(msgPostController
+                                      .referenceLinkController.value.text);
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url,
+                                        mode: LaunchMode.externalApplication);
+                                  }
+                                },
+                                child: CustomText(
+                                  msgPostController
+                                      .referenceLinkController.value.text,
+                                  color: AppColors.primaryColor,
+                                ),
                               ),
                             ),
 
-                          if (msgPostController.images.isNotEmpty)
+                          if (msgPostController.imagesList.isNotEmpty)
                             InstaSlider(),
 
                           // Selected users chips
@@ -125,14 +164,33 @@ class _MessagePostPreviewScreenNewState
                               ? Padding(
                                   padding:
                                       EdgeInsets.only(top: SizeConfig.size16),
-                                  child: Wrap(
-                                    children: tagUserController.selectedUsers
-                                        .map((user) => UserChip(
-                                              user: user,
-                                              onRemove: () => tagUserController
-                                                  .removeSelectedUser(user),
-                                            ))
-                                        .toList(),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Wrap(
+                                          children:
+                                              tagUserController.selectedUsers
+                                                  .map((user) => UserChip(
+                                                        user: user,
+                                                        onRemove: () =>
+                                                            tagUserController
+                                                                .removeSelectedUser(
+                                                                    user),
+                                                      ))
+                                                  .toList(),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () async {
+                                          // Get.back();
+                                          await Get.to(() => TagUserScreen());
+
+                                        },
+                                        child: LocalAssets(
+                                            imagePath:
+                                                AppIconAssets.round_black_edit),
+                                      ),
+                                    ],
                                   ),
                                 )
                               : const SizedBox.shrink()),
@@ -246,38 +304,45 @@ class _MessagePostPreviewScreenNewState
                                           bodyReq: reqData,
                                         );
                                       } else {
-
                                         dio.FormData formData = dio.FormData();
 
                                         // Add media files
                                         for (int i = 0;
-                                        i < (msgPostController.images.length);
-                                        i++) {
-                                          String fileName = msgPostController
-                                              .images[i].path
-                                              .split('/')
-                                              .last ??
-                                              "";
+                                            i <
+                                                (msgPostController
+                                                    .imagesList.length);
+                                            i++) {
+                                          final data =
+                                              msgPostController.imagesList[i];
+
+                                          File processed = await processImage(
+                                            File(data.imageFile?.path ?? ""),
+                                            data.imgCropMode ?? "",
+                                          );
+
+                                          String fileName =
+                                              processed.path.split('/').last;
                                           formData.files.add(
                                             MapEntry(
                                               ApiKeys.media,
                                               await dio.MultipartFile.fromFile(
-                                                msgPostController
-                                                    .images[i].path ??
-                                                    "",
+                                                processed.path,
                                                 filename: fileName,
                                               ),
                                             ),
                                           );
                                         }
-                                        formData.fields.add(MapEntry(ApiKeys.type,
+                                        formData.fields.add(MapEntry(
+                                            ApiKeys.type,
                                             AppConstants.MESSAGE_POST));
 
                                         formData.fields.add(MapEntry(
-                                            ApiKeys.postVia,
-                                           "profile"));
-                                        if (msgPostController.postTitleController
-                                            .value.text.isNotEmpty)
+                                            ApiKeys.postVia, "profile"));
+                                        if (msgPostController
+                                            .postTitleController
+                                            .value
+                                            .text
+                                            .isNotEmpty)
                                           formData.fields.add(MapEntry(
                                               ApiKeys.title,
                                               msgPostController
@@ -288,11 +353,14 @@ class _MessagePostPreviewScreenNewState
                                             .value.text.isNotEmpty)
                                           formData.fields.add(MapEntry(
                                               ApiKeys.sub_title,
-                                              msgPostController.descriptionMessage
-                                                  .value.text));
+                                              msgPostController
+                                                  .descriptionMessage
+                                                  .value
+                                                  .text));
                                         if (tagUserIds.isNotEmpty)
                                           formData.fields.add(MapEntry(
-                                              ApiKeys.tagged_users, tagUserIds));
+                                              ApiKeys.tagged_users,
+                                              tagUserIds));
                                         // Assuming 'photo' is the type for photo posts
                                         if (msgPostController
                                             .natureOfPostController
@@ -314,14 +382,14 @@ class _MessagePostPreviewScreenNewState
                                           formData.fields.add(MapEntry(
                                             ApiKeys.reference_link,
                                             msgPostController
-                                                .referenceLinkController
-                                                .value
-                                                .text
-                                                .isNotEmpty
+                                                    .referenceLinkController
+                                                    .value
+                                                    .text
+                                                    .isNotEmpty
                                                 ? msgPostController
-                                                .referenceLinkController
-                                                .value
-                                                .text
+                                                    .referenceLinkController
+                                                    .value
+                                                    .text
                                                 : "",
                                           ));
                                         // final position = await getCurrentLocation();
@@ -344,11 +412,7 @@ class _MessagePostPreviewScreenNewState
                                         );
                                       }
 
-
                                       msgPostController.isLoading.value = false;
-
-
-
                                     } on Exception catch (e) {
                                       logs("ERRO ${e}");
                                       msgPostController.isLoading.value = false;
@@ -371,89 +435,6 @@ class _MessagePostPreviewScreenNewState
             ],
           );
         }),
-      ),
-    );
-  }
-}
-
-class InstaSlider extends StatefulWidget {
-  const InstaSlider({
-    super.key,
-  });
-
-  @override
-  State<InstaSlider> createState() => _InstaSliderState();
-}
-
-class _InstaSliderState extends State<InstaSlider> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-  final msgPostController = Get.find<MessagePostController>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: Get.width * 0.5,
-      margin: EdgeInsets.only(left: SizeConfig.size50),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          children: [
-            // --- Image Slider ---
-            PageView.builder(
-              controller: _pageController,
-              itemCount: msgPostController.images.length,
-              onPageChanged: (index) {
-                setState(() => _currentPage = index);
-              },
-              itemBuilder: (context, index) {
-                return Image.file(
-                  File(msgPostController.images[index].path),
-                  width: double.infinity,
-                  height: 350, // adjustable
-                  fit: BoxFit.cover,
-                );
-              },
-            ),
-
-            // --- Page Indicator ---
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  "${_currentPage + 1}/${msgPostController.images.length}",
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ),
-            ),
-
-            // --- Edit Button ---
-            Positioned(
-              bottom: 12,
-              right: 12,
-              child: GestureDetector(
-                onTap: () {
-                  // Handle edit action
-                  debugPrint("Edit image ${_currentPage + 1}");
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.edit, color: Colors.white, size: 20),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

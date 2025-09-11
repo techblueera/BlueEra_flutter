@@ -343,4 +343,5 @@ class AppIconAssets {
  
   static String visiting_bg = "${iconPath}bgcontainerTemp.svg";
   static String bE_logo = "${iconPath}bE_logo.svg";
+  static String round_black_edit = "${iconPath}round_black_edit.svg";
 }
