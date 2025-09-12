@@ -82,8 +82,11 @@ class TagUserController extends GetxController {
         if (photoPostController.isPhotoPostEdit) {
           if (photoPostController.postData?.value.taggedUsers?.isNotEmpty ??
               false) {
-            final taggedIds =
-                photoPostController.postData?.value.taggedUsers ?? [];
+            // final taggedIds =
+            //     photoPostController.postData?.value.taggedUsers ?? [];
+            final List<String> taggedIds
+                = photoPostController.postData?.value.taggedUsers?.map((user) => user.id as String).toList()??[];
+
 
             selectedUsers.value = allUsers.where((user) {
               final isTagged = taggedIds.contains(user.id);

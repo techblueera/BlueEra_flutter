@@ -373,10 +373,11 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             ],
           ),
         )
-            : CustomText('Song',
+            : (controller.songData.value?.name != null)
+            ? CustomText('Song',
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w500
-        ),
+        ) : const SizedBox.shrink(),
 
         // Selected users chips
         Obx(() =>
@@ -463,6 +464,34 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                     borderRadius: BorderRadius.circular(3.0),
                   ),
                 ),
+              ],
+            ),
+
+            // 2. 7 days
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CustomText("2.  ",
+                        color: AppColors.black,
+                        fontWeight: FontWeight.w400,
+                        fontSize: SizeConfig.large),
+                    CustomText("7 days",
+                        color: AppColors.black,
+                        fontWeight: FontWeight.w400,
+                        fontSize: SizeConfig.large),
+                  ],
+                ),
+                Checkbox(
+                    value: controller.selectedSymbol.value == SymbolDuration.days7,
+                    onChanged: (_) =>  controller.updateSymbolOfPost(SymbolDuration.days7),
+                    activeColor: AppColors.primaryColor,
+                    checkColor: AppColors.white,
+                    materialTapTargetSize: MaterialTapTargetSize.padded,
+                    visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3.0))),
               ],
             ),
 

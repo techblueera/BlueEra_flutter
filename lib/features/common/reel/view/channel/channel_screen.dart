@@ -1,6 +1,4 @@
 import 'dart:developer';
-
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -9,24 +7,18 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
-
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
-import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
 import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/features/common/store/channel_product_screen/channel_product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -92,6 +84,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
   @override
   void initState() {
     super.initState();
+    print('channel ');
     isOwnChannel = widget.channelId == channelId;
     _selectedTab = ChannelTab.shorts;
     if (!isOwnChannel) {
@@ -704,312 +697,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
         ),
       ),
     );
-    return Obx(() => Padding(
-          padding: EdgeInsets.only(
-              left: SizeConfig.size15,
-              right: SizeConfig.size15,
-              top: SizeConfig.size12,
-              bottom: SizeConfig.size6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                    Padding(
-                      padding: EdgeInsets.only(
-                          right: SizeConfig.size18, top: SizeConfig.size4),
-                      child: CommonProfileImage(
-                        imagePath: channelController.channelLogo.value,
-                        onImageUpdate: (image) async {
-                          final manageChannelController =
-                              Get.put(ManageChannelController());
-
-                          channelController.channelLogo.value = image;
-
-                          dioObj.MultipartFile? imageByPart;
-
-                          String fileName = image.split('/').last;
-                          imageByPart = await dioObj.MultipartFile.fromFile(
-                              image,
-                              filename: fileName);
-
-                          Map<String, dynamic> requestData = {
-                            ApiKeys.name:
-                                channelController.channelData.value?.name,
-                          };
-                          requestData[ApiKeys.logo] = imageByPart;
-                          await manageChannelController.updateChannel(
-                            reqData: requestData,
-                          );
-
-                          // print("Update Params: $reqProfile");
-                        },
-                        dialogTitle: 'Upload Channel Logo',
-                        isOwnProfile: isOwnChannel
-                      ),
-                    ),
-                  /*      Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size6),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        CachedAvatarWidget(
-                            imageUrl:
-                                channelController.channelData.value?.logoUrl ??
-                                    "",
-                            size: SizeConfig.size100,
-                            borderRadius: SizeConfig.size100 / 2,
-                            borderColor: AppColors.primaryColor),
-                        if (isOwnChannel)
-                          Positioned(
-                            right: -(SizeConfig.size1),
-                            bottom: -(SizeConfig.size1),
-                            child: GestureDetector(
-                              onTap: () async {
-                                final result = await Navigator.pushNamed(
-                                  context,
-                                  RouteHelper.getManageChannelScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.channelData: channelController.channelData.value,
-                                  },
-                                );
-                                if (result == true) {
-                                  channelController.getChannelDetails(
-                                      channelOrUserId: isOwnChannel
-                                          ? widget.authorId
-                                          : widget.channelId);
-                                }
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(6.0),
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.primaryColor),
-                                child: Icon(Icons.edit_outlined,
-                                    color: AppColors.white,
-                                    size: SizeConfig.size20),
-                              ),
-                            ),
-                          )
-                      ],
-                    ),
-                  ),*/
-                  // SizedBox(width: SizeConfig.size20),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: SizeConfig.size6),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              CustomText(
-                                channelController.channelData.value?.name ?? "",
-                                fontSize: SizeConfig.extraLarge,
-                                fontWeight: FontWeight.w700,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(width: SizeConfig.size5),
-                              (channelController.channelData.value?.verification
-                                          .isVerified ??
-                                      false)
-                                  ? Padding(
-                                      padding: EdgeInsets.only(
-                                          top: SizeConfig.size4),
-                                      child: LocalAssets(
-                                          imagePath:
-                                              AppIconAssets.verifiedIcon),
-                                    )
-                                  : SizedBox(),
-                              Spacer(),
-                              (!isOwnChannel)
-                                  ? _buildVisitingChannelPopUpMenu(
-                                      onReport: () {
-                                      showReportDialog(
-                                          context: context,
-                                          onConfirm: (value) {
-                                            channelController.reportChannel(
-                                                channelId: channelId,
-                                                reason: value);
-                                          });
-                                    },
-                                      // onBlock: (){
-                                      //   showBlockUnBlockDialog();
-                                      // },
-                                      onMute: () {
-                                      showMuteUnMuteDialog();
-                                    }, onOwnership: () {
-                                      navigateToProfileSection();
-                                    })
-                                  : _buildOwnChannelPopUpMenu(
-                                      onChannelEdit: () async {
-                                        final result =
-                                            await Navigator.pushNamed(
-                                          context,
-                                          RouteHelper
-                                              .getManageChannelScreenRoute(),
-                                          arguments: {
-                                            ApiKeys.channelData: channelController
-                                                .channelData.value,
-                                          },
-                                        );
-                                        if (result == true) {
-                                          channelController.getChannelDetails(
-                                              channelOrUserId: isOwnChannel
-                                                  ? widget.authorId
-                                                  : widget.channelId);
-                                        }
-                                      },
-                                      onchannelSetting: () {
-                                        Get.to(() => ChannelSettingScreen());
-                                      },
-                                      onAddVideo: () {
-                                        showVideosPickerDialog(context,
-                                            type: PostVia.channel);
-                                      },
-                                      onAddProduct: () {
-                                        Get.toNamed(
-                                            RouteHelper
-                                                .getAddUpdateProductScreenRoute(),
-                                            arguments: {
-                                              ApiKeys.channelId:
-                                                  widget.channelId,
-                                            });
-                                      },
-                                    ),
-                            ],
-                          ),
-                          SizedBox(width: SizeConfig.size2),
-                          CustomText(
-                            channelController.channelData.value?.username ?? "",
-                            color: AppColors.grey4C,
-                            fontSize: SizeConfig.small,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(height: SizeConfig.size8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              buildStatBlock(
-                                  channelController.channelStats.value?.posts
-                                          .toString() ??
-                                      "0",
-                                  "Posts"),
-                              GestureDetector(
-                                  onTap: () {
-                                    // Navigator.pushNamed(
-                                    //     context,
-                                    //     RouteHelper
-                                    //         .getFollowerFollowingScreenRoute());
-                                  },
-                                  child: buildStatBlock(
-                                      channelController
-                                              .channelStats.value?.followers
-                                              .toString() ??
-                                          "0",
-                                      "Followers")),
-                              GestureDetector(
-                                onTap: () {
-                                  // Navigator.pushNamed(
-                                  //     context,
-                                  //     RouteHelper
-                                  //         .getFollowerFollowingScreenRoute());
-                                },
-                                child: buildStatBlock(
-                                    channelController
-                                            .channelStats.value?.following
-                                            .toString() ??
-                                        "0",
-                                    "Following"),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: SizeConfig.size10),
-              CustomText(
-                channelController.channelData.value?.bio ?? "",
-                fontSize: SizeConfig.small,
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Wrap(
-                spacing: 12,
-                children: channelController.channelData.value?.socialLinks
-                        .map((link) {
-                      final platform = link.platform.toLowerCase();
-                      final url = link.url;
-
-                      if (url.isEmpty) return const SizedBox();
-
-                      return InkWell(
-                        onTap: () {
-                          channelController.launchSmartUrl(url);
-                        },
-                        child: LocalAssets(
-                          imagePath: _getIconForPlatform(platform),
-                          height: SizeConfig.size22,
-                        ),
-                      );
-                    }).toList() ??
-                    [],
-              ),
-              SizedBox(height: SizeConfig.size8),
-              if (!isOwnChannel) ...[
-                SizedBox(height: SizeConfig.size8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Obx(() => Expanded(
-                          child: commonButtonWithIcon(
-                            height: SizeConfig.size36,
-                            onTap: () {
-                              if (isGuestUser()) {
-                                createProfileScreen();
-                                return;
-                              }
-                              channelController.followUnfollowChannel(
-                                  channelId: widget.channelId,
-                                  isFollowing:
-                                      channelController.isChannelFollow.value);
-                            },
-                            title: channelController.isChannelFollow.isTrue
-                                ? "Following"
-                                : "Follow",
-                            icon: AppIconAssets.personFollowIcon,
-                            iconColor: AppColors.white,
-                            bgColor: AppColors.primaryColor,
-                            isPrefix: false,
-                            radius: SizeConfig.size8,
-                          ),
-                        )),
-                   /* SizedBox(width: SizeConfig.size8),
-                    Expanded(
-                      child: commonButtonWithIcon(
-                        height: SizeConfig.size36,
-                        onTap: () {},
-                        title: "Connect",
-                        textColor: AppColors.primaryColor,
-                        icon: AppIconAssets.connectIcon,
-                        iconColor: AppColors.primaryColor,
-                        borderColor: AppColors.primaryColor,
-                        isPrefix: false,
-                        radius: SizeConfig.size8,
-                      ),
-                    )*/
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ));
   }
 
   Widget _buildTabButtons() {

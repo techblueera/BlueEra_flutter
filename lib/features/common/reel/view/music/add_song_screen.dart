@@ -92,9 +92,9 @@ class _AddSongScreenState extends State<AddSongScreen> {
           noOfSamples: 100,
         );
 
-        await _waveformController.startPlayer(); // optional auto-play
-
         if (!mounted) return;
+
+        await _waveformController.startPlayer(); // optional auto-play
 
         _isPlaying = true;
 
@@ -130,6 +130,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
 
   @override
   void dispose() {
+    log('dispopse');
     disposeAllController();
     super.dispose();
   }

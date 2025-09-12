@@ -58,7 +58,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         ChannelModel channelModel =
             ChannelModel.fromJson(response.response?.data);
         String channelId = channelModel.data.id;
-        SharedPreferenceUtils.setSecureValue(channelId, channelId);
+        SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channel_Id, channelId);
         return channelId;
       } else {
         return null;
