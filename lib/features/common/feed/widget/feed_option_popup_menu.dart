@@ -29,12 +29,12 @@ class FeedPopUpMenu extends StatelessWidget {
       onSelected: (value) async {
         if (value == 'Edit Post') {
           if (post.type == AppConstants.MESSAGE_POST) {
-            // Get.to(MessagePostPreviewScreenNew(
-            //   isEdit: true,
-            //   post: post,
-            // ));
-            Get.toNamed(RouteHelper.getCreateMessagePostScreenRoute(),
-                arguments: {ApiKeys.post: post, ApiKeys.isEdit: true});
+            Get.to(MessagePostPreviewScreenNew(
+              isEdit: true,
+              post: post,
+            ));
+            // Get.toNamed(RouteHelper.getCreateMessagePostScreenRoute(),
+            //     arguments: {ApiKeys.post: post, ApiKeys.isEdit: true});
           }
 
           if (post.type == AppConstants.POLL_POST) {

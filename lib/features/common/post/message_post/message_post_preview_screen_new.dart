@@ -72,8 +72,7 @@ class _MessagePostPreviewScreenNewState
         msgPostController.uploadImageList.add(action);
       });
 
-      msgPostController.uploadMsgPostUrl.value =
-          widget.post?.media?.first ?? "";
+
       msgPostController.postId = widget.post?.id ?? "";
       msgPostController.postText.value = widget.post?.message ?? "";
       msgPostController.postTextDataController.value.text =
