@@ -21,12 +21,12 @@ if (keystorePropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '68'
+    flutterVersionCode = '69'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '13.40.13'
+    flutterVersionName = '13.40.14'
 }
 
 android {
@@ -53,8 +53,8 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 68
-        versionName "13.40.13"
+        versionCode 69
+        versionName "13.40.14"
     }
     signingConfigs {
         release {
