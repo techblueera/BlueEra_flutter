@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -8,7 +9,9 @@ import 'package:get/get.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 
 class BusinessOwnProfileScreen extends StatefulWidget {
-  const BusinessOwnProfileScreen({super.key});
+  final int? selectedIndex;
+  final SortBy? sortBy;
+  const BusinessOwnProfileScreen({super.key, this.selectedIndex, this.sortBy});
 
   @override
   State<BusinessOwnProfileScreen> createState() =>
@@ -40,7 +43,10 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
       //   Get.to(PaySubscription());
       // }),
       body: SingleChildScrollView(
-        child: BusinessProfileScreen(),
+        child: BusinessProfileScreen(
+          selectedIndex: widget.selectedIndex,
+          sortBy: widget.sortBy,
+        ),
       ),
     );
   }

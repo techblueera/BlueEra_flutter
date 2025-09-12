@@ -54,12 +54,11 @@ class PhotoPostReviewScreen extends StatelessWidget {
                       _buildDescriptionSection(),
                       SizedBox(height: SizeConfig.size16),
                       _buildTagPeopleSection(),
-
+                      SizedBox(height: SizeConfig.size5),
                       _buildAddSongSection(),
                       SizedBox(height: SizeConfig.size5),
                       _buildSymbolDurationSection(),
                       SizedBox(height: SizeConfig.size15),
-
                       _buildNatureOfPostSection(),
                       SizedBox(height: SizeConfig.size32),
                       _buildActionButtons(),
@@ -152,13 +151,19 @@ class PhotoPostReviewScreen extends StatelessWidget {
                   children: tagUserController.selectedUsers
                       .map((user) => UserChip(
                             user: user,
-                            onRemove: () =>
-                                tagUserController.removeSelectedUser(user),
+                            onRemove: () {
+                              // tagUserController.removeSelectedUser(user);
+                            },
                           ))
                       .toList(),
                 ),
               )
-            : const SizedBox.shrink()),
+            : Padding(
+          padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+          child: CustomText(
+              "N/A"
+          ),
+        )),
 
         SizedBox(height: SizeConfig.size15),
       ],
@@ -169,37 +174,43 @@ class PhotoPostReviewScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Add Tag People / Organization button
-        Row(
-          children: [
-            LocalAssets(
-              imagePath: AppIconAssets.addBlueIcon,
-              imgColor: AppColors.primaryColor,
-            ),
-            SizedBox(width: SizeConfig.size4),
-            CustomText(
-              'Add Song',
-              color: AppColors.primaryColor,
-              fontSize: SizeConfig.large,
-            ),
-          ],
-        ),
+        CustomText('Song',
+            fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
 
         // Selected users chips
-        Obx(() => tagUserController.selectedUsers.isNotEmpty
+        Obx(() => (controller.songData.value?.name != null)
             ? Padding(
-          padding: EdgeInsets.only(top: SizeConfig.size16),
-          child: Wrap(
-            children: tagUserController.selectedUsers
-                .map((user) => UserChip(
-              user: user,
-              onRemove: () =>
-                  tagUserController.removeSelectedUser(user),
+            padding: EdgeInsets.only(top: SizeConfig.size15),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [controller.songData.value?.name].map((item) {
+                return Chip(
+                  label: Text(item??''),
+                  backgroundColor: AppColors.lightBlue,
+                  labelStyle: TextStyle(
+                      fontSize: SizeConfig.size14,
+                      color: Colors.black87
+                  ),
+                  deleteIcon: const Icon(Icons.close,
+                      size: 20, color: AppColors.mainTextColor),
+                  shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.transparent),
+                      borderRadius: BorderRadius.circular(8.0)),
+                  onDeleted: (){},
+                  labelPadding: const EdgeInsets.only(left: 12),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                );
+              }).toList(),
             ))
-                .toList(),
+            : Padding(
+          padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+          child: CustomText(
+              "N/A"
           ),
-        )
-            : const SizedBox.shrink()),
+        )),
 
         SizedBox(height: SizeConfig.size15),
       ],
@@ -207,71 +218,40 @@ class PhotoPostReviewScreen extends StatelessWidget {
   }
 
   Widget _buildSymbolDurationSection() {
-    return Obx(() {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          CustomText(
-            "How long should we show this symbol?",
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w500,
-            color: AppColors.black,
-          ),
-          const SizedBox(height: 8),
+    final selected = controller.selectedSymbol.value;
 
-          // 1. 24 hours
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  CustomText("1.  ",color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large),
-                  CustomText("24 hours",
-                      color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large
-                  ),
-                ],
-              ),
-              Checkbox(
-                  value: controller.selected.value == SymbolDuration.hours24,
-                  onChanged: (_) => controller.select(SymbolDuration.hours24),
-                  activeColor: AppColors.primaryColor,
-                  checkColor: AppColors.white,
-                  materialTapTargetSize: MaterialTapTargetSize.padded,
-                  visualDensity: VisualDensity.compact,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0))
-              ),
-            ],
-          ),
+    String label = "";
+    if (selected == SymbolDuration.hours24) label = "24 hours";
+    if (selected == SymbolDuration.days7) label = "7 days";
 
-          const SizedBox(height: 4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
 
-          // 2. 7 days
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  CustomText("2.  ", color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large),
-                  CustomText("7 days",
-                      color: AppColors.black, fontWeight: FontWeight.w400,fontSize: SizeConfig.large
-                  ),
-                ],
-              ),
-              Checkbox(
-                  value: controller.selected.value == SymbolDuration.days7,
-                  onChanged: (_) => controller.select(SymbolDuration.days7),
-                  activeColor: AppColors.primaryColor,
-                  checkColor: AppColors.white,
-                  materialTapTargetSize: MaterialTapTargetSize.padded,
-                  visualDensity: VisualDensity.compact,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0))
-              ),
-            ],
-          ),
-        ],
-      );
-    });
+      children: [
+        const SizedBox(height: 4),
+        CustomText(
+          "How long should we show this symbol?",
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w500,
+          color: AppColors.black,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(label,
+                color: AppColors.black,
+                fontWeight: FontWeight.w400,
+                fontSize: SizeConfig.large),
+            Checkbox(
+              value: true,
+              onChanged: null,
+              activeColor: AppColors.primaryColor,
+              checkColor: AppColors.white,
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buildNatureOfPostSection() {

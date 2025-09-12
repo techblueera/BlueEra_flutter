@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/common/reel/models/song.dart';
+
 class PostResponse {
   final bool success;
   final String? message;
@@ -73,6 +75,8 @@ class Post {
   final bool? isLiked;
   final User? user;
   final bool? isPostSavedLocal;
+  final SongModel? song;
+  final int? visibilityDuration;
 
   Post({
     required this.id,
@@ -101,7 +105,9 @@ class Post {
     this.poll,
     this.isLiked,
     this.user,
-    this.isPostSavedLocal
+    this.isPostSavedLocal,
+    this.song,
+    this.visibilityDuration
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -142,6 +148,8 @@ class Post {
       isLiked: json['isLiked'],
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       isPostSavedLocal: json['isPostSavedLocal'],
+      song: json['song'] != null ? SongModel.fromJson(json['song']) : null,
+      visibilityDuration: json['visibility_duration'],
     );
   }
 
@@ -174,6 +182,8 @@ class Post {
       'isLiked': isLiked,
       'user': user?.toJson(),
       'isPostSavedLocal': isPostSavedLocal,
+      'song': song?.toJson(),
+      'visibility_duration': visibilityDuration,
     };
   }
 
@@ -205,6 +215,8 @@ class Post {
     bool? isLiked,
     User? user,
     bool? isPostSavedLocal,
+    SongModel? song,
+    int? visibilityDuration,
   }) {
     return Post(
       id: id ?? this.id,
@@ -234,6 +246,8 @@ class Post {
       isLiked: isLiked ?? this.isLiked,
       user: user ?? this.user,
       isPostSavedLocal: isPostSavedLocal ?? this.isPostSavedLocal,
+      song: song ?? this.song,
+      visibilityDuration: visibilityDuration ?? this.visibilityDuration,
     );
   }
 }

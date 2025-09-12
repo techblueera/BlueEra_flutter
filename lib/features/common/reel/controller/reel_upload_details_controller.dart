@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/features/common/reel/models/video_meta_data_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,8 @@ class ReelUploadDetailsController extends GetxController {
   Rx<ShortFeedItem> videoData = ShortFeedItem().obs;
 
   RxString VideoUploadProgress = ''.obs;
+
+  Video video = Video.video;
 
   void navigateAfterUploadVideo() {
     // Navigate to Channel Screen, clear stack so back goes to bottom nav
@@ -196,10 +199,17 @@ class ReelUploadDetailsController extends GetxController {
           );
         } else {
           if (isIndividualUser()) {
-            Get.to(() => PersonalProfileSetupScreen());
+            Get.to(() => PersonalProfileSetupScreen(
+                selectedIndex: (video == Video.short) ? 3 : 4,
+                sortBy: SortBy.UnderProgress,
+            ));
           }
           if (isBusinessUser()) {
-            Get.to(() => BusinessOwnProfileScreen());
+            print('business userr herere..');
+            Get.to(() => BusinessOwnProfileScreen(
+              selectedIndex: (video == Video.short) ? 2 : 3,
+              sortBy: SortBy.UnderProgress,
+            ));
           }
         }
 

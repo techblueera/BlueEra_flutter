@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -13,10 +14,10 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
+import 'package:BlueEra/features/common/reel/models/song.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -75,7 +76,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   final reelUploadDetailsController = Get.put<ReelUploadDetailsController>(
       ReelUploadDetailsController());
   Map<String, String>? tagUsers;
-  Map<String, dynamic>? songData;
+  SongModel? songData;
   Map<String, dynamic>? selectedLocation;
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   bool isBookingAvailabilitySet = false;
@@ -92,7 +93,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   @override
    initState()  {
     super.initState();
-    log('post via--> ${widget.postVia}');
+    reelUploadDetailsController.video = widget.videoType;
     reelUploadDetailsController.getVideoCategories();
     if (widget.videoId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -112,7 +113,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
     final videoPath = widget.videoPath;
 
-    if (videoPath != null && videoPath.isNotEmpty && File(videoPath).existsSync()) {
+    if (videoPath.isNotEmpty && File(videoPath).existsSync()) {
       try {
         final tempDir = await getTemporaryDirectory();
 
@@ -151,12 +152,12 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       _videoDescription.text = VideoFeedItemMetaData.video?.description ?? '';
     } else {
       _shortDescription.text = VideoFeedItemMetaData.video?.title ?? '';
-      songData = {
-        ApiKeys.id: VideoFeedItemMetaData.video?.song?.id,
-        ApiKeys.name: VideoFeedItemMetaData.video?.song?.name,
-        ApiKeys.artist: VideoFeedItemMetaData.video?.song?.artist,
-        ApiKeys.coverUrl: VideoFeedItemMetaData.video?.song?.coverUrl
-      };
+      songData = SongModel(
+        id: VideoFeedItemMetaData.video?.song?.id??'',
+        name: VideoFeedItemMetaData.video?.song?.name??'',
+        artist: VideoFeedItemMetaData.video?.song?.artist??'',
+        coverUrl: VideoFeedItemMetaData.video?.song?.coverUrl??''
+      );
       _shortLink.text = VideoFeedItemMetaData.video?.relatedVideoLink ?? '';
     }
 
@@ -236,15 +237,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         child: Column(
                           children: [
                             Builder(builder: (context) {
-                              final height = (widget.videoType ==
+                              final height = (reelUploadDetailsController.video ==
                                   Video.video)
                                   ? SizeConfig.size220
                                   : SizeConfig.size250;
-                              final width = (widget.videoType ==
+                              final width = (reelUploadDetailsController.video ==
                                   Video.video)
                                   ? SizeConfig.size320
                                   : SizeConfig.size180;
-                              final addBtnWidth = (widget.videoType ==
+                              final addBtnWidth = (reelUploadDetailsController.video ==
                                   Video.video)
                                   ? SizeConfig.size220
                                   : SizeConfig.size140;
@@ -331,7 +332,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.size20),
 
-                      if (widget.videoType == Video.video) ...[
+                      if (reelUploadDetailsController.video == Video.video) ...[
                         CommonTextField(
                           textEditController: _videoTitle,
                           maxLength: 50,
@@ -383,7 +384,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           autovalidateMode: _autoValidate,
                         ),
                       ],
-                      if (widget.videoType == Video.short) ...[
+                      if (reelUploadDetailsController.video == Video.short) ...[
                         CommonTextField(
                           textEditController: _shortDescription,
                           maxLength: 120,
@@ -466,7 +467,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                       ),
 
 
-                      if (widget.videoType == Video.short) ...[
+                      if (reelUploadDetailsController.video == Video.short) ...[
                         SizedBox(height: SizeConfig.size20),
                         _optionTile(
                           icon: "assets/svg/music_icon.svg",
@@ -479,21 +480,21 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                               arguments: {
                                 ApiKeys.videoPath: widget.videoPath,
                               },
-                            ) as Map<String, dynamic>?;
+                            ) as SongModel?;
 
-                            if (result != null && result.isNotEmpty) {
+                            if (result != null) {
                               setState(() {
                                 songData = result;
                               });
                               log("songData--> $songData");
                             }
                           },
-                          chips: songData?[ApiKeys.name] != null ? [
-                            songData?[ApiKeys.name]
+                          chips: songData?.name != null ? [
+                            songData?.name??''
                           ] : [],
                           onChipDelete: (_) {
                             setState(() {
-                              songData?.clear();
+                              songData = null;
                             });
                           },
                         ),
@@ -589,7 +590,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         inactiveTrackColor: AppColors.greyE6,
                       ),
                       if(channelId != '')...[
-                        // if (widget.videoType == VideoType.short) ...[
+                        // if (reelUploadDetailsController.video == VideoType.short) ...[
                         //   SizedBox(height: SizeConfig.size10),
                         //   Align(
                         //     alignment: Alignment.centerLeft,
@@ -1156,7 +1157,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   void selectImage(BuildContext context) async {
     final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
         context,
-        cropAspectRatio: (widget.videoType == Video.video)
+        cropAspectRatio: (reelUploadDetailsController.video == Video.video)
             ? CropAspectRatio(width: 16, height: 9)
             : CropAspectRatio(width: 9, height: 16));
     if (croppedPath != null) {
@@ -1369,7 +1370,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           ApiKeys.isBrandPromotion: _isBrandPromotion,
         };
 
-        if (widget.videoType == Video.video) {
+        if (reelUploadDetailsController.video == Video.video) {
           baseData.addAll({
             ApiKeys.type: 'long',
             ApiKeys.title: _videoTitle.text,
@@ -1380,7 +1381,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           baseData.addAll({
             ApiKeys.type: 'short',
             ApiKeys.title: _shortDescription.text,
-            if (songData != null) ApiKeys.song: songData,
+            if (songData != null) ApiKeys.song: jsonEncode(songData),
             if (_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink.text,
           });
         }
@@ -1420,7 +1421,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   //
   //
   //   Map<String, dynamic> requestData = {};
-  //   if (widget.videoType == VideoType.video) {
+  //   if (reelUploadDetailsController.video == VideoType.video) {
   //     requestData = {
   //       ApiKeys.type: 'long',
   //       ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
@@ -1466,7 +1467,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   //     videoPath: widget.videoPath,
   //     coverPath: _commonCoverImage!,
   //     requestData: requestData,
-  //     isLongVideo: widget.videoType == VideoType.video,
+  //     isLongVideo: reelUploadDetailsController.video == VideoType.video,
   //   );
   //
   //   // Navigate back to the previous screen
@@ -1479,7 +1480,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   Future<void> updateVideoDetails() async {
     Map<String, dynamic> requestData = {};
 
-    if (widget.videoType == Video.video) {
+    if (reelUploadDetailsController.video == Video.video) {
       requestData = {
         ApiKeys.type: 'long',
         ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
@@ -1497,7 +1498,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         if(selectedLocation != null &&
             (selectedLocation?.isNotEmpty ?? false)) ApiKeys
             .location: selectedLocation,
-        if(songData != null) ApiKeys.song: songData,
+        if(songData != null) ApiKeys.song: jsonEncode(songData),
         if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
             .text,
         if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
@@ -1533,7 +1534,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         if(selectedLocation != null &&
             (selectedLocation?.isNotEmpty ?? false)) ApiKeys
             .location: selectedLocation,
-        if(songData != null) ApiKeys.song: songData,
+        if(songData != null) ApiKeys.song: jsonEncode(songData),
         if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
             .text,
         if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],

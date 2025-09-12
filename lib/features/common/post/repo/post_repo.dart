@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -11,6 +12,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/features/common/reel/models/song.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as GET;
 import 'package:image_picker/image_picker.dart';
@@ -68,6 +70,7 @@ class PostRepo extends BaseService {
     PostVia? postVia,
     void Function(double progress) onProgress,
     String natureOfPost,
+    SongModel? song,
     String visibilityDuration
   ) async {
     try {
@@ -103,9 +106,6 @@ class PostRepo extends BaseService {
           AppConstants
               .PHOTO_POST)); // Assuming 'photo' is the type for photo posts
       formData.fields.add(MapEntry(ApiKeys.postVia, postVia!.name));
-      if (photoPost.natureOfPost.isNotEmpty)
-        formData.fields
-            .add(MapEntry(ApiKeys.nature_of_post, photoPost.natureOfPost));
       // final position = await getCurrentLocation();
 
       // Add location if available
@@ -119,7 +119,18 @@ class PostRepo extends BaseService {
       if (natureOfPost.isNotEmpty)
       formData.fields
           .add(MapEntry(ApiKeys.nature_of_post, natureOfPost));
-      // formData[ApiKeys.visibilityDuration] = visibilityDuration;
+
+      if (song != null) {
+        final encodedSong = jsonEncode(song);
+        print("Encoded song value: $encodedSong"); // 🔹 prints the JSON string
+        formData.fields.add(
+          MapEntry(ApiKeys.song, encodedSong),
+        );
+      }
+
+      formData.fields.add(
+        MapEntry(ApiKeys.visibilityDuration, visibilityDuration),
+      );
 
       final response = await ApiBaseHelper().postMultiImage(
         addPost,

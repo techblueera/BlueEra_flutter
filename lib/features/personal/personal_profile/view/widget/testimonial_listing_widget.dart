@@ -56,7 +56,7 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
           //   height: SizeConfig.size8,
           // ),
           Obx(() {
-            if (visitController?.testimonialsList?.value?.isEmpty ?? false) {
+            if (visitController?.testimonialsList?.value.isEmpty ?? false) {
               {
                 // return Center(child: CustomText("No testimonial found"));
               }

@@ -39,7 +39,14 @@ import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
 class PersonalProfileSetupScreen extends StatefulWidget {
-  const PersonalProfileSetupScreen({super.key});
+  final int? selectedIndex;
+  final SortBy? sortBy;
+
+  const PersonalProfileSetupScreen({
+    super.key,
+    this.selectedIndex,
+    this.sortBy
+  });
 
   @override
   State<PersonalProfileSetupScreen> createState() =>
@@ -65,6 +72,7 @@ class _PersonalProfileSetupScreenState
   @override
   void initState() {
     super.initState();
+    selectedFilter = widget.sortBy ?? SortBy.Latest;
     setFilters();
     _loadInitialData();
   }
@@ -144,9 +152,9 @@ class _PersonalProfileSetupScreenState
             Status.COMPLETE) {
           final user =
               viewProfileController.personalProfileDetails.value.user;
-          final validIndexes =
-          user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
+          final validIndexes = user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
           String profession = user?.profession ?? "OTHERS";
+          selectedIndex = (user?.profession == SELF_EMPLOYED) ? widget.selectedIndex??0 : (widget.selectedIndex??0)-1;
           postTab = [
             if (viewProfileController
                 .personalProfileDetails.value.user?.profession ==
@@ -455,6 +463,7 @@ class _PersonalProfileSetupScreenState
           sortBy: selectedFilter,
           channelId: '',
           authorId: userId,
+          padding: 0.0,
           postVia: PostVia.profile,
         );
       case 'Testimonials':

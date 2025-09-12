@@ -529,6 +529,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
           channelId: '',
           authorId: widget.authorId,
           sortBy: selectedFilter,
+          padding: 0.0,
           postVia: PostVia.profile,
         );
       default:

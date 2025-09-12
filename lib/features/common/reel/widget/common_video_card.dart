@@ -58,94 +58,96 @@ class CommonVideoCard extends StatelessWidget {
           onTapCard!();
         }
       },
-      child: Container(
-        // elevation: 0,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: boxShadow
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Column(
-            children: [
-              // 👇 main content (different per card type)
-              mainContent,
-
-              // 👇 common footer
-              GestureDetector(
-                onTap:(){
-                  if (isGuestUser()) {
-                    createProfileScreen();
-
-                    return;
-                  }
-                  onTapOption();
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size5,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      InkWell(
-                        onTap: () => navigatePushTo(
-                          context,
-                          ImageViewScreen(
-                            appBarTitle: '',
-                            imageUrls: [channelProfile],
-                            initialIndex: 0,
+      child: Card(
+        child: Container(
+          // elevation: 0,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: boxShadow
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Column(
+              children: [
+                // 👇 main content (different per card type)
+                mainContent,
+        
+                // 👇 common footer
+                GestureDetector(
+                  onTap:(){
+                    if (isGuestUser()) {
+                      createProfileScreen();
+        
+                      return;
+                    }
+                    onTapOption();
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: SizeConfig.size5,
+                      horizontal: SizeConfig.size10,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () => navigatePushTo(
+                            context,
+                            ImageViewScreen(
+                              appBarTitle: '',
+                              imageUrls: [channelProfile],
+                              initialIndex: 0,
+                            ),
+                          ),
+                          child: CachedAvatarWidget(
+                            imageUrl: channelProfile,
+                            size: SizeConfig.size40,
+                            borderRadius: SizeConfig.size20,
+                            borderColor: AppColors.primaryColor,
                           ),
                         ),
-                        child: CachedAvatarWidget(
-                          imageUrl: channelProfile,
-                          size: SizeConfig.size40,
-                          borderRadius: SizeConfig.size20,
-                          borderColor: AppColors.primaryColor,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: ()=> _openProfile(context, videoItem),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                videoItem.video?.title ?? '',
-                                color: AppColors.mainTextColor,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w600,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: SizeConfig.size2),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: CustomText(
-                                      "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
-                                      fontSize: SizeConfig.small,
-                                      color: AppColors.secondaryTextColor,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      fontWeight: FontWeight.w400,
+                        SizedBox(width: SizeConfig.size8),
+                        Expanded(
+                          child: InkWell(
+                            onTap: ()=> _openProfile(context, videoItem),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  videoItem.video?.title ?? '',
+                                  color: AppColors.mainTextColor,
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w600,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: SizeConfig.size2),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomText(
+                                        "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
+                                        fontSize: SizeConfig.small,
+                                        color: AppColors.secondaryTextColor,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              )
-                            ],
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      _buildOptions(videoItem),
-                    ],
+                        _buildOptions(videoItem),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

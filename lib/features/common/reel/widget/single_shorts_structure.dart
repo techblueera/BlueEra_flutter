@@ -57,14 +57,8 @@ late String thumbnail;
    canShowMenu =
       // Case 1: Channel match
       (shortItem?.channel?.id != null && shortItem?.channel?.id == channelId) ||
-      
-      // Case 2: Author is individual and matches user
-      (shortItem?.author?.accountType == AppConstants.individual &&
-      shortItem?.author?.id == userId) ||
-      
-      // Case 3: Author is business and not equal to businessUserId
-      (shortItem?.author?.accountType == AppConstants.business &&
-      shortItem?.author?.id != userId);
+
+      shortItem?.author?.id == userId;
       super.initState();
 
   }

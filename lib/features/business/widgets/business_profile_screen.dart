@@ -15,8 +15,13 @@ import '../../../widgets/horizontal_tab_selector.dart';
 import '../auth/controller/view_business_details_controller.dart';
 
 class BusinessProfileScreen extends StatefulWidget {
+  final int? selectedIndex;
+  final SortBy? sortBy;
+
   BusinessProfileScreen({
     super.key,
+    this.selectedIndex,
+    this.sortBy
   });
 
   @override
@@ -41,6 +46,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
   @override
   void initState() {
+    selectedFilter = widget.sortBy ?? SortBy.Latest;
+    viewBusinessDetailsController.selectedIndex.value = widget.selectedIndex ?? 0;
     setFilters();
     super.initState();
   }

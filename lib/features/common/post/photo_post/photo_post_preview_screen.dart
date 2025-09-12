@@ -173,10 +173,10 @@ class PhotoPostPreviewScreen extends StatelessWidget {
       children: [
         // Add Tag People / Organization button
         GestureDetector(
-          onTap: () async {
-            await Get.to(() => TagUserScreen());
-            // The result will be handled by the TagUserController
-          },
+          // onTap: () async {
+          //   await Get.to(() => TagUserScreen());
+          //   // The result will be handled by the TagUserController
+          // },
           child: Row(
             children: [
               LocalAssets(
@@ -201,13 +201,20 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                   children: tagUserController.selectedUsers
                       .map((user) => UserChip(
                             user: user,
-                            onRemove: () =>
-                                tagUserController.removeSelectedUser(user),
+                            onRemove: () {
+                                  // tagUserController.removeSelectedUser(user);
+                            },
                           ))
                       .toList(),
                 ),
               )
-            : const SizedBox.shrink()),
+            : Padding(
+          padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+          child: CustomText(
+              "N/A"
+          ),
+         ),
+        ),
 
         SizedBox(height: SizeConfig.size15),
       ],
@@ -218,55 +225,56 @@ class PhotoPostPreviewScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Add Tag People / Organization button
-        GestureDetector(
-          onTap: () async {
-            // final result = await Navigator.pushNamed(
-            //   context,
-            //   RouteHelper.getGetAllSongsScreenRoute(),
-            //   arguments: {
-            //     ApiKeys.videoPath: 'widget.videoPath',
-            //   },
-            // ) as Map<String, dynamic>?;
-            //
-            // if (result != null && result.isNotEmpty) {
-            //   setState(() {
-            //     controller.songData = result;
-            //   });
-            //   log("songData--> ${controller.songData}");
-            // }
-          },
-          child: Row(
-            children: [
-              LocalAssets(
-                imagePath: AppIconAssets.addBlueIcon,
-                imgColor: AppColors.primaryColor,
-              ),
-              SizedBox(width: SizeConfig.size4),
-              CustomText(
-                'Add Song',
-                color: AppColors.primaryColor,
-                fontSize: SizeConfig.large,
-              ),
-            ],
-          ),
+        Row(
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.addBlueIcon,
+              imgColor: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size4),
+            CustomText(
+              'Add Song',
+              color: AppColors.primaryColor,
+              fontSize: SizeConfig.large,
+            ),
+          ],
         ),
 
         // Selected users chips
-        Obx(() => tagUserController.selectedUsers.isNotEmpty
+        Obx(() => (controller.songData.value?.name != null)
             ? Padding(
-          padding: EdgeInsets.only(top: SizeConfig.size16),
-          child: Wrap(
-            children: tagUserController.selectedUsers
-                .map((user) => UserChip(
-              user: user,
-              onRemove: () =>
-                  tagUserController.removeSelectedUser(user),
+            padding: EdgeInsets.only(top: SizeConfig.size15),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [controller.songData.value?.name].map((item) {
+                return Chip(
+                  label: Text(item??''),
+                  backgroundColor: AppColors.lightBlue,
+                  labelStyle: TextStyle(
+                      fontSize: SizeConfig.size14,
+                      color: Colors.black87
+                  ),
+                  deleteIcon: const Icon(Icons.close,
+                      size: 20, color: AppColors.mainTextColor),
+                  shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.transparent),
+                      borderRadius: BorderRadius.circular(8.0)),
+                  onDeleted: (){},
+                  labelPadding: const EdgeInsets.only(left: 12),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, // ✅ removes min constraints
+                );
+              }).toList(),
             ))
-                .toList(),
-          ),
-        )
-            : const SizedBox.shrink()),
+            : Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+              child: CustomText(
+              "N/A"
+              ),
+            )
+         ),
 
         SizedBox(height: SizeConfig.size15),
       ],
@@ -274,7 +282,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
   }
 
   Widget _buildSymbolDurationSection() {
-    final selected = controller.selected.value;
+    final selected = controller.selectedSymbol.value;
 
     String label = "";
     if (selected == SymbolDuration.hours24) label = "24 hours";

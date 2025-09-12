@@ -3,18 +3,17 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/controller/song_controller.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_favourite_songs_model.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_songs_model.dart';
+import 'package:BlueEra/features/common/reel/models/song.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/half_width_tab_indicator.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -38,6 +37,8 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
+    songController.isVideoService = widget.video!=null;
+    songController.getAllSongs();
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
     }); // To show/hide clear icon
@@ -51,7 +52,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
       if (_tabController.index == 0) {
         /// get All song api calling
         songController.getAllSongs();
-        // Discover
+
       } else {
         /// favourite song api calling
         songController.getAllFavouriteSongs();
@@ -192,12 +193,12 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
               ApiKeys.videoPath: widget.video,
               ApiKeys.filePath: widget.images,
               ApiKeys.audioUrl: song.externalUrl,
-              ApiKeys.song: {
-                ApiKeys.id: song.id,
-                ApiKeys.name: song.name,
-                ApiKeys.artist: song.artist,
-                ApiKeys.coverUrl: song.coverUrl
-              }, // optional
+              ApiKeys.song: SongModel(
+                id: song.id,
+                name: song.name,
+                artist: song.artist,
+                coverUrl: song.coverUrl,
+              ),
             },
           ),
           minVerticalPadding: 12.0,
@@ -287,12 +288,13 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
             arguments: {
               ApiKeys.videoPath: widget.video,
               ApiKeys.audioUrl: favouriteSong.song.externalUrl,
-              ApiKeys.song: {
-                "id": favouriteSong.id,
-                "name": favouriteSong.song.name,
-                "artist": favouriteSong.song.artist,
-                "coverUrl": favouriteSong.song.coverUrl
-              }, // optional
+              ApiKeys.song: SongModel(
+                id: favouriteSong.id,
+                name: favouriteSong.song.name,
+                artist: favouriteSong.song.artist,
+                coverUrl: favouriteSong.song.coverUrl,
+              ),
+
             },
           ),
           minVerticalPadding: 12.0,

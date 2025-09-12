@@ -48,10 +48,11 @@ class Song {
   final bool isGlobal;
   final String externalUrl;
   final String coverUrl;
-  final String? duration;
+  final int? duration;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isFavourite;
+
 
   Song({
     required this.id,
@@ -103,7 +104,7 @@ class Song {
     bool? isGlobal,
     String? externalUrl,
     String? coverUrl,
-    String? duration,
+    int? duration,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isFavourite,

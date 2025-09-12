@@ -15,6 +15,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
+import 'package:BlueEra/features/common/reel/models/song.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,8 +48,8 @@ class PhotoPostController extends GetxController {
 
   bool isPhotoPostEdit = false;
 
-  Rx<SymbolDuration> selected = SymbolDuration.hours24.obs;
-  Map<String, dynamic>? songData;
+  Rx<SymbolDuration> selectedSymbol = SymbolDuration.hours24.obs;
+  Rx<SongModel?> songData = Rx<SongModel?>(null);
 
   void addPhotos() async {
     // if (selectedPhotos.length >= maxPhotos) {
@@ -151,12 +152,29 @@ class PhotoPostController extends GetxController {
     longitude.value = lng;
   }
 
+  void updateSong(SongModel song) {
+    songData.value = song;
+    updatePhotoPost();
+  }
+
+  removeSong(){
+    songData.value = null;
+    updatePhotoPost();
+  }
+
+  void updateSymbolOfPost(SymbolDuration symbol) {
+    selectedSymbol.value = symbol;
+    updatePhotoPost();
+  }
+
   void updatePhotoPost() {
     photoPost.update((val) {
       val?.photoUrls = selectedPhotos;
       val?.description = description.value;
       val?.taggedPeople = taggedPeople;
       val?.natureOfPost = natureOfPost.value;
+      val?.song = songData.value;
+      val?.symbol = selectedSymbol.value;
     });
   }
   late void Function(double) _updateProgressUI;
@@ -207,7 +225,8 @@ class PhotoPostController extends GetxController {
           _updateProgressUI(progress);
         },
         natureOfPost.value,
-        (selected == SymbolDuration.hours24) ? "1" : "7",
+        songData.value,
+        (selectedSymbol == SymbolDuration.hours24) ? "1" : "7",
       );
 
       Navigator.of(Get.context!, rootNavigator: true).pop();
@@ -294,10 +313,6 @@ class PhotoPostController extends GetxController {
     latitude.value = null;
     longitude.value = null;
     updatePhotoPost();
-  }
-
-  void select(SymbolDuration duration) {
-    selected.value = duration;
   }
 
   List<String> originalPhotos = [];

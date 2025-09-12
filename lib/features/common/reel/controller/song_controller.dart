@@ -13,21 +13,17 @@ class SongController extends GetxController{
   ApiResponse getFavouriteSongsResponse = ApiResponse.initial('Initial');
   ApiResponse addSongInFavouriteResponse = ApiResponse.initial('Initial');
   ApiResponse removeSongInFavouriteResponse = ApiResponse.initial('Initial');
-  ApiResponse checkSongFavouriteByUserResponse = ApiResponse.initial('Initial');
+  // ApiResponse checkSongFavouriteByUserResponse = ApiResponse.initial('Initial');
   ApiResponse searchSongsResponse = ApiResponse.initial('Initial');
   ApiResponse searchFavouriteSongsResponse = ApiResponse.initial('Initial');
 
   RxBool isSongLoading = true.obs;
   RxBool isFavouriteLoading = true.obs;
   int page = 1;
-  int limit = 10;
+  int limit = 20;
   RxList<Song> songs = <Song>[].obs;
   RxList<FavouriteSong> favouriteSongs = <FavouriteSong>[].obs;
-
-  onInit(){
-    super.onInit();
-    getAllSongs();
-  }
+  bool isVideoService = false;
 
   ///GET ALL Songs...
   Future<void> getAllSongs() async {
@@ -37,8 +33,12 @@ class SongController extends GetxController{
         ApiKeys.page : page,
         ApiKeys.limit: limit
       };
-      ResponseModel response;
-     response = await SongRepo().getAllSongs(queryParams: queryParams);
+     ResponseModel response;
+     if(isVideoService) {
+       response = await SongRepo().getAllSongs(queryParams: queryParams);
+     }else{
+       response = await SongRepo().getAllSongPost(queryParams: queryParams);
+     }
 
       if (response.statusCode == 200) {
         GetAllSongsModel getAllSongsModel = GetAllSongsModel.fromJson(response.response?.data);
@@ -47,7 +47,8 @@ class SongController extends GetxController{
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
+    } catch (e, s) {
+      print('stack trace-- $s');
       getAllSongsResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally{
@@ -64,7 +65,12 @@ class SongController extends GetxController{
         ApiKeys.limit: limit
       };
 
-      ResponseModel response = await SongRepo().getAllFavouriteSongs(queryParams: queryParams);
+      ResponseModel response;
+      if(isVideoService) {
+        response = await SongRepo().getAllFavouriteSongs(queryParams: queryParams);
+      }else{
+        response = await SongRepo().getAllFavouriteSongPost(queryParams: queryParams);
+      }
 
       if (response.statusCode == 200) {
         FavouriteSongsResponse favouriteSongsResponse = FavouriteSongsResponse.fromJson(response.response?.data);
@@ -93,7 +99,12 @@ class SongController extends GetxController{
     try {
       Map<String, dynamic> params = {ApiKeys.songId: songId};
 
-      ResponseModel response = await SongRepo().addSongInFavourite(params: params);
+      ResponseModel response;
+      if(isVideoService) {
+        response = await SongRepo().addSongInFavourite(params: params);
+      }else{
+        response = await SongRepo().addSongInFavouritePost(params: params);
+      }
 
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -136,7 +147,13 @@ class SongController extends GetxController{
   /// REMOVE SONG FROM FAVOURITES
   Future<void> removeSongFromFavourite({required String songId}) async {
     try {
-      ResponseModel response = await SongRepo().removeSongFromFavourite(songId: songId);
+
+      ResponseModel response;
+      if(isVideoService) {
+        response = await SongRepo().removeSongFromFavourite(songId: songId);
+      }else{
+        response = await SongRepo().removeSongFromFavouritePost(songId: songId);
+      }
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -159,31 +176,37 @@ class SongController extends GetxController{
     }
   }
 
-  /// REMOVE SONG FROM FAVOURITES
-  Future<void> removeSongFromFavouriteItemList({required String songId}) async {
-    try {
-      ResponseModel response = await SongRepo().removeSongFromFavourite(songId: songId);
-
-      if (response.statusCode == 200) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
-
-        // ✅ 1. Remove from favouriteSongs list if exists
-        favouriteSongs.removeWhere((song) => song.id == songId);
-
-        // ✅ 2. Also remove from songs list completely if required
-        songs.removeWhere((song) => song.id == songId);
-
-        removeSongInFavouriteResponse = ApiResponse.complete(response);
-      } else {
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      removeSongInFavouriteResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      // isLoading.value = false;
-    }
-  }
+  // /// REMOVE SONG FROM FAVOURITES
+  // Future<void> removeSongFromFavouriteItemList({required String songId}) async {
+  //   try {
+  //
+  //     ResponseModel response;
+  //     if(isVideoService) {
+  //       response = await SongRepo().removeSongFromFavourite(songId: songId);
+  //     }else{
+  //       response = await SongRepo().removeSongFromFavouritePost(songId: songId);
+  //     }
+  //
+  //     if (response.statusCode == 200) {
+  //       commonSnackBar(message: response.message ?? AppStrings.success);
+  //
+  //       // ✅ 1. Remove from favouriteSongs list if exists
+  //       favouriteSongs.removeWhere((song) => song.id == songId);
+  //
+  //       // ✅ 2. Also remove from songs list completely if required
+  //       songs.removeWhere((song) => song.id == songId);
+  //
+  //       removeSongInFavouriteResponse = ApiResponse.complete(response);
+  //     } else {
+  //       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+  //     }
+  //   } catch (e) {
+  //     removeSongInFavouriteResponse = ApiResponse.error('error');
+  //     commonSnackBar(message: AppStrings.somethingWentWrong);
+  //   } finally {
+  //     // isLoading.value = false;
+  //   }
+  // }
 
 
   // ///CHECK SONG FAVOURITE BY USER...
@@ -227,7 +250,12 @@ class SongController extends GetxController{
         ApiKeys.limit: limit
       };
 
-      ResponseModel response = await SongRepo().searchSongs(params: params);
+      ResponseModel response;
+      if(isVideoService) {
+        response = await SongRepo().searchSongs(params: params);
+      }else{
+        response = await SongRepo().searchSongPost(params: params);
+      }
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);
@@ -254,7 +282,14 @@ class SongController extends GetxController{
         ApiKeys.limit: limit
       };
 
-      ResponseModel response = await SongRepo().searchFavouriteSongs(params: params);
+
+      ResponseModel response;
+      if(isVideoService) {
+         response = await SongRepo().searchFavouriteSongs(params: params);
+      }else{
+         response = await SongRepo().searchFavouriteSongPost(params: params);
+      }
+
 
       if (response.statusCode == 200) {
         commonSnackBar(message: response.message ?? AppStrings.success);

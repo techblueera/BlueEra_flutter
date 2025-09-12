@@ -41,6 +41,7 @@ import 'package:BlueEra/features/common/post/photo_post/photo_post_review_screen
 import 'package:BlueEra/features/common/post/photo_post/photo_post_screen.dart';
 import 'package:BlueEra/features/common/post/poll_post/poll_input_screen.dart';
 import 'package:BlueEra/features/common/post/poll_post/poll_review_screen.dart';
+import 'package:BlueEra/features/common/reel/models/song.dart';
 import 'package:BlueEra/features/common/reel/view/channel/channel_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/manage_channel_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
@@ -533,7 +534,7 @@ class RouteHelper {
         final videoPath = args[ApiKeys.videoPath] as String?;
         final images = args[ApiKeys.filePath] as List<String>?;
         final audioUrl = args[ApiKeys.audioUrl] as String;
-        final song = args[ApiKeys.song] as Map<String, dynamic>;
+        final song = args[ApiKeys.song] as SongModel;
 
         return MaterialPageRoute(
           builder: (_) => AddSongScreen(

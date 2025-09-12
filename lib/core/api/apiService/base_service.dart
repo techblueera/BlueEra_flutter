@@ -224,6 +224,11 @@ abstract class BaseService {
   final String pollAnswer = "poll/answer";
   final String postByID = "post-service/post/view/";
   String postAllLikes(String postId) => "post-service/post/$postId/likes";
+  final String songsPost = 'post-service/songs';
+  final String favouriteSongPost = 'post-service/favorites';
+  final String checkFavouriteSongPost = 'post-service/favorites/check';
+  final String songsSearchSongPost = 'post-service/songs/search';
+  final String favouriteSearchSongPost = 'post-service/favorites/search';
 
   /// Comment
   String postComments(String postId) =>
