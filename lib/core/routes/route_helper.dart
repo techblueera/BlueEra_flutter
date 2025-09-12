@@ -488,14 +488,16 @@ class RouteHelper {
               ? args[ApiKeys.isEdit] as bool
               : false;
           final postVia = args[ApiKeys.argPostVia] as PostVia?;
-          // return MaterialPageRoute(
-          //   builder: (_) => CreateMessagePostScreenNew(
-          //       isEdit: isEdit, post: postData, postVia: postVia),
-          // );
+
+          ///CHANGE IN ELSE BLOCK ALSO....
           return MaterialPageRoute(
-            builder: (_) => CreateMessagePostScreen(
+            builder: (_) => CreateMessagePostScreenNew(
                 isEdit: isEdit, post: postData, postVia: postVia),
           );
+          // return MaterialPageRoute(
+          //   builder: (_) => CreateMessagePostScreen(
+          //       isEdit: isEdit, post: postData, postVia: postVia),
+          // );
         } else {
           final args = settings.arguments as Map<String, dynamic>;
           final postVia = args[ApiKeys.argPostVia] as PostVia?;

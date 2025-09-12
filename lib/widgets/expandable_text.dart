@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/highlight_text_widget.dart';
 import 'package:flutter/material.dart';
 
 enum ExpandMode {
@@ -54,6 +55,14 @@ class _ExpandableTextState extends State<ExpandableText> {
 
           // If text fits, no need for expand/collapse
           if (!isOverflow) {
+            return SizedBox(
+              width: double.infinity,
+              child: HighlightText(
+                text:widget.text,
+                // style: style,
+                // textAlign: TextAlign.start,
+              ),
+            );
             return SizedBox(
               width: double.infinity,
               child: Text(
@@ -122,10 +131,11 @@ class _ExpandableTextState extends State<ExpandableText> {
                           setState(() => _readMore = false);
                         }
                       },
-                      child: Text(
+                      child: CustomText(
                         'Read more',
-                        style: readMoreStyle,
-                      ),
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.medium15,                      ),
                     ),
                   ),
                 ],
@@ -137,7 +147,12 @@ class _ExpandableTextState extends State<ExpandableText> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.text, style: style),
+              // Text(widget.text, style: style),
+              HighlightText(
+                text:widget.text,
+                // style: style,
+                // textAlign: TextAlign.start,
+              ),
               GestureDetector(
                 onTap: () => setState(() => _readMore = true),
                 child: CustomText(

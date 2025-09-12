@@ -46,7 +46,6 @@ class _CreateMessagePostScreenNewState
     msgController.isMsgPostEdit = widget.isEdit;
 
     if (widget.isEdit) {
-      msgController.uploadMsgPostUrl.value = widget.post?.media?.first ?? "";
       msgController.postId = widget.post?.id ?? "";
       msgController.postText.value = widget.post?.message ?? "";
       msgController.postTextDataController.value.text =
