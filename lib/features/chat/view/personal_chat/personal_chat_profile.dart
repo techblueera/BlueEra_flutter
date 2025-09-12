@@ -458,15 +458,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                                 itemBuilder: (context) => [
                                       PopupMenuItem(
                                           value: 1,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Image.asset(
-                                                  "assets/images/share.jpg"),
-                                              CustomText("Share"),
-                                            ],
-                                          )),
+                                          child: CustomText("Share")),
                                       PopupMenuItem(
                                           value: 2, child: CustomText("Mute")),
                                       PopupMenuItem(
