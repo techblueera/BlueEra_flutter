@@ -297,9 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildCustomAppBar(),
                         SizedBox(height: SizeConfig.size15),
-                        // PositiveCustomBtn(onTap: (){
-                        //   Get.to(CreateMessagePostScreenNew(isEdit: false,));
-                        // }, title: "Message POST"),
+
                         HorizontalTabSelector(
                           tabs: postTab,
                           selectedIndex: selectedIndex,

@@ -239,6 +239,7 @@ class Post {
 }
 
 class User {
+  final String? id;
   final String? username;
   final String? profileImage;
   final String? designation;
@@ -249,6 +250,7 @@ class User {
   final String? businessCategory;
 
   User({
+    this.id,
     this.username,
     this.profileImage,
     this.designation,
@@ -261,6 +263,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      id: json['_id'] ?? '',
       username: json['username'] ?? '',
       profileImage: json['profile_image'],
       designation: json['designation'],
@@ -274,6 +277,7 @@ class User {
 
   Map<String, dynamic> toJson() {
     return {
+      '_id': id,
       'username': username,
       'profile_image': profileImage,
       'designation': designation,
@@ -286,6 +290,7 @@ class User {
   }
 
   User copyWith({
+    String? id,
     String? username,
     String? profileImage,
     String? designation,
@@ -295,6 +300,7 @@ class User {
     String? businessCategory
   }) {
     return User(
+      id: id ?? this.id,
       username: username ?? this.username,
       profileImage: profileImage ?? this.profileImage,
       designation: designation ?? this.designation,

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_users.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
@@ -36,7 +37,11 @@ class TagUserController extends GetxController {
         ? Get.find<PhotoPostController>()
         : Get.put(PhotoPostController());
 
-    if(isInitialLoad){
+    final messagePostController = Get.isRegistered<MessagePostController>()
+        ? Get.find<MessagePostController>()
+        : Get.put(MessagePostController());
+
+    if (isInitialLoad) {
       page = 1;
       isHasMoreData.value = true;
       isLoadingMore.value = true;
@@ -63,9 +68,9 @@ class TagUserController extends GetxController {
         if (page == 1) {
           allUsers.value = data;
           filteredUsers.value = data;
-        }else{
+        } else {
           allUsers.addAll(data);
-          allUsers.addAll(data);
+          // allUsers.addAll(data);
         }
 
         if (data.length < limit) {
@@ -75,15 +80,10 @@ class TagUserController extends GetxController {
         }
 
         if (photoPostController.isPhotoPostEdit) {
-          if (photoPostController
-              .postData
-              ?.value
-              .taggedUsers
-              ?.isNotEmpty ??
+          if (photoPostController.postData?.value.taggedUsers?.isNotEmpty ??
               false) {
             final taggedIds =
-                photoPostController.postData?.value.taggedUsers ??
-                    [];
+                photoPostController.postData?.value.taggedUsers ?? [];
 
             selectedUsers.value = allUsers.where((user) {
               final isTagged = taggedIds.contains(user.id);
@@ -95,7 +95,18 @@ class TagUserController extends GetxController {
             // setState(() {});
           }
         }
-
+        if (messagePostController.isMsgPostEdit) {
+          if (messagePostController.taggedSelectedUsersList?.isNotEmpty ??
+              false) {
+            final List<String> taggedIds = messagePostController.taggedSelectedUsersList?.map((user) => user.id as String).toList()??[];
+            selectedUsers.value = allUsers.where((user) {
+              final isTagged = taggedIds.contains(user.id);
+              user.isSelected.value =
+                  isTagged; // set isSelected based on tagged
+              return isTagged;
+            }).toList();
+          }
+        }
 
         filterUsers();
       } else {

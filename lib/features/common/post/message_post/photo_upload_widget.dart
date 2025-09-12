@@ -35,7 +35,7 @@ class PhotoListingWidget extends StatelessWidget {
           child: PositiveCustomBtn(
               onTap: () {
                 Get.off(() => MessagePostPreviewScreenNew(
-                      postVia: PostVia.profile,
+                      postVia: PostVia.profile, isEdit: false,
                     ));
               },
               title: "Next"),

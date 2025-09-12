@@ -108,7 +108,7 @@ class _CreateMessagePostScreenNewState
                         ///FOR ADD POST...
                         if (!msgController.isMsgPostEdit) {
                           Get.to(() => MessagePostPreviewScreenNew(
-                                postVia: widget.postVia,
+                                postVia: widget.postVia, isEdit: msgController.isMsgPostEdit,
                               ));
                           return;
                         }
@@ -291,7 +291,6 @@ class _CreateMessagePostScreenNewState
                 GestureDetector(
                   onTap: () async {
                     await Get.to(() => TagUserScreen());
-                    // The result will be handled by the TagUserController
                   },
                   child: AddLinkRow(
                     title: 'Add Tag People / Organization',
