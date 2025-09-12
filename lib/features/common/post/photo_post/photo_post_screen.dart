@@ -14,7 +14,7 @@ import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/features/common/reel/controller/song_controller.dart';
-import 'package:BlueEra/features/common/reel/models/song.dart';
+import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -52,7 +52,12 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
       controller.natureOfPostTextEdit.text = widget.post?.natureOfPost ?? "";
 
       if (widget.post?.song != null) {
-        controller.songData.value = widget.post?.song;
+        controller.songData.value = SongModel(
+            id: widget.post?.song?.id??'',
+            name: widget.post?.song?.name??'',
+            artist: widget.post?.song?.artist??'',
+            coverUrl: widget.post?.song?.coverUrl??''
+        );
       }
       controller.selectedSymbol.value = widget.post?.visibilityDuration == 1
           ? SymbolDuration.hours24
@@ -122,9 +127,9 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size24),
                   _buildTagPeopleSection(),
-                  SizedBox(height: SizeConfig.size5),
-                  _buildAddSongSection(),
-                  SizedBox(height: SizeConfig.size5),
+                  // SizedBox(height: SizeConfig.size5),
+                  // _buildAddSongSection(),
+                  // SizedBox(height: SizeConfig.size5),
                   _buildSymbolDurationSection(),
                   SizedBox(height: SizeConfig.size15),
                   _buildNatureOfPostSection(),

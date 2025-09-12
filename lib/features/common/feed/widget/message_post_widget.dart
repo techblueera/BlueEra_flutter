@@ -78,6 +78,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                         .now()),
                 totalViews:
                 _post.viewsCount != null ? _post.viewsCount.toString() : '0',
+                audioUrl: _post.song?.externalUrl,
               ),
             Padding(
               padding: EdgeInsets.only(bottom: SizeConfig.size5),

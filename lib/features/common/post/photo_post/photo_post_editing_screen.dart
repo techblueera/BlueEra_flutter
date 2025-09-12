@@ -128,7 +128,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
               InkWell(
                 onTap: () async {
                   String? editedImage = await Get.to(() =>
-                      SinglePhotoPostEditingScreen(photo: File(selectedPhotos[index])));
+                      SinglePhotoPostEditingScreen(photo: File(selectedPhotos[index]), isPortrait: _selectedAspect == 'Portrait'));
                   if (editedImage != null) {
                     setState(() {
                       selectedPhotos[index] = editedImage;

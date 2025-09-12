@@ -12,7 +12,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
-import 'package:BlueEra/features/common/reel/models/song.dart';
+import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as GET;
 import 'package:image_picker/image_picker.dart';

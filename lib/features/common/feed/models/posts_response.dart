@@ -1,5 +1,3 @@
-import 'package:BlueEra/features/common/reel/models/song.dart';
-
 class PostResponse {
   final bool success;
   final String? message;
@@ -75,7 +73,7 @@ class Post {
   final bool? isLiked;
   final User? user;
   final bool? isPostSavedLocal;
-  final SongModel? song;
+  final Song? song;
   final int? visibilityDuration;
 
   Post({
@@ -148,7 +146,7 @@ class Post {
       isLiked: json['isLiked'],
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       isPostSavedLocal: json['isPostSavedLocal'],
-      song: json['song'] != null ? SongModel.fromJson(json['song']) : null,
+      song: json['song'] != null ? Song.fromJson(json['song']) : null,
       visibilityDuration: json['visibility_duration'],
     );
   }
@@ -215,7 +213,7 @@ class Post {
     bool? isLiked,
     User? user,
     bool? isPostSavedLocal,
-    SongModel? song,
+    Song? song,
     int? visibilityDuration,
   }) {
     return Post(
@@ -494,4 +492,41 @@ class Pagination {
     );
   }
 }
+
+class Song {
+  final String id;
+  final String name;
+  final String artist;
+  final String coverUrl;
+  final String externalUrl;
+
+  Song({
+    required this.id,
+    required this.name,
+    required this.artist,
+    required this.coverUrl,
+    required this.externalUrl,
+  });
+
+  factory Song.fromJson(Map<String, dynamic> json) {
+    return Song(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      artist: json['artist'] ?? '',
+      coverUrl: json['coverUrl'] ?? '',
+      externalUrl: json['externalUrl'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "artist": artist,
+      "coverUrl": coverUrl,
+      "externalUrl": externalUrl,
+    };
+  }
+}
+
 
