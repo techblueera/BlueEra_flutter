@@ -66,17 +66,17 @@ class _ContactsPageState extends State<ContactsPage> {
     if (details != null) {
       setState(() {
         _filteredExisting = details.existingNotConnected
-                ?.where((c) =>
-                    (c.name?.toLowerCase().contains(query) ?? false) ||
-                    (c.contactNo?.toLowerCase().contains(query) ?? false))
-                .toList() ??
+            ?.where((c) =>
+        (c.name?.toLowerCase().contains(query) ?? false) ||
+            (c.contactNo?.toLowerCase().contains(query) ?? false))
+            .toList() ??
             [];
 
         _filteredNonExisting = details.nonExistingContacts
-                ?.where((c) =>
-                    (c.name?.toLowerCase().contains(query) ?? false) ||
-                    (c.contactNo?.toLowerCase().contains(query) ?? false))
-                .toList() ??
+            ?.where((c) =>
+        (c.name?.toLowerCase().contains(query) ?? false) ||
+            (c.contactNo?.toLowerCase().contains(query) ?? false))
+            .toList() ??
             [];
       });
     }
@@ -86,9 +86,9 @@ class _ContactsPageState extends State<ContactsPage> {
     return _contacts
         .where((contact) => contact.phones.isNotEmpty)
         .map((contact) => {
-              ApiKeys.contact_no: contact.phones.first.number,
-              ApiKeys.name: contact.displayName,
-            })
+      ApiKeys.contact_no: contact.phones.first.number,
+      ApiKeys.name: contact.displayName,
+    })
         .toList();
   }
 
@@ -117,9 +117,9 @@ class _ContactsPageState extends State<ContactsPage> {
 
     if (status.isGranted) {
       List<Contact> contacts =
-          await FlutterContacts.getContacts(withProperties: true);
+      await FlutterContacts.getContacts(withProperties: true);
       List<Map<String, dynamic>> contactList =
-          contacts.map((c) => c.toJson()).toList();
+      contacts.map((c) => c.toJson()).toList();
 
       await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.saved_contacts,
@@ -153,7 +153,7 @@ class _ContactsPageState extends State<ContactsPage> {
       builder: (context) => AlertDialog(
         title: Text("Permission Required"),
         content:
-            Text("Please allow contact access in app settings to continue."),
+        Text("Please allow contact access in app settings to continue."),
         actions: [
           TextButton(
             onPressed: () {
@@ -212,7 +212,7 @@ class _ContactsPageState extends State<ContactsPage> {
                   filled: true,
                   fillColor: theme.colorScheme.surface,
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
@@ -247,113 +247,113 @@ class _ContactsPageState extends State<ContactsPage> {
                             (groupList.isEmpty)
                                 ? Center(child: Text("No contacts found"))
                                 : ListView.builder(
-                                    physics: NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: groupList.length,
-                                    itemBuilder: (context, index) {
-                                      final item = groupList[index];
-                                      final String? userId =
-                                          item['platform_id'] ??
-                                              item['user_id'];
-                                      final String name =
-                                          (item['name'] ?? '').toString();
-                                      final String phone =
-                                          (item['contact_no'] ??
-                                                  item['contact'] ??
-                                                  '')
-                                              .toString();
-                                      final String profileImage =
-                                          (item['profile_image'] ?? '')
-                                              .toString();
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: groupList.length,
+                              itemBuilder: (context, index) {
+                                final item = groupList[index];
+                                final String? userId =
+                                    item['platform_id'] ??
+                                        item['user_id'];
+                                final String name =
+                                (item['name'] ?? '').toString();
+                                final String phone =
+                                (item['contact_no'] ??
+                                    item['contact'] ??
+                                    '')
+                                    .toString();
+                                final String profileImage =
+                                (item['profile_image'] ?? '')
+                                    .toString();
 
-                                      final bool isSelected = userId != null &&
-                                          _selectedUserIds.contains(userId);
-                                      return ListTile(
-                                        onTap: () {
-                                          if (userId == null) return;
-                                          setState(() {
-                                            if (isSelected) {
-                                              _selectedUserIds.remove(userId);
-                                            } else {
-                                              _selectedUserIds.add(userId);
-                                            }
-                                          });
-                                        },
-                                        contentPadding: EdgeInsets.all(0),
-                                        leading: CircleAvatar(
-                                          radius: 24,
-                                          backgroundImage:
-                                              (profileImage.isNotEmpty)
-                                                  ? NetworkImage(profileImage)
-                                                  : null,
-                                          child: (profileImage.isNotEmpty)
-                                              ? null
-                                              : (name.isNotEmpty)
-                                                  ? CustomText(
-                                                      name[0].toUpperCase(),
-                                                      fontFamily:
-                                                          "Rounded Mplus 1c",
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      fontSize: 20,
-                                                      color: theme
-                                                          .colorScheme.surface,
-                                                    )
-                                                  : Icon(Icons.person,
-                                                      color: theme
-                                                          .colorScheme.surface),
-                                        ),
-                                        title: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                SizedBox(
-                                                  width: 60,
-                                                  child: CustomText(
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    maxLines: 1,
-                                                    name.isNotEmpty
-                                                        ? name
-                                                        : phone,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 16,
-                                                    fontFamily:
-                                                        "Rounded Mplus 1c",
-                                                  ),
-                                                ),
-                                                Checkbox(
-                                                  value: isSelected,
-                                                  onChanged: (value) {
-                                                    if (userId == null) return;
-                                                    setState(() {
-                                                      if (value == true) {
-                                                        _selectedUserIds
-                                                            .add(userId);
-                                                      } else {
-                                                        _selectedUserIds
-                                                            .remove(userId);
-                                                      }
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                            CustomText(
-                                              phone,
-                                              fontSize: 14,
-                                              fontFamily: "Rounded Mplus 1c",
-                                            )
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                final bool isSelected = userId != null &&
+                                    _selectedUserIds.contains(userId);
+                                return ListTile(
+                                  onTap: () {
+                                    if (userId == null) return;
+                                    setState(() {
+                                      if (isSelected) {
+                                        _selectedUserIds.remove(userId);
+                                      } else {
+                                        _selectedUserIds.add(userId);
+                                      }
+                                    });
+                                  },
+                                  contentPadding: EdgeInsets.all(0),
+                                  leading: CircleAvatar(
+                                    radius: 24,
+                                    backgroundImage:
+                                    (profileImage.isNotEmpty)
+                                        ? NetworkImage(profileImage)
+                                        : null,
+                                    child: (profileImage.isNotEmpty)
+                                        ? null
+                                        : (name.isNotEmpty)
+                                        ? CustomText(
+                                      name[0].toUpperCase(),
+                                      fontFamily:
+                                      "Rounded Mplus 1c",
+                                      fontWeight:
+                                      FontWeight.w400,
+                                      fontSize: 20,
+                                      color: theme
+                                          .colorScheme.surface,
+                                    )
+                                        : Icon(Icons.person,
+                                        color: theme
+                                            .colorScheme.surface),
                                   ),
+                                  title: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment
+                                            .spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            // width: 60,
+                                            child: CustomText(
+                                              overflow:
+                                              TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                              name.isNotEmpty
+                                                  ? name
+                                                  : phone,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                              fontFamily:
+                                              "Rounded Mplus 1c",
+                                            ),
+                                          ),
+                                          Checkbox(
+                                            value: isSelected,
+                                            onChanged: (value) {
+                                              if (userId == null) return;
+                                              setState(() {
+                                                if (value == true) {
+                                                  _selectedUserIds
+                                                      .add(userId);
+                                                } else {
+                                                  _selectedUserIds
+                                                      .remove(userId);
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      CustomText(
+                                        phone,
+                                        fontSize: 14,
+                                        fontFamily: "Rounded Mplus 1c",
+                                      )
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -384,169 +384,169 @@ class _ContactsPageState extends State<ContactsPage> {
                           _isLoading
                               ? Center(child: CircularProgressIndicator())
                               : (_filteredExisting.isEmpty)
-                                  ? Center(child: Text("No contacts found"))
-                                  : ListView.builder(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      itemCount: _filteredExisting.length,
-                                      itemBuilder: (context, index) {
-                                        final contact =
-                                            _filteredExisting[index];
-                                        final name = contact?.name;
-                                        final phone =
-                                            (contact?.contactNo?.isNotEmpty ??
-                                                    false)
-                                                ? contact?.contactNo
-                                                : 'No number';
+                              ? Center(child: Text("No contacts found"))
+                              : ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: _filteredExisting.length,
+                            itemBuilder: (context, index) {
+                              final contact =
+                              _filteredExisting[index];
+                              final name = contact?.name;
+                              final phone =
+                              (contact?.contactNo?.isNotEmpty ??
+                                  false)
+                                  ? contact?.contactNo
+                                  : 'No number';
 
-                                        return ListTile(
-                                          onTap: () {
+                              return ListTile(
+                                onTap: () {
+                                  final String? userId =
+                                      _filteredExisting[index]?.id;
+                                  final bool isSelected =
+                                      userId != null &&
+                                          _selectedUserIds
+                                              .contains(userId);
+                                  if (isGroupMode) {
+                                    if (userId != null) {
+                                      setState(() {
+                                        if (isSelected) {
+                                          _selectedUserIds
+                                              .remove(userId);
+                                        } else {
+                                          _selectedUserIds
+                                              .add(userId);
+                                        }
+                                      });
+                                    }
+                                  } else {
+                                    if (details
+                                        ?.existingNotConnected?[
+                                    index]
+                                        .id !=
+                                        null) {
+                                      chatViewController.openAnyOneChatFunction(
+                                          type: "personal",
+                                          isInitialMessage: true,
+                                          userId: details
+                                              ?.existingNotConnected?[
+                                          index]
+                                              .id,
+                                          conversationId: details
+                                              ?.existingNotConnected?[
+                                          index]
+                                              .conversationId ??
+                                              '',
+                                          profileImage: details
+                                              ?.existingNotConnected?[
+                                          index]
+                                              .profileImage,
+                                          contactName: details
+                                              ?.existingNotConnected?[
+                                          index]
+                                              .name,
+                                          contactNo: details
+                                              ?.existingNotConnected?[
+                                          index]
+                                              .contactNo,
+                                          //  businessId: details.existingNotConnected[index].,
+                                          isFromContactList: true);
+                                    }
+                                  }
+                                },
+                                contentPadding: EdgeInsets.all(0),
+                                leading: CircleAvatar(
+                                  radius: 20,
+                                  backgroundImage:
+                                  contact?.profileImage != null
+                                      ? NetworkImage(
+                                      contact?.profileImage)
+                                      : null,
+                                  child: (contact?.profileImage !=
+                                      null)
+                                      ? null
+                                      : (name?.isNotEmpty ?? false)
+                                      ? CustomText(
+                                    name![0].toUpperCase(),
+                                    fontFamily:
+                                    "Rounded Mplus 1c",
+                                    fontWeight:
+                                    FontWeight.w400,
+                                    fontSize: 20,
+                                    color: theme.colorScheme
+                                        .surface,
+                                  )
+                                      : Icon(Icons.person,
+                                      color: theme.colorScheme
+                                          .surface),
+                                ),
+                                title: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment
+                                          .spaceBetween,
+                                      children: [
+                                        SizedBox(
+                                          // width: 170,
+                                          child: CustomText(
+                                            maxLines: 1,
+                                            overflow:
+                                            TextOverflow.ellipsis,
+                                            name ?? phone,
+                                            fontWeight:
+                                            FontWeight.w600,
+                                            fontSize: 16,
+                                            fontFamily:
+                                            "Rounded Mplus 1c",
+                                          ),
+                                        ),
+                                        if (isGroupMode)
+                                          Builder(builder: (context) {
                                             final String? userId =
-                                                _filteredExisting[index]?.id;
+                                                _filteredExisting[
+                                                index]
+                                                    ?.id;
                                             final bool isSelected =
                                                 userId != null &&
                                                     _selectedUserIds
-                                                        .contains(userId);
-                                            if (isGroupMode) {
-                                              if (userId != null) {
+                                                        .contains(
+                                                        userId);
+                                            return Checkbox(
+                                              value: isSelected,
+                                              onChanged: (value) {
+                                                if (userId == null)
+                                                  return;
                                                 setState(() {
-                                                  if (isSelected) {
-                                                    _selectedUserIds
-                                                        .remove(userId);
-                                                  } else {
+                                                  if (value == true) {
                                                     _selectedUserIds
                                                         .add(userId);
+                                                  } else {
+                                                    _selectedUserIds
+                                                        .remove(
+                                                        userId);
                                                   }
                                                 });
-                                              }
-                                            } else {
-                                              if (details
-                                                      ?.existingNotConnected?[
-                                                          index]
-                                                      .id !=
-                                                  null) {
-                                                chatViewController.openAnyOneChatFunction(
-                                                    type: "personal",
-                                                    isInitialMessage: true,
-                                                    userId: details
-                                                        ?.existingNotConnected?[
-                                                            index]
-                                                        .id,
-                                                    conversationId: details
-                                                            ?.existingNotConnected?[
-                                                                index]
-                                                            .conversationId ??
-                                                        '',
-                                                    profileImage: details
-                                                        ?.existingNotConnected?[
-                                                            index]
-                                                        .profileImage,
-                                                    contactName: details
-                                                        ?.existingNotConnected?[
-                                                            index]
-                                                        .name,
-                                                    contactNo: details
-                                                        ?.existingNotConnected?[
-                                                            index]
-                                                        .contactNo,
-                                                      //  businessId: details.existingNotConnected[index].,
-                                                    isFromContactList: true);
-                                              }
-                                            }
-                                          },
-                                          contentPadding: EdgeInsets.all(0),
-                                          leading: CircleAvatar(
-                                            radius: 20,
-                                            backgroundImage:
-                                                contact?.profileImage != null
-                                                    ? NetworkImage(
-                                                        contact?.profileImage)
-                                                    : null,
-                                            child: (contact?.profileImage !=
-                                                    null)
-                                                ? null
-                                                : (name?.isNotEmpty ?? false)
-                                                    ? CustomText(
-                                                        name![0].toUpperCase(),
-                                                        fontFamily:
-                                                            "Rounded Mplus 1c",
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        fontSize: 20,
-                                                        color: theme.colorScheme
-                                                            .surface,
-                                                      )
-                                                    : Icon(Icons.person,
-                                                        color: theme.colorScheme
-                                                            .surface),
-                                          ),
-                                          title: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 170,
-                                                    child: CustomText(
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      name ?? phone,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontSize: 16,
-                                                      fontFamily:
-                                                          "Rounded Mplus 1c",
-                                                    ),
-                                                  ),
-                                                  if (isGroupMode)
-                                                    Builder(builder: (context) {
-                                                      final String? userId =
-                                                          _filteredExisting[
-                                                                  index]
-                                                              ?.id;
-                                                      final bool isSelected =
-                                                          userId != null &&
-                                                              _selectedUserIds
-                                                                  .contains(
-                                                                      userId);
-                                                      return Checkbox(
-                                                        value: isSelected,
-                                                        onChanged: (value) {
-                                                          if (userId == null)
-                                                            return;
-                                                          setState(() {
-                                                            if (value == true) {
-                                                              _selectedUserIds
-                                                                  .add(userId);
-                                                            } else {
-                                                              _selectedUserIds
-                                                                  .remove(
-                                                                      userId);
-                                                            }
-                                                          });
-                                                        },
-                                                      );
-                                                    }),
-                                                ],
-                                              ),
-                                              (name == null)
-                                                  ? SizedBox()
-                                                  : CustomText(
-                                                      phone,
-                                                      fontSize: 14,
-                                                      fontFamily:
-                                                          "Rounded Mplus 1c",
-                                                    )
-                                            ],
-                                          ),
-                                        );
-                                      },
+                                              },
+                                            );
+                                          }),
+                                      ],
                                     ),
+                                    (name == null)
+                                        ? SizedBox()
+                                        : CustomText(
+                                      phone,
+                                      fontSize: 14,
+                                      fontFamily:
+                                      "Rounded Mplus 1c",
+                                    )
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                           CustomText(
                             "Invite to BlueEra",
                             color: theme.colorScheme.inverseSurface,
@@ -557,92 +557,92 @@ class _ContactsPageState extends State<ContactsPage> {
                           _isLoading
                               ? Center(child: CircularProgressIndicator())
                               : (_filteredNonExisting.isEmpty)
-                                  ? Center(child: Text("No contacts found"))
-                                  : ListView.builder(
-                                    
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      itemCount: _filteredNonExisting.length,
-                                      itemBuilder: (context, index) {
-                                        final contact =
-                                            _filteredNonExisting[index];
-                                        final rawName = contact?.name ?? "";
-                                        final phone =
-                                            (contact?.contactNo?.isNotEmpty ??
-                                                    false)
-                                                ? contact!.contactNo
-                                                : 'No number';
+                              ? Center(child: Text("No contacts found"))
+                              : ListView.builder(
 
-                                       
-                                        final name =
-                                            rawName.characters.toString();
+                            physics:
+                            const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: _filteredNonExisting.length,
+                            itemBuilder: (context, index) {
+                              final contact =
+                              _filteredNonExisting[index];
+                              final rawName = contact?.name ?? "";
+                              final phone =
+                              (contact?.contactNo?.isNotEmpty ??
+                                  false)
+                                  ? contact!.contactNo
+                                  : 'No number';
 
-                                        
-                                        final firstLetter =
-                                            name.characters.isNotEmpty
-                                                ? name.characters.first
-                                                    .toUpperCase()
-                                                : "A";
 
-                                        return ListTile(
-                                            contentPadding: EdgeInsets.all(0),
-                                          leading: CircleAvatar(
-                                            radius: 20,
-                                            child: CustomText(
-                                              firstLetter,
-                                              fontFamily: "Rounded Mplus 1c",
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 20,
-                                              color: theme.colorScheme.surface,
-                                            ),
+                              final name =
+                              rawName.characters.toString();
+
+
+                              final firstLetter =
+                              name.characters.isNotEmpty
+                                  ? name.characters.first
+                                  .toUpperCase()
+                                  : "A";
+
+                              return ListTile(
+                                contentPadding: EdgeInsets.all(0),
+                                leading: CircleAvatar(
+                                  radius: 20,
+                                  child: CustomText(
+                                    firstLetter,
+                                    fontFamily: "Rounded Mplus 1c",
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 20,
+                                    color: theme.colorScheme.surface,
+                                  ),
+                                ),
+                                title: Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          CustomText(
+                                            name,
+                                            maxLines: 1,
+                                            overflow:
+                                            TextOverflow.ellipsis,
+                                            fontWeight:
+                                            FontWeight.w600,
+                                            fontSize: 16,
+                                            fontFamily:
+                                            "Rounded Mplus 1c",
                                           ),
-                                          title: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    CustomText(
-                                                      name,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      fontSize: 16,
-                                                      fontFamily:
-                                                          "Rounded Mplus 1c",
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    CustomText(
-                                                      phone,
-                                                      fontSize: 14,
-                                                      fontFamily:
-                                                          "Rounded Mplus 1c",
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              TextButton(
-                                                onPressed: () =>
-                                                  VisitingCardHelper.buildAndShareVisitingCard(context),
-                                                child: const Text(
-                                                  "Invite",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                        ),
-                                        );
-                                      },
+                                          const SizedBox(height: 2),
+                                          CustomText(
+                                            phone,
+                                            fontSize: 14,
+                                            fontFamily:
+                                            "Rounded Mplus 1c",
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          VisitingCardHelper.buildAndShareVisitingCard(context),
+                                      child: const Text(
+                                        "Invite",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -656,31 +656,31 @@ class _ContactsPageState extends State<ContactsPage> {
         ),
         bottomNavigationBar: isGroupMode
             ? SafeArea(
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: CustomBtn(
-                    bgColor: theme.colorScheme.primary,
-                    width: double.infinity,
-                    height: 48,
-                    onTap: _selectedUserIds.isEmpty
-                        ? null
-                        : () {
-                            print("Selected:${_selectedUserIds}");
-                            //   Navigator.pop(context, _selectedUserIds.toList());
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => AddNewGroupPage(
-                                          selectedUserIds:
-                                              _selectedUserIds.toList(),
-                                        )));
-                          },
-                    title: _selectedUserIds.isEmpty
-                        ? "Select members"
-                        : "Add Members (${_selectedUserIds.length})",
-                  ),
-                ),
-              )
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: CustomBtn(
+              bgColor: theme.colorScheme.primary,
+              width: double.infinity,
+              height: 48,
+              onTap: _selectedUserIds.isEmpty
+                  ? null
+                  : () {
+                print("Selected:${_selectedUserIds}");
+                //   Navigator.pop(context, _selectedUserIds.toList());
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AddNewGroupPage(
+                          selectedUserIds:
+                          _selectedUserIds.toList(),
+                        )));
+              },
+              title: _selectedUserIds.isEmpty
+                  ? "Select members"
+                  : "Add Members (${_selectedUserIds.length})",
+            ),
+          ),
+        )
             : null,
       ),
     );

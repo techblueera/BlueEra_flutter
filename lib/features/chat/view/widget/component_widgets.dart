@@ -17,10 +17,10 @@ import '../../auth/model/GetChatListModel.dart';
 
 Widget timeAndReadInfoWidget(
     {required Messages message,
-    required bool isMyMessage,
-    required String time,
-    Color? indicateColor,
-    Color? timeColor}) {
+      required bool isMyMessage,
+      required String time,
+      Color? indicateColor,
+      Color? timeColor}) {
   final chatViewController = Get.find<ChatViewController>();
   return Row(
     mainAxisAlignment: MainAxisAlignment.end,
@@ -33,32 +33,32 @@ Widget timeAndReadInfoWidget(
       ),
       isMyMessage
           ? Obx(() {
-              return Container(
-                child: (message.sendStatus == "pending")
-                    ? Icon(
-                        Icons.timelapse_outlined,
-                        color: Colors.grey,
-                        size: 16,
-                      )
-                    : (chatViewController.readMessageStatus.value == 'read')
-                        ? SvgPicture.asset(
-                            AppIconAssets.chat_double_tick,
-                            color: Colors.blue,
-                          )
-                        : (message.status == 'sent' || message.status == null)
-                            ? Icon(
-                                Icons.check,
-                                color: indicateColor ?? AppColors.white,
-                                size: 16,
-                              )
-                            : SvgPicture.asset(
-                                AppIconAssets.chat_double_tick,
-                                color: ((message.status == 'delivered'))
-                                    ? Colors.grey
-                                    : Colors.blue,
-                              ),
-              );
-            })
+        return Container(
+          child: (message.sendStatus == "pending")
+              ? Icon(
+            Icons.timelapse_outlined,
+            color: Colors.grey,
+            size: 16,
+          )
+              : (chatViewController.readMessageStatus.value == 'read')
+              ? SvgPicture.asset(
+            AppIconAssets.chat_double_tick,
+            color: Colors.blue,
+          )
+              : (message.status == 'sent' || message.status == null)
+              ? Icon(
+            Icons.check,
+            color: indicateColor ?? AppColors.white,
+            size: 16,
+          )
+              : SvgPicture.asset(
+            AppIconAssets.chat_double_tick,
+            color: ((message.status == 'delivered'))
+                ? Colors.grey
+                : Colors.blue,
+          ),
+        );
+      })
           : SizedBox()
     ],
   );
@@ -105,27 +105,27 @@ Widget noChatsFound() {
 
 Widget ChatListTile(
     {required Function onSelect,
-    required String type,
-    required BuildContext context,
-    required bool? isForwardUI,
-    required bool? isFromGroupSelect,
-    required int index,
-    required ChatViewController chatViewController,
-    GroupChatViewController? groupChatViewController,
-    required ChatList? chat,
-    required ThemeData theme}) {
+      required String type,
+      required BuildContext context,
+      required bool? isForwardUI,
+      required bool? isFromGroupSelect,
+      required int index,
+      required ChatViewController chatViewController,
+      GroupChatViewController? groupChatViewController,
+      required ChatList? chat,
+      required ThemeData theme}) {
   final userId = chat?.sender?.id ?? '';
   final isSelected =
   chatViewController.selectedUserIds.contains(chat?.sender?.id ?? '');
-  
+
   void selectChatListCard() {
-      if (isSelected) {
-        chatViewController.selectedUserIds.remove(chat?.sender?.id ?? '');
-        chatViewController.selectedChatList.remove(chat);
-      } else {
-        chatViewController.selectedUserIds.add(chat?.sender?.id ?? '');
-        chatViewController.selectedChatList.add(chat);
-      }
+    if (isSelected) {
+      chatViewController.selectedUserIds.remove(chat?.sender?.id ?? '');
+      chatViewController.selectedChatList.remove(chat);
+    } else {
+      chatViewController.selectedUserIds.add(chat?.sender?.id ?? '');
+      chatViewController.selectedChatList.add(chat);
+    }
     onSelect();
   }
 
@@ -144,7 +144,7 @@ Widget ChatListTile(
           profileImage: chat?.sender?.profileImage,
           contactName: chat?.sender?.name,
           contactNo: chat?.sender?.contactNo,
-                 
+
         );
       }
     },
@@ -162,7 +162,7 @@ Widget ChatListTile(
                     insetPadding: const EdgeInsets.all(40),
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(
-                      maxWidth: 300,
+                        maxWidth: 300,
                         maxHeight: 300,
                       ),
                       child: Stack(
@@ -174,24 +174,24 @@ Widget ChatListTile(
                               minScale: 1.0,
                               maxScale: 5.0,
                               child: (chat?.sender?.profileImage
-                                          ?.contains('http') ??
-                                      false)
+                                  ?.contains('http') ??
+                                  false)
                                   ? CachedNetworkImage(
-                                      imageUrl:
-                                          chat?.sender?.profileImage ?? "",
-                                      placeholder: (context, url) =>
-                                          const Padding(
-                                        padding: EdgeInsets.all(20),
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          const Icon(Icons.error, size: 40),
-                                      fit: BoxFit.contain,
-                                    )
+                                imageUrl:
+                                chat?.sender?.profileImage ?? "",
+                                placeholder: (context, url) =>
+                                const Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: CircularProgressIndicator(),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                const Icon(Icons.error, size: 40),
+                                fit: BoxFit.contain,
+                              )
                                   : Image.file(
-                                      File(chat?.sender?.profileImage ?? ''),
-                                      fit: BoxFit.contain,
-                                    ),
+                                File(chat?.sender?.profileImage ?? ''),
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                           // Title Bar
@@ -205,7 +205,7 @@ Widget ChatListTile(
                               children: [
                                 Padding(
                                     padding:
-                                        EdgeInsets.symmetric(horizontal: 16),
+                                    EdgeInsets.symmetric(horizontal: 16),
                                     child: SizedBox(
                                       width: 160,
                                       child: CustomText(
@@ -240,19 +240,19 @@ Widget ChatListTile(
               radius: 22,
               backgroundImage: (chat?.sender?.profileImage != null)
                   ? ((chat?.sender!.profileImage!.contains('http') ?? false)
-                      ? NetworkImage(chat?.sender?.profileImage ?? "")
-                      : FileImage(File(chat?.sender?.profileImage ?? ''))
-                          as ImageProvider)
+                  ? NetworkImage(chat?.sender?.profileImage ?? "")
+                  : FileImage(File(chat?.sender?.profileImage ?? ''))
+              as ImageProvider)
                   : null,
               child: (chat?.sender?.profileImage != null)
                   ? null
                   : Center(
-                      child: CustomText(
-                      "${chat?.sender?.name?.split('')[0]}",
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                    )),
+                  child: CustomText(
+                    "${chat?.sender?.name?.split('')[0]}",
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  )),
             ),
           ),
           SizedBox(width: 12),
@@ -272,92 +272,91 @@ Widget ChatListTile(
                 SizedBox(
                   width: 260,
                   child: (chat?.lastMessageType == "document" ||
-                          chat?.lastMessageType == "contact" ||
-                          chat?.lastMessageType == "audio" ||
-                          chat?.lastMessageType == "location" ||
-                          chat?.lastMessageType == "image" ||
-                          chat?.lastMessageType == "video")
+                      chat?.lastMessageType == "contact" ||
+                      chat?.lastMessageType == "audio" ||
+                      chat?.lastMessageType == "location" ||
+                      chat?.lastMessageType == "image" ||
+                      chat?.lastMessageType == "video")
                       ? Row(
-                          children: [
-                            Icon(
-                              chat?.lastMessageType == "document"
-                                  ? Icons.picture_as_pdf
-                                  : chat?.lastMessageType == "contact"
-                                      ? Icons.person
-                                      : chat?.lastMessageType == "audio"
-                                          ? Icons.audiotrack
-                                          : chat?.lastMessageType == "video"
-                                              ? Icons.video_chat
-                                              : chat?.lastMessageType ==
-                                                      "location"
-                                                  ? Icons.location_history
-                                                  : Icons.camera_alt,
-                              color: AppColors.grey9A,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 4),
-                            CustomText(
-                              chat?.lastMessageType == "document"
-                                  ? "Document"
-                                  : chat?.lastMessageType == "contact"
-                                      ? "Contact"
-                                      : chat?.lastMessageType == "audio"
-                                          ? "Audio"
-                                          : chat?.lastMessageType == "video"
-                                              ? "Video"
-                                              : chat?.lastMessageType ==
-                                                      "location"
-                                                  ? "Location"
-                                                  : "Image",
-                              fontSize: 14,
-                              color: AppColors.grey9A,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          ],
-                        )
+                    children: [
+                      Icon(
+                        chat?.lastMessageType == "document"
+                            ? Icons.picture_as_pdf
+                            : chat?.lastMessageType == "contact"
+                            ? Icons.person
+                            : chat?.lastMessageType == "audio"
+                            ? Icons.audiotrack
+                            : chat?.lastMessageType == "video"
+                            ? Icons.video_chat
+                            : chat?.lastMessageType ==
+                            "location"
+                            ? Icons.location_history
+                            : Icons.camera_alt,
+                        color: AppColors.grey9A,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        chat?.lastMessageType == "document"
+                            ? "Document"
+                            : chat?.lastMessageType == "contact"
+                            ? "Contact"
+                            : chat?.lastMessageType == "audio"
+                            ? "Audio"
+                            : chat?.lastMessageType == "video"
+                            ? "Video"
+                            : chat?.lastMessageType ==
+                            "location"
+                            ? "Location"
+                            : "Image",
+                        fontSize: 14,
+                        color: AppColors.grey9A,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    ],
+                  )
                       : chat?.lastMessage ==null ?CustomText(
-                          "${chat?.sender!.designation}",
-                          fontSize: 14,
-                          color: AppColors.grey9A,
-                          overflow: TextOverflow.ellipsis,
-                        ):CustomText(
-                          "${chat?.lastMessage}",
-                          fontSize: 14,
-                          color: AppColors.grey9A,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    "${chat?.sender!.designation}",
+                    fontSize: 14,
+                    color: AppColors.grey9A,
+                    overflow: TextOverflow.ellipsis,
+                  ):CustomText(
+                    "${chat?.lastMessage}",
+                    fontSize: 14,
+                    color: AppColors.grey9A,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
           ),
-          Spacer(),
           SizedBox(width: 10),
           (isForwardUI == true)
               ? SizedBox()
               : Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    CustomText(
-                      "${formatTimeFromUtc(chat?.updatedAt ?? '')}",
-                      fontSize: 11,
-                      color: AppColors.grey9A,
-                    ),
-                    SizedBox(height: 6),
-                    (index == 0 || index == 1 || index == 2)
-                        ? (chat?.unreadCount == 0)
-                            ? SizedBox()
-                            : CircleAvatar(
-                                radius: 12,
-                                backgroundColor: Colors.lightBlue,
-                                child: CustomText(
-                                  "${chat?.unreadCount}",
-                                  color: AppColors.white,
-                                  fontSize: 12,
-                                ),
-                              )
-                        : SizedBox(),
-                  ],
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              CustomText(
+                "${formatTimeFromUtc(chat?.updatedAt ?? '')}",
+                fontSize: 11,
+                color: AppColors.grey9A,
+              ),
+              SizedBox(height: 6),
+              (index == 0 || index == 1 || index == 2)
+                  ? (chat?.unreadCount == 0)
+                  ? SizedBox()
+                  : CircleAvatar(
+                radius: 12,
+                backgroundColor: Colors.lightBlue,
+                child: CustomText(
+                  "${chat?.unreadCount}",
+                  color: AppColors.white,
+                  fontSize: 12,
                 ),
+              )
+                  : SizedBox(),
+            ],
+          ),
           if (isForwardUI == true)
             Theme(
               data: theme.copyWith(
@@ -389,15 +388,28 @@ Widget ChatListTile(
 
 
 String formatTimeFromUtc(String utcString) {
-  if (utcString != '') {
-    DateTime utcDate = DateTime.parse(utcString);
-    DateTime localDate = utcDate.toLocal();
-    String formattedTime = DateFormat.jm().format(localDate); // e.g. 9:52 PM
-    return formattedTime;
+  if (utcString.isEmpty) return '';
+
+  DateTime utcDate = DateTime.parse(utcString);
+  DateTime localDate = utcDate.toLocal();
+
+  DateTime now = DateTime.now();
+  DateTime today = DateTime(now.year, now.month, now.day);
+  DateTime yesterday = today.subtract(Duration(days: 1));
+  DateTime dateToCompare = DateTime(localDate.year, localDate.month, localDate.day);
+
+  if (dateToCompare == today) {
+    // Today: return time
+    return DateFormat.jm().format(localDate);
+  } else if (dateToCompare == yesterday) {
+    // Yesterday
+    return 'Yesterday';
   } else {
-    return '';
+    // Older date: return formatted date
+    return DateFormat('dd/MM/yy').format(localDate);
   }
 }
+
 
 String formatChatTime(String isoDateString) {
   try {
@@ -411,304 +423,304 @@ String formatChatTime(String isoDateString) {
 Widget replyMessageTypeIcons(Messages message) {
   return (message.replyParentMessage?.messageType == "image")
       ? Icon(
-          Icons.camera_enhance_outlined,
-          size: 16,
-          color: Colors.white,
-        )
+    Icons.camera_enhance_outlined,
+    size: 16,
+    color: Colors.white,
+  )
       : (message.replyParentMessage?.messageType == "video")
-          ? Icon(
-              Icons.video_camera_back_outlined,
-              size: 16,
-              color: Colors.white,
-            )
-          : (message.replyParentMessage?.messageType == "location")
-              ? Icon(
-                  Icons.location_on_outlined,
-                  size: 16,
-                  color: Colors.white,
-                )
-              : (message.replyParentMessage?.messageType == "document")
-                  ? Icon(
-                      Icons.picture_as_pdf_outlined,
-                      size: 16,
-                      color: Colors.white,
-                    )
-                  : (message.replyParentMessage?.messageType == "contact")
-                      ? Icon(
-                          Icons.person_2_outlined,
-                          size: 16,
-                          color: Colors.white,
-                        )
-                      : (message.replyParentMessage?.messageType == "audio")
-                          ? Icon(
-                              Icons.audio_file_outlined,
-                              size: 16,
-                              color: Colors.white,
-                            )
-                          : CustomText(
-                              "${message.replyParentMessage?.message}",
-                              fontWeight: FontWeight.w500,
-                              color: !(message.myMessage ?? false)
-                                  ? Colors.black87
-                                  : Colors.white,
-                              fontSize: 13,
-                            );
+      ? Icon(
+    Icons.video_camera_back_outlined,
+    size: 16,
+    color: Colors.white,
+  )
+      : (message.replyParentMessage?.messageType == "location")
+      ? Icon(
+    Icons.location_on_outlined,
+    size: 16,
+    color: Colors.white,
+  )
+      : (message.replyParentMessage?.messageType == "document")
+      ? Icon(
+    Icons.picture_as_pdf_outlined,
+    size: 16,
+    color: Colors.white,
+  )
+      : (message.replyParentMessage?.messageType == "contact")
+      ? Icon(
+    Icons.person_2_outlined,
+    size: 16,
+    color: Colors.white,
+  )
+      : (message.replyParentMessage?.messageType == "audio")
+      ? Icon(
+    Icons.audio_file_outlined,
+    size: 16,
+    color: Colors.white,
+  )
+      : CustomText(
+    "${message.replyParentMessage?.message}",
+    fontWeight: FontWeight.w500,
+    color: !(message.myMessage ?? false)
+        ? Colors.black87
+        : Colors.white,
+    fontSize: 13,
+  );
 }
 
 Widget messageTypeIcons(Messages message) {
   return (message.messageType == "image")
       ? Icon(
-          Icons.camera_enhance_outlined,
-          size: 16,
-          color: Colors.black,
-        )
+    Icons.camera_enhance_outlined,
+    size: 16,
+    color: Colors.black,
+  )
       : (message.messageType == "video")
-          ? Icon(
-              Icons.video_camera_back_outlined,
-              size: 16,
-              color: Colors.black,
-            )
-          : (message.messageType == "location")
-              ? Icon(
-                  Icons.location_on_outlined,
-                  size: 16,
-                  color: Colors.black,
-                )
-              : (message.messageType == "document")
-                  ? Icon(
-                      Icons.picture_as_pdf_outlined,
-                      size: 16,
-                      color: Colors.black,
-                    )
-                  : (message.messageType == "contact")
-                      ? Icon(
-                          Icons.person_2_outlined,
-                          size: 16,
-                          color: Colors.black,
-                        )
-                      :
-                       (message.messageType == "audio")
-                          ? Icon(
-                              Icons.audio_file_outlined,
-                              size: 16,
-                              color: Colors.black,
-                            )
-                          :
-                           CustomText(
-                              "${message.message}",
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                              fontSize: 13,
-                            );
+      ? Icon(
+    Icons.video_camera_back_outlined,
+    size: 16,
+    color: Colors.black,
+  )
+      : (message.messageType == "location")
+      ? Icon(
+    Icons.location_on_outlined,
+    size: 16,
+    color: Colors.black,
+  )
+      : (message.messageType == "document")
+      ? Icon(
+    Icons.picture_as_pdf_outlined,
+    size: 16,
+    color: Colors.black,
+  )
+      : (message.messageType == "contact")
+      ? Icon(
+    Icons.person_2_outlined,
+    size: 16,
+    color: Colors.black,
+  )
+      :
+  (message.messageType == "audio")
+      ? Icon(
+    Icons.audio_file_outlined,
+    size: 16,
+    color: Colors.black,
+  )
+      :
+  CustomText(
+    "${message.message}",
+    fontWeight: FontWeight.w500,
+    color: Colors.black,
+    fontSize: 13,
+  );
 }
 
 Widget replyMessageTypeIconWithLabel(Messages message) {
   return (message.replyParentMessage?.messageType == "image")
       ? Row(
-          children: [
-            replyMessageTypeIcons(message),
-            const SizedBox(
-              width: 4,
-            ),
-            CustomText(
-              "Image",
-              fontWeight: FontWeight.w500,
-              color:
-                  !(message.myMessage ?? false) ? Colors.black87 : Colors.white,
-              fontSize: 13,
-            ),
-          ],
-        )
+    children: [
+      replyMessageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Image",
+        fontWeight: FontWeight.w500,
+        color:
+        !(message.myMessage ?? false) ? Colors.black87 : Colors.white,
+        fontSize: 13,
+      ),
+    ],
+  )
       : (message.replyParentMessage?.messageType == "video")
-          ? Row(
-              children: [
-                replyMessageTypeIcons(message),
-                const SizedBox(
-                  width: 4,
-                ),
-                CustomText(
-                  "Video",
-                  fontWeight: FontWeight.w500,
-                  color: !(message.myMessage ?? false)
-                      ? Colors.black87
-                      : Colors.white,
-                  fontSize: 13,
-                ),
-              ],
-            )
-          : (message.replyParentMessage?.messageType == "location")
-              ? Row(
-                  children: [
-                    replyMessageTypeIcons(message),
-                    const SizedBox(
-                      width: 4,
-                    ),
-                    CustomText(
-                      "Location",
-                      fontWeight: FontWeight.w500,
-                      color: !(message.myMessage ?? false)
-                          ? Colors.black87
-                          : Colors.white,
-                      fontSize: 13,
-                    ),
-                  ],
-                )
-              : (message.replyParentMessage?.messageType == "document")
-                  ? Row(
-                      children: [
-                        replyMessageTypeIcons(message),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        CustomText(
-                          "Document",
-                          fontWeight: FontWeight.w500,
-                          color: !(message.myMessage ?? false)
-                              ? Colors.black87
-                              : Colors.white,
-                          fontSize: 13,
-                        ),
-                      ],
-                    )
-                  : (message.replyParentMessage?.messageType == "contact")
-                      ? Row(
-                          children: [
-                            replyMessageTypeIcons(message),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            CustomText(
-                              "Contact",
-                              fontWeight: FontWeight.w500,
-                              color: !(message.myMessage ?? false)
-                                  ? Colors.black87
-                                  : Colors.white,
-                              fontSize: 13,
-                            ),
-                          ],
-                        )
-                      : (message.replyParentMessage?.messageType == "audio")
-                          ? Row(
-                              children: [
-                                replyMessageTypeIcons(message),
-                                const SizedBox(
-                                  width: 4,
-                                ),
-                                CustomText(
-                                  "Audio",
-                                  fontWeight: FontWeight.w500,
-                                  color: !(message.myMessage ?? false)
-                                      ? Colors.black87
-                                      : Colors.white,
-                                  fontSize: 13,
-                                ),
-                              ],
-                            )
-                          : CustomText(
-                              "${message.replyParentMessage?.message}",
-                              fontWeight: FontWeight.w500,
-                              color: !(message.myMessage ?? false)
-                                  ? Colors.black87
-                                  : Colors.white,
-                              fontSize: 13,
-                            );
+      ? Row(
+    children: [
+      replyMessageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Video",
+        fontWeight: FontWeight.w500,
+        color: !(message.myMessage ?? false)
+            ? Colors.black87
+            : Colors.white,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.replyParentMessage?.messageType == "location")
+      ? Row(
+    children: [
+      replyMessageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Location",
+        fontWeight: FontWeight.w500,
+        color: !(message.myMessage ?? false)
+            ? Colors.black87
+            : Colors.white,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.replyParentMessage?.messageType == "document")
+      ? Row(
+    children: [
+      replyMessageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Document",
+        fontWeight: FontWeight.w500,
+        color: !(message.myMessage ?? false)
+            ? Colors.black87
+            : Colors.white,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.replyParentMessage?.messageType == "contact")
+      ? Row(
+    children: [
+      replyMessageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Contact",
+        fontWeight: FontWeight.w500,
+        color: !(message.myMessage ?? false)
+            ? Colors.black87
+            : Colors.white,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.replyParentMessage?.messageType == "audio")
+      ? Row(
+    children: [
+      replyMessageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Audio",
+        fontWeight: FontWeight.w500,
+        color: !(message.myMessage ?? false)
+            ? Colors.black87
+            : Colors.white,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : CustomText(
+    "${message.replyParentMessage?.message}",
+    fontWeight: FontWeight.w500,
+    color: !(message.myMessage ?? false)
+        ? Colors.black87
+        : Colors.white,
+    fontSize: 13,
+  );
 }
 
 Widget messageTypeIconWithLabel(Messages message) {
   return (message.messageType == "image")
       ? Row(
-          children: [
-            messageTypeIcons(message),
-            const SizedBox(
-              width: 4,
-            ),
-            CustomText(
-              "Image",
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-              fontSize: 13,
-            ),
-          ],
-        )
+    children: [
+      messageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Image",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        fontSize: 13,
+      ),
+    ],
+  )
       : (message.messageType == "video")
-          ? Row(
-              children: [
-                messageTypeIcons(message),
-                const SizedBox(
-                  width: 4,
-                ),
-                CustomText(
-                  "Video",
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                  fontSize: 13,
-                ),
-              ],
-            )
-          : (message.messageType == "location")
-              ? Row(
-                  children: [
-                    messageTypeIcons(message),
-                    const SizedBox(
-                      width: 4,
-                    ),
-                    CustomText(
-                      "Location",
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                      fontSize: 13,
-                    ),
-                  ],
-                )
-              : (message.messageType == "document")
-                  ? Row(
-                      children: [
-                        messageTypeIcons(message),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        CustomText(
-                          "Document",
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                          fontSize: 13,
-                        ),
-                      ],
-                    )
-                  : (message.messageType == "contact")
-                      ? Row(
-                          children: [
-                            messageTypeIcons(message),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            CustomText(
-                              "Contact",
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                              fontSize: 13,
-                            ),
-                          ],
-                        )
-                      : (message.messageType == "audio")
-                          ? Row(
-                              children: [
-                                messageTypeIcons(message),
-                                const SizedBox(
-                                  width: 4,
-                                ),
-                                CustomText(
-                                  "Audio",
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                  fontSize: 13,
-                                ),
-                              ],
-                            )
-                          : CustomText(
-                              "${message.message}",
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                              fontSize: 13,
-                            );
+      ? Row(
+    children: [
+      messageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Video",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.messageType == "location")
+      ? Row(
+    children: [
+      messageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Location",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.messageType == "document")
+      ? Row(
+    children: [
+      messageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Document",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.messageType == "contact")
+      ? Row(
+    children: [
+      messageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Contact",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : (message.messageType == "audio")
+      ? Row(
+    children: [
+      messageTypeIcons(message),
+      const SizedBox(
+        width: 4,
+      ),
+      CustomText(
+        "Audio",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        fontSize: 13,
+      ),
+    ],
+  )
+      : CustomText(
+    "${message.message}",
+    fontWeight: FontWeight.w500,
+    color: Colors.black,
+    fontSize: 13,
+  );
 }
