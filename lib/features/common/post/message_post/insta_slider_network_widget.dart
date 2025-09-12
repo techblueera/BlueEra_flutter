@@ -9,16 +9,17 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class InstaSlider extends StatefulWidget {
-  const InstaSlider({
+
+class InstaSliderNetwork extends StatefulWidget {
+  const InstaSliderNetwork({
     super.key,
   });
 
   @override
-  State<InstaSlider> createState() => _InstaSliderState();
+  State<InstaSliderNetwork> createState() => _InstaSliderNetworkState();
 }
 
-class _InstaSliderState extends State<InstaSlider> {
+class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
   int _currentPage = 0;
   final msgPostController = Get.find<MessagePostController>();
 
@@ -32,7 +33,7 @@ class _InstaSliderState extends State<InstaSlider> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: PageView.builder(
-        itemCount: msgPostController.imagesList.length,
+        itemCount: msgPostController.uploadImageList.length,
         scrollDirection: Axis.horizontal, // swipe left/right
         controller: PageController(viewportFraction: 1.0), // full width page
         onPageChanged: (index){
@@ -42,33 +43,27 @@ class _InstaSliderState extends State<InstaSlider> {
           });
         },
         itemBuilder: (context, index) {
-          MessagePostImageModel imageData = msgPostController.imagesList[index];
-
           return Stack(
             children: [
               Center(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                      imageData.imgCropMode == AppConstants.Square ? 0 : 12),
+                  borderRadius: BorderRadius.circular(12),
                   child: Container(
                     height: Get.width * 0.5,
-                    // height: Get.width * 1.09,
-                    width: imageData.imgCropMode == AppConstants.Square
-                        ? Get.width * 0.5
-                        : double.parse(
-                            imageData.imgWidth ?? Get.width.toString()),
+                    width: Get.width,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(1),
                       image: DecorationImage(
-                        image: FileImage(File(imageData.imageFile?.path ?? "")),
-                        fit: BoxFit.fitWidth,
+                        image: NetworkImage(
+                            msgPostController.uploadImageList[index]),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
                 ),
               ),
 
-              if (msgPostController.imagesList.length > 1)
+              if (msgPostController.uploadImageList.length > 1)
                 // --- Page Indicator ---
                 Positioned(
                   top: 12,
@@ -81,24 +76,11 @@ class _InstaSliderState extends State<InstaSlider> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: CustomText(
-                      "${_currentPage + 1}/${msgPostController.imagesList.length}",
+                      "${_currentPage + 1}/${msgPostController.uploadImageList.length}",
                       color: Colors.white,
                     ),
                   ),
                 ),
-
-              // --- Edit Button ---
-              Positioned(
-                bottom: 12,
-                right: 12,
-                child: GestureDetector(
-                  onTap: () {
-                    Get.off(PhotoListingWidget());
-                    // Handle edit action
-                  },
-                  child: LocalAssets(imagePath: AppIconAssets.round_black_edit),
-                ),
-              ),
 
               /// --- Debug: Show image width ---
             ],
@@ -108,4 +90,3 @@ class _InstaSliderState extends State<InstaSlider> {
     );
   }
 }
-

@@ -17,6 +17,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 
 class MessagePostController extends GetxController {
   /// ADD MSG POST
@@ -35,6 +36,7 @@ class MessagePostController extends GetxController {
   RxString messageTitle = ''.obs;
   RxBool isAddLink = false.obs;
   RxBool isAddTitle = false.obs;
+  RxList<User>? taggedSelectedUsersList = <User>[].obs;
 
   final List<Map<String, String>> fontStyles = [
     {'name': 'Style', 'family': 'OpenSans'},
@@ -53,7 +55,6 @@ class MessagePostController extends GetxController {
   final RxList<String> selectedPhotos = <String>[].obs;
   final int maxPhotos = 5; // Updated to 5 as per requirement
   final int minPhotos = 1; // Minimum 1 photo required
-  bool isPhotoPostEdit = false;
 
   ///ADD MESSAGE POST...
   Future<void> addMsgPostController({
@@ -73,6 +74,7 @@ class MessagePostController extends GetxController {
       final data = responseModel.response?.data;
       clearData();
       if (responseModel.isSuccess) {
+        isMsgPostEdit = false;
         commonSnackBar(message: data['message'] ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
             true;
@@ -154,6 +156,7 @@ class MessagePostController extends GetxController {
 
   // Store up to 5 images
   RxList<MessagePostImageModel> imagesList = <MessagePostImageModel>[].obs;
+  RxList<String> uploadImageList = <String>[].obs;
 
   // Aspect ratio (default Square 1:1)
   RxDouble aspectRatio = 1.0.obs;
@@ -167,9 +170,7 @@ class MessagePostController extends GetxController {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       imagesList.add(MessagePostImageModel(
-          id: 0,
-          imageFile: image,
-          imgCropMode:  AppConstants.Landscape));
+          id: 0, imageFile: image, imgCropMode: AppConstants.Landscape));
     }
   }
 }

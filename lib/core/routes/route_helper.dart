@@ -36,6 +36,7 @@ import 'package:BlueEra/features/common/notification/view/notification_screen.da
 import 'package:BlueEra/features/common/onboarding/view/onboarding_slider_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen.dart';
+import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_preview_screen.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_review_screen.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_screen.dart';
@@ -488,6 +489,10 @@ class RouteHelper {
               ? args[ApiKeys.isEdit] as bool
               : false;
           final postVia = args[ApiKeys.argPostVia] as PostVia?;
+          // return MaterialPageRoute(
+          //   builder: (_) => CreateMessagePostScreenNew(
+          //       isEdit: isEdit, post: postData, postVia: postVia),
+          // );
           return MaterialPageRoute(
             builder: (_) => CreateMessagePostScreen(
                 isEdit: isEdit, post: postData, postVia: postVia),
@@ -497,7 +502,7 @@ class RouteHelper {
           final postVia = args[ApiKeys.argPostVia] as PostVia?;
           return MaterialPageRoute(
             builder: (_) =>
-                CreateMessagePostScreen(isEdit: false, postVia: postVia),
+                CreateMessagePostScreenNew(isEdit: false, postVia: postVia),
           );
         }
 
