@@ -49,30 +49,47 @@ class NewProfileHeaderWidget extends StatelessWidget {
                             : null,
                         child: user.profileImage == null
                             ? CustomText(
-                                controller.getInitials(user.name),
-                                fontSize: SizeConfig.size18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              )
+                          controller.getInitials(user.name),
+                          fontSize: SizeConfig.size18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        )
                             : null,
                       ),
                     ),
                     SizedBox(
                       height: SizeConfig.size10,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size10,
-                          vertical: SizeConfig.size5),
-                      child: CustomText(
-                        "Follow",
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                      ),
-                      decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(10)),
-                    )
+                    Obx(() {
+                      return InkWell(
+                        onTap: () async {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+                          } else {
+                            if (controller.isFollow.value) {
+                              await controller.unFollowUserController(
+                                  candidateResumeId: user.id);
+                            } else {
+                              await controller.followUserController(
+                                  candidateResumeId: user.id);
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size10,
+                              vertical: SizeConfig.size5),
+                          child: CustomText(
+                            controller.isFollow.value ? "Unfollow" : "Follow",
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                      );
+                    })
                   ],
                 ),
                 SizedBox(
@@ -166,51 +183,52 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         ],
                       ),
                       Padding(
-                        padding: EdgeInsets.only(right: 38.0,top: SizeConfig.size15),
+                        padding: EdgeInsets.only(
+                            right: 38.0, top: SizeConfig.size15),
                         child: Row(
                           // mainAxisAlignment:
                           // MainAxisAlignment.spaceBetween,
                           children: [
-
                             InkWell(
                               onTap: () {
-                                Get.to(() => FollowersFollowingPage(
-                                  tabIndex: 0,
-                                  userID:
-                                  controller.userData.value?.user?.id ??
-                                      "",
-                                ));
+                                Get.to(() =>
+                                    FollowersFollowingPage(
+                                      tabIndex: 0,
+                                      userID:
+                                      controller.userData.value?.user?.id ??
+                                          "",
+                                    ));
                               },
                               child: StatBlock(
-                                  count:
-                                  formatIndianNumber(num.parse(controller
-                                      .userData.value?.followingCount.toString()??"0")),
-
+                                  count: formatIndianNumber(num.parse(controller
+                                      .userData.value?.followingCount
+                                      .toString() ??
+                                      "0")),
                                   label: "Following"),
                             ),
-
-
                             Container(
                               height: 15,
                               width: 0.9,
                               color: AppColors.mainTextColor,
-                              margin: EdgeInsets.only(left: SizeConfig.size5,right: SizeConfig.size5),
+                              margin: EdgeInsets.only(
+                                  left: SizeConfig.size5,
+                                  right: SizeConfig.size5),
                             ),
                             InkWell(
                               onTap: () {
-                                Get.to(() => FollowersFollowingPage(
-                                  tabIndex: 1,
-                                  userID:
-                                  controller.userData.value?.user?.id ??
-                                      "",
-                                ));
+                                Get.to(() =>
+                                    FollowersFollowingPage(
+                                      tabIndex: 1,
+                                      userID:
+                                      controller.userData.value?.user?.id ??
+                                          "",
+                                    ));
                               },
                               child: StatBlock(
-                                  count:
-                                  formatIndianNumber(controller.followerCount.value),
+                                  count: formatIndianNumber(
+                                      controller.followerCount.value),
                                   label: "Followers"),
                             ),
-
                           ],
                         ),
                       ),

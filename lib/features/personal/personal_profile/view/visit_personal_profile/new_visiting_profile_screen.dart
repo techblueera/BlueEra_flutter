@@ -119,6 +119,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   NewProfileHeaderWidget(user: user,),
+                  SizedBox(height: SizeConfig.size16,),
                   HorizontalTabSelector(
                     horizontalMargin: 0,
                     tabs: postTab,
