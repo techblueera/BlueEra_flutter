@@ -201,7 +201,7 @@ class _ExpandableTextState extends State<ExpandableText> {
                 SizedBox(height: SizeConfig.size8),
                 Flexible(
                   child: SingleChildScrollView(
-                    child: Text(widget.text, style: style),
+                    child: HighlightText(text:widget.text, ),
                   ),
                 ),
                 SizedBox(height: SizeConfig.size8),

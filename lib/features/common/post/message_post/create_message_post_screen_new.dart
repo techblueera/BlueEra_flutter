@@ -39,6 +39,7 @@ class _CreateMessagePostScreenNewState
     extends State<CreateMessagePostScreenNew> {
   final msgController = Get.put(MessagePostController());
   final tagUserController = Get.put(TagUserController());
+
   @override
   void initState() {
     // TODO: implement initState
@@ -107,7 +108,8 @@ class _CreateMessagePostScreenNewState
                         ///FOR ADD POST...
                         if (!msgController.isMsgPostEdit) {
                           Get.to(() => MessagePostPreviewScreenNew(
-                                postVia: widget.postVia, isEdit: msgController.isMsgPostEdit,
+                                postVia: widget.postVia,
+                                isEdit: msgController.isMsgPostEdit,
                               ));
                           return;
                         }
@@ -151,21 +153,54 @@ class _CreateMessagePostScreenNewState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Message description input
-
                 CommonTextField(
                   textEditController: msgController.descriptionMessage.value,
                   hintText:
-                      "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                  "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                   title: "Your Message",
                   maxLine: 5,
                   maxLength: 1000,
                   isValidate: false,
                   keyBoardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.none,
+                  textInputAction: TextInputAction.newline,
                   onChange: (val) {
+                    // Prevent multiple empty newlines at the end
+                    if (val.endsWith("\n\n")) {
+                      msgController.descriptionMessage.value.text =
+                          val.substring(0, val.length - 1); // remove extra newline
+                      msgController.descriptionMessage.value.selection =
+                          TextSelection.fromPosition(
+                            TextPosition(offset: msgController.descriptionMessage.value.text.length),
+                          );
+                    }
+
                     msgController.postText.value = val;
                   },
-                ),
+                  validator: (val) {
+                    if (val == null || val.trim().length < 50) {
+                      return "Message must be at least 50 characters long";
+                    }
+                    return null;
+                  },
+                )
+,
+
+
+                // CommonTextField(
+                //   textEditController: msgController.descriptionMessage.value,
+                //   hintText:
+                //       "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                //   title: "Your Message",
+                //   maxLine: 5,
+                //
+                //   maxLength: 1000,
+                //   isValidate: false,
+                //   keyBoardType: TextInputType.multiline,
+                //   textInputAction: TextInputAction.none,
+                //   onChange: (val) {
+                //     msgController.postText.value = val;
+                //   },
+                // ),
                 SizedBox(
                   height: SizeConfig.size5,
                 ),
@@ -314,7 +349,6 @@ class _CreateMessagePostScreenNewState
                 SizedBox(height: SizeConfig.size15),
 
                 PhotoUploadWidget(),
-
               ],
             ),
           ),
