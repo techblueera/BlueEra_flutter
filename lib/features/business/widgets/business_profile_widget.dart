@@ -1739,7 +1739,6 @@
 // }
 
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -1878,11 +1877,17 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ),
 
                     CustomText(
-                      (details?.subCategoryDetails !=null && details?.subCategoryDetails?.name !=null)
-                          ? details?.subCategoryDetails?.name
-                            : (details?.categoryDetails !=null && details?.categoryDetails?.name != null)
-                              ? details?.categoryDetails?.name
-                                    : details?.natureOfBusiness,
+                      (details?.subCategoryOfBusiness?.isNotEmpty ?? false)
+                          ? details?.subCategoryOfBusiness ??'' :
+                      (details?.categoryOfBusiness?.isNotEmpty ?? false)
+                          ?  details?.subCategoryOfBusiness??'' : (details?.natureOfBusiness ?? 'OTHERS'),
+
+                      // (details?.subCategoryDetails !=null && details?.subCategoryDetails?.name !=null)
+                      //     ? details?.subCategoryDetails?.name
+                      //       : (details?.categoryDetails !=null && details?.categoryDetails?.name != null)
+                      //         ? details?.categoryDetails?.name
+                      //               : details?.natureOfBusiness,
+
                       fontWeight: FontWeight.w400,
                       fontSize: 18,
                       maxLines: 1,

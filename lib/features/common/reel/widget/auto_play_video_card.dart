@@ -161,8 +161,8 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
 
               // Change Thumbnail button
               if ((widget.videoItem.channel?.id != null && widget.videoItem.channel?.id == channelId) ||
-                  (widget.videoItem.author?.accountType == AppConstants.individual && widget.videoItem.author?.id == userId) ||
-                  (widget.videoItem.author?.accountType == AppConstants.business && widget.videoItem.author?.id == userId))
+                  (widget.videoItem.author?.accountType == AppConstants.individual && widget.videoItem.author?.id == userId))
+
               Positioned(
                 left: SizeConfig.size10,
                 top: SizeConfig.size12,

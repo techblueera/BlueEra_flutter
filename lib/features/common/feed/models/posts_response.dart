@@ -259,7 +259,9 @@ class User {
   final String? name;
   final String? businessName;
   final String? business_id;
-  final String? businessCategory;
+  final String? categoryOfBusiness;
+  final String? subCategoryOfBusiness;
+  final String? natureOfBusiness;
 
   User({
     this.id,
@@ -270,7 +272,9 @@ class User {
     this.name,
     this.businessName,
     this.business_id,
-    this.businessCategory
+    this.categoryOfBusiness,
+    this.subCategoryOfBusiness,
+    this.natureOfBusiness
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -283,7 +287,9 @@ class User {
       name: json['name'],
       businessName: json['business_name'],
       business_id: json['business_id'],
-      businessCategory: json['business_category'],
+      natureOfBusiness: json['natureOfBusiness'],
+      categoryOfBusiness: json['categoryOfBusiness'],
+      subCategoryOfBusiness: json['subCategoryOfBusiness']
     );
   }
 
@@ -297,7 +303,9 @@ class User {
       'name': name,
       'business_name': businessName,
       'business_id': business_id,
-      'business_category': businessCategory
+      'categoryOfBusiness': categoryOfBusiness,
+      'subCategoryOfBusiness': subCategoryOfBusiness,
+      'natureOfBusiness': natureOfBusiness,
     };
   }
 
@@ -309,7 +317,10 @@ class User {
     String? accountType,
     String? name,
     String? businessName,
-    String? businessCategory
+    String? businessCategory,
+    String? categoryOfBusiness,
+    String? subCategoryOfBusiness,
+    String? natureOfBusiness,
   }) {
     return User(
       id: id ?? this.id,
@@ -319,7 +330,9 @@ class User {
       accountType: accountType ?? this.accountType,
       name: name ?? this.name,
       businessName: businessName ?? this.businessName,
-      businessCategory: businessCategory ?? this.businessCategory,
+      natureOfBusiness: natureOfBusiness ?? this.natureOfBusiness,
+      categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
+      subCategoryOfBusiness: subCategoryOfBusiness ?? this.subCategoryOfBusiness,
     );
   }
 }
@@ -397,6 +410,74 @@ class PollOption {
       text: text ?? this.text,
       isCorrect: isCorrect ?? this.isCorrect,
       votes: votes ?? this.votes,
+    );
+  }
+}
+
+class CategoryDetails {
+  final String id;
+  final String name;
+
+  CategoryDetails({
+    required this.id,
+    required this.name,
+  });
+
+  factory CategoryDetails.fromJson(Map<String, dynamic> json) {
+    return CategoryDetails(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name
+    };
+  }
+
+  CategoryDetails copyWith({
+     String? id,
+     String? name
+  }) {
+    return CategoryDetails(
+      id: id ?? this.id,
+      name: name ?? this.name,
+    );
+  }
+}
+
+class SubCategoryDetails {
+  final String id;
+  final String name;
+
+  SubCategoryDetails({
+    required this.id,
+    required this.name,
+  });
+
+  factory SubCategoryDetails.fromJson(Map<String, dynamic> json) {
+    return SubCategoryDetails(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name
+    };
+  }
+
+  SubCategoryDetails copyWith({
+    String? id,
+    String? name
+  }) {
+    return SubCategoryDetails(
+      id: id ?? this.id,
+      name: name ?? this.name,
     );
   }
 }

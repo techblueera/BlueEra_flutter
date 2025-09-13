@@ -45,10 +45,11 @@ class PostAuthorHeader extends StatelessWidget {
         : post?.user?.businessName ?? '';
 
     String designation = (post?.user?.accountType == AppConstants.individual)
-        ?
-    post?.user?.designation ?? "OTHERS"
-
-        : post?.user?.businessCategory ?? '';
+        ? post?.user?.designation ?? "OTHERS"
+        : (post?.user?.subCategoryOfBusiness?.isNotEmpty ?? false)
+            ? post?.user?.subCategoryOfBusiness ?? '' :
+                (post?.user?.categoryOfBusiness?.isNotEmpty ?? false)
+                     ?  post?.user?.subCategoryOfBusiness??'' : (post?.user?.natureOfBusiness ?? '');
 
 
     String id = (post?.user?.accountType == AppConstants.individual)
