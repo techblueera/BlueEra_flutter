@@ -37,6 +37,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
   late VisitProfileController controller;
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -53,7 +54,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
   }
 
   setFilters() {
-    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
+    filters = SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
 
   void _showPersonalDetailsPopup() {
@@ -232,19 +233,32 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                        
                                         InkWell(
                                           onTap: () async {
-                                            final link = profileDeepLink(userId: widget.authorId);
-                                            final message = "See my profile on BlueEra:\n$link\n";
-                                            await SharePlus.instance.share(ShareParams(
-                                              text: message,
-                                              subject: user.name,
-                                            ));
+                                            if (_isSharing) return;
+
+                                            try {
+                                              _isSharing = true;
+
+                                              final link = profileDeepLink(userId: widget.authorId);
+                                              final message = "See my profile on BlueEra:\n$link\n";
+
+                                              await SharePlus.instance.share(ShareParams(
+                                                text: message,
+                                                subject: user.name,
+                                              ));
+
+                                            } catch (e) {
+                                              print("Profile share failed: $e");
+                                            } finally {
+                                              _isSharing = false; // Reset flag
+                                            }
+
                                           },
                                           child: Image.asset( 
-                                                                  'assets/images/arrow.png',
-                                                                  height: 25,
-                                                                  width: 25,
-                                                                  fit: BoxFit.cover,
-                                                                ),
+                                              'assets/images/arrow.png',
+                                              height: 25,
+                                              width: 25,
+                                              fit: BoxFit.cover,
+                                            ),
                                         ),
                                       ],
                                     ),

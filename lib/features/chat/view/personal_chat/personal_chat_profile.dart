@@ -94,7 +94,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
   late VisitProfileController controller;
   final GlobalKey _cardKey = GlobalKey();
   double _cardHeight = 0;
-
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -118,11 +118,10 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
     shortsController.getShortsByType(
       Shorts.latest,
       widget.channelId,
-      widget.userId,
-      true,
+      widget.userId
     );
 
-    videosController.getVideosByType(videoType, '', widget.userId, true);
+    videosController.getVideosByType(videoType, '', widget.userId);
 
     _updateTextControllers();
   }
@@ -433,14 +432,24 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                             PopupMenuButton(
                                 onSelected: (value) async {
                                   if (value == 1) {
-                                    final link =
-                                        profileDeepLink(userId: widget.userId);
-                                    final message =
-                                        "See my profile on BlueEra:\n$link\n";
-                                    await SharePlus.instance.share(ShareParams(
-                                      text: message,
-                                      subject: user?.name,
-                                    ));
+                                    if (_isSharing) return;
+
+                                    try {
+                                      _isSharing = true; // Set flag to prevent multiple calls
+
+                                      final link = profileDeepLink(userId: widget.userId);
+                                      final message = "See my profile on BlueEra:\n$link\n";
+
+                                      await SharePlus.instance.share(ShareParams(
+                                        text: message,
+                                        subject: user?.name,
+                                      ));
+
+                                    } catch (e) {
+                                      print("Profile share failed: $e");
+                                    } finally {
+                                      _isSharing = false; // Reset flag
+                                    }
                                   }
                                 },
                                 itemBuilder: (context) => [
@@ -1648,7 +1657,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
   Widget buildHorizontalSortsList() {
     if (shortsController.isInitialLoading(Shorts.latest).isFalse) {
-          if (shortsController.shortsResponse.status == Status.COMPLETE) {
+          if (shortsController.shortsResponse.value.status == Status.COMPLETE) {
             final channelShorts =
                 shortsController.getListByType(shorts: Shorts.latest);
             if (channelShorts.isEmpty) {
@@ -1755,7 +1764,7 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
 
   Widget customVideoCard() {
     if (videosController.isInitialLoading(videoType).isFalse) {
-          if (videosController.channelVideosResponse.status ==
+          if (videosController.channelVideosResponse.value.status ==
               Status.COMPLETE) {
             final channelVideos = videosController.getListByType(videoType: videoType);
             if (channelVideos.isNotEmpty) {

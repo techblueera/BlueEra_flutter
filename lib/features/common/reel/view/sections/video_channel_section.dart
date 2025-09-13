@@ -47,7 +47,6 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
 
   @override
   void initState() {
-    print('call api');
     setVideosType();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchChannelVideos(isInitialLoad: true, postVia: widget.postVia);
@@ -75,12 +74,11 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
   }
 
 
-  void fetchChannelVideos({bool isInitialLoad = false, bool refresh = false,PostVia? postVia}) {
+  void fetchChannelVideos({bool isInitialLoad = false, bool refresh = false, PostVia? postVia}) {
     videosController.getVideosByType(
         videos,
         widget.channelId,
         widget.authorId,
-        widget.isOwnVideos,
         isInitialLoad: isInitialLoad,
         refresh: refresh,
         postVia: postVia
@@ -99,7 +97,7 @@ class _VideoChannelSectionState extends State<VideoChannelSection> {
   Widget build(BuildContext context) {
     return Obx(() {
       if(videosController.isInitialLoading(videos).isFalse){
-        if(videosController.channelVideosResponse.status == Status.COMPLETE){
+        if(videosController.channelVideosResponse.value.status == Status.COMPLETE){
           final channelVideos = videosController.getListByType(videoType: videos);
           log("videosPosts--> $channelVideos");
 

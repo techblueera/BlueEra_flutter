@@ -2369,6 +2369,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          SizedBox(
+            height: SizeConfig.size10,
+          ),
           BusinessLocationWidget(
               latitude: (details?.businessLocation?.lat?.toDouble() ?? 0.0),
               longitude: (details?.businessLocation?.lon?.toDouble() ?? 0.0),
@@ -3152,7 +3155,7 @@ class VisitingCardPreview extends StatelessWidget {
           right: 10,
           child: InkWell(
             onTap: () async =>
-                await VisitingCardHelper.shareVisitingCard(cardKey),
+                await VisitingCardHelper().shareVisitingCard(cardKey),
             child: Container(
               decoration: BoxDecoration(
                   color: AppColors.primaryColor,

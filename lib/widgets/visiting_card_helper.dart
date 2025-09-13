@@ -1,7 +1,10 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -31,14 +34,22 @@ class VisitingCardHelper {
     await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      await VisitingCardHelper.shareVisitingCard(cardKey);
+      await VisitingCardHelper().shareVisitingCard(cardKey, shareProfile: false);
     } finally {
       overlay.remove();
     }
   }
 
-  static Future<void> shareVisitingCard(GlobalKey cardKey, {String? message}) async {
+  bool _isSharing = false;
+
+  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true}) async {
+    // Prevent multiple calls
+   log('callll');
+    if (_isSharing) return;
+
     try {
+      _isSharing = true; // Set flag to prevent multiple calls
+
       // Capture with RepaintBoundary (keeps your background image)
       RenderRepaintBoundary boundary =
       cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -52,19 +63,35 @@ class VisitingCardHelper {
       final file = await File('${tempDir.path}/visiting_card.png').create();
       await file.writeAsBytes(pngBytes);
 
-      final String defaultMessage = """
+      final String message;
+      if (shareProfile) {
+        final link = profileDeepLink(userId: userId);
+        message = "See my profile on BlueEra:\n$link\n";
+      } else {
+        message = """
 Download our app now:
 👉 Play Store: ${AppConstants.androidPlayStoreUrl}
 👉 App Store: ${AppConstants.iosAppStoreUrl}
 """;
+      }
 
       // ✅ Share with image + text
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: message ?? defaultMessage,
-      );
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path)],
+        text: message,
+        subject: message,
+      ));
+
+      // Clean up the temporary file
+      if (await file.exists()) {
+        await file.delete();
+        debugPrint("🗑️ Visiting card image deleted from cache.");
+      }
+
     } catch (e) {
       debugPrint("❌ Error sharing card: $e");
+    } finally {
+      _isSharing = false;
     }
   }
 }

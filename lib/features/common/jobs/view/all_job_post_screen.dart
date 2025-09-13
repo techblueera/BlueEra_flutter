@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/open_googlemap_diraction.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_jobs_model.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.dart';
 import 'package:BlueEra/features/common/jobs/view/job_applications.dart';
@@ -48,6 +47,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
   final ScrollController _scrollController = ScrollController();
   final JobScreenController jobScreenController =
       Get.put(JobScreenController());
+
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -361,7 +362,11 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         break;
                                                       case 'Share':
                                                         // Share job: deep link + optional image preview
+                                                        if (_isSharing) return;
+
                                                         try {
+                                                          _isSharing = true;
+
                                                           final linkShare = jobDeepLink(jobId: job?.sId?.toString());
 
                                                           XFile? xFile;
@@ -385,6 +390,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                           }
                                                         } catch (e) {
                                                           print("job card share failed $e");
+                                                        } finally {
+                                                          _isSharing = false; // Reset flag
                                                         }
                                                         break;
                                                       case 'Hide':

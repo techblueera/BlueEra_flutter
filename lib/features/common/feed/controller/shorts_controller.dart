@@ -29,7 +29,7 @@ class ShortsController extends GetxController{
   ApiResponse personalizedShortsResponse = ApiResponse.initial('Initial');
   ApiResponse trendingShortsResponse = ApiResponse.initial('Initial');
   ApiResponse nearByShortsResponse = ApiResponse.initial('Initial');
-  ApiResponse shortsResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> shortsResponse = ApiResponse.initial('Initial').obs;
   ApiResponse deleteShortResponse = ApiResponse.initial('Initial');
   ApiResponse savedShortsResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
@@ -78,6 +78,8 @@ class ShortsController extends GetxController{
 
   /// Saved Videos
   RxList<ShortFeedItem> savedShorts = <ShortFeedItem>[].obs;
+
+  String? _lastFetchedId;
 
   ///GET ALL Feed Trending(In Shorts)...
   Future<void> getAllFeedTrending({
@@ -405,9 +407,9 @@ class ShortsController extends GetxController{
   ///GET CHANNEL SHORTS(TRENDING, POPULAR, OLDEST)...
   Future<void> getShortsByType(
       Shorts shorts,
-      String channelOrUserId,
+      String channelId,
       String authorId,
-      bool isOwnShorts, {
+       {
         bool isInitialLoad = false,
         bool refresh = false,
         PostVia? postVia,
@@ -424,9 +426,8 @@ class ShortsController extends GetxController{
           targetList: latestShortsPosts,
           onPageIncrement: () => latestShortsPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
           postVia: postVia,
         );
         // update();
@@ -443,9 +444,8 @@ class ShortsController extends GetxController{
           targetList: popularShortsPosts,
           onPageIncrement: () => popularShortsPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
           postVia: postVia,
         );
         break;
@@ -461,9 +461,8 @@ class ShortsController extends GetxController{
           isTargetMoreDataLoading: isOldestShortsMoreDataLoading,
           onPageIncrement: () => oldestShortsPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
           postVia: postVia,
         );
         break;
@@ -479,9 +478,8 @@ class ShortsController extends GetxController{
           targetList: underProgressShortsPosts,
           onPageIncrement: () => underProgressShortsPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
           postVia: postVia,
         );
         break;
@@ -498,9 +496,8 @@ class ShortsController extends GetxController{
           isTargetMoreDataLoading: isDraftShortsMoreDataLoading,
           onPageIncrement: () => draftShortsPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnShorts: isOwnShorts,
           postVia: postVia,
         );
     }
@@ -516,9 +513,8 @@ class ShortsController extends GetxController{
     required bool isTargetHasMoreData,
     required VoidCallback onPageIncrement,
     required bool refresh,
-    required String channelOrUserId,
+    required String channelId,
     required String authorId,
-    required bool isOwnShorts,
     required PostVia? postVia,
   }) async {
     if (isInitialLoad) {
@@ -528,6 +524,12 @@ class ShortsController extends GetxController{
     }
 
     if(!isTargetHasMoreData || isTargetMoreDataLoading.isTrue) return;
+
+    // ✅ Only show loader if last id is different
+    if (_lastFetchedId != authorId) {
+      targetInitialLoading.value = true;
+    }
+    _lastFetchedId = authorId;
 
     try {
       final params = {
@@ -549,17 +551,18 @@ class ShortsController extends GetxController{
         }
         params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
-        if(isOwnShorts){
+        log('channel id -- $channelId');
+        if(channelId.isEmpty){
           response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
         }else {
-          response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
+          response = await ChannelRepo().getVisitingChannelVideos(channelId: channelId, queryParams: params);
         }
       } else{
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
       }
 
       if (response.isSuccess) {
-        shortsResponse = ApiResponse.complete(response);
+        shortsResponse.value = ApiResponse.complete(response);
         final videoResponse = VideoResponse.fromJson(response.response?.data);
         final List<ShortFeedItem> newShorts = videoResponse.data?.videos ?? [];
         // if (newShorts.isNotEmpty) {
@@ -578,12 +581,12 @@ class ShortsController extends GetxController{
         //   isTargetHasMoreData = false;
         // }
       } else {
-        shortsResponse = ApiResponse.error('error');
+        shortsResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, stack) {
       log('Stack: $stack');
-      shortsResponse = ApiResponse.error('error');
+      shortsResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       targetInitialLoading.value = false;

@@ -130,7 +130,7 @@ class PostAuthorHeader extends StatelessWidget {
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else {
-                    onTapOptions ?? () => blockReportUserPopUp();
+                    onTapOptions ?? blockReportUserPopUp();
                   }
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),

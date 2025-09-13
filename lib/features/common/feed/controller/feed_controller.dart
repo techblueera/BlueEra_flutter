@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -9,7 +11,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
- 
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -48,6 +49,8 @@ class FeedController extends GetxController{
 
   RxList<LikeUserData> allLikeUsersList = <LikeUserData>[].obs;
   RxBool allLikeUsersListLoading = true.obs;
+
+  String? _lastFetchedId;
 
   /// Fetch posts based on filter
   Future<void> getPostsByType(
@@ -278,12 +281,12 @@ class FeedController extends GetxController{
       return;
     }
 
-    // Set loading state
-    // if (!isInitialLoad) {
-    //   isTargetMoreDataLoading.value = true;
-    // } else {
-    //   // isLoading.value = true;
-    // }
+    // ✅ Only show loader if last id is different
+    log('last fetched id-->  $_lastFetchedId');
+    if (_lastFetchedId != id) {
+      isLoading.value = true;
+    }
+    _lastFetchedId = id;
 
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: page,

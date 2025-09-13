@@ -73,7 +73,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
   }
 
   setFilters() {
-    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
+    filters = SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
 
   @override

@@ -1,4 +1,4 @@
-import 'dart:async';
+ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -30,7 +30,7 @@ class VideoController extends GetxController{
   ApiResponse videoUnlikeResponse = ApiResponse.initial('Initial');
   ApiResponse followChannelResponse = ApiResponse.initial('Initial');
   ApiResponse unFollowChannelResponse = ApiResponse.initial('Initial');
-  ApiResponse channelVideosResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> channelVideosResponse = ApiResponse.initial('Initial').obs;
   ApiResponse deleteVideosResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
@@ -66,6 +66,8 @@ class VideoController extends GetxController{
   RxBool isVideoSavedInDb = false.obs;
 
   final Map<String, Timer> _likeApiTimers = {};
+
+  String? _lastFetchedId;
 
   /// View Video
   Future<void> videoView({required String videoId}) async {
@@ -352,9 +354,9 @@ class VideoController extends GetxController{
   /// GET CHANNEL VIDEOS (LATEST, POPULAR, OLDEST, etc.)
   Future<void> getVideosByType(
       VideoType videos,
-      String channelOrUserId,
+      String channelId,
       String authorId,
-      bool isOwnVideos, {
+       {
         bool isInitialLoad = false,
         bool refresh = false,
         PostVia? postVia,
@@ -371,9 +373,8 @@ class VideoController extends GetxController{
           targetList: latestVideosPosts,
           onPageIncrement: () => latestVideosPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
           postVia: postVia,
         );
         // update();
@@ -390,9 +391,8 @@ class VideoController extends GetxController{
           targetList: popularVideosPosts,
           onPageIncrement: () => popularVideosPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
           postVia: postVia,
         );
         break;
@@ -408,9 +408,8 @@ class VideoController extends GetxController{
           targetList: oldestVideosPosts,
           onPageIncrement: () => oldestVideosPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
           postVia: postVia,
         );
         break;
@@ -426,9 +425,8 @@ class VideoController extends GetxController{
           targetList: underProgressVideosPosts,
           onPageIncrement: () => underProgressVideosPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
           postVia: postVia,
         );
         break;
@@ -445,9 +443,8 @@ class VideoController extends GetxController{
           targetList: draftVideosPosts,
           onPageIncrement: () => draftVideoPage++,
           refresh: refresh,
-          channelOrUserId: channelOrUserId,
+          channelId: channelId,
           authorId: authorId,
-          isOwnVideos: isOwnVideos,
           postVia: postVia,
         );
     }
@@ -465,9 +462,8 @@ class VideoController extends GetxController{
     required bool isTargetHasMoreData,
     required VoidCallback onPageIncrement,
     required bool refresh,
-    required String channelOrUserId,
+    required String channelId,
     required String authorId,
-    required bool isOwnVideos,
     required PostVia? postVia,
   }) async {
     if (isInitialLoad) {
@@ -477,6 +473,12 @@ class VideoController extends GetxController{
     }
 
     if(!isTargetHasMoreData || isTargetMoreDataLoading.isTrue) return;
+
+    // ✅ Only show loader if last id is different
+    if (_lastFetchedId != authorId) {
+      targetInitialLoading.value = true;
+    }
+    _lastFetchedId = authorId;
 
     try {
       final params = {
@@ -498,12 +500,12 @@ class VideoController extends GetxController{
 
         params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
-        if(isOwnVideos){
-          /// for own channel we will fetch videos by user Id
+        if(channelId.isEmpty){
+          /// for own channel or any profile we will fetch videos by user Id
           response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
         }else {
-          /// for own channel we will fetch videos by other user channel id
-          response = await ChannelRepo().getVisitingChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
+          /// for other channel we will fetch videos by other user channel id
+          response = await ChannelRepo().getVisitingChannelVideos(channelId: channelId, queryParams: params);
         }
       }else{
         /// for getting  all videos of user we will fetch videos by user Id (will not sent postVia)
@@ -511,7 +513,7 @@ class VideoController extends GetxController{
       }
 
       if (response.isSuccess) {
-        channelVideosResponse = ApiResponse.complete(response);
+        channelVideosResponse.value = ApiResponse.complete(response);
         final videoResponse = VideoResponse.fromJson(response.response?.data);
         final List<ShortFeedItem> newVideos = videoResponse.data?.videos ?? [];
         // if (newVideos.isNotEmpty) {
@@ -530,11 +532,11 @@ class VideoController extends GetxController{
         //   isTargetHasMoreData = false;
         // }
       } else {
-        channelVideosResponse = ApiResponse.error('error');
+        channelVideosResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      channelVideosResponse = ApiResponse.error('error');
+      channelVideosResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       targetInitialLoading.value = false;

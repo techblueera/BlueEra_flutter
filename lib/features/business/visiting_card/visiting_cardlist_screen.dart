@@ -157,19 +157,24 @@ Widget buildCard1(BusinessProfileDetails data) {
     children: [
       RepaintBoundary(
         key: _cardKey,
-        child: SizedBox(
-          height: 220,
+        child: Container(
           child: Stack(
             children: [
               Container(
                 height: 250,
                 width: Get.width,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    image: DecorationImage(
+                      image: AssetImage(AppIconAssets.visiting_bg),
+                      fit: BoxFit.cover,
+                    ),
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: SvgPicture.asset(
                     AppIconAssets.visiting_bg,
-                    fit: BoxFit.fitHeight,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
@@ -330,7 +335,7 @@ Widget buildCard1(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -607,7 +612,7 @@ Widget buildCard2(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -847,7 +852,7 @@ Widget buildCard3(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -1116,7 +1121,7 @@ Widget buildCard4(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -1360,7 +1365,7 @@ Widget buildCard5(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -1629,7 +1634,7 @@ Widget buildCard6(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -1934,7 +1939,7 @@ Widget buildCard7(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -2175,7 +2180,7 @@ Widget buildCard8(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -2492,7 +2497,7 @@ Widget buildCard9(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -2863,7 +2868,7 @@ Widget buildCard10(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
@@ -3138,7 +3143,7 @@ Widget buildCard11(BusinessProfileDetails data) {
         bottom: 10,
         right: 10,
         child: InkWell(
-          onTap: () async => await VisitingCardHelper.shareVisitingCard(_cardKey),
+          onTap: () async => await VisitingCardHelper().shareVisitingCard(_cardKey),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.primaryColor,
