@@ -59,7 +59,7 @@ class PostAuthorHeader extends StatelessWidget {
       padding: EdgeInsets.only(
           left: SizeConfig.size15,
           top: SizeConfig.size10,
-          bottom: SizeConfig.size10),
+          bottom: SizeConfig.size5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -76,7 +76,6 @@ class PostAuthorHeader extends StatelessWidget {
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
-                  log('account type-- ${post?.user?.accountType?.toUpperCase()}');
                   if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
                   } else {
