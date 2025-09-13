@@ -196,7 +196,6 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                         isOwnVideos: false,
                         channelId: '',
                         authorId: widget.businessId,
-                        // isScroll: false,
                         sortBy: selectedFilter,
                         postVia: PostVia.profile,
                       ),
@@ -226,7 +225,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
   Widget _filterButtons() {
     return SingleChildScrollView(
         padding:
-        EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+        EdgeInsets.only(left: SizeConfig.size16, right: SizeConfig.size16, top: SizeConfig.size20, bottom: SizeConfig.size10),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
