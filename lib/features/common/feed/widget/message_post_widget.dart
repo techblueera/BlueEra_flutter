@@ -90,7 +90,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                       padding: EdgeInsets.only(
                           left: SizeConfig.size15,
                           right: SizeConfig.size15,
-                          top: SizeConfig.size10,
+                          top: (_post.media?.isNotEmpty ?? false)?SizeConfig.size10:0,
                           bottom: SizeConfig.size1),
                       child: CustomText(
                         _post.title,
@@ -104,11 +104,11 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                       padding: EdgeInsets.only(
                           left: SizeConfig.size15,
                           right: SizeConfig.size15,
-                          top: SizeConfig.size10,
+                          top: (_post.title?.isNotEmpty ?? false)?SizeConfig.size5:(_post.media?.isNotEmpty ?? false)?10:0,
                           bottom: SizeConfig.size1),
                       child: ExpandableText(
                         text: subTitle,
-                        trimLines: 2,
+                        trimLines: 4,
                         style: TextStyle(
                           color: AppColors.mainTextColor,
                           fontSize: SizeConfig.large,

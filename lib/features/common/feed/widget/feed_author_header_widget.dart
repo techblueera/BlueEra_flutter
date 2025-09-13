@@ -59,7 +59,7 @@ class PostAuthorHeader extends StatelessWidget {
       padding: EdgeInsets.only(
           left: SizeConfig.size15,
           top: SizeConfig.size10,
-          bottom: SizeConfig.size15),
+          bottom: SizeConfig.size10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
