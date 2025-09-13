@@ -115,7 +115,7 @@ class _FeedCardState extends State<FeedCard> {
               _onSavedUnSavedButtonPressed();
             },
             onShareButtonPressed: () async {
-              onShareButtonPressed(_post!);
+              onShareButtonPressed(_post);
             },
           ),
         );
@@ -238,22 +238,28 @@ class _FeedCardState extends State<FeedCard> {
 
 }
 
+bool _isSharing = false;
 
-Future<void> onShareButtonPressed(Post _post) async {
+Future<void> onShareButtonPressed(Post? _post) async {
+  // Prevent multiple calls
+  if (_isSharing) return;
+
   try {
+    _isSharing = true; // Set flag to prevent multiple calls
 
-    logs("linkShare====${_post!.id} and ${_post!.media?.isNotEmpty}");
+    logs("linkShare====${_post!.id} and ${_post.media?.isNotEmpty}");
 
     XFile? xFile;
-    if (_post!.media != null && _post!.media!.isNotEmpty) {
+    if (_post.media != null && _post.media!.isNotEmpty) {
       // Safely handle first media
-      xFile = await urlToCachedXFile(_post!.media!.first);
+      xFile = await urlToCachedXFile(_post.media!.first);
     }
-    final shareUrl = postDeepLink(postId: _post!.id.toString()); //'https://blueera.ai/app/post/${(postId ?? "")}';
+    final shareUrl = postDeepLink(postId: _post.id.toString());
     final combinedText = shareUrl;
+
     await SharePlus.instance.share(ShareParams(
         text: combinedText,
-        subject: _post!.title,
+        subject: _post.title,
         previewThumbnail: xFile));
 
     if (xFile != null) {
@@ -265,6 +271,8 @@ Future<void> onShareButtonPressed(Post _post) async {
     }
   } catch (e) {
     print("feed card share failed inside _onShareButtonPressed $e");
+  } finally {
+    _isSharing = false; // Reset flag
   }
 }
 

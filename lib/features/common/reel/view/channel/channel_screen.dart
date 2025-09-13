@@ -232,8 +232,10 @@ class _ChannelScreenState extends State<ChannelScreen> {
               shortsController.isMoreDataLoading(shorts).isFalse) {
             shortsController.isMoreDataLoading(shorts).value = true;
             shortsController.getShortsByType(
-                shorts, widget.channelId, widget.authorId, isOwnChannel,
-                postVia: PostVia.channel);
+                shorts, widget.channelId,
+                widget.authorId,
+                postVia: PostVia.channel
+            );
           }
           break;
         case ChannelTab.videos:
@@ -246,7 +248,6 @@ class _ChannelScreenState extends State<ChannelScreen> {
               videos,
               widget.channelId,
               widget.authorId,
-              isOwnChannel,
             );
           }
           break;
@@ -804,7 +805,15 @@ class _ChannelScreenState extends State<ChannelScreen> {
   Widget _buildTabView() {
     switch (_selectedTab) {
       case ChannelTab.shorts:
-        return ShortsChannelSection(
+        return isOwnChannel
+            ? ShortsChannelSection(
+          isOwnShorts: isOwnChannel,
+          sortBy: channelController.selectedFilter,
+          showShortsInGrid: true,
+          channelId: '',
+          authorId: widget.authorId,
+          postVia: PostVia.channel,
+        ) : ShortsChannelSection(
           isOwnShorts: isOwnChannel,
           sortBy: channelController.selectedFilter,
           showShortsInGrid: true,
@@ -813,7 +822,15 @@ class _ChannelScreenState extends State<ChannelScreen> {
           postVia: PostVia.channel,
         );
       case ChannelTab.videos:
-        return VideoChannelSection(
+        return isOwnChannel
+            ?
+         VideoChannelSection(
+          isOwnVideos: isOwnChannel,
+          sortBy: channelController.selectedFilter,
+          channelId: '',
+          authorId: widget.authorId,
+          postVia: PostVia.channel,
+        ) : VideoChannelSection(
           isOwnVideos: isOwnChannel,
           sortBy: channelController.selectedFilter,
           channelId: widget.channelId,

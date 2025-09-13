@@ -73,7 +73,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
   }
 
   setFilters() {
-    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
+    filters = SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
 
   @override
@@ -340,17 +340,13 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                       SizedBox(height: SizeConfig.size6),
                       Row(
                         children: [
-                          _buildTag((businessData?.subCategoryDetails != null &&
-                                  businessData?.subCategoryDetails?.name !=
-                                      null)
-                              ? businessData?.subCategoryDetails?.name ?? ''
-                              : (businessData?.categoryDetails != null &&
-                                      businessData?.categoryDetails?.name !=
-                                          null)
-                                  ? businessData?.categoryDetails?.name ?? ''
-                                  : (businessData?.natureOfBusiness ??
-                                      'OTHERS')),
-                          SizedBox(width: SizeConfig.size6),
+                          _buildTag(
+                              (businessData?.subCategoryOfBusiness?.isNotEmpty ?? false)
+                                 ? businessData?.subCategoryOfBusiness ??''
+                                    : (businessData?.categoryOfBusiness?.isNotEmpty ?? false)
+                                        ? businessData?.subCategoryOfBusiness??''
+                                          : (businessData?.natureOfBusiness ?? 'OTHERS')),
+                                             SizedBox(width: SizeConfig.size6),
                           // _buildTag("Closed",
                           //     borderColor: AppColors.red,
                           //     textColor: AppColors.red),

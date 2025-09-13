@@ -50,6 +50,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool isUploadFromChannel = false;
 
   double _calculatedHeight = SizeConfig.size300;
+  bool _isVideoSharing = false;
 
   @override
   void initState() {
@@ -338,20 +339,30 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     ));
   }
 
-  /// Simple, consistent share experience (like header_widget.dart)
   Future<void> _shareVideoSimple() async {
-    final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
-    final link = videoDeepLink(videoId: id);
-    final title = widget.videoItem.video?.title ?? 'BlueEra Video';
+    // Prevent multiple calls
+    if (_isVideoSharing) return;
 
-    final message = "Watch on BlueEra App:\n$link\n";
+    try {
+      _isVideoSharing = true; // Set flag to prevent multiple calls
 
-    await SharePlus.instance.share(ShareParams(
-      text: message,
-      subject: title,
-    ));
+      final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
+      final link = videoDeepLink(videoId: id);
+      final title = widget.videoItem.video?.title ?? 'BlueEra Video';
+
+      final message = "Watch on BlueEra App:\n$link\n";
+
+      await SharePlus.instance.share(ShareParams(
+        text: message,
+        subject: title,
+      ));
+
+    } catch (e) {
+      print("Video share failed: $e");
+    } finally {
+      _isVideoSharing = false; // Reset flag
+    }
   }
-
 
   Widget _buildExpandedWidget() {
     return Column(

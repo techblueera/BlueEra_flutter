@@ -111,14 +111,8 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         ),
                       ),
                       InkWell(
-                        onTap: () async {
-                          final link = profileDeepLink(userId: widget.userId);
-
-                          final message = "See my profile on BlueEra:\n$link\n";
-                          await SharePlus.instance.share(ShareParams(
-                            text: message,
-                            subject: widget.businessName,
-                          ));
+                        onTap: () {
+                          shareProfile();
                         },
                         child: Image.asset(
                           'assets/images/arrow.png',
@@ -352,5 +346,29 @@ class _HeaderWidgetState extends State<HeaderWidget> {
         }),
       ],
     );
+  }
+
+  bool _isSharing = false;
+
+  Future<void> shareProfile() async {
+    // Prevent multiple calls
+    if (_isSharing) return;
+
+    try {
+      _isSharing = true; // Set flag to prevent multiple calls
+
+      final link = profileDeepLink(userId: widget.userId);
+      final message = "See my profile on BlueEra:\n$link\n";
+
+      await SharePlus.instance.share(ShareParams(
+        text: message,
+        subject: widget.businessName,
+      ));
+
+    } catch (e) {
+      print("Profile share failed: $e");
+    } finally {
+      _isSharing = false; // Reset flag
+    }
   }
 }

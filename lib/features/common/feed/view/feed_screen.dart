@@ -67,8 +67,8 @@ class _FeedScreenState extends State<FeedScreen> {
       if (shouldRefresh == true) {
         fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
-      }
-    });
+       }
+      });
     });
 
   }

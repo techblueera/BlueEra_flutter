@@ -143,10 +143,9 @@ class CommonTextField extends StatelessWidget {
         Container(
           width: SizeConfig.screenWidth,
           decoration: BoxDecoration(
-            // color: AppColors.red, // White background
             color: AppColors.white, // White background
-            borderRadius: BorderRadius.circular(12), // Rounded corners
             boxShadow: [AppShadows.textFieldShadow],
+            borderRadius: BorderRadius.circular(10),
           ),
           clipBehavior: Clip.antiAlias, // ✅ Allow toolbar to overflow
 
