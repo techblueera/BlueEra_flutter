@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -80,7 +81,8 @@ class PostAuthorHeader extends StatelessWidget {
                   if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
                   } else {
-                    Get.to(() => VisitProfileScreen(authorId: authorId));
+                    Get.to(() => NewVisitProfileScreen(authorId: authorId));
+                    // Get.to(() => VisitProfileScreen(authorId: authorId));
                     // Get.to(() => PersonalChatProfile(userId: authorId));
                   }
                 }

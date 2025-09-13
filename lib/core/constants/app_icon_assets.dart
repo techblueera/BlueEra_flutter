@@ -344,4 +344,10 @@ class AppIconAssets {
   static String visiting_bg = "${iconPath}bgcontainerTemp.svg";
   static String bE_logo = "${iconPath}bE_logo.svg";
   static String round_black_edit = "${iconPath}round_black_edit.svg";
+  static String more_vertical = "${iconPath}more_vertical.svg";
+  static String share_bold = "${iconPath}share_bold.svg";
+  static String calender_new = "${iconPath}calender_new.svg";
+  static String location_new = "${iconPath}location_new.svg";
+  static String mail_new = "${iconPath}mail_new.svg";
+  static String channel_video_new = "${iconPath}channel_video_new.svg";
 }

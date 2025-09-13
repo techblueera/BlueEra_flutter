@@ -8,6 +8,8 @@ import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/reel/models/channel_model.dart';
+import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:get/get.dart';
@@ -19,13 +21,16 @@ class VisitProfileController extends GetxController {
   Rx<ApiResponse> followUnFollowResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addTestimonialResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getTestimonialResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getUserChannelDetailsResponse =
+      ApiResponse.initial('Initial').obs;
   var userData = Rxn<UserProfileRes>();
-  Rx<GetCountRattingResponse?> getCountRattingResponse=Rxn<GetCountRattingResponse>();
-  Rx<GetRattingSummaryResponse?> getRattingSummaryResponse=Rxn<GetRattingSummaryResponse>();
+  Rx<GetCountRattingResponse?> getCountRattingResponse =
+      Rxn<GetCountRattingResponse>();
+  Rx<GetRattingSummaryResponse?> getRattingSummaryResponse =
+      Rxn<GetRattingSummaryResponse>();
 
   @override
   void onInit() {
-
     super.onInit();
   }
 
@@ -88,12 +93,9 @@ class VisitProfileController extends GetxController {
     } catch (e) {}
   }
 
-
-
-
   //  ratting Summary Api
 
-    Future<void> getRatingSummary({required String userId}) async {
+  Future<void> getRatingSummary({required String userId}) async {
     try {
       ResponseModel response =
           await UserRepo().getRattingSummaryById(userId: userId);
@@ -102,11 +104,8 @@ class VisitProfileController extends GetxController {
             GetRattingSummaryResponse.fromJson(response.data);
         update();
       }
-    } catch (e) {
-
-    }
+    } catch (e) {}
   }
-
 
   String getInitials(String? name) {
     if (name == null || name.isEmpty) return 'U';
@@ -269,6 +268,33 @@ class VisitProfileController extends GetxController {
     } catch (e) {
       getTestimonialResponse.value = ApiResponse.error('error');
     }
+  }
+
+  ///GET CHANNEL DETAILS...
+  RxString? channelUserName="".obs;
+  Future<String?> getUserChannelDetailsController({required String? userId}) async {
+    try {
+      getUserChannelDetailsResponse.value = ApiResponse.initial('Initial');
+
+      ResponseModel response =
+          await ChannelRepo().getChannelDetails(channelOrUserId: userId??"");
+
+      if (response.statusCode == 200) {
+        ChannelModel channelModel =
+            ChannelModel.fromJson(response.response?.data);
+        channelUserName?.value=channelModel.data.username;
+        getUserChannelDetailsResponse.value = ApiResponse.complete(response);
+      } else {
+        getUserChannelDetailsResponse.value = ApiResponse.error('error');
+
+        return null;
+      }
+    } catch (e) {
+      getUserChannelDetailsResponse.value = ApiResponse.error('error');
+
+      return null;
+    }
+    return null;
   }
 }
 
