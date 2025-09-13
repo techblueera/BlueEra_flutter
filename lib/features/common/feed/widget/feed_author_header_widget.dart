@@ -100,7 +100,7 @@ class PostAuthorHeader extends StatelessWidget {
                   imageUrl: post?.user?.profileImage ?? '',
                   title: '$name',
                   userName: '${post?.user?.username}',
-                  subtitle: designation,
+                  subtitle: designation != "null" ? designation : 'OTHERS',
                   avatarSize: SizeConfig.size42,
                   borderColor: AppColors.primaryColor,
                   postedAgo: postedAgo
