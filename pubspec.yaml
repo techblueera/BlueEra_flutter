@@ -108,6 +108,8 @@ flutter:
       fonts:
         - asset: assets/fonts/OpenSans.ttf
           weight: 400
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700
     - family: Arizonia
       fonts:
         - asset: assets/fonts/Arizonia.ttf

@@ -192,7 +192,19 @@ String formatNumberLikePost(int number) {
     return number.toString();
   }
 }
+stringDateFormat({required int year,required int month,required int day})
+{
+  DateTime date = DateTime(year,
+      month, day);
 
+  return DateFormat("MMMM, d").format(date);
+}
+stringDateFormatDate({required String dateValue})
+{
+  DateTime date = DateTime.parse(dateValue);
+
+  return DateFormat("MMMM, y").format(date);
+}
 String getTimeAgo(String isoTime) {
   DateTime dateTime = DateTime.parse(isoTime).toLocal();
   DateTime now = DateTime.now();
@@ -637,6 +649,65 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
               items[i]['title'],
               fontSize: SizeConfig.medium,
               color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
+
+List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
+  final items = <Map<String, dynamic>>[
+    // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
+    {"id": "SHARE", 'icon': AppIconAssets.share_bold, 'title': 'Share'},
+    // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        // onTap: () {
+        //
+        //   if (items[i]['id'] == "SHARE") {}
+        //
+        // },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+                imagePath: items[i]['icon'],
+                height: SizeConfig.size20,
+                width: SizeConfig.size20,
+            ),
+            SizedBox(width: SizeConfig.size5),
+            CustomText(
+              items[i]['title'],
+              color: AppColors.secondaryTextColor,
             ),
           ],
         ),
