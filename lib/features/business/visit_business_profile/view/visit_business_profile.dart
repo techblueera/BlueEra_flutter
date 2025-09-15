@@ -144,7 +144,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile> with SingleT
                       children: [
                         RatingReviewCard(
                           businessId: widget.businessId,
-                          businessProfile: businessData,
+                          rating: businessData?.rating??0,
                         ),
                         const SizedBox(height: 30),
                         AboutBusinessWidget(

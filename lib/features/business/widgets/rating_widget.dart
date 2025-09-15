@@ -11,12 +11,12 @@ import '../auth/model/viewBusinessProfileModel.dart';
 
 class RatingReviewCard extends StatelessWidget {
   final String businessId;
-  final BusinessProfileDetails? businessProfile;
+  final int? rating;
 
   const RatingReviewCard({
     super.key,
     required this.businessId,
-    required this.businessProfile,
+    required this.rating,
   });
 
   @override
@@ -58,7 +58,7 @@ class RatingReviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                 RatingStars(selectedIndex: businessProfile?.rating??0),
+                 RatingStars(selectedIndex: rating??0),
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () {

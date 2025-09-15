@@ -298,11 +298,11 @@ class AppIconAssets {
   static String calander = "${AppConstants.baseIconAssetsPath}calander.png";
   static String chat_media_forward = "${iconPath}chat_media_forward.svg";
 
-  static String rating1="${iconPath}happy_rating.svg";
-  static String rating2="${iconPath}happyfour_rating.svg";
+  static String rating1="${iconPath}sad_rating.svg";
+  static String rating2="${iconPath}last_rating.svg";
   static String rating3="${iconPath}moderatethree.svg";
-  static String rating4="${iconPath}last_rating.svg";
-  static String rating5="${iconPath}sad_rating.svg";
+  static String rating4="${iconPath}happyfour_rating.svg";
+  static String rating5="${iconPath}happy_rating.svg";
   static String filledstar="${iconPath}filled_rating.svg";
   static String chat_double_tick = "${iconPath}chat_double_tick.svg";
   static String progressIndicator = "${iconPath}progress_indicator.svg";
