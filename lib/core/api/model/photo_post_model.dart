@@ -1,5 +1,5 @@
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
-import 'package:BlueEra/features/common/reel/models/song.dart';
+import 'package:BlueEra/features/common/reel/models/song_model.dart';
 
 class PhotoPost {
   List<String> photoUrls;

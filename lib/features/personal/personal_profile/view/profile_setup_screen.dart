@@ -72,6 +72,7 @@ class _PersonalProfileSetupScreenState
   @override
   void initState() {
     super.initState();
+    print('calllllll');
     selectedFilter = widget.sortBy ?? SortBy.Latest;
     setFilters();
     _loadInitialData();
@@ -84,6 +85,10 @@ class _PersonalProfileSetupScreenState
 
 
   setFilters() {
+    selectedIndex = widget.selectedIndex ?? 0;
+    // selectedIndex = widget.selectedIndex != null
+    //     ? (user?.profession == SELF_EMPLOYED) ? widget.selectedIndex! : (widget.selectedIndex! - 1)
+    //     : 0;
     filters = SortBy.values.toList();
   }
 
@@ -154,7 +159,7 @@ class _PersonalProfileSetupScreenState
               viewProfileController.personalProfileDetails.value.user;
           final validIndexes = user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
           String profession = user?.profession ?? "OTHERS";
-          selectedIndex = (user?.profession == SELF_EMPLOYED) ? widget.selectedIndex??0 : (widget.selectedIndex??0)-1;
+
           postTab = [
             if (viewProfileController
                 .personalProfileDetails.value.user?.profession ==

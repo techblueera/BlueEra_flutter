@@ -226,9 +226,9 @@ print("url=== ${url}");
 
   ///GET ALL Channel Videos...
   Future<ResponseModel> getVisitingChannelVideos(
-      {required String channelOrUserId,
+      {required String channelId,
       required Map<String, dynamic> queryParams}) async {
-    String videosChannel = channelVideos(channelOrUserId);
+    String videosChannel = channelVideos(channelId);
     final response = await ApiBaseHelper().getHTTP(
       videosChannel,
       params: queryParams,

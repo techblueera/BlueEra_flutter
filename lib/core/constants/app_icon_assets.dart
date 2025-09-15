@@ -298,11 +298,11 @@ class AppIconAssets {
   static String calander = "${AppConstants.baseIconAssetsPath}calander.png";
   static String chat_media_forward = "${iconPath}chat_media_forward.svg";
 
-  static String rating1="${iconPath}happy_rating.svg";
-  static String rating2="${iconPath}happyfour_rating.svg";
+  static String rating1="${iconPath}sad_rating.svg";
+  static String rating2="${iconPath}last_rating.svg";
   static String rating3="${iconPath}moderatethree.svg";
-  static String rating4="${iconPath}last_rating.svg";
-  static String rating5="${iconPath}sad_rating.svg";
+  static String rating4="${iconPath}happyfour_rating.svg";
+  static String rating5="${iconPath}happy_rating.svg";
   static String filledstar="${iconPath}filled_rating.svg";
   static String chat_double_tick = "${iconPath}chat_double_tick.svg";
   static String progressIndicator = "${iconPath}progress_indicator.svg";
@@ -344,4 +344,10 @@ class AppIconAssets {
   static String visiting_bg = "${iconPath}bgcontainerTemp.svg";
   static String bE_logo = "${iconPath}bE_logo.svg";
   static String round_black_edit = "${iconPath}round_black_edit.svg";
+  static String more_vertical = "${iconPath}more_vertical.svg";
+  static String share_bold = "${iconPath}share_bold.svg";
+  static String calender_new = "${iconPath}calender_new.svg";
+  static String location_new = "${iconPath}location_new.svg";
+  static String mail_new = "${iconPath}mail_new.svg";
+  static String channel_video_new = "${iconPath}channel_video_new.svg";
 }

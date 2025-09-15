@@ -302,7 +302,7 @@ bool isLoading = true;
                                 PopupMenuButton<String>(
                                   onSelected: (value) {
                                     if (value == 'delete') {
-                                      clearAllNotifications(1,notifyId: id);
+                                      clearAllNotifications(1, notifyId: id);
                                     }
                                   },
                                   color: Colors.white,

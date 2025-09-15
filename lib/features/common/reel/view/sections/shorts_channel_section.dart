@@ -75,7 +75,6 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
       shorts,
       widget.channelId,
       widget.authorId,
-      widget.isOwnShorts ,
       isInitialLoad: isInitialLoad,
       refresh: refresh,
       postVia: widget.postVia,
@@ -95,7 +94,7 @@ class _ShortsChannelSectionState extends State<ShortsChannelSection> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (shortsController.isInitialLoading(shorts).isFalse) {
-        if (shortsController.shortsResponse.status == Status.COMPLETE) {
+        if (shortsController.shortsResponse.value.status == Status.COMPLETE) {
           final channelShorts = shortsController.getListByType(shorts: shorts);
 
           if (channelShorts.isEmpty) {

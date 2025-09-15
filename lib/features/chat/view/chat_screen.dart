@@ -70,10 +70,12 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         chatViewController.onSelectChatTab(index);
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
-        }/* else if (index == 1) {
+        }
+        /* else if (index == 1) {
           groupChatViewController
               .emitEvent("ChatList", {ApiKeys.type: "group"});
-        } */else if (index == 1) {
+        } */
+        else if (index == 1) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
         }
       }
@@ -93,17 +95,21 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton:
-      (_isFromForward()) ? SizedBox() : Padding(
-          padding: const EdgeInsets.only(bottom: 30.0),
-          child : FloatingActionButton(
-        child: Icon(Icons.add),
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          Get.toNamed(RouteHelper.getChatContactsRoute());
-        },
-      )),
+      floatingActionButton: (_isFromForward())
+          ? SizedBox()
+          : SafeArea(
+              child: Padding(
+                  padding:
+                      const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                  child: FloatingActionButton(
+                    child: Icon(Icons.add),
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    onPressed: () {
+                      Get.toNamed(RouteHelper.getChatContactsRoute());
+                    },
+                  )),
+            ),
       bottomSheet: Padding(padding: EdgeInsets.only(bottom: 120.0)),
       body: SafeArea(
         child: Stack(
@@ -117,10 +123,10 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                     children: [
                       (_isFromForward())
                           ? InkWell(
-                          onTap: (){
-                            Navigator.pop(context);
-                          },
-                          child: Icon(Icons.arrow_back_ios))
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Icon(Icons.arrow_back_ios))
                           : Obx(() {
                               return CachedAvatarWidget(
                                   imageUrl:
@@ -171,7 +177,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                             ),
                       (_isFromForward())
                           ? SizedBox()
-                          : SizedBox()/*PopupMenuButton<String>(
+                          : SizedBox() /*PopupMenuButton<String>(
                               icon: SvgPicture.asset(
                                 AppIconAssets.chat_info_more,
                                 color: Colors.black,

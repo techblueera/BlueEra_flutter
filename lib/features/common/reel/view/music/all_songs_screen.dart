@@ -8,7 +8,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/controller/song_controller.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_favourite_songs_model.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_songs_model.dart';
-import 'package:BlueEra/features/common/reel/models/song.dart';
+import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -57,7 +57,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
         /// favourite song api calling
         songController.getAllFavouriteSongs();
       }
-      // setState(() {});
+       setState(() {});
     });
   }
 
@@ -224,7 +224,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
             children: [
               Expanded(
                 child: CustomText(
-                  song.externalUrl,
+                  song.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   fontSize: SizeConfig.extraLarge,
@@ -287,6 +287,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
             RouteHelper.getAddSongScreenRoute(),
             arguments: {
               ApiKeys.videoPath: widget.video,
+              ApiKeys.filePath: widget.images,
               ApiKeys.audioUrl: favouriteSong.song.externalUrl,
               ApiKeys.song: SongModel(
                 id: favouriteSong.id,

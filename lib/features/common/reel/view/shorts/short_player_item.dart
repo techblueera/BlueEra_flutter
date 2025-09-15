@@ -70,6 +70,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   bool _isCurrentPage = false; // Track if this is the current page
   Timer? _overlayTimer;
   Timer? _viewTimer;
+  bool _isShortSharing = false;
 
   @override
   void initState() {
@@ -955,18 +956,29 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
    /// Simple, consistent share experience (like header_widget.dart)
   Future<void> _shareVideoSimple() async {
-    final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '';
-    final link = shortDeepLink(shortId: id);
-    final title = widget.videoItem.video?.title ?? 'BlueEra Short';
+    // Prevent multiple calls
+    if (_isShortSharing) return;
 
-    final message = "Watch on BlueEra App:\n$link\n";
+    try {
+      _isShortSharing = true; // Set flag to prevent multiple calls
 
-    await SharePlus.instance.share(ShareParams(
-      text: message,
-      subject: title,
-    ));
+      final id = widget.videoItem.video?.id ?? widget.videoItem.videoId ?? '0';
+      final link = shortDeepLink(shortId: id);
+      final title = widget.videoItem.video?.title ?? 'BlueEra Short';
+
+      final message = "Watch on BlueEra App:\n$link\n";
+
+      await SharePlus.instance.share(ShareParams(
+        text: message,
+        subject: title,
+      ));
+
+    } catch (e) {
+      print("Video share failed: $e");
+    } finally {
+      _isShortSharing = false; // Reset flag
+    }
   }
-  
 
 
 }

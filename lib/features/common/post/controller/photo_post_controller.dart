@@ -15,7 +15,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
-import 'package:BlueEra/features/common/reel/models/song.dart';
+import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';

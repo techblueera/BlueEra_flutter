@@ -6,13 +6,18 @@ import 'package:pro_image_editor/pro_image_editor.dart';
 
 class SinglePhotoPostEditingScreen extends StatefulWidget {
   final File photo;
-  const SinglePhotoPostEditingScreen({super.key, required this.photo});
+  final bool isPortrait;
+  const SinglePhotoPostEditingScreen({super.key, required this.photo, required this.isPortrait});
 
   @override
   State<SinglePhotoPostEditingScreen> createState() => _SinglePhotoPostEditingScreenState();
 }
 
 class _SinglePhotoPostEditingScreenState extends State<SinglePhotoPostEditingScreen> {
+
+  double get _cropRatio => widget.isPortrait ? 9 / 16 : 1;
+
+
   // bool _isCompleted = false;
 
   // Future<bool> _showExitConfirmation(BuildContext context) async {
@@ -82,6 +87,10 @@ class _SinglePhotoPostEditingScreenState extends State<SinglePhotoPostEditingScr
         widget.photo,
         configs: ProImageEditorConfigs(
           designMode: ImageEditorDesignMode.cupertino,
+          cropRotateEditor: CropRotateEditorConfigs(
+            initAspectRatio: _cropRatio,          // lock ratio
+            aspectRatios: [AspectRatioItem(value: _cropRatio, text: '')],
+          ),
         ),
         callbacks: ProImageEditorCallbacks(
           onImageEditingComplete: (Uint8List bytes) async {

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -126,15 +127,24 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                     color: Colors.black54,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    widget.subTitle ?? '',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: SizeConfig.screenWidth * 0.045,
-                      fontWeight: FontWeight.w500,
-                    ),
+                child: ExpandableText(
+                  text: widget.subTitle ?? '',
+                  trimLines: 4,expandMode: ExpandMode.dialog,
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w400,
                   ),
+                ),
+                  // child: Text(
+                  //   widget.subTitle ?? '',
+                  //   textAlign: TextAlign.left,
+                  //   style: TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: SizeConfig.screenWidth * 0.045,
+                  //     fontWeight: FontWeight.w500,
+                  //   ),
+                  // ),
                 ),
               ),
           ],

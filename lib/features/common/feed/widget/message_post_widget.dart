@@ -57,134 +57,122 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
   Widget build(BuildContext context) {
     return FeedCardWidget(
         childWidget: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            widget.authorSection(),
-            if (_post.media?.isNotEmpty ?? false)
-              FeedMediaCarouselWidget(
-                subTitle: _post.subTitle ?? "",
-                taggedUser: _post.taggedUsers ?? [],
-                mediaUrls: _post.media ?? [],
-                /*  buildTranslationWidget: () =>
-              (subTitle.isNotEmpty) || (natureOfPost.isNotEmpty)
-                  ? TranslationButton(
-                onTap: () {
-                  translateToOtherLan();
-                },
-              )
-                  : SizedBox(),*/
-                postedAgo: timeAgo(
-                    _post.createdAt != null ? _post.createdAt! : DateTime
-                        .now()),
-                totalViews:
-                _post.viewsCount != null ? _post.viewsCount.toString() : '0',
-              ),
-            Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if(_post.title?.isNotEmpty ?? false)
-                    Padding(
-                      padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          top: SizeConfig.size10,
-                          bottom: SizeConfig.size1),
-                      child: CustomText(
-                        _post.title,
-                        color: AppColors.black,
-                        fontWeight: FontWeight.bold,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.authorSection(),
+        Padding(
+          padding: EdgeInsets.only(bottom: SizeConfig.size5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_post.title?.isNotEmpty ?? false)...[
+                SizedBox(height: SizeConfig.size5,),
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: SizeConfig.size15,
+                      right: SizeConfig.size15,
+
+                    ),
+                  child: CustomText(
+                    _post.title,
+                    color: AppColors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: SizeConfig.large,
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size5,),
+
+              ],
+
+              if (subTitle.isNotEmpty)...[
+                SizedBox(height: SizeConfig.size5,),
+
+                Container(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: SizeConfig.size15,
+                      right: SizeConfig.size15,
+                    ),
+                    child: ExpandableText(
+                      text: subTitle.trim(),
+                      trimLines: 4,
+                      style: TextStyle(
+                        color: AppColors.mainTextColor,
                         fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
-                  if (subTitle.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          top: SizeConfig.size10,
-                          bottom: SizeConfig.size1),
-                      child: ExpandableText(
-                        text: subTitle,
-                        trimLines: 2,
-                        style: TextStyle(
-                          color: AppColors.mainTextColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-
-                  Padding(
-                    padding: EdgeInsets.only(
-                        left: SizeConfig.size15,
-                        right: SizeConfig.size15,
-                        top: subTitle.isNotEmpty
-                            ? SizeConfig.size4
-                            : SizeConfig.size10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (natureOfPost.isNotEmpty)
-                          Expanded(
-                            child: CustomText(
-                              natureOfPost,
-                              fontSize: SizeConfig.small11,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        SizedBox(width: SizeConfig.size10),
-                        PostMetaInfo(
-                          timeAgoText: timeAgo(_post.createdAt != null
-                              ? _post.createdAt!
-                              : DateTime.now()),
-                          fontSize: SizeConfig.extraSmall,
-                        ),
-                      ],
-                    ),
                   ),
+                ),
+                SizedBox(height: SizeConfig.size5,),
 
-                  if (_post.referenceLink?.isNotEmpty ?? false)
-                    Padding(
-                      padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          top: SizeConfig.size5),
-                      child: ClickableLinkText(url: _post.referenceLink!),
-                    ),
+              ],
 
-                  // widget.authorSection(),
+            ],
+          ),
+        ),
+        if (_post.media?.isNotEmpty ?? false)...[
+          SizedBox(height: SizeConfig.size5,),
+          FeedMediaCarouselWidget(
+            subTitle: _post.subTitle ?? "",
+            taggedUser: _post.taggedUsers ?? [],
+            mediaUrls: _post.media ?? [],
+            postedAgo: timeAgo(
+                _post.createdAt != null ? _post.createdAt! : DateTime.now()),
+            totalViews:
+            _post.viewsCount != null ? _post.viewsCount.toString() : '0',
+            audioUrl: _post.song?.externalUrl,
+          ),
+          SizedBox(height: SizeConfig.size5,),
 
-                  // Padding(
-                  //   padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15,),
-                  //   child: PostMetaInfo(
-                  //     timeAgoText: timeAgo(_post.createdAt != null ? _post.createdAt! : DateTime.now()),
-                  //     totalViews: _post.viewsCount != null ? _post.viewsCount.toString() : '0',
-                  //     fontSize: SizeConfig.extraSmall,
-                  //   ),
-                  // ),
-                  // SizedBox(height: SizeConfig.size8),
 
-                  Padding(
-                    padding: EdgeInsets.only(
-                        left: SizeConfig.size15,
-                        right: SizeConfig.size15,
-                        top: SizeConfig.size10),
-                    child: CommonHorizontalDivider(
-                      color: AppColors.secondaryTextColor,
-                      height: 0.5,
-                    ),
-                  ),
-
-                  widget.buildActions(),
-                ],
-              ),
+        ],
+        if (natureOfPost.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size15,
+                right: SizeConfig.size15,
+                top:
+                    subTitle.isNotEmpty ? SizeConfig.size4 : SizeConfig.size10),
+            child: CustomText(
+              natureOfPost,
+              fontSize: SizeConfig.small11,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w400,
             ),
-          ],
-        ));
+          ),
+        if (_post.referenceLink?.isNotEmpty ?? false)
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size15,
+                right: SizeConfig.size15,
+                top: SizeConfig.size5),
+            child: ClickableLinkText(url: _post.referenceLink!),
+          ),
+        // SizedBox(width: SizeConfig.size10),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding:  EdgeInsets.only(right: SizeConfig.size15,top: SizeConfig.size10),
+            child: PostMetaInfo(
+              timeAgoText: timeAgo(
+                  _post.createdAt != null ? _post.createdAt! : DateTime.now()),
+              fontSize: SizeConfig.extraSmall,
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+              left: SizeConfig.size15,
+              right: SizeConfig.size15,
+              top: SizeConfig.size10),
+          child: CommonHorizontalDivider(
+            color: AppColors.secondaryTextColor,
+            height: 0.5,
+          ),
+        ),
+        widget.buildActions(),
+      ],
+    ));
   }
-
 }

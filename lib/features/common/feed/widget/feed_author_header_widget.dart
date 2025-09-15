@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -12,6 +13,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -45,10 +47,11 @@ class PostAuthorHeader extends StatelessWidget {
         : post?.user?.businessName ?? '';
 
     String designation = (post?.user?.accountType == AppConstants.individual)
-        ?
-    post?.user?.designation ?? "OTHERS"
-
-        : post?.user?.businessCategory ?? '';
+        ? post?.user?.designation ?? "OTHERS"
+        : (post?.user?.subCategoryOfBusiness?.isNotEmpty ?? false)
+            ? post?.user?.subCategoryOfBusiness ?? '' :
+                (post?.user?.categoryOfBusiness?.isNotEmpty ?? false)
+                     ?  post?.user?.subCategoryOfBusiness??'' : (post?.user?.natureOfBusiness ?? '');
 
 
     String id = (post?.user?.accountType == AppConstants.individual)
@@ -59,7 +62,7 @@ class PostAuthorHeader extends StatelessWidget {
       padding: EdgeInsets.only(
           left: SizeConfig.size15,
           top: SizeConfig.size10,
-          bottom: SizeConfig.size15),
+          bottom: SizeConfig.size5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -67,6 +70,7 @@ class PostAuthorHeader extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: () {
+                logs("post?.user?.accountType==== ${post?.user?.accountType}");
                 if (((authorId == userId) ||
                     (post?.user?.business_id == businessId)) &&
 
@@ -76,11 +80,11 @@ class PostAuthorHeader extends StatelessWidget {
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
-                  log('account type-- ${post?.user?.accountType?.toUpperCase()}');
                   if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
                   } else {
-                    Get.to(() => VisitProfileScreen(authorId: authorId));
+                    Get.to(() => NewVisitProfileScreen(authorId: authorId));
+                    // Get.to(() => VisitProfileScreen(authorId: authorId));
                     // Get.to(() => PersonalChatProfile(userId: authorId));
                   }
                 }
@@ -98,7 +102,7 @@ class PostAuthorHeader extends StatelessWidget {
                   imageUrl: post?.user?.profileImage ?? '',
                   title: '$name',
                   userName: '${post?.user?.username}',
-                  subtitle: designation,
+                  subtitle: designation != "null" ? designation : 'OTHERS',
                   avatarSize: SizeConfig.size42,
                   borderColor: AppColors.primaryColor,
                   postedAgo: postedAgo
@@ -130,7 +134,7 @@ class PostAuthorHeader extends StatelessWidget {
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else {
-                    onTapOptions ?? () => blockReportUserPopUp();
+                    onTapOptions ?? blockReportUserPopUp();
                   }
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),

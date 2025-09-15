@@ -54,6 +54,7 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
   double _calculatedHeight = SizeConfig.size300;
   bool isLoading = true;
   String? errorMessage;
+  bool _isVideoSharing = false;
 
   @override
   void initState() {
@@ -543,16 +544,28 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
 
   /// Simple, consistent share experience (like header_widget.dart)
   Future<void> _shareVideoSimple() async {
-    final id = videoController.videoFeedItem?.video?.id ?? widget.videoItem?.video?.id ?? '';
-    final link = videoDeepLink(videoId: id);
-    final title = videoController.videoFeedItem?.video?.title ?? widget.videoItem?.video?.title ?? 'BlueEra Video';
+    // Prevent multiple calls
+    if (_isVideoSharing) return;
 
-    final message = "Watch on BlueEra App:\n$link\n";
+    try {
+      _isVideoSharing = true; // Set flag to prevent multiple calls
 
-    await SharePlus.instance.share(ShareParams(
-      text: message,
-      subject: title,
-    ));
+      final id = widget.videoItem?.video?.id ?? widget.videoItem?.videoId ?? '';
+      final link = videoDeepLink(videoId: id);
+      final title = widget.videoItem?.video?.title ?? 'BlueEra Video';
+
+      final message = "Watch on BlueEra App:\n$link\n";
+
+      await SharePlus.instance.share(ShareParams(
+        text: message,
+        subject: title,
+      ));
+
+    } catch (e) {
+      print("Video share failed: $e");
+    } finally {
+      _isVideoSharing = false; // Reset flag
+    }
   }
 
   Future<void> _onLikeDislikePressed() async {

@@ -74,7 +74,6 @@ class ApiBaseHelper {
             return requestInterceptor(options, handler);
           },
           onResponse: (response, handler) {
-            logs('RESPONSE_DATA : ${response.data.toString()}');
             numberOfReq--;
             if (showProgressDialog && numberOfReq == 0) {
               ProgressDialog.showProgressDialog(false);
