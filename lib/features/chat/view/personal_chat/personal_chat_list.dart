@@ -35,7 +35,6 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
           Status.COMPLETE) {
         GetChatListModel? data =
             chatViewController.getPersonalChatListModel?.value;
-        print('data?.chatList length--> ${data?.chatList?.length}');
         return RefreshIndicator(
           onRefresh: () async {
             chatViewController.emitEvent(

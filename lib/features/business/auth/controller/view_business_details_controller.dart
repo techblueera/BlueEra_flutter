@@ -159,24 +159,6 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
-  Future<String?> getChannelDetails() async {
-    try {
-      ResponseModel response =
-          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
-
-      if (response.statusCode == 200) {
-        ChannelModel channelModel =
-            ChannelModel.fromJson(response.response?.data);
-        String channelId = channelModel.data.id;
-        SharedPreferenceUtils.setSecureValue(channelId, channelId);
-        return channelId;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
-    }
-  }
 
   RxList<CategoryData> businessCategoriesList = <CategoryData>[].obs;
   RxList<SubCategories> businessSubCategoriesList = <SubCategories>[].obs;

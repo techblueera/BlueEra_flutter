@@ -36,9 +36,10 @@ class VisitProfileController extends GetxController {
 
   final personalController = Get.put(PersonalCreateProfileController());
   final personalProfileDetails = Get.put(ViewPersonalDetailsController());
-
+  RxBool isProfileLoading=false.obs;
   Future<void> fetchUserById({required String userId}) async {
     try {
+      isProfileLoading.value=true;
       ResponseModel response = await UserRepo().getUserById(userId: userId);
       if (response.isSuccess && response.response?.data != null) {
         // print("useralldata:${response.response?.data}");
@@ -74,7 +75,11 @@ class VisitProfileController extends GetxController {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
+      isProfileLoading.value=false;
+
     } catch (e) {
+      isProfileLoading.value=false;
+
       userProfileResponse.value = ApiResponse.error("Error: $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
@@ -107,16 +112,7 @@ class VisitProfileController extends GetxController {
     } catch (e) {}
   }
 
-  String getInitials(String? name) {
-    if (name == null || name.isEmpty) return 'U';
-    return name
-        .trim()
-        .split(' ')
-        .map((e) => e.isNotEmpty ? e[0] : '')
-        .take(2)
-        .join()
-        .toUpperCase();
-  }
+
 
   String formatDateOfBirth(DateOfBirth? dateOfBirth) {
     if (dateOfBirth == null) return 'Not available';
@@ -272,6 +268,7 @@ class VisitProfileController extends GetxController {
 
   ///GET CHANNEL DETAILS...
   RxString? channelUserName="".obs;
+  RxString? channelUserId="".obs;
   Future<String?> getUserChannelDetailsController({required String? userId}) async {
     try {
       getUserChannelDetailsResponse.value = ApiResponse.initial('Initial');
@@ -283,6 +280,7 @@ class VisitProfileController extends GetxController {
         ChannelModel channelModel =
             ChannelModel.fromJson(response.response?.data);
         channelUserName?.value=channelModel.data.username;
+        channelUserId?.value=channelModel.data.id;
         getUserChannelDetailsResponse.value = ApiResponse.complete(response);
       } else {
         getUserChannelDetailsResponse.value = ApiResponse.error('error');

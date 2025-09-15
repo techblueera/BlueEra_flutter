@@ -201,7 +201,7 @@ class _VisitProfileScreenState extends State<VisitProfileScreen>
                                   : null,
                               child: user.profileImage == null
                                   ? CustomText(
-                                      controller.getInitials(user.name),
+                                      getInitials(user.name),
                                       fontSize: SizeConfig.size18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,

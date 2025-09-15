@@ -25,13 +25,14 @@ class FeedCard extends StatefulWidget {
   final int index;
   final PostType postFilteredType;
   final SortBy? sortBy;
+  final double? horizontalPadding;
 
   const FeedCard(
       {super.key,
       required this.post,
       required this.index,
       required this.postFilteredType,
-      this.sortBy});
+      this.sortBy, this.horizontalPadding});
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -89,6 +90,7 @@ class _FeedCardState extends State<FeedCard> {
     switch (feedType) {
       case FeedType.messagePost || FeedType.photoPost:
         return MessagePostWidget(
+          horizontalPadding: widget.horizontalPadding,
           post: _post,
           authorSection: () => PostAuthorHeader(
               post: _post,

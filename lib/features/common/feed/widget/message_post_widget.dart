@@ -15,12 +15,13 @@ class MessagePostWidget extends StatefulWidget {
   final Post? post;
   final Widget Function() authorSection;
   final Widget Function() buildActions;
+  final double? horizontalPadding;
 
   MessagePostWidget({
     super.key,
     required this.post,
     required this.authorSection,
-    required this.buildActions,
+    required this.buildActions, this.horizontalPadding,
   });
 
   @override
@@ -56,6 +57,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
   @override
   Widget build(BuildContext context) {
     return FeedCardWidget(
+      horizontalPadding:widget.horizontalPadding ,
         childWidget: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

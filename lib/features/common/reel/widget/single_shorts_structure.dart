@@ -27,7 +27,7 @@ class SingleShortStructure extends StatefulWidget {
   final double? borderRadius;
   final bool withBackground;
 
-  const  SingleShortStructure({
+  const SingleShortStructure({
     super.key,
     required this.shorts,
     this.allLoadedShorts,
@@ -45,39 +45,37 @@ class SingleShortStructure extends StatefulWidget {
 }
 
 class _SingleShortStructureState extends State<SingleShortStructure> {
-ShortFeedItem? shortItem;
-late bool canShowMenu;
-late String thumbnail;
+  ShortFeedItem? shortItem;
+  late bool canShowMenu;
+  late String thumbnail;
 
   @override
   void initState() {
-   shortItem = widget.shortItem;
-   thumbnail = shortItem?.video?.coverUrl ?? '';
+    shortItem = widget.shortItem;
+    thumbnail = shortItem?.video?.coverUrl ?? '';
 
-   canShowMenu =
-      // Case 1: Channel match
-      (shortItem?.channel?.id != null && shortItem?.channel?.id == channelId) ||
-
-      shortItem?.author?.id == userId;
-      super.initState();
-
+    canShowMenu =
+        // Case 1: Channel match
+        (shortItem?.channel?.id != null &&
+                shortItem?.channel?.id == channelId) ||
+            shortItem?.author?.id == userId;
+    super.initState();
   }
 
-    // this will if changes in sort by cause page is already loaded
-    @override
-    void didUpdateWidget(covariant SingleShortStructure oldWidget) {
-      super.didUpdateWidget(oldWidget);
+  // this will if changes in sort by cause page is already loaded
+  @override
+  void didUpdateWidget(covariant SingleShortStructure oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
-      /// this is the case when post api is calling when sort by changed
-      if (oldWidget.shortItem != widget.shortItem) {
-        shortItem = widget.shortItem;
-        thumbnail = shortItem?.video?.coverUrl ?? '';
-        print('thumbnail--> $thumbnail');
-      }
+    /// this is the case when post api is calling when sort by changed
+    if (oldWidget.shortItem != widget.shortItem) {
+      shortItem = widget.shortItem;
+      thumbnail = shortItem?.video?.coverUrl ?? '';
+      print('thumbnail--> $thumbnail');
     }
+  }
 
-
-@override
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(0),
@@ -104,36 +102,38 @@ late String thumbnail;
               height: 250,
               child: Stack(children: [
                 ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(widget.borderRadius ?? 0),
-                    child: isNetworkImage(thumbnail) ? CachedNetworkImage(
-                      width: double.infinity,
-                      height: double.infinity,
-                      // height: widget.imageHeight ?? SizeConfig.size220,
-                      fit: BoxFit.cover,
-                      imageUrl: thumbnail,
-                      errorWidget: (context, url, error) => Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.white, width: 1),
-                          borderRadius:
-                              BorderRadius.circular(widget.borderRadius ?? 8.0),
-                        ),
-                        child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(widget.borderRadius ?? 8.0),
-                          child: LocalAssets(
-                            imagePath: AppIconAssets.blueEraIcon,
-                            boxFix: BoxFit.cover,
+                  borderRadius: BorderRadius.circular(widget.borderRadius ?? 0),
+                  child: isNetworkImage(thumbnail)
+                      ? CachedNetworkImage(
+                          width: double.infinity,
+                          height: double.infinity,
+                          // height: widget.imageHeight ?? SizeConfig.size220,
+                          fit: BoxFit.cover,
+                          imageUrl: thumbnail,
+                          errorWidget: (context, url, error) => Container(
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: AppColors.white, width: 1),
+                              borderRadius: BorderRadius.circular(
+                                  widget.borderRadius ?? 8.0),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(
+                                  widget.borderRadius ?? 8.0),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.blueEraIcon,
+                                boxFix: BoxFit.cover,
+                              ),
+                            ),
                           ),
+                        )
+                      : Image.file(
+                          File(shortItem?.video?.coverUrl ?? ''),
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
                         ),
-                      ),
-                    ) : Image.file(
-                      File(
-                        shortItem?.video?.coverUrl ?? ''),
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),),
+                ),
 
                 // total views
                 Positioned(
@@ -168,11 +168,11 @@ late String thumbnail;
                       ),
                     )),
 
-                    if (canShowMenu && shortItem != null)
-                    ReelShortPopUpMenu(
+                if (canShowMenu && shortItem != null)
+                  ReelShortPopUpMenu(
                     shortFeedItem: shortItem!,
                     shorts: widget.shorts,
-                    ),
+                  ),
 
                 if (widget.shorts == Shorts.underProgress) ...[
                   Positioned.fill(

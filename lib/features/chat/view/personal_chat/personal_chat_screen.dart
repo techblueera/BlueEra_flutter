@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -100,10 +102,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
       Get.to(() => VisitBusinessProfile(businessId: widget.businessId ?? ''));
     } else {
       print("kjnlhhhn");
-      Get.to(() => PersonalChatProfile(
-            userId: authorId,
-            contactNumber: widget.contactNo,isTestimonialRating: true,
-          ));
+      Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen, channelId: '',));
+
+      // Get.to(() => PersonalChatProfile(
+      //       userId: authorId,
+      //       contactNumber: widget.contactNo,isTestimonialRating: true,
+      //     ));
     }
 
     // } else if (_post?.user?.accountType?.toUpperCase() == AppConstants.business) {

@@ -83,7 +83,7 @@ class PostAuthorHeader extends StatelessWidget {
                   if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
                   } else {
-                    Get.to(() => NewVisitProfileScreen(authorId: authorId));
+                    Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: '', channelId: '',));
                     // Get.to(() => VisitProfileScreen(authorId: authorId));
                     // Get.to(() => PersonalChatProfile(userId: authorId));
                   }

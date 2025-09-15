@@ -41,6 +41,7 @@ class HighlightText extends StatelessWidget {
             color: AppColors.primaryColor,
             decoration: TextDecoration.underline,
             fontFamily: AppConstants.OpenSans,
+
           ),
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
@@ -75,7 +76,8 @@ class HighlightText extends StatelessWidget {
     }
 
     return RichText(
-      text: TextSpan(children: spans),
+      text: TextSpan(children: spans,),
+
     );
   }
 }

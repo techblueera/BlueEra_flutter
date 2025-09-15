@@ -29,6 +29,8 @@ class ClickableLinkText extends StatelessWidget {
         url.replaceAll(RegExp(r'^@'), ''), // Removes @ if present
         color: Colors.blue,
         fontWeight: FontWeight.w500,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
