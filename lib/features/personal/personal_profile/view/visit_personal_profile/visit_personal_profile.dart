@@ -55,7 +55,8 @@ class VisitPersonalProfileTabs extends StatelessWidget {
                     border: selected
                         ? null
                         : Border.all(
-                            color: const Color.fromRGBO(153, 153, 153, 0.75),
+                      width: 1,
+                            color:  Color(0xFF505050),
                           ),
                   ),
                   child: Center(

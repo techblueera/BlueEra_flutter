@@ -63,7 +63,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size12),

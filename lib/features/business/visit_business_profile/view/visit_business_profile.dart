@@ -38,6 +38,8 @@ class VisitBusinessProfile extends StatefulWidget {
   State<VisitBusinessProfile> createState() => VisitBusinessProfileState();
 }
 
+
+
 class VisitBusinessProfileState extends State<VisitBusinessProfile>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
@@ -102,7 +104,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                 SliverToBoxAdapter(
                   child: Padding(
                     padding:
-                        const EdgeInsets.only(top: 18.0, left: 12, right: 12),
+                        const EdgeInsets.only(top: 18.0, left: 8, right: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,7 +181,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                           locationText: businessData?.address ?? "",
                         ),
                         SizedBox(
-                          height: 12,
+                          height: 4,
                         ),
                         buildHorizontalProductList(
                             products: controller.getAllProductDetails?.value),
@@ -275,7 +277,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size10),
         child: Column(
@@ -407,24 +409,24 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                             Icon(Icons.location_on_outlined,
                                 size: SizeConfig.size16,
                                 color: AppColors.black),
-                            SizedBox(width: SizeConfig.size1),
+                            SizedBox(width: SizeConfig.size2),
                             CustomText(
-                              "14.2KM Far-",
+                              "14.2KM Far",
                               maxLines: 2,
                               color: AppColors.skyBlueDF,
                               fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline,
                               decorationColor: AppColors.skyBlueDF,
                             ),
-                            SizedBox(width: SizeConfig.size1),
-                            Expanded(
-                              child: CustomText(
-                                businessData?.address ?? "",
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                color: AppColors.black,
-                              ),
-                            )
+                            // SizedBox(width: SizeConfig.size1),
+                            // Expanded(
+                            //   child: CustomText(
+                            //     businessData?.address ?? "",
+                            //     maxLines: 2,
+                            //     overflow: TextOverflow.ellipsis,
+                            //     color: AppColors.black,
+                            //   ),
+                            // )
                           ],
                         ),
                       ),
@@ -439,8 +441,8 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
               trimMode: TrimMode.Line,
               trimLines: 2,
               colorClickableText: AppColors.primaryColor,
-              trimCollapsedText: ' Show more',
-              trimExpandedText: ' Show less',
+              trimCollapsedText: ' Read More',
+              trimExpandedText: ' Show Less',
               moreStyle: AppFontStyle.styleW500(
                   AppColors.primaryColor, SizeConfig.size14),
             ),
@@ -572,7 +574,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -583,8 +585,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
             children: [
               CustomText(
                 "Rating Summary",
-                fontSize: SizeConfig.size20,
-                fontWeight: FontWeight.bold,
+                fontFamily: 'Open Sans',
+                fontWeight: FontWeight.w600,
+                fontSize: SizeConfig.size18,
                 color: AppColors.black,
               ),
               SizedBox(height: SizeConfig.size12),
@@ -596,8 +599,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                       children: [
                         CustomText(
                           rating.toStringAsFixed(1),
-                          fontWeight: FontWeight.bold,
-                          fontSize: SizeConfig.size35,
+                          fontFamily: 'Open Sans',
+                          fontWeight: FontWeight.w600,
+                          fontSize: SizeConfig.size50,
                           color: AppColors.black,
                         ),
                         SizedBox(width: SizeConfig.size12),
@@ -612,7 +616,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                                 direction: Axis.horizontal,
                                 allowHalfRating: false,
                                 itemCount: 5,
-                                itemSize: 36,
+                                itemSize: 16,
                                 unratedColor: Colors.grey.shade400,
                                 itemBuilder: (context, _) => const Icon(
                                   Icons.star,
@@ -625,6 +629,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                             CustomText(
                               "${(totalReviews ?? "").toString()} Reviews",
                               fontSize: SizeConfig.size14,
+                              fontFamily: 'Open Sans',
+
+                              fontWeight: FontWeight.w600,
                               color: AppColors.coloGreyText,
                             ),
                           ],
@@ -704,7 +711,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                       direction: Axis.horizontal,
                       allowHalfRating: false,
                       itemCount: 5,
-                      itemSize: 36,
+                      itemSize: 56,
                       unratedColor: Colors.grey.shade400,
                       itemBuilder: (context, _) => const Icon(
                         Icons.star_border,
@@ -897,7 +904,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(SizeConfig.size16),
             ),
-            elevation: SizeConfig.size4,
+            elevation: 0,
             color: AppColors.white,
             child: Padding(
               padding: EdgeInsets.all(SizeConfig.size12),
@@ -1022,7 +1029,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1201,7 +1208,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size10),
@@ -1390,7 +1397,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -1557,7 +1564,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size12),
