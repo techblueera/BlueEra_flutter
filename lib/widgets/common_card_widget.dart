@@ -18,6 +18,7 @@ class CommonCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         side: BorderSide.none,
       ),
+      elevation: 0,
       child: Container(
         padding: EdgeInsets.all(padding ?? SizeConfig.size15),
         decoration: BoxDecoration(

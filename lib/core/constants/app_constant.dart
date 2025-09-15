@@ -143,6 +143,7 @@ class AppConstants {
   static const String Withdrawn = "Withdrawn";
   static const String Landscape = "Landscape";
   static const String Square = "Square";
+  static const String chatScreen = "chatScreen";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =
@@ -234,7 +235,16 @@ List<String> generate24HoursAmPm() {
     return '${displayHour.toString().padLeft(2, '0')}:00 $period';
   });
 }
-
+String getInitials(String? name) {
+  if (name == null || name.isEmpty) return 'U';
+  return name
+      .trim()
+      .split(' ')
+      .map((e) => e.isNotEmpty ? e[0] : '')
+      .take(2)
+      .join()
+      .toUpperCase();
+}
 List<String> daysOfWeek = [
   'Sunday',
   'Monday',

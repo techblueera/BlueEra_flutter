@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/notification/model/notification_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/personal_overview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/new_profile_header_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
@@ -24,8 +26,14 @@ import '../../controller/profile_controller.dart';
 
 class NewVisitProfileScreen extends StatefulWidget {
   final String authorId;
+  final String screenFromName;
+  final String channelId;
 
-  const NewVisitProfileScreen({super.key, required this.authorId});
+  const NewVisitProfileScreen(
+      {super.key,
+      required this.authorId,
+      required this.screenFromName,
+      required this.channelId});
 
   @override
   State<NewVisitProfileScreen> createState() => _NewVisitProfileScreenState();
@@ -44,6 +52,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     controller = Get.put(VisitProfileController());
     setFilters();
     controller.fetchUserById(userId: widget.authorId);
+    controller.getUserChannelDetailsController(userId: widget.authorId);
     super.initState();
   }
 
@@ -56,60 +65,26 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
 
-
-  Widget _buildDetailRow({
-    required String icon,
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Image.asset(
-          icon,
-          width: 20,
-          height: 20,
-          color: Colors.black,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                label,
-              ),
-              SizedBox(height: SizeConfig.size2),
-              CustomText(
-                value,
-                fontSize: SizeConfig.size16,
-                color: AppColors.secondaryTextColor,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: Obx(() {
         final user = controller.userData.value?.user;
-        if (user == null) {
+        if (controller.isProfileLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
 
         postTab = [
-          if (user.profession == SELF_EMPLOYED) 'Portfolio',
+          "Overview",
+          if (user?.profession == SELF_EMPLOYED) 'Portfolio',
           'Posts',
           'Testimonials',
           'Shorts',
           'Videos'
         ];
-        final validIndexes = user.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
+        final validIndexes =
+            user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
 
         return SingleChildScrollView(
           child: SafeArea(
@@ -118,8 +93,12 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  NewProfileHeaderWidget(user: user,),
-                  SizedBox(height: SizeConfig.size16,),
+                  NewProfileHeaderWidget(
+                    user: user,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size16,
+                  ),
                   HorizontalTabSelector(
                     horizontalMargin: 0,
                     tabs: postTab,
@@ -184,6 +163,12 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
   Widget _buildTabContent(int index) {
     switch (postTab[index]) {
+      case 'Overview':
+        return PersonalOverviewScreen(
+          userId: widget.authorId,
+          channelId: widget.channelId,
+          videoType: VideoType.latest.name,
+        );
       case 'Portfolio':
         return PortfolioWidget(
           isSelfPortfolio: false,
@@ -203,6 +188,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           userName: controller.userData.value?.user?.name ?? 'N/A',
           visitUserID: widget.authorId,
           isSelfTestimonial: false,
+          screenFromName: widget.screenFromName,
         );
       case 'Shorts':
         return ShortsChannelSection(

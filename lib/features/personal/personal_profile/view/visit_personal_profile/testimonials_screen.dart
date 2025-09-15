@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class TestimonialsScreen extends StatefulWidget {
-  final String? userName, visitUserID;
+  final String? userName, visitUserID,screenFromName;
   final bool? isSelfTestimonial;
 
-  const TestimonialsScreen({super.key, this.userName, this.visitUserID,required this.isSelfTestimonial});
+  const TestimonialsScreen({super.key, this.userName, this.visitUserID,required this.isSelfTestimonial, this.screenFromName});
 
   @override
   State<TestimonialsScreen> createState() => _TestimonialsScreenState();
@@ -31,7 +31,7 @@ class _TestimonialsScreenState extends State<TestimonialsScreen> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            if(widget.isSelfTestimonial==false)...[
+            if((widget.isSelfTestimonial==false)&&widget.screenFromName==AppConstants.chatScreen)...[
               CommonCardWidget(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,

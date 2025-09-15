@@ -662,24 +662,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   ///GET CHANNEL DETAILS...
-  Future<String?> getChannelDetails() async {
-    try {
-      ResponseModel response =
-          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
-
-      if (response.statusCode == 200) {
-        ChannelModel channelModel =
-            ChannelModel.fromJson(response.response?.data);
-        String channelId = channelModel.data.id;
-        SharedPreferenceUtils.setSecureValue(channelId, channelId);
-        return channelId;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
-    }
-  }
 
   ///GET CHANNEL DETAILS...
   Future<JourneyStatusModel?> getJourneyDetails() async {
