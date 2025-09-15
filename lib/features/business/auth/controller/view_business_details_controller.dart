@@ -22,6 +22,38 @@ import '../model/getAllProductDetailsModel.dart';
 import '../model/getBusinessVerifyViewModel.dart';
 import '../model/viewBusinessProfileModel.dart';
 import '../repo/business_profile_repo.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+
+Future<double?> getDistanceInKm(double targetLat, double targetLng) async {
+  print("Lat : ${targetLat} , lng : ${targetLng}");
+  // 🔐 Check and request permission
+  bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) return null;
+
+  geo.LocationPermission permission = await geo.Geolocator.checkPermission();
+  if (permission == geo.LocationPermission.denied) {
+    permission = await geo.Geolocator.requestPermission();
+    if (permission == geo.LocationPermission.denied) return null;
+  }
+
+  if (permission == geo.LocationPermission.deniedForever) return null;
+
+  // 📍 Get current position
+  geo.Position position = await geo.Geolocator.getCurrentPosition(
+    desiredAccuracy: geo.LocationAccuracy.high,
+  );
+
+  // 📏 Calculate distance (meters)
+  double distanceMeters = geo.Geolocator.distanceBetween(
+    position.latitude,
+    position.longitude,
+    targetLat,
+    targetLng,
+  );
+
+  // ✅ Return km
+  return distanceMeters / 1000.0;
+}
 
 class ViewBusinessDetailsController extends GetxController {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
@@ -44,6 +76,7 @@ class ViewBusinessDetailsController extends GetxController {
   RxList<String> imgLocalL3 = <String>[].obs;
   RxList<int> imgDeleteL3 = <int>[].obs;
   RxInt selectedIndex = 0.obs;
+  RxDouble distanceFromKm = 0.0.obs;
   Rx<BusinessType>? selectedBusinessType = BusinessType.Both.obs;
   RxString? imagePath = "".obs;
   RxInt? selectDay = 0.obs, selectMonth = 0.obs, selectYear = 0.obs;
@@ -339,6 +372,7 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+        distanceFromKm.value = await getDistanceInKm(visitedBusinessProfileDetails?.data?.businessLocation?.lat??0,visitedBusinessProfileDetails?.data?.businessLocation?.lon??0)??0.0;
         final chatViewController = Get.find<ChatViewController>();
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId

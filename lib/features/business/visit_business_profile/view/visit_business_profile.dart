@@ -108,7 +108,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        widget_profileHeader(businessData),
+                        widget_profileHeader(businessData,controller.distanceFromKm.value),
                         // HeaderWidget(
                         //   businessId: widget.businessId,
                         //   userId: businessData?.userId ?? "",
@@ -163,7 +163,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        buildRatingSummary(rating: 2, totalReviews: "2332"),
+                        buildRatingSummary(rating:double.parse("${businessData?.rating??0}"), totalReviews: "0"),
                         // RatingReviewCard(
                         //   businessId: widget.businessId,
                         //   businessProfile: businessData,
@@ -272,7 +272,8 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
     );
   }
 
-  widget_profileHeader(BusinessProfileDetails? businessData) {
+  widget_profileHeader(BusinessProfileDetails? businessData,double distanceKm) {
+
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
@@ -411,7 +412,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                                 color: AppColors.black),
                             SizedBox(width: SizeConfig.size2),
                             CustomText(
-                              "14.2KM Far",
+                              "${distanceKm.toStringAsFixed(2)} Km Far",
                               maxLines: 2,
                               color: AppColors.skyBlueDF,
                               fontWeight: FontWeight.w600,
@@ -538,7 +539,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
         CustomText(
           value,
           fontSize: SizeConfig.size14,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w600,
         ),
       ],
     );

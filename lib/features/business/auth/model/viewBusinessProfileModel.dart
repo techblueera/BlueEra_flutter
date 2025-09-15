@@ -305,8 +305,8 @@ class BusinessLocation {
       this.lon,});
 
   BusinessLocation.fromJson(dynamic json) {
-    lat = double.parse(json['lat']??'0');
-    lon = double.parse(json['lon']??'0');
+    lat = double.parse(json['lat'].toString());
+    lon = double.parse(json['lon'].toString());
   }
   double? lat;
   double? lon;
