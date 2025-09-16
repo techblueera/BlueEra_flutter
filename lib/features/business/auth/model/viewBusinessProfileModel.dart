@@ -305,11 +305,11 @@ class BusinessLocation {
       this.lon,});
 
   BusinessLocation.fromJson(dynamic json) {
-    lat = json['lat'];
-    lon = json['lon'];
+    lat = double.parse(json['lat'].toString());
+    lon = double.parse(json['lon'].toString());
   }
-  num? lat;
-  num? lon;
+  double? lat;
+  double? lon;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
