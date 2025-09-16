@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/view/group_chat/add_new_group_page.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
@@ -426,7 +427,10 @@ class _ContactsPageState extends State<ContactsPage> {
                                         .id !=
                                         null) {
                                       chatViewController.openAnyOneChatFunction(
-                                          type: "personal",
+                                          type: details
+                                              ?.existingNotConnected?[
+                                          index]
+                                              .accountType,
                                           isInitialMessage: true,
                                           userId: details
                                               ?.existingNotConnected?[

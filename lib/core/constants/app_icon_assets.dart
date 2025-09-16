@@ -350,4 +350,7 @@ class AppIconAssets {
   static String location_new = "${iconPath}location_new.svg";
   static String mail_new = "${iconPath}mail_new.svg";
   static String channel_video_new = "${iconPath}channel_video_new.svg";
+  static String profile_share = "${iconPath}profile_share.svg";
+  static String profile_report = "${iconPath}profile_report.svg";
+  static String businessprofile_location = "${iconPath}businessprofile_location.svg";
 }
