@@ -51,7 +51,10 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
   }
 
   void _handleVisibilityChange(VisibilityInfo info) {
-    final videoManager = Get.find<SimplePriorityVideoManager>();
+    final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
+        ? Get.find<SimplePriorityVideoManager>()
+        : Get.put(SimplePriorityVideoManager());
+
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
       widget.videoItem.video?.videoUrl ?? '',

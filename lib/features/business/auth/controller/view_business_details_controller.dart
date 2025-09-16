@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -62,7 +63,7 @@ class ViewBusinessDetailsController extends GetxController {
   ApiResponse businessVerifyResponse = ApiResponse.initial('Initial');
   ApiResponse businessGetAllProductResponse = ApiResponse.initial('Initial');
   ApiResponse getParticularRatingResponse = ApiResponse.initial('Initial');
-    Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
 
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
@@ -149,14 +150,13 @@ class ViewBusinessDetailsController extends GetxController {
             businessProfileDetails?.data?.logo ?? "";
 
         await SharedPreferenceUtils.userLoggedInBusiness(
-          profileImage: businessProfileDetails?.data?.logo ?? '',
-          businessName: businessProfileDetails?.data?.businessName ?? '',
-          businessOwnerName:
-              businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
-          businessId: businessProfileDetails!.data!.id!,
-          loginBusinessUserId: businessProfileDetails!.data!.userId!,
-            userNameAt: ""
-        );
+            profileImage: businessProfileDetails?.data?.logo ?? '',
+            businessName: businessProfileDetails?.data?.businessName ?? '',
+            businessOwnerName:
+                businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
+            businessId: businessProfileDetails!.data!.id!,
+            loginBusinessUserId: businessProfileDetails!.data!.userId!,
+            userNameAt: "");
 
         await getUserLoginData();
 
@@ -191,7 +191,6 @@ class ViewBusinessDetailsController extends GetxController {
       viewBusinessResponse = ApiResponse.error('error');
     }
   }
-
 
   RxList<CategoryData> businessCategoriesList = <CategoryData>[].obs;
   RxList<SubCategories> businessSubCategoriesList = <SubCategories>[].obs;
@@ -426,8 +425,11 @@ class ViewBusinessDetailsController extends GetxController {
         "comment": comment,
       };
 
-      ResponseModel responseModel = await BusinessProfileRepo()
-          .submitRatingToBusiness(businessId, params);
+      ResponseModel?
+
+        responseModel = await BusinessProfileRepo()
+            .submitRatingToBusiness(businessId, params);
+
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");
@@ -443,34 +445,63 @@ class ViewBusinessDetailsController extends GetxController {
       return false;
     }
   }
-//  
-  // Future<void> getAllPostApi(
-  //    ) async {
-  //   final Map<String, dynamic> queryParams = {
-  //     ApiKeys.page: 1,
-  //     ApiKeys.limit:10,
-  //     ApiKeys.filter: "latest"
-  //   };
 
-  //   // if (query == null) {
-  //     queryParams[ApiKeys.refresh] = refresh;
-  //   // }
+  Future<bool> submitPersonalRating({
+    required String userId,
+    required int rating,
+    required String comment,
+  }) async {
+    try {
+      Map<String, dynamic> params = {
+        "rating": rating,
+        "comment": comment,
+      };
 
-  //   try {
-  //     ResponseModel response =
-  //         await FeedRepo().getAllMyPosts(queryParams: queryParams);
-  //         if(response.isSuccess){
-  // postsResponse.value = ApiResponse.complete(response);
-  //       final postResponse = PostResponse.fromJson(response.response?.data);
-  //         }else{
-  //            postsResponse.value = ApiResponse.error('error');
-  //       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-  //         }
-  //   } catch (e) {
-  //       postsResponse.value = ApiResponse.error('error');
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
+      ResponseModel? responseModel;
 
+        responseModel = await BusinessProfileRepo()
+            .submitRatingToPersonal(userId, params);
 
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: "Thank you for your rating!");
+        return true;
+      } else {
+        commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+//
+// Future<void> getAllPostApi(
+//    ) async {
+//   final Map<String, dynamic> queryParams = {
+//     ApiKeys.page: 1,
+//     ApiKeys.limit:10,
+//     ApiKeys.filter: "latest"
+//   };
+
+//   // if (query == null) {
+//     queryParams[ApiKeys.refresh] = refresh;
+//   // }
+
+//   try {
+//     ResponseModel response =
+//         await FeedRepo().getAllMyPosts(queryParams: queryParams);
+//         if(response.isSuccess){
+// postsResponse.value = ApiResponse.complete(response);
+//       final postResponse = PostResponse.fromJson(response.response?.data);
+//         }else{
+//            postsResponse.value = ApiResponse.error('error');
+//       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+//         }
+//   } catch (e) {
+//       postsResponse.value = ApiResponse.error('error');
+//     commonSnackBar(message: AppStrings.somethingWentWrong);
+//   }
+// }
 }

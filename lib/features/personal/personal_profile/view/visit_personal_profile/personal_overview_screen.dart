@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +20,13 @@ class PersonalOverviewScreen extends StatelessWidget {
   final String userId;
   final String channelId;
   final String videoType;
+  final String screenFromName;
 
   PersonalOverviewScreen({
     required this.userId,
     required this.channelId,
     required this.videoType,
+    required this.screenFromName,
   });
 
   final OverviewController controller = Get.put(OverviewController());
@@ -37,7 +40,8 @@ class PersonalOverviewScreen extends StatelessWidget {
         return Center(child: CircularProgressIndicator());
       }
       if (controller.errorMessage.isNotEmpty) {
-        return Center(child: Text("Error: ${controller.errorMessage.value}"));
+        return Center(
+            child: CustomText("Error: ${controller.errorMessage.value}"));
       }
 
       return ListView(
@@ -45,6 +49,13 @@ class PersonalOverviewScreen extends StatelessWidget {
         // scrollDirection: Axis.vertical,
         physics: NeverScrollableScrollPhysics(),
         children: [
+          RatingSummaryWidget(
+            rating: controller
+                    .getRattingSummaryResponse.value?.data?.totalRatings
+                    ?.toDouble() ??
+                0.0,
+           userId: userId, screenFromName:screenFromName ,
+          ),
           // ✅ Show only latest testimonial
           if (controller.testimonialsList.isNotEmpty) ...[
             CommonCardWidget(
@@ -147,7 +158,7 @@ class PersonalOverviewScreen extends StatelessWidget {
                     post: controller.postsList.first,
                     index: 0,
                     postFilteredType: PostType.myPosts,
-                      horizontalPadding:0,
+                    horizontalPadding: 0,
                   ),
                 ],
               ),
@@ -163,7 +174,7 @@ class PersonalOverviewScreen extends StatelessWidget {
                 children: [
                   TitleWidget("Short"),
                   ClipRRect(
-                    borderRadius: ( BorderRadius.circular(12)),
+                    borderRadius: (BorderRadius.circular(12)),
                     child: SingleShortStructure(
                       shorts: Shorts.latest,
                       allLoadedShorts: [controller.shortsList.first],
@@ -177,8 +188,6 @@ class PersonalOverviewScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-
           ],
           // ✅ Show only latest video
           if (controller.videosList.isNotEmpty) ...[
@@ -187,7 +196,6 @@ class PersonalOverviewScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   TitleWidget("Video"),
                   AutoPlayVideoCard(
                     videoItem: controller.videosList.first,
@@ -197,28 +205,31 @@ class PersonalOverviewScreen extends StatelessWidget {
                       openBlockSelectionDialog(
                           context: context,
                           reportType: 'VIDEO_POST',
-                          userId: controller.videosList.first.video?.userId ?? '',
-                          contentId: controller.videosList.first.video?.id ?? '',
+                          userId:
+                              controller.videosList.first.video?.userId ?? '',
+                          contentId:
+                              controller.videosList.first.video?.id ?? '',
                           userBlockVoidCallback: () async {
                             await Get.find<VideoController>().userBlocked(
                               videoType: VideoType.videoFeed,
                               otherUserId:
-                              controller.videosList.first.video?.userId ?? '',
+                                  controller.videosList.first.video?.userId ??
+                                      '',
                             );
                           },
                           reportCallback: (params) {
                             Get.find<VideoController>().videoPostReport(
-                                videoId: controller.videosList.first.video?.id ?? '',
+                                videoId:
+                                    controller.videosList.first.video?.id ?? '',
                                 videoType: VideoType.videoFeed,
                                 params: params);
                           });
                     },
                   ),
-
                 ],
               ),
             ),
-  ],
+          ],
           // VideoWidget(video: controller.videosList.first),
         ],
       );

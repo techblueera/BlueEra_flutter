@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/response/get_ratting_summary_response_modal.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -30,9 +31,9 @@ class OverviewController extends GetxController {
       // Run APIs in parallel
       await Future.wait([
         _getTestimonials(userId),
+        getRatingSummary(userId:userId),
         _getPosts(userId),
         _getShorts(channelId, userId),
-        // _getVideos(videoType, userId),
         _getVideos(videoType, userId),
       ]);
     } catch (e) {
@@ -108,20 +109,20 @@ class OverviewController extends GetxController {
       videosList.assignAll(videoResponse.data?.videos ?? []);
     }
   }
+
+  //  ratting Summary Api
+  Rx<GetRattingSummaryResponse?> getRattingSummaryResponse =
+  Rxn<GetRattingSummaryResponse>();
+  Future<void> getRatingSummary({required String userId}) async {
+    try {
+      ResponseModel response =
+      await UserRepo().getRattingSummaryById(userId: userId);
+      if (response.isSuccess) {
+        getRattingSummaryResponse.value =
+            GetRattingSummaryResponse.fromJson(response.data);
+        update();
+      }
+    } catch (e) {}
+  }
+
 }
-
-///https://api.blueera.ai/api/post-service/post/others-user-posts?page=1&limit=10&filter=latest
-///https://api.blueera.ai/api/post-service/post/others-user-posts?page=1&limit=40&filter=latest&refresh=true&authorId=689df0cb7e62ed576245195f
-
-
-// https://api.blueera.ai/api/video-service/videos/users/689df0cb7e62ed576245195f/videos?limit=1&page=1&typeFilter=short
-
-// https://api.blueera.ai/api/video-service/videos/users/689df0cb7e62ed576245195f/videos?limit=20&page=1&typeFilter=short&sortBy=latest&status=published&post_via=user
-
-
-///
-// https://api.blueera.ai/api/video-service/videos/users/689df0cb7e62ed576245195f/videos?limit=40&page=1&typeFilter=long&sortBy=latest&status=published&post_via=user
-
-
-
-// https://api.blueera.ai/api/video-service/videos/users/68b58045b52e2196b5f8fd28/videos?limit=1&page=1&typeFilter=long&sortBy=latest&status=published&post_via=user

@@ -70,7 +70,6 @@ class PostAuthorHeader extends StatelessWidget {
           Expanded(
             child: InkWell(
               onTap: () {
-                logs("post?.user?.accountType==== ${post?.user?.accountType}");
                 if (((authorId == userId) ||
                     (post?.user?.business_id == businessId)) &&
 
@@ -83,7 +82,7 @@ class PostAuthorHeader extends StatelessWidget {
                   if (userId == authorId) {
                     navigatePushTo(context, PersonalProfileSetupScreen());
                   } else {
-                    Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: '', channelId: '',));
+                    Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen, channelId: '',));
                     // Get.to(() => VisitProfileScreen(authorId: authorId));
                     // Get.to(() => PersonalChatProfile(userId: authorId));
                   }

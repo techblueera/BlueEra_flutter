@@ -2,8 +2,14 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/all_like_users_list_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -13,19 +19,20 @@ import 'package:get/get.dart';
 
 class PostLikeUserListDialog extends StatefulWidget {
   final String postId;
-  const PostLikeUserListDialog({super.key, required this.postId});
 
+  const PostLikeUserListDialog({super.key, required this.postId});
 
   @override
   State<PostLikeUserListDialog> createState() => _PostLikeUserListDialogState();
 }
 
 class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
-  var feedController= Get.find<FeedController>();
+  var feedController = Get.find<FeedController>();
 
   @override
   void initState() {
-    Get.find<FeedController>().getAllLikesUser(postId: widget.postId, isInitialLoading: true);
+    Get.find<FeedController>()
+        .getAllLikesUser(postId: widget.postId, isInitialLoading: true);
     super.initState();
   }
 
@@ -42,7 +49,8 @@ class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
           );
         }
 
-        if(feedController.allLikeUsersOfPostResponse.status == Status.COMPLETE) {
+        if (feedController.allLikeUsersOfPostResponse.status ==
+            Status.COMPLETE) {
           // 🔹 Actual list with fixed max height
           return Container(
             width: double.maxFinite,
@@ -81,19 +89,18 @@ class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return _UserTile(
-                        user: feedController.allLikeUsersList[index]
-                    );
+                        user: feedController.allLikeUsersList[index]);
                   },
                 ),
               ],
             ),
           );
-        }else if(feedController.allLikeUsersOfPostResponse.status == Status.ERROR){
+        } else if (feedController.allLikeUsersOfPostResponse.status ==
+            Status.ERROR) {
           Get.back();
         }
 
         return SizedBox();
-
       }),
     );
   }
@@ -108,51 +115,55 @@ class _UserTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-
-          InkWell(
-            onTap: () {
-                  navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: AppLocalizations.of(context)!.imageViewer,
-                      // imageUrls: [post?.author.profileImage ?? ''],
-                      imageUrls: [user.profileImage ?? ""],
-                      initialIndex: 0,
-                    ),
-                  );
-                },
-            child: CachedAvatarWidget(
-                imageUrl: user.profileImage ?? "",
-                size: SizeConfig.size42,
-                borderColor: AppColors.primaryColor,
-                borderRadius: SizeConfig.size25
+      child: InkWell(
+        onTap: () {
+          redirectToProfileScreen(
+              accountType: user.accountType ?? "", profileId: user.sId ?? "");
+        },
+        child: Row(
+          children: [
+            InkWell(
+              onTap: () {
+                navigatePushTo(
+                  context,
+                  ImageViewScreen(
+                    appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                    // imageUrls: [post?.author.profileImage ?? ''],
+                    imageUrls: [user.profileImage ?? ""],
+                    initialIndex: 0,
+                  ),
+                );
+              },
+              child: CachedAvatarWidget(
+                  imageUrl: user.profileImage ?? "",
+                  size: SizeConfig.size42,
+                  borderColor: AppColors.primaryColor,
+                  borderRadius: SizeConfig.size25),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  user.name ?? "",
-                ),
-                CustomText(
-                  user.username ?? "",
-                  fontSize: SizeConfig.small,
-                  color: Colors.grey.shade600,
-                ),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    user.name ?? "",
+                  ),
+                  CustomText(
+                    user.username ?? "",
+                    fontSize: SizeConfig.small,
+                    color: Colors.grey.shade600,
+                  ),
+                ],
+              ),
             ),
-          ),
-          // _FollowButton(
-          //   initiallyFollowing: user.isFollowing ?? false,
-          //   onPressed: () {
-          //     // TODO: Handle API call for follow/unfollow
-          //   },
-          // ),
-        ],
+            // _FollowButton(
+            //   initiallyFollowing: user.isFollowing ?? false,
+            //   onPressed: () {
+            //     // TODO: Handle API call for follow/unfollow
+            //   },
+            // ),
+          ],
+        ),
       ),
     );
   }
