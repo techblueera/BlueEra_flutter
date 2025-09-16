@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
 class CustomBtn extends StatelessWidget {
@@ -155,15 +156,23 @@ class PositiveCustomBtn extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Align(
               alignment: align ?? Alignment.center,
-              child: CustomText(
-                (title ?? ""),
-                // toLowerCase == true ?( title ?? ""):( title?.toUpperCase() ?? ""),
-                fontWeight: fontWeight ?? FontWeight.w600,
-                color: textColor ?? AppColors.white,
-                fontSize: fontSize ?? SizeConfig.medium,
-                textAlign: textAlign ?? TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              child: Row(
+                children: [
+                  CustomText(
+                    (title ?? ""),
+                    // toLowerCase == true ?( title ?? ""):( title?.toUpperCase() ?? ""),
+                    fontWeight: fontWeight ?? FontWeight.w600,
+                    color: textColor ?? AppColors.white,
+                    fontSize: fontSize ?? SizeConfig.medium,
+                    textAlign: textAlign ?? TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if(iconPath!=null) Padding(
+                    padding: const EdgeInsets.only(left: 3.0),
+                    child: LocalAssets(imagePath: iconPath!),
+                  )
+                ],
               ),
             ),
           ),

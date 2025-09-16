@@ -114,10 +114,11 @@ class UserRepo extends BaseService {
     return response;
   }
 
-  /// getDailyContentOrGreeting
-  Future<ResponseModel> getDailyContentOrGreeting() async {
+  ///Get All users...
+  Future<ResponseModel> getAllUsers({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${getTestimonialById}",
+      allUsers,
+      params: params,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -125,11 +126,22 @@ class UserRepo extends BaseService {
     return response;
   }
 
-  ///Get All users...
-  Future<ResponseModel> getAllUsers({required Map<String, dynamic> params}) async {
+  /// Card Categories
+  Future<ResponseModel> getAllCardCategories() async {
     final response = await ApiBaseHelper().getHTTP(
-      allUsers,
-      params: params,
+      cardCategories,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Card Categories By Date
+  Future<ResponseModel> cardCategoriesSortedByDate({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      cardCategoriesSortByDate,
+      params: queryParams,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppThemes {
   // static final ThemeData darkTheme = ThemeData(
@@ -55,7 +56,12 @@ class AppThemes {
   static final ThemeData light = ThemeData(
     hoverColor: Colors.grey,
     fontFamily: AppConstants.OpenSans,
-    appBarTheme: AppBarTheme(backgroundColor: Colors.white),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.white,
+      systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),),
     scaffoldBackgroundColor: AppColors.appBackgroundColor,
     colorScheme: ColorScheme.dark(
       primary: AppColors.primaryColor,

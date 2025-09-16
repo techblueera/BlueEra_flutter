@@ -1,35 +1,58 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/common/more/model/card_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
 
+class GreetingCheckResult {
+  final bool canCall;
+  final String today;
+
+  GreetingCheckResult({required this.canCall, required this.today});
+}
+
+
 class HomeScreenController extends GetxController{
-  Rx<ApiResponse> getDailyContentOrGreeting = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> cardCategoriesSortedByDateResponse = ApiResponse.initial('Initial').obs;
   // ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
 
   final RxBool isVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
 
-  Future<void> getDailyGreeting() async {
-    try {
+  RxList<Cards> allCards = <Cards>[].obs;
 
-      ResponseModel responseModel = await UserRepo().getDailyContentOrGreeting();
+  Future<void> getCardCategoriesSortedByDate({required String todayDate}) async {
+    try {
+      Map<String , dynamic> params = {
+        ApiKeys.date: DateTime.now().toIso8601String()
+      };
+      ResponseModel responseModel = await UserRepo().cardCategoriesSortedByDate(queryParams: params);
       if (responseModel.isSuccess) {
-        getDailyContentOrGreeting.value = ApiResponse.complete(responseModel);
-        // UserTestimonialModel userTestimonialModel = UserTestimonialModel.fromJson(responseModel.response?.data);
-        // testimonialsList?.value = userTestimonialModel.testimonials ?? [];
+        cardCategoriesSortedByDateResponse.value = ApiResponse.complete(responseModel);
+        final cardModelResponse = CardModelResponse.fromJson(responseModel.response?.data);
+
+        final List<Cards> cards = [];
+
+        if (cardModelResponse.categories != null) {
+          for (final category in cardModelResponse.categories!) {
+            if (category.cards != null) {
+              cards.addAll(category.cards!);
+            }
+          }
+        }
+
+        allCards.value = cards;
+
       } else {
-        getDailyContentOrGreeting.value = ApiResponse.error('error');
+        cardCategoriesSortedByDateResponse.value = ApiResponse.error('error');
 
         commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      getDailyContentOrGreeting.value = ApiResponse.error('error');
+      cardCategoriesSortedByDateResponse.value = ApiResponse.error('error');
     }
   }
 

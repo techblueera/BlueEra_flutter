@@ -54,6 +54,7 @@ class SharedPreferenceUtils {
   static const businessName = 'business_name';
   static const businessOwnerName = 'business_owner_name';
   static const userNameAtKey = 'userNameAt';
+  static const disableGreetingCardKey = 'disableGreetingCardKey';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,

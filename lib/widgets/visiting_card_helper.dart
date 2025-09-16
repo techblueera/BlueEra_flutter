@@ -43,13 +43,12 @@ class VisitingCardHelper {
   bool _isSharing = false;
 
   Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true}) async {
-    // Prevent multiple calls
-   log('callll');
+    print('sharing');
     if (_isSharing) return;
 
     try {
       _isSharing = true; // Set flag to prevent multiple calls
-
+      print('sharing start');
       // Capture with RepaintBoundary (keeps your background image)
       RenderRepaintBoundary boundary =
       cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;

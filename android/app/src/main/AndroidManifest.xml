@@ -5,8 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!--<uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />-->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -14,9 +13,11 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
     <!-- Queries (for deep links / external apps) -->
     <queries>
@@ -31,17 +32,14 @@
     </queries>
 
     <application
-        android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:name="${applicationName}"
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
-        android:fullBackupOnly="false"
         android:icon="@mipmap/ic_launcher"
         android:label="BlueEra"
-        android:largeHeap="true"
+        android:largeHeap="true">
 
-        android:requestLegacyExternalStorage="true">
+      <!--  android:requestLegacyExternalStorage="true">-->
 
 <!--        &lt;!&ndash; ✅ Add WorkManager services/receivers here &ndash;&gt;-->
 <!--        <receiver-->
@@ -54,6 +52,7 @@
 <!--            android:enabled="@bool/enable_system_job_service_default"-->
 <!--            android:exported="true"-->
 <!--            android:permission="android.permission.BIND_JOB_SERVICE" />-->
+
         <!-- ✅ OneSignal Service -->
         <service
             android:name="com.onesignal.NotificationExtenderService"
@@ -76,12 +75,12 @@
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDdU2Ji6dCQ4Hq0TbLHILxMsdR-M27Ie2g" />
+            android:value="${mapApiKey}" />
 
         <!-- Google AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-4151367085462604~1499765338" />
+            android:value="${admobAppId}" />
 
         <!-- Main Flutter Activity -->
         <activity

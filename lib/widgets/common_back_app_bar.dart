@@ -88,7 +88,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.rightTextButtonColor,
     this.onRightTextButtonTap,
     this.isShowCursor,
-    this.currentCity, this.isGuestLogout,
+    this.currentCity,
+    this.isGuestLogout,
+    this.buildCardCategory
   });
 
   // final AppBar? appBar;
@@ -149,6 +151,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? rightTextButtonColor;
   final OnTab? onRightTextButtonTap;
   final String? currentCity;
+  final Widget Function()? buildCardCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -480,6 +483,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+
         if (isShareButton ?? false)
           Builder(
             builder: (context) => Container(
@@ -516,6 +520,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+
         if (isSaveButton ?? false)
           Builder(
             builder: (context) => Padding(
@@ -529,6 +534,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+
         if (isCancelButton ?? false)
           Builder(
             builder: (context) => InkWell(
@@ -543,6 +549,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+
         if (isAddPlace ?? false)
           Builder(
             builder: (context) => Padding(
@@ -559,6 +566,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   isPrefix: true),
             ),
           ),
+
         if (isEndJourney ?? false)
           Builder(
             builder: (context) => Padding(
@@ -570,6 +578,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   title: "End journey"),
             ),
           ),
+
         if (isReloadContactButton ?? false)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -586,6 +595,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+
         if (isPDFExport ?? false)
           PopupMenuButton<String>(
             padding: EdgeInsets.zero,
@@ -639,6 +649,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
+
         if (showRightTextButton ?? false)
           Padding(
             padding: EdgeInsets.only(right: SizeConfig.size20),
@@ -652,6 +663,23 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   fontSize: SizeConfig.medium,
                 ),
               ),
+            ),
+          ),
+
+        if (buildCardCategory!=null)
+          Builder(
+            builder: (context) => Container(
+              constraints: BoxConstraints(
+                  minHeight: SizeConfig.size30, // Use minHeight instead of fixed height
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                  color: AppColors.white,
+                  border: Border.all(color: AppColors.primaryColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              margin: EdgeInsets.only(right: SizeConfig.size20),
+              child: buildCardCategory!()
             ),
           ),
       ],

@@ -229,6 +229,8 @@ abstract class BaseService {
   final String checkFavouriteSongPost = 'post-service/favorites/check';
   final String songsSearchSongPost = 'post-service/songs/search';
   final String favouriteSearchSongPost = 'post-service/favorites/search';
+  final String cardCategories = 'post-service/categories';
+  final String cardCategoriesSortByDate = 'post-service/categories/sorted/by-date';
 
   /// Comment
   String postComments(String postId) =>

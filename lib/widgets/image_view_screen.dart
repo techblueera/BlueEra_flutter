@@ -1,7 +1,9 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ImageViewScreen extends StatefulWidget {
-   String? subTitle;
+  final String? subTitle;
   final List<String> imageUrls;
   final int initialIndex;
   final String appBarTitle;
@@ -18,7 +20,8 @@ class ImageViewScreen extends StatefulWidget {
     super.key,
     required this.imageUrls,
     required this.initialIndex,
-    required this.appBarTitle,  this.subTitle = '',
+    required this.appBarTitle,
+   this.subTitle = '',
   });
 
   @override
@@ -28,10 +31,12 @@ class ImageViewScreen extends StatefulWidget {
 class _ImageViewScreenState extends State<ImageViewScreen> {
   late PageController _pageController;
   final TransformationController _transformationController = TransformationController();
+  bool _showSubtitle = true;
 
   @override
   void initState() {
     super.initState();
+    print('subtitle-- ${widget.subTitle}');
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 
@@ -41,7 +46,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
     _transformationController.dispose();
     super.dispose();
   }
-  bool _showSubtitle = true;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -129,11 +134,13 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                   ),
                 child: ExpandableText(
                   text: widget.subTitle ?? '',
-                  trimLines: 4,expandMode: ExpandMode.dialog,
+                  trimLines: 4,
+                  expandMode: ExpandMode.dialog,
                   style: TextStyle(
                     color: AppColors.white,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w400,
+                    fontFamily: AppConstants.OpenSans,
                   ),
                 ),
                   // child: Text(
