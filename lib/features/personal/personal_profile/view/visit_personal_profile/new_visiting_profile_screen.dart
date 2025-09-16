@@ -95,6 +95,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                 children: [
                   NewProfileHeaderWidget(
                     user: user,
+                    screenFromName: widget.screenFromName,
+
                   ),
                   SizedBox(
                     height: SizeConfig.size16,
@@ -168,6 +170,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           userId: widget.authorId,
           channelId: widget.channelId,
           videoType: VideoType.latest.name,
+
         );
       case 'Portfolio':
         return PortfolioWidget(

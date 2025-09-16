@@ -37,7 +37,7 @@ class PersonalOverviewScreen extends StatelessWidget {
         return Center(child: CircularProgressIndicator());
       }
       if (controller.errorMessage.isNotEmpty) {
-        return Center(child: Text("Error: ${controller.errorMessage.value}"));
+        return Center(child: CustomText("Error: ${controller.errorMessage.value}"));
       }
 
       return ListView(

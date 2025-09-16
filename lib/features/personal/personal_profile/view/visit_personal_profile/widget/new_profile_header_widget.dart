@@ -7,24 +7,21 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_bio_widget.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
 import '../visiting_profile_screen.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
-  NewProfileHeaderWidget({super.key, required this.user});
+  NewProfileHeaderWidget({super.key, required this.user, this.screenFromName});
 
   final User? user;
   final controller = Get.find<VisitProfileController>();
-
+final String? screenFromName;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -65,19 +62,17 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     ),
                     (controller.channelUserName?.value.isNotEmpty ?? false)
                         ? InkWell(
-                      onTap: (){
-
-                        Navigator.pushNamed(
-                            context,
-                            RouteHelper.getChannelScreenRoute(),
-                            arguments: {
-                              ApiKeys.argAccountType:user?.accountType,
-                              ApiKeys.channelId: controller.channelUserId?.value,
-                              ApiKeys.authorId: user?.id
-                            }
-                        );
-                      },
-                          child: CustomText(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, RouteHelper.getChannelScreenRoute(),
+                                  arguments: {
+                                    ApiKeys.argAccountType: user?.accountType,
+                                    ApiKeys.channelId:
+                                        controller.channelUserId?.value,
+                                    ApiKeys.authorId: user?.id
+                                  });
+                            },
+                            child: CustomText(
                               'View Channel',
                               color: AppColors.primaryColor,
                               fontWeight: FontWeight.w600,
@@ -85,7 +80,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                               decorationColor: AppColors.primaryColor,
                               fontSize: SizeConfig.size12,
                             ),
-                        )
+                          )
                         : CustomText(
                             'Channel not\n found',
                             color: AppColors.grey99,
@@ -278,12 +273,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
               ],
             ),
           ),
-
-
           SizedBox(height: SizeConfig.size10),
-          if ((user?.bio ?? '').trim().isNotEmpty)
-            CustomText(
-                user?.bio ?? ''),
+          if ((user?.bio ?? '').trim().isNotEmpty) CustomText(user?.bio ?? ''),
         ],
       ),
     );
