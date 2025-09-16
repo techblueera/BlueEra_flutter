@@ -8,7 +8,6 @@ import '../../../core/constants/app_icon_assets.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
 
-
 class RatingReviewCard extends StatelessWidget {
   final String businessId;
   final BusinessProfileDetails? businessProfile;
@@ -43,10 +42,9 @@ class RatingReviewCard extends StatelessWidget {
               child: CustomText(
                 "Rate\nthis business",
                 textAlign: TextAlign.center,
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -58,7 +56,7 @@ class RatingReviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                 RatingStars(selectedIndex: businessProfile?.rating??0),
+                RatingStars(selectedIndex: businessProfile?.rating ?? 0),
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () {
@@ -67,7 +65,8 @@ class RatingReviewCard extends StatelessWidget {
 
                       return;
                     }
-                    _showRatingDialog(context);
+                    _showRatingDialog(context,
+                        reviewFor: AppConstants.business);
                   },
                   child: const Center(
                     child: Text(
@@ -88,22 +87,25 @@ class RatingReviewCard extends StatelessWidget {
     );
   }
 
-  void _showRatingDialog(BuildContext context) {
+  void _showRatingDialog(BuildContext context, {required String reviewFor}) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return RatingFeedbackDialog(businessId: businessId);
+        return RatingFeedbackDialog(
+          businessId: businessId,
+          reviewFor: reviewFor ?? "",
+        );
       },
     );
   }
 }
 
-
 class RatingFeedbackDialog extends StatefulWidget {
-  final String businessId;
+  final String businessId, reviewFor;
 
-  const RatingFeedbackDialog({super.key, required this.businessId});
+  const RatingFeedbackDialog(
+      {super.key, required this.businessId, required this.reviewFor});
 
   @override
   State<RatingFeedbackDialog> createState() => _RatingFeedbackDialogState();
@@ -113,30 +115,9 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
   int selectedRating = 0;
   final TextEditingController _feedbackController = TextEditingController();
   final ViewBusinessDetailsController _ratingController =
-  ViewBusinessDetailsController();
+      ViewBusinessDetailsController();
   bool _isSubmitting = false;
 
-
-
-  // String _getRatingImage(int index) {
-  //   if (selectedRating == 0 || index >= selectedRating) {
-  //     return AppIconAssets.filledstar;
-  //   }
-  //
-  //   switch (selectedRating) {
-  //     case 1:
-  //       return AppIconAssets.rating4;
-  //     case 2:
-  //     case 3:
-  //       return AppIconAssets.rating3;
-  //     case 4:
-  //       return AppIconAssets.rating2;
-  //     case 5:
-  //       return AppIconAssets.rating1;
-  //     default:
-  //       return AppIconAssets.filledstar;
-  //   }
-  // }
   String _getRatingImage(int index) {
     if (selectedRating == 0) {
       // Initial default images
@@ -178,8 +159,6 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -198,14 +177,13 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    const Text(
-                      'How would you rate this\nbusiness?',
+                     CustomText(
+                      widget.reviewFor==AppConstants.business?
+                      'How would you rate this\nbusiness?':'How would you rate this\n user?',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
-                      ),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -218,8 +196,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                             });
                           },
                           child: Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: SvgPicture.asset(
                               _getRatingImage(index),
                               width: 32,
@@ -259,7 +236,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                         textAlignVertical: TextAlignVertical.top,
                         decoration: const InputDecoration(
                           hintText:
-                          'E.g. "Great service, quick\nresponse, highly recommended!"',
+                              'E.g. "Great service, quick\nresponse, highly recommended!"',
                           hintStyle: TextStyle(
                             color: Color(0xFF9CA3AF),
                             fontSize: 14,
@@ -274,7 +251,11 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: _isSubmitting ? null : _submitFeedback,
+                        onPressed: _isSubmitting
+                            ? null
+                            : () {
+                                _submitFeedback(widget.reviewFor);
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2399F5),
                           shape: RoundedRectangleBorder(
@@ -284,21 +265,21 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                         ),
                         child: _isSubmitting
                             ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text(
-                          'Submit',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                                'Submit',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -325,7 +306,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
     );
   }
 
-  void _submitFeedback() async {
+  void _submitFeedback(String ratingFrom) async {
     if (selectedRating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -341,14 +322,26 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
     });
 
     try {
-      final success = await _ratingController.submitBusinessRating(
-        businessId: widget.businessId,
-        rating: selectedRating,
-        comment: _feedbackController.text.trim(),
-      );
+      if (ratingFrom == AppConstants.business) {
+        final success = await _ratingController.submitBusinessRating(
+          businessId: widget.businessId,
+          rating: selectedRating,
+          comment: _feedbackController.text.trim(),
+        );
 
-      if (success && mounted) {
-        Navigator.of(context).pop();
+        if (success && mounted) {
+          Navigator.of(context).pop();
+        }
+      } else if (ratingFrom == AppConstants.individual) {
+        final success = await _ratingController.submitPersonalRating(
+          userId: widget.businessId,
+          rating: selectedRating,
+          comment: _feedbackController.text.trim(),
+        );
+
+        if (success && mounted) {
+          Navigator.of(context).pop();
+        }
       }
     } finally {
       if (mounted) {
@@ -365,7 +358,6 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
     super.dispose();
   }
 }
-
 
 class RatingStars extends StatelessWidget {
   final int selectedIndex;

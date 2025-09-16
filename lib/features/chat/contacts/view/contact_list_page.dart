@@ -426,7 +426,10 @@ class _ContactsPageState extends State<ContactsPage> {
                                         .id !=
                                         null) {
                                       chatViewController.openAnyOneChatFunction(
-                                          type: "personal",
+
+                                       type: details
+                                          ?.existingNotConnected?[
+                                          index].accountType,
                                           isInitialMessage: true,
                                           userId: details
                                               ?.existingNotConnected?[

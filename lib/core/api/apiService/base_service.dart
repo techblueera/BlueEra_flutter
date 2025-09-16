@@ -424,5 +424,7 @@ abstract class BaseService {
   final String socialLinksUpdate = "channel-service/channels/social-links/";
   final String getCountRating="user-service/business/getCountOfRating/";
     String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
+    String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
 
 }
+// https://api.blueera.ai/api/user-service/users/689df0cb7e62ed576245195f/rating

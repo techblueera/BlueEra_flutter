@@ -40,7 +40,7 @@ class _ExpandableTextState extends State<ExpandableText> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final span = TextSpan(text: widget.text, style: style);
+        final span = TextSpan(text: widget.text??"", style: style);
 
         // Trimmed version
         final tpTrimmed = TextPainter(

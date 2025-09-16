@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -97,11 +98,10 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   }
 
   void _navigateToProfile({required String authorId}) {
-    if (widget.type?.toUpperCase() == "BUSINESS") {
-      print("HERE IS DIFFERECE FOR PERSONAL AND INDIVIDUAL");
+    logs("widget.type ${widget.type}");
+    if (widget.type?.toUpperCase() == AppConstants.business) {
       Get.to(() => VisitBusinessProfile(businessId: widget.businessId ?? ''));
-    } else {
-      print("kjnlhhhn");
+    } else if(widget.type?.toUpperCase()==AppConstants.individual){
       Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen, channelId: '',));
 
       // Get.to(() => PersonalChatProfile(

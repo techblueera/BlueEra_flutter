@@ -105,6 +105,16 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
+
+  Future<ResponseModel> submitRatingToPersonal(String userId, Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+      userGetRattingSummary(userId),
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
   Future<ResponseModel> getAllProductsApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
       "$getAllProducts",

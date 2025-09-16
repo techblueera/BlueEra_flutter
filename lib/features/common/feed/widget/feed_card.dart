@@ -100,7 +100,8 @@ class _FeedCardState extends State<FeedCard> {
                   ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
                   : null,
              ),
-          buildActions: () => PostActionsBar(
+          commentView:()=> _onCommentPressed(),
+          buildActions: () => PostActionsBarNew(
             post: _post,
             isLiked: _post?.isLiked ?? false,
             totalLikes: _post?.likesCount ?? 0,

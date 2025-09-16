@@ -350,4 +350,10 @@ class AppIconAssets {
   static String location_new = "${iconPath}location_new.svg";
   static String mail_new = "${iconPath}mail_new.svg";
   static String channel_video_new = "${iconPath}channel_video_new.svg";
+  static String clock_new = "${iconPath}clock_new.svg";
+  static String  eye_new= "${iconPath}eye_new.svg";
+  static String comment_new = "${iconPath}comment_new.svg";
+  static String like_new = "${iconPath}like_new.svg";
+  static String repost_new = "${iconPath}repost_new.svg";
+  static String star_rounded = "${iconPath}star_rounded.svg";
 }

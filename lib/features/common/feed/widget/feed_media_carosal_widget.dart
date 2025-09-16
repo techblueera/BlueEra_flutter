@@ -186,7 +186,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
       onVisibilityChanged: _onVisibilityChanged,
       child: SizedBox(
         // height: SizeConfig.size240,
-        height: Get.width * 0.5,
+        height: Get.width * 0.4,
 
         child: Stack(
           children: [
@@ -218,61 +218,67 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
                         width = Get.width * 0.5;
                       }
 
-                      return Container(
-                        // height: Get.width * 0.5,
-                        padding: EdgeInsets.zero,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          // borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                navigatePushTo(
-                                  context,
-                                  ImageViewScreen(
-                                    subTitle: widget.subTitle,
-                                    appBarTitle:
-                                        AppLocalizations.of(context)!.imageViewer,
-                                    imageUrls: widget.mediaUrls,
-                                    initialIndex: index,
-                                  ),
-                                );
-                              },
-                              child: Center(
-                                child: Container(
-                                  height: height,
-                                  width: width,
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: NetworkImage(url),
-                                      fit: BoxFit.fitWidth,
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+
+                        child: Container(
+                          // height: Get.width * 0.5,
+                          padding: EdgeInsets.zero,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+
+                          ),
+                          child: Stack(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  navigatePushTo(
+                                    context,
+                                    ImageViewScreen(
+                                      subTitle: widget.subTitle,
+                                      appBarTitle:
+                                          AppLocalizations.of(context)!.imageViewer,
+                                      imageUrls: widget.mediaUrls,
+                                      initialIndex: index,
+                                    ),
+                                  );
+                                },
+                                child: Center(
+                                  child: Container(
+                                    height: height,
+                                    width: width,
+                                    decoration: BoxDecoration(
+
+                                      image: DecorationImage(
+                                        image: NetworkImage(url),
+                                        fit: BoxFit.fitWidth,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
 
-                            // Page indicator
-                            if (widget.mediaUrls.length > 1)
-                              Positioned(
-                                top: 12,
-                                right: 12,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.6),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: CustomText(
-                                    "${_currentPage + 1}/${widget.mediaUrls.length}",
-                                    color: Colors.white,
+                              // Page indicator
+                              if (widget.mediaUrls.length > 1)
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.mainTextColor.withValues(alpha: 0.80),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: CustomText(
+                                      "${_currentPage + 1}/${widget.mediaUrls.length}",
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -283,15 +289,15 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
             // widget.mediaUrls.length > 1 ? _buildIndicatorDots() : SizedBox(),
             // if (widget.buildTranslationWidget != null) widget.buildTranslationWidget!(),
             // _buildPostMetaInfo(),
-            if (widget.taggedUser.isNotEmpty)
-              FeedTagButton(
-                  onTap: () => showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => FeedTagPeopleBottomSheet(
-                            taggedUser: widget.taggedUser),
-                      )),
+            // if (widget.taggedUser.isNotEmpty)
+            //   FeedTagButton(
+            //       onTap: () => showModalBottomSheet(
+            //             context: context,
+            //             isScrollControlled: true,
+            //             backgroundColor: Colors.transparent,
+            //             builder: (context) => FeedTagPeopleBottomSheet(
+            //                 taggedUser: widget.taggedUser),
+            //           )),
 
             // Audio control button (bottom right)
             if (widget.audioUrl != null) _buildAudioControls(),

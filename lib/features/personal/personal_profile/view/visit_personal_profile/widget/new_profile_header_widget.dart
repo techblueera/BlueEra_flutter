@@ -17,11 +17,13 @@ import '../../../../../../core/api/model/user_profile_res.dart';
 import '../visiting_profile_screen.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
-  NewProfileHeaderWidget({super.key, required this.user, this.screenFromName});
+  NewProfileHeaderWidget(
+      {super.key, required this.user, required this.screenFromName});
 
   final User? user;
   final controller = Get.find<VisitProfileController>();
-final String? screenFromName;
+  final String? screenFromName;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -60,34 +62,31 @@ final String? screenFromName;
                     SizedBox(
                       height: SizeConfig.size5,
                     ),
-                    (controller.channelUserName?.value.isNotEmpty ?? false)
-                        ? InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                  context, RouteHelper.getChannelScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.argAccountType: user?.accountType,
-                                    ApiKeys.channelId:
-                                        controller.channelUserId?.value,
-                                    ApiKeys.authorId: user?.id
-                                  });
-                            },
-                            child: CustomText(
-                              'View Channel',
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primaryColor,
-                              fontSize: SizeConfig.size12,
-                            ),
-                          )
-                        : CustomText(
-                            'Channel not\n found',
-                            color: AppColors.grey99,
-                            fontWeight: FontWeight.w600,
-                            fontSize: SizeConfig.size12,
-                            textAlign: TextAlign.center,
-                          ),
+                    Obx(() {
+                      return (controller.channelUserName?.value.isNotEmpty ??
+                              false)
+                          ? InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(context,
+                                    RouteHelper.getChannelScreenRoute(),
+                                    arguments: {
+                                      ApiKeys.argAccountType: user?.accountType,
+                                      ApiKeys.channelId:
+                                          controller.channelUserId?.value,
+                                      ApiKeys.authorId: user?.id
+                                    });
+                              },
+                              child: CustomText(
+                                'View Channel',
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.primaryColor,
+                                fontSize: SizeConfig.size12,
+                              ),
+                            )
+                          : SizedBox();
+                    }),
                   ],
                 ),
                 SizedBox(
@@ -177,48 +176,135 @@ final String? screenFromName;
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              await controller.getUserChannelDetailsController(
-                                  userId: user?.id);
-                              showPersonalDetailsPopup(context);
-                            },
-                            // Reuse method if applicable
-                            child: CustomText(
-                              'Personal Details',
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primaryColor,
-                              fontSize: SizeConfig.size12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.size12),
-                      Row(
-                        children: [
-                          LocalAssets(imagePath: AppIconAssets.calender_new),
-                          SizedBox(
-                            width: SizeConfig.size5,
-                          ),
-                          CustomText(
-                            "Join US: ",
-                            color: Colors.black,
-                            fontSize: SizeConfig.small,
+                      if (screenFromName == AppConstants.chatScreen)
+                        GestureDetector(
+                          onTap: () async {
+                            // await controller.getUserChannelDetailsController(
+                            //     userId: user?.id);
+                            showPersonalDetailsPopup(context);
+                          },
+                          // Reuse method if applicable
+                          child: CustomText(
+                            'Personal Details',
+                            color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,
-                          ),
-                          CustomText(
-                            stringDateFormatDate(
-                                dateValue: user?.createdAt ?? ""),
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primaryColor,
                             fontSize: SizeConfig.size12,
-                            overflow: TextOverflow.ellipsis,
-                            color: AppColors.mainTextColor,
                           ),
-                        ],
-                      ),
+                        ),
+                      if (screenFromName == AppConstants.feedScreen)
+                        Padding(
+                          padding: EdgeInsets.only(top: SizeConfig.size5),
+                          child: Row(
+                            children: [
+                              if (user?.username != null &&
+                                  (user?.username?.isNotEmpty ?? false))
+                                Flexible(
+                                  child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size8,
+                                          vertical: SizeConfig.size3),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color:
+                                                  AppColors.secondaryTextColor),
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: CustomText(
+                                        "@${user?.username}",
+                                        color: AppColors.secondaryTextColor,
+                                        fontSize: SizeConfig.extraSmall,
+                                      )),
+                                ),
+                              if (user?.profession != null &&
+                                  (user?.profession?.isNotEmpty ?? false))
+                                Flexible(
+                                  child: Container(
+                                      margin: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size5),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size8,
+                                          vertical: SizeConfig.size3),
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color:
+                                                  AppColors.secondaryTextColor),
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: CustomText(
+                                        "${user?.profession}",
+                                        color: AppColors.secondaryTextColor,
+                                        fontSize: SizeConfig.extraSmall,
+                                      )),
+                                ),
+                            ],
+                          ),
+                        ),
+                      SizedBox(height: SizeConfig.size12),
+                      if (screenFromName == AppConstants.feedScreen)
+                        Row(
+                          children: [
+                            if (user?.location != null &&
+                                (user?.location?.isNotEmpty ?? false)) ...[
+                              LocalAssets(
+                                  imagePath: AppIconAssets.location_new),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                              Flexible(
+                                child: CustomText(
+                                  user?.location,
+                                  fontSize: SizeConfig.size12,
+                                  overflow: TextOverflow.ellipsis,
+                                  color: AppColors.mainTextColor,
+                                ),
+                              ),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                            ],
+                            if (user?.createdAt != null &&
+                                (user?.createdAt?.isNotEmpty ?? false)) ...[
+                              LocalAssets(
+                                  imagePath: AppIconAssets.calender_new),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                              Flexible(
+                                child: CustomText(
+                                  stringDateFormatDate(
+                                      dateValue: user?.createdAt ?? ""),
+                                  fontSize: SizeConfig.size12,
+                                  overflow: TextOverflow.ellipsis,
+                                  color: AppColors.mainTextColor,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      if (screenFromName == AppConstants.chatScreen)
+                        Row(
+                          children: [
+                            LocalAssets(imagePath: AppIconAssets.calender_new),
+                            SizedBox(
+                              width: SizeConfig.size5,
+                            ),
+                            CustomText(
+                              "Join US: ",
+                              color: Colors.black,
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            CustomText(
+                              stringDateFormatDate(
+                                  dateValue: user?.createdAt ?? ""),
+                              fontSize: SizeConfig.size12,
+                              overflow: TextOverflow.ellipsis,
+                              color: AppColors.mainTextColor,
+                            ),
+                          ],
+                        ),
                       Padding(
                         padding: EdgeInsets.only(
                             right: 38.0, top: SizeConfig.size10),
@@ -365,7 +451,7 @@ final String? screenFromName;
                   if (controller.channelUserName?.value.isNotEmpty ?? false)
                     _buildDetailRow(
                         icon: AppIconAssets.channel_video_new,
-                        label: 'View Channel',
+                        label: 'Channel Name',
                         value: "@${controller.channelUserName?.value}",
                         valueColor: AppColors.primaryColor),
                 ],

@@ -19,6 +19,7 @@ import 'package:BlueEra/features/business/visit_business_profile/view/visit_busi
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -144,6 +145,7 @@ class AppConstants {
   static const String Landscape = "Landscape";
   static const String Square = "Square";
   static const String chatScreen = "chatScreen";
+  static const String feedScreen = "feedScreen";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =
@@ -227,7 +229,33 @@ class AccountType {
   static const String personal = 'PERSONAL';
   static const String company = 'COMPANY';
 }
-
+redirectToProfileScreen({required String accountType,required String profileId})
+{
+  String? accountTypeData=accountType.toUpperCase();
+  // logs("user.accountType?=== ${user.accountType}");
+  if (accountType.toUpperCase() ==
+      AppConstants.individual) {
+    if (userId == profileId) {
+      Get.to(
+           PersonalProfileSetupScreen());
+    } else {
+      Get.to(() => NewVisitProfileScreen(
+        authorId: profileId ?? "",
+        screenFromName: AppConstants.feedScreen,
+        channelId: '',
+      ));
+    }
+  }
+  if (accountTypeData ==
+      AppConstants.business) {
+    if (businessId == profileId) {
+      Get.to(BusinessOwnProfileScreen());
+    } else {
+      Get.to(() => VisitBusinessProfile(
+          businessId:profileId ?? ""));
+    }
+  }
+}
 List<String> generate24HoursAmPm() {
   return List.generate(24, (hour) {
     final int displayHour = hour % 12 == 0 ? 12 : hour % 12;
