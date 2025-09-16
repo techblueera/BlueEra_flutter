@@ -543,7 +543,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfo("Rating", "★ ${businessData?.rating ?? 0}"),
+                      _buildInfo("Rating", "★ ${businessData?.rating ?? 0}" ),
                       SizedBox(
                         height: SizeConfig.size6,
                       ),
