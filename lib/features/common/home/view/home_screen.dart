@@ -1,29 +1,23 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
-import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
+import 'package:BlueEra/features/common/more/model/card_model.dart';
+import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
-
-import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
-import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 
 enum SavedFeedTab {
   posts,
@@ -62,9 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // if(accountTypeGlobal.toUpperCase() == AppConstants.business){
-    //   homeScreenController.getBusinessProfileData();
-    // }else{}
     getPackageData();
     searchController.addListener(() {
       setState(() {});
@@ -72,22 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateHeaderHeight();
-      // checkAndShowDailyDialog(context);
+       checkAndShowGreetingDialog(context);
     });
-  }
 
-  // getPersonalProfileData() async {
-  //   await UserRepo().getUserById(userId: userId);
-  //
-  //
-  //   await SharedPreferenceUtils.setSecureValue(
-  //       SharedPreferenceUtils.businessName,
-  //       businessProfileDetails?.data?.businessName);
-  //
-  //   await SharedPreferenceUtils.setSecureValue(
-  //       SharedPreferenceUtils.businessOwnerName,
-  //       businessProfileDetails?.data?.ownerDetails?[0].name);
-  // }
+  }
 
   Future<void> getPackageData() async {
     if (!mounted) return;
@@ -134,88 +113,36 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> checkAndShowDailyDialog(BuildContext context) async {
-    if (await canCallApi()) {
-      try {
-        // 🔥 Call your API here
-        final response = await homeScreenController.getDailyGreeting();
-        // final data = response.data;
+  Future<void> checkAndShowGreetingDialog(BuildContext context) async {
+    final result = await canCallCardApi();
+    final canCall = result.canCall;
+    final today = result.today;
+    log('can call-- $canCall');
 
-        // ✅ Save date after successful API call
+    if (canCall) {
+      try {
+        await homeScreenController.getCardCategoriesSortedByDate(todayDate: today);
+
         await saveApiCallDate();
 
-        // 🎉 Show Dialog
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text("Daily Content"),
-            // content: Text(data['message'] ?? "No content"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Close"),
-              ),
-            ],
-          ),
-        );
+        final List<Cards> cards = homeScreenController.allCards;
+        log('length of card--> ${cards.length}');
+
+        if (cards.isNotEmpty) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return GreetingCardDialog(cards: cards);
+            },
+          );
+        }
       } catch (e) {
         print("API error: $e");
       }
     } else {
-      print("Already called today ✅");
+      print("Already called today ✅ Last call was on $today");
     }
   }
-
-  // Future<String> getAppVersion() async {
-  //   final info = await PackageInfo.fromPlatform();
-  //   return info.version;
-  // }
-
-  /// add version package
-  // bool isUpdateRequired(String currentVersion, String minVersion) {
-  //   List<int> currentParts = currentVersion.split('.').map(int.parse).toList();
-  //   List<int> minParts = minVersion.split('.').map(int.parse).toList();
-  //
-  //   // Pad shorter version arrays with zeros (e.g., "2.5" → "2.5.0")
-  //   while (currentParts.length < minParts.length) {
-  //     currentParts.add(0);
-  //   }
-  //   while (minParts.length < currentParts.length) {
-  //     minParts.add(0);
-  //   }
-  //
-  //   for (int i = 0; i < currentParts.length; i++) {
-  //     if (currentParts[i] > minParts[i]) return false; // current is newer
-  //     if (currentParts[i] < minParts[i]) return true;  // update required
-  //   }
-  //   return false; // same version
-  // }
-  //
-  // void showForceUpdateDialog(BuildContext context, String storeUrl) {
-  //   commonConformationDialog(
-  //       context: context,
-  //       barrierDismissible: false,
-  //       text: "Update Required, Please update the app to continue.",
-  //       confirmCallback: () async {
-  //         if (await canLaunchUrl(Uri.parse(storeUrl))) {
-  //           await launchUrl(Uri.parse(storeUrl),
-  //               mode: LaunchMode.externalApplication);
-  //         }
-  //       },
-  //       cancelCallback: () {
-  //         SystemNavigator.pop();
-  //       });
-  // }
-
-  // @override
-  // void didUpdateWidget(covariant HomeScreen oldWidget) {
-  //   if (oldWidget.isHeaderVisible != widget.isHeaderVisible) {
-  //     homeScreenController.isVisible.value = widget.isHeaderVisible;
-  //     homeScreenController.headerOffset.value = 0.0;
-  //     // animateHeader(1.0); // hide
-  //   }
-  //   super.didUpdateWidget(oldWidget);
-  // }
 
   @override
   void dispose() {
@@ -262,23 +189,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        top: false,
-        child: Obx(() => Stack(
+
+    return SafeArea(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        body: Obx(() => Stack(
               children: [
                 /// Main Scrollable Area with Dynamic Padding
                 AnimatedPadding(
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
                   padding: EdgeInsets.only(
-                      top: (selectedIndex == 3)
-                          ? _headerHeight *
-                                  (1 -
-                                      homeScreenController.headerOffset.value) +
-                              SizeConfig.size30
-                          : _headerHeight *
-                              (1 - homeScreenController.headerOffset.value)),
+                    top: (selectedIndex == 3
+                            ?  _headerHeight* (1 - homeScreenController.headerOffset.value) + SizeConfig.size30
+                            : _headerHeight * (1 - homeScreenController.headerOffset.value))),
                   child: _buildSelectedTabContent(),
                 ),
 

@@ -6,11 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HighlightText extends StatelessWidget {
   final String text;
-
-  const HighlightText({super.key, required this.text});
+  final TextStyle? style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  const HighlightText({super.key, required this.text, this.style, this.maxLines, this.overflow});
 
   @override
   Widget build(BuildContext context) {
+    print('text -- $text');
     final linkRegex = RegExp(r'(https?:\/\/[^\s]+)');
     final mentionRegex = RegExp(r'(@\w+)');
 
@@ -24,7 +27,7 @@ class HighlightText extends StatelessWidget {
       if (match.start > start) {
         spans.add(TextSpan(
           text: text.substring(start, match.start),
-          style: const TextStyle(
+          style: style ?? const TextStyle(
             color: Colors.black,
             fontFamily: AppConstants.OpenSans,
           ),
@@ -67,7 +70,7 @@ class HighlightText extends StatelessWidget {
     if (start < text.length) {
       spans.add(TextSpan(
         text: text.substring(start),
-        style: const TextStyle(
+        style:  style ?? const TextStyle(
           color: Colors.black,
           fontFamily: AppConstants.OpenSans,
         ),
@@ -75,6 +78,8 @@ class HighlightText extends StatelessWidget {
     }
 
     return RichText(
+      maxLines: maxLines,
+      overflow: overflow ?? TextOverflow.clip,
       text: TextSpan(children: spans),
     );
   }

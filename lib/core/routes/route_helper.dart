@@ -32,6 +32,7 @@ import 'package:BlueEra/features/common/map/view/add_place_step_two.dart';
 import 'package:BlueEra/features/common/map/view/category_selection_screen.dart';
 import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/map/view/searchLocationScreen.dart';
+import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/notification/view/notification_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/onboarding_slider_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
@@ -262,6 +263,8 @@ class RouteHelper {
   static String getearnBlueeraScreenRoute() => RouteConstant.earnBlueeraScreen;
   static String getaddDocumentScreenRoute() => RouteConstant.addDocumentScreen;
   static String getpostDetailPageRoute() => RouteConstant.postDetailPage;
+  static String getMoreCardsScreenRoute() =>
+       RouteConstant.moreCardsScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -787,6 +790,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => PostDeatilPage(),
             settings: RouteSettings(name: getpostDetailPageRoute()));
+      case RouteConstant.moreCardsScreen:
+        return MaterialPageRoute(
+            builder: (_) => MoreCardsScreen(),
+            settings: RouteSettings(name: getMoreCardsScreenRoute()));
 
      default:
         return MaterialPageRoute(

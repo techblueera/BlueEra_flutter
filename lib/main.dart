@@ -174,7 +174,6 @@ class _MyAppState extends State<MyApp> {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
-    SizeConfig.init(context);
     // NavigatorService.setNavigatorKey(navKey);
     return GetMaterialApp(
       builder: (context, child) {

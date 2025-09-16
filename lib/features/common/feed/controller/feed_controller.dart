@@ -275,6 +275,10 @@ class FeedController extends GetxController{
 
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
+    if (!isInitialLoad) {
+      isTargetMoreDataLoading.value = true;
+    }
+
     // Check if we have cached data to display first
     if (_hasMoreCachedData(type) && !isInitialLoad) {
       _displayMoreCachedData(type, targetList);

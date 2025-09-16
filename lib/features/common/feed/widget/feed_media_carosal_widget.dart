@@ -98,7 +98,10 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
     });
 
     _audioPlayer.onPositionChanged.listen((position) {
-      if (mounted) setState(() => _position = position);
+      if (mounted) setState(() {
+
+        _position = position;
+      });
     });
 
     _audioPlayer.onPlayerStateChanged.listen((state) {
@@ -178,6 +181,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
 
   @override
   Widget build(BuildContext context) {
+
     // return MediaViewer(
     //   mediaUrlList: widget.mediaUrls,
     // );
@@ -192,10 +196,22 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
           children: [
             PageView.builder(
               itemCount: widget.mediaUrls.length,
+              padEnds: false,
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemBuilder: (context, index) {
+                /* 1️⃣  off-screen → no decode, no GPU upload */
+                if (index != _currentPage) {
+                  return SizedBox(
+                    width: Get.width,
+                    height: Get.width * 0.5,
+                    child: const ColoredBox(color: Colors.black),
+                  );
+                }
+
+                /* 2️⃣  visible page → safe to decode */
                 final url = widget.mediaUrls[index];
                 final mediaType = getTypeFromUrl(url);
+
                 if (mediaType == MediaType.video) {
                   return VideoPlayerWidget(videoUrl: url);
                 } else {
@@ -244,12 +260,16 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
                                 child: Container(
                                   height: height,
                                   width: width,
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: NetworkImage(url),
-                                      fit: BoxFit.fitWidth,
-                                    ),
+                                  child: CachedNetworkImage(
+                                    imageUrl: url,
+                                    fit: BoxFit.fitWidth,
                                   ),
+                                  // decoration: BoxDecoration(
+                                  //   image: CachedNetworkImage(
+                                  //     imageUrl: url,
+                                  //     fit: BoxFit.fitWidth,
+                                  //   ),
+                                  // ),
                                 ),
                               ),
                             ),
@@ -307,12 +327,14 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
     if (imageOrientation.containsKey(url)) {
       return imageOrientation[url]!;
     }
+    print('image orientation----');
 
     final completer = Completer<ui.Image>();
     final stream = NetworkImage(url).resolve(const ImageConfiguration());
 
     stream.addListener(
       ImageStreamListener((info, _) {
+        print('info-- $info');
         completer.complete(info.image);
       }),
     );

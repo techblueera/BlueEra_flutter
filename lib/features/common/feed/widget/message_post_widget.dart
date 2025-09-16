@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -51,6 +53,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     _post = widget.post!;
     subTitle = _post.subTitle ?? '';
     natureOfPost = _post.natureOfPost ?? '';
+
   }
 
   @override
@@ -58,6 +61,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     return FeedCardWidget(
         childWidget: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         widget.authorSection(),
         Padding(
@@ -85,9 +89,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
               ],
 
               if (subTitle.isNotEmpty)...[
-                SizedBox(height: SizeConfig.size5,),
+                SizedBox(height: SizeConfig.size5),
 
-                Container(
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: SizeConfig.screenWidth,
+                  ),
                   child: Padding(
                     padding: EdgeInsets.only(
                       left: SizeConfig.size15,
@@ -104,15 +111,14 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     ),
                   ),
                 ),
-                SizedBox(height: SizeConfig.size5,),
-
+                SizedBox(height: SizeConfig.size5),
               ],
 
             ],
           ),
         ),
         if (_post.media?.isNotEmpty ?? false)...[
-          SizedBox(height: SizeConfig.size5,),
+          SizedBox(height: SizeConfig.size5),
           FeedMediaCarouselWidget(
             subTitle: _post.subTitle ?? "",
             taggedUser: _post.taggedUsers ?? [],

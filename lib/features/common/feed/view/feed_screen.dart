@@ -80,6 +80,7 @@ class _FeedScreenState extends State<FeedScreen> {
     final isAtBottom = position.pixels >= position.maxScrollExtent - 200; // 100px threshold
 
     if (isAtBottom) {
+      print('at bottom');
       // Trigger pagination for individual page
       feedController.handleScrollToBottom(widget.postFilterType);
     }
@@ -190,10 +191,13 @@ class _FeedScreenState extends State<FeedScreen> {
     }
 
     // Loader at the end
+    // Loader at the end
     if (postIndex >= posts.length) {
-      return staggeredDotsWaveLoading();
+      // Only show loader if pagination is in progress
+      return Obx(() => feedController.isTargetMoreDataLoading.value
+          ? staggeredDotsWaveLoading()
+          : const SizedBox.shrink());
     }
-
     // Return the actual post
     return FeedCard(
       post: posts[postIndex],

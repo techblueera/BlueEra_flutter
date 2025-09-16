@@ -135,10 +135,9 @@ class _JobsScreenState extends State<JobsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        top: false,
-        child: Obx(()=> Stack(
+    return SafeArea(
+      child: Scaffold(
+        body: Obx(()=> Stack(
           children: [
             /// Main Scrollable Area with Dynamic Padding
             AnimatedPadding(
@@ -152,7 +151,7 @@ class _JobsScreenState extends State<JobsScreen> {
                   ? _buildSelectedBusinessJobTabContent()
                   : SizedBox(),
             ),
-
+        
             // Animated Sliding Header
             AnimatedPositioned(
               duration: const Duration(milliseconds: 400),
@@ -194,13 +193,13 @@ class _JobsScreenState extends State<JobsScreen> {
                       onTabSelected: (index, value) {
                         _searchController.clear();
                         jobScreenController.clearSearch();
-
+        
                         setState(() {
                           selectedIndex = index;
                         });
-
+        
                         resetScrollingOnTabChanged();
-
+        
                       },
                       labelBuilder: (jobCategory) {
                         return jobCategory.label;
@@ -223,7 +222,7 @@ class _JobsScreenState extends State<JobsScreen> {
                         setState(() {
                           selectedIndex = index;
                         });
-
+        
                         resetScrollingOnTabChanged();
                       },
                       labelBuilder: (jobCategory) {

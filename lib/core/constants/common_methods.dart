@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart' as foundationObj;
@@ -446,13 +447,34 @@ Widget staggeredDotsWaveLoading(){
   );
 }
 
-/// Returns true if API can be called today
-Future<bool> canCallApi() async {
-    final lastDate = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.lastGreetingCallKey);
-    final today = DateTime.now().toIso8601String().substring(0, 10); // yyyy-MM-dd
-    log('today--> $today');
+/// Returns true if user has not disabled AND API has not been called today
+Future<GreetingCheckResult> canCallCardApi() async {
+  final dontShow = await SharedPreferenceUtils.getSecureValue(
+    SharedPreferenceUtils.disableGreetingCardKey,
+  );
 
-    return lastDate != today; // call only if different
+  final today = DateTime.now().toIso8601String(); // yyyy-MM-dd
+  log('today--> $today');
+
+  if (dontShow == true) {
+    log("User disabled greeting card ❌");
+    return GreetingCheckResult(canCall: false, today: today);  }
+
+  // ✅ Then check daily condition
+  final lastDate = await SharedPreferenceUtils.getSecureValue(
+    SharedPreferenceUtils.lastGreetingCallKey,
+  );
+
+  final canCall = lastDate != today.substring(0, 10);
+  return GreetingCheckResult(canCall: canCall, today: today);
+}
+
+/// Save user preference (don't show again)
+Future<void> disableGreetingCard() async {
+  await SharedPreferenceUtils.setSecureValue(
+    SharedPreferenceUtils.disableGreetingCardKey,
+    true,
+  );
 }
 
 /// Save today's date after successful API call
@@ -460,3 +482,4 @@ Future<void> saveApiCallDate() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.lastGreetingCallKey, today);
 }
+
