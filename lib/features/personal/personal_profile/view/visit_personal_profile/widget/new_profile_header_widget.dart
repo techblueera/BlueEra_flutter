@@ -217,7 +217,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                           ),
                           CustomText(
                             stringDateFormatDate(
-                                dateValue: user?.createdAt ?? ""),
+                                dateValue: user?.createdAt ?? DateTime.now().toString()),
                             fontSize: SizeConfig.size12,
                             overflow: TextOverflow.ellipsis,
                             color: AppColors.mainTextColor,
