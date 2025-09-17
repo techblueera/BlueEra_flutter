@@ -360,4 +360,5 @@ class AppIconAssets {
   static String repost_new = "${iconPath}repost_new.svg";
   static String star_rounded = "${iconPath}star_rounded.svg";
   static String cards = "${iconPath}cards.svg";
+  static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
 }

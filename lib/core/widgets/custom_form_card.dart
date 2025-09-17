@@ -26,12 +26,12 @@ class CustomFormCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: width ?? double.infinity,
-      padding: padding ?? EdgeInsets.all(SizeConfig.size4),
-      margin: margin ?? EdgeInsets.all(SizeConfig.size16),
+      margin: margin,
+      padding: padding ?? EdgeInsets.all(SizeConfig.size15),
       decoration: BoxDecoration(
-        color: color ?? AppColors.white,
-        borderRadius: borderRadius ?? BorderRadius.circular(16),
-        border: border ?? Border.all(color: AppColors.greyE5, width: 1),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(10.0),
+        // boxShadow: [AppShadows.textFieldShadow],
       ),
       child: child,
     );

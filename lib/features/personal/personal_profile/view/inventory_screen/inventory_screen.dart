@@ -26,6 +26,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final List<String> productTab = ["Products", "Category Folder"];
   int selectedIndex = 0;
   final FocusNode _searchFocusNode = FocusNode();
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void dispose() {
@@ -39,88 +40,95 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      // appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(
+        controller: searchController,
+        searchHintText:  'Search ${selectedIndex == 0 ? 'Product' : 'Category'}...',
+        onClearCallback: () => searchController.clear(),
+        isSearch: true,
+        isAddProduct: selectedIndex == 0,
+        isAddProductCategory: selectedIndex == 1
+      ),
       body: GestureDetector(
         onTap: (){
           FocusScope.of(context).unfocus();
           _searchFocusNode.unfocus();
         },
         child: SafeArea(
-          child: Column(
-            children: [
-              // Custom Header Container
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
-                color: AppColors.white,
-                child: Row(
-                  children: [
-                    // Back Button
-                      GestureDetector(
-                        onTap:(){
-                          Get.back();
-                        },
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          color: AppColors.black,
-                          size: 20,
-                        ),
-                      ),
-                      // onPressed: () => Get.back(),
-                      // padding: EdgeInsets.zero,
-                      // constraints: const BoxConstraints(),
+          child: Padding(
+            padding: EdgeInsets.all(SizeConfig.size15),
+            child: Column(
+              children: [
+                // Custom Header Container
+                // Container(
+                //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
+                //   color: AppColors.white,
+                //   child: Row(
+                //     children: [
+                //       // Back Button
+                //         GestureDetector(
+                //           onTap:(){
+                //             Get.back();
+                //           },
+                //           child: Icon(
+                //             Icons.arrow_back_ios,
+                //             color: AppColors.black,
+                //             size: 20,
+                //           ),
+                //         ),
+                //         // onPressed: () => Get.back(),
+                //         // padding: EdgeInsets.zero,
+                //         // constraints: const BoxConstraints(),
+                //
+                //       // Search Container
+                //       Expanded(
+                //         child: Container(
+                //           height: 40,
+                //           margin: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                //           decoration: BoxDecoration(
+                //             color: AppColors.fillColor,
+                //             borderRadius: BorderRadius.circular(20),
+                //             border: Border.all(color: AppColors.greyE5, width: 1),
+                //           ),
+                //           child: TextField(
+                //             style: TextStyle(color: Colors.black),
+                //             controller: controller.searchController,
+                //             focusNode: _searchFocusNode,
+                //             autofocus: false,
+                //             onTap: () {
+                //               // Only allow focus when user explicitly taps
+                //             },
+                //             decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.1),
+                //               hintText: 'Search ${selectedIndex == 0 ? 'Product' : 'Category'}...',
+                //               hintStyle: TextStyle(
+                //                 color: AppColors.grey9B,
+                //                 fontSize: 15,
+                //               ),
+                //               prefixIcon: Image.asset("assets/icons/search_icon.png"),
+                //               border: InputBorder.none,
+                //               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //
+                //       // Draft Text
+                //       GestureDetector(
+                //         onTap: () {
+                //           Navigator.pushNamed(context, RouteConstant.DraftScreen);
+                //         },
+                //         child: const CustomText(
+                //           'Draft',
+                //           fontSize: 14,
+                //           fontWeight: FontWeight.w600,
+                //           color: AppColors.primaryColor,
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                //             ),
 
-                    // Search Container
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        margin: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                        decoration: BoxDecoration(
-                          color: AppColors.fillColor,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.greyE5, width: 1),
-                        ),
-                        child: TextField(
-                          style: TextStyle(color: Colors.black),
-                          controller: controller.searchController,
-                          focusNode: _searchFocusNode,
-                          autofocus: false,
-                          onTap: () {
-                            // Only allow focus when user explicitly taps
-                          },
-                          decoration: InputDecoration(fillColor: Colors.grey.withOpacity(0.1),
-                            hintText: 'Search ${selectedIndex == 0 ? 'Product' : 'Category'}...',
-                            hintStyle: TextStyle(
-                              color: AppColors.grey9B,
-                              fontSize: 15,
-                            ),
-                            prefixIcon: Image.asset("assets/icons/search_icon.png"),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Draft Text
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, RouteConstant.DraftScreen);
-                      },
-                      child: const CustomText(
-                        'Draft',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-                          ),
-
-              // Main Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                // Main Content
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -144,18 +152,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           GestureDetector(onTap: (){
                             if (selectedIndex == 0) {
                               // Add Product
-                               Get.to(()=>AddProductScreen());
+                               Get.to(()=> AddProductScreen());
                             } else {
                               // Add Category
                               Get.to(()=>AddCategoryFolderScreen());
                             }
                           },
                             child: Container(
-                              height: 34,
+                              height: SizeConfig.size30,
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                // color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(9),border: Border.all(color: AppColors.primaryColor)
+                                borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.primaryColor)
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -188,8 +196,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

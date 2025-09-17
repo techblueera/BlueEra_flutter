@@ -58,4 +58,19 @@ class ListingFormRepo extends BaseService{
     return response;
   }
 
+  // Init upload for media (presigned URL)
+  Future<ResponseModel> getSubchildORRootCategroy({
+    required Map<String, dynamic> queryParams
+  }) async {
+    final String path = "/product-service/api/categories/getSubchildORRootCategroy";
+    final response = await ApiBaseHelper().getHTTP(
+      path,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

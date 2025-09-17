@@ -38,7 +38,8 @@ class CommonSearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius ?? 10.0),
       ),
       alignment: Alignment.center,
-      child: TextFormField(onChanged: onChange,
+      child: TextFormField(
+        onChanged: onChange,
         autofocus: false,
         showCursor: isShowCursor,
         controller: controller,

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/step4_section.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -65,7 +66,7 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
         }
       },
       child: Scaffold(
-        bottomNavigationBar:   // Bottom Action Buttons
+        bottomNavigationBar:
               Obx(() => Container(
                     padding: EdgeInsets.all(SizeConfig.size16),
                     decoration: BoxDecoration(
@@ -78,56 +79,26 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                         ),
                       ],
                     ),
-                    child: Row(
-                      children: [
-                        // Save as Draft Button
-                        Expanded(
-                          child: Container(
-                            height: 45,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: AppColors.primaryColor, width: 1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: controller.saveAsDraft,
-                                borderRadius: BorderRadius.circular(8),
-                                child: const Center(
-                                  child: CustomText(
-                                    'Save as draft',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(width: SizeConfig.size12),
-
-                        // Post Product Button
-                        Expanded(
-                            child: CustomBtn(
-                          title: controller.currentStep.value ==
-                                  ManualListingScreenController.totalSteps
-                              ? 'Submit'
-                              : 'Next',
-                          onTap: controller.onNext,
-                          bgColor: AppColors.primaryColor,
-                          textColor: AppColors.white,
-                          height: 45,
-                        )),
-                      ],
+                    child: CustomBtn(
+                      title: controller.currentStep.value ==
+                          ManualListingScreenController.totalSteps
+                          ? 'Submit'
+                          : 'Next',
+                      onTap: controller.onNext,
+                      bgColor: AppColors.primaryColor,
+                      textColor: AppColors.white,
+                      height: SizeConfig.size40,
+                      radius: 10.0,
                     ),
                   )),
-             
-        backgroundColor: AppColors.white,
+
+        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-          title: "Product Details",
+          title: controller.currentStep.value == 3
+              ? 'Pricing & Warranty'
+              : controller.currentStep.value == 4
+              ? 'Add Variant'
+              : 'Product Details',
           onBackTap: () {
             if (controller.currentStep.value > 1) {
               controller.onBack();
@@ -135,6 +106,17 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
               Navigator.of(context).pop();
             }
           },
+          buildCustomWidget: () {
+            return Padding(
+              padding: EdgeInsets.only(right: SizeConfig.size20),
+              child: Obx(()=> CustomText(
+                'Steps-${controller.currentStep.value}/${ManualListingScreenController.totalSteps}',
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              )),
+            );
+          }
         ),
         body: SafeArea(
           child: Column(
@@ -152,8 +134,10 @@ class _ListingFormScreenState extends State<ListingFormScreen> {
                             return Step1Section(controller: controller);
                           } else if (step == 2) {
                             return Step2Section(controller: controller);
-                          } else {
+                          } else if (step == 3) {
                             return Step3Section(controller: controller);
+                          }else{
+                            return Step4Section(controller: controller);
                           }
                         }),
                   ),

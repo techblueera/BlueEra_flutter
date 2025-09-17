@@ -10,9 +10,10 @@ import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
-import 'package:BlueEra/features/common/reel/models/channel_model.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_settings_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -57,6 +58,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.controller,
     this.onSearchTap,
     this.onClearCallback,
+    this.searchHintText,
     this.onLocationTap,
     this.onMoreTap,
     this.isTrimmedButton,
@@ -90,7 +92,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isShowCursor,
     this.currentCity,
     this.isGuestLogout,
-    this.buildCardCategory
+    this.buildCustomWidget,
+    this.isAddProduct = false,
+    this.isAddProductCategory = false,
+    this.isCreateOwnProduct = false
   });
 
   // final AppBar? appBar;
@@ -115,6 +120,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController? controller;
   final OnTab? onSearchTap;
   final OnTab? onClearCallback;
+  final String? searchHintText;
   final OnTab? onBackTap;
   final OnTab? onShareTap;
   final OnTab? onMoreTap;
@@ -151,7 +157,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? rightTextButtonColor;
   final OnTab? onRightTextButtonTap;
   final String? currentCity;
-  final Widget Function()? buildCardCategory;
+  final Widget Function()? buildCustomWidget;
+  final bool isAddProduct;
+  final bool isAddProductCategory;
+  final bool isCreateOwnProduct;
 
   @override
   Widget build(BuildContext context) {
@@ -246,9 +255,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                           controller: controller!,
                           isShowCursor: isShowCursor,
                           onSearchTap: onSearchTap ?? () {},
-                          onClearCallback: () {
-                            controller?.clear();
-                          },
+                          // onClearCallback: () {
+                          //   controller?.clear();
+                          // },
+                          onClearCallback: onClearCallback,
+                          hintText: searchHintText
                         ),
                       ),
                     ),
@@ -666,22 +677,111 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
 
-        if (buildCardCategory!=null)
+        if (buildCustomWidget!=null)
           Builder(
-            builder: (context) => Container(
-              constraints: BoxConstraints(
-                  minHeight: SizeConfig.size30, // Use minHeight instead of fixed height
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                  color: AppColors.white,
-                  border: Border.all(color: AppColors.primaryColor),
-                  borderRadius: BorderRadius.circular(8),
+            builder: (context) => buildCustomWidget!(),
+          ),
+
+        if (isAddProduct)
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: ()=> Get.to(()=> AddProductScreen()),
+              child: Container(
+                height: SizeConfig.size30,
+                margin: EdgeInsets.only(right: SizeConfig.size10),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryColor)
                 ),
-              margin: EdgeInsets.only(right: SizeConfig.size20),
-              child: buildCardCategory!()
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.add,
+                      color: AppColors.primaryColor,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    CustomText(
+                      'Add Product',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
+
+        if (isAddProductCategory)
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: ()=> Get.to(()=> AddCategoryFolderScreen()),
+              child: Container(
+                height: SizeConfig.size30,
+                margin: EdgeInsets.only(right: SizeConfig.size10),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryColor)
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.add,
+                      color: AppColors.primaryColor,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    CustomText(
+                      'Add Category',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        if (isCreateOwnProduct)
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: ()=>  Get.to(() => ListingFormScreen()),
+              child: Container(
+                height: SizeConfig.size30,
+                margin: EdgeInsets.only(right: SizeConfig.size10),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryColor)
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.add,
+                      color: AppColors.primaryColor,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    CustomText(
+                      'Create Own',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+
       ],
     );
   }

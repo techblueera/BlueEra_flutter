@@ -44,46 +44,58 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: 'More Cards',
-        buildCardCategory: () {
+        buildCustomWidget: () {
           return Obx(() {
             final categories = moreCardsScreenController.allCategories;
             final selected = moreCardsScreenController.selectedCategory.value;
 
-            return DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: selected,
-                isDense: true,
-                icon: const Icon(Icons.expand_more, color: Colors.blue),
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w600,
-                ),
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: "All",
-                    child: Text(
-                      "All",
-                      style: TextStyle(color: AppColors.mainTextColor),
-                    ),
+            return Container(
+              constraints: BoxConstraints(
+                minHeight: SizeConfig.size30, // Use minHeight instead of fixed height
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                border: Border.all(color: AppColors.primaryColor),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: EdgeInsets.only(right: SizeConfig.size20),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selected,
+                  isDense: true,
+                  icon: const Icon(Icons.expand_more, color: Colors.blue),
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w600,
                   ),
-                  ...categories.map((value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: "All",
                       child: Text(
-                        value,
-                        style:
-                        const TextStyle(color: AppColors.mainTextColor),
+                        "All",
+                        style: TextStyle(color: AppColors.mainTextColor),
                       ),
-                    );
-                  }),
-                ],
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    moreCardsScreenController.selectedCategory.value = newValue;
-                    moreCardsScreenController.filterCardsByCategory(newValue);
-                  }
-                },
+                    ),
+                    ...categories.map((value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style:
+                          const TextStyle(color: AppColors.mainTextColor),
+                        ),
+                      );
+                    }),
+                  ],
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      moreCardsScreenController.selectedCategory.value = newValue;
+                      moreCardsScreenController.filterCardsByCategory(newValue);
+                    }
+                  },
+                ),
               ),
             );
           });
