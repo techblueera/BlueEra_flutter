@@ -103,9 +103,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                           itemCount: widget.cards.length,
                           itemBuilder: (context, index, realIndex) {
                             final card = widget.cards[index];
-                            final cardPhoto = (card.photos != null && card.photos!.isNotEmpty)
-                                ? card.photos!.first
-                                : '';
+                            final cardPhoto = card.photo ?? '';
 
                             return RepaintBoundary(
                               key: _cardKey[index],

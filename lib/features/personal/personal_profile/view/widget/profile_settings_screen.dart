@@ -320,6 +320,9 @@ class ProfileSettingsScreen extends StatelessWidget {
                 color: Color.fromRGBO(186, 199, 210, 1),
               ),
             ),
+            _buildTile(
+                AppIconAssets.cards, "My Cards", "View/Share Cards.",
+                onTap: () =>  Get.toNamed(RouteHelper.getMoreCardsScreenRoute())),
             if (Platform.isAndroid) ...[
               _buildTile(
                 AppIconAssets.earnWithBlueEra,

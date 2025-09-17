@@ -5,7 +5,8 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/categoryinventory_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/product_model.dart'; 
+import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/product_model.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.white,
+      // appBar: CommonBackAppBar(),
       body: GestureDetector(
         onTap: (){
           FocusScope.of(context).unfocus();
