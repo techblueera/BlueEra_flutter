@@ -111,40 +111,42 @@ class NewProfileHeaderWidget extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Obx(() {
-                            return Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.size10,
-                                  vertical: SizeConfig.size3),
-                              decoration: BoxDecoration(
-                                  color: AppColors.primaryColor,
-                                  borderRadius: BorderRadius.circular(8)),
-                              child: InkWell(
-                                  onTap: () async {
-                                    if (isGuestUser()) {
-                                      createProfileScreen();
-                                    } else {
-                                      if (controller.isFollow.value) {
-                                        await controller.unFollowUserController(
-                                            candidateResumeId: user?.id);
+                          if (user?.id != null)
+                            Obx(() {
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: SizeConfig.size10,
+                                    vertical: SizeConfig.size3),
+                                decoration: BoxDecoration(
+                                    color: AppColors.primaryColor,
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: InkWell(
+                                    onTap: () async {
+                                      if (isGuestUser()) {
+                                        createProfileScreen();
                                       } else {
-                                        await controller.followUserController(
-                                            candidateResumeId: user?.id);
+                                        if (controller.isFollow.value) {
+                                          await controller
+                                              .unFollowUserController(
+                                                  candidateResumeId: user?.id);
+                                        } else {
+                                          await controller.followUserController(
+                                              candidateResumeId: user?.id);
+                                        }
                                       }
-                                    }
-                                  },
-                                  child: CustomText(
-                                    controller.isFollow.value
-                                        ? "Unfollow"
-                                        : "Follow",
-                                    color: AppColors.white,
-                                    fontWeight: FontWeight.w600,
-                                    // decoration: TextDecoration.underline,
-                                    // decorationColor: AppColors.primaryColor,
-                                    fontSize: SizeConfig.size12,
-                                  )),
-                            );
-                          }),
+                                    },
+                                    child: CustomText(
+                                      controller.isFollow.value
+                                          ? "Unfollow"
+                                          : "Follow",
+                                      color: AppColors.white,
+                                      fontWeight: FontWeight.w600,
+                                      // decoration: TextDecoration.underline,
+                                      // decorationColor: AppColors.primaryColor,
+                                      fontSize: SizeConfig.size12,
+                                    )),
+                              );
+                            }),
                           Container(
                             height: 20,
                             width: 20,
@@ -297,8 +299,10 @@ class NewProfileHeaderWidget extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                             CustomText(
-                              stringDateFormatDate(
-                                  dateValue: user?.createdAt ?? ""),
+                              (user?.createdAt != null)
+                                  ? stringDateFormatDate(
+                                      dateValue: user?.createdAt ?? "")
+                                  : "N/A",
                               fontSize: SizeConfig.size12,
                               overflow: TextOverflow.ellipsis,
                               color: AppColors.mainTextColor,
@@ -322,10 +326,14 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                     ));
                               },
                               child: StatBlock(
-                                  count: formatIndianNumber(num.parse(controller
-                                          .userData.value?.followingCount
-                                          .toString() ??
-                                      "0")),
+                                  count: controller
+                                              .userData.value?.followingCount !=
+                                          null
+                                      ? formatIndianNumber(num.parse(controller
+                                              .userData.value?.followingCount
+                                              .toString() ??
+                                          "0"))
+                                      : "0",
                                   label: "Following"),
                             ),
                             Container(

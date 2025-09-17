@@ -75,7 +75,7 @@ class _ExpandableTextState extends State<ExpandableText> {
               'Read more',
               color: AppColors.primaryColor,
               fontWeight: FontWeight.w600,
-              fontSize: SizeConfig.medium15,
+              fontSize: SizeConfig.size13,
             ),
           ),
         ],
@@ -93,8 +93,10 @@ class _ExpandableTextState extends State<ExpandableText> {
           child: CustomText(
             'Show less',
             color: AppColors.primaryColor,
-            fontSize: SizeConfig.medium15,
+            // fontSize: SizeConfig.medium15,
             fontWeight: FontWeight.w600,
+            fontSize: SizeConfig.size13,
+
           ),
         ),
       ],

@@ -73,7 +73,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
             widget.authorSection(),
             Padding(
               padding: EdgeInsets.only(
-                  bottom: SizeConfig.size5, left: SizeConfig.size50),
+                  bottom: SizeConfig.size5,
+                  // left: SizeConfig.size50
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -81,9 +83,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (_post.title?.isNotEmpty ?? false) ...[
-                        SizedBox(
-                          height: SizeConfig.size5,
-                        ),
+                        // SizedBox(
+                        //   height: SizeConfig.size5,
+                        // ),
                         Padding(
                           padding: EdgeInsets.only(
                             left: SizeConfig.size15,
@@ -91,19 +93,19 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           ),
                           child: CustomText(
                             _post.title,
-                            color: AppColors.mainTextColor,
+                            color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: SizeConfig.large,
+                            // fontSize: SizeConfig.large,
                           ),
                         ),
-                        SizedBox(
-                          height: SizeConfig.size5,
-                        ),
+                        // SizedBox(
+                        //   height: SizeConfig.size5,
+                        // ),
                       ],
                       if (subTitle.isNotEmpty) ...[
-                        SizedBox(
-                          height: SizeConfig.size5,
-                        ),
+                        // SizedBox(
+                        //   height: SizeConfig.size5,
+                        // ),
                         Container(
                           child: Padding(
                             padding: EdgeInsets.only(
