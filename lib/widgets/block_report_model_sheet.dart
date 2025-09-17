@@ -147,7 +147,7 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
                   builder: (context) => BlockUserDialog(
                     onConfirm: () {
                       widget.userBlockVoidCallback();
-                    },
+                    }, userName: '',
                   ),
                 );
 

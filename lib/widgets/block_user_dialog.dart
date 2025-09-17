@@ -10,10 +10,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 class BlockUserDialog extends StatelessWidget {
   final VoidCallback onConfirm;
+  final String? userName;
 
   const BlockUserDialog({
     super.key,
     required this.onConfirm,
+    required this.userName,
   });
 
   Future<void> _launchURL(String url) async {
@@ -25,7 +27,7 @@ class BlockUserDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String userName = (isIndividualUser()) ? userNameGlobal : businessOwnerNameGlobal;
+    // String userName = (isIndividualUser()) ? userNameGlobal : businessOwnerNameGlobal;
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -45,7 +47,9 @@ class BlockUserDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             CustomText(
-              "Block $userName?",
+              userName != null && (userName?.isNotEmpty ?? false)
+                  ? "Block ${userName ?? "this user"} ?"
+                  : "Block this user ?",
               fontSize: 18,
               fontWeight: FontWeight.bold,
               textAlign: TextAlign.center,
@@ -61,7 +65,7 @@ class BlockUserDialog extends StatelessWidget {
                 children: [
                   const TextSpan(
                     text:
-                    "If you block this user, you won’t see their posts anymore and they won’t be able to interact with you. ",
+                        "If you block this user, you won’t see their posts anymore and they won’t be able to interact with you. ",
                   ),
                   TextSpan(
                     text: "Learn more...",
@@ -80,18 +84,15 @@ class BlockUserDialog extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const CustomText(
-                        "Cancel",
+                    child: const CustomText("Cancel",
                         color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600
-                    ),
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
                 Expanded(
@@ -108,7 +109,6 @@ class BlockUserDialog extends StatelessWidget {
                 ),
               ],
             ),
-
           ],
         ),
       ),

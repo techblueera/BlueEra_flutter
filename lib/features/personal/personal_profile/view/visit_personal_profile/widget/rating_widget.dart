@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 class RatingSummaryWidget extends StatefulWidget {
   final double rating;
+  final int ratingPersonCount;
   final String userId;
   final String screenFromName;
 
@@ -18,6 +19,7 @@ class RatingSummaryWidget extends StatefulWidget {
     required this.rating,
     required this.userId,
     required this.screenFromName,
+    required this.ratingPersonCount,
   }) : super(key: key);
 
   @override
@@ -30,64 +32,80 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
-      margin: const EdgeInsets.all(12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+      elevation: 0,
+      margin: const EdgeInsets.all(0),
+      // margin: const EdgeInsets.all(12),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.all(0),
-enabled: false,
-          trailing: /*widget.screenFromName == AppConstants.chatScreen
-              ? Icon(
-                  _isExpanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: AppColors.mainTextColor,
-                )
-              :*/ SizedBox(),
-          // onExpansionChanged: (expanded) {
-          //   setState(() {
-          //     _isExpanded = expanded;
-          //   });
-          // },
-          onExpansionChanged: (val)=>null,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const CustomText("Rating Summary",
-                  fontSize: 16, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CustomText(
-                    widget.rating.toStringAsFixed(1),
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
+          enabled:
+              widget.screenFromName == AppConstants.chatScreen ? true : false,
+          trailing: widget.screenFromName == AppConstants.chatScreen
+              ? Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size20),
+                  child: Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppColors.mainTextColor,
                   ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: List.generate(
-                          5,
-                          (index) => Icon(
-                            index < widget.rating.floor()
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.amber,
-                            size: 20,
+                )
+              : SizedBox(),
+          onExpansionChanged: (expanded) {
+            setState(() {
+              _isExpanded = expanded;
+            });
+          },
+          title: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CustomText(
+                  "Personal Rating Summary",
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.secondaryTextColor,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CustomText(
+                      widget.rating.toStringAsFixed(1),
+                      fontSize: SizeConfig.size30,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: List.generate(
+                            5,
+                            (index) => Icon(
+                              index < widget.rating.floor()
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                        CustomText(
+                          "(${formatNumberLikePost(widget.ratingPersonCount)}) People",
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           children: [
             Row(
@@ -100,7 +118,6 @@ enabled: false,
 
                         return;
                       }
-                      logs("userId ${widget.userId}");
                       showDialog(
                         context: context,
                         barrierDismissible: true,

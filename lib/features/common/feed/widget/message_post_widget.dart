@@ -66,8 +66,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
   @override
   Widget build(BuildContext context) {
     return FeedCardWidget(
-        horizontalPadding: 0,
-        // horizontalPadding:widget.horizontalPadding ,
+        horizontalPadding:widget.horizontalPadding ,
         childWidget: Column(
           children: [
             widget.authorSection(),

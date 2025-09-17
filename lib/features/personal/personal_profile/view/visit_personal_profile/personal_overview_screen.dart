@@ -8,6 +8,7 @@ import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
@@ -30,6 +31,7 @@ class PersonalOverviewScreen extends StatelessWidget {
   });
 
   final OverviewController controller = Get.put(OverviewController());
+  final visitingController = Get.find<VisitProfileController>();
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +49,30 @@ class PersonalOverviewScreen extends StatelessWidget {
       return ListView(
         shrinkWrap: true,
         // scrollDirection: Axis.vertical,
+        padding: EdgeInsets.zero,
         physics: NeverScrollableScrollPhysics(),
         children: [
+          // controller.userData.value?.user
           RatingSummaryWidget(
-            rating: controller
-                    .getRattingSummaryResponse.value?.data?.totalRatings
+            rating: visitingController.userData.value?.ratingSummary?.avgRating
                     ?.toDouble() ??
                 0.0,
-           userId: userId, screenFromName:screenFromName ,
+            ratingPersonCount: visitingController.userData.value?.ratingSummary?.totalRatings??0,
+            userId: userId,
+            screenFromName: screenFromName,
+          ),
+          SizedBox(
+            height: SizeConfig.size5,
           ),
           // ✅ Show only latest testimonial
           if (controller.testimonialsList.isNotEmpty) ...[
+            SizedBox(
+              height: SizeConfig.size5,
+            ),
             CommonCardWidget(
-              padding: SizeConfig.size10,
+              // padding: SizeConfig.size10,
+              borderRadius: 0,
+              cardMargin: 0,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,10 +87,17 @@ class PersonalOverviewScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        CustomText(
+                          controller.testimonialsList.first.description,
+                          textAlign: TextAlign.start,
+                          fontSize: SizeConfig.size14,
+                          color: AppColors.grayText,
+                        ),
+                        SizedBox(height: SizeConfig.size10),
                         Row(
                           children: [
                             CircleAvatar(
-                              radius: 20,
+                              radius: 15,
                               backgroundColor: AppColors.primaryColor,
                               backgroundImage: controller.testimonialsList.first
                                           .fromUser?.profileImage !=
@@ -105,7 +125,7 @@ class PersonalOverviewScreen extends StatelessWidget {
                               children: [
                                 CustomText(
                                   '${controller.testimonialsList.first.fromUser?.name ?? ""}',
-                                  fontSize: SizeConfig.size16,
+                                  // fontSize: SizeConfig.size16,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.secondaryTextColor,
                                 ),
@@ -127,16 +147,10 @@ class PersonalOverviewScreen extends StatelessWidget {
                                     )
                                   ],
                                 ),
+
                               ],
                             )
                           ],
-                        ),
-                        SizedBox(height: SizeConfig.size10),
-                        CustomText(
-                          controller.testimonialsList.first.description,
-                          textAlign: TextAlign.start,
-                          fontSize: SizeConfig.size14,
-                          color: AppColors.grayText,
                         ),
                       ],
                     ),
@@ -148,8 +162,13 @@ class PersonalOverviewScreen extends StatelessWidget {
 
           // ✅ Show only latest post
           if (controller.postsList.isNotEmpty) ...[
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
             CommonCardWidget(
-              padding: SizeConfig.size10,
+              borderRadius: 0,
+              cardMargin: 0,
+              // padding: SizeConfig.size10,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -168,7 +187,9 @@ class PersonalOverviewScreen extends StatelessWidget {
           // ✅ Show only latest short
           if (controller.shortsList.isNotEmpty) ...[
             CommonCardWidget(
-              padding: SizeConfig.size10,
+              // padding: SizeConfig.size10,
+              borderRadius: 0,
+              cardMargin: 10,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -241,9 +262,9 @@ class PersonalOverviewScreen extends StatelessWidget {
       padding: EdgeInsets.only(bottom: SizeConfig.size10),
       child: CustomText(
         title,
-        color: AppColors.mainTextColor,
         fontWeight: FontWeight.w600,
         fontSize: SizeConfig.large,
+          color: AppColors.secondaryTextColor
       ),
     );
   }
