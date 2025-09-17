@@ -196,16 +196,16 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                                                       padding: EdgeInsets.symmetric(horizontal: 5),
 
                                                       onTap: () {
-                                                        // chatViewController.openAnyOneChatFunction(
-                                                        //   businessId:widget.businessId,
-                                                        //   type:businessData?.typeOfBusiness,
-                                                        //   isInitialMessage: false,
-                                                        //   userId: businessData?.userId,
-                                                        //   conversationId: '',
-                                                        //   contactName: businessData?.businessName,
-                                                        //   contactNo: businessData?.businessNumber?.officeMobNo?.number.toString(),
-                                                        //
-                                                        // );
+                                                        chatViewController.openAnyOneChatFunction(
+                                                          businessId:widget.businessId,
+                                                          type:businessData?.typeOfBusiness,
+                                                          isInitialMessage: false,
+                                                          userId: businessData?.userId,
+                                                          conversationId: controller.conversationId.value,
+                                                          contactName: businessData?.businessName,
+                                                          contactNo: businessData?.businessNumber?.officeMobNo?.number.toString(),
+
+                                                        );
                                                       },
                                                       title: "Chat",
                                                       fontSize: 12,

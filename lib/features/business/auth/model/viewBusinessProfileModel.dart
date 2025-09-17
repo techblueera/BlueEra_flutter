@@ -146,6 +146,7 @@ class BusinessProfileDetails {
   String? id;
   String? userId;
   String? businessName;
+  String? conversationId;
   String? typeOfBusiness;
   String? logo;
   String? categoryOfBusiness;
