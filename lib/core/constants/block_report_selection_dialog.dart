@@ -29,4 +29,55 @@ void openBlockSelectionDialog(
 }
 
 
+void openBlockDialog(
+    {
+      required BuildContext context,
+      required String userId,
+      required String contentId,
+      required String reportType,
+      required VoidCallback userBlockVoidCallback,
+    }){
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: AppColors.white,
+        child: BlockReportPostModalSheet(
+          reportType: reportType,
+          contentId: contentId,
+          otherUserId: userId,
+          userBlockVoidCallback: ()=> userBlockVoidCallback(),
+          reportCallback: (params)=> null
+        ),
+      );
+    },
+  );
+}
+
+void openPostReportDialog(
+    {
+      required BuildContext context,
+      required String userId,
+      required String contentId,
+      required String reportType,
+      required Function(Map<String, dynamic>) reportCallback
+    }){
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        backgroundColor: AppColors.white,
+        child: BlockReportPostModalSheet(
+          reportType: reportType,
+          contentId: contentId,
+          otherUserId: userId,
+          userBlockVoidCallback: ()=> null,
+            reportCallback: (params)=> reportCallback(params)
+        ),
+      );
+    },
+  );
+}
+
+
 

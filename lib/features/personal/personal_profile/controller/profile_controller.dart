@@ -268,6 +268,7 @@ class VisitProfileController extends GetxController {
 
   ///GET CHANNEL DETAILS...
   RxString? channelUserName="".obs;
+  RxString? channelName="".obs;
   RxString? channelUserId="".obs;
   Future<String?> getUserChannelDetailsController({required String? userId}) async {
     try {
@@ -279,6 +280,7 @@ class VisitProfileController extends GetxController {
       if (response.statusCode == 200) {
         ChannelModel channelModel =
             ChannelModel.fromJson(response.response?.data);
+        channelName?.value=channelModel.data.name;
         channelUserName?.value=channelModel.data.username;
         channelUserId?.value=channelModel.data.id;
         getUserChannelDetailsResponse.value = ApiResponse.complete(response);

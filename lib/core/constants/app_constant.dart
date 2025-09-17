@@ -46,8 +46,10 @@ class AppConstants {
   static const String iosAppStoreUrl =
       "https://apps.apple.com/us/app/id$iosAppId";
   static const String restApiKey = "a6f5ddfd96e84ced3f33a8a3cafdb19c";
-  static const String atlasClientId = "96dHZVzsAuvBjpRKk-XkdFPxMu6nuV_ogPhzHpnmnZbB_eW36B2pVC_mEz-N8dBhlKCLJ0ywLeDEfzlAB0sUDdrdDIdOLSmz";
-  static const String atlasClientSecret = "lrFxI-iSEg-L0_lxA1gBnHlNVhgrO4gVhgfaG2JLq1HCR6kyMOTRZMc8_YcuTqdzn3I09RWsahz1OMwDOnJh55yHytA5u9FOprqt6OhzqY8=";
+  static const String atlasClientId =
+      "96dHZVzsAuvBjpRKk-XkdFPxMu6nuV_ogPhzHpnmnZbB_eW36B2pVC_mEz-N8dBhlKCLJ0ywLeDEfzlAB0sUDdrdDIdOLSmz";
+  static const String atlasClientSecret =
+      "lrFxI-iSEg-L0_lxA1gBnHlNVhgrO4gVhgfaG2JLq1HCR6kyMOTRZMc8_YcuTqdzn3I09RWsahz1OMwDOnJh55yHytA5u9FOprqt6OhzqY8=";
   static const String prod = 'production';
   static const String qa = 'QA';
   static const String dev = 'Dev';
@@ -195,19 +197,19 @@ String formatNumberLikePost(int number) {
     return number.toString();
   }
 }
-stringDateFormat({required int year,required int month,required int day})
-{
-  DateTime date = DateTime(year,
-      month, day);
+
+stringDateFormat({required int year, required int month, required int day}) {
+  DateTime date = DateTime(year, month, day);
 
   return DateFormat("MMMM, d").format(date);
 }
-stringDateFormatDate({required String dateValue})
-{
+
+stringDateFormatDate({required String dateValue}) {
   DateTime date = DateTime.parse(dateValue);
 
   return DateFormat("MMMM, y").format(date);
 }
+
 String getTimeAgo(String isoTime) {
   DateTime dateTime = DateTime.parse(isoTime).toLocal();
   DateTime now = DateTime.now();
@@ -229,33 +231,31 @@ class AccountType {
   static const String personal = 'PERSONAL';
   static const String company = 'COMPANY';
 }
-redirectToProfileScreen({required String accountType,required String profileId})
-{
-  String? accountTypeData=accountType.toUpperCase();
+
+redirectToProfileScreen(
+    {required String accountType, required String profileId}) {
+  String? accountTypeData = accountType.toUpperCase();
   // logs("user.accountType?=== ${user.accountType}");
-  if (accountType.toUpperCase() ==
-      AppConstants.individual) {
+  if (accountType.toUpperCase() == AppConstants.individual) {
     if (userId == profileId) {
-      Get.to(
-           PersonalProfileSetupScreen());
+      Get.to(PersonalProfileSetupScreen());
     } else {
       Get.to(() => NewVisitProfileScreen(
-        authorId: profileId ?? "",
-        screenFromName: AppConstants.feedScreen,
-        channelId: '',
-      ));
+            authorId: profileId ?? "",
+            screenFromName: AppConstants.feedScreen,
+            channelId: '',
+          ));
     }
   }
-  if (accountTypeData ==
-      AppConstants.business) {
+  if (accountTypeData == AppConstants.business) {
     if (businessId == profileId) {
       Get.to(BusinessOwnProfileScreen());
     } else {
-      Get.to(() => VisitBusinessProfile(
-          businessId:profileId ?? ""));
+      Get.to(() => VisitBusinessProfile(businessId: profileId ?? ""));
     }
   }
 }
+
 List<String> generate24HoursAmPm() {
   return List.generate(24, (hour) {
     final int displayHour = hour % 12 == 0 ? 12 : hour % 12;
@@ -263,6 +263,7 @@ List<String> generate24HoursAmPm() {
     return '${displayHour.toString().padLeft(2, '0')}:00 $period';
   });
 }
+
 String getInitials(String? name) {
   if (name == null || name.isEmpty) return 'U';
   return name
@@ -273,6 +274,7 @@ String getInitials(String? name) {
       .join()
       .toUpperCase();
 }
+
 List<String> daysOfWeek = [
   'Sunday',
   'Monday',
@@ -714,7 +716,6 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
   return entries;
 }
 
-
 List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
   final items = <Map<String, dynamic>>[
     // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
@@ -738,9 +739,77 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
           mainAxisSize: MainAxisSize.min,
           children: [
             LocalAssets(
-                imagePath: items[i]['icon'],
-                height: SizeConfig.size20,
-                width: SizeConfig.size20,
+              imagePath: items[i]['icon'],
+              height: SizeConfig.size20,
+              width: SizeConfig.size20,
+            ),
+            SizedBox(width: SizeConfig.size5),
+            CustomText(
+              items[i]['title'],
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
+List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
+    {bool? isSavePost}) {
+  final items = <Map<String, dynamic>>[
+    // {"id": "REPOST", 'icon': AppIconAssets.repost_new, 'title': 'Repost'},
+    {
+      "id": "SAVE",
+      'icon': AppIconAssets.save_new,
+      'title': (isSavePost ?? false) ? "Unsave" : "Save"
+    },
+    // {"id": "FOLLOW", 'icon': AppIconAssets.follow_new, 'title': 'Follow'},
+    {
+      "id": "REPORT_POST",
+      'icon': AppIconAssets.report_new,
+      'title': 'Report Post'
+    },
+    {
+      "id": "BLOCK_USER",
+      'icon': AppIconAssets.block_user,
+      'title': 'Block User'
+    },
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: items[i]['icon'],
+              height: SizeConfig.size20,
+              width: SizeConfig.size20,
             ),
             SizedBox(width: SizeConfig.size5),
             CustomText(
@@ -1125,7 +1194,6 @@ List<PopupMenuEntry<String>> popupInventoryCategoryItems() {
   return entries;
 }
 
-
 List<PopupMenuEntry<String>> photoPostMenuItems() {
   final items = <Map<String, dynamic>>[
     {'title': 'Square', 'icon': Icons.square_outlined},
@@ -1475,9 +1543,8 @@ Future<File> processImage(File file, String mode) async {
   if (original == null) return file;
 
   img.Image result;
-logs("modemodemodemode=== $mode");
-  if (mode ==  AppConstants.Landscape) {
-
+  logs("modemodemodemode=== $mode");
+  if (mode == AppConstants.Landscape) {
     // --- Target ratio 3:4 ---
     double targetRatio = 16 / 9;
     // double targetRatio = 3 / 4;
@@ -1491,7 +1558,8 @@ logs("modemodemodemode=== $mode");
 
     // Now crop center to match 3:4
     int cropHeight = (resized.width / targetRatio).toInt();
-    int offsetY = ((resized.height - cropHeight) / 2).clamp(0, resized.height).toInt();
+    int offsetY =
+        ((resized.height - cropHeight) / 2).clamp(0, resized.height).toInt();
 
     result = img.copyCrop(
       resized,
@@ -1500,17 +1568,17 @@ logs("modemodemodemode=== $mode");
       width: resized.width,
       height: cropHeight,
     );
-
   } else {
-    double previewWidth = Get.width * (1/1);
-  // Square 1:1
-  //   int size = 600;
+    double previewWidth = Get.width * (1 / 1);
+    // Square 1:1
+    //   int size = 600;
     result = img.copyResizeCropSquare(original, size: previewWidth.toInt());
   }
 
   // Save processed file
   final tempDir = await getTemporaryDirectory();
-  String outPath = "${tempDir.path}/image_${mode}${DateTime.now().microsecondsSinceEpoch}.jpg";
+  String outPath =
+      "${tempDir.path}/image_${mode}${DateTime.now().microsecondsSinceEpoch}.jpg";
   File outFile = File(outPath)
     ..writeAsBytesSync(img.encodeJpg(result, quality: 90));
 

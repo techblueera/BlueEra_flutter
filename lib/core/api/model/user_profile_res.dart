@@ -10,7 +10,9 @@ class UserProfileRes {
       this.isFollowing, 
       this.totalPosts, 
       this.followersCount, 
-      this.followingCount,});
+      this.followingCount,
+    this.ratingSummary
+  });
 
   UserProfileRes.fromJson(dynamic json) {
     success = json['success'];
@@ -19,6 +21,9 @@ class UserProfileRes {
     totalPosts = json['totalPosts'];
     followersCount = json['followersCount'];
     followingCount = json['followingCount'];
+    ratingSummary = json['ratingSummary'] != null
+        ? new RatingSummary.fromJson(json['ratingSummary'])
+        : null;
   }
   bool? success;
   User? user;
@@ -26,6 +31,7 @@ class UserProfileRes {
   int? totalPosts;
   int? followersCount;
   int? followingCount;
+  RatingSummary? ratingSummary;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -37,6 +43,9 @@ class UserProfileRes {
     map['totalPosts'] = totalPosts;
     map['followersCount'] = followersCount;
     map['followingCount'] = followingCount;
+    if (this.ratingSummary != null) {
+      map['ratingSummary'] = this.ratingSummary!.toJson();
+    }
     return map;
   }
 
@@ -288,4 +297,24 @@ class DateOfBirth {
     return map;
   }
 
+}
+
+
+class RatingSummary {
+  int? avgRating;
+  int? totalRatings;
+
+  RatingSummary({this.avgRating, this.totalRatings});
+
+  RatingSummary.fromJson(Map<String, dynamic> json) {
+    avgRating = json['avg_rating'];
+    totalRatings = json['total_ratings'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['avg_rating'] = this.avgRating;
+    data['total_ratings'] = this.totalRatings;
+    return data;
+  }
 }

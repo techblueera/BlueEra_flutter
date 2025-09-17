@@ -89,7 +89,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         return SingleChildScrollView(
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -101,14 +101,17 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                   SizedBox(
                     height: SizeConfig.size16,
                   ),
-                  HorizontalTabSelector(
-                    horizontalMargin: 0,
-                    tabs: postTab,
-                    selectedIndex: selectedIndex,
-                    onTabSelected: (index, value) {
-                      setState(() => selectedIndex = index);
-                    },
-                    labelBuilder: (label) => label,
+                  Padding(
+                    padding:  EdgeInsets.symmetric( horizontal: SizeConfig.size16),
+                    child: HorizontalTabSelector(
+                      horizontalMargin: 0,
+                      tabs: postTab,
+                      selectedIndex: selectedIndex,
+                      onTabSelected: (index, value) {
+                        setState(() => selectedIndex = index);
+                      },
+                      labelBuilder: (label) => label,
+                    ),
                   ),
                   if (validIndexes.contains(selectedIndex)) ...[
                     _filterButtons(),
