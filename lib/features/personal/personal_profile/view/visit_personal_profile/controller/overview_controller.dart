@@ -31,7 +31,7 @@ class OverviewController extends GetxController {
       // Run APIs in parallel
       await Future.wait([
         _getTestimonials(userId),
-        getRatingSummary(userId:userId),
+        // getRatingSummary(userId:userId),
         _getPosts(userId),
         _getShorts(channelId, userId),
         _getVideos(videoType, userId),

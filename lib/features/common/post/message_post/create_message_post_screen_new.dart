@@ -164,18 +164,32 @@ class _CreateMessagePostScreenNewState
                   keyBoardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
                   onChange: (val) {
-                    // Prevent multiple empty newlines at the end
-                    if (val.endsWith("\n\n")) {
-                      msgController.descriptionMessage.value.text =
-                          val.substring(0, val.length - 1); // remove extra newline
+                    // Replace more than one consecutive newlines with a single newline
+                    String newVal = val.replaceAll(RegExp(r'\n{2,}'), '\n');
+
+                    if (newVal != val) {
+                      msgController.descriptionMessage.value.text = newVal;
                       msgController.descriptionMessage.value.selection =
                           TextSelection.fromPosition(
-                            TextPosition(offset: msgController.descriptionMessage.value.text.length),
+                            TextPosition(offset: newVal.length),
                           );
                     }
 
-                    msgController.postText.value = val;
+                    msgController.postText.value = newVal;
                   },
+                  // onChange: (val) {
+                  //   // Prevent multiple empty newlines at the end
+                  //   if (val.endsWith("\n\n")) {
+                  //     msgController.descriptionMessage.value.text =
+                  //         val.substring(0, val.length - 1); // remove extra newline
+                  //     msgController.descriptionMessage.value.selection =
+                  //         TextSelection.fromPosition(
+                  //           TextPosition(offset: msgController.descriptionMessage.value.text.length),
+                  //         );
+                  //   }
+                  //
+                  //   msgController.postText.value = val;
+                  // },
                   validator: (val) {
                     if (val == null || val.trim().length < 50) {
                       return "Message must be at least 50 characters long";

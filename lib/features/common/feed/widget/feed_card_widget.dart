@@ -16,7 +16,8 @@ class FeedCardWidget extends StatelessWidget {
       margin: EdgeInsets.only(
           bottom: SizeConfig.paddingXSL,
           left: horizontalPadding ?? SizeConfig.paddingXS,
-          right: horizontalPadding ?? SizeConfig.paddingXS),
+          right: horizontalPadding ?? SizeConfig.paddingXS
+      ),
       decoration: BoxDecoration(
           color: AppColors.white,
           boxShadow: [AppShadows.cardShadow],
