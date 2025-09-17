@@ -31,6 +31,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
+import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
 class ShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -847,7 +848,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         if (fullScreenShortController.videoItem?.author?.id == userId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
-          Get.to(() => VisitBusinessProfile(
+          Get.to(() => VisitBusinessProfileNew(
               businessId:
                   fullScreenShortController.videoItem?.author?.id ?? ''));
         }

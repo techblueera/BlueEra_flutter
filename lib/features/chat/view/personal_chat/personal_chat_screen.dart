@@ -19,6 +19,7 @@ import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile.dart';
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -100,7 +101,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   void _navigateToProfile({required String authorId}) {
     logs("widget.type ${widget.type}");
     if (widget.type?.toUpperCase() == AppConstants.business) {
-      Get.to(() => VisitBusinessProfile(businessId: widget.businessId ?? ''));
+      Get.to(() => VisitBusinessProfileNew(businessId: widget.businessId ?? ''));
     } else if(widget.type?.toUpperCase()==AppConstants.individual){
       Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen, channelId: '',));
 

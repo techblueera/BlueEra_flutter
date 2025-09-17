@@ -87,7 +87,9 @@ class BusinessProfileDetails {
       this.is_following,
       this.category_other,
       this.pincode,
-      this.rating
+      this.rating,
+      this.total_views,
+      this.total_followers
   });
 
   BusinessProfileDetails.fromJson(dynamic json) {
@@ -104,7 +106,9 @@ class BusinessProfileDetails {
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
     livePhotos=json['live_photos'].cast<String>();
-    rating=json['rating'];
+    rating=json['total_ratings'];
+    total_views=json['total_views'];
+    total_followers=json['total_followers'];
     is_following=json['is_following'];
     businessNumber = json['business_number'] != null
         ? new BusinessNumber.fromJson(json['business_number'])
@@ -162,7 +166,9 @@ class BusinessProfileDetails {
   dynamic pincode;
   CategoryDetails? categoryDetails;
   SubCategoryDetails? subCategoryDetails;
-  int?rating;
+  int? rating;
+  int? total_views;
+  int? total_followers;
   BusinessNumber? businessNumber;
   String? category_other;
 
@@ -205,6 +211,8 @@ class BusinessProfileDetails {
     map['sub_category_Of_Business'] = subCategoryOfBusiness;
     map['website_url'] = websiteUrl;
     map['rating']=rating;
+    map['total_views']=total_views;
+    map['total_followers']=total_followers;
     if (categoryDetails != null) {
       map['category_details'] = categoryDetails?.toJson();
     }

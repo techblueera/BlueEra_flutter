@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:image/image.dart' as img;
 
@@ -251,7 +252,7 @@ redirectToProfileScreen({required String accountType,required String profileId})
     if (businessId == profileId) {
       Get.to(BusinessOwnProfileScreen());
     } else {
-      Get.to(() => VisitBusinessProfile(
+      Get.to(() => VisitBusinessProfileNew(
           businessId:profileId ?? ""));
     }
   }
@@ -493,7 +494,7 @@ openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
     Get.to(() => BusinessOwnProfileScreen);
   } else {
-    Get.to(() => VisitBusinessProfile(businessId: businessUserId ?? ""));
+    Get.to(() => VisitBusinessProfileNew(businessId: businessUserId ?? ""));
   }
 }
 

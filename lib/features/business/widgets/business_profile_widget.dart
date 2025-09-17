@@ -1773,6 +1773,8 @@ import '../../../core/constants/shared_preference_utils.dart';
 import '../visit_business_profile/view/visit_business_profile.dart';
 import 'package:dio/dio.dart' as dioObj;
 
+import '../visit_business_profile/view/visit_business_profile_new.dart';
+
 class BusinessProfileWidget extends StatefulWidget {
   BusinessProfileWidget({
     super.key,
@@ -2006,7 +2008,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             //         builder: (context) =>
                             //             BusinessVerificationScrn()));
                             Get.to(() =>
-                                VisitBusinessProfile(businessId: businessId));
+                                VisitBusinessProfileNew(businessId: businessId));
                           },
                           child: CustomText(
                             fontWeight: FontWeight.w900,

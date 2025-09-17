@@ -20,6 +20,8 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+
 class FeedCard extends StatefulWidget {
   final Post? post;
   final int index;
@@ -67,7 +69,7 @@ class _FeedCardState extends State<FeedCard> {
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
         Get.to(() =>
-            VisitBusinessProfile(businessId: _post?.user?.business_id ?? ""));
+            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? ""));
       }
     } else {
       if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
@@ -75,7 +77,7 @@ class _FeedCardState extends State<FeedCard> {
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
         Get.to(() =>
-            VisitBusinessProfile(businessId: _post?.user?.business_id ?? ""));
+            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? ""));
       }
     }
   }

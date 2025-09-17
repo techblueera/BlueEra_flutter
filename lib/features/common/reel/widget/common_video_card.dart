@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
 
 class CommonVideoCard extends StatelessWidget {
@@ -257,7 +258,7 @@ class CommonVideoCard extends StatelessWidget {
       if (isMyBusiness) {
         navigatePushTo(context, BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfile(businessId: videoItem.author?.id ?? ''));
+        Get.to(() => VisitBusinessProfileNew(businessId: videoItem.author?.id ?? ''));
       }
       return;
     }

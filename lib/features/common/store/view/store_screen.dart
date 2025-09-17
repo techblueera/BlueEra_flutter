@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/custom_carousel_slider.dart';
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'store_screen_controller.dart';
 
 class StoreScreen extends StatefulWidget {
@@ -545,8 +546,8 @@ class _StoreScreenState extends State<StoreScreen> {
                       navigatePushTo(context, BusinessOwnProfileScreen());
                     } else {
                       Get.to(() =>
-                        
-                          VisitBusinessProfile(
+
+                          VisitBusinessProfileNew(
                               businessId: storeData.id ?? ""));
                     }
                   },

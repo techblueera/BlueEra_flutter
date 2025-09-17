@@ -9,6 +9,8 @@ import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+
 class StoreSearchSuggestionController extends GetxController {
   final TextEditingController searchController = TextEditingController();
   final StoreRepo _storeRepo = StoreRepo();
@@ -73,7 +75,7 @@ class StoreSearchSuggestionController extends GetxController {
     if (businessId == business.id) {
       navigatePushTo(context, BusinessOwnProfileScreen());
     } else {
-      Get.to(() => VisitBusinessProfile(
+      Get.to(() => VisitBusinessProfileNew(
           businessId: business.id?? ""));
     }    // Get.to(() => StoreSearchScreen(initialQuery: business.businessName));
   }

@@ -29,6 +29,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+
 // Import your new controller
 
 class VideoPlayerScreen extends StatefulWidget {
@@ -568,7 +570,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         if (videoController.videoFeedItem?.author?.id == userId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
-          Get.to(() => VisitBusinessProfile(businessId: videoController.videoFeedItem?.author?.id??''));
+          Get.to(() => VisitBusinessProfileNew(businessId: videoController.videoFeedItem?.author?.id??''));
         }
       }
     }

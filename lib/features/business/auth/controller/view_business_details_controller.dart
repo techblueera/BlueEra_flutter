@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -22,6 +25,8 @@ import '../model/GetParticularReviewListModel.dart';
 import '../model/getAllProductDetailsModel.dart';
 import '../model/getBusinessVerifyViewModel.dart';
 import '../model/viewBusinessProfileModel.dart';
+import '../model/visitBusinessDetailedRatingModel.dart';
+import '../model/visitBusinessRatingSumModel.dart';
 import '../repo/business_profile_repo.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 
@@ -72,6 +77,8 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Rx<File?> selectedVideo = Rx<File?>(null);
   ViewBusinessProfileModel? visitedBusinessProfileDetails;
+  Rx<VisitBusinessRatingSumModel> visitBusinessRatingSumModel=VisitBusinessRatingSumModel().obs;
+  Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel=VisitBusinessDetailedRatingModel().obs;
 
   // RxList<String> imgUploadL2 = <String>[].obs;
   RxList<String> imgLocalL3 = <String>[].obs;
@@ -353,7 +360,6 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
-        distanceFromKm.value = await getDistanceInKm(visitedBusinessProfileDetails?.data?.businessLocation?.lat??0,visitedBusinessProfileDetails?.data?.businessLocation?.lon??0)??0.0;
         final chatViewController = Get.find<ChatViewController>();
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
@@ -365,7 +371,41 @@ class ViewBusinessDetailsController extends GetxController {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
+        distanceFromKm.value = await getDistanceInKm(visitedBusinessProfileDetails?.data?.businessLocation?.lat??0,visitedBusinessProfileDetails?.data?.businessLocation?.lon??0)??0.0;
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      viewBusinessResponse = ApiResponse.error('error');
+    }
+  }
+  Future<void> getBusinessRatingsSummary(String userId) async {
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().getBusinessRatingsSummary(userId);
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
 
+        visitBusinessRatingSumModel.value=VisitBusinessRatingSumModel.fromJson(data);
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      viewBusinessResponse = ApiResponse.error('error');
+    }
+  }
+  Future<void> getBusinessDetailedRatings(String userId) async {
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().getBusinessDetailedRating(userId);
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+        log("kdjcnksjdcnksdc ${data}");
+        visitBusinessDetailedRatingModel.value=VisitBusinessDetailedRatingModel.fromJson(data);
         update();
       } else {
         commonSnackBar(

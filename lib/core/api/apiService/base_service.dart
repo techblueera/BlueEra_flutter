@@ -320,6 +320,7 @@ abstract class BaseService {
 
   final String getUserByIdUrl = "user-service/user/getUserById";
   final String bussinessProfileById = "/user-service/business";
+  final String businessRating = "/user-service/business/business";
   final String postBusinessRating = 'user-service/business/rating';
 
   ///SUBSCRIPTION....

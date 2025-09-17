@@ -148,7 +148,8 @@ class OnesignalService {
           // OneSignal.Notifications.clearAll();
           final chatViewController = Get.find<ChatViewController>();
           chatViewController.connectSocket();
-          chatViewController.openAnyOneChatFunction(type: "personal",
+          chatViewController.openAnyOneChatFunction(
+              type: data.conversationType??'',
             conversationId: data.conversationId??'',
             userId: data.senderUser?.id,
       contactName: data.senderUser?.name,

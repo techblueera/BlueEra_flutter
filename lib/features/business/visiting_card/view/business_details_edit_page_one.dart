@@ -111,7 +111,7 @@ class _BusinessDetailsEditPageOneState
             data.businessNumber?.officeLandlineNo?.number.toString() ??
                 ""; // Assuming not present in model
         landlineCodeController.text =
-            data.businessNumber?.officeLandlineNo?.pre.toString() ?? "";
+            data.businessNumber?.officeLandlineNo?.number.toString() ?? "";
       }
       // Assuming not present in model
       othersCatController.text = data.natureOfBusiness ?? "";

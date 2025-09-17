@@ -40,6 +40,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dioObj;
 
+import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+
 enum ChannelTab {
   shorts,
   videos,
@@ -1154,7 +1156,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
       if (authorId == userId) {
         Get.to(() => BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfile(businessId: authorId));
+        Get.to(() => VisitBusinessProfileNew(businessId: authorId));
       }
     }
   }

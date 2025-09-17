@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
 class PostAuthorHeader extends StatelessWidget {
   final Post? post;
@@ -92,7 +93,7 @@ class PostAuthorHeader extends StatelessWidget {
                   if (businessId == post?.user?.business_id) {
                     navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
-                    Get.to(() => VisitBusinessProfile(
+                    Get.to(() => VisitBusinessProfileNew(
                         businessId: post?.user?.business_id ?? ""));
                   }
                 }

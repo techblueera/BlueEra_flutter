@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -8,7 +7,6 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -19,29 +17,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:readmore/readmore.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
-import '../../../common/reel/view/sections/shorts_channel_section.dart';
+import '../../../../core/constants/common_methods.dart';
+import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
 import '../../auth/controller/view_business_details_controller.dart';
-import '../../widgets/abourt_business_widget.dart';
-import '../../widgets/header_widget.dart';
-import '../../widgets/profile_info_widget.dart';
-import '../../widgets/rating_widget.dart';
+import '../../auth/model/visitBusinessDetailedRatingModel.dart';
+import '../../widgets/live_photos_of_business_widget.dart';
 
-class VisitBusinessProfile extends StatefulWidget {
+
+class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
-  const VisitBusinessProfile({super.key, required this.businessId});
+
+  const VisitBusinessProfileNew({super.key, required this.businessId});
 
   @override
-  State<VisitBusinessProfile> createState() => VisitBusinessProfileState();
+  State<VisitBusinessProfileNew> createState() => VisitBusinessProfileNewState();
 }
 
-class VisitBusinessProfileState extends State<VisitBusinessProfile>
+class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final controller = Get.put(ViewBusinessDetailsController());
+  final chatViewController = Get.find<ChatViewController>();
+
   late VisitProfileController visitProfileController;
   final List<String> tabs = [
     'Overview',
@@ -63,6 +65,8 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
     });
     visitProfileController = Get.put(VisitProfileController());
     controller.viewBusinessProfileById(widget.businessId);
+    controller.getBusinessRatingsSummary(widget.businessId);
+    controller.getBusinessDetailedRatings(widget.businessId);
     controller.getAllProductsApi({ApiKeys.limit: 0});
   }
 
@@ -78,147 +82,513 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
 
   @override
   Widget build(BuildContext context) {
-    //   if(isOwnChannel){
-    //         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-    //       }else {
-    //         response = await ChannelRepo().getAllChannelVideos(channelOrUserId: channelOrUserId, queryParams: params);
-    //       }
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: GetBuilder<ViewBusinessDetailsController>(
         init: controller,
         builder: (controller) {
-          if (controller.viewBusinessResponse.status == Status.LOADING) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (controller.viewBusinessResponse.status == Status.ERROR) {
-            return Center(child: CustomText("No business found"));
-          }
-          final businessData = controller.visitedBusinessProfileDetails?.data;
-          return DefaultTabController(
-            length: tabs.length,
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding:
-                    const EdgeInsets.only(top: 18.0, left: 12, right: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        widget_profileHeader(businessData),
-                        // HeaderWidget(
-                        //   businessId: widget.businessId,
-                        //   userId: businessData?.userId ?? "",
-                        //   businessName:
-                        //       businessData?.businessName ?? "Business Name",
-                        //   logoUrl: businessData?.logo ?? "",
-                        //   // businessType: businessData?.typeOfBusiness ?? "Business",
-                        //   businessType: (businessData?.subCategoryDetails !=
-                        //               null &&
-                        //           businessData?.subCategoryDetails?.name !=
-                        //               null)
-                        //       ? businessData?.subCategoryDetails?.name ?? ''
-                        //       : (businessData?.categoryDetails != null &&
-                        //               businessData?.categoryDetails?.name !=
-                        //                   null)
-                        //           ? businessData?.categoryDetails?.name ?? ''
-                        //           : (businessData?.natureOfBusiness ??
-                        //               'OTHERS'),
-                        //   location: "${businessData?.address ?? ''}",
-                        // ),
-                        // const SizedBox(height: 30),
-                        // ProfileInfoWidget(),
-                        // const SizedBox(height: 14),
-                      ],
+          if ((controller.viewBusinessResponse.status == Status.COMPLETE)) {
+            final businessData = controller.visitedBusinessProfileDetails?.data;
+            final ratingData = controller.visitBusinessRatingSumModel.value.data;
+            final ratingDetailedCount = controller.visitBusinessDetailedRatingModel.value.data;
+            return DefaultTabController(
+              length: tabs.length,
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding:
+                      const EdgeInsets.only(top: 18.0, left: 8, right: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(SizeConfig.size10),
+                            ),
+                            elevation: 0,
+
+                            child: Padding(
+                              padding: EdgeInsets.all(SizeConfig.size10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+
+                                      Column(mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            height: 60,
+                                            width: 60,
+                                            padding: EdgeInsets.all(SizeConfig.size3),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              image: DecorationImage(
+                                                  image: NetworkImage(businessData?.logo ?? "")),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: SizeConfig.size12,
+                                          ),
+                                          InkWell(
+                                            onTap: (){
+                                              if (!(businessData?.is_following ?? false)) {
+                                                visitProfileController
+                                                    .followUserController(
+                                                    candidateResumeId: businessData?.id)
+                                                    .then(
+                                                      (value) => controller.viewBusinessProfileById(
+                                                      businessData?.id ?? ""),
+                                                );
+                                              } else {
+                                                visitProfileController
+                                                    .unFollowUserController(
+                                                    candidateResumeId: businessData?.id)
+                                                    .then(
+                                                      (value) => controller.viewBusinessProfileById(
+                                                      businessData?.id ?? ""),
+                                                );
+                                              }
+                                            },
+                                            child: CustomText(
+                                              businessData?.is_following == true
+                                                  ? "Unfollow"
+                                                  : "Follow",
+                                              color:  AppColors.skyBlueDF,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              decoration: TextDecoration.underline,
+                                              decorationColor: AppColors.skyBlueDF,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      SizedBox(
+                                        width: SizeConfig.size10,
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                            Expanded(
+                                            // width: Get.width,
+                                              child: CustomText(
+                                                (businessData?.businessName ?? "").capitalizeFirst,
+                                                fontSize: SizeConfig.large,
+                                                fontWeight: FontWeight.w600,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: AppColors.secondaryTextColor,
+                                              )),
+                                                    SizedBox(
+                                                      width: SizeConfig.size12,
+                                                    ),
+                                                    CustomBtn(
+                                                      padding: EdgeInsets.symmetric(horizontal: 5),
+
+                                                      onTap: () {
+                                                        // chatViewController.openAnyOneChatFunction(
+                                                        //   businessId:widget.businessId,
+                                                        //   type:businessData?.typeOfBusiness,
+                                                        //   isInitialMessage: false,
+                                                        //   userId: businessData?.userId,
+                                                        //   conversationId: '',
+                                                        //   contactName: businessData?.businessName,
+                                                        //   contactNo: businessData?.businessNumber?.officeMobNo?.number.toString(),
+                                                        //
+                                                        // );
+                                                      },
+                                                      title: "Chat",
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      height: SizeConfig.size25,
+                                                      bgColor: AppColors.skyBlueDF,
+                                                      width: SizeConfig.size54,
+                                                      radius: SizeConfig.size6,
+                                                    ),
+                                                    SizedBox(
+                                                      width: SizeConfig.size6,
+                                                    ),
+                                                    InkWell(
+                                                        onTap: () async {
+                                                          final RenderBox button =
+                                                          context.findRenderObject() as RenderBox;
+                                                          final RenderBox overlay = Overlay.of(context)
+                                                              .context
+                                                              .findRenderObject() as RenderBox;
+
+                                                          final Offset buttonTopRight =
+                                                          button.localToGlobal(
+                                                              button.size.topRight(Offset.zero),
+                                                              ancestor: overlay);
+
+                                                          final RelativeRect position =
+                                                          RelativeRect.fromRect(
+                                                            Rect.fromPoints(
+                                                              buttonTopRight + const Offset(10, 30),
+                                                              // 10px to right, 30px down
+                                                              buttonTopRight + const Offset(10, 30),
+                                                            ),
+                                                            Offset.zero & overlay.size,
+                                                          );
+                                                          final selected = await showMenu(
+                                                            context: context,
+                                                            position: position,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(12),
+                                                            ),
+                                                            items: [
+                                                              PopupMenuItem(onTap: ()async{
+                                                                  final link = profileDeepLink(userId: businessData?.userId);
+                                                                  final message = "See my profile on BlueEra:\n$link\n";
+                                                                  await SharePlus.instance.share(ShareParams(
+                                                                    text: message,
+                                                                    subject: businessData?.businessName,
+                                                                  ));
+                                                              },
+                                                                value: 'share',
+                                                                child: Row(
+                                                                  children: [
+                                                                    LocalAssets(
+                                                                        imagePath:
+                                                                        AppIconAssets.profile_share),
+                                                                    SizedBox(width: 8),
+                                                                    CustomText('Share', fontSize: 14),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              PopupMenuItem(
+                                                                value: 'report',
+                                                                child: Row(
+                                                                  children: [
+                                                                    LocalAssets(
+                                                                        imagePath:
+                                                                        AppIconAssets.profile_report),
+                                                                    SizedBox(width: 8),
+                                                                    CustomText('Report', fontSize: 14),
+
+                                                                    // Text('Report'),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          );
+
+                                                          if (selected == 'share') {
+                                                            // handle share
+                                                          } else if (selected == 'report') {
+                                                            // handle report
+                                                          }
+                                                        },
+                                                        child: Icon(Icons.more_vert))
+                                                  ],
+                                                ),
+                                                SizedBox(height: SizeConfig.size8),
+                                                Row(
+                                                  children: [
+                                                    _buildTag((businessData?.subCategoryDetails != null &&
+                                                        businessData?.subCategoryDetails?.name !=
+                                                            null)
+                                                        ? businessData?.subCategoryDetails?.name ?? ''
+                                                        : (businessData?.categoryDetails != null &&
+                                                        businessData?.categoryDetails?.name !=
+                                                            null)
+                                                        ? businessData?.categoryDetails?.name ?? ''
+                                                        : (businessData?.natureOfBusiness ??
+                                                        'OTHERS')),
+                                                    SizedBox(width: SizeConfig.size6,),
+                                                    _buildTag(businessData?.isActive ?? false ? "Opened" : "Closed",
+                                                        borderColor: businessData?.isActive ?? false
+                                                            ? AppColors.green39
+                                                            : AppColors.red ,textColor:  businessData?.isActive ?? false
+                                                            ? AppColors.green39
+                                                            : AppColors.red),
+
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: SizeConfig.size12,
+                                            ),
+                                            Row(
+                                              children: [
+                                                LocalAssets(
+                                                    height: 20,
+                                                    width: 20,
+                                                    imagePath: AppIconAssets.businessprofile_location),
+                                                SizedBox(width: SizeConfig.size4),
+                                                Expanded(
+                                                  child: RichText(
+                                                    text: TextSpan(
+                                                      children: [
+                                                        TextSpan(
+                                                          text: "${(controller.distanceFromKm.value??0).toStringAsFixed(2)} Km Far",
+                                                          style: TextStyle(
+
+                                                            color: AppColors.skyBlueDF,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontSize: SizeConfig.size12, // adjust as needed
+                                                          ),
+                                                        ),
+                                                        TextSpan(
+                                                          text: " - ${businessData?.address ?? ""}",
+                                                          style: TextStyle(
+                                                            color: AppColors.black,
+                                                            fontWeight: FontWeight.w400,
+                                                            fontSize: SizeConfig.size12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                    maxLines: 2,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      )
+
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.size10,
+                                  ),
+                                  ReadMoreText(style: TextStyle(fontSize: 12,fontWeight: FontWeight.w400,color: AppColors.mainTextColor),
+                                    businessData?.businessDescription ?? "",
+                                    trimMode: TrimMode.Line,
+                                    trimLines: 2,
+                                    colorClickableText: AppColors.primaryColor,
+                                    trimCollapsedText: ' Read More',
+                                    trimExpandedText: ' Show Less',
+                                    moreStyle: AppFontStyle.styleW600(
+                                      AppColors.primaryColor,
+                                      SizeConfig.size12,
+                                    ),
+                                    trimLength: 2,
+                                  ),
+                                  SizedBox(height: SizeConfig.size12),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: SizeConfig.size10,
+                                      horizontal: SizeConfig.size20,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: const Color(0xFFE5E5E5), // #E5E5E5 border
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(SizeConfig.size14),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0x14000000), // #000000 with 8% opacity
+                                          offset: const Offset(0, 1), // X: 0, Y: 1
+                                          blurRadius: 2,
+                                          spreadRadius: 0,
+                                        ),
+                                      ],
+                                      color: Colors.white, // optional background
+                                    ),
+                                    // padding: EdgeInsets.symmetric(
+                                    //     vertical: SizeConfig.size10, horizontal: SizeConfig.size20),
+                                    // decoration: BoxDecoration(
+                                    //   // color: AppColors.lightBlue,
+                                    //   border: Border.all(color: AppColors.borderGray),
+                                    //   borderRadius: BorderRadius.circular(SizeConfig.size14),
+                                    //),
+                                    child: Row(mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            _buildInfo("Rating", "★ ${(businessData?.rating ?? 0).toStringAsFixed(2)}"),
+                                            SizedBox(
+                                              height: SizeConfig.size12,
+                                            ),
+                                            _buildInfo("Views", "${businessData?.total_views??0}"),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          width: SizeConfig.size18,
+                                        ),
+                                        SizedBox(
+                                          height: SizeConfig.size50,
+                                          child: VerticalDivider(
+                                            color: AppColors.coloGreyText,
+                                            width: 12,
+                                            thickness: 1.2,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: SizeConfig.size24,
+                                        ),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            _buildInfo("Inquiries", "0"),
+                                            SizedBox(
+                                              height: SizeConfig.size12,
+                                            ),
+                                            _buildInfo("Followers", "${businessData?.total_followers??0}"),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          width: SizeConfig.size20,
+                                        ),
+                                        SizedBox(
+                                          height: SizeConfig.size50,
+                                          child: VerticalDivider(
+                                            color: AppColors.coloGreyText,
+                                            width: 12,
+                                            thickness: 1.2,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: SizeConfig.size20,
+                                        ),
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: [
+
+                                            CustomText(
+                                              "Joined",
+                                              fontSize: SizeConfig.size12,
+                                              color: AppColors.secondaryTextColor,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            SizedBox(height: SizeConfig.size2),
+                                            CustomText(
+                                              businessData?.dateOfIncorporation == null
+                                                  ? ""
+                                                  : "${businessData?.dateOfIncorporation?.date ?? ""}/${(businessData?.dateOfIncorporation?.month ?? 1)}/${businessData?.dateOfIncorporation?.year ?? ""}",
+                                              fontSize: SizeConfig.size12,
+                                              maxLines: 1,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                            SizedBox(height: SizeConfig.size10),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _CustomTabBarDelegate(
-                    VisitPersonalProfileTabs(
-                      onTab: (index) {
-                        if (index == 3) {
-                          Map<String, dynamic> data = {
-                            ApiKeys.businessId: widget.businessId
-                          };
-                          controller.getParticularRatingApi(data);
-                        }
-                      },
-                      tabs: tabs,
-                      tabController: _tabController,
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _CustomTabBarDelegate(
+                      VisitPersonalProfileTabs(
+                        onTab: (index) {
+                          if (index == 3) {
+                            Map<String, dynamic> data = {
+                              ApiKeys.businessId: widget.businessId
+                            };
+                            controller.getParticularRatingApi(data);
+                          }
+                        },
+                        tabs: tabs,
+                        tabController: _tabController,
+                      ),
                     ),
                   ),
-                ),
-              ],
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  // overview tab
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        buildRatingSummary(rating: 2, totalReviews: "2332"),
-                        // RatingReviewCard(
-                        //   businessId: widget.businessId,
-                        //   businessProfile: businessData,
-                        // ),
-                        const SizedBox(height: 12),
-                        BusinessLocationWidget(
-                          latitude:
-                          businessData?.businessLocation?.lat?.toDouble() ??
-                              0.0,
-                          longitude:
-                          businessData?.businessLocation?.lon?.toDouble() ??
-                              0.0,
-                          businessName: businessData?.businessName ?? "N/A",
-                          isTitleShow: true,
-                          locationText: businessData?.address ?? "",
-                        ),
-                        SizedBox(
-                          height: 12,
-                        ),
-                        buildHorizontalProductList(
-                            products: controller.getAllProductDetails?.value),
-                        const SizedBox(height: 12),
-                        buildReviewCard(),
-                        const SizedBox(height: 12),
-                        buildJobCard(),
-                        const SizedBox(height: 12),
-                        buildPostCard(controller: controller),
-                        const SizedBox(height: 12),
-                        buildHorizontalSortsList(), const SizedBox(height: 12),
-                        customVideoCard(),
+                ],
+                body: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // overview tab
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildRatingSummary(
+                              ratingsList:ratingDetailedCount,
+                              allowRate: false,
+                              rating:
+                              double.parse("${ratingData?.avgRating ?? 0}"),
+                              totalReviews: "${ratingData?.totalRatings??0}"),
+                          SizedBox(height:SizeConfig.size4),
+                          Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(SizeConfig.size16),
+                            ),
 
-                        /* const SizedBox(height: 30),
-                       AboutBusinessWidget(
-                          businessDescription:
-                              businessData?.businessDescription ??
-                                  "No description available",
-                          livePhotos: businessData?.livePhotos ?? [],
-                        ),
-                        const SizedBox(height: 30),
-
-                        const SizedBox(height: 24),
-                        */ /*   ProductServicesWidget(),
-                        const SizedBox(height: 20),
-                        SimilarStoreWidget(),
-                        const SizedBox(height: 30),*/
-                      ],
+                            elevation: 0,
+                            color: AppColors.white,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
+                              child: BusinessLivePhotos(
+                                livePhotos: businessData?.livePhotos ?? [],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          BusinessLocationWidget(
+                            latitude: businessData?.businessLocation?.lat
+                                ?.toDouble() ??
+                                0.0,
+                            longitude: businessData?.businessLocation?.lon
+                                ?.toDouble() ??
+                                0.0,
+                            businessName: businessData?.businessName ?? "N/A",
+                            isTitleShow: true,
+                            locationText: businessData?.address ?? "",
+                          ),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          buildHorizontalProductList(
+                              products: controller.getAllProductDetails?.value),
+                          const SizedBox(height: 12),
+                          // buildReviewCard(),
+                          // const SizedBox(height: 12),
+                          // buildJobCard(),
+                          // const SizedBox(height: 12),
+                          // buildPostCard(controller: controller),
+                          // const SizedBox(height: 12),
+                          // buildHorizontalSortsList(),
+                          // const SizedBox(height: 12),
+                          // customVideoCard(),
+                          //
+                          // const SizedBox(height: 30),
+                          //
+                          // const SizedBox(height: 24),
+                          // */ /*   ProductServicesWidget(),
+                          // const SizedBox(height: 20),
+                          // SimilarStoreWidget(),
+                          // const SizedBox(height: 30),*/
+                        ],
+                      ),
                     ),
-                  ),
 
-                  productTab(products: controller.getAllProductDetails?.value),
+                    productTab(
+                        products: controller.getAllProductDetails?.value),
 
-                  reviewTab(),
+                    reviewTab(ratingDetailedCount,ratingData?.avgRating??0,"${ratingData?.totalRatings}"),
 
-                  postsTab(data: businessData),
-                  jobsTab(),
+                    postsTab(data: businessData),
+                    jobsTab(),
 
-                  /*// Shorts tab
+                    /*// Shorts tab
                   Column(
                     children: [
                       _filterButtons(),
@@ -250,293 +620,53 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                     ],
                   ),*/
 
-                  /*FeedScreen(
+                    /*FeedScreen(
                     key: const ValueKey('feedScreen_others_posts'),
                     postFilterType: PostType.otherPosts,
                     id: businessData?.userId,
                   ),*/
 
-                  // Reviews tab
-                  // const Center(child: Text("No reviews yet")),
-                  //
-                  // // Our Branches tab
-                  // const Center(child: Text("No branches yet")),
-                ],
+                    // Reviews tab
+                    // const Center(child: Text("No reviews yet")),
+                    //
+                    // // Our Branches tab
+                    // const Center(child: Text("No branches yet")),
+                  ],
+                ),
               ),
-            ),
-          );
+            );
+          } else if (controller.viewBusinessResponse.status == Status.LOADING) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (controller.viewBusinessResponse.status == Status.ERROR) {
+            return Center(child: CustomText("No business found"));
+          } else {
+            return Center(
+              child: SizedBox(
+                  height: 24, width: 24, child: CircularProgressIndicator()),
+            );
+          }
         },
       ),
     );
   }
 
-  widget_profileHeader(BusinessProfileDetails? businessData) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SizeConfig.size16),
-      ),
-      elevation: SizeConfig.size4,
-      child: Padding(
-        padding: EdgeInsets.all(SizeConfig.size10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 60,
-                  width: 60,
-                  margin: EdgeInsets.all(SizeConfig.size10),
-                  padding: EdgeInsets.all(SizeConfig.size3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                        image: NetworkImage(businessData?.logo ?? "")),
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              businessData?.businessName ?? "",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              fontSize: SizeConfig.size18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size16,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 2, horizontal: 4),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                    color: businessData?.isActive ?? false
-                                        ? AppColors.green39
-                                        : AppColors.red)),
-                            child: CustomText(
-                              businessData?.isActive ?? false
-                                  ? "Opened"
-                                  : "Closed",
-                              color: businessData?.isActive ?? false
-                                  ? AppColors.green39
-                                  : AppColors.red,
-                            ),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size4,
-                          ),
-                          Icon(Icons.more_vert)
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.size6),
-                      Row(
-                        children: [
-                          _buildTag((businessData?.subCategoryDetails != null &&
-                              businessData?.subCategoryDetails?.name !=
-                                  null)
-                              ? businessData?.subCategoryDetails?.name ?? ''
-                              : (businessData?.categoryDetails != null &&
-                              businessData?.categoryDetails?.name !=
-                                  null)
-                              ? businessData?.categoryDetails?.name ?? ''
-                              : (businessData?.natureOfBusiness ??
-                              'OTHERS')),
-                          SizedBox(width: SizeConfig.size6),
-                          // _buildTag("Closed",
-                          //     borderColor: AppColors.red,
-                          //     textColor: AppColors.red),
-                          // SizedBox(width: SizeConfig.size6),
-                          // _buildTag("14.2 KM Far"),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                CustomBtn(
-                  onTap: () {
-                    if (!(businessData?.is_following ?? false)) {
-                      visitProfileController
-                          .followUserController(
-                          candidateResumeId: businessData?.id)
-                          .then(
-                            (value) => controller.viewBusinessProfileById(
-                            businessData?.id ?? ""),
-                      );
-                    } else {
-                      visitProfileController
-                          .unFollowUserController(
-                          candidateResumeId: businessData?.id)
-                          .then(
-                            (value) => controller.viewBusinessProfileById(
-                            businessData?.id ?? ""),
-                      );
-                    }
-                  },
-                  title: businessData?.is_following == true
-                      ? "Unfollow"
-                      : "Follow",
-                  fontWeight: FontWeight.bold,
-                  height: SizeConfig.size30,
-                  bgColor: AppColors.skyBlueDF,
-                  width: SizeConfig.size60,
-                  radius: SizeConfig.size12,
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: SizeConfig.size12,
-                      ),
-                      Expanded(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.location_on_outlined,
-                                size: SizeConfig.size16,
-                                color: AppColors.black),
-                            SizedBox(width: SizeConfig.size1),
-                            CustomText(
-                              "14.2KM Far-",
-                              maxLines: 2,
-                              color: AppColors.skyBlueDF,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.skyBlueDF,
-                            ),
-                            SizedBox(width: SizeConfig.size1),
-                            Expanded(
-                              child: CustomText(
-                                businessData?.address ?? "",
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                color: AppColors.black,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size6),
-            ReadMoreText(
-              businessData?.businessDescription ?? "",
-              trimMode: TrimMode.Line,
-              trimLines: 2,
-              colorClickableText: AppColors.primaryColor,
-              trimCollapsedText: ' Show more',
-              trimExpandedText: ' Show less',
-              moreStyle: AppFontStyle.styleW500(
-                  AppColors.primaryColor, SizeConfig.size14),
-            ),
-            SizedBox(height: SizeConfig.size12),
-            Container(
-              padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size12, horizontal: SizeConfig.size12),
-              decoration: BoxDecoration(
-                // color: AppColors.lightBlue,
-                border: Border.all(color: AppColors.borderGray),
-                borderRadius: BorderRadius.circular(SizeConfig.size12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfo("Rating", "★ ${businessData?.rating ?? 0}"),
-                      SizedBox(
-                        height: SizeConfig.size6,
-                      ),
-                      _buildInfo("Views", "75"),
-                    ],
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size40,
-                    child: VerticalDivider(
-                      color: AppColors.coloGreyText,
-                      width: 12,
-                      thickness: 1.2,
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfo("Inquiries", "25"),
-                      SizedBox(
-                        height: SizeConfig.size6,
-                      ),
-                      _buildInfo("Followers", "50k"),
-                    ],
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size40,
-                    child: VerticalDivider(
-                      color: AppColors.coloGreyText,
-                      width: 12,
-                      thickness: 1.2,
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomText(
-                          "Joined :",
-                          fontSize: SizeConfig.size14,
-                          color: AppColors.grayText,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        SizedBox(height: SizeConfig.size6),
-                        CustomText(
-                          businessData?.dateOfIncorporation == null
-                              ? ""
-                              : "${businessData?.dateOfIncorporation?.date ?? ""}/${(businessData?.dateOfIncorporation?.month ?? 1)}/${businessData?.dateOfIncorporation?.year ?? ""}",
-                          fontSize: SizeConfig.size14,
-                          maxLines: 1,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildInfo(String title, String value) {
     return Row(
       children: [
         CustomText(
           title + ":",
-          fontSize: SizeConfig.size14,
+          fontSize: SizeConfig.size12,
           color: AppColors.grayText,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
         ),
         SizedBox(width: SizeConfig.size6),
         CustomText(
           value,
-          fontSize: SizeConfig.size14,
-          fontWeight: FontWeight.w900,
+          fontSize: SizeConfig.size12,
+          fontWeight: FontWeight.w700,
+          color: AppColors.secondaryTextColor,
         ),
       ],
     );
@@ -549,15 +679,16 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       }) {
     return Container(
         padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size4, vertical: SizeConfig.size4),
+            horizontal: SizeConfig.size8, vertical: SizeConfig.size2),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(SizeConfig.size20),
+          borderRadius: BorderRadius.circular(SizeConfig.size12),
           border: Border.all(color: borderColor),
         ),
         child: CustomText(
           text,
-          fontSize: SizeConfig.size12,
+          fontSize: SizeConfig.size10,
+          fontWeight: FontWeight.w400,
           color: textColor,
         ));
   }
@@ -566,13 +697,15 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
 
   Widget buildRatingSummary({
     required double rating,
+List<RatingCountsListModel>? ratingsList,
     required String totalReviews,
+    bool? allowRate,
   }) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -583,8 +716,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
             children: [
               CustomText(
                 "Rating Summary",
-                fontSize: SizeConfig.size20,
-                fontWeight: FontWeight.bold,
+                fontFamily: 'Open Sans',
+                fontWeight: FontWeight.w600,
+                fontSize: SizeConfig.size18,
                 color: AppColors.black,
               ),
               SizedBox(height: SizeConfig.size12),
@@ -596,8 +730,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                       children: [
                         CustomText(
                           rating.toStringAsFixed(1),
-                          fontWeight: FontWeight.bold,
-                          fontSize: SizeConfig.size35,
+                          fontFamily: 'Open Sans',
+                          fontWeight: FontWeight.w600,
+                          fontSize: SizeConfig.size50,
                           color: AppColors.black,
                         ),
                         SizedBox(width: SizeConfig.size12),
@@ -612,7 +747,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                                 direction: Axis.horizontal,
                                 allowHalfRating: false,
                                 itemCount: 5,
-                                itemSize: 36,
+                                itemSize: 16,
                                 unratedColor: Colors.grey.shade400,
                                 itemBuilder: (context, _) => const Icon(
                                   Icons.star,
@@ -625,6 +760,8 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                             CustomText(
                               "${(totalReviews ?? "").toString()} Reviews",
                               fontSize: SizeConfig.size14,
+                              fontFamily: 'Open Sans',
+                              fontWeight: FontWeight.w600,
                               color: AppColors.coloGreyText,
                             ),
                           ],
@@ -649,21 +786,25 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
               if (_isExpanded) const SizedBox(height: 16),
 
               /// Expanded → Show detailed breakdown + Rate & Review UI
-              if (_isExpanded) ...[
+              if (_isExpanded&&ratingsList!=null) ...[
                 /// Rating distribution bars
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildRatingRow(5, 0.9),
-                    _buildRatingRow(4, 0.7),
-                    _buildRatingRow(3, 0.5),
-                    _buildRatingRow(2, 0.3),
-                    _buildRatingRow(1, 0.1),
+                    ...ratingsList.map((rating) =>
+                        _buildRatingRow(
+                          rating.rating??0,
+                          rating.count ?? 0,
+                        ),
+                    ).toList(),
                   ],
                 ),
               ],
-              SizedBox(height: SizeConfig.size20),
-              Center(
+              (allowRate ?? true)
+                  ? SizedBox(height: SizeConfig.size20)
+                  : SizedBox(),
+              (allowRate ?? true)
+                  ? Center(
                 child: InkWell(
                   onTap: () => showDialog(
                     context: context,
@@ -680,7 +821,8 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                           );
                           return;
                         }
-                        final ViewBusinessDetailsController _ratingController =
+                        final ViewBusinessDetailsController
+                        _ratingController =
                         ViewBusinessDetailsController();
                         final success = await _ratingController
                             .submitBusinessRating(
@@ -704,7 +846,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                       direction: Axis.horizontal,
                       allowHalfRating: false,
                       itemCount: 5,
-                      itemSize: 36,
+                      itemSize: 56,
                       unratedColor: Colors.grey.shade400,
                       itemBuilder: (context, _) => const Icon(
                         Icons.star_border,
@@ -718,7 +860,8 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                     ),
                   ),
                 ),
-              ),
+              )
+                  : SizedBox(),
             ]),
       ),
     );
@@ -897,7 +1040,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size12),
@@ -1022,7 +1165,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1201,7 +1344,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size10),
@@ -1385,12 +1528,12 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
     List<Post> posts = controller.postsResponse.value.data != null
         ? List.from(controller.postsResponse.value.data.data)
         : [];
-    if(posts.isEmpty) return SizedBox();
+    if (posts.isEmpty) return SizedBox();
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -1415,7 +1558,11 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     var data = posts[index];
-                    return FeedCard(post: data, index: index, postFilteredType: PostType.latest,);
+                    return FeedCard(
+                      post: data,
+                      index: index,
+                      postFilteredType: PostType.latest,
+                    );
                     return Container(
                       decoration: BoxDecoration(
                           border: Border.all(
@@ -1557,7 +1704,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size16),
       ),
-      elevation: SizeConfig.size4,
+      elevation: 0,
       color: AppColors.white,
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size12),
@@ -1932,7 +2079,7 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
     );
   }
 
-  Widget reviewTab() {
+  Widget reviewTab(List<RatingCountsListModel>? ratingDetailedCount,double ratingCount,String totalReview) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 0, vertical: 20),
       child: SingleChildScrollView(
@@ -1940,7 +2087,9 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: buildRatingSummary(rating: 2, totalReviews: "3123"),
+              child: buildRatingSummary(
+                  ratingsList:ratingDetailedCount,
+                  allowRate: false,rating: ratingCount, totalReviews: "${totalReview}"),
             ),
             SizedBox(
               height: 12,
