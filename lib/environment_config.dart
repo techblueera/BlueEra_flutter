@@ -42,8 +42,8 @@ Future<void> projectKeys({required String environmentType}) async {
     isProdEnvironment = true;
     baseUrl = "https://api.blueera.ai/api/";
     razorpayKey = "rzp_live_Z3hqjlIs4IEKya";
-    androidNativeAdUnitId = 'ca-app-pub-4151367085462604/2589840945'; // native adUnit Id for android
     androidRewardedAdUnitId = 'ca-app-pub-4151367085462604/5476692884';
+    androidNativeAdUnitId = 'ca-app-pub-4151367085462604/2589840945';
     androidInterstitialAdUnitId = 'ca-app-pub-4151367085462604/9740221584';
     // chatSocketUrl = 'http://15.207.14.141:3000/';
     chatSocketUrl = 'http://15.207.222.75:3000/';
