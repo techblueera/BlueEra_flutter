@@ -42,7 +42,7 @@ Future<void> main() async {
   appVersion = packageInfo.version;
 
   ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.dev);
+  await projectKeys(environmentType: AppConstants.prod);
 
   ///APP ORIENTATIONS....
   SystemChrome.setPreferredOrientations([

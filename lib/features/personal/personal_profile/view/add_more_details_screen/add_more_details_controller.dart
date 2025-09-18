@@ -1,10 +1,11 @@
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddMoreDetailsController extends GetxController {
   // Form Controllers
   final TextEditingController titleController = TextEditingController();
-  final TextEditingController variantController = TextEditingController();
+  final TextEditingController detailController = TextEditingController();
 
   // Form Key
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -20,7 +21,7 @@ class AddMoreDetailsController extends GetxController {
   @override
   void onClose() {
     titleController.dispose();
-    variantController.dispose();
+    detailController.dispose();
     super.onClose();
   }
 
@@ -29,18 +30,18 @@ class AddMoreDetailsController extends GetxController {
     if (value == null || value.trim().isEmpty) {
       return 'Title is required';
     }
-    if (value.trim().length < 2) {
-      return 'Title must be at least 2 characters';
+    if (value.trim().length < 3) {
+      return 'Title must be at least 3 characters';
     }
     return null;
   }
 
-  String? validateVariant(String? value) {
+  String? validateDetail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Variant is required';
+      return 'Detail is required';
     }
-    if (value.trim().length < 2) {
-      return 'Variant must be at least 2 characters';
+    if (value.trim().length < 3) {
+      return 'Detail must be at least 3 characters';
     }
     return null;
   }
@@ -60,13 +61,16 @@ class AddMoreDetailsController extends GetxController {
       // Here you would typically save to backend
       final details = {
         'title': titleController.text.trim(),
-        'variant': variantController.text.trim(),
+        'detail': detailController.text.trim(),
       };
-      
+
+      clearForm();
+
       print('Saving details: $details');
-      
-      // Navigate back with the saved details
-      Get.back(result: details);
+
+      Get.find<ManualListingScreenController>().addDetail(details);
+
+      Get.back();
       
     } catch (e) {
       Get.snackbar(
@@ -87,6 +91,6 @@ class AddMoreDetailsController extends GetxController {
   // Clear Form
   void clearForm() {
     titleController.clear();
-    variantController.clear();
+    detailController.clear();
   }
 } 

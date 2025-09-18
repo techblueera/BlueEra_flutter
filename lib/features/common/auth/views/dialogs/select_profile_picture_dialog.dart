@@ -82,7 +82,7 @@ class SelectProfilePictureDialog {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _DialogHeader(title: title),
+                  DialogHeader(title: title),
                   Padding(
                     padding: EdgeInsets.all(SizeConfig.size20),
                     child: Row(
@@ -90,7 +90,7 @@ class SelectProfilePictureDialog {
                       children: [
                         if (isOnlyCamera ?? false)
                           Expanded(
-                            child: _OptionButton(
+                            child: OptionButton(
                               iconPath: AppIconAssets.camera_sky,
                               label: appLocalizations?.takeOne ?? "",
                               onTap: () async {
@@ -102,7 +102,7 @@ class SelectProfilePictureDialog {
                           ),
                         if (isGallery ?? false)
                           Expanded(
-                            child: _OptionButton(
+                            child: OptionButton(
                               iconPath: AppIconAssets.gallery_sky,
                               label:
                               appLocalizations?.selectFromGallery ?? "",
@@ -149,21 +149,21 @@ class SelectProfilePictureDialog {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _DialogHeader(title: title),
+                  DialogHeader(title: title),
                   Padding(
                     padding: EdgeInsets.all(SizeConfig.size20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Expanded(
-                          child: _OptionButton(
+                          child: OptionButton(
                             iconPath: AppIconAssets.camera_sky,
                             label: appLocalizations?.takeOne ?? "",
                             onTap: onPickFromCamera,
                           ),
                         ),
                         Expanded(
-                          child: _OptionButton(
+                          child: OptionButton(
                             iconPath: AppIconAssets.gallery_sky,
                             label: appLocalizations?.selectFromGallery ?? "",
                             onTap: onPickFromGallery,
@@ -282,10 +282,10 @@ class SelectProfilePictureDialog {
 }
 
 /// Dialog header widget
-class _DialogHeader extends StatelessWidget {
+class DialogHeader extends StatelessWidget {
   final String title;
 
-  const _DialogHeader({required this.title});
+  const DialogHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -322,12 +322,12 @@ class _DialogHeader extends StatelessWidget {
 }
 
 /// Option button widget
-class _OptionButton extends StatelessWidget {
+class OptionButton extends StatelessWidget {
   final String iconPath;
   final String label;
   final VoidCallback onTap;
 
-  const _OptionButton({
+  const OptionButton({
     required this.iconPath,
     required this.label,
     required this.onTap,
