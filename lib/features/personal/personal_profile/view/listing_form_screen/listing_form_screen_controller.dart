@@ -1,13 +1,15 @@
-import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_screen.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/sub_category_root_category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/subcategory_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/category_bottom_sheet.dart';
 import 'package:dio/dio.dart' as dio;
 import 'dart:io' as io;
 import 'dart:convert';
 import 'dart:async';
 import 'package:image_picker/image_picker.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -32,6 +34,8 @@ class CategoryLevel {
 }
 
 class ManualListingScreenController extends GetxController {
+  Rx<ApiResponse> getSubChildORRootCategroyResponse = ApiResponse.initial('Initial').obs;
+
   // Pickers
   final ImagePicker _picker = ImagePicker();
 
@@ -47,6 +51,8 @@ class ManualListingScreenController extends GetxController {
   final TextEditingController availableStockController = TextEditingController();
   final TextEditingController tagsController = TextEditingController();
   final TextEditingController linkController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+
   // Form Controllers
   final TextEditingController titleController = TextEditingController();
   final TextEditingController variantController = TextEditingController();
@@ -82,7 +88,7 @@ class ManualListingScreenController extends GetxController {
 
   // Wizard step management (1..3)
   final RxInt currentStep = 1.obs; // TEMP: start at Step 2 (Media) to update uploads faster
-  static const int totalSteps = 3;
+  static const int totalSteps = 4;
 
   // Dynamic product features (details-only fields; title generated as "Feature n")
   final RxList<TextEditingController> featureControllers = <TextEditingController>[
@@ -100,6 +106,53 @@ class ManualListingScreenController extends GetxController {
 
   // UI state
   final RxBool showLinkField = false.obs;
+
+  /// Breadcrumb path: [{id, name}]
+  var breadcrumb = <Map<String, dynamic>>[].obs;
+
+  Rxn<List<Map<String, dynamic>>> selectedBreadcrumb = Rxn<List<Map<String, dynamic>>>();
+
+  /// Cache categories per parentId
+  final Map<String?, List<CategoryData>> _cache = {};
+
+  /// Currently displayed categories
+  var categories = <CategoryData>[].obs;
+  var loading = false.obs;
+
+  final RxList<String> tags = <String>[].obs;
+
+  RxString selectedDuration = 'Day'.obs;
+  RxInt selectedValue = 1.obs;
+
+  final List<String> durationTypes = ['Day', 'Week', 'Month', 'Year', 'Life Time'];
+
+  // Get range based on selected duration
+  List<int> get valueRange {
+    switch (selectedDuration.value) {
+      case 'Day':
+        return List.generate(30, (index) => index + 1);
+      case 'Week':
+        return List.generate(6, (index) => index + 1);
+      case 'Month':
+        return List.generate(12, (index) => index + 1);
+      case 'Year':
+        return List.generate(10, (index) => index + 1);
+      case 'Life Time':
+        return [1]; // Life time doesn't need a number range
+      default:
+        return [1];
+    }
+  }
+
+  RxList<Color> selectedColors = <Color>[].obs;
+  RxString material = ''.obs;
+  RxMap<String, String> variantSizes = <String, String>{
+    'Micro': '',
+    'Small': '',
+    'Medium': '',
+    'Large': '',
+    'Extra Large': '',
+  }.obs;
 
   @override
   void onInit() {
@@ -145,24 +198,19 @@ class ManualListingScreenController extends GetxController {
   // Toggle Methods
   void toggleNonReturnable() { isNonReturnable.value = !isNonReturnable.value; }
 
-  void toggleMoreDetails() {
-    showMoreDetails.value = !showMoreDetails.value;
-    Get.to(()=>AddMoreDetailsScreen());
-  }
-
   // Add Tag
-  void addTag() {
-    if (tagsController.text.isNotEmpty) {
-      Get.snackbar(
-        'Tag Added',
-        'Tag "${tagsController.text}" added successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      tagsController.clear();
-    }
-  }
+  // void addTag() {
+  //   if (tagsController.text.isNotEmpty) {
+  //     Get.snackbar(
+  //       'Tag Added',
+  //       'Tag "${tagsController.text}" added successfully',
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: Colors.green,
+  //       colorText: Colors.white,
+  //     );
+  //     tagsController.clear();
+  //   }
+  // }
 
   // Validation Methods
   String? validateProductName(String? value) {
@@ -614,4 +662,123 @@ class ManualListingScreenController extends GetxController {
       imageLocalPaths.removeAt(index);
     }
   }
+
+
+  Future<void> loadCategories({String? parentId, bool fromCache = true}) async {
+    if (fromCache && _cache.containsKey(parentId)) {
+      categories.assignAll(_cache[parentId]!);
+      return;
+    }
+
+    loading.value = true;
+    try {
+      Map<String, dynamic> params = {};
+
+      if(parentId!=null){
+        params = {
+          ApiKeys.id: parentId
+        };
+      }
+
+      final responseModel = await ListingFormRepo().getSubchildORRootCategroy(queryParams: params);
+      if (responseModel.isSuccess) {
+        getSubChildORRootCategroyResponse.value = ApiResponse.complete(responseModel);
+        final subChildORRootCategoryResponse = SubChildORRootCategoryResponse.fromJson(responseModel.response!.data);
+        List<CategoryData> categoryData = subChildORRootCategoryResponse.data??[];
+
+        categories.assignAll(categoryData);
+
+        // Save in cache
+        _cache[parentId] = categoryData;
+      } else {
+        getSubChildORRootCategroyResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      getSubChildORRootCategroyResponse.value = ApiResponse.error('error');
+    } finally {
+      loading.value = false;
+    }
+
+    try {
+      isLoading.value = true;
+      final response = await ListingFormRepo().getToplevelCategories();
+      if (response.statusCode == 200) {
+        final list = topLevelCategoryListFromJson(response.response!.data);
+        topLevelCategories.value = list;
+        _resetToLevel0();
+      } else {
+        print("API failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error: $e");
+    } finally {
+      isLoading.value = false;
+    }
+
+  }
+
+  void selectCategory(CategoryData cat) {
+    breadcrumb.add({'id': cat.sId??'', 'name': cat.name});
+    loadCategories(parentId: cat.sId??'');
+  }
+
+  void goToBreadcrumb(int index) {
+    breadcrumb.removeRange(index + 1, breadcrumb.length);
+    final parentId = breadcrumb.isNotEmpty ? breadcrumb.last['id'] : null;
+    loadCategories(parentId: parentId);
+  }
+
+  void reset() {
+    breadcrumb.clear();
+    loadCategories(parentId: null);
+  }
+
+  Future<void> openCategoryBottomSheet(BuildContext context) async {
+    if(selectedBreadcrumb.value == null){
+      selectedBreadcrumb.value = await showCategoryBottomSheet(context);
+
+      if (selectedBreadcrumb.value != null) {
+        print("User selected: $selectedBreadcrumb");
+      } else {
+        print("User closed without selecting");
+      }
+    }
+  }
+
+  void addTag() {
+    final text = tagsController.text.trim();
+    if (text.isNotEmpty) {
+      tags.add(text);
+      tagsController.clear();
+    }
+  }
+
+  void removeTag(String tag) {
+    tags.remove(tag);
+  }
+
+  // Reset value when duration type changes
+  void onDurationChanged(String newDuration) {
+    selectedDuration.value = newDuration;
+    selectedValue.value = 1; // Reset to 1 when duration changes
+  }
+
+  void onValueChanged(int newValue) {
+    selectedValue.value = newValue;
+  }
+
+  void addColor(Color color) {
+    if (!selectedColors.contains(color)) {
+      selectedColors.add(color);
+    }
+  }
+
+  void removeColor(Color color) {
+    selectedColors.remove(color);
+  }
+
+  void updateVariantSize(String variant, String size) {
+    variantSizes[variant] = size;
+  }
+
 }

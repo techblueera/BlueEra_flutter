@@ -38,6 +38,7 @@ class AddProductScreenController extends GetxController {
   final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
 
   final int maxSelectionLimit = 10;
+  final RxString searchProduct = ''.obs;
 
   @override
   void onInit() {

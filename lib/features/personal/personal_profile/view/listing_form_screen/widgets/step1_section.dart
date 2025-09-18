@@ -1,9 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/category_bottom_sheet.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/date_picker.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -14,6 +19,7 @@ import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 
 import '../listing_form_screen_controller.dart';
 
@@ -21,97 +27,215 @@ import '../listing_form_screen_controller.dart';
 
 class Step1Section extends StatelessWidget {
   final ManualListingScreenController controller;
+
   const Step1Section({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomFormCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMediaUploadSection(controller),
-                SizedBox(height: SizeConfig.size16),
-                CommonTextField(
-                  textEditController: controller.productNameController,
-                  hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
-                  title: "Product Name",
-                  validator: controller.validateProductName,
-                  showLabel: true,
-                ),
-                SizedBox(height: SizeConfig.size16),
-                Obx(() {
-                  return Column(
-                    children: List.generate(controller.categoryLevels.length, (i) {
-                      final level = controller.categoryLevels[i];
-                      final items = level.items.map((e) => e.name).toList();
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: SizeConfig.size12),
-                        child: _buildDropdownField(
-                          label: i == 0 ? 'Category' : 'Subcategory $i',
-                          hint: i == 0 ? 'Select a category' : 'Select a subcategory',
-                          items: items,
-                          validator: (value) => i == 0 && value == null ? 'Please select a category' : null,
-                          onChanged: (val) => controller.onLevelChanged(i, val),
-                          value: level.selectedName.isEmpty ? null : level.selectedName,
-                        ),
-                      );
-                    }),
-                  );
-                }),
-                GestureDetector(
-                  onTap: () {
-                    Get.snackbar(
-                      'Feature Coming Soon',
-                      'New category creation will be available soon',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CustomText(
-                        "New Category",
-                        color: AppColors.primaryColor,
-                      ),
-                      SizedBox(width: SizeConfig.size4),
-                      CustomText(
-                        "+",
-                        color: AppColors.primaryColor,
-                        fontSize: SizeConfig.size30,
-                      ),
-                    ],
+    return Container(
+      color: AppColors.whiteF3,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          margin: EdgeInsets.all(SizeConfig.size15),
+          padding: EdgeInsets.all(SizeConfig.size15),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(10.0),
+            // boxShadow: [AppShadows.textFieldShadow],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Product Images
+                  _buildMediaUploadSection(controller),
+
+                  SizedBox(height: SizeConfig.size15),
+
+                  /// Product Name
+                  CommonTextField(
+                    textEditController: controller.productNameController,
+                    hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
+                    title: "Product Name",
+                    validator: controller.validateProductName,
+                    showLabel: true,
                   ),
-                ),
-                SizedBox(height: SizeConfig.size16),
-                _buildTagsSection(controller),
-                SizedBox(height: SizeConfig.size16),
-              ],
-            ),
+                  SizedBox(height: SizeConfig.size15),
+
+                  /// category
+                  CustomText(
+                    'Category',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.black,
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Obx(() => InkWell(
+                        onTap: () =>
+                            controller.openCategoryBottomSheet(context),
+                        child: Container(
+                          width: SizeConfig.screenWidth,
+                          decoration: BoxDecoration(
+                              color: AppColors.white,
+                              boxShadow: [AppShadows.textFieldShadow],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.greyE5,
+                              )),
+                          child: controller.selectedBreadcrumb.value != null
+                              ? Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.only(left: SizeConfig.size12),
+                                    constraints: BoxConstraints(
+                                      maxWidth: SizeConfig.screenWidth * 0.7,
+                                    ),
+                                    // width: SizeConfig.screenWidth * 0.5,
+                                    child: Wrap(
+                                        children: List.generate(
+                                          controller.selectedBreadcrumb.value!.length,
+                                          (i) {
+                                            final item = controller.breadcrumb[i];
+
+                                            return Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                CustomText(
+                                                  item['name'],
+                                                  color: Colors.black,
+                                                  fontSize: SizeConfig.large,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        controller.selectedBreadcrumb.value = null;
+                                      },
+                                      icon: Icon(Icons.close,
+                                  size: 20, color: AppColors.grey9A)
+                                  )
+                                ],
+                              )
+                              : Container(
+                                 padding: EdgeInsets.all(SizeConfig.size12),
+                                child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      CustomText(
+                                        'Select a category',
+                                        color: AppColors.grey9A,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: SizeConfig.large,
+                                      ),
+                                      const Icon(Icons.arrow_forward_ios,
+                                          size: 16, color: AppColors.grey9A)
+                                    ],
+                                  ),
+                              ),
+                        ),
+                      )),
+
+                  // return Column(
+                  //   children: List.generate(controller.categoryLevels.length, (i) {
+                  //     final level = controller.categoryLevels[i];
+                  //     final items = level.items.map((e) => e.name).toList();
+                  //     return Padding(
+                  //       padding: EdgeInsets.only(bottom: SizeConfig.size12),
+                  //       child: _buildDropdownField(
+                  //         label: i == 0 ? 'Category' : 'Subcategory $i',
+                  //         hint: i == 0 ? 'Select a category' : 'Select a subcategory',
+                  //         items: items,
+                  //         validator: (value) => i == 0 && value == null ? 'Please select a category' : null,
+                  //         onChanged: (val) => controller.onLevelChanged(i, val),
+                  //         value: level.selectedName.isEmpty ? null : level.selectedName,
+                  //       ),
+                  //     );
+                  //   }),
+                  // );
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     Get.snackbar(
+                  //       'Feature Coming Soon',
+                  //       'New category creation will be available soon',
+                  //       snackPosition: SnackPosition.BOTTOM,
+                  //     );
+                  //   },
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.end,
+                  //     children: [
+                  //       CustomText(
+                  //         "New Category",
+                  //         color: AppColors.primaryColor,
+                  //       ),
+                  //       SizedBox(width: SizeConfig.size4),
+                  //       CustomText(
+                  //         "+",
+                  //         color: AppColors.primaryColor,
+                  //         fontSize: SizeConfig.size30,
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+
+                  SizedBox(height: SizeConfig.size15),
+
+                  /// Brand
+                  CommonTextField(
+                    textEditController: controller.productNameController,
+                    hintText: 'E.g. Samsung',
+                    title: "Brand ( if any )",
+                    validator: controller.validateProductName,
+                    showLabel: true,
+                  ),
+                  SizedBox(height: SizeConfig.size15),
+
+                  /// Tag Keywords
+                  _buildTagsSection(controller),
+                  SizedBox(height: SizeConfig.size15),
+
+                  /// Product Description
+                  CommonTextField(
+                    textEditController: controller.shortDescriptionController,
+                    hintText:
+                        "Lorem ipsum dolor sit amet conseceter adisping...",
+                    maxLine: 5,
+                    title: 'Product Description',
+                  )
+                ],
+              ),
+
+              // CustomFormCard(
+              //   child: CommonTextField(
+              //     textEditController: controller.productNameController,
+              //     hintText: 'E.g. Samsung',
+              //     title: "Brand ( if any )",
+              //     validator: controller.validateProductName,
+              //     showLabel: true,
+              //   ),
+              // ),
+              // SizedBox(height: SizeConfig.size16),
+              // CustomFormCard(
+              //   child: _buildProductFeaturesSection(controller),
+              // ),
+              // SizedBox(height: SizeConfig.size16),
+              // CustomFormCard(
+              //   child: _buildDescriptionSection(controller),
+              // ),
+              // SizedBox(height: SizeConfig.size16),
+            ],
           ),
-          CustomFormCard(
-            child: CommonTextField(
-              textEditController: controller.productNameController,
-              hintText: 'E.g. Samsung',
-              title: "Brand ( if any )",
-              validator: controller.validateProductName,
-              showLabel: true,
-            ),
-          ),
-          SizedBox(height: SizeConfig.size16),
-          CustomFormCard(
-            child: _buildProductFeaturesSection(controller),
-          ),
-          SizedBox(height: SizeConfig.size16),
-          CustomFormCard(
-            child: _buildDescriptionSection(controller),
-          ),
-          SizedBox(height: SizeConfig.size16),
-        ],
+        ),
       ),
     );
   }
@@ -120,115 +244,128 @@ class Step1Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          'Upload product Video',
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
+        // CustomText(
+        //   'Upload product Video',
+        //   fontSize: SizeConfig.medium,
+        //   color: AppColors.black,
+        // ),
+        // SizedBox(height: SizeConfig.size8),
+        // SizedBox(
+        //   height: 80,
+        //   child: ListView(
+        //     scrollDirection: Axis.horizontal,
+        //     children: [
+        //       GestureDetector(
+        //         key: const ValueKey('video'),
+        //         onTap: () {
+        //           final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
+        //           if (hasVideo) {
+        //             Get.snackbar(
+        //               'Limit reached',
+        //               'You can upload only one video. Remove the existing one to replace.',
+        //               snackPosition: SnackPosition.BOTTOM,
+        //             );
+        //           } else {
+        //             controller.pickVideo();
+        //           }
+        //         },
+        //         onLongPress: () {
+        //           final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
+        //           if (hasVideo) {
+        //             controller.videoLocalPath.value = null;
+        //           }
+        //         },
+        //         child: Container(
+        //           width: 80,
+        //           decoration: BoxDecoration(
+        //             color: AppColors.fillColor,
+        //             borderRadius: BorderRadius.circular(8),
+        //             border: Border.all(color: AppColors.greyE5, width: 1),
+        //           ),
+        //           clipBehavior: Clip.antiAlias,
+        //           child: Obx(() {
+        //             final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
+        //             return Stack(
+        //               fit: StackFit.expand,
+        //               children: [
+        //                 if (hasVideo)
+        //                   Container(
+        //                     color: Colors.black12,
+        //                     child: Center(
+        //                       child: Icon(Icons.videocam, color: AppColors.primaryColor.withOpacity(0.9)),
+        //                     ),
+        //                   )
+        //                 else
+        //                   Center(
+        //                     child: Icon(
+        //                       Icons.videocam,
+        //                       color: AppColors.secondaryTextColor.withOpacity(0.3),
+        //                     ),
+        //                   ),
+        //                 if (hasVideo)
+        //                   Positioned(
+        //                     top: 4,
+        //                     right: 4,
+        //                     child: GestureDetector(
+        //                       onTap: () => controller.videoLocalPath.value = null,
+        //                       child: Container(
+        //                         width: 22,
+        //                         height: 22,
+        //                         decoration: const BoxDecoration(
+        //                           color: Colors.black54,
+        //                           shape: BoxShape.circle,
+        //                         ),
+        //                         child: const Icon(Icons.close, size: 14, color: Colors.white),
+        //                       ),
+        //                     ),
+        //                   ),
+        //                 Positioned(
+        //                   right: 4,
+        //                   bottom: 4,
+        //                   child: Container(
+        //                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        //                     decoration: BoxDecoration(
+        //                       color: Colors.black54,
+        //                       borderRadius: BorderRadius.circular(10),
+        //                     ),
+        //                     child: const Row(
+        //                       mainAxisSize: MainAxisSize.min,
+        //                       children: [
+        //                         Icon(Icons.videocam, size: 12, color: Colors.white70),
+        //                       ],
+        //                     ),
+        //                   ),
+        //                 ),
+        //               ],
+        //             );
+        //           }),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // SizedBox(height: SizeConfig.size16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              'Upload product Images',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w500,
+              color: AppColors.black,
+            ),
+            SizedBox(width: SizeConfig.size8),
+            CustomText(
+              'Min-2 / Max-5',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w500,
+              color: AppColors.black,
+            ),
+          ],
         ),
-        SizedBox(height: SizeConfig.size8),
+        SizedBox(height: SizeConfig.size10),
         SizedBox(
-          height: 80,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              GestureDetector(
-                key: const ValueKey('video'),
-                onTap: () {
-                  final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
-                  if (hasVideo) {
-                    Get.snackbar(
-                      'Limit reached',
-                      'You can upload only one video. Remove the existing one to replace.',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  } else {
-                    controller.pickVideo();
-                  }
-                },
-                onLongPress: () {
-                  final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
-                  if (hasVideo) {
-                    controller.videoLocalPath.value = null;
-                  }
-                },
-                child: Container(
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.fillColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.greyE5, width: 1),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Obx(() {
-                    final hasVideo = controller.videoLocalPath.value != null && controller.videoLocalPath.value!.isNotEmpty;
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (hasVideo)
-                          Container(
-                            color: Colors.black12,
-                            child: Center(
-                              child: Icon(Icons.videocam, color: AppColors.primaryColor.withOpacity(0.9)),
-                            ),
-                          )
-                        else
-                          Center(
-                            child: Icon(
-                              Icons.videocam,
-                              color: AppColors.secondaryTextColor.withOpacity(0.3),
-                            ),
-                          ),
-                        if (hasVideo)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: GestureDetector(
-                              onTap: () => controller.videoLocalPath.value = null,
-                              child: Container(
-                                width: 22,
-                                height: 22,
-                                decoration: const BoxDecoration(
-                                  color: Colors.black54,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.close, size: 14, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.videocam, size: 12, color: Colors.white70),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size16),
-        CustomText(
-          'Upload product Images',
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        SizedBox(
-          height: 80,
+          height: SizeConfig.size80,
           child: GridView.builder(
             scrollDirection: Axis.horizontal,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -236,7 +373,7 @@ class Step1Section extends StatelessWidget {
               mainAxisSpacing: 8,
               childAspectRatio: 1,
             ),
-            itemCount: 4, // up to 4 images
+            itemCount: 5, // up to 4 images
             itemBuilder: (context, index) {
               final imgIdx = index;
               return GestureDetector(
@@ -260,8 +397,8 @@ class Step1Section extends StatelessWidget {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.fillColor,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.whiteFE,
+                    borderRadius: BorderRadius.circular(6.0),
                     border: Border.all(color: AppColors.greyE5, width: 1),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -278,8 +415,9 @@ class Step1Section extends StatelessWidget {
                         else
                           Center(
                             child: Icon(
-                              Icons.photo,
-                              color: AppColors.secondaryTextColor.withOpacity(0.3),
+                              Icons.photo_outlined,
+                              color:
+                                  AppColors.secondaryTextColor.withOpacity(0.3),
                             ),
                           ),
                         if (hasImage)
@@ -295,27 +433,30 @@ class Step1Section extends StatelessWidget {
                                   color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                child: const Icon(Icons.close,
+                                    size: 14, color: Colors.white),
                               ),
                             ),
                           ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.photo, size: 12, color: Colors.white70),
-                              ],
-                            ),
-                          ),
-                        ),
+                        // Positioned(
+                        //   right: 4,
+                        //   bottom: 4,
+                        //   child: Container(
+                        //     padding: const EdgeInsets.symmetric(
+                        //         horizontal: 6, vertical: 2),
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.black54,
+                        //       borderRadius: BorderRadius.circular(10),
+                        //     ),
+                        //     child: const Row(
+                        //       mainAxisSize: MainAxisSize.min,
+                        //       children: [
+                        //         Icon(Icons.photo,
+                        //             size: 12, color: Colors.white70),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     );
                   }),
@@ -332,16 +473,11 @@ class Step1Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          'Short Description',
-          fontSize: SizeConfig.medium,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size8),
         CommonTextField(
           textEditController: controller.shortDescriptionController,
           hintText: "Lorem ipsum dolor sit amet conseceter adisping...",
           maxLine: 3,
+          title: 'Short Description',
         )
       ],
     );
@@ -355,7 +491,8 @@ class Step1Section extends StatelessWidget {
     required void Function(String?) onChanged,
     String? value,
   }) {
-    final String? effectiveValue = (value != null && items.contains(value)) ? value : null;
+    final String? effectiveValue =
+        (value != null && items.contains(value)) ? value : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,6 +590,7 @@ class Step1Section extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller.tagsController,
+                  onChanged: (_) => controller.update(["addIcon"]),
                   decoration: const InputDecoration(
                     hintText: 'Tag people',
                     hintStyle: TextStyle(
@@ -464,194 +602,64 @@ class Step1Section extends StatelessWidget {
                     focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                     isDense: true,
+
                   ),
                 ),
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: controller.addTag,
-                  child: Image.asset("assets/icons/add_icon.png"),
-                ),
+              GetBuilder<ManualListingScreenController>(
+                id: "addIcon",
+                builder: (_) {
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: controller.tagsController.text.isNotEmpty
+                        ? InkWell(
+                            key: const ValueKey("add"),
+                            onTap: () {
+                              controller.addTag();
+                              controller.update(["addIcon"]);
+                            },
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.addBlueIcon,
+                              // imgColor: AppColors.grey9A
+                            ),
+                          )
+                        : const SizedBox.shrink(key: ValueKey("empty")),
+                  );
+                },
               ),
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        Obx(()=> Wrap(
+          spacing: 8,
+          runSpacing: 2,
+          children: controller.tags.map((tag) {
+            return Chip(
+              label: Text(tag),
+              backgroundColor: AppColors.lightBlue,
+              labelStyle: TextStyle(
+                  fontSize: SizeConfig.size14,
+                  color: Colors.black87
+              ),
+              deleteIcon: const Icon(Icons.close,
+                  size: 20, color: AppColors.mainTextColor),
+              shape: RoundedRectangleBorder(
+                  side: BorderSide(color: Colors.transparent),
+                  borderRadius: BorderRadius.circular(8.0)),
+              onDeleted: () => controller.removeTag(tag),
+              labelPadding: const EdgeInsets.only(left: 12),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            );
+          }).toList(),
+        ))
+
       ],
     );
   }
 
-  Widget _buildProductFeaturesSection(ManualListingScreenController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Add Product Features',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size16),
-        Obx(() => Column(
-          children: List.generate(controller.featureControllers.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: CommonTextField(
-                      title: 'Feature ${i + 1}',
-                      hintText: 'E.g. Vorem ipsum dolor sit amet,',
-                      textEditController: controller.featureControllers[i],
-                      maxLine: 2,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  if (controller.featureControllers.length > 1)
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => controller.removeFeature(i),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: EdgeInsets.only(top: SizeConfig.size20),
-                          child: Icon(
-                            Icons.delete_outline,
-                            color: AppColors.primaryColor,
-                            size: 22,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        )),
-        SizedBox(height: SizeConfig.size16),
-        GestureDetector(
-          onTap: controller.addFeature,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add More Option", color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size16),
-        GestureDetector(
-          onTap: controller.showLinkField.toggle,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add Link (Reference / Website)",
-                  color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        Obx(() => controller.showLinkField.value
-            ? Padding(
-                padding: EdgeInsets.only(top: SizeConfig.size12),
-                child: CommonTextField(
-                  title: "Link (Reference / Website)",
-                  hintText: "https://example.com",
-                  textEditController: controller.linkController,
-                ),
-              )
-            : const SizedBox.shrink()),
-        SizedBox(height: SizeConfig.size20),
-        CustomText(
-          'Options',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
-        ),
-        SizedBox(height: SizeConfig.size12),
-        Obx(() => Column(
-          children: List.generate(controller.optionAttributeControllers.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CommonTextField(
-                      title: 'Attribute',
-                      hintText: 'e.g. Color',
-                      textEditController: controller.optionAttributeControllers[i],
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  Expanded(
-                    child: CommonTextField(
-                      title: 'Value',
-                      hintText: 'e.g. Black',
-                      textEditController: controller.optionValueControllers[i],
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  if (controller.optionAttributeControllers.length > 1)
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => controller.removeOption(i),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: const Icon(Icons.delete_outline, color: AppColors.primaryColor),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        )),
-        SizedBox(height: SizeConfig.size8),
-        GestureDetector(
-          onTap: controller.addOption,
-          child: Row(
-            children: [
-              Image.asset("assets/icons/add_icon.png",
-                  color: AppColors.primaryColor),
-              SizedBox(width: SizeConfig.size10),
-              CustomText("Add Option", color: AppColors.primaryColor),
-            ],
-          ),
-        ),
-        SizedBox(height: SizeConfig.size24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(
-              'Add More Details',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.bold,
-              color: AppColors.black,
-            ),
-            GestureDetector(
-              onTap: controller.toggleMoreDetails,
-              child: Container(
-                width: 32,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 }

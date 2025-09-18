@@ -363,4 +363,6 @@ class AppIconAssets {
   static String follow_new = "${iconPath}follow_new.svg";
   static String report_new = "${iconPath}report_new.svg";
   static String block_user = "${iconPath}block_user.svg";
+  static String cards = "${iconPath}cards.svg";
+  static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
 }

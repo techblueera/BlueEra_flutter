@@ -71,7 +71,7 @@ class Categories {
 class Cards {
   String? timeZone;
   String? language;
-  List<String>? photos;
+  String? photo;
   String? eventDate;
   String? createdBy;
   String? categoryName;
@@ -82,7 +82,7 @@ class Cards {
   Cards(
       {this.timeZone,
         this.language,
-        this.photos,
+        this.photo,
         this.eventDate,
         this.createdBy,
         this.categoryName,
@@ -93,7 +93,7 @@ class Cards {
   Cards.fromJson(Map<String, dynamic> json) {
     timeZone = json['timeZone'];
     language = json['language'];
-    photos = json['photos'].cast<String>();
+    photo = json['photo'];
     eventDate = json['eventDate'];
     createdBy = json['createdBy'];
     categoryName = json['categoryName'];
@@ -106,7 +106,7 @@ class Cards {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['timeZone'] = this.timeZone;
     data['language'] = this.language;
-    data['photos'] = this.photos;
+    data['photo'] = this.photo;
     data['eventDate'] = this.eventDate;
     data['createdBy'] = this.createdBy;
     data['categoryName'] = this.categoryName;
