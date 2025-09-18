@@ -83,7 +83,7 @@ import 'package:permission_handler/permission_handler.dart';
         }
       });
 
-      await OnesignalService().initialize();
+      // await OnesignalService().initialize();
     }
 
     Future<bool> _shouldLogoutAfterUpdate() async {
