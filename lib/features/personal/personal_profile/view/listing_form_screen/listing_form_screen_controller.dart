@@ -1,10 +1,14 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/sub_category_root_category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/subcategory_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/category_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'dart:io' as io;
 import 'dart:convert';
@@ -33,6 +37,14 @@ class CategoryLevel {
       );
 }
 
+class SelectedColor {
+  final Color color;
+  final String name;
+
+  SelectedColor(this.color, this.name);
+}
+
+
 class ManualListingScreenController extends GetxController {
   Rx<ApiResponse> getSubChildORRootCategroyResponse = ApiResponse.initial('Initial').obs;
 
@@ -52,6 +64,7 @@ class ManualListingScreenController extends GetxController {
   final TextEditingController tagsController = TextEditingController();
   final TextEditingController linkController = TextEditingController();
   final TextEditingController categoryController = TextEditingController();
+  final TextEditingController materialController = TextEditingController();
 
   // Form Controllers
   final TextEditingController titleController = TextEditingController();
@@ -60,7 +73,7 @@ class ManualListingScreenController extends GetxController {
   final RxString videoPublicUrl = ''.obs;
   final RxString videoFileKey = ''.obs;
   final Rxn<String> videoLocalPath = Rxn<String>(); // picked local video file path
-  final RxList<String> imageLocalPaths = <String>[].obs; // up to 4
+  final RxList<String> imageLocalPaths = <String>[].obs; // up to 5
 
   // Create a unique GlobalKey for each instance
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -74,9 +87,6 @@ class ManualListingScreenController extends GetxController {
   // Final selected leaf
   final selectedCategory = ''.obs;
   final RxString selectedCategoryId = ''.obs;
-
-  // Source for level-0
-  final RxList<TopLevelCategory> topLevelCategories = <TopLevelCategory>[].obs;
 
   // Dynamic multi-level state
   final RxList<CategoryLevel> categoryLevels = <CategoryLevel>[].obs;
@@ -121,13 +131,32 @@ class ManualListingScreenController extends GetxController {
 
   final RxList<String> tags = <String>[].obs;
 
+  RxString selectedProductDuration = 'Day'.obs;
+  Rx<num> selectedProductValue = Rx<num>(1);
+
+  // Get range based on selected duration
+  List<num> get productValueRange {
+    switch (selectedProductDuration.value) {
+      case 'Day':
+        return List.generate(30, (index) => index + 1);
+      case 'Week':
+        return List.generate(6, (index) => index + 1);
+      case 'Month':
+        return List.generate(12, (index) => index + 1);
+      case 'Year':
+        return List.generate(20, (index) => (index + 1)  * 0.5);
+      default:
+        return [1];
+    }
+  }
+
   RxString selectedDuration = 'Day'.obs;
-  RxInt selectedValue = 1.obs;
+  Rx<num> selectedValue = Rx<num>(1);
 
   final List<String> durationTypes = ['Day', 'Week', 'Month', 'Year', 'Life Time'];
 
   // Get range based on selected duration
-  List<int> get valueRange {
+  List<num> get valueRange {
     switch (selectedDuration.value) {
       case 'Day':
         return List.generate(30, (index) => index + 1);
@@ -136,7 +165,7 @@ class ManualListingScreenController extends GetxController {
       case 'Month':
         return List.generate(12, (index) => index + 1);
       case 'Year':
-        return List.generate(10, (index) => index + 1);
+        return List.generate(20, (index) => (index + 1)  * 0.5);
       case 'Life Time':
         return [1]; // Life time doesn't need a number range
       default:
@@ -144,7 +173,8 @@ class ManualListingScreenController extends GetxController {
     }
   }
 
-  RxList<Color> selectedColors = <Color>[].obs;
+  RxList<SelectedColor> selectedColors = <SelectedColor>[].obs;
+
   RxString material = ''.obs;
   RxMap<String, String> variantSizes = <String, String>{
     'Micro': '',
@@ -153,12 +183,26 @@ class ManualListingScreenController extends GetxController {
     'Large': '',
     'Extra Large': '',
   }.obs;
+  final Map<String, TextEditingController> variantNameControllers = {};
+  RxMap<String, bool> isEditingMap = <String, bool>{}.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    getTopLevelCategoriesList();
-  }
+  final RxList<String> materials = <String>[].obs;
+
+  final formKeyStep1 = GlobalKey<FormState>();
+  final formKeyStep2 = GlobalKey<FormState>();
+  final formKeyStep3 = GlobalKey<FormState>();
+  // final formKeyStep4 = GlobalKey<FormState>();
+
+  var detailsList = <Map<String, String>>[].obs;
+
+  // @override
+  // void onInit() {
+  //   super.onInit();
+  //   variantSizes.keys.forEach((key) {
+  //     variantNameControllers[key] = TextEditingController(text: key);
+  //     isEditingMap[key] = false;
+  //   });
+  // }
 
   @override
   void onClose() {
@@ -184,6 +228,7 @@ class ManualListingScreenController extends GetxController {
     }
  titleController.dispose();
     variantController.dispose();
+    materialController.dispose();
     super.onClose();
   }
 
@@ -219,8 +264,30 @@ class ManualListingScreenController extends GetxController {
     return null;
   }
 
+  String? validateBrandName(String? value) {
+    if (value == null || value.isEmpty) return null;
+    if (value.length < 3) return 'Brand name must be at least 3 characters';
+    return null;
+  }
+
+  String? validateProductDescription(String? value) {
+    if (value == null || value.isEmpty) return 'Product description is required';
+    if (value.length < 50) return 'Product description name must be at least 50 characters';
+    return null;
+  }
+
   String? validateCategory(String? value) {
     if (value == null || value.isEmpty) return 'Category is required';
+    return null;
+  }
+
+  String? validateFeatures(String? value, int i) {
+    if (value == null || value.trim().isEmpty) {
+      return "Validation Error, Feature ${i + 1} cannot be empty";
+    }
+    if (value.length < 20) {
+      return "Validation Error, Feature ${i + 1} must be at least 20 characters";
+    }
     return null;
   }
 
@@ -233,6 +300,12 @@ class ManualListingScreenController extends GetxController {
     if (value == null || value.isEmpty) return 'MRP is required';
     if (double.tryParse(value) == null) return 'Please enter a valid price';
     if (double.parse(value) <= 0) return 'MRP must be greater than 0';
+    return null;
+  }
+
+  String? validateUserGuidance(String? value) {
+    if (value == null || value.isEmpty) return 'User guidance is required';
+    if (value.length < 20) return 'Product description name must be at least 20 characters';
     return null;
   }
 
@@ -274,6 +347,7 @@ class ManualListingScreenController extends GetxController {
     }
     return null;
   }
+
   // Cancel Action
   void cancel() {
     Get.back();
@@ -287,32 +361,58 @@ class ManualListingScreenController extends GetxController {
 
   // Step-wise validation
   bool _validateStep1() {
-    final nameErr = validateProductName(productNameController.text);
-    if (nameErr != null) { _showError(nameErr); return false; }
+    if(imageLocalPaths.length < 2  || imageLocalPaths.length > 5) {
+      _showError((imageLocalPaths.length < 2) ? 'Please take minimum two product images' : 'You can\'t add more than five images');
+      return false;
+    }
 
-    // Validate that at least level-0 is selected
-    if (categoryLevels.isEmpty || categoryLevels.first.selectedName.isEmpty) {
+    if(!formKeyStep1.currentState!.validate()) return false;
+
+     if(selectedBreadcrumb.value == null){
       _showError('Please select a category');
       return false;
     }
 
-    final brandErr = validateBrand(brandController.text);
-    if (brandErr != null) { _showError(brandErr); return false; }
+     if(tags.isEmpty){
+      _showError('Please add a tag/keyword');
+      return false;
+    }
 
-    final mrpErr = validateMRP(mrpController.text);
-    if (mrpErr != null) { _showError(mrpErr); return false; }
 
-    final spErr = validateSellingPrice(sellingPriceController.text);
-    if (spErr != null) { _showError(spErr); return false; }
-
-    final stockErr = validateAvailableStock(availableStockController.text);
-    if (stockErr != null) { _showError(stockErr); return false; }
+    //
+    // final nameErr = validateProductName(productNameController.text);
+    // if (nameErr != null) { _showError(nameErr); return false; }
+    //
+    // // Validate that at least level-0 is selected
+    // if (categoryLevels.isEmpty || categoryLevels.first.selectedName.isEmpty) {
+    //   _showError('Please select a category');
+    //   return false;
+    // }
+    //
+    // final brandErr = validateBrand(brandController.text);
+    // if (brandErr != null) { _showError(brandErr); return false; }
+    //
+    // final mrpErr = validateMRP(mrpController.text);
+    // if (mrpErr != null) { _showError(mrpErr); return false; }
+    //
+    // final spErr = validateSellingPrice(sellingPriceController.text);
+    // if (spErr != null) { _showError(spErr); return false; }
+    //
+    // final stockErr = validateAvailableStock(availableStockController.text);
+    // if (stockErr != null) { _showError(stockErr); return false; }
 
     return true;
   }
 
-  bool _validateStep2() { return true; }
-  bool _validateStep3() { return true; }
+  bool _validateStep2() {
+    if(!formKeyStep2.currentState!.validate()) return false;
+    return true;
+  }
+
+  bool _validateStep3() {
+    if(!formKeyStep3.currentState!.validate()) return false;
+    return true;
+  }
 
   bool validateCurrentStep() {
     switch (currentStep.value) {
@@ -324,7 +424,7 @@ class ManualListingScreenController extends GetxController {
   }
 
   void onNext() async {
-    // if (!validateCurrentStep()) return;
+    if (!validateCurrentStep()) return;
     if (currentStep.value < totalSteps) {
       currentStep.value += 1;
     } else {
@@ -335,7 +435,7 @@ class ManualListingScreenController extends GetxController {
   void onBack() { if (currentStep.value > 1) currentStep.value -= 1; }
 
   Future<void> submitFinal() async {
-    if (!_validateStep1() || !_validateStep2() || !_validateStep3()) return;
+    // if (!_validateStep1() || !_validateStep2() || !_validateStep3()) return;
     isLoading.value = true;
     try {
       // Resolve final category id: prefer deepest selected level
@@ -401,43 +501,19 @@ class ManualListingScreenController extends GetxController {
   }
 
   void _showError(String msg) {
-    Get.snackbar('Validation', msg,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-  }
+    commonSnackBar(message: msg);
 
-  // Data loading
-  Future<void> getTopLevelCategoriesList() async {
-    try {
-      isLoading.value = true;
-      final response = await ListingFormRepo().getToplevelCategories();
-      if (response.statusCode == 200) {
-        final list = topLevelCategoryListFromJson(response.response!.data);
-        topLevelCategories.value = list;
-        _resetToLevel0();
-      } else {
-        print("API failed with status: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error: $e");
-    } finally {
-      isLoading.value = false;
-    }
+    // Get.snackbar('Validation', msg,
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   backgroundColor: Colors.red,
+    //   colorText: Colors.white,
+    // );
   }
 
   // Convert top-level categories to CategoryNode for level-0 dropdown
   List<CategoryNode> _topAsNodes(List<TopLevelCategory> cats) =>
       cats.map((c) => CategoryNode(id: c.id, name: c.name, parent: null, subcategories: const []))
           .toList();
-
-  void _resetToLevel0() {
-    selectedCategory.value = '';
-    selectedCategoryId.value = '';
-    final level0 = CategoryLevel(items: _topAsNodes(topLevelCategories));
-    categoryLevels.value = [level0];
-  }
 
   // Centralized fetcher
   Future<List<CategoryNode>> _fetchChildren(String parentId) async {
@@ -643,15 +719,23 @@ class ManualListingScreenController extends GetxController {
     }
   }
 
-  Future<void> pickImages() async {
+  Future<void> pickImages(BuildContext context) async {
     try {
-      // Allow multiple selection, but clamp total to 4
-      final List<XFile> files = await _picker.pickMultiImage();
-      if (files.isEmpty) return;
-      final remaining = 4 - imageLocalPaths.length;
-      if (remaining <= 0) return;
-      final addList = files.take(remaining).map((f) => f.path).toList();
-      imageLocalPaths.addAll(addList);
+
+      final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+        context,
+        'Product Image',
+      );
+
+      if (selected != null) {
+        if (selected.isEmpty) return;
+        final remaining = 5 - imageLocalPaths.length;
+        if (remaining <= 0) return;
+        final addList = selected.take(remaining).map((i) => i).toList();
+        imageLocalPaths.addAll(addList);
+      }
+
+
     } catch (e) {
       _showError('Image pick failed: $e');
     }
@@ -698,23 +782,6 @@ class ManualListingScreenController extends GetxController {
     } finally {
       loading.value = false;
     }
-
-    try {
-      isLoading.value = true;
-      final response = await ListingFormRepo().getToplevelCategories();
-      if (response.statusCode == 200) {
-        final list = topLevelCategoryListFromJson(response.response!.data);
-        topLevelCategories.value = list;
-        _resetToLevel0();
-      } else {
-        print("API failed with status: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error: $e");
-    } finally {
-      isLoading.value = false;
-    }
-
   }
 
   void selectCategory(CategoryData cat) {
@@ -746,6 +813,11 @@ class ManualListingScreenController extends GetxController {
   }
 
   void addTag() {
+    if(tags.length == 5){
+      commonSnackBar(message: 'You can\'t add more than 5 tags/Keywords');
+      return;
+    }
+
     final text = tagsController.text.trim();
     if (text.isNotEmpty) {
       tags.add(text);
@@ -757,28 +829,111 @@ class ManualListingScreenController extends GetxController {
     tags.remove(tag);
   }
 
+  void addMaterial() {
+    if(materials.length == 5){
+      commonSnackBar(message: 'You can\'t add more than 5 materials');
+      return;
+    }
+
+    final text = materialController.text.trim();
+    if (text.isNotEmpty) {
+      materials.add(text);
+      materialController.clear();
+    }
+  }
+
+  void removeMaterial(String tag) {
+    materials.remove(tag);
+  }
+
+  // Reset value when duration type changes
+  void onProductDurationChanged(String newDuration) {
+    selectedProductDuration.value = newDuration;
+    selectedProductValue.value = 1; // Reset to 1 when duration changes
+  }
+
+  void onProductValueChanged(num newValue) {
+    selectedProductValue.value = newValue;
+  }
+
   // Reset value when duration type changes
   void onDurationChanged(String newDuration) {
     selectedDuration.value = newDuration;
     selectedValue.value = 1; // Reset to 1 when duration changes
   }
 
-  void onValueChanged(int newValue) {
+  void onValueChanged(num newValue) {
+    log('selected value-- $newValue');
     selectedValue.value = newValue;
+
   }
 
-  void addColor(Color color) {
-    if (!selectedColors.contains(color)) {
-      selectedColors.add(color);
+  void addColor(Color color, String name) {
+    if (selectedColors.length == 5) {
+      commonSnackBar(message: 'You can\'t add more than 5 colors');
+      return;
+    }
+
+    if (!selectedColors.any((c) => c.color == color)) {
+      selectedColors.add(SelectedColor(color, name));
     }
   }
 
-  void removeColor(Color color) {
-    selectedColors.remove(color);
+  void removeColor(SelectedColor selectedColor) {
+    selectedColors.remove(selectedColor);
+  }
+
+  void addDetail(Map<String, String> detail) {
+    detailsList.add(detail);
+  }
+
+  void removeDetail(int index) {
+    detailsList.removeAt(index);
+  }
+
+  void updateVariantName(String oldKey, String newKey) {
+    if (oldKey == newKey || newKey.trim().isEmpty) return;
+
+    // Keep the value
+    final value = variantSizes[oldKey] ?? '';
+
+    // Rebuild variantSizes map with the new key at the same position
+    final newMap = <String, String>{};
+    variantSizes.forEach((key, val) {
+      if (key == oldKey) {
+        newMap[newKey] = value; // insert new key
+      } else {
+        newMap[key] = val;
+      }
+    });
+    variantSizes.value = newMap;
+
+    // Update the text in the existing controller
+    final controller = variantNameControllers[oldKey];
+    if (controller != null) {
+      controller.text = newKey;
+      variantNameControllers.remove(oldKey);
+      variantNameControllers[newKey] = controller;
+    }
+
+    // Preserve editing state
+    final editing = isEditingMap[oldKey] ?? false;
+    isEditingMap.remove(oldKey);
+    isEditingMap[newKey] = editing;
+
+    // Refresh
+    variantSizes.refresh();
+    isEditingMap.refresh();
+  }
+
+  void toggleEditing(String key) {
+    isEditingMap[key] = !(isEditingMap[key] ?? false);
+    isEditingMap.refresh();
   }
 
   void updateVariantSize(String variant, String size) {
     variantSizes[variant] = size;
   }
+
 
 }

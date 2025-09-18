@@ -132,7 +132,7 @@ Future<List<Map<String, dynamic>>?> showCategoryBottomSheet(BuildContext context
                       )
                           : const Icon(Icons.arrow_forward_ios,
                            size: 14),
-                      onTap: () => controller.selectCategory(cat),
+                      onTap: (cat.root??false) ?null :  () => controller.selectCategory(cat),
                     );
                   },
                 ),

@@ -44,7 +44,7 @@ class CommonTextField extends StatelessWidget {
   final double? borderWidth;
   final List<TextInputFormatter>? inputFormatters;
   final bool? enableInteractiveSelection;
-  final VoidCallback? onDone; // Add a callback for the Done action
+  final Function(String)? onDone; // Add a callback for the Done action
 
   final FontWeight? hintFontWeight;
   final EdgeInsetsGeometry? contentPadding;
@@ -177,9 +177,9 @@ class CommonTextField extends StatelessWidget {
                 : false,
             onChanged: onChange,
             onFieldSubmitted: (value) {
-              if (onDone != null) onDone!(); // Trigger Done action
+              if (onDone != null) onDone!(value); // Trigger Done action
             },
-            enabled: !(readOnly ?? false),
+            enabled: true,
             readOnly: readOnly ?? false,
             minLines: minLines,
             validator: validator ??

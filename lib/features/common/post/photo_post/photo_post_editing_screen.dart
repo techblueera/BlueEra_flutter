@@ -37,6 +37,8 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
   List<String> selectedPhotos = [];
   List<GlobalKey> _imageKeys = [];
 
+  List<double> _rotationAngles = [];
+
   final List<Map<String, dynamic>> _filters = [
     {'name': 'Original', 'color': Colors.transparent},
     {'name': 'B&W', 'color': Colors.grey},
@@ -62,6 +64,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
   @override
   void initState() {
     selectedPhotos = List.from(photoPostController.selectedPhotos);
+    _rotationAngles = List.generate(selectedPhotos.length, (_) => 0.0);
     _imageKeys = List.generate(selectedPhotos.length, (_) => GlobalKey());
     super.initState();
   }
@@ -162,11 +165,15 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                           _filters[_selectedFilterIndex]['color'],
                           BlendMode.overlay,
                         ),
-                        child: Image.file(
-                          File(selectedPhotos[index]),
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
+                        child: Transform.rotate(
+                          angle: _rotationAngles[index] * 3.1415926535 / 180,
+                          child: Image.file(
+                            File(selectedPhotos[index]),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        )
+                        ,
                       ),
                     ),
                   ),
@@ -202,6 +209,11 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                 bottom: 6,
                 right: 6,
                 child: _photoPhotoPopUpMenu(),
+              ),
+              Positioned(
+                bottom: 6,
+                left: 6,
+                child: _rotateOption(index),
               ),
             ],
           ),
@@ -352,6 +364,31 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
       itemBuilder: (context) => photoPostMenuItems(),
     );
   }
+
+  Widget _rotateOption(int index) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _rotationAngles[index] =
+          _rotationAngles[index] == 0 ? 180 : 0;
+        });
+        // setState(() {
+        //   _rotationAngles[index] = (_rotationAngles[index] + 90) % 360;
+        // });
+      },
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.mainTextColor.withValues(alpha: 0.8),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.rotate_left_outlined, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
 
   void addPhotos() async {
     final ImagePicker _picker = ImagePicker();
