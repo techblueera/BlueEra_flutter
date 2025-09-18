@@ -35,6 +35,16 @@ class UserRepo extends BaseService {
     return response;
   }
 
+ Future<ResponseModel> getRattingDetailsById({required String userId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      userGetRattingDetails(userId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
   Future<ResponseModel> postEmail({Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().postHTTP(

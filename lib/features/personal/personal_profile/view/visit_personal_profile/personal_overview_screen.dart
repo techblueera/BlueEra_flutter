@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rating_summary/rating_summary.dart';
 
 class PersonalOverviewScreen extends StatelessWidget {
   final String userId;
@@ -52,6 +53,7 @@ class PersonalOverviewScreen extends StatelessWidget {
         padding: EdgeInsets.zero,
         physics: NeverScrollableScrollPhysics(),
         children: [
+
           // controller.userData.value?.user
           RatingSummaryWidget(
             rating: visitingController.userData.value?.ratingSummary?.avgRating
@@ -194,18 +196,35 @@ class PersonalOverviewScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TitleWidget("Short"),
-                  ClipRRect(
-                    borderRadius: (BorderRadius.circular(12)),
-                    child: SingleShortStructure(
-                      shorts: Shorts.latest,
-                      allLoadedShorts: [controller.shortsList.first],
-                      initialIndex: 0,
-                      shortItem: controller.shortsList.first,
-                      withBackground: true,
-                      imageWidth: 170,
-                      imageHeight: 250,
+                  Container(
+                    height: 250,
+                    padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: controller.shortsList.length>2?2:controller.shortsList.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding:  EdgeInsets.only(right: SizeConfig.size10),
+                          child: ClipRRect(
+                            borderRadius: (BorderRadius.circular(12)),
+                            child: SingleShortStructure(
+                              shorts: Shorts.latest,
+                              allLoadedShorts: controller.shortsList,
+                              initialIndex:index,
+                              shortItem: controller.shortsList[index],
+                              withBackground: true,
+                              imageWidth: 170,
+                              imageHeight: 250,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
+
                 ],
               ),
             ),

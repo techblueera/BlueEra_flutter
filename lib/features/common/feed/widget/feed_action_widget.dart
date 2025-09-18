@@ -306,6 +306,96 @@ class _PostActionsBarState extends State<PostActionsBar> {
 
   @override
   Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SizedBox(
+          width: SizeConfig.size15,
+        ),
+        Expanded(
+          child: InkWell(
+            onTap: (){
+              if (isGuestUser()) {
+                createProfileScreen();
+              } else {
+                widget.onCommentButtonPressed();
+              }
+            },
+            child: Container(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.greyE5),
+                  borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                children: [
+                  LocalAssets(
+                    imagePath: AppIconAssets.editIcon,
+                    imgColor: AppColors.secondaryTextColor,
+                    height: 20,
+                    width: 20,
+                  ),
+                  SizedBox(
+                    width: SizeConfig.size10,
+                  ),
+                  Expanded(
+                    child: CustomText(
+                      "Write Your Comment Here...",
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.size12,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: SizeConfig.size10,
+        ),
+        InkWell(
+          onTap: () {
+            if (isGuestUser()) {
+              createProfileScreen();
+            } else {
+              widget.onLikeDislikePressed();
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.all(SizeConfig.size8),
+            decoration: BoxDecoration(
+                border: Border.all(color: AppColors.greyE5),
+                borderRadius: BorderRadius.circular(10)),
+            child: _isLiked
+                ? LocalAssets(imagePath: AppIconAssets.likeIcon)
+                : LocalAssets(
+                imagePath: AppIconAssets.unlikeIcon,
+                imgColor: AppColors.secondaryTextColor),
+          ),
+        ),
+        SizedBox(
+          width: SizeConfig.size10,
+        ),
+        InkWell(
+          onTap: () => widget.onShareButtonPressed(),
+          child: Container(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.greyE5),
+                  borderRadius: BorderRadius.circular(10)),
+              child: LocalAssets(
+                imagePath: AppIconAssets.share_bold,
+                height: 18,
+                width: 18,
+              )),
+        ),
+        SizedBox(
+          width: SizeConfig.size15,
+        ),
+      ],
+    );
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size10,

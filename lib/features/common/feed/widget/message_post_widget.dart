@@ -268,30 +268,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                       ],
                     ),
                   ),
-                  // SizedBox(width: SizeConfig.size10),
-                  // Align(
-                  //   alignment: Alignment.centerRight,
-                  //   child: Padding(
-                  //     padding: EdgeInsets.only(
-                  //         right: SizeConfig.size15, top: SizeConfig.size10),
-                  // child: PostMetaInfo(
-                  // timeAgoText: timeAgo(_post.createdAt != null
-                  // ? _post.createdAt!
-                  //     : DateTime.now()),
-                  // fontSize: SizeConfig.extraSmall,
-                  // ),
-                  // ),
-                  // ),
-                  // Padding(
-                  //   padding: EdgeInsets.only(
-                  //       left: SizeConfig.size15,
-                  //       right: SizeConfig.size15,
-                  //       top: SizeConfig.size10),
-                  //   child: CommonHorizontalDivider(
-                  //     color: AppColors.secondaryTextColor,
-                  //     height: 0.5,
-                  //   ),
-                  // ),
+
                   SizedBox(
                     height: SizeConfig.size5,
                   ),
@@ -436,26 +413,26 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
         ));
   }
 
-  ViewFeedActionWidget({required String iconPath, required String data}) {
-    return Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size10),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: iconPath,
-            width: SizeConfig.size18,
-            height: SizeConfig.size18,
-          ),
-          SizedBox(
-            width: SizeConfig.size5,
-          ),
-          CustomText(
-            data,
-            color: AppColors.secondaryTextColor,
-            fontSize: SizeConfig.size10,
-          ),
-        ],
-      ),
-    );
-  }
+}
+ViewFeedActionWidget({required String iconPath, required String data}) {
+  return Padding(
+    padding: EdgeInsets.only(right: SizeConfig.size10),
+    child: Row(
+      children: [
+        LocalAssets(
+          imagePath: iconPath,
+          width: SizeConfig.size18,
+          height: SizeConfig.size18,
+        ),
+        SizedBox(
+          width: SizeConfig.size5,
+        ),
+        CustomText(
+          data,
+          color: AppColors.secondaryTextColor,
+          fontSize: SizeConfig.size10,
+        ),
+      ],
+    ),
+  );
 }

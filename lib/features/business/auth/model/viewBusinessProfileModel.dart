@@ -1,7 +1,5 @@
 import 'ReleatedStoresList.dart';
 
-/// status : true
-/// data : {"date_of_incorporation":{"date":11,"month":7,"year":2000},"gst":{"have":false,"number":null,"gst_verification":false},"business_location":{"lat":0,"lon":0},"_id":"687212566013a2041ce48a25","user_id":"687212566013a2041ce48a23","business_name":"Manitory factory","type_of_business":"Product","logo":"https://bluehr-public-prod.s3.ap-south-1.amazonaws.com/user/687212566013a2041ce48a23/logo/1752306262309_cropped_image_01752306209154.png","category_Of_Business":"686e4aba60024f8e3765784e","Nature_of_Business":"Agency","isActive":true,"business_isVerified":false,"live_photos":[],"owner_details":[{"name":"Boopathi ","email":"boopathi9092@gmail.com","_id":"6874c3cfa9e7c440b6622a11"}],"created_at":"2025-07-12T07:44:22.432Z","updated_at":"2025-07-14T08:46:07.169Z","__v":0,"address":"Jjsk jsoos. Kslaohs. Nsksisbsnsb.","business_description":"Good and quality product ","city_state_pincode":"Salem","sub_category_Of_Business":"6874bb082205959d281dfdbe","website_url":"https://testing.com"}
 
 class ViewBusinessProfileModel {
   ViewBusinessProfileModel({
@@ -36,28 +34,6 @@ class ViewBusinessProfileModel {
 
 }
 
-/// date_of_incorporation : {"date":11,"month":7,"year":2000}
-/// gst : {"have":false,"number":null,"gst_verification":false}
-/// business_location : {"lat":0,"lon":0}
-/// _id : "687212566013a2041ce48a25"
-/// user_id : "687212566013a2041ce48a23"
-/// business_name : "Manitory factory"
-/// type_of_business : "Product"
-/// logo : "https://bluehr-public-prod.s3.ap-south-1.amazonaws.com/user/687212566013a2041ce48a23/logo/1752306262309_cropped_image_01752306209154.png"
-/// category_Of_Business : "686e4aba60024f8e3765784e"
-/// Nature_of_Business : "Agency"
-/// isActive : true
-/// business_isVerified : false
-/// live_photos : []
-/// owner_details : [{"name":"Boopathi ","email":"boopathi9092@gmail.com","_id":"6874c3cfa9e7c440b6622a11"}]
-/// created_at : "2025-07-12T07:44:22.432Z"
-/// updated_at : "2025-07-14T08:46:07.169Z"
-/// __v : 0
-/// address : "Jjsk jsoos. Kslaohs. Nsksisbsnsb."
-/// business_description : "Good and quality product "
-/// city_state_pincode : "Salem"
-/// sub_category_Of_Business : "6874bb082205959d281dfdbe"
-/// website_url : "https://testing.com"
 
 class BusinessProfileDetails {
   BusinessProfileDetails({
@@ -89,6 +65,7 @@ class BusinessProfileDetails {
       this.pincode,
       this.rating,
       this.total_views,
+      this.username,
       this.total_followers
   });
 
@@ -97,7 +74,6 @@ class BusinessProfileDetails {
     gst = json['gst'] != null ? Gst.fromJson(json['gst']) : null;
     businessLocation = json['business_location'] != null ? BusinessLocation.fromJson(json['business_location']) : null;
     id = json['_id'];
-    userId = json['user_id'];
     businessName = json['business_name'];
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
@@ -105,7 +81,12 @@ class BusinessProfileDetails {
     natureOfBusiness = json['Nature_of_Business'];
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
-    livePhotos=json['live_photos'].cast<String>();
+    // livePhotos=json['live_photos'].cast<String>();
+    if (json['live_photos'] != null) {
+      livePhotos=json['live_photos'].cast<String>();
+
+
+    }
     rating=json['total_ratings'];
     total_views=json['total_views'];
     total_followers=json['total_followers'];
@@ -114,12 +95,7 @@ class BusinessProfileDetails {
         ? new BusinessNumber.fromJson(json['business_number'])
         : null;
 
-    // if (json['live_photos'] != null) {
-    //   livePhotos = [];
-    //   json['live_photos'].forEach((v) {
-    //     livePhotos?.add('');
-    //   });
-    // }
+
     if (json['owner_details'] != null) {
       ownerDetails = [];
       json['owner_details'].forEach((v) {
@@ -131,6 +107,7 @@ class BusinessProfileDetails {
     v = json['__v'];
     address = json['address'];
     category_other = json['category_other'];
+    userId = json['user_id'];
     businessDescription = json['business_description'];
     cityStatePincode = json['city_state_pincode'];
     subCategoryOfBusiness = json['sub_category_Of_Business'];
@@ -138,6 +115,7 @@ class BusinessProfileDetails {
     categoryDetails = json['category_details'] != null ? CategoryDetails.fromJson(json['category_details']) : null;
     subCategoryDetails = json['sub_category_details'] != null ? SubCategoryDetails.fromJson(json['sub_category_details']) : null;
     pincode = json['pincode'];
+    username = json['username'];
 
   }
   DateOfIncorporation? dateOfIncorporation;
@@ -172,6 +150,7 @@ class BusinessProfileDetails {
   int? total_followers;
   BusinessNumber? businessNumber;
   String? category_other;
+  String? username;
 
 
   Map<String, dynamic> toJson() {
@@ -186,8 +165,8 @@ class BusinessProfileDetails {
       map['business_location'] = businessLocation?.toJson();
     }
     map['_id'] = id;
-    map['user_id'] = userId;
     map['pincode'] = pincode;
+    map['username'] = username;
     map['category_other'] = category_other;
     map['business_name'] = businessName;
     map['type_of_business'] = typeOfBusiness;
@@ -205,6 +184,7 @@ class BusinessProfileDetails {
     }
     map['created_at'] = createdAt;
     map['updated_at'] = updatedAt;
+    map['user_id'] = userId;
     map['__v'] = v;
     map['address'] = address;
     map['business_description'] = businessDescription;
@@ -228,10 +208,6 @@ class BusinessProfileDetails {
 
 }
 
-/// name : "Boopathi "
-/// email : "boopathi9092@gmail.com"
-/// _id : "6874c3cfa9e7c440b6622a11"
-///
 class CategoryDetails {
   CategoryDetails({
     this.id,

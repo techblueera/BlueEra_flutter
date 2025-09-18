@@ -139,12 +139,12 @@ class VisitBusinessProfileState extends State<VisitBusinessProfile>
                   delegate: _CustomTabBarDelegate(
                     VisitPersonalProfileTabs(
                       onTab: (index) {
-                        if (index == 3) {
-                          Map<String, dynamic> data = {
-                            ApiKeys.businessId: widget.businessId
-                          };
-                          controller.getParticularRatingApi(data);
-                        }
+                        // if (index == 3) {
+                        //   Map<String, dynamic> data = {
+                        //     ApiKeys.businessId: widget.businessId
+                        //   };
+                        //   controller.getParticularRatingApi(data);
+                        // }
                       },
                       tabs: tabs,
                       tabController: _tabController,

@@ -566,13 +566,13 @@ class StatBlock extends StatelessWidget {
         CustomText(
           count,
           fontWeight: FontWeight.w500,
-          color: AppColors.mainTextColor,
+          color: AppColors.secondaryTextColor,
 
         ),
         SizedBox(width: SizeConfig.size5,),
         CustomText(
           label,
-          color: AppColors.mainTextColor,
+          color: AppColors.secondaryTextColor,
 
         ),
       ],

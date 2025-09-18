@@ -118,13 +118,11 @@ class _ExpandableTextState extends State<ExpandableText> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              CustomText(
                 widget.dialogTitle ?? 'Description',
-                style: TextStyle(
                   fontSize: SizeConfig.large18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.mainTextColor,
-                ),
               ),
               SizedBox(height: SizeConfig.size8),
               Flexible(
@@ -145,7 +143,7 @@ class _ExpandableTextState extends State<ExpandableText> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: Navigator.of(context).pop,
-                  child: const Text('Close', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: const CustomText('Close', fontWeight: FontWeight.w600),
                 ),
               ),
             ],

@@ -127,11 +127,15 @@ class _FeedCardState extends State<FeedCard> {
 
       case FeedType.qaPost:
         return QaPostWidget(
+          post: _post,
+
           postId: _post?.id ?? "0",
           poll: _post?.poll,
           authorId: _post?.id,
           natureOfPost: _post?.natureOfPost,
           message: _post?.subTitle ?? "",
+          commentView:()=> _onCommentPressed(),
+
           postedAgo: timeAgo(
               _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           totalViews: _post?.viewsCount.toString() ?? "0",
@@ -146,7 +150,7 @@ class _FeedCardState extends State<FeedCard> {
             postedAgo: timeAgo(
                 _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           ),
-          buildActions: () => PostActionsBar(
+          buildActions: () => PostActionsBarNew(
             post: _post,
             isLiked: _post?.isLiked ?? false,
             totalLikes: _post?.likesCount ?? 0,

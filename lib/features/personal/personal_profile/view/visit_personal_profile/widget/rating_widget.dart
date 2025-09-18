@@ -4,9 +4,12 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:rating_summary/rating_summary.dart';
 
 class RatingSummaryWidget extends StatefulWidget {
   final double rating;
@@ -28,6 +31,7 @@ class RatingSummaryWidget extends StatefulWidget {
 
 class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
   bool _isExpanded = false;
+  final controller = Get.find<OverviewController>();
 
   @override
   Widget build(BuildContext context) {
@@ -43,17 +47,17 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
           // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.all(0),
           enabled:
-              widget.screenFromName == AppConstants.chatScreen ? true : false,
+          widget.screenFromName == AppConstants.chatScreen ? true : false,
           trailing: widget.screenFromName == AppConstants.chatScreen
               ? Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size20),
-                  child: Icon(
-                    _isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: AppColors.mainTextColor,
-                  ),
-                )
+            padding: EdgeInsets.only(right: SizeConfig.size20),
+            child: Icon(
+              _isExpanded
+                  ? Icons.keyboard_arrow_up
+                  : Icons.keyboard_arrow_down,
+              color: AppColors.mainTextColor,
+            ),
+          )
               : SizedBox(),
           onExpansionChanged: (expanded) {
             setState(() {
@@ -72,6 +76,31 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
                   color: AppColors.secondaryTextColor,
                 ),
                 const SizedBox(height: 8),
+                // Obx(() {
+                //   return RatingSummary(
+                //     counter: (controller.ratingDetails.value?.totalRatings ?? 0),
+                //     average: (controller.ratingDetails.value?.avgRating ?? 0.0)
+                //         .toDouble(),
+                //     showAverage: false,
+                //     counterFiveStars:
+                //     controller.ratingDetails.value?.ratingCounts?[0].rating ??
+                //         0,
+                //     counterFourStars:
+                //     controller.ratingDetails.value?.ratingCounts?[1].rating ??
+                //         0,
+                //     counterThreeStars:
+                //     controller.ratingDetails.value?.ratingCounts?[2].rating ??
+                //         0,
+                //     counterTwoStars:
+                //     controller.ratingDetails.value?.ratingCounts?[3].rating ??
+                //         0,
+                //     counterOneStars:
+                //     controller.ratingDetails.value?.ratingCounts?[4].rating ??
+                //         3,
+                //     thickness: 5,
+                //     color: AppColors.primaryColor,
+                //   );
+                // }),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [

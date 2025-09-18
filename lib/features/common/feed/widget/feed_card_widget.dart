@@ -21,7 +21,7 @@ class FeedCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
           color: AppColors.white,
           boxShadow: [AppShadows.cardShadow],
-          borderRadius: BorderRadius.circular(12)),
+          borderRadius: BorderRadius.circular(0)),
       child: childWidget,
     );
     return Container(

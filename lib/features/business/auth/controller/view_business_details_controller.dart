@@ -4,7 +4,9 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/model/view_business_profile_model_new.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
@@ -63,6 +65,7 @@ Future<double?> getDistanceInKm(double targetLat, double targetLng) async {
 
 class ViewBusinessDetailsController extends GetxController {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
+  ApiResponse viewBusinessResponseNew = ApiResponse.initial('Initial');
   ApiResponse subCategoryResponse = ApiResponse.initial('Initial');
   ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
   ApiResponse businessVerifyResponse = ApiResponse.initial('Initial');
@@ -118,13 +121,13 @@ class ViewBusinessDetailsController extends GetxController {
     if (lng != null) addressLong?.value = lng;
     businessAddress.value = address;
   }
+  final controllerVisit = Get.put(VisitProfileController());
 
   Future<void> viewBusinessProfile() async {
     try {
       await getUserLoginBusinessId();
       ResponseModel responseModel =
           await BusinessProfileRepo().viewParticularBusinessProfile();
-
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
@@ -150,6 +153,7 @@ class ViewBusinessDetailsController extends GetxController {
                     : BusinessType.Both;
         businessDescription.value =
             businessProfileDetails?.data?.businessDescription ?? "";
+        controllerVisit.isFollow.value=businessProfileDetails?.data?.is_following??false;
         if (selectedBusinessType?.value.name.toLowerCase() == "both") {
           selectedCategoryOfBusiness.value = null;
           selectedSubCategoryOfBusinessNew.value = null;
@@ -171,10 +175,13 @@ class ViewBusinessDetailsController extends GetxController {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         update();
       } else {
+        logs("ERROR BUSINESS PROFILE ${ responseModel.message ?? AppStrings.somethingWentWrong}");
+
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      logs("ERROR BUSINESS PROFILE ${e}");
       viewBusinessResponse = ApiResponse.error('error');
     }
   }
@@ -360,7 +367,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+          visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+           // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
         final chatViewController = Get.find<ChatViewController>();
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
@@ -370,7 +378,7 @@ class ViewBusinessDetailsController extends GetxController {
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
         conversationId.value= ((chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId==null)?chatViewController.newVisitContactApiResponse?.value?.data?.conversationId: chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId)??'';
-        viewBusinessResponse = ApiResponse.complete(responseModel);
+        viewBusinessResponseNew = ApiResponse.complete(responseModel);
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
         distanceFromKm.value = await getDistanceInKm(visitedBusinessProfileDetails?.data?.businessLocation?.lat??0,visitedBusinessProfileDetails?.data?.businessLocation?.lon??0)??0.0;
@@ -380,7 +388,8 @@ class ViewBusinessDetailsController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      viewBusinessResponse = ApiResponse.error('error');
+      logs("ERROR ${e}");
+      viewBusinessResponseNew = ApiResponse.error('error');
     }
   }
   Future<void> getBusinessRatingsSummary(String userId) async {

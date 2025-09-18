@@ -117,8 +117,9 @@ class _UserTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: InkWell(
         onTap: () {
+          Get.back();
           redirectToProfileScreen(
-              accountType: user.accountType ?? "", profileId: user.sId ?? "");
+              accountType: user.accountType ?? "", profileId: user.accountType?.toUpperCase()==AppConstants.business?user.business_id??"": user.sId ?? "");
         },
         child: Row(
           children: [
@@ -146,12 +147,15 @@ class _UserTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    user.name ?? "",
+                    user.accountType?.toUpperCase()==AppConstants.business?"${user.business_name}": user.name ?? "User",
+                 maxLines: 1,overflow: TextOverflow.ellipsis,
                   ),
                   CustomText(
-                    user.username ?? "",
+                   "@${user.username}",
                     fontSize: SizeConfig.small,
                     color: Colors.grey.shade600,
+                    maxLines: 1,overflow: TextOverflow.ellipsis,
+
                   ),
                 ],
               ),

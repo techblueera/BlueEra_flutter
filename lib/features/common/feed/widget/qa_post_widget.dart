@@ -1,10 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
+import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
+import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
 import 'package:flutter/material.dart';
 
 class QaPostWidget extends StatefulWidget {
@@ -19,6 +24,9 @@ class QaPostWidget extends StatefulWidget {
   final Widget Function() authorSection;
   final Widget Function() buildActions;
   final PostType postFilteredType;
+  final Post? post;
+
+  final VoidCallback  commentView;
 
   const QaPostWidget({
     super.key,
@@ -32,7 +40,7 @@ class QaPostWidget extends StatefulWidget {
     required this.referenceLink,
     required this.authorSection,
     required this.buildActions,
-    required this.postFilteredType,
+    required this.postFilteredType, this.post, required this.commentView,
   });
 
   @override
@@ -42,6 +50,89 @@ class QaPostWidget extends StatefulWidget {
 class _QaPostWidgetState extends State<QaPostWidget> {
   @override
   Widget build(BuildContext context) {
+    return FeedCardWidget(
+      horizontalPadding:0 ,
+
+      childWidget: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: SizeConfig.size8, bottom: SizeConfig.size5,right: SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                widget.authorSection(),
+
+                _buildPollOptions(),
+                SizedBox(
+                  height: SizeConfig.size10,
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size15,
+                      vertical: SizeConfig.size5),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ViewFeedActionWidget(
+                          iconPath: AppIconAssets.clock_new,
+                          data: widget.postedAgo),
+                      ViewFeedActionWidget(
+                        iconPath: AppIconAssets.eye_new,
+                        data: formatNumberLikePost(widget.post?.viewsCount ?? 0),
+                      ),
+                      InkWell(onTap: (){
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          widget.commentView();
+                        }
+                      },child:   ViewFeedActionWidget(
+                          iconPath: AppIconAssets.comment_new,
+                          data:
+                          formatNumberLikePost(widget.post?.commentsCount ?? 0)),),
+
+                      InkWell(
+                        onTap: () {
+                          if ((widget.post?.likesCount ?? 0) < 1) {
+                            return;
+                          }
+
+                          showDialog(
+                            context: context,
+                            builder: (context) => PostLikeUserListDialog(
+                              postId: widget.post?.id ?? '',
+                            ),
+                          );
+                        },
+                        child: ViewFeedActionWidget(
+                            iconPath: AppIconAssets.like_new,
+                            data:
+                            formatNumberLikePost(widget.post?.likesCount ?? 0)),
+                      ),
+                      ViewFeedActionWidget(
+                          iconPath: AppIconAssets.repost_new,
+                          data: formatNumberLikePost(widget.post?.repostCount ?? 0)),
+                    ],
+                  ),
+                ),
+
+                SizedBox(
+                  height: SizeConfig.size10,
+                ),
+
+                widget.buildActions(),
+                SizedBox(
+                  height: SizeConfig.size10,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
     return FeedCardWidget(
       childWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/rating_details_res_model.dart';
 import 'package:BlueEra/core/api/model/response/get_ratting_summary_response_modal.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -31,7 +32,7 @@ class OverviewController extends GetxController {
       // Run APIs in parallel
       await Future.wait([
         _getTestimonials(userId),
-        // getRatingSummary(userId:userId),
+        getRatingSummary(userId:userId),
         _getPosts(userId),
         _getShorts(channelId, userId),
         _getVideos(videoType, userId),
@@ -54,6 +55,7 @@ class OverviewController extends GetxController {
   }
 
   Future<void> _getPosts(String userId) async {
+    postsList.clear();
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: 1,
       ApiKeys.limit: 10,
@@ -71,6 +73,7 @@ class OverviewController extends GetxController {
   }
 
   Future<void> _getShorts(String channelId, String userId) async {
+    shortsList.clear();
     final params = {
       ApiKeys.limit: 5,
       ApiKeys.page: 1,
@@ -91,6 +94,7 @@ class OverviewController extends GetxController {
   }
 
   Future<void> _getVideos(String videoType, String channelId) async {
+    videosList.clear();
     final params = {
       ApiKeys.limit: 1,
       ApiKeys.page: 1,
@@ -111,16 +115,17 @@ class OverviewController extends GetxController {
   }
 
   //  ratting Summary Api
-  Rx<GetRattingSummaryResponse?> getRattingSummaryResponse =
-  Rxn<GetRattingSummaryResponse>();
+  Rx<RatingDetailsData?> ratingDetails =
+  Rxn<RatingDetailsData>();
   Future<void> getRatingSummary({required String userId}) async {
     try {
       ResponseModel response =
-      await UserRepo().getRattingSummaryById(userId: userId);
+      await UserRepo().getRattingDetailsById(userId: userId);
       if (response.isSuccess) {
-        getRattingSummaryResponse.value =
-            GetRattingSummaryResponse.fromJson(response.data);
-        update();
+        RatingDetailsResModel  ratingDetailsData =
+            RatingDetailsResModel.fromJson(response.data);
+        ratingDetails.value=ratingDetailsData.data;
+        // update();
       }
     } catch (e) {}
   }

@@ -38,28 +38,24 @@ class NewProfileHeaderWidget extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding:  EdgeInsets.only(right: 0, top: SizeConfig.size15),
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.grey,
-                        backgroundImage: user?.profileImage != null
-                            ? NetworkImage(user?.profileImage ?? "")
-                            : null,
-                        child: user?.profileImage == null
-                            ? CustomText(
-                                getInitials(user?.name),
-                                fontSize: SizeConfig.size18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              )
-                            : null,
-                      ),
-                    ),
-                  ],
+                ///PROFILE PICTURE....
+                Padding(
+                  padding: EdgeInsets.only(right: 0, top: SizeConfig.size25),
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.grey,
+                    backgroundImage: user?.profileImage != null
+                        ? NetworkImage(user?.profileImage ?? "")
+                        : null,
+                    child: user?.profileImage == null
+                        ? CustomText(
+                            getInitials(user?.name),
+                            fontSize: SizeConfig.size18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          )
+                        : null,
+                  ),
                 ),
                 SizedBox(
                   width: SizeConfig.size10,
@@ -72,200 +68,133 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         SizedBox(
                           height: SizeConfig.size5,
                         ),
+
+                        /// USER NAME AND FOLLOW/UNFOLLOW,MORE ICON VIEW....
                         SizedBox(
                           width: Get.width,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                             Expanded(
-                               child: Row(
-                                 children: [
-                                   Flexible(
-                                     child: CustomText(
-                                       user?.name,
-                                       fontSize: SizeConfig.large,
-                                       fontWeight: FontWeight.w600,
-                                       maxLines: 1,
-                                       overflow: TextOverflow.ellipsis,
-                                       color: AppColors.secondaryTextColor,
-                                     ),
-                                   ),
-                                   if (user?.username != null &&
-                                       (user?.username?.isNotEmpty ?? false))
-                                     Flexible(
-                                       child: Padding(
-                                         padding: EdgeInsets.only(top: 3),
-                                         child: CustomText(
-                                           " @${user?.username}",
-                                           fontSize: SizeConfig.medium,
-                                           fontWeight: FontWeight.w600,
-                                           overflow: TextOverflow.ellipsis,
-                                           color: AppColors.shadowColor,
-                                         ),
-                                       ),
-                                     ),
-                                 ],
-                               ),
-                             ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: CustomText(
+                                        user?.name,
+                                        fontSize: SizeConfig.large,
+                                        fontWeight: FontWeight.w600,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
+                                    ),
+                                    if (user?.username != null &&
+                                        (user?.username?.isNotEmpty ?? false))
+                                      Flexible(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(top: 3),
+                                          child: CustomText(
+                                            " @${user?.username}",
+                                            fontSize: SizeConfig.medium,
+                                            fontWeight: FontWeight.w600,
+                                            overflow: TextOverflow.ellipsis,
+                                            color: AppColors.shadowColor,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  if (user?.id != null)
+                                    Obx(() {
+                                      return Container(
+                                        margin: EdgeInsets.only(
+                                            top: SizeConfig.size8,
+                                            left: SizeConfig.size10),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: SizeConfig.size10,
+                                            vertical: SizeConfig.size3),
+                                        decoration: BoxDecoration(
+                                            color: controller.isFollow.value
+                                                ? AppColors.colorTextDarkGrey
+                                                : AppColors.primaryColor,
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: InkWell(
+                                            onTap: () async {
+                                              if (isGuestUser()) {
+                                                createProfileScreen();
+                                              } else {
+                                                if (controller.isFollow.value) {
+                                                  await controller
+                                                      .unFollowUserController(
+                                                          candidateResumeId:
+                                                              user?.id);
+                                                } else {
+                                                  await controller
+                                                      .followUserController(
+                                                          candidateResumeId:
+                                                              user?.id);
+                                                }
+                                              }
+                                            },
+                                            child: CustomText(
+                                              controller.isFollow.value
+                                                  ? "Unfollow"
+                                                  : "Follow",
+                                              color: AppColors.white,
+                                              fontWeight: FontWeight.w600,
+                                              // decoration: TextDecoration.underline,
+                                              // decorationColor: AppColors.primaryColor,
+                                              fontSize: SizeConfig.size12,
+                                            )),
+                                      );
+                                    }),
+                                  Container(
+                                    height: 20,
+                                    width: 20,
+                                    margin: EdgeInsets.only(
+                                        top: SizeConfig.size8,
+                                        right: SizeConfig.size2),
+                                    child: PopupMenuButton<String>(
+                                      padding: EdgeInsets.zero,
+                                      // offset: const Offset(-6, 36),
+                                      color: AppColors.white,
 
-                             Row(
-                               children: [
-                                 if (user?.id != null)
-                                   Obx(() {
-                                     return Container(
-                                       margin: EdgeInsets.only(
-                                           top: SizeConfig.size8, left: SizeConfig.size10),
-                                       padding: EdgeInsets.symmetric(
-                                           horizontal: SizeConfig.size10,
-                                           vertical: SizeConfig.size3),
-                                       decoration: BoxDecoration(
-                                           color:controller.isFollow.value ? AppColors.colorTextDarkGrey: AppColors.primaryColor,
-                                           borderRadius: BorderRadius.circular(8)),
-                                       child: InkWell(
-                                           onTap: () async {
-                                             if (isGuestUser()) {
-                                               createProfileScreen();
-                                             } else {
-                                               if (controller.isFollow.value) {
-                                                 await controller.unFollowUserController(
-                                                     candidateResumeId: user?.id);
-                                               } else {
-                                                 await controller.followUserController(
-                                                     candidateResumeId: user?.id);
-                                               }
-                                             }
-                                           },
-                                           child: CustomText(
-                                             controller.isFollow.value ? "Unfollow" : "Follow",
-                                             color: AppColors.white,
-                                             fontWeight: FontWeight.w600,
-                                             // decoration: TextDecoration.underline,
-                                             // decorationColor: AppColors.primaryColor,
-                                             fontSize: SizeConfig.size12,
-                                           )),
-                                     );
-                                   }),
-                                 Container(
-                                   height: 20,
-                                   width: 20,
-                                   margin: EdgeInsets.only(
-                                       top: SizeConfig.size8, right: SizeConfig.size2),
-                                   child: PopupMenuButton<String>(
-                                     padding: EdgeInsets.zero,
-                                     // offset: const Offset(-6, 36),
-                                     color: AppColors.white,
-
-                                     elevation: 1,
-                                     shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(10)),
-                                     onSelected: (value) async {
-                                       if (value.toUpperCase() == "SHARE") {
-                                         final link = profileDeepLink(userId: user?.id);
-                                         final message = "See my profile on BlueEra:\n$link\n";
-                                         await SharePlus.instance.share(ShareParams(
-                                           text: message,
-                                           subject: user?.name,
-                                         ));
-                                       }
-                                     },
-                                     icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                                     itemBuilder: (context) => popupMenuVisitProfileItems(),
-                                   ),
-                                 ),
-                               ],
-                             )
+                                      elevation: 1,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      onSelected: (value) async {
+                                        if (value.toUpperCase() == "SHARE") {
+                                          final link =
+                                              profileDeepLink(userId: user?.id);
+                                          final message =
+                                              "See my profile on BlueEra:\n$link\n";
+                                          await SharePlus.instance
+                                              .share(ShareParams(
+                                            text: message,
+                                            subject: user?.name,
+                                          ));
+                                        }
+                                      },
+                                      icon: LocalAssets(
+                                          imagePath:
+                                              AppIconAssets.more_vertical),
+                                      itemBuilder: (context) =>
+                                          popupMenuVisitProfileItems(),
+                                    ),
+                                  ),
+                                ],
+                              )
                             ],
                           ),
                         ),
 
-                        /*  Row(
-                          mainAxisSize: MainAxisSize.max,
-                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: CustomText(
-                                user?.name ?? 'N/A',
-                                fontSize: SizeConfig.size16,
-                                fontWeight: FontWeight.w700,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Flexible(
-                              child: CustomText(
-                                user?.username ?? 'N/A',
-                                fontSize: SizeConfig.size16,
-                                fontWeight: FontWeight.w700,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (user?.id != null)
-                              Obx(() {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: SizeConfig.size10,
-                                      vertical: SizeConfig.size3),
-                                  decoration: BoxDecoration(
-                                      color: AppColors.primaryColor,
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: InkWell(
-                                      onTap: () async {
-                                        if (isGuestUser()) {
-                                          createProfileScreen();
-                                        } else {
-                                          if (controller.isFollow.value) {
-                                            await controller
-                                                .unFollowUserController(
-                                                    candidateResumeId: user?.id);
-                                          } else {
-                                            await controller.followUserController(
-                                                candidateResumeId: user?.id);
-                                          }
-                                        }
-                                      },
-                                      child: CustomText(
-                                        controller.isFollow.value
-                                            ? "Unfollow"
-                                            : "Follow",
-                                        color: AppColors.white,
-                                        fontWeight: FontWeight.w600,
-                                        // decoration: TextDecoration.underline,
-                                        // decorationColor: AppColors.primaryColor,
-                                        fontSize: SizeConfig.size12,
-                                      )),
-                                );
-                              }),
-                            Container(
-                              height: 20,
-                              width: 20,
-                              child: PopupMenuButton<String>(
-                                padding: EdgeInsets.zero,
-                                // offset: const Offset(-6, 36),
-                                color: AppColors.white,
-
-                                elevation: 1,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                onSelected: (value) async {
-                                  if (value.toUpperCase() == "SHARE") {
-                                    final link =
-                                        profileDeepLink(userId: user?.id);
-                                    final message =
-                                        "See my profile on BlueEra:\n$link\n";
-                                    await SharePlus.instance.share(ShareParams(
-                                      text: message,
-                                      subject: user?.name,
-                                    ));
-                                  }
-                                },
-                                icon: LocalAssets(
-                                    imagePath: AppIconAssets.more_vertical),
-                                itemBuilder: (context) =>
-                                    popupMenuVisitProfileItems(),
-                              ),
-                            ),
-                          ],
-                        ),*/
+                        ///PERSONAL DETAILS VIEW TEXT  DIALOG...
                         if (screenFromName == AppConstants.chatScreen)
                           GestureDetector(
                             onTap: () async {
@@ -283,24 +212,22 @@ class NewProfileHeaderWidget extends StatelessWidget {
                               fontSize: SizeConfig.size12,
                             ),
                           ),
+
+                        ///SET PROFESSION...
                         if (screenFromName == AppConstants.feedScreen)
                           Padding(
                             padding: EdgeInsets.only(top: SizeConfig.size1),
-                            child: Row(
-                              children: [
-
-                                if (user?.profession != null &&
+                            child: (user?.profession != null &&
                                     (user?.profession?.isNotEmpty ?? false))
-                                  Flexible(
+                                ? Flexible(
                                     child: Container(
-
                                         padding: EdgeInsets.symmetric(
                                             horizontal: SizeConfig.size8,
                                             vertical: SizeConfig.size3),
                                         decoration: BoxDecoration(
                                             border: Border.all(
-                                                color:
-                                                    AppColors.secondaryTextColor),
+                                                color: AppColors
+                                                    .secondaryTextColor),
                                             borderRadius:
                                                 BorderRadius.circular(15)),
                                         child: CustomText(
@@ -308,198 +235,217 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                           color: AppColors.secondaryTextColor,
                                           fontSize: SizeConfig.extraSmall,
                                         )),
-                                  ),
-                              ],
-                            ),
+                                  )
+                                : SizedBox(),
                           ),
+                        ///VISIT CHANNEL IF CHANNEL IS CREATED...
                         Obx(() {
-                          return (controller.channelUserName?.value.isNotEmpty ??
-                              false)
+                          return (controller
+                                      .channelUserName?.value.isNotEmpty ??
+                                  false)
                               ? Padding(
-                            padding: EdgeInsets.only(top: SizeConfig.size5),
-                            child: Row(
-                              children: [
-                                CustomText("Visit my channel : ",
-
-                                  // fontWeight: FontWeight.w00,
-                                  fontSize: SizeConfig.size12,
-                                ),
-                                Flexible(
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.pushNamed(context,
-                                          RouteHelper.getChannelScreenRoute(),
-                                          arguments: {
-                                            ApiKeys.argAccountType:
-                                            user?.accountType,
-                                            ApiKeys.channelId:
-                                            controller.channelUserId?.value,
-                                            ApiKeys.authorId: user?.id
-                                          });
-                                    },
-                                    child: CustomText(
-                                      '@${controller.channelName?.value}',
-                                      color: AppColors.primaryColor,
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                      decorationColor: AppColors.primaryColor,
-                                      fontSize: SizeConfig.size12,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                  padding:
+                                      EdgeInsets.only(top: SizeConfig.size5),
+                                  child: Row(
+                                    children: [
+                                      CustomText(
+                                        "Visit my channel : ",
+                                        fontSize: SizeConfig.size12,
+                                      ),
+                                      Flexible(
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.pushNamed(
+                                                context,
+                                                RouteHelper
+                                                    .getChannelScreenRoute(),
+                                                arguments: {
+                                                  ApiKeys.argAccountType:
+                                                      user?.accountType,
+                                                  ApiKeys.channelId: controller
+                                                      .channelUserId?.value,
+                                                  ApiKeys.authorId: user?.id
+                                                });
+                                          },
+                                          child: CustomText(
+                                            '@${controller.channelName?.value}',
+                                            color: AppColors.primaryColor,
+                                            fontWeight: FontWeight.w600,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor:
+                                                AppColors.primaryColor,
+                                            fontSize: SizeConfig.size12,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
+                                )
                               : SizedBox();
                         }),
+                        ///SHOW POST/FOLLOWER/FOLLOWING COUNT....
                         Padding(
-                          padding: EdgeInsets.only(right: 38.0, top: SizeConfig.size5),
+                          padding: EdgeInsets.only(
+                              right: 38.0, top: SizeConfig.size5),
                           child: Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               InkWell(
                                 onTap: () {
                                   Get.to(() => FollowersFollowingPage(
-                                    tabIndex: 0,
-                                    userID: controller.userData.value?.user?.id ?? "",
-                                  ));
+                                        tabIndex: 0,
+                                        userID: controller
+                                                .userData.value?.user?.id ??
+                                            "",
+                                      ));
                                 },
                                 child: StatBlock(
-                                    count: controller.userData.value?.totalPosts != null
-                                        ? formatIndianNumber(num.parse(controller
-                                        .userData.value?.totalPosts
-                                        .toString() ??
-                                        "0"))
-                                        : "0",
+                                    count:
+                                        controller.userData.value?.totalPosts !=
+                                                null
+                                            ? formatIndianNumber(num.parse(
+                                                controller.userData.value
+                                                        ?.totalPosts
+                                                        .toString() ??
+                                                    "0"))
+                                            : "0",
                                     label: "Post"),
                               ),
                               Container(
                                 height: 15,
                                 width: 0.9,
-                                color: AppColors.mainTextColor,
+                                color: AppColors.secondaryTextColor,
                                 margin: EdgeInsets.only(
-                                    left: SizeConfig.size5, right: SizeConfig.size5),
+                                    left: SizeConfig.size5,
+                                    right: SizeConfig.size5),
                               ),
-
                               InkWell(
                                 onTap: () {
                                   Get.to(() => FollowersFollowingPage(
-                                    tabIndex: 0,
-                                    userID: controller.userData.value?.user?.id ?? "",
-                                  ));
+                                        tabIndex: 0,
+                                        userID: controller
+                                                .userData.value?.user?.id ??
+                                            "",
+                                      ));
                                 },
                                 child: StatBlock(
-                                    count: controller.userData.value?.followingCount != null
-                                        ? formatIndianNumber(num.parse(controller
-                                        .userData.value?.followingCount
-                                        .toString() ??
-                                        "0"))
+                                    count: controller.userData.value
+                                                ?.followingCount !=
+                                            null
+                                        ? formatIndianNumber(num.parse(
+                                            controller.userData.value
+                                                    ?.followingCount
+                                                    .toString() ??
+                                                "0"))
                                         : "0",
                                     label: "Following"),
                               ),
                               Container(
                                 height: 15,
                                 width: 0.9,
-                                color: AppColors.mainTextColor,
+                                color: AppColors.secondaryTextColor,
                                 margin: EdgeInsets.only(
-                                    left: SizeConfig.size5, right: SizeConfig.size5),
+                                    left: SizeConfig.size5,
+                                    right: SizeConfig.size5),
                               ),
                               InkWell(
                                 onTap: () {
                                   Get.to(() => FollowersFollowingPage(
-                                    tabIndex: 1,
-                                    userID: controller.userData.value?.user?.id ?? "",
-                                  ));
+                                        tabIndex: 1,
+                                        userID: controller
+                                                .userData.value?.user?.id ??
+                                            "",
+                                      ));
                                 },
                                 child: StatBlock(
-                                    count: formatIndianNumber(controller.followerCount.value),
+                                    count: formatIndianNumber(
+                                        controller.followerCount.value),
                                     label: "Followers"),
                               ),
                             ],
                           ),
                         ),
                         SizedBox(height: SizeConfig.size5),
-
-
+///LOCATION AND JOIN DATE VIEW....
+                        // if (screenFromName == AppConstants.feedScreen)
+                        Row(
+                          children: [
+                            if (user?.location != null &&
+                                (user?.location?.isNotEmpty ?? false)) ...[
+                              LocalAssets(
+                                  imagePath: AppIconAssets.location_new),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                              Flexible(
+                                child: CustomText(
+                                  "${user?.location}",
+                                  fontSize: SizeConfig.size12,
+                                  overflow: TextOverflow.ellipsis,
+                                  color: AppColors.mainTextColor,
+                                ),
+                              ),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                            ],
+                            if (user?.createdAt != null &&
+                                (user?.createdAt?.isNotEmpty ?? false)) ...[
+                              LocalAssets(
+                                  imagePath: AppIconAssets.calender_new),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                              CustomText(
+                                stringDateFormatDate(
+                                    dateValue: user?.createdAt ?? ""),
+                                fontSize: SizeConfig.size12,
+                                overflow: TextOverflow.ellipsis,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ],
+                          ],
+                        ),
+                        /*   if (screenFromName == AppConstants.chatScreen)
+                          Row(
+                            children: [
+                              LocalAssets(imagePath: AppIconAssets.calender_new),
+                              SizedBox(
+                                width: SizeConfig.size5,
+                              ),
+                              CustomText(
+                                "Join US: ",
+                                color: Colors.black,
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              CustomText(
+                                (user?.createdAt != null)
+                                    ? stringDateFormatDate(dateValue: user?.createdAt ?? "")
+                                    : "N/A",
+                                fontSize: SizeConfig.size12,
+                                overflow: TextOverflow.ellipsis,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ],
+                          ),*/
                       ],
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
           // SizedBox(height: SizeConfig.size12),
 
-          if (screenFromName == AppConstants.feedScreen)
-            Row(
-              children: [
-                if (user?.location != null &&
-                    (user?.location?.isNotEmpty ?? false)) ...[
-                  LocalAssets(imagePath: AppIconAssets.location_new),
-                  SizedBox(
-                    width: SizeConfig.size5,
-                  ),
-                  Flexible(
-                    child: CustomText(
-                      user?.location,
-                      fontSize: SizeConfig.size12,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                  SizedBox(
-                    width: SizeConfig.size5,
-                  ),
-                ],
-                if (user?.createdAt != null &&
-                    (user?.createdAt?.isNotEmpty ?? false)) ...[
-                  LocalAssets(imagePath: AppIconAssets.calender_new),
-                  SizedBox(
-                    width: SizeConfig.size5,
-                  ),
-                  Flexible(
-                    child: CustomText(
-                      stringDateFormatDate(dateValue: user?.createdAt ?? ""),
-                      fontSize: SizeConfig.size12,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          if (screenFromName == AppConstants.chatScreen)
-            Row(
-              children: [
-                LocalAssets(imagePath: AppIconAssets.calender_new),
-                SizedBox(
-                  width: SizeConfig.size5,
-                ),
-                CustomText(
-                  "Join US: ",
-                  color: Colors.black,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w600,
-                ),
-                CustomText(
-                  (user?.createdAt != null)
-                      ? stringDateFormatDate(dateValue: user?.createdAt ?? "")
-                      : "N/A",
-                  fontSize: SizeConfig.size12,
-                  overflow: TextOverflow.ellipsis,
-                  color: AppColors.mainTextColor,
-                ),
-              ],
-            ),
           SizedBox(height: SizeConfig.size5),
-
-          if ((user?.bio ?? '').trim().isNotEmpty) CustomText("     ${user?.bio ?? ''}"),
+/// ADD USER BIO VIEW....
+          if ((user?.bio ?? '').trim().isNotEmpty)
+            CustomText("     ${user?.bio ?? ''}"),
           SizedBox(height: SizeConfig.size10),
-
         ],
       ),
     );

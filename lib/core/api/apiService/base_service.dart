@@ -428,6 +428,7 @@ abstract class BaseService {
   final String getCountRating="user-service/business/getCountOfRating/";
     String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
     String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
+    String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
 
 }
 // https://api.blueera.ai/api/user-service/users/689df0cb7e62ed576245195f/rating

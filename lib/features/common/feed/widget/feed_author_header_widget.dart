@@ -46,25 +46,31 @@ class PostAuthorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     // print('user Id--> ${post?.user?}');
-    String name = (post?.user?.accountType == AppConstants.individual)
-        ? post?.user?.name ?? ''
-        : post?.user?.businessName ?? '';
+    String name =
+        (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
+            ? post?.user?.name ?? 'User'
+            : post?.user?.businessName ?? 'User';
 
-    String designation = (post?.user?.accountType == AppConstants.individual)
-        ? post?.user?.designation ?? "OTHERS"
-        : (post?.user?.subCategoryOfBusiness?.isNotEmpty ?? false)
-            ? post?.user?.subCategoryOfBusiness ?? ''
+    String designation =
+        (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
+            ? post?.user?.designation ?? "OTHERS"
             : (post?.user?.categoryOfBusiness?.isNotEmpty ?? false)
-                ? post?.user?.subCategoryOfBusiness ?? ''
-                : (post?.user?.natureOfBusiness ?? '');
+                ? post?.user?.categoryOfBusiness ?? 'OTHERS'
+                : (post?.user?.subCategoryOfBusiness?.isNotEmpty ?? false)
+                    ? post?.user?.subCategoryOfBusiness ?? 'OTHERS'
+                    : (post?.user?.natureOfBusiness ?? 'OTHERS');
 
-    String id = (post?.user?.accountType == AppConstants.individual)
-        ? authorId
-        : post?.user?.business_id ?? '';
+    String id =
+        (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
+            ? authorId
+            : post?.user?.business_id ?? '';
 
     return Padding(
       padding: EdgeInsets.only(
+
+          // right: SizeConfig.size10,
           left: SizeConfig.size15,
           top: SizeConfig.size10,
           bottom: SizeConfig.size5),
@@ -120,7 +126,7 @@ class PostAuthorHeader extends StatelessWidget {
               Container(
                 height: 20,
                 width: 20,
-                margin: EdgeInsets.only(right: SizeConfig.size10),
+                margin: EdgeInsets.only(right: SizeConfig.size15),
                 child: PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   // offset: const Offset(-6, 36),
@@ -157,6 +163,8 @@ class PostAuthorHeader extends StatelessWidget {
               Container(
                 height: 20,
                 width: 20,
+                margin: EdgeInsets.only(right: SizeConfig.size12),
+
                 child: PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   // offset: const Offset(-6, 36),
