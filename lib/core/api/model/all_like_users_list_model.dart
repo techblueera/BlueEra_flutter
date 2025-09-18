@@ -36,6 +36,8 @@ class LikeUserData {
   String? business_name;
   String? designation;
   String? business_id;
+  String? categoryOfBusiness;
+  String? business_category;
 
   LikeUserData(
       {this.sId,
@@ -45,6 +47,8 @@ class LikeUserData {
         this.profileImage,
         this.business_name,
         this.name,
+        this.business_category,
+        this.categoryOfBusiness,
         this.designation});
 
   LikeUserData.fromJson(Map<String, dynamic> json) {
@@ -56,6 +60,8 @@ class LikeUserData {
     business_name = json['business_name'];
     name = json['name'];
     designation = json['designation'];
+    categoryOfBusiness = json['categoryOfBusiness'];
+    business_category = json['business_category'];
   }
 
   Map<String, dynamic> toJson() {
@@ -68,6 +74,8 @@ class LikeUserData {
     data['business_name'] = this.business_name;
     data['name'] = this.name;
     data['designation'] = this.designation;
+    data['categoryOfBusiness'] = this.categoryOfBusiness;
+    data['business_category'] = this.business_category;
     return data;
   }
 }

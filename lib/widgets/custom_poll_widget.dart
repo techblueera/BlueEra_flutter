@@ -85,7 +85,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
       children: [
 
         Padding(
-          padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15),
+          padding: EdgeInsets.only(left: SizeConfig.size32, right: SizeConfig.size15),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -94,7 +94,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                 child: CustomText(
                   widget.question,
                   color: AppColors.mainTextColor,
-                  fontSize: SizeConfig.large,
+                  // fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -110,7 +110,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
           ),
         ),
 
-        SizedBox(height: SizeConfig.size16),
+        SizedBox(height: SizeConfig.size5),
 
         // Poll options with progress bars
         ...List.generate(localOptions.length, (index) {
@@ -122,9 +122,9 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
           return Padding(
             padding: EdgeInsets.only(
-                left: SizeConfig.size15,
+                left: SizeConfig.size32,
                 right: SizeConfig.size15,
-                bottom: SizeConfig.size12),
+                bottom: SizeConfig.size5),
             child: InkWell(
               // onTap: hasVoted ? null : () => _handleVote(index),
               onTap: () {
@@ -135,10 +135,11 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                 }
               },
               child: Container(
-                height: SizeConfig.size45,
+                height: SizeConfig.size35,
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: AppColors.secondaryTextColor,width: 0.5)
                 ),
                 child: Stack(
                   children: [
@@ -172,15 +173,15 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                       ),
                     // Content container
                     Container(
-                      height: SizeConfig.size45,
+                      height: SizeConfig.size35,
                       padding:
                           EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primaryColor
-                              : Colors.black,
-                          width: 1.5,
+                              : AppColors.secondaryTextColor,
+                          width: 0.5,
                         ),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
@@ -229,7 +230,7 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
         Padding(
           padding: EdgeInsets.only(
-            left: SizeConfig.size15,
+            left: SizeConfig.size32,
             right: SizeConfig.size15,
             top: SizeConfig.size5,
           ),

@@ -69,9 +69,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                   height: SizeConfig.size10,
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size15,
-                      vertical: SizeConfig.size5),
+                  padding: EdgeInsets.only(top: SizeConfig.size5,bottom: SizeConfig.size5,left: SizeConfig.size32,right: SizeConfig.size5),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     // mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,7 +121,10 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                   height: SizeConfig.size10,
                 ),
 
-                widget.buildActions(),
+                Padding(
+                  padding: EdgeInsets.only(top: SizeConfig.size5,bottom: SizeConfig.size5,left: SizeConfig.size20,right: SizeConfig.size5),
+                  child: widget.buildActions(),
+                ),
                 SizedBox(
                   height: SizeConfig.size10,
                 ),

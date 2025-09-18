@@ -119,7 +119,11 @@ class _UserTile extends StatelessWidget {
         onTap: () {
           Get.back();
           redirectToProfileScreen(
-              accountType: user.accountType ?? "", profileId: user.accountType?.toUpperCase()==AppConstants.business?user.business_id??"": user.sId ?? "");
+              accountType: user.accountType ?? "",
+              profileId:
+                  user.accountType?.toUpperCase() == AppConstants.business
+                      ? user.business_id ?? ""
+                      : user.sId ?? "");
         },
         child: Row(
           children: [
@@ -147,15 +151,22 @@ class _UserTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    user.accountType?.toUpperCase()==AppConstants.business?"${user.business_name}": user.name ?? "User",
-                 maxLines: 1,overflow: TextOverflow.ellipsis,
+                    user.accountType?.toUpperCase() == AppConstants.business
+                        ? "${user.business_name}"
+                        : user.name ?? "User",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   CustomText(
-                   "@${user.username}",
+                    user.accountType?.toUpperCase() == AppConstants.business
+                        ? user.business_category ??
+                            user.categoryOfBusiness ??
+                            "Other"
+                        : "${user.designation}",
                     fontSize: SizeConfig.small,
                     color: Colors.grey.shade600,
-                    maxLines: 1,overflow: TextOverflow.ellipsis,
-
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
