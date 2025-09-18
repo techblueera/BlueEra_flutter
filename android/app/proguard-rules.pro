@@ -25,3 +25,16 @@
 -keep class io.flutter.embedding.** { *; }
 -dontwarn io.flutter.embedding.**
 
+# Firebase Core
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# Firebase Messaging
+-keep class com.google.firebase.messaging.** { *; }
+-dontwarn com.google.firebase.messaging.**
+
+# Flutter Local Notifications
+-keep class com.dexterous.flutterlocalnotifications.** { *; }
+-dontwarn com.dexterous.flutterlocalnotifications.**
+
+

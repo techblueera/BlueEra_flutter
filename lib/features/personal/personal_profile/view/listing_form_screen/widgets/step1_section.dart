@@ -605,7 +605,7 @@ class Step1Section extends StatelessWidget {
                   controller: controller.tagsController,
                   onChanged: (_) => controller.update(["addIcon"]),
                   decoration: const InputDecoration(
-                    hintText: 'Tag people',
+                    hintText: 'Tag/Keyword ',
                     hintStyle: TextStyle(
                       color: AppColors.grey9B,
                       fontSize: 14,

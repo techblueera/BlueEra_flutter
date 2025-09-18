@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -8,7 +7,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/listing_form_scr
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/subcategory_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/category_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'dart:io' as io;
 import 'dart:convert';
