@@ -160,8 +160,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                         chatViewController
                                             .openAnyOneChatFunction(
                                           businessId: businessProfileDetails.id,
-                                          type: businessProfileDetails
-                                              .typeOfBusiness,
+                                          type: "business",
                                           isInitialMessage: false,
                                           userId: businessProfileDetails.userId,
                                           conversationId:
