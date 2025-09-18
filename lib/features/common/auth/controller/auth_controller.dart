@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -25,6 +25,7 @@ import 'package:BlueEra/features/common/auth/views/screens/create_business_accou
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/services/notifications/one_signal_services.dart';
@@ -83,10 +84,12 @@ class AuthController extends GetxController {
 
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    log("ksjdcnkjsncksjc ${token}");
     Map<String, dynamic> requestData = {
       ApiKeys.contact_no: mobileNumberEditController.text,
       ApiKeys.otp: otp,
-      ApiKeys.device_token: "",
+      ApiKeys.device_token: token,
       ApiKeys.one_signal_player_id: "",
     };
     try {
