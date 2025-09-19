@@ -415,7 +415,6 @@ class ViewBusinessDetailsController extends GetxController {
           await BusinessProfileRepo().getBusinessDetailedRating(userId);
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        log("kdjcnksjdcnksdc ${data}");
         visitBusinessDetailedRatingModel.value=VisitBusinessDetailedRatingModel.fromJson(data);
         update();
       } else {

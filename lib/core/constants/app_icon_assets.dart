@@ -366,4 +366,5 @@ class AppIconAssets {
   static String cards = "${iconPath}cards.svg";
   static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
   static String colorTemplateIcon = "${iconPath}color_template_icon.svg";
+  static String upload_video_service = "${iconPath}upload_video_service.svg";
 }

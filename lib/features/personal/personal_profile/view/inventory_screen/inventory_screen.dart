@@ -136,7 +136,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-
                           HorizontalTabSelector(
                             tabs: productTab,
                             selectedIndex: selectedIndex,
