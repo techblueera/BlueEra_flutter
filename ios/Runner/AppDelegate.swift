@@ -11,9 +11,8 @@ import FirebaseCore
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
     FirebaseApp.configure()
-
+    GeneratedPluginRegistrant.register(with: self)
       // Register NativeAdFactory
         let factory = NativeAdFactoryExample()
         FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
