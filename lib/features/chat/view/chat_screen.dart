@@ -62,7 +62,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
     );
 
     chatViewController.chatMainTabController.addListener(() {
-      print("sdlkcmlskdmcsldkcmsc ");
+
       if (!chatViewController.chatMainTabController.indexIsChanging &&
           chatViewController.chatMainTabController.index ==
               chatViewController.chatMainTabController.animation?.value
@@ -77,7 +77,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
               .emitEvent("ChatList", {ApiKeys.type: "group"});
         } */
         else if (index == 1) {
-          print("sldkkdc skdjcskljdc  ");
+
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
         }
       }
