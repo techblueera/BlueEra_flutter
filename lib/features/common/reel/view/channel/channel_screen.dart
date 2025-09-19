@@ -776,20 +776,20 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
   }
 
   void navigateToProfileSection() {
-    final isIndividual = StringUtils.equalsIgnoreCase(
-      widget.accountType,
-      AppConstants.individual,
-    );
-    final isSelf = widget.authorId == userId;
-
-    if (isIndividual) {
-      Get.to(() => isSelf
-          ? PersonalProfileSetupScreen()
-          : VisitProfileScreen(authorId: widget.authorId));
+    String accountType = widget.accountType;
+    String authorId = widget.authorId;
+    if (accountType.toUpperCase() == AppConstants.individual.toUpperCase()) {
+      if (authorId == userId) {
+        Get.to(() => PersonalProfileSetupScreen());
+      } else {
+        Get.to(() => VisitProfileScreen(authorId: authorId));
+      }
     } else {
-      Get.to(() => isSelf
-          ? BusinessOwnProfileScreen()
-          : VisitBusinessProfileNew(businessId: widget.authorId));
+      if (authorId == userId) {
+        Get.to(() => BusinessOwnProfileScreen());
+      } else {
+        Get.to(() => VisitBusinessProfileNew(businessId: authorId, screenName:  AppConstants.feedScreen,));
+      }
     }
   }
 }
