@@ -253,7 +253,7 @@ redirectToProfileScreen(
       Get.to(BusinessOwnProfileScreen());
     } else {
       Get.to(() => VisitBusinessProfileNew(
-          businessId:profileId ?? ""));
+          businessId:profileId ?? "", screenName:  AppConstants.feedScreen,));
     }
   }
 }
@@ -497,7 +497,7 @@ openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
     Get.to(() => BusinessOwnProfileScreen);
   } else {
-    Get.to(() => VisitBusinessProfileNew(businessId: businessUserId ?? ""));
+    Get.to(() => VisitBusinessProfileNew(businessId: businessUserId ?? "", screenName:  AppConstants.feedScreen,));
   }
 }
 
@@ -505,6 +505,7 @@ openPersonalProfile({required String? userID}) {
   if (userId == userID) {
     Get.to(PersonalProfileSetupScreen());
   } else {
+    // Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: '', channelId: channelId,));
     Get.to(() => VisitProfileScreen(authorId: userID ?? ""));
   }
 }

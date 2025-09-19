@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -50,7 +51,8 @@ class FeedMediaCarouselWidget extends StatefulWidget {
       _FeedMediaCarouselWidgetState();
 }
 
-class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with TickerProviderStateMixin {
+class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
+    with TickerProviderStateMixin {
   int _currentPage = 0;
   late AudioPlayer _audioPlayer;
   bool _isPlaying = false;
@@ -63,9 +65,19 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
+  late Map<String, String> _orientationCache;
+
   @override
   void initState() {
     super.initState();
+    _orientationCache = {};
+    for (var url in widget.mediaUrls) {
+      _getImageOrientation(url).then((orientation) {
+        setState(() {
+          _orientationCache[url] = orientation;
+        });
+      });
+    }
     _audioPlayer = AudioPlayer();
     _initializeAudio();
     _setupAnimations();
@@ -119,7 +131,6 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
     });
   }
 
-
   MediaType getTypeFromUrl(String url) {
     final ext = url.toLowerCase();
     if (ext.endsWith('.mp4') || ext.endsWith('.mov')) return MediaType.video;
@@ -155,13 +166,13 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
   }
 
   void _onVisibilityChanged(VisibilityInfo info) {
-    final isFullyVisible = info.visibleFraction >= 0.8; // 80% visibility threshold
+    final isFullyVisible =
+        info.visibleFraction >= 0.8; // 80% visibility threshold
 
-    if(!mounted) return;
+    if (!mounted) return;
 
     if (_isVisible != isFullyVisible) {
-      setState(() => _isVisible = isFullyVisible
-      );
+      setState(() => _isVisible = isFullyVisible);
 
       if (!isFullyVisible && _isPlaying) {
         _pauseAudio();
@@ -191,7 +202,8 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
         child: Stack(
           children: [
             PageView.builder(
-              itemCount: widget.mediaUrls.length,
+              itemCount: _orientationCache.length,
+              // itemCount: widget.mediaUrls.length,
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemBuilder: (context, index) {
                 final url = widget.mediaUrls[index];
@@ -199,52 +211,57 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
                 if (mediaType == MediaType.video) {
                   return VideoPlayerWidget(videoUrl: url);
                 } else {
-                  return FutureBuilder<String>(
-                    future: _getImageOrientation(url),
-                    builder: (context, snapshot) {
-                      String orientation = snapshot.data ?? "loading";
+                  final url = widget.mediaUrls[index];
+                  final orientation = _orientationCache[url] ?? "loading";
 
-                      double height = Get.width * 0.5;
-                      double width = Get.width;
-                      /* if (orientation == "portrait") {
+                  double height = Get.width * 0.5;
+                  double width = Get.width;
+                  /* if (orientation == "portrait") {
                   height = Get.height * 0.5; // taller
                   width = Get.width * 0.7;
                 } else*/
-                      if (orientation == "landscape") {
-                        height = Get.width * 0.5; // shorter
-                        width = Get.width;
-                      } else if (orientation == "square") {
-                        height = Get.width * 0.5;
-                        width = Get.width * 0.5;
-                      }
-
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-
-                        child: Container(
-                          // height: Get.width * 0.5,
-                          padding: EdgeInsets.zero,
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-
-                          ),
-                          child: Stack(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  navigatePushTo(
-                                    context,
-                                    ImageViewScreen(
-                                      subTitle: widget.subTitle,
-                                      appBarTitle:
-                                          AppLocalizations.of(context)!.imageViewer,
-                                      imageUrls: widget.mediaUrls,
-                                      initialIndex: index,
-                                    ),
-                                  );
-                                },
-                                child: Center(
-                                  child: Container(
+                  if (orientation == "landscape") {
+                    height = Get.width * 0.5; // shorter
+                    width = Get.width;
+                  } else if (orientation == "square") {
+                    height = Get.width * 0.5;
+                    width = Get.width * 0.5;
+                  }
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      // height: Get.width * 0.5,
+                      padding: EdgeInsets.zero,
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                      ),
+                      child: Stack(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              navigatePushTo(
+                                context,
+                                ImageViewScreen(
+                                  subTitle: widget.subTitle,
+                                  appBarTitle:
+                                      AppLocalizations.of(context)!.imageViewer,
+                                  imageUrls: widget.mediaUrls,
+                                  initialIndex: index,
+                                ),
+                              );
+                            },
+                            child: Center(
+                              child: CachedNetworkImage(
+                                imageUrl: url,
+                                fit: BoxFit.fitWidth,
+                                width: width,
+                                height: height,
+                                placeholder: (context, _) => const Center(
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                                errorWidget: (context, _, __) =>LocalAssets(imagePath: AppIconAssets.blue_era_app_logo),
+                              ) /*Container(
                                     height: height,
                                     width: width,
                                     decoration: BoxDecoration(
@@ -254,33 +271,40 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
                                         fit: BoxFit.fitWidth,
                                       ),
                                     ),
-                                  ),
+                                  )*/
+                              ,
+                            ),
+                          ),
+
+                          // Page indicator
+                          if (widget.mediaUrls.length > 1)
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.mainTextColor
+                                      .withValues(alpha: 0.80),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: CustomText(
+                                  "${_currentPage + 1}/${widget.mediaUrls.length}",
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-
-                              // Page indicator
-                              if (widget.mediaUrls.length > 1)
-                                Positioned(
-                                  top: 12,
-                                  right: 12,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.mainTextColor.withValues(alpha: 0.80),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: CustomText(
-                                      "${_currentPage + 1}/${widget.mediaUrls.length}",
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                  ;
+                  return FutureBuilder<String>(
+                    future: _getImageOrientation(url),
+                    builder: (context, snapshot) {
+                      String orientation = snapshot.data ?? "loading";
                     },
                   );
                 }
@@ -347,9 +371,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_isAudioEnabled && _duration.inSeconds > 0)
-            _buildProgressBar(),
-
+          if (_isAudioEnabled && _duration.inSeconds > 0) _buildProgressBar(),
           GestureDetector(
             onTap: () {
               if (!_isLoadingAudio) {
@@ -357,7 +379,9 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
               }
             },
             child: AnimatedBuilder(
-              animation: _isPlaying ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
+              animation: _isPlaying
+                  ? _pulseAnimation
+                  : const AlwaysStoppedAnimation(1.0),
               builder: (_, __) {
                 return Transform.scale(
                   scale: _isPlaying ? _pulseAnimation.value : 1.0,
@@ -376,18 +400,19 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
                     ),
                     child: _isLoadingAudio
                         ? SizedBox(
-                      width: SizeConfig.size16,
-                      height: SizeConfig.size16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(AppColors.white),
-                      ),
-                    )
+                            width: SizeConfig.size16,
+                            height: SizeConfig.size16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation(AppColors.white),
+                            ),
+                          )
                         : Icon(
-                      _getAudioIcon(),
-                      color: AppColors.white,
-                      size: SizeConfig.size18,
-                    ),
+                            _getAudioIcon(),
+                            color: AppColors.white,
+                            size: SizeConfig.size18,
+                          ),
                   ),
                 );
               },
@@ -398,9 +423,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
     );
   }
 
-
-  IconData _getAudioIcon() =>
-      _isPlaying ? Icons.volume_up : Icons.volume_off;
+  IconData _getAudioIcon() => _isPlaying ? Icons.volume_up : Icons.volume_off;
 
   Widget _buildProgressBar() {
     return Padding(
@@ -418,5 +441,4 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget> with 
       ),
     );
   }
-
 }

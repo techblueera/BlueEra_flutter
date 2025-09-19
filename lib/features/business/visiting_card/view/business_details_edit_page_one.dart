@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -157,7 +158,7 @@ class _BusinessDetailsEditPageOneState
     }
   }
 
-
+  BusinessCategory? selectedTypeOfBusiness;
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context);
@@ -370,6 +371,19 @@ class _BusinessDetailsEditPageOneState
                         ],
                       );
                     }),
+                    // CommonDropdownDialog<BusinessCategory>(
+                    //   items: typeOfBusinessList,
+                    //   selectedValue: selectedTypeOfBusiness,
+                    //   hintText: appLocalizations?.selectNatureOfTheBusiness ?? "",
+                    //   displayValue: (profession) => profession.title,
+                    //   title: appLocalizations?.natureOfBusiness ??
+                    //       "Nature of the Business",
+                    //   onChanged: (value) {
+                    //     // setState(() {
+                    //     //   _selectedNatureOfBusiness = value;
+                    //     // });
+                    //   },
+                    // ),
                     SizedBox(
                       height: SizeConfig.size12,
                     ),

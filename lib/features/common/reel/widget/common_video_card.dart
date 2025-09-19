@@ -258,7 +258,7 @@ class CommonVideoCard extends StatelessWidget {
       if (isMyBusiness) {
         navigatePushTo(context, BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfileNew(businessId: videoItem.author?.id ?? ''));
+        Get.to(() => VisitBusinessProfileNew(businessId: videoItem.author?.id ?? '', screenName:  AppConstants.feedScreen,));
       }
       return;
     }

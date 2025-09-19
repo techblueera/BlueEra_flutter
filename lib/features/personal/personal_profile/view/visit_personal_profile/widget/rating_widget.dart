@@ -16,13 +16,15 @@ class RatingSummaryWidget extends StatefulWidget {
   final int ratingPersonCount;
   final String userId;
   final String screenFromName;
+  final String ratingForAccountName;
+  final String businessId;
 
   const RatingSummaryWidget({
     Key? key,
     required this.rating,
     required this.userId,
     required this.screenFromName,
-    required this.ratingPersonCount,
+    required this.ratingPersonCount, required this.ratingForAccountName, required this.businessId,
   }) : super(key: key);
 
   @override
@@ -31,7 +33,18 @@ class RatingSummaryWidget extends StatefulWidget {
 
 class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
   bool _isExpanded = false;
-  final controller = Get.find<OverviewController>();
+  late OverviewController controller;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if (!Get.isRegistered<OverviewController>()) {
+      controller = Get.put(OverviewController());
+    } else {
+      controller = Get.find<OverviewController>();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,17 +60,17 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
           // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.all(0),
           enabled:
-          widget.screenFromName == AppConstants.chatScreen ? true : false,
+              widget.screenFromName == AppConstants.chatScreen ? true : false,
           trailing: widget.screenFromName == AppConstants.chatScreen
               ? Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size20),
-            child: Icon(
-              _isExpanded
-                  ? Icons.keyboard_arrow_up
-                  : Icons.keyboard_arrow_down,
-              color: AppColors.mainTextColor,
-            ),
-          )
+                  padding: EdgeInsets.only(right: SizeConfig.size20),
+                  child: Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppColors.mainTextColor,
+                  ),
+                )
               : SizedBox(),
           onExpansionChanged: (expanded) {
             setState(() {
@@ -69,12 +82,10 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomText(
-                  "Personal Rating Summary",
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.secondaryTextColor,
-                ),
+                CustomText("Personal Rating Summary",
+                    fontWeight: FontWeight.w600,
+                    fontSize: SizeConfig.medium15,
+                    color: AppColors.secondaryTextColor),
                 const SizedBox(height: 8),
                 // Obx(() {
                 //   return RatingSummary(
@@ -153,7 +164,7 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
                         builder: (BuildContext context) {
                           return RatingFeedbackDialog(
                             businessId: widget.userId,
-                            reviewFor: AppConstants.individual ?? "",
+                            reviewFor: widget.ratingForAccountName,
                           );
                         },
                       );

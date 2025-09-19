@@ -548,7 +548,7 @@ class _StoreScreenState extends State<StoreScreen> {
                       Get.to(() =>
 
                           VisitBusinessProfileNew(
-                              businessId: storeData.id ?? ""));
+                              businessId: storeData.id ?? "", screenName:  AppConstants.feedScreen,));
                     }
                   },
                   child: Container(

@@ -8,6 +8,7 @@ import '../../../core/constants/app_icon_assets.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
 
+/*
 class RatingReviewCard extends StatelessWidget {
   final String businessId;
   final BusinessProfileDetails? businessProfile;
@@ -100,6 +101,7 @@ class RatingReviewCard extends StatelessWidget {
     );
   }
 }
+*/
 
 class RatingFeedbackDialog extends StatefulWidget {
   final String businessId, reviewFor;
@@ -253,6 +255,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                       child: ElevatedButton(
                         onPressed: _isSubmitting
                             ? null
+
                             : () {
                                 _submitFeedback(widget.reviewFor);
                               },

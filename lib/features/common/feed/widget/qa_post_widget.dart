@@ -63,6 +63,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
               children: [
 
                 widget.authorSection(),
+                SizedBox(height: SizeConfig.size5,),
 
                 _buildPollOptions(),
                 SizedBox(

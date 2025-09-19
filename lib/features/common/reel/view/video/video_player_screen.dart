@@ -617,7 +617,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         if (videoController.videoFeedItem?.author?.id == userId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
-          Get.to(() => VisitBusinessProfileNew(businessId: videoController.videoFeedItem?.author?.id??''));
+          Get.to(() => VisitBusinessProfileNew(businessId: videoController.videoFeedItem?.author?.id??'', screenName:  AppConstants.feedScreen,));
         }
       }
     }

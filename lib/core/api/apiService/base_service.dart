@@ -426,9 +426,10 @@ abstract class BaseService {
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
   final String socialLinksUpdate = "channel-service/channels/social-links/";
   final String getCountRating="user-service/business/getCountOfRating/";
-  String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
-  String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
-  String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
+    String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
+    String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
+    String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
+  String businessGetRattingSummary(String userID)=>"user-service/business/$userID/ratings";
 
   final String subchildORRootCategroy = "product-service/api/categories/getSubchildORRootCategroy";
   final String createProduct = "product-service/api/product/create-product";

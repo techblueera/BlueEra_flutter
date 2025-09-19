@@ -86,7 +86,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                         fontWeight: FontWeight.w600,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        color: AppColors.secondaryTextColor,
+                                        // color: AppColors.secondaryTextColor,
                                       ),
                                     ),
                                     if (user?.username != null &&
@@ -217,7 +217,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         if (screenFromName == AppConstants.feedScreen)
                           Padding(
                             padding: EdgeInsets.only(top: SizeConfig.size1),
-                            child: (user?.profession != null &&
+                            child: (user?.profession != null &&user?.profession != "null" &&
                                     (user?.profession?.isNotEmpty ?? false))
                                 ? Flexible(
                                     child: Container(
@@ -245,7 +245,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                   false)
                               ? Padding(
                                   padding:
-                                      EdgeInsets.only(top: SizeConfig.size5),
+                                      EdgeInsets.only(top: SizeConfig.size1),
                                   child: Row(
                                     children: [
                                       CustomText(

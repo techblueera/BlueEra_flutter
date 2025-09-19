@@ -68,7 +68,7 @@ class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
                     Expanded(
                       child: CustomText(
                         'Likes',
-                        fontSize: SizeConfig.extraLarge22,
+                        fontSize: SizeConfig.large18,
                         color: AppColors.mainTextColor,
                         fontWeight: FontWeight.w700,
                         textAlign: TextAlign.center,

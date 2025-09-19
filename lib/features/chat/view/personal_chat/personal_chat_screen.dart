@@ -100,7 +100,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   void _navigateToProfile({required String authorId}) {
     if (widget.type?.toUpperCase() == AppConstants.business) {
-      Get.to(() => VisitBusinessProfileNew(businessId: authorId?? ''));
+      Get.to(() => VisitBusinessProfileNew(businessId: authorId?? '', screenName:  AppConstants.chatScreen,));
     } else if(widget.type?.toUpperCase()==AppConstants.individual){
       Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen, channelId: '',));
 
