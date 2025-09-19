@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -33,8 +34,15 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     if (widget.videoFile != null) {
       _controller = VideoPlayerController.file(widget.videoFile!);
     } else if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
-      _controller =
-          VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl!));
+
+
+      // Create new controller
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl!),
+        videoPlayerOptions: isHlsUrl(widget.videoUrl!)
+            ? VideoPlayerOptions(mixWithOthers: true)
+            : null,
+      );
     }
 
     _controller

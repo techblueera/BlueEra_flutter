@@ -319,7 +319,7 @@ class Step3Section extends StatelessWidget {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       isDense: true,
-                      value: controller.selectedDuration.value,
+                      value: controller.selectedExpiryDuration.value,
                       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                       icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
                       style: TextStyle(
@@ -361,14 +361,14 @@ class Step3Section extends StatelessWidget {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<num>(
                       isDense: true,
-                      value: controller.selectedValue.value,
+                      value: controller.selectedExpiryValue.value,
                       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                       icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
                       style: TextStyle(
                         color: Colors.black87,
                         fontSize: 16,
                       ),
-                      items: controller.valueRange.map((num value) {
+                      items: controller.expiryValueRange.map((num value) {
                         return DropdownMenuItem<num>(
                           value: value,
                           child: Text(
@@ -376,7 +376,7 @@ class Step3Section extends StatelessWidget {
                           ),
                         );
                       }).toList(),
-                      onChanged: controller.selectedDuration.value == 'Life Time'
+                      onChanged: controller.selectedExpiryDuration.value == 'Life Time'
                           ? null // Disable dropdown for Life Time
                           : (num? newValue) {
                         if (newValue != null) {

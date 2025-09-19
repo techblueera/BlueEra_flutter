@@ -41,7 +41,7 @@ class ReelShortPopUpMenu extends StatelessWidget {
               context,
               RouteHelper.getCreateReelScreenRoute(),
               arguments: {
-                ApiKeys.videoPath: shortFeedItem.video?.videoUrl??'',
+                ApiKeys.videoPath: shortFeedItem.video?.transcodedUrls?.master ?? shortFeedItem.video?.videoUrl??'',
                 ApiKeys.videoType:  Video.short,
                 ApiKeys.videoId: shortFeedItem.videoId,
                 ApiKeys.argPostVia: shortFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,

@@ -41,7 +41,7 @@ class ReelVideoPopUpMenu extends StatelessWidget {
             context,
             RouteHelper.getCreateReelScreenRoute(),
             arguments: {
-              ApiKeys.videoPath: videoFeedItem.video?.videoUrl??'',
+              ApiKeys.videoPath: videoFeedItem.video?.transcodedUrls?.master ?? videoFeedItem.video?.videoUrl??'',
               ApiKeys.videoType: Video.video,
               ApiKeys.videoId: videoFeedItem.videoId,
               ApiKeys.argPostVia: videoFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,

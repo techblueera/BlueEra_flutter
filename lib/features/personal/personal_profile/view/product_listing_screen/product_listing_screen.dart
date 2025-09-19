@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -211,9 +212,10 @@ class _ProductListingScreenState extends State<ProductListingScreen>
                             Expanded(
                              child: GestureDetector(
                                onTap: () {
-                                 Get.to(() => ListingFormScreen(),arguments: {
-                                   "listingType": controller.selectedListingType.value,
-                                 });
+                                 Get.toNamed(RouteHelper.getListingFormScreenRoute());
+                                 // Get.to(() => ListingFormScreen(), arguments: {
+                                 //   "listingType": controller.selectedListingType.value,
+                                 // });
                                },
                               child: Container(
                                 height: 48,

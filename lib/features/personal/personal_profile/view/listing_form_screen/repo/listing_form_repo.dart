@@ -62,9 +62,8 @@ class ListingFormRepo extends BaseService{
   Future<ResponseModel> getSubchildORRootCategroy({
     required Map<String, dynamic> queryParams
   }) async {
-    final String path = "/product-service/api/categories/getSubchildORRootCategroy";
     final response = await ApiBaseHelper().getHTTP(
-      path,
+      subchildORRootCategroy,
       params: queryParams,
       showProgress: false,
       onError: (error) {},
@@ -72,5 +71,43 @@ class ListingFormRepo extends BaseService{
     );
     return response;
   }
+
+ // Create Product (multipart)
+ Future<ResponseModel> createProductApi({required Map<String, dynamic> params}) async {
+   final response = await ApiBaseHelper().postHTTP(
+     createProduct,
+     params: params,
+     isMultipart: true,
+     showProgress: true,
+     onError: (error) {},
+     onSuccess: (data) {},
+   );
+   return response;
+ }
+
+ // updateProductFeatureApi
+ Future<ResponseModel> updateProductFeatureApi({required Map<String, dynamic> params, required String productId}) async {
+   final response = await ApiBaseHelper().putHTTP(
+     updateProductFeature(productId),
+     params: params,
+     showProgress: true,
+     onError: (error) {},
+     onSuccess: (data) {},
+   );
+   return response;
+ }
+
+ // updatePriceAndWarrantyApi
+ Future<ResponseModel> updatePriceAndWarrantyApi(
+     {required Map<String, dynamic> params, required String productId}) async {
+   final response = await ApiBaseHelper().putHTTP(
+     updatePriceAndWarranty(productId),
+     params: params,
+     showProgress: true,
+     onError: (error) {},
+     onSuccess: (data) {},
+   );
+   return response;
+ }
 
 }

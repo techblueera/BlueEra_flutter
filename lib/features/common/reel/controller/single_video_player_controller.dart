@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/widgets/intertitial_ad_service.dart';
 import 'package:chewie/chewie.dart';
@@ -63,15 +64,19 @@ class SingleVideoPlayerController extends GetxController {
       isVideoError.value = false;
       errorMessage.value = '';
 
-      final videoUrl = videoItem.video?.videoUrl;
+      final videoUrl = videoItem.video?.transcodedUrls?.master ?? videoItem.video?.videoUrl;
       if (videoUrl == null || videoUrl.isEmpty) {
         throw Exception('Video URL is empty or null');
       }
 
       log('Initializing video: $videoUrl');
 
-      // --- HOT SWAP: build new controllers first ---
-      final newVideoCtrl = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+      final newVideoCtrl = VideoPlayerController.networkUrl(
+          Uri.parse(videoUrl),
+          videoPlayerOptions: isHlsUrl(videoUrl)
+            ? VideoPlayerOptions(mixWithOthers: true)
+            : null,
+      );
       await newVideoCtrl.initialize();
 
       final newChewie = ChewieController(
@@ -364,7 +369,7 @@ class SingleVideoPlayerController extends GetxController {
     log('Video Loading: ${isVideoLoading.value}');
     log('Video Error: ${isVideoError.value}');
     log('Current Video: ${_currentVideoItem?.video?.title ?? 'None'}');
-    log('Video URL: ${_currentVideoItem?.video?.videoUrl ?? 'None'}');
+    log('Video URL: ${_currentVideoItem?.video?.transcodedUrls?.master ?? _currentVideoItem?.video?.videoUrl ?? 'None'}');
     log('=====================================');
   }
 }

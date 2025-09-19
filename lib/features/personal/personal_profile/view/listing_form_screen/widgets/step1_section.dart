@@ -97,7 +97,7 @@ class Step1Section extends StatelessWidget {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   CustomText(
-                                                    item['name'],
+                                                      item.name,
                                                       fontSize:  SizeConfig.medium,
                                                       fontWeight: FontWeight.w600,
                                                       color: AppColors.black

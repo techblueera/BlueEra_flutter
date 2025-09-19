@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart' as foundationObj;
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
 import 'package:flutter/services.dart';
+
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -22,9 +23,10 @@ import 'app_colors.dart';
 ///SHOW APP LOGS
 logs(String logMsg) {
   // if (foundationObj.kDebugMode) {
-    print(logMsg);
+  print(logMsg);
   // }
 }
+
 // https://be-user-bck.s3.ap-south-1.amazonaws.com/user/temp/profile/guest8024173s
 ///UN FOCUS KEYBOARD
 unFocus() {
@@ -435,16 +437,12 @@ bool isNetworkImage(dynamic image) =>
 
 bool isFileImage(dynamic image) => image is File || image is XFile;
 
-Widget staggeredDotsWaveLoading(){
+Widget staggeredDotsWaveLoading() {
   return Center(
       child: Padding(
           padding: EdgeInsets.all(SizeConfig.size15),
           child: LoadingAnimationWidget.staggeredDotsWave(
-              size: SizeConfig.size40,
-              color: AppColors.primaryColor
-          )
-      )
-  );
+              size: SizeConfig.size40, color: AppColors.primaryColor)));
 }
 
 /// Returns true if user has not disabled AND API has not been called today
@@ -458,7 +456,8 @@ Future<GreetingCheckResult> canCallCardApi() async {
 
   if (dontShow == true) {
     log("User disabled greeting card ❌");
-    return GreetingCheckResult(canCall: false, today: today);  }
+    return GreetingCheckResult(canCall: false, today: today);
+  }
 
   // ✅ Then check daily condition
   final lastDate = await SharedPreferenceUtils.getSecureValue(
@@ -479,7 +478,12 @@ Future<void> disableGreetingCard() async {
 
 /// Save today's date after successful API call
 Future<void> saveApiCallDate() async {
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.lastGreetingCallKey, today);
+  final today = DateTime.now().toIso8601String().substring(0, 10);
+  await SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.lastGreetingCallKey, today);
 }
 
+bool isHlsUrl(String? url) {
+  if (url == null || url.isEmpty) return false;
+  return url.toLowerCase().endsWith('.m3u8');
+}

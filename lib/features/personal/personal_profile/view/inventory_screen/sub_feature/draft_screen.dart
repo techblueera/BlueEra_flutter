@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/sub_feature/draft_controller.dart';
@@ -117,7 +118,7 @@ void initState() {
                             color: AppColors.primaryColor,
                           ),
                           InkWell(
-                            onTap: () => Get.to(() => AddProductScreen()),
+                            onTap: () => Get.toNamed(RouteHelper.getAddProductScreenRoute()),
                             child: Container(
                               height: 34,
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

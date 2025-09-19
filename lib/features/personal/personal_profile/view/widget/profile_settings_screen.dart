@@ -334,9 +334,10 @@ class ProfileSettingsScreen extends StatelessWidget {
                 },
               ),
             ],
+            if (isBusiness())
             _buildTile(AppIconAssets.inventory, "Inventory",
                 "Add/Edit/Delete/Draft Products", onTap: () {
-              Get.to(() => InventoryScreen());
+                  Get.toNamed(RouteHelper.getInventoryScreenRoute());
             }),
             _buildTile(AppIconAssets.bookingEnquiries, "Booking & Enquiries",
                 "Set/Receive/Earn through your videos",

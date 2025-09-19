@@ -292,7 +292,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     if (_controller != null || _isDisposed) return;
 
     try {
-      final videoUrl = fullScreenShortController.videoItem?.video?.videoUrl;
+      final videoUrl = fullScreenShortController.videoItem?.video?.transcodedUrls?.master ?? fullScreenShortController.videoItem?.video?.videoUrl;
       if (videoUrl == null || videoUrl.isEmpty) {
         if (!_isDisposed) {
           setState(() => _hasError = true);
@@ -302,7 +302,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
       _controller = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
-        // invalidateCacheIfOlderThan: const Duration(minutes: 30),
+        videoPlayerOptions: isHlsUrl(videoUrl)
+            ? VideoPlayerOptions(mixWithOthers: true)
+            : null,
       );
 
       await _controller!.initialize();

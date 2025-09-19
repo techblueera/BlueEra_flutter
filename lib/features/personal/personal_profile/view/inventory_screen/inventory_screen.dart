@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/categoryinventory_model.dart';
@@ -152,7 +153,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           GestureDetector(onTap: (){
                             if (selectedIndex == 0) {
                               // Add Product
-                               Get.to(()=> AddProductScreen());
+                              //  Get.to(()=> AddProductScreen());
+                               Get.toNamed(RouteHelper.getAddProductScreenRoute());
                             } else {
                               // Add Category
                               Get.to(()=>AddCategoryFolderScreen());

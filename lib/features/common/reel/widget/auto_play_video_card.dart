@@ -57,7 +57,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
 
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
-      widget.videoItem.video?.videoUrl ?? '',
+      widget.videoItem.video?.transcodedUrls?.master ?? widget.videoItem.video?.videoUrl ?? '',
       info.visibleFraction,
     );
   }

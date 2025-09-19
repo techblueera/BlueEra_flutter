@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -204,7 +205,7 @@ class AddProductScreen extends StatelessWidget {
                       ? GestureDetector(
                       onTap: () {
                         // Navigate or show dialog using GetX
-                        Get.to(() => ListingFormScreen());
+                        Get.toNamed(RouteHelper.getListingFormScreenRoute());
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(

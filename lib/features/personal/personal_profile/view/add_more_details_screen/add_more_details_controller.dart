@@ -64,11 +64,16 @@ class AddMoreDetailsController extends GetxController {
         'detail': detailController.text.trim(),
       };
 
+      final detailItem = DetailItem(
+        title: titleController.text.trim(),
+        details: detailController.text.trim(),
+      );
+
       clearForm();
 
       print('Saving details: $details');
 
-      Get.find<ManualListingScreenController>().addDetail(details);
+      Get.find<ManualListingScreenController>().addDetail(detailItem);
 
       Get.back();
       

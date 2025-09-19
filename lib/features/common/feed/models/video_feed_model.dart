@@ -169,7 +169,7 @@ class VideoData {
   final String? coverUrl;
   final String? videoUrl;
   final int? duration;
-  final Map<String, String>? transcodedUrls;
+  TranscodedUrls? transcodedUrls;
   final List<String>? tags;
   final List<String>? keywords;
   final List<Categories>? categories;
@@ -235,7 +235,9 @@ class VideoData {
       coverUrl: json['coverUrl'],
       videoUrl: json['videoUrl'],
       duration: json['duration'],
-      transcodedUrls: (json['transcodedUrls'] as Map?)?.cast<String, String>(),
+      transcodedUrls: json['transcodedUrls'] != null
+            ? TranscodedUrls.fromJson(json['transcodedUrls'])
+            : null,
       tags: (json['tags'] as List?)?.cast<String>(),
       keywords: (json['keywords'] as List?)?.cast<String>(),
       categories: (json['categories'] as List?)?.map((e) => Categories.fromJson(e)).toList(),
@@ -269,7 +271,7 @@ class VideoData {
     'coverUrl': coverUrl,
     'videoUrl': videoUrl,
     'duration': duration,
-    'transcodedUrls': transcodedUrls,
+    'transcodedUrls': transcodedUrls?.toJson(),
     'tags': tags,
     'keywords': keywords,
     'categories': categories?.map((c) => c.toJson()).toList(),
@@ -302,7 +304,7 @@ class VideoData {
     String? coverUrl,
     String? videoUrl,
     int? duration,
-    Map<String, String>? transcodedUrls,
+    TranscodedUrls? transcodedUrls,
     List<String>? tags,
     List<String>? keywords,
     List<Categories>? categories,
@@ -355,6 +357,77 @@ class VideoData {
     );
   }
 }
+
+class TranscodedUrls {
+  final String? master;
+  final String? p360;
+  final String? p432;
+  final String? p540;
+  final String? p720;
+  final String? p720High;
+  final String? p1080;
+  final String? p1200;
+
+  const TranscodedUrls({
+    this.master,
+    this.p360,
+    this.p432,
+    this.p540,
+    this.p720,
+    this.p720High,
+    this.p1080,
+    this.p1200,
+  });
+
+  factory TranscodedUrls.fromJson(Map<String, dynamic> json) {
+    return TranscodedUrls(
+      master: json['master'],
+      p360: json['360p'],
+      p432: json['432p'],
+      p540: json['540p'],
+      p720: json['720p'],
+      p720High: json['720p-high'],
+      p1080: json['1080p'],
+      p1200: json['1200p'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'master': master,
+      '360p': p360,
+      '432p': p432,
+      '540p': p540,
+      '720p': p720,
+      '720p-high': p720High,
+      '1080p': p1080,
+      '1200p': p1200,
+    };
+  }
+
+  TranscodedUrls copyWith({
+    String? master,
+    String? p360,
+    String? p432,
+    String? p540,
+    String? p720,
+    String? p720High,
+    String? p1080,
+    String? p1200,
+  }) {
+    return TranscodedUrls(
+      master: master ?? this.master,
+      p360: p360 ?? this.p360,
+      p432: p432 ?? this.p432,
+      p540: p540 ?? this.p540,
+      p720: p720 ?? this.p720,
+      p720High: p720High ?? this.p720High,
+      p1080: p1080 ?? this.p1080,
+      p1200: p1200 ?? this.p1200,
+    );
+  }
+}
+
 
 class Categories {
   final String? id;

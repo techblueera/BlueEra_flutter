@@ -9,11 +9,13 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-Future<List<Map<String, dynamic>>?> showCategoryBottomSheet(BuildContext context) async {
+import '../model/sub_category_root_category_response.dart';
+
+Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async {
   final controller = Get.put(ManualListingScreenController());
   controller.reset();
 
-  final result = await showModalBottomSheet<List<Map<String, dynamic>>>(
+  final result = await showModalBottomSheet<List<CategoryData>>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
@@ -79,7 +81,7 @@ Future<List<Map<String, dynamic>>?> showCategoryBottomSheet(BuildContext context
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               CustomText(
-                                item['name'],
+                                item.name,
                                 color: isLast ? AppColors.mainTextColor : AppColors.primaryColor,
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w600,
@@ -119,7 +121,7 @@ Future<List<Map<String, dynamic>>?> showCategoryBottomSheet(BuildContext context
                       ),
                       trailing: (cat.root??false) ? PositiveCustomBtn(
                         onTap: () {
-                          controller.breadcrumb.add({'id': cat.sId??'', 'name': cat.name});
+                          controller.breadcrumb.add(cat);
                           Navigator.pop(context, controller.breadcrumb);
                         },
                         title: 'Select',

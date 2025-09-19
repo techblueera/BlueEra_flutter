@@ -1,4 +1,4 @@
-import 'dart:developer';
+ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -167,6 +167,53 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             _isMeasured
                 ? Expanded(child: _buildMeasuredContent())
                 : _buildPreMeasureWidget(),
+
+            // Expanded(
+            //   child: NestedScrollView(
+            //     controller: _scrollController,
+            //     headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            //       SliverToBoxAdapter(
+            //         child: Padding(
+            //           padding: EdgeInsets.only(
+            //             top: SizeConfig.size15,
+            //             left: SizeConfig.size15,
+            //             right: SizeConfig.size15,
+            //           ),
+            //           child: _buildExpandedWidget(),
+            //         ),
+            //       ),
+            //     ],
+            //     body: Obx(() {
+            //       final videos = videoController.videoFeedPosts;
+            //       final isLoadingMore = videoController.isLoadingMore.value;
+            //
+            //       return ListView.builder(
+            //         shrinkWrap: true,
+            //         physics: const NeverScrollableScrollPhysics(),
+            //         padding: EdgeInsets.only(
+            //           top: SizeConfig.size5,
+            //           left: SizeConfig.size15,
+            //           right: SizeConfig.size15,
+            //           bottom: SizeConfig.size15,
+            //         ),
+            //         itemCount: videos.length + (isLoadingMore ? 1 : 0),
+            //         itemBuilder: (context, index) {
+            //           if (index == videos.length && isLoadingMore) {
+            //             return staggeredDotsWaveLoading();
+            //           }
+            //
+            //           final videoFeedItem = videos[index];
+            //           return VideoCard(
+            //             videoItem: videoFeedItem,
+            //             voidCallback: () => _navigateToVideoPlayer(videoFeedItem),
+            //             onTapOption: () => _showBlockDialog(videoFeedItem),
+            //             videoType: VideoType.videoFeed,
+            //           );
+            //         },
+            //       );
+            //     }),
+            //   ),
+            // )
           ],
         ),
       ),
@@ -218,7 +265,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        // 🧠 Collapsing SliverAppBar
+
         SliverAppBar(
           pinned: true,
           automaticallyImplyLeading: false,

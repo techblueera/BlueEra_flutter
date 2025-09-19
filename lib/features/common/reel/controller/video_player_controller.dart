@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -19,7 +20,12 @@ class YoutubeStyleVideoPlayerController extends GetxController {
   RxBool showBackwardIcon = false.obs;
 
   void initialize(String url) {
-    videoController = VideoPlayerController.networkUrl(Uri.parse(url))
+    videoController = VideoPlayerController.networkUrl(
+        Uri.parse(url),
+        videoPlayerOptions: isHlsUrl(url)
+            ? VideoPlayerOptions(mixWithOthers: true)
+            : null,
+    )
       ..initialize().then((_) {
         update();
         videoController.play();

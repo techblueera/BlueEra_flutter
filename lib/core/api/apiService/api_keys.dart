@@ -48,8 +48,10 @@ class ApiKeys {
   static const business_name = 'business_name';
   static const date_of_incorporation = 'date_of_incorporation';
   static const date = 'date';
+  static const week = 'week';
   static const month = 'month';
   static const year = 'year';
+  static const lifetime = 'lifetime';
   static const business_number = 'business_number';
   static const office_mob_no = 'office_mob_no';
   static const pre = 'pre';
@@ -326,4 +328,13 @@ class ApiKeys {
   static const reportedTo = "reported_to";
   static const visibilityDuration = "visibility_duration";
   static const filePath = "filePath";
+  static const categoryId = "category_id";
+  static const brand = "brand";
+  static const addProductFeatures = "addProductFeatures";
+  static const linkOrReferealWebsite = "linkOrReferealWebsite";
+  static const addMoreDetails = "addMoreDetails";
+  static const details = "details";
+  static const mrpPerUnit = "mrp_per_unit";
+  static const productWarranty = "productWarrenty";
+  static const expiryTime = "expiry_time";
 }

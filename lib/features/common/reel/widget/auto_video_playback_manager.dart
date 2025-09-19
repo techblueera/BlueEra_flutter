@@ -97,8 +97,15 @@ class SimplePriorityVideoManager extends GetxController {
         _controller = null;
       }
 
+      final isHls = videoUrl.toLowerCase().endsWith('.m3u8');
+
       // Create new controller
-      _controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+      _controller = VideoPlayerController.networkUrl(
+          Uri.parse(videoUrl),
+        videoPlayerOptions: isHls
+            ? VideoPlayerOptions(mixWithOthers: true)
+            : null,
+      );
       await _controller!.initialize();
 
       // Set properties

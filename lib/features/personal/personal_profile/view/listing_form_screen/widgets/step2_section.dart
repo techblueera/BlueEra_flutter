@@ -43,7 +43,7 @@ class Step2Section extends StatelessWidget {
                   SizedBox(height: SizeConfig.size8),
                   CustomText(
                     controller.selectedBreadcrumb.value
-                        ?.map((e) => e['name'].toString())
+                        ?.map((e) => e.name.toString())
                         .join(' - ') ?? '',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
@@ -339,14 +339,14 @@ class Step2Section extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      item['title'] ?? "",
+                                      item.title,
                                       fontSize: SizeConfig.large,
                                       fontWeight: FontWeight.w400,
                                       color: AppColors.mainTextColor,
                                     ),
                                     const SizedBox(height: 4),
                                     CustomText(
-                                      item['detail'] ?? "",
+                                      item.details,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.w400,
                                       color: AppColors.secondaryTextColor,

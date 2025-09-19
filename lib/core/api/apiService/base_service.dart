@@ -426,9 +426,18 @@ abstract class BaseService {
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
   final String socialLinksUpdate = "channel-service/channels/social-links/";
   final String getCountRating="user-service/business/getCountOfRating/";
-    String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
-    String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
-    String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
+  String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
+  String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
+  String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
+
+  final String subchildORRootCategroy = "product-service/api/categories/getSubchildORRootCategroy";
+  final String createProduct = "product-service/api/product/create-product";
+  String updateProductFeature(String productId) =>
+      'product-service/api/product/updateProductFeature/$productId';
+  String updatePriceAndWarranty(String productId) =>
+      'product-service/api/product/updatePriceAndWarranty/$productId';
+
+
 
 }
 // https://api.blueera.ai/api/user-service/users/689df0cb7e62ed576245195f/rating

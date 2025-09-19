@@ -55,10 +55,13 @@ import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
@@ -246,9 +249,8 @@ class RouteHelper {
   static String getVideographyTutorialScreen2Route() =>
       RouteConstant.VideographyTutorialScreen2;
   static String getMyEnquiresRoute() => RouteConstant.MyEnquiresScreen;
-  static String getBookingAndEnquiresRoute() => RouteConstant.MyEnquiresScreen;
   static String sentEnquiresRoute() => RouteConstant.EnquiryForm;
-  static String getAddProductScreenRoute() =>
+  static String getBookingAndEnquiresRoute() =>
       RouteConstant.BookingAndEnquiresScreen;
   static String getAvailabilityScreenRoute() =>
       RouteConstant.SetAvailabilityScreen;
@@ -265,6 +267,12 @@ class RouteHelper {
   static String getpostDetailPageRoute() => RouteConstant.postDetailPage;
   static String getMoreCardsScreenRoute() =>
        RouteConstant.moreCardsScreen;
+  static String getAddProductScreenRoute() =>
+       RouteConstant.addProductScreen;
+  static String getListingFormScreenRoute() =>
+       RouteConstant.listingFormScreen;
+  static String getInventoryScreenRoute() =>
+       RouteConstant.inventoryScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -794,6 +802,18 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => MoreCardsScreen(),
             settings: RouteSettings(name: getMoreCardsScreenRoute()));
+      case RouteConstant.addProductScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddProductScreen(),
+            settings: RouteSettings(name: getAddProductScreenRoute()));
+      case RouteConstant.listingFormScreen:
+        return MaterialPageRoute(
+            builder: (_) => ListingFormScreen(),
+            settings: RouteSettings(name: getListingFormScreenRoute()));
+      case RouteConstant.inventoryScreen:
+        return MaterialPageRoute(
+            builder: (_) => InventoryScreen(),
+            settings: RouteSettings(name: getInventoryScreenRoute()));
 
      default:
         return MaterialPageRoute(

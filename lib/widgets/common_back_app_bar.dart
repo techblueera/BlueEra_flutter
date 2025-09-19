@@ -685,7 +685,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isAddProduct)
           Builder(
             builder: (context) => GestureDetector(
-              onTap: ()=> Get.to(()=> AddProductScreen()),
+              onTap: ()=> Get.toNamed(RouteHelper.getAddProductScreenRoute()),
               child: Container(
                 height: SizeConfig.size30,
                 margin: EdgeInsets.only(right: SizeConfig.size10),
@@ -751,7 +751,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isCreateOwnProduct)
           Builder(
             builder: (context) => GestureDetector(
-              onTap: ()=>  Get.to(() => ListingFormScreen()),
+              onTap: ()=> Get.toNamed(RouteHelper.getListingFormScreenRoute()),
               child: Container(
                 height: SizeConfig.size30,
                 margin: EdgeInsets.only(right: SizeConfig.size10),

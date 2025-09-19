@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/create_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/sub_category_root_category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/category_response.dart';
@@ -43,9 +44,46 @@ class SelectedColor {
   SelectedColor(this.color, this.name);
 }
 
+class DetailItem {
+  final String title;
+  final String details;
+
+  DetailItem({
+    required this.title,
+    required this.details,
+  });
+
+  factory DetailItem.fromJson(Map<String, dynamic> json) {
+    return DetailItem(
+      title: json['title'] ?? '',
+      details: json['details'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'details': details,
+    };
+  }
+
+  DetailItem copyWith({
+    String? title,
+    String? details,
+  }) {
+    return DetailItem(
+      title: title ?? this.title,
+      details: details ?? this.details,
+    );
+  }
+}
+
 
 class ManualListingScreenController extends GetxController {
   Rx<ApiResponse> getSubChildORRootCategroyResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> updateProductFeatureResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> updatePriceAndWarrantyResponse = ApiResponse.initial('Initial').obs;
 
   // Pickers
   final ImagePicker _picker = ImagePicker();
@@ -117,9 +155,9 @@ class ManualListingScreenController extends GetxController {
   final RxBool showLinkField = false.obs;
 
   /// Breadcrumb path: [{id, name}]
-  var breadcrumb = <Map<String, dynamic>>[].obs;
+  var breadcrumb = <CategoryData>[].obs;
 
-  Rxn<List<Map<String, dynamic>>> selectedBreadcrumb = Rxn<List<Map<String, dynamic>>>();
+  Rxn<List<CategoryData>> selectedBreadcrumb = Rxn<List<CategoryData>>();
 
   /// Cache categories per parentId
   final Map<String?, List<CategoryData>> _cache = {};
@@ -130,6 +168,9 @@ class ManualListingScreenController extends GetxController {
 
   final RxList<String> tags = <String>[].obs;
 
+  final List<String> durationTypes = ['Day', 'Week', 'Month', 'Year', 'Life Time'];
+
+  /// product warranty variables
   RxString selectedProductDuration = 'Day'.obs;
   Rx<num> selectedProductValue = Rx<num>(1);
 
@@ -149,14 +190,29 @@ class ManualListingScreenController extends GetxController {
     }
   }
 
-  RxString selectedDuration = 'Day'.obs;
-  Rx<num> selectedValue = Rx<num>(1);
+  Map<String, dynamic> get productWarrantyTime {
+    switch (selectedProductDuration.value) {
+      case 'Day':
+        return {"day": selectedProductValue.value};
+      case 'Week':
+        return {"week": selectedProductValue.value};
+      case 'Month':
+        return {"month": selectedProductValue.value};
+      case 'Year':
+        return {"year": selectedProductValue.value};
+      default:
+        return {};
+    }
+  }
 
-  final List<String> durationTypes = ['Day', 'Week', 'Month', 'Year', 'Life Time'];
+
+  /// product expiry variables
+  RxString selectedExpiryDuration = 'Day'.obs;
+  Rx<num> selectedExpiryValue = Rx<num>(1);
 
   // Get range based on selected duration
-  List<num> get valueRange {
-    switch (selectedDuration.value) {
+  List<num> get expiryValueRange {
+    switch (selectedExpiryDuration.value) {
       case 'Day':
         return List.generate(30, (index) => index + 1);
       case 'Week':
@@ -171,6 +227,24 @@ class ManualListingScreenController extends GetxController {
         return [1];
     }
   }
+
+  Map<String, dynamic> get expiryTime {
+    switch (selectedExpiryDuration.value) {
+      case 'Day':
+        return {"day": selectedExpiryValue.value};
+      case 'Week':
+        return {"week": selectedExpiryValue.value};
+      case 'Month':
+        return {"month": selectedExpiryValue.value};
+      case 'Year':
+        return {"year": selectedExpiryValue.value};
+      case 'Life Time':
+        return {"lifetime": true};
+      default:
+        return {};
+    }
+  }
+
 
   RxList<SelectedColor> selectedColors = <SelectedColor>[].obs;
 
@@ -192,7 +266,7 @@ class ManualListingScreenController extends GetxController {
   final formKeyStep3 = GlobalKey<FormState>();
   // final formKeyStep4 = GlobalKey<FormState>();
 
-  var detailsList = <Map<String, String>>[].obs;
+  var detailsList = <DetailItem>[].obs;
 
   // @override
   // void onInit() {
@@ -202,6 +276,8 @@ class ManualListingScreenController extends GetxController {
   //     isEditingMap[key] = false;
   //   });
   // }
+
+  String? productId;
 
   @override
   void onClose() {
@@ -418,17 +494,31 @@ class ManualListingScreenController extends GetxController {
       case 1: return _validateStep1();
       case 2: return _validateStep2();
       case 3: return _validateStep3();
-      default: return false;
+      default: return true;
     }
   }
 
   void onNext() async {
     if (!validateCurrentStep()) return;
-    if (currentStep.value < totalSteps) {
-      currentStep.value += 1;
-    } else {
-      await submitFinal();
+    if (currentStep.value < totalSteps){
+      if(currentStep.value == 1){
+        createProductApi();
+      }else if(currentStep.value == 2){
+        updateProductFeatureApi();
+      } else if(currentStep.value == 3){
+        updatePriceAndWarrantyApi();
+      }
+    }else{
+      commonSnackBar(message: 'Product add successfully');
+      Get.back();
+      // await submitFinal();
     }
+
+    // if (currentStep.value < totalSteps) {
+    //   currentStep.value += 1;
+    // } else {
+    //   await submitFinal();
+    // }
   }
 
   void onBack() { if (currentStep.value > 1) currentStep.value -= 1; }
@@ -509,63 +599,6 @@ class ManualListingScreenController extends GetxController {
     // );
   }
 
-  // Convert top-level categories to CategoryNode for level-0 dropdown
-  List<CategoryNode> _topAsNodes(List<TopLevelCategory> cats) =>
-      cats.map((c) => CategoryNode(id: c.id, name: c.name, parent: null, subcategories: const []))
-          .toList();
-
-  // Centralized fetcher
-  Future<List<CategoryNode>> _fetchChildren(String parentId) async {
-    try {
-      isLoading.value = true;
-      final response = await ListingFormRepo().getSubcategories(parentId);
-      if (response.statusCode == 200) {
-        return childrenFromApi(response.response!.data);
-      }
-      print("Subcategories API failed with status: ${response.statusCode}");
-      return <CategoryNode>[];
-    } catch (e) {
-      print("Error fetching subcategories: $e");
-      return <CategoryNode>[];
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  // Handle change at any level i; create/remove deeper levels accordingly
-  Future<void> onLevelChanged(int levelIndex, String? name) async {
-    if (name == null || name.isEmpty) return;
-    if (levelIndex < 0 || levelIndex >= categoryLevels.length) return;
-
-    final level = categoryLevels[levelIndex];
-    final node = level.items.firstWhereOrNull((e) => e.name == name);
-    if (node == null) return;
-
-    // Update selection for this level
-    final updatedLevel = level.copyWith(selectedId: node.id, selectedName: node.name);
-    final newLevels = categoryLevels.toList();
-    newLevels[levelIndex] = updatedLevel;
-
-    // Drop deeper levels
-    if (newLevels.length > levelIndex + 1) {
-      newLevels.removeRange(levelIndex + 1, newLevels.length);
-    }
-
-    // Fetch children for the selected node; if present, add a new level
-    final children = await _fetchChildren(node.id);
-    if (children.isNotEmpty) {
-      newLevels.add(CategoryLevel(items: children));
-      // Not a leaf yet
-      selectedCategory.value = node.name; // optional preview
-      selectedCategoryId.value = node.id;
-    } else {
-      // Leaf reached -> finalize
-      selectedCategory.value = node.name;
-      selectedCategoryId.value = node.id;
-    }
-
-    categoryLevels.value = newLevels;
-  }
 
   // Features management
   void addFeature() {
@@ -784,13 +817,13 @@ class ManualListingScreenController extends GetxController {
   }
 
   void selectCategory(CategoryData cat) {
-    breadcrumb.add({'id': cat.sId??'', 'name': cat.name});
+    breadcrumb.add(cat);
     loadCategories(parentId: cat.sId??'');
   }
 
   void goToBreadcrumb(int index) {
     breadcrumb.removeRange(index + 1, breadcrumb.length);
-    final parentId = breadcrumb.isNotEmpty ? breadcrumb.last['id'] : null;
+    final parentId = breadcrumb.isNotEmpty ? breadcrumb.last.sId : null;
     loadCategories(parentId: parentId);
   }
 
@@ -857,13 +890,13 @@ class ManualListingScreenController extends GetxController {
 
   // Reset value when duration type changes
   void onDurationChanged(String newDuration) {
-    selectedDuration.value = newDuration;
-    selectedValue.value = 1; // Reset to 1 when duration changes
+    selectedExpiryDuration.value = newDuration;
+    selectedExpiryValue.value = 1; // Reset to 1 when duration changes
   }
 
   void onValueChanged(num newValue) {
     log('selected value-- $newValue');
-    selectedValue.value = newValue;
+    selectedExpiryValue.value = newValue;
 
   }
 
@@ -882,7 +915,7 @@ class ManualListingScreenController extends GetxController {
     selectedColors.remove(selectedColor);
   }
 
-  void addDetail(Map<String, String> detail) {
+  void addDetail(DetailItem detail) {
     detailsList.add(detail);
   }
 
@@ -934,5 +967,106 @@ class ManualListingScreenController extends GetxController {
     variantSizes[variant] = size;
   }
 
+
+  Future<void> createProductApi() async {
+
+    // loading.value = true;
+    try {
+      Map<String, dynamic> params = {
+        ApiKeys.name: productNameController.text.trim(),
+        ApiKeys.categoryId: selectedBreadcrumb.value?.last.sId??'',
+        ApiKeys.tags: tags
+      };
+
+      if(brandController.text.trim().isNotEmpty){
+        params[ApiKeys.brand] = brandController.text.trim();
+      }
+
+      List<dio.MultipartFile> imageByPart = [];
+
+      for (final path in imageLocalPaths) {
+        final fileName = path.split('/').last;
+        imageByPart.add(await dio.MultipartFile.fromFile(path, filename: fileName));
+      }
+      params[ApiKeys.media] = imageByPart;
+
+
+      final responseModel = await ListingFormRepo().createProductApi(params: params);
+      commonSnackBar(message: responseModel.message);
+      if (responseModel.isSuccess) {
+        createProductResponse.value = ApiResponse.complete(responseModel);
+        final createProductModel = CreateProductModel.fromJson(responseModel.response!.data);
+        productId = createProductModel.data?.sId;
+        currentStep.value += 1;
+      } else {
+        createProductResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      createProductResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: 'something went wrong.');
+    } finally {
+      // loading.value = false;
+    }
+  }
+
+  Future<void> updateProductFeatureApi() async {
+
+    // loading.value = true;
+    try {
+      Map<String, dynamic> params = {
+      ApiKeys.addProductFeatures: featureControllers
+          .where((c) => c.text.trim().isNotEmpty)
+          .map((c) => {ApiKeys.title: c.text.trim()})
+          .toList(),
+      };
+
+      if(detailsList.isNotEmpty) params[ApiKeys.addMoreDetails] = detailsList.map((e) => e.toJson()).toList();
+      if(linkController.text.trim().isNotEmpty) params[ApiKeys.linkOrReferealWebsite] = {ApiKeys.title: linkController.text.trim()};
+
+
+      final responseModel = await ListingFormRepo().updateProductFeatureApi(params: params, productId: productId??'');
+      // commonSnackBar(message: responseModel.message);
+      if (responseModel.isSuccess) {
+        updateProductFeatureResponse.value = ApiResponse.complete(responseModel);
+        currentStep.value += 1;
+      } else {
+        updateProductFeatureResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      print('stack -- $s');
+      updateProductFeatureResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: 'something went wrong.');
+    } finally {
+      // loading.value = false;
+    }
+  }
+
+  Future<void> updatePriceAndWarrantyApi() async {
+
+    // loading.value = true;
+    try {
+      Map<String, dynamic> params = {
+        ApiKeys.mrpPerUnit: mrpController.text.trim(),
+        // ApiKeys.productWarranty: productWarrantyTime,
+        ApiKeys.expiryTime: productWarrantyTime,
+        ApiKeys.expiryTime: expiryTime,
+        ApiKeys.description: guidelineController.text.trim()
+      };
+
+      final responseModel = await ListingFormRepo().updatePriceAndWarrantyApi(params: params, productId: productId??'');
+      // commonSnackBar(message: responseModel.message);
+      if (responseModel.isSuccess) {
+        updatePriceAndWarrantyResponse.value = ApiResponse.complete(responseModel);
+        currentStep.value += 1;
+      } else {
+        updatePriceAndWarrantyResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      updatePriceAndWarrantyResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: 'something went wrong.');
+    } finally {
+      // loading.value = false;
+    }
+  }
 
 }
