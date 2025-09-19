@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/gestures.dart';
@@ -24,9 +25,10 @@ class BusinessLivePhotos extends StatelessWidget {
             children: [
               CustomText(
                   "Live Photos",
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                color: AppColors.grayText,
+
+                fontWeight: FontWeight.w600,
+                fontSize: SizeConfig.medium15,
+                color: AppColors.secondaryTextColor,
               ),
             ],
           ),

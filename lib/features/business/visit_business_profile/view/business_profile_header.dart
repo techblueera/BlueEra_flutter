@@ -124,7 +124,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    color: AppColors.secondaryTextColor,
+                                    color: AppColors.black,
                                   ),
                                 ),
                                 if(businessProfileDetails.username!=null&&(businessProfileDetails.username?.isNotEmpty??false))

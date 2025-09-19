@@ -850,7 +850,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         } else {
           Get.to(() => VisitBusinessProfileNew(
               businessId:
-                  fullScreenShortController.videoItem?.author?.id ?? ''));
+                  fullScreenShortController.videoItem?.author?.id ?? '', screenName:  AppConstants.feedScreen,));
         }
       }
     }

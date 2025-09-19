@@ -1811,27 +1811,24 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
             CommonProfileImage(
               imagePath: viewBusinessDetailsController.imagePath?.value ?? "",
               onImageUpdate: (image) async {
-                logs("image=== $image");
                 viewBusinessDetailsController.imagePath?.value = image;
                 dioObj.MultipartFile? imageByPart;
                 // if (viewBusinessDetailsController.isImageUpdated.value) {
-                  if (viewBusinessDetailsController
-                          .imagePath?.value.isNotEmpty ??
-                      false) {
-                    String fileName = viewBusinessDetailsController
-                            .imagePath?.value
-                            .split('/')
-                            .last ??
-                        "";
-                    imageByPart = await dioObj.MultipartFile.fromFile(
-                        viewBusinessDetailsController.imagePath?.value ?? "",
-                        filename: fileName);
-                  }
+                if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ??
+                    false) {
+                  String fileName = viewBusinessDetailsController
+                          .imagePath?.value
+                          .split('/')
+                          .last ??
+                      "";
+                  imageByPart = await dioObj.MultipartFile.fromFile(
+                      viewBusinessDetailsController.imagePath?.value ?? "",
+                      filename: fileName);
+                }
                 // }
                 dynamic reqData = {
                   ApiKeys.businessId: businessId,
-                  ApiKeys.logo_image:
-                  imageByPart,
+                  ApiKeys.logo_image: imageByPart,
                 };
 
                 await Get.find<ViewBusinessDetailsController>()
@@ -1859,7 +1856,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: SizeConfig.size10,),
+                        SizedBox(
+                          width: SizeConfig.size10,
+                        ),
                         GestureDetector(
                           onTap: () {
                             navigatePushTo(
@@ -1874,22 +1873,15 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                 size: 14, color: Colors.white),
                           ),
                         ),
-
                       ],
                     ),
-
                     CustomText(
-                      (details?.subCategoryOfBusiness?.isNotEmpty ?? false)
-                          ? details?.subCategoryOfBusiness ??'' :
-                      (details?.categoryOfBusiness?.isNotEmpty ?? false)
-                          ?  details?.subCategoryOfBusiness??'' : (details?.natureOfBusiness ?? 'OTHERS'),
-
-                      // (details?.subCategoryDetails !=null && details?.subCategoryDetails?.name !=null)
-                      //     ? details?.subCategoryDetails?.name
-                      //       : (details?.categoryDetails !=null && details?.categoryDetails?.name != null)
-                      //         ? details?.categoryDetails?.name
-                      //               : details?.natureOfBusiness,
-
+                      (details?.categoryDetails?.name?.isNotEmpty ?? false)
+                          ? details?.categoryDetails?.name ?? 'Other'
+                          : (details?.subCategoryDetails?.name?.isNotEmpty ??
+                                  false)
+                              ? details?.subCategoryDetails?.name ?? ''
+                              : (details?.natureOfBusiness ?? 'OTHERS'),
                       fontWeight: FontWeight.w400,
                       fontSize: 18,
                       maxLines: 1,
@@ -2007,8 +1999,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             //     MaterialPageRoute(
                             //         builder: (context) =>
                             //             BusinessVerificationScrn()));
-                            Get.to(() =>
-                                VisitBusinessProfileNew(businessId: businessId));
+                            Get.to(() => VisitBusinessProfileNew(
+                                businessId: businessId, screenName:  AppConstants.feedScreen,));
                           },
                           child: CustomText(
                             fontWeight: FontWeight.w900,
@@ -2785,15 +2777,12 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         GestureDetector(
           onTap: () async {
             if (imagePath == "") {
-
               final imgStr = await SelectProfilePictureDialog.pickFromCamera(
                   context,
                   cropAspectRatio: CropAspectRatio(width: 9, height: 16));
-              if(imgStr!=null){
-                saveBusinessImages(
-                    imgStr, controller.imgDeleteL3, controller);
+              if (imgStr != null) {
+                saveBusinessImages(imgStr, controller.imgDeleteL3, controller);
               }
-
 
               // _pickImage(index); // Pick an image if the slot is empty
               // uploadFromGallery ? _pickImage(index) :
@@ -2803,15 +2792,14 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               //     isOnlyCamera: true, isGallery: true, isCircleCrop: false);
               // if (imgStr != null && imgStr.isNotEmpty) {
               //   setState(() {
-                  // viewBusinessDetailsController.imgUploadL2.add(imgStr);
-                  // saveBusinessImages(
-                  //     imgStr, controller.imgDeleteL3, controller);
+              // viewBusinessDetailsController.imgUploadL2.add(imgStr);
+              // saveBusinessImages(
+              //     imgStr, controller.imgDeleteL3, controller);
               //
               //     // Send updated list to the parent widget
               //   });
               // }
-
-            }else{
+            } else {
               navigatePushTo(
                 context,
                 ImageViewScreen(

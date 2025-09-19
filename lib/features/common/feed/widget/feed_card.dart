@@ -69,7 +69,7 @@ class _FeedCardState extends State<FeedCard> {
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
         Get.to(() =>
-            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? ""));
+            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? "", screenName:  AppConstants.feedScreen,));
       }
     } else {
       if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
@@ -77,7 +77,7 @@ class _FeedCardState extends State<FeedCard> {
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
         Get.to(() =>
-            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? ""));
+            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? "", screenName:  AppConstants.feedScreen,));
       }
     }
   }

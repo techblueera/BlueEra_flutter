@@ -80,8 +80,10 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Rx<File?> selectedVideo = Rx<File?>(null);
   ViewBusinessProfileModel? visitedBusinessProfileDetails;
-  Rx<VisitBusinessRatingSumModel> visitBusinessRatingSumModel=VisitBusinessRatingSumModel().obs;
-  Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel=VisitBusinessDetailedRatingModel().obs;
+  Rx<VisitBusinessRatingSumModel> visitBusinessRatingSumModel =
+      VisitBusinessRatingSumModel().obs;
+  Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel =
+      VisitBusinessDetailedRatingModel().obs;
 
   // RxList<String> imgUploadL2 = <String>[].obs;
   RxList<String> imgLocalL3 = <String>[].obs;
@@ -121,7 +123,28 @@ class ViewBusinessDetailsController extends GetxController {
     if (lng != null) addressLong?.value = lng;
     businessAddress.value = address;
   }
+
   final controllerVisit = Get.put(VisitProfileController());
+  final isLoading = false.obs;
+
+  loadInitData({required String businessID}) async {
+    try {
+      isLoading.value = true;
+
+      await Future.wait([
+        viewBusinessProfileById(businessID),
+        // getBusinessRatingsSummary(businessID),
+        // getBusinessDetailedRatings(businessID)
+      ]);
+      isLoading.value = false;
+    } catch (e) {
+      isLoading.value = false;
+    } finally {
+      isLoading.value = false;
+
+      // TODO
+    }
+  }
 
   Future<void> viewBusinessProfile() async {
     try {
@@ -153,7 +176,8 @@ class ViewBusinessDetailsController extends GetxController {
                     : BusinessType.Both;
         businessDescription.value =
             businessProfileDetails?.data?.businessDescription ?? "";
-        controllerVisit.isFollow.value=businessProfileDetails?.data?.is_following??false;
+        controllerVisit.isFollow.value =
+            businessProfileDetails?.data?.is_following ?? false;
         if (selectedBusinessType?.value.name.toLowerCase() == "both") {
           selectedCategoryOfBusiness.value = null;
           selectedSubCategoryOfBusinessNew.value = null;
@@ -175,7 +199,8 @@ class ViewBusinessDetailsController extends GetxController {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         update();
       } else {
-        logs("ERROR BUSINESS PROFILE ${ responseModel.message ?? AppStrings.somethingWentWrong}");
+        logs(
+            "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
 
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -235,6 +260,7 @@ class ViewBusinessDetailsController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      logs("ERROR ${e}");
       businessCategoryResponse = ApiResponse.error('error');
     }
   }
@@ -367,8 +393,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-          visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
-           // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
+        visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+        // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
         final chatViewController = Get.find<ChatViewController>();
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
@@ -377,11 +403,22 @@ class ViewBusinessDetailsController extends GetxController {
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
-        conversationId.value= ((chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId==null)?chatViewController.newVisitContactApiResponse?.value?.data?.conversationId: chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId)??'';
+        conversationId.value = ((chatViewController
+                        .newVisitContactApiResponse?.value?.data?.otherUserId ==
+                    null)
+                ? chatViewController
+                    .newVisitContactApiResponse?.value?.data?.conversationId
+                : chatViewController
+                    .newVisitContactApiResponse?.value?.data?.otherUserId) ??
+            '';
         viewBusinessResponseNew = ApiResponse.complete(responseModel);
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
-        distanceFromKm.value = await getDistanceInKm(visitedBusinessProfileDetails?.data?.businessLocation?.lat??0,visitedBusinessProfileDetails?.data?.businessLocation?.lon??0)??0.0;
+        distanceFromKm.value = await getDistanceInKm(
+                visitedBusinessProfileDetails?.data?.businessLocation?.lat ?? 0,
+                visitedBusinessProfileDetails?.data?.businessLocation?.lon ??
+                    0) ??
+            0.0;
         update();
       } else {
         commonSnackBar(
@@ -392,6 +429,7 @@ class ViewBusinessDetailsController extends GetxController {
       viewBusinessResponseNew = ApiResponse.error('error');
     }
   }
+
   Future<void> getBusinessRatingsSummary(String userId) async {
     try {
       ResponseModel responseModel =
@@ -399,7 +437,8 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
-        visitBusinessRatingSumModel.value=VisitBusinessRatingSumModel.fromJson(data);
+        visitBusinessRatingSumModel.value =
+            VisitBusinessRatingSumModel.fromJson(data);
         update();
       } else {
         commonSnackBar(
@@ -409,6 +448,7 @@ class ViewBusinessDetailsController extends GetxController {
       viewBusinessResponse = ApiResponse.error('error');
     }
   }
+
   Future<void> getBusinessDetailedRatings(String userId) async {
     try {
       ResponseModel responseModel =
@@ -416,7 +456,8 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         log("kdjcnksjdcnksdc ${data}");
-        visitBusinessDetailedRatingModel.value=VisitBusinessDetailedRatingModel.fromJson(data);
+        visitBusinessDetailedRatingModel.value =
+            VisitBusinessDetailedRatingModel.fromJson(data);
         update();
       } else {
         commonSnackBar(
@@ -476,11 +517,8 @@ class ViewBusinessDetailsController extends GetxController {
         "comment": comment,
       };
 
-      ResponseModel?
-
-        responseModel = await BusinessProfileRepo()
-            .submitRatingToBusiness(businessId, params);
-
+      ResponseModel? responseModel = await BusinessProfileRepo()
+          .submitRatingToBusinessAccount(businessId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");
@@ -510,8 +548,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       ResponseModel? responseModel;
 
-        responseModel = await BusinessProfileRepo()
-            .submitRatingToPersonal(userId, params);
+      responseModel =
+          await BusinessProfileRepo().submitRatingToPersonal(userId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");

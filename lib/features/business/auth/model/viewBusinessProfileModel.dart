@@ -9,7 +9,7 @@ class ViewBusinessProfileModel {
   ViewBusinessProfileModel.fromJson(dynamic json) {
     status = json['status'];
     data = json['data'] != null ? BusinessProfileDetails.fromJson(json['data']) : null;
-    if (json['relatedStores'] != null) {
+    if (json['relatedStores'] != null&&json['relatedStores'].isNotEmpty) {
       relatedStoresList = [];
       json['relatedStores'].forEach((v) {
         relatedStoresList?.add(RelatedStoresList.fromJson(v));
@@ -66,7 +66,9 @@ class BusinessProfileDetails {
       this.rating,
       this.total_views,
       this.username,
-      this.total_followers
+      this.total_followers,
+      this.total_ratings,
+      this.avg_rating,
   });
 
   BusinessProfileDetails.fromJson(dynamic json) {
@@ -81,11 +83,9 @@ class BusinessProfileDetails {
     natureOfBusiness = json['Nature_of_Business'];
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
-    // livePhotos=json['live_photos'].cast<String>();
-    if (json['live_photos'] != null) {
+    livePhotos=json['live_photos'].cast<String>();
+    if (json['live_photos'] != null&&json['live_photos'].isNotEmpty) {
       livePhotos=json['live_photos'].cast<String>();
-
-
     }
     rating=json['total_ratings'];
     total_views=json['total_views'];
@@ -96,7 +96,7 @@ class BusinessProfileDetails {
         : null;
 
 
-    if (json['owner_details'] != null) {
+    if (json['owner_details'] != null&&json['owner_details'].isNotEmpty) {
       ownerDetails = [];
       json['owner_details'].forEach((v) {
         ownerDetails?.add(OwnerDetails.fromJson(v));
@@ -116,6 +116,8 @@ class BusinessProfileDetails {
     subCategoryDetails = json['sub_category_details'] != null ? SubCategoryDetails.fromJson(json['sub_category_details']) : null;
     pincode = json['pincode'];
     username = json['username'];
+    avg_rating = json['avg_rating'];
+    total_ratings = json['total_ratings'];
 
   }
   DateOfIncorporation? dateOfIncorporation;
@@ -151,6 +153,8 @@ class BusinessProfileDetails {
   BusinessNumber? businessNumber;
   String? category_other;
   String? username;
+  num? avg_rating;
+  num? total_ratings;
 
 
   Map<String, dynamic> toJson() {
@@ -194,6 +198,8 @@ class BusinessProfileDetails {
     map['rating']=rating;
     map['total_views']=total_views;
     map['total_followers']=total_followers;
+    map['total_ratings']=total_ratings;
+    map['avg_rating']=avg_rating;
     if (categoryDetails != null) {
       map['category_details'] = categoryDetails?.toJson();
     }

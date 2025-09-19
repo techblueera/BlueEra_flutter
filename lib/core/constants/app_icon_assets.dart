@@ -366,4 +366,10 @@ class AppIconAssets {
   static String cards = "${iconPath}cards.svg";
   static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
   static String colorTemplateIcon = "${iconPath}color_template_icon.svg";
+  static String blue_era_app_logo = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
+  static String product_sale = "${iconPath}product_sale.svg";
+  static String service_provider = "${iconPath}service_provider.svg";
+  static String food_service = "${iconPath}food_service.svg";
+  static String other_type = "${iconPath}other_type.svg";
+
 }

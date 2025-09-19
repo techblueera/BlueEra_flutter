@@ -76,7 +76,7 @@ class StoreSearchSuggestionController extends GetxController {
       navigatePushTo(context, BusinessOwnProfileScreen());
     } else {
       Get.to(() => VisitBusinessProfileNew(
-          businessId: business.id?? ""));
+          businessId: business.id?? "", screenName:  AppConstants.feedScreen,));
     }    // Get.to(() => StoreSearchScreen(initialQuery: business.businessName));
   }
 }

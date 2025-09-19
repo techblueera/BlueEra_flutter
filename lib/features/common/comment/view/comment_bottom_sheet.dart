@@ -695,7 +695,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
         print('targetUser.sId--> ${targetUser.sId}');
 
        Get.to(() => VisitBusinessProfileNew(
-          businessId: targetUser.sId ?? '',
+          businessId: targetUser.sId ?? '', screenName:  AppConstants.feedScreen,
         ));
       }
     }

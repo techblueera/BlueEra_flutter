@@ -167,6 +167,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         return PersonalOverviewScreen(
           userId: widget.authorId,
           channelId: widget.channelId,
+          // channelId: widget.channelId,
           videoType: VideoType.latest.name, screenFromName: widget.screenFromName,
 
         );

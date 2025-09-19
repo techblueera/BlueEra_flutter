@@ -61,7 +61,7 @@ class PersonalOverviewScreen extends StatelessWidget {
                 0.0,
             ratingPersonCount: visitingController.userData.value?.ratingSummary?.totalRatings??0,
             userId: userId,
-            screenFromName: screenFromName,
+            screenFromName: screenFromName, ratingForAccountName: AppConstants.individual, businessId: '',
           ),
           SizedBox(
             height: SizeConfig.size5,
@@ -282,7 +282,7 @@ class PersonalOverviewScreen extends StatelessWidget {
       child: CustomText(
         title,
         fontWeight: FontWeight.w600,
-        fontSize: SizeConfig.large,
+        fontSize: SizeConfig.medium15,
           color: AppColors.secondaryTextColor
       ),
     );

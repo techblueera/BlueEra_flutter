@@ -107,7 +107,7 @@ class PostAuthorHeader extends StatelessWidget {
                     navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
                     Get.to(() => VisitBusinessProfileNew(
-                        businessId: post?.user?.business_id ?? ""));
+                        businessId: post?.user?.business_id ?? "", screenName:  AppConstants.feedScreen,));
                   }
                 }
               },
