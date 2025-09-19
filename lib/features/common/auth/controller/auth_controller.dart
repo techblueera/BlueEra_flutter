@@ -85,7 +85,6 @@ class AuthController extends GetxController {
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
     String? token = await FirebaseMessaging.instance.getToken();
-    log("ksjdcnkjsncksjc ${token}");
     Map<String, dynamic> requestData = {
       ApiKeys.contact_no: mobileNumberEditController.text,
       ApiKeys.otp: otp,
