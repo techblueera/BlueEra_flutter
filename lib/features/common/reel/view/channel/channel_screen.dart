@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -17,6 +18,7 @@ import 'package:BlueEra/features/common/reel/view/sections/video_channel_section
 import 'package:BlueEra/features/common/store/channel_product_screen/channel_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -482,6 +484,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
   }
 
   Widget _buildTabContent(ChannelTab tab) {
+    logs("isOwnChannel==== ${isOwnChannel}");
     switch (tab) {
       case ChannelTab.shorts:
         return ShortsChannelSection(
@@ -782,7 +785,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
       if (authorId == userId) {
         Get.to(() => PersonalProfileSetupScreen());
       } else {
-        Get.to(() => VisitProfileScreen(authorId: authorId));
+        Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
       }
     } else {
       if (authorId == userId) {

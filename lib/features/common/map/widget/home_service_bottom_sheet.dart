@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -8,6 +9,7 @@ import 'package:BlueEra/features/common/map/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn_with_icon.dart';
@@ -268,7 +270,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                         if (userId == serviceData.id) {
                           Get.to(() => PersonalProfileSetupScreen());
                         } else {
-                          Get.to(() => VisitProfileScreen(authorId: serviceData.id??''));
+                          Get.to(() => NewVisitProfileScreen(authorId: serviceData.id??'', screenFromName: AppConstants.feedScreen,));
                         }
                       },
                       icon: LocalAssets(imagePath: AppIconAssets.quillChatIcon, imgColor: AppColors.white),

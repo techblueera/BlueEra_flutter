@@ -95,7 +95,6 @@ class PostAuthorHeader extends StatelessWidget {
                     Get.to(() => NewVisitProfileScreen(
                           authorId: authorId,
                           screenFromName: AppConstants.feedScreen,
-                          channelId: '',
                         ));
                     // Get.to(() => VisitProfileScreen(authorId: authorId));
                     // Get.to(() => PersonalChatProfile(userId: authorId));

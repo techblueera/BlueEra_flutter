@@ -24,7 +24,7 @@ class OverviewController extends GetxController {
 
   /// Centralized API call
   Future<void> loadOverviewData(
-      String userId, String channelId, String videoType) async {
+      String userId, String videoType) async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
@@ -34,7 +34,7 @@ class OverviewController extends GetxController {
         _getTestimonials(userId),
         getRatingSummary(userId:userId),
         _getPosts(userId),
-        _getShorts(channelId, userId),
+        _getShorts( userId),
         _getVideos(videoType, userId),
       ]);
     } catch (e) {
@@ -72,7 +72,7 @@ class OverviewController extends GetxController {
     }
   }
 
-  Future<void> _getShorts(String channelId, String userId) async {
+  Future<void> _getShorts( String userId) async {
     shortsList.clear();
     final params = {
       ApiKeys.limit: 5,
@@ -82,7 +82,8 @@ class OverviewController extends GetxController {
       ApiKeys.status: VideoStatus.published.queryValue,
       ApiKeys.postVia: "user",
     };
-    ResponseModel responseModel = await ChannelRepo().getVisitingChannelVideos(channelId: userId, queryParams: params);
+
+    ResponseModel responseModel = await ChannelRepo().getOwnChannelVideos(authorId: userId, queryParams: params);
 
     // ResponseModel responseModel = await ShortsRepo().getShortsByType("latest", channelId, userId);
     if (responseModel.isSuccess) {
@@ -105,7 +106,7 @@ class OverviewController extends GetxController {
     };
 
     ResponseModel responseModel = await ChannelRepo()
-        .getVisitingChannelVideos(queryParams: params,  channelId:channelId);
+        .getOwnChannelVideos(queryParams: params,  authorId:channelId);
     if (responseModel.isSuccess) {
       final videoResponse =
           VideoResponse.fromJson(responseModel.response?.data);

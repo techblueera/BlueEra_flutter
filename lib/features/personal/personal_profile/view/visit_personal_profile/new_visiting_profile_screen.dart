@@ -22,13 +22,14 @@ import '../../controller/profile_controller.dart';
 class NewVisitProfileScreen extends StatefulWidget {
   final String authorId;
   final String screenFromName;
-  final String channelId;
+  // final String channelId;
 
   const NewVisitProfileScreen(
       {super.key,
       required this.authorId,
       required this.screenFromName,
-      required this.channelId});
+      // required this.channelId
+      });
 
   @override
   State<NewVisitProfileScreen> createState() => _NewVisitProfileScreenState();
@@ -166,7 +167,6 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
       case 'Overview':
         return PersonalOverviewScreen(
           userId: widget.authorId,
-          channelId: widget.channelId,
           // channelId: widget.channelId,
           videoType: VideoType.latest.name, screenFromName: widget.screenFromName,
 

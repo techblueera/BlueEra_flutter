@@ -18,6 +18,7 @@ import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -604,14 +605,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           }
       );
     }else{
-      log('videoController.videoFeedItem?.author?.accountType?.toUpperCase() --> ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() }');
-      log('videoController.videoFeedItem?.author?.id??'' --> ${videoController.videoFeedItem?.author?.id??'' }');
       /// we don't have channel so will call profile
       if (videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual) {
         if (videoController.videoFeedItem?.author?.id == userId) {
           navigatePushTo(context, PersonalProfileSetupScreen());
         } else {
-          Get.to(() => VisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??''));
+          Get.to(() => NewVisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??'', screenFromName: AppConstants.feedScreen,));
         }
       }else{
         if (videoController.videoFeedItem?.author?.id == userId) {

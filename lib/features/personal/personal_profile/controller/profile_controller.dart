@@ -270,8 +270,14 @@ class VisitProfileController extends GetxController {
   RxString? channelUserName="".obs;
   RxString? channelName="".obs;
   RxString? channelUserId="".obs;
+  resetData(){
+    channelName?.value="";
+    channelUserName?.value="";
+    channelUserId?.value="";
+  }
   Future<String?> getUserChannelDetailsController({required String? userId}) async {
     try {
+      resetData();
       getUserChannelDetailsResponse.value = ApiResponse.initial('Initial');
 
       ResponseModel response =

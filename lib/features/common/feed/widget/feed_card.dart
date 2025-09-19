@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.da
 import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/qa_post_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class _FeedCardState extends State<FeedCard> {
     if (!_shouldShowProfileNavigation()) return;
     if (authorId == userId) {
       if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
-        Get.to(() => VisitProfileScreen(authorId: authorId));
+        Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
         Get.to(() =>
@@ -73,7 +74,7 @@ class _FeedCardState extends State<FeedCard> {
       }
     } else {
       if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
-        Get.to(() => VisitProfileScreen(authorId: authorId));
+        Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
         Get.to(() =>

@@ -500,13 +500,13 @@ class VideoController extends GetxController{
 
         params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
-        if(channelId.isEmpty){
+        // if(channelId.isEmpty){
           /// for own channel or any profile we will fetch videos by user Id
           response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-        }else {
-          /// for other channel we will fetch videos by other user channel id
-          response = await ChannelRepo().getVisitingChannelVideos(channelId: channelId, queryParams: params);
-        }
+        // }else {
+        //   /// for other channel we will fetch videos by other user channel id
+        //   response = await ChannelRepo().getVisitingChannelVideos(channelId: channelId, queryParams: params);
+        // }
       }else{
         /// for getting  all videos of user we will fetch videos by user Id (will not sent postVia)
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);

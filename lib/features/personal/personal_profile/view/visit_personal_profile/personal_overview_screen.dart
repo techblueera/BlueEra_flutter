@@ -20,13 +20,13 @@ import 'package:rating_summary/rating_summary.dart';
 
 class PersonalOverviewScreen extends StatelessWidget {
   final String userId;
-  final String channelId;
+  // final String channelId;
   final String videoType;
   final String screenFromName;
 
   PersonalOverviewScreen({
     required this.userId,
-    required this.channelId,
+    // required this.channelId,
     required this.videoType,
     required this.screenFromName,
   });
@@ -36,7 +36,7 @@ class PersonalOverviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    controller.loadOverviewData(userId, channelId, videoType);
+    controller.loadOverviewData(userId, videoType);
 
     return Obx(() {
       if (controller.isLoading.value) {
@@ -55,14 +55,14 @@ class PersonalOverviewScreen extends StatelessWidget {
         children: [
 
           // controller.userData.value?.user
-          RatingSummaryWidget(
-            rating: visitingController.userData.value?.ratingSummary?.avgRating
-                    ?.toDouble() ??
-                0.0,
-            ratingPersonCount: visitingController.userData.value?.ratingSummary?.totalRatings??0,
-            userId: userId,
-            screenFromName: screenFromName, ratingForAccountName: AppConstants.individual, businessId: '',
-          ),
+          // RatingSummaryWidget(
+          //   rating: visitingController.userData.value?.ratingSummary?.avgRating
+          //           ?.toDouble() ??
+          //       0.0,
+          //   ratingPersonCount: visitingController.userData.value?.ratingSummary?.totalRatings??0,
+          //   userId: userId,
+          //   screenFromName: screenFromName, ratingForAccountName: AppConstants.individual, businessId: '',
+          // ),
           SizedBox(
             height: SizeConfig.size5,
           ),

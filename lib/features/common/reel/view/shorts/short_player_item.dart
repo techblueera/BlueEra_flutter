@@ -18,6 +18,7 @@ import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -843,8 +844,8 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         if (fullScreenShortController.videoItem?.author?.id == userId) {
           navigatePushTo(context, PersonalProfileSetupScreen());
         } else {
-          Get.to(() => VisitProfileScreen(
-              authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
+          Get.to(() => NewVisitProfileScreen(
+              authorId: fullScreenShortController.videoItem?.author?.id ?? '', screenFromName: AppConstants.feedScreen,));
         }
       } else {
         if (fullScreenShortController.videoItem?.author?.id == userId) {

@@ -15,12 +15,10 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -244,7 +242,6 @@ redirectToProfileScreen(
       Get.to(() => NewVisitProfileScreen(
             authorId: profileId ?? "",
             screenFromName: AppConstants.feedScreen,
-            channelId: '',
           ));
     }
   }
@@ -506,7 +503,7 @@ openPersonalProfile({required String? userID}) {
     Get.to(PersonalProfileSetupScreen());
   } else {
     // Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: '', channelId: channelId,));
-    Get.to(() => VisitProfileScreen(authorId: userID ?? ""));
+    Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: AppConstants.feedScreen,));
   }
 }
 // List<EmojiReaction> reactions = [

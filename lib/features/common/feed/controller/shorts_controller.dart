@@ -552,11 +552,11 @@ class ShortsController extends GetxController{
         params[ApiKeys.postVia] = (postVia == PostVia.channel) ? 'channel' : 'user';
 
         log('channel id -- $channelId');
-        if(channelId.isEmpty){
+        // if(channelId.isEmpty){
           response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
-        }else {
-          response = await ChannelRepo().getVisitingChannelVideos(channelId: channelId, queryParams: params);
-        }
+        // }else {
+        //   response = await ChannelRepo().getVisitingChannelVideos(channelId: channelId, queryParams: params);
+        // }
       } else{
         response = await ChannelRepo().getOwnChannelVideos(authorId: authorId, queryParams: params);
       }
