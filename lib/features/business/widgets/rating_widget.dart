@@ -326,11 +326,12 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
 
     try {
       if (ratingFrom == AppConstants.business) {
-        final success = await _ratingController.submitBusinessRating(
-          businessId: widget.businessId,
+        final success = await _ratingController.submitBusinessRatingController(
+          userId: widget.businessId,
           rating: selectedRating,
           comment: _feedbackController.text.trim(),
         );
+
 
         if (success && mounted) {
           Navigator.of(context).pop();

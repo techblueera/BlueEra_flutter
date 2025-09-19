@@ -1,6 +1,8 @@
 import UIKit
 import Flutter
 import google_mobile_ads
+import FirebaseCore
+
 
 
 @main
@@ -10,6 +12,8 @@ import google_mobile_ads
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+    FirebaseApp.configure()
+
       // Register NativeAdFactory
         let factory = NativeAdFactoryExample()
         FLTGoogleMobileAdsPlugin.registerNativeAdFactory(

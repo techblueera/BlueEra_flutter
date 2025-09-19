@@ -122,7 +122,26 @@ class ViewBusinessDetailsController extends GetxController {
     businessAddress.value = address;
   }
   final controllerVisit = Get.put(VisitProfileController());
+  final isLoading = false.obs;
 
+  loadInitData({required String businessID}) async {
+    try {
+      isLoading.value = true;
+
+      await Future.wait([
+        viewBusinessProfileById(businessID),
+        // getBusinessRatingsSummary(businessID),
+        // getBusinessDetailedRatings(businessID)
+      ]);
+      isLoading.value = false;
+    } catch (e) {
+      isLoading.value = false;
+    } finally {
+      isLoading.value = false;
+
+      // TODO
+    }
+  }
   Future<void> viewBusinessProfile() async {
     try {
       await getUserLoginBusinessId();
@@ -511,6 +530,38 @@ class ViewBusinessDetailsController extends GetxController {
 
         responseModel = await BusinessProfileRepo()
             .submitRatingToPersonal(userId, params);
+
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: "Thank you for your rating!");
+        return true;
+      } else {
+        commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  Future<bool> submitBusinessRatingController({
+    required String userId,
+    required int rating,
+    required String comment,
+  }) async {
+    try {
+      Map<String, dynamic> params = {
+        "rating": rating,
+        "comment": comment,
+      };
+
+      ResponseModel? responseModel;
+
+
+      responseModel =
+      await BusinessProfileRepo().submitRatingToPersonal(userId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");

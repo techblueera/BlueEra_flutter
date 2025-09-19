@@ -225,14 +225,16 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       children: [
                         _filterButtons(),
                         SizedBox(height: SizeConfig.size8),
-                        ShortsChannelSection(
-                          // scrollController: _scrollController,
-                          isOwnShorts: false,
-                          showShortsInGrid: true,
-                          channelId: '',
-                          sortBy: selectedFilter,
-                          authorId: widget.businessId,
-                          postVia: PostVia.profile,
+                        Expanded(
+                          child: ShortsChannelSection(
+                            // scrollController: _scrollController,
+                            isOwnShorts: false,
+                            showShortsInGrid: true,
+                            channelId: '',
+                            sortBy: selectedFilter,
+                            authorId: widget.businessId,
+                            postVia: PostVia.profile,
+                          ),
                         ),
                       ],
                     ),
