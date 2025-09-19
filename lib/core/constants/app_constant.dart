@@ -59,7 +59,7 @@ class AppConstants {
 
   ///CHANGE NAME : arial to open sans some conflict are there
   // static const String arial = "OpenSans";
-  static const String OpenSans = "OpenSans";
+  static const String OpenSans = "Open Sans";
 
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
@@ -716,6 +716,60 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
   return entries;
 }
 
+List<PopupMenuEntry<String>> popupMenuInventoryItems() {
+  final items = <Map<String, dynamic>>[
+    // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
+    {"id": "ADD PRODUCT",  'title': 'Add product'},
+    {"id": "ADD SERVICE",  'title': 'Add Service'},
+    {"id": "ADD GROCERIES",  'title': 'Add Groceries'},
+    // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        padding: EdgeInsets.all(10),
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        // onTap: () {
+        //
+        //   if (items[i]['id'] == "SHARE") {}
+        //
+        // },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              items[i]['title'],
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 0,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
   final items = <Map<String, dynamic>>[
     // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
