@@ -18,6 +18,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
@@ -28,14 +29,14 @@ class VideoController extends GetxController{
   Rx<ApiResponse> videoPostsResponse = ApiResponse.initial('Initial').obs;
   ApiResponse videoLikeResponse = ApiResponse.initial('Initial');
   ApiResponse videoUnlikeResponse = ApiResponse.initial('Initial');
-  ApiResponse followChannelResponse = ApiResponse.initial('Initial');
-  ApiResponse unFollowChannelResponse = ApiResponse.initial('Initial');
+  ApiResponse followUnFollowChannelResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> channelVideosResponse = ApiResponse.initial('Initial').obs;
   ApiResponse deleteVideosResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
   ApiResponse videoViewResponse = ApiResponse.initial('Initial');
   ApiResponse reportVideoPostResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> followUnFollowResponse = ApiResponse.initial('Initial').obs;
 
   RxList<ShortFeedItem> videoFeedPosts = <ShortFeedItem>[].obs;
   ShortFeedItem? videoFeedItem;
@@ -279,52 +280,23 @@ class VideoController extends GetxController{
   }
 
   ///FOLLOW CHANNEL...
-  Future<void> followChannel({
+  Future<void> followUnfollowChannel({
     required String channelId,
-    required VideoType videoType
+    required VideoType videoType,
+    required bool isFollow
   }) async {
 
     try {
-      final response = await ChannelRepo().followChannel(channelId: channelId);
-
-      if (response.isSuccess) {
-        followChannelResponse = ApiResponse.complete(response);
-        isChannelFollow.value = !(isChannelFollow.value);
-        // Update the _videoItem with updated channel
-        videoFeedItem = videoFeedItem?.copyWith(
-          channel: videoFeedItem?.channel?.copyWith(
-            isFollowing: isChannelFollow.value,
-          ),
-        );
-
-        // Propagate to lists
-        updateChannelFollowState(
-          videoType: videoType,
-          channelId: channelId,
-          isFollowing: isChannelFollow.value,
-        );
-      } else {
-        followChannelResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      ResponseModel response;
+      if(isFollow){
+        response = await ChannelRepo().unFollowChannel(channelId: channelId);
+      }else{
+         response = await ChannelRepo().followChannel(channelId: channelId);
       }
-    } catch (e) {
-      followChannelResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
-  }
 
-  ///UNFOLLOW CHANNEL...
-  Future<void> unFollowChannel({
-    required String channelId,
-    required VideoType videoType
-  }) async {
-    try {
-
-      final response = await ChannelRepo().unFollowChannel(channelId: channelId);
 
       if (response.isSuccess) {
-        unFollowChannelResponse = ApiResponse.complete(response);
+        followUnFollowChannelResponse = ApiResponse.complete(response);
         isChannelFollow.value = !(isChannelFollow.value);
 
         // Update the _videoItem with updated channel
@@ -341,15 +313,68 @@ class VideoController extends GetxController{
           isFollowing: isChannelFollow.value,
         );
       } else {
-        unFollowChannelResponse =  ApiResponse.error('error');
+        followUnFollowChannelResponse =  ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      unFollowChannelResponse =  ApiResponse.error('error');
+      followUnFollowChannelResponse =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
     }
   }
+
+  /// follow user
+  Future<void> followUnfollowUser(
+      {
+        required String? authorId,
+        required VideoType videoType,
+        required bool isFollow
+
+      }) async {
+    try {
+
+      ///FOR NOW WE SET
+      ResponseModel responseModel;
+      if(isFollow){
+         responseModel = await UserRepo().unfollowUser(followUserId: authorId);
+      }else{
+        responseModel = await UserRepo().followUser(followUserId: authorId);
+      }
+
+      if (responseModel.isSuccess) {
+        followUnFollowResponse.value = ApiResponse.complete(responseModel);
+
+        isChannelFollow.value = !(isChannelFollow.value);
+
+        // Update the _videoItem with updated channel
+        videoFeedItem = videoFeedItem?.copyWith(
+          channel: videoFeedItem?.channel?.copyWith(
+            isFollowing: isChannelFollow.value,
+          ),
+        );
+
+        // Propagate to lists
+        updateUserFollowState(
+          videoType: videoType,
+          authorId: channelId,
+          isFollowing: isChannelFollow.value,
+        );
+      } else {
+
+        followUnFollowResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+
+      followUnFollowResponse.value = ApiResponse.error('error');
+    }catch (e) {
+      followUnFollowResponse.value =  ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+
+  }
+
 
   /// GET CHANNEL VIDEOS (LATEST, POPULAR, OLDEST, etc.)
   Future<void> getVideosByType(
@@ -686,6 +711,23 @@ class VideoController extends GetxController{
         }
       }
       list.refresh();
+  }
+
+  /// Propagate channel follow state across all lists containing videos from that channel
+  void updateUserFollowState({
+    required VideoType videoType,
+    required String authorId,
+    required bool isFollowing,
+  }) {
+    final list = getListByType(videoType: videoType);
+
+    for (int i = 0; i < list.length; i++) {
+      final v = list[i];
+      if (v.author?.id == channelId) {
+        // v.author?.copyWith(isFollowing: isFollowing);
+      }
+    }
+    list.refresh();
   }
 
   /// Delete Video

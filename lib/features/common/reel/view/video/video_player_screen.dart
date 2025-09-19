@@ -494,17 +494,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                               createProfileScreen();
                               return;
                             }
-                            if (videoController.isChannelFollow.isTrue) {
-                              videoController.unFollowChannel(
-                                  channelId: videoController.videoFeedItem?.channel?.id ?? '',
-                                  videoType: widget.videoType
-                              );
-                            } else {
-                              videoController.followChannel(
-                                  channelId: videoController.videoFeedItem?.channel?.id ?? '',
-                                  videoType: widget.videoType
-                              );
-                            }
+                            videoController.followUnfollowChannel(
+                                channelId: videoController.videoFeedItem?.channel?.id ?? '',
+                                videoType: widget.videoType,
+                                isFollow: videoController.isChannelFollow.value
+                            );
                           },
                           title: videoController.isChannelFollow.isTrue ? "Following" : "Follow",
                           textColor: AppColors.primaryColor,
@@ -516,6 +510,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         SizedBox(height: SizeConfig.size4),
                       ],
                     )
+                  // else
+                  //   Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.end,
+                  //     children: [
+                  //       Obx(() => CustomBtn(
+                  //         onTap: () {
+                  //           if (isGuestUser()) {
+                  //             createProfileScreen();
+                  //             return;
+                  //           }
+                  //           videoController.followUnfollowUser(
+                  //               authorId: videoController.videoFeedItem?.author?.id ?? '',
+                  //               videoType: widget.videoType,
+                  //               isFollow: videoController.isChannelFollow.value
+                  //           );
+                  //         },
+                  //         title: videoController.isChannelFollow.isTrue ? "Following" : "Follow",
+                  //         textColor: AppColors.primaryColor,
+                  //         width: SizeConfig.size70,
+                  //         height: SizeConfig.size25,
+                  //         borderColor: AppColors.primaryColor,
+                  //         bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+                  //       )),
+                  //       SizedBox(height: SizeConfig.size4),
+                  //     ],
+                  //   )
                 ],
               ),
             ],

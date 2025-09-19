@@ -49,6 +49,7 @@ class ChannelRepo extends BaseService {
     String stats = channelStats(channelId);
     final response = await ApiBaseHelper().getHTTP(
       stats,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -224,7 +225,7 @@ print("url=== ${url}");
     );
   }
 
-  ///GET ALL Channel Videos...
+  ///GET ALL Channel Videos...  (Only use for fetching other user channel videos)
   Future<ResponseModel> getVisitingChannelVideos(
       {required String channelId,
       required Map<String, dynamic> queryParams}) async {
@@ -240,11 +241,11 @@ print("url=== ${url}");
     return response;
   }
 
-  ///GET ALL own Users/Channel Videos...
+  ///GET ALL own Users/Channel Videos... (for fetching all the videos we use this except other person channel video)
   Future<ResponseModel> getOwnChannelVideos(
       {required String authorId,
       required Map<String, dynamic> queryParams}) async {
-    String videosOwnChannel = ownChannelVideos(authorId);
+    String videosOwnChannel = ownVideos(authorId);
     final response = await ApiBaseHelper().getHTTP(
       videosOwnChannel,
       params: queryParams,

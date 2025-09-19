@@ -80,9 +80,9 @@ abstract class BaseService {
       "channel-service/follower/$channelId/follow";
   String channelUnFollow(String channelId) =>
       "channel-service/follower/$channelId/unfollow";
-  String channelVideos(String channelOrUserId) =>
-      'video-service/videos/channel/$channelOrUserId';
-  String ownChannelVideos(String authorId) =>
+  String channelVideos(String channelId) =>
+      'video-service/videos/channel/$channelId';
+  String ownVideos(String authorId) =>
       'video-service/videos/users/$authorId/videos';
   String channelReports(String channelId) =>
       'channel-service/channels/$channelId/reports';

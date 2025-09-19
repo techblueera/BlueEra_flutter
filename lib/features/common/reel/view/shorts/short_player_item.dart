@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -58,7 +59,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   bool _showOverlayIcon = false;
   IconData _playPauseIcon = Icons.play_arrow;
   final FullScreenShortController fullScreenShortController =
-      Get.put(FullScreenShortController());
+   Get.put(FullScreenShortController());
 
   VideoPlayerController? _controller;
   late String profileImage;
@@ -423,9 +424,27 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               ),
             ),
           )
-        : const Center(
-            child: CircularProgressIndicator(),
-          );
+        : AspectRatio(
+      aspectRatio: 9 / 16,
+      child: CachedNetworkImage(
+                imageUrl: widget.videoItem.video?.coverUrl ?? '',
+                width: SizeConfig.screenWidth,
+                height: SizeConfig.size170,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+          width: SizeConfig.screenWidth,
+          height: SizeConfig.size140,
+          color: Colors.grey[300],
+          child: const Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (_, __, ___) => Container(
+          width: SizeConfig.screenWidth,
+          height: SizeConfig.size140,
+          color: Colors.grey[300],
+          child: LocalAssets(imagePath: AppIconAssets.appIcon),
+                ),
+              ),
+        );
   }
 
   Widget _buildPlayPauseOverlay() {
