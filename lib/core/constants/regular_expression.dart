@@ -21,8 +21,13 @@ class RegularExpressionUtils {
   static final String linkRegex =   r'^(https?:\/\/)?(www\.)?[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}([\/\w\.-]*)*\/?$';
 
   static final String date = r"[0-9a-zA-Z/,\- ]";
-
+  bool containsCharter(String text) {
+    // બધા http links શોધો
+    final httpRegex = RegExp(RegularExpressionUtils.alphabetSpacePattern);
+    return httpRegex.hasMatch(text);
+  }
 }
+
 bool containsHttpButNotHttps(String text) {
   // બધા http links શોધો
   final httpRegex = RegExp(r'http:\/\/[^\s]+');

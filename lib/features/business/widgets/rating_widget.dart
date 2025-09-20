@@ -2,106 +2,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icon_assets.dart';
 import '../auth/controller/view_business_details_controller.dart';
-import '../auth/model/viewBusinessProfileModel.dart';
-
-/*
-class RatingReviewCard extends StatelessWidget {
-  final String businessId;
-  final BusinessProfileDetails? businessProfile;
-
-  const RatingReviewCard({
-    super.key,
-    required this.businessId,
-    required this.businessProfile,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        border: Border.all(color: AppColors.primaryColor),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(11),
-                  bottomLeft: Radius.circular(11)),
-              color: AppColors.primaryColor,
-            ),
-            height: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: const Center(
-              child: CustomText(
-                "Rate\nthis business",
-                textAlign: TextAlign.center,
-                fontSize: 18,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Container(width: 2, height: 80, color: const Color(0xFF2399F5)),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 9,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                RatingStars(selectedIndex: businessProfile?.rating ?? 0),
-                const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: () {
-                    if (isGuestUser()) {
-                      createProfileScreen();
-
-                      return;
-                    }
-                    _showRatingDialog(context,
-                        reviewFor: AppConstants.business);
-                  },
-                  child: const Center(
-                    child: Text(
-                      "View & Write review",
-                      style: TextStyle(
-                        color: Color(0xFF2399F5),
-                        decoration: TextDecoration.underline,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showRatingDialog(BuildContext context, {required String reviewFor}) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return RatingFeedbackDialog(
-          businessId: businessId,
-          reviewFor: reviewFor ?? "",
-        );
-      },
-    );
-  }
-}
-*/
 
 class RatingFeedbackDialog extends StatefulWidget {
   final String businessId, reviewFor;
@@ -360,26 +262,5 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
   void dispose() {
     _feedbackController.dispose();
     super.dispose();
-  }
-}
-
-class RatingStars extends StatelessWidget {
-  final int selectedIndex;
-
-  const RatingStars({super.key, required this.selectedIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 4,
-      children: List.generate(selectedIndex, (index) {
-        final imagePath = 'assets/images/star_${index + 1}.png';
-        return Image.asset(
-          imagePath,
-          width: 35,
-          height: 35,
-        );
-      }),
-    );
   }
 }

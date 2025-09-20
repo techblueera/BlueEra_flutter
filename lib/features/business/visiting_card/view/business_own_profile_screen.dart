@@ -39,9 +39,6 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
         isLogout: true,
         title: "Your Business Profile",
       ),
-      // floatingActionButton: FloatingActionButton(onPressed: () {
-      //   Get.to(PaySubscription());
-      // }),
       body: SingleChildScrollView(
         child: BusinessProfileScreen(
           selectedIndex: widget.selectedIndex,

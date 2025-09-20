@@ -68,6 +68,7 @@ class BusinessProfileDetails {
       this.username,
       this.total_followers,
       this.total_ratings,
+      this.specification,
       this.avg_rating,
   });
 
@@ -118,6 +119,7 @@ class BusinessProfileDetails {
     username = json['username'];
     avg_rating = json['avg_rating'];
     total_ratings = json['total_ratings'];
+    specification = json['specification'];
 
   }
   DateOfIncorporation? dateOfIncorporation;
@@ -153,6 +155,7 @@ class BusinessProfileDetails {
   BusinessNumber? businessNumber;
   String? category_other;
   String? username;
+  String? specification;
   num? avg_rating;
   num? total_ratings;
 
@@ -200,6 +203,7 @@ class BusinessProfileDetails {
     map['total_followers']=total_followers;
     map['total_ratings']=total_ratings;
     map['avg_rating']=avg_rating;
+    map['specification']=specification;
     if (categoryDetails != null) {
       map['category_details'] = categoryDetails?.toJson();
     }

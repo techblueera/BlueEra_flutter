@@ -8,7 +8,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
-class ContactInputField extends StatefulWidget {
+class ContactInputField1 extends StatefulWidget {
   final TextEditingController mobileController;
   final TextEditingController landlineCodeController;
   final TextEditingController landlineNumberController;
@@ -18,7 +18,7 @@ class ContactInputField extends StatefulWidget {
   final Function(String) mobileNumberOnChange;
   VoidCallback? updateSubmitButtonState;
 
-  ContactInputField({
+  ContactInputField1({
     super.key,
     required this.mobileController,
     required this.landlineCodeController,
@@ -31,10 +31,10 @@ class ContactInputField extends StatefulWidget {
   });
 
   @override
-  State<ContactInputField> createState() => _ContactInputFieldState();
+  State<ContactInputField1> createState() => _ContactInputFieldState();
 }
 
-class _ContactInputFieldState extends State<ContactInputField> {
+class _ContactInputFieldState extends State<ContactInputField1> {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context)!;

@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -80,8 +82,12 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Rx<File?> selectedVideo = Rx<File?>(null);
   ViewBusinessProfileModel? visitedBusinessProfileDetails;
-  Rx<VisitBusinessRatingSumModel> visitBusinessRatingSumModel=VisitBusinessRatingSumModel().obs;
-  Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel=VisitBusinessDetailedRatingModel().obs;
+  Rx<VisitBusinessRatingSumModel> visitBusinessRatingSumModel =
+      VisitBusinessRatingSumModel().obs;
+  Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel =
+      VisitBusinessDetailedRatingModel().obs;
+  Rx<BusinessCategory> selectedTypeOfBusiness =
+      BusinessCategory(type: '', title: '', subTitle: '', icon: '').obs;
 
   // RxList<String> imgUploadL2 = <String>[].obs;
   RxList<String> imgLocalL3 = <String>[].obs;
@@ -121,6 +127,7 @@ class ViewBusinessDetailsController extends GetxController {
     if (lng != null) addressLong?.value = lng;
     businessAddress.value = address;
   }
+
   final controllerVisit = Get.put(VisitProfileController());
   final isLoading = false.obs;
 
@@ -142,6 +149,7 @@ class ViewBusinessDetailsController extends GetxController {
       // TODO
     }
   }
+
   Future<void> viewBusinessProfile() async {
     try {
       await getUserLoginBusinessId();
@@ -169,10 +177,51 @@ class ViewBusinessDetailsController extends GetxController {
                 ? BusinessType.Product
                 : businessProfileDetails?.data?.typeOfBusiness == "Service"
                     ? BusinessType.Service
-                    : BusinessType.Both;
+                    : businessProfileDetails?.data?.typeOfBusiness == "Food"
+                        ? BusinessType.Food
+                        : BusinessType.Both;
+logs("businessProfileDetails?.data?.typeOfBusiness==== ${businessProfileDetails?.data?.typeOfBusiness}");
+        if (businessProfileDetails?.data?.typeOfBusiness ==
+            BusinessType.Product.name) {
+          selectedTypeOfBusiness.value =  BusinessCategory(
+            title: "Product Sales: Shop/Store/Showroom",
+            subTitle:
+                "(e.g., Clothes, Electronics, Pharmacy, Toy, Beauty product)",
+            icon: AppIconAssets.product_sale,
+            type: BusinessType.Product.name,
+          );
+        } else if (businessProfileDetails?.data?.typeOfBusiness ==
+            BusinessType.Service.name) {
+          selectedTypeOfBusiness.value =  BusinessCategory(
+            title: "Service Provider: Education/Hospital/Hotel etc.",
+            subTitle: "(Consulting Farm, Doctors, All Service providers)",
+            icon: AppIconAssets.service_provider,
+            type: BusinessType.Service.name,
+          );
+        } else if (businessProfileDetails?.data?.typeOfBusiness ==
+            BusinessType.Food.name) {
+          selectedTypeOfBusiness.value = BusinessCategory(
+            title: "Grocerie /Food /Restaurant/Beverage",
+            subTitle:
+                "All Kind of Cooking/Eatable Shops/Stall/Dairy\nRestaurants, Sweet Shops, Tea Stalls, Juice Centers",
+            icon: AppIconAssets.food_service,
+            type: BusinessType.Food.name,
+          );
+        } else {
+          selectedTypeOfBusiness.value =   BusinessCategory(
+            title: "Others: Manufacturing Unit/Industry/Factory",
+            subTitle:
+                "If Your Business Is related to Manufacturing / create products Or other activity",
+            icon: AppIconAssets.other_type,
+            type: BusinessType
+                .Both.name, // (requires Flutter 3.7+, else use Icons.work)
+          );
+        }
+
         businessDescription.value =
             businessProfileDetails?.data?.businessDescription ?? "";
-        controllerVisit.isFollow.value=businessProfileDetails?.data?.is_following??false;
+        controllerVisit.isFollow.value =
+            businessProfileDetails?.data?.is_following ?? false;
         if (selectedBusinessType?.value.name.toLowerCase() == "both") {
           selectedCategoryOfBusiness.value = null;
           selectedSubCategoryOfBusinessNew.value = null;
@@ -194,7 +243,8 @@ class ViewBusinessDetailsController extends GetxController {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         update();
       } else {
-        logs("ERROR BUSINESS PROFILE ${ responseModel.message ?? AppStrings.somethingWentWrong}");
+        logs(
+            "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
 
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -228,6 +278,8 @@ class ViewBusinessDetailsController extends GetxController {
 
   RxList<CategoryData> businessCategoriesList = <CategoryData>[].obs;
   RxList<SubCategories> businessSubCategoriesList = <SubCategories>[].obs;
+  RxString categorySpecializationText = "".obs;
+  RxString errorMessage = "".obs;
 
   Future<void> getAllCategories() async {
     businessSubCategoriesList.clear();
@@ -386,8 +438,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-          visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
-           // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
+        visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+        // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
         final chatViewController = Get.find<ChatViewController>();
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
@@ -396,11 +448,22 @@ class ViewBusinessDetailsController extends GetxController {
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
-        conversationId.value= ((chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId==null)?chatViewController.newVisitContactApiResponse?.value?.data?.conversationId: chatViewController.newVisitContactApiResponse?.value?.data?.otherUserId)??'';
+        conversationId.value = ((chatViewController
+                        .newVisitContactApiResponse?.value?.data?.otherUserId ==
+                    null)
+                ? chatViewController
+                    .newVisitContactApiResponse?.value?.data?.conversationId
+                : chatViewController
+                    .newVisitContactApiResponse?.value?.data?.otherUserId) ??
+            '';
         viewBusinessResponseNew = ApiResponse.complete(responseModel);
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
-        distanceFromKm.value = await getDistanceInKm(visitedBusinessProfileDetails?.data?.businessLocation?.lat??0,visitedBusinessProfileDetails?.data?.businessLocation?.lon??0)??0.0;
+        distanceFromKm.value = await getDistanceInKm(
+                visitedBusinessProfileDetails?.data?.businessLocation?.lat ?? 0,
+                visitedBusinessProfileDetails?.data?.businessLocation?.lon ??
+                    0) ??
+            0.0;
         update();
       } else {
         commonSnackBar(
@@ -411,6 +474,7 @@ class ViewBusinessDetailsController extends GetxController {
       viewBusinessResponseNew = ApiResponse.error('error');
     }
   }
+
   Future<void> getBusinessRatingsSummary(String userId) async {
     try {
       ResponseModel responseModel =
@@ -418,7 +482,8 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
-        visitBusinessRatingSumModel.value=VisitBusinessRatingSumModel.fromJson(data);
+        visitBusinessRatingSumModel.value =
+            VisitBusinessRatingSumModel.fromJson(data);
         update();
       } else {
         commonSnackBar(
@@ -428,13 +493,15 @@ class ViewBusinessDetailsController extends GetxController {
       viewBusinessResponse = ApiResponse.error('error');
     }
   }
+
   Future<void> getBusinessDetailedRatings(String userId) async {
     try {
       ResponseModel responseModel =
           await BusinessProfileRepo().getBusinessDetailedRating(userId);
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        visitBusinessDetailedRatingModel.value=VisitBusinessDetailedRatingModel.fromJson(data);
+        visitBusinessDetailedRatingModel.value =
+            VisitBusinessDetailedRatingModel.fromJson(data);
         update();
       } else {
         commonSnackBar(
@@ -494,11 +561,8 @@ class ViewBusinessDetailsController extends GetxController {
         "comment": comment,
       };
 
-      ResponseModel?
-
-        responseModel = await BusinessProfileRepo()
-            .submitRatingToBusiness(businessId, params);
-
+      ResponseModel? responseModel = await BusinessProfileRepo()
+          .submitRatingToBusiness(businessId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");
@@ -528,8 +592,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       ResponseModel? responseModel;
 
-        responseModel = await BusinessProfileRepo()
-            .submitRatingToPersonal(userId, params);
+      responseModel =
+          await BusinessProfileRepo().submitRatingToPersonal(userId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");
@@ -559,9 +623,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       ResponseModel? responseModel;
 
-
       responseModel =
-      await BusinessProfileRepo().submitRatingToPersonal(userId, params);
+          await BusinessProfileRepo().submitRatingToPersonal(userId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");

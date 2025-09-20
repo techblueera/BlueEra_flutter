@@ -100,10 +100,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
             }
           if ((controller.viewBusinessResponseNew.status == Status.COMPLETE)) {
             final businessData = controller.visitedBusinessProfileDetails?.data;
-            // final ratingData =
-            //     controller.visitBusinessRatingSumModel.value.data;
-            // final ratingDetailedCount =
-            //     controller.visitBusinessDetailedRatingModel.value.data;
             return DefaultTabController(
               length: tabs.length,
               child: NestedScrollView(

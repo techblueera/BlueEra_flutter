@@ -1743,16 +1743,16 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_details_edit_page_one.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
-import 'package:BlueEra/features/business/widgets/stats_card_widget.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -1770,7 +1770,6 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/shared_preference_utils.dart';
-import '../visit_business_profile/view/visit_business_profile.dart';
 import 'package:dio/dio.dart' as dioObj;
 
 import '../visit_business_profile/view/visit_business_profile_new.dart';
@@ -1984,12 +1983,17 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       const SizedBox(
                         width: 4,
                       ),
-                      CustomText(
-                        "Your business is not verified ",
-                        color: theme.colorScheme.onTertiary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: SizeConfig.medium,
-                        fontStyle: FontStyle.italic,
+                      Expanded(
+                        child: CustomText(
+                          "Your business is not verified ",
+                          color: theme.colorScheme.onTertiary,
+                          fontWeight: FontWeight.w500,
+                          fontSize: SizeConfig.medium,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                       SizedBox(
+                        width: 1,
                       ),
                       Flexible(
                         child: InkWell(
@@ -2085,14 +2089,143 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         SizedBox(
           height: 16,
         ),
-        StatsCard(
-          rating: details?.rating ?? 0,
-          dateOfInCorp:
-              "${details?.dateOfIncorporation?.date}/${details?.dateOfIncorporation?.month}/${details?.dateOfIncorporation?.year}",
+        SizedBox(height: SizeConfig.size12),
+        Container(
+          // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+          padding: EdgeInsets.symmetric(
+            vertical: SizeConfig.size10,
+            horizontal: SizeConfig.size10,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD3E4F7),
+
+            border: Border.all(
+              color: const Color(0xFFE5E5E5), // #E5E5E5 border
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(SizeConfig.size14),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0x14000000), // #000000 with 8% opacity
+                offset: const Offset(0, 1), // X: 0, Y: 1
+                blurRadius: 2,
+                spreadRadius: 0,
+              ),
+            ],
+            // color: Colors.white, // optional background
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildInfo("Rating",
+                        "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+                    SizedBox(
+                      height: SizeConfig.size12,
+                    ),
+                    buildInfo(
+                        "Views", "${formatIndianNumber(details?.total_views ?? 0)}"),
+                  ],
+                ),
+              ),
+              // SizedBox(
+              //   width: 100,
+              // ),
+              Expanded(
+                child: SizedBox(
+                  height: SizeConfig.size50,
+                  child: VerticalDivider(
+                    color: AppColors.coloGreyText,
+                    width: 12,
+                    thickness: 1.2,
+                  ),
+                ),
+              ),
+              // SizedBox(
+              //   width: SizeConfig.size24,
+              // ),
+              Flexible(
+                flex: 2,
+
+                child: Container(
+                  // color: Colors.red,
+                  width: Get.width,
+                  alignment: Alignment.center,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding:  EdgeInsets.symmetric(),
+                        child: buildInfo("Inquiries",formatIndianNumber(0) ),
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size12,
+                      ),
+                      InkWell(
+                          onTap: () {
+                            Get.to(() => FollowersFollowingPage(
+                              tabIndex: 1,
+                              userID: details?.id ?? "",
+                            ));
+                          },
+                          child: buildInfo("Followers",
+                              "${formatIndianNumber(details?.total_followers ?? 0)}")),
+                    ],
+                  ),
+                ),
+              ),
+              // SizedBox(
+              //   width: SizeConfig.size20,
+              // ),
+              Expanded(
+                child: SizedBox(
+                  height: SizeConfig.size50,
+                  child: VerticalDivider(
+                    color: AppColors.coloGreyText,
+                    width: 12,
+                    thickness: 1.2,
+                  ),
+                ),
+              ),
+              // SizedBox(
+              //   width: SizeConfig.size20,
+              // ),
+              Expanded(
+                flex: 2,
+
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    CustomText(
+                      "Joined",
+                      fontSize: SizeConfig.size12,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(height: SizeConfig.size2),
+                    CustomText(
+                      details?.dateOfIncorporation == null
+                          ? ""
+                          : "${details?.dateOfIncorporation?.date ?? ""}/${(details?.dateOfIncorporation?.month ?? 1)}/${details?.dateOfIncorporation?.year ?? ""}",
+                      fontSize: SizeConfig.size12,
+                      maxLines: 1,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    SizedBox(height: SizeConfig.size10),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
-        SizedBox(
-          height: 14,
-        ),
+        SizedBox(height: SizeConfig.size12),
 
         ///ABOUT YOUR BUSINESS...
         Obx(() {

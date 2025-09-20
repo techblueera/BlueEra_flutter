@@ -45,8 +45,11 @@ class AuthController extends GetxController {
   final mobileNumberEditController = TextEditingController(text: '');
   final referralCodeController = TextEditingController();
   final otherNatureOfBusinessTextController = TextEditingController();
+  final subCategorySpecializationTextController = TextEditingController();
   Rx<String> imgPath = "".obs;
   RxString isOtpType = "".obs;
+  RxString errorMessage = "".obs;
+  RxString categorySpecializationText = ''.obs;
 
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 
@@ -491,6 +494,7 @@ class AuthController extends GetxController {
     isHaveGstApprove.value = false;
     businessNameTextController.clear();
     mobileNumberEditController.clear();
+    subCategorySpecializationTextController.clear();
   }
 
   /// Force Update

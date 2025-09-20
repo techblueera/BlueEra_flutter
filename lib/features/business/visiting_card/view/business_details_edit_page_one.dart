@@ -12,17 +12,14 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
-import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
-import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:dio/dio.dart' as dioObj;
@@ -65,11 +62,12 @@ class _BusinessDetailsEditPageOneState
   final cityController = TextEditingController();
 
   final othersCatController = TextEditingController();
+
   // final landmarkController = TextEditingController();
 
   ContactType? selectedType = ContactType.Mobile;
   final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  Get.find<ViewBusinessDetailsController>();
 
   bool validate = false;
   SizeOfBusiness? selectedBusiness;
@@ -80,7 +78,7 @@ class _BusinessDetailsEditPageOneState
     if (input == null) return null;
 
     return SizeOfBusiness.values.firstWhere(
-      (e) => e.displayName.toLowerCase() == input.toLowerCase(),
+          (e) => e.displayName.toLowerCase() == input.toLowerCase(),
       orElse: () => SizeOfBusiness.OTHERS,
     );
   }
@@ -99,7 +97,8 @@ class _BusinessDetailsEditPageOneState
       websiteController.text = data.websiteUrl ?? '';
       cityController.text = data.cityStatePincode ?? '';
       fullBusinessAddressTextController.text = data.address ?? '';
-      picCodeController.text = data.pincode !=null?data.pincode.toString():"";
+      picCodeController.text =
+      data.pincode != null ? data.pincode.toString() : "";
       locationTextController.text = data.businessLocation != null
           ? '${data.businessLocation?.lat}, ${data.businessLocation?.lon}'
           : '';
@@ -130,17 +129,15 @@ class _BusinessDetailsEditPageOneState
         selectedType = ContactType.Landline;
       }
 
-      if(fullBusinessAddressTextController.text.isEmpty &&
+      if (fullBusinessAddressTextController.text.isEmpty &&
           cityController.text.isEmpty &&
-          picCodeController.text.isEmpty
-        ){
+          picCodeController.text.isEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           updateAddressFromLocation();
         });
-      }else{
+      } else {
         locationController.fetchAddressFromGeo.value = true;
       }
-
     }
   }
 
@@ -150,15 +147,14 @@ class _BusinessDetailsEditPageOneState
       fullBusinessAddressTextController.text = locationData.fullAddress;
       cityController.text = locationData.city;
       picCodeController.text = locationData.pinCode;
-      viewBusinessDetailsController
-          .addressLong?.value =double.parse( locationData.long);
-      viewBusinessDetailsController
-          .addressLat?.value = double.parse( locationData.lat);
-
+      viewBusinessDetailsController.addressLong?.value =
+          double.parse(locationData.long);
+      viewBusinessDetailsController.addressLat?.value =
+          double.parse(locationData.lat);
     }
   }
 
-  BusinessCategory? selectedTypeOfBusiness;
+
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context);
@@ -169,7 +165,7 @@ class _BusinessDetailsEditPageOneState
         if (widget.isFromCreateUser) {
           Get.offNamedUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-            (route) => false,
+                (route) => false,
           );
         } else {
           Get.back();
@@ -184,7 +180,7 @@ class _BusinessDetailsEditPageOneState
             if (widget.isFromCreateUser) {
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
-                (route) => false,
+                    (route) => false,
               );
             } else {
               Get.back();
@@ -206,18 +202,20 @@ class _BusinessDetailsEditPageOneState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+
                     ///UPLOAD PROFILE....
                     Center(
                       child: CommonProfileImage(
                         imagePath:
-                            viewBusinessDetailsController.imagePath?.value ??
-                                "",
+                        viewBusinessDetailsController.imagePath?.value ??
+                            "",
                         onImageUpdate: (image) {
                           viewBusinessDetailsController.imagePath?.value =
                               image;
                           viewBusinessDetailsController.isImageUpdated.value =
-                              true;
-                        }, dialogTitle:  'Upload Business Logo',
+                          true;
+                        },
+                        dialogTitle: 'Upload Business Logo',
                       ),
                     ),
 
@@ -246,7 +244,7 @@ class _BusinessDetailsEditPageOneState
                       inputLength: AppConstants.inputCharterLimit50,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
+                      RegularExpressionUtils.alphabetSpacePattern,
                       title: "Business Name",
                       hintText: AppConstants.companyOrgBusiness,
                       isValidate: false,
@@ -266,11 +264,11 @@ class _BusinessDetailsEditPageOneState
                     ),
                     NewDatePicker(
                       selectedDay:
-                          viewBusinessDetailsController.selectDay?.value,
+                      viewBusinessDetailsController.selectDay?.value,
                       selectedMonth:
-                          viewBusinessDetailsController.selectMonth?.value,
+                      viewBusinessDetailsController.selectMonth?.value,
                       selectedYear:
-                          viewBusinessDetailsController.selectYear?.value,
+                      viewBusinessDetailsController.selectYear?.value,
                       onDayChanged: (value) {
                         viewBusinessDetailsController.selectDay?.value =
                             value ?? 0;
@@ -299,7 +297,7 @@ class _BusinessDetailsEditPageOneState
                     SizedBox(
                       height: SizeConfig.size14,
                     ),
-                    Obx(() {
+               /*     Obx(() {
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -309,7 +307,7 @@ class _BusinessDetailsEditPageOneState
                             title: appLocalizations?.shopStore ?? "",
                             subtitle: appLocalizations?.egClothesFood ?? "",
                             selectedType: viewBusinessDetailsController
-                                    .selectedBusinessType?.value ??
+                                .selectedBusinessType?.value ??
                                 BusinessType.Both,
                             onSelect: (type) {
                               viewBusinessDetailsController
@@ -331,7 +329,7 @@ class _BusinessDetailsEditPageOneState
                             title: appLocalizations?.provideServices ?? "",
                             subtitle: appLocalizations?.egDoctorTutor ?? "",
                             selectedType: viewBusinessDetailsController
-                                    .selectedBusinessType?.value ??
+                                .selectedBusinessType?.value ??
                                 BusinessType.Both,
                             onSelect: (type) {
                               viewBusinessDetailsController
@@ -353,7 +351,7 @@ class _BusinessDetailsEditPageOneState
                             title: "Other" ?? "",
                             subtitle: appLocalizations?.egBikeShowroom ?? "",
                             selectedType: viewBusinessDetailsController
-                                    .selectedBusinessType?.value ??
+                                .selectedBusinessType?.value ??
                                 BusinessType.Both,
                             onSelect: (type) {
                               viewBusinessDetailsController
@@ -370,20 +368,54 @@ class _BusinessDetailsEditPageOneState
                           ),
                         ],
                       );
+                    }),*/
+                    Obx(() {
+                      return CommonDropdownIconDialog<BusinessCategory>(
+                        items: typeOfBusinessList,
+                        selectedValue: viewBusinessDetailsController
+                            .selectedTypeOfBusiness.value,
+                        hintText:
+                        appLocalizations?.selectNatureOfTheBusiness ?? "",
+                        displayValue: (profession) => profession.title,
+                        title: appLocalizations?.natureOfBusiness ??
+                            "Nature of the Business",
+                        onChanged: (value) {
+                          viewBusinessDetailsController.selectedTypeOfBusiness
+                              .value = value!;
+                          if(value.type==BusinessType.Product.name)
+                            {
+                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Product;
+
+                            }
+                          else if(value.type==BusinessType.Service.name)
+                            {
+                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Service;
+
+                            }
+                          else if(value.type==BusinessType.Food.name)
+                            {
+                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Food;
+
+                            }
+                          else{
+                            viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Both;
+
+                          }
+                          viewBusinessDetailsController
+                              .selectedCategoryOfBusiness.value = null;
+                          viewBusinessDetailsController
+                              .selectedSubCategoryOfBusinessNew
+                              .value = null;
+                          viewBusinessDetailsController
+                              .businessSubCategoriesList
+                              .clear();
+
+                        },
+                        displayValueSubTitle: (profession) =>
+                        profession.subTitle,
+                        displayValueImagePath: (profession) => profession.icon,
+                      );
                     }),
-                    // CommonDropdownDialog<BusinessCategory>(
-                    //   items: typeOfBusinessList,
-                    //   selectedValue: selectedTypeOfBusiness,
-                    //   hintText: appLocalizations?.selectNatureOfTheBusiness ?? "",
-                    //   displayValue: (profession) => profession.title,
-                    //   title: appLocalizations?.natureOfBusiness ??
-                    //       "Nature of the Business",
-                    //   onChanged: (value) {
-                    //     // setState(() {
-                    //     //   _selectedNatureOfBusiness = value;
-                    //     // });
-                    //   },
-                    // ),
                     SizedBox(
                       height: SizeConfig.size12,
                     ),
@@ -395,77 +427,66 @@ class _BusinessDetailsEditPageOneState
                     //     fontWeight: FontWeight.w600,
                     //   ),
                     // ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
 
                     ///ENTER ORG/COMPANY NAME...
 
                     ///Supply chain...
+                    if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
+                        BusinessType.Product.name)...[
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
 
-                    CustomText(
-                      'Nature of the Business',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    CommonDropdownDialog<SizeOfBusiness>(
-                      items: SizeOfBusiness.values,
-                      selectedValue: selectedBusiness,
-                      title: 'Nature of the Business',
-                      hintText: "Enter Category (if Others)",
-                      displayValue: (profession) => profession.displayName,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedBusiness = value;
-                        });
-                      },
-                    ),
-                    /*CommonDropdown<SizeOfBusiness>(
-                      items: SizeOfBusiness.values,
-                      selectedValue: selectedBusiness,
-                      hintText: "Enter Category (if Others)",
-                      displayValue: (profession) => profession.displayName,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedBusiness = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return appLocalizations?.selectBusinessCategory;
-                        }
-                        return null;
-                      },
-                    ),*/
+                      CustomText(
+                        'Nature of the Business',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size10,
+                      ),
+                      CommonDropdownDialog<SizeOfBusiness>(
+                        items: SizeOfBusiness.values,
+                        selectedValue: selectedBusiness,
+                        title: 'Nature of the Business',
+                        hintText: "Enter Category (if Others)",
+                        displayValue: (profession) => profession.displayName,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedBusiness = value;
+                          });
 
-                    (selectedBusiness == SizeOfBusiness.OTHERS)
-                        ? SizedBox(
-                            height: SizeConfig.size10,
-                          )
-                        : SizedBox(),
-                    (selectedBusiness == SizeOfBusiness.OTHERS)
-                        ? CommonTextField(
-                            textEditController: othersCatController,
-                            inputLength: AppConstants.inputCharterLimit50,
-                            keyBoardType: TextInputType.text,
-                            regularExpression:
-                                RegularExpressionUtils.alphabetSpacePattern,
-                            hintText: appLocalizations?.eGMedicalShopKiranaShop,
-                            isValidate: false,
-                          )
-                        : SizedBox(),
+                        },
+                      ),
 
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
+
+                      (selectedBusiness == SizeOfBusiness.OTHERS)
+                          ? SizedBox(
+                        height: SizeConfig.size10,
+                      )
+                          : SizedBox(),
+                      (selectedBusiness == SizeOfBusiness.OTHERS)
+                          ? CommonTextField(
+                        textEditController: othersCatController,
+                        inputLength: AppConstants.inputCharterLimit50,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: appLocalizations?.eGMedicalShopKiranaShop,
+                        isValidate: false,
+                      )
+                          : SizedBox(),
+
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+                    ],
+
 
                     ///Mobile number
 
-                    ContactInputField(
+                    ContactInputField1(
                       mobileController: mobileController,
                       landlineCodeController: landlineCodeController,
                       landlineNumberController: landlineNumberController,
@@ -510,7 +531,8 @@ class _BusinessDetailsEditPageOneState
                           inputLength: AppConstants.inputCharterLimit50,
                           keyBoardType: TextInputType.text,
                           title: appLocalizations?.fullBusinessAddress,
-                          regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                          regularExpression:
+                          RegularExpressionUtils.alphabetSpacePattern,
                           hintText: appLocalizations?.fullBusinessAddress,
                           isValidate: false,
                         ),
@@ -542,7 +564,7 @@ class _BusinessDetailsEditPageOneState
                       inputLength: AppConstants.inputCharterLimit50,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
+                      RegularExpressionUtils.alphabetSpacePattern,
                       title: appLocalizations?.city,
                       hintText: appLocalizations?.city,
                       isValidate: false,
@@ -599,31 +621,28 @@ class _BusinessDetailsEditPageOneState
                             radius: 10,
                             bgColor: AppColors.primaryColor,
                             onTap: () async {
-
                               if (companyOrgNameTextController
                                   .text.isNotEmpty) {
                                 if ((viewBusinessDetailsController
-                                            .addressLat?.value !=
-                                        0.0) &&
+                                    .addressLat?.value !=
+                                    0.0) &&
                                     (viewBusinessDetailsController
-                                            .addressLong?.value !=
+                                        .addressLong?.value !=
                                         0.0)) {
                                   if (picCodeController.text.isNotEmpty) {
                                     navigatePushTo(
                                         context,
                                         BusinessDetailsEditPageTwo(
                                           paramsMap:
-                                              await buildBusinessDetailsPayload(),
+                                          await buildBusinessDetailsPayload(),
                                           prevBusinessDetails:
-                                              widget.prevBusinessDetails,
+                                          widget.prevBusinessDetails,
                                           isFromCreateUser:
-                                              widget.isFromCreateUser,
+                                          widget.isFromCreateUser,
                                         ));
-                                  }
-                                  else{
+                                  } else {
                                     commonSnackBar(
                                         message: "Please Enter Pin Code");
-
                                   }
                                 } else {
                                   commonSnackBar(
@@ -659,14 +678,15 @@ class _BusinessDetailsEditPageOneState
     if (viewBusinessDetailsController.isImageUpdated.value) {
       if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ?? false) {
         String fileName =
-            viewBusinessDetailsController.imagePath?.value.split('/').last ??
+            viewBusinessDetailsController.imagePath?.value
+                .split('/')
+                .last ??
                 "";
         imageByPart = await dioObj.MultipartFile.fromFile(
             viewBusinessDetailsController.imagePath?.value ?? "",
             filename: fileName);
       }
     }
-
     return {
       ApiKeys.businessId: businessId,
       ApiKeys.business_name: companyOrgNameTextController.text,
@@ -676,7 +696,7 @@ class _BusinessDetailsEditPageOneState
         ApiKeys.year: viewBusinessDetailsController.selectYear?.value
       },
       ApiKeys.type_of_business:
-          viewBusinessDetailsController.selectedBusinessType?.value.name ?? '',
+      viewBusinessDetailsController.selectedBusinessType?.value.name ?? '',
       ApiKeys.office_mob_no_Pre: 91,
       if (mobileController.text.isNotEmpty)
         ApiKeys.office_mob_no_number: mobileController.text,
@@ -691,9 +711,10 @@ class _BusinessDetailsEditPageOneState
       ApiKeys.address: fullBusinessAddressTextController.text,
       // ApiKeys.address: viewBusinessDetailsController.businessAddress.value,
 
-      "business_location":jsonEncode({
+      "business_location": jsonEncode({
         ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
-        ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+        ApiKeys.lon:
+        viewBusinessDetailsController.addressLong?.value.toString(),
       }),
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,
@@ -720,7 +741,7 @@ class _BusinessDetailsEditPageOneState
         return Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: GestureDetector(
-            onTap: () =>  updateAddressFromLocation(),
+            onTap: () => updateAddressFromLocation(),
             child: CustomText(
               'GPS location not found (Tap to fetch)',
               fontSize: SizeConfig.small,
