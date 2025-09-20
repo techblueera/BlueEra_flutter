@@ -67,16 +67,4 @@ class ProductRepo extends BaseService{
     return response;
   }
 
-  // ///UnFollow Channel...
-  // Future<ResponseModel> unFollowChannel({required String channelId}) async {
-  //   String unFollowChannel = channelUnFollow(channelId);
-  //   final response = await ApiBaseHelper().deleteHTTP(
-  //     unFollowChannel,
-  //     params: {ApiKeys.channelId : channelId},
-  //     showProgress: false,
-  //     onError: (error) {},
-  //     onSuccess: (data) {},
-  //   );
-  //   return response;
-  // }
 }

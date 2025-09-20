@@ -812,8 +812,8 @@ class ManualListingScreenController extends GetxController {
   }
 
   void addTag() {
-    if(tags.length == 5){
-      commonSnackBar(message: 'You can\'t add more than 5 tags/Keywords');
+    if(tags.length == 10){
+      commonSnackBar(message: 'You can\'t add more than 10 tags/Keywords');
       return;
     }
 

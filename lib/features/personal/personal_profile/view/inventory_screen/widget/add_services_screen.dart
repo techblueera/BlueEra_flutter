@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
@@ -27,11 +26,24 @@ class AddServicesScreen extends StatefulWidget {
 }
 
 class _AddServicesScreenState extends State<AddServicesScreen> {
-  final addServiceController = Get.put(AddServiceController());
+  late AddServiceController addServiceController;
+
+  @override
+  void initState() {
+    super.initState();
+    Get.lazyPut<AddServiceController>(() => AddServiceController());
+    addServiceController = Get.find<AddServiceController>();
+  }
+
+  @override
+  void dispose() {
+    Get.delete<AddServiceController>();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
+
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
@@ -40,423 +52,426 @@ class _AddServicesScreenState extends State<AddServicesScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.paddingM),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Upload Images Section
-              Container(
-                padding: EdgeInsets.all(SizeConfig.size16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  // boxShadow: [AppShadows.textFieldShadow],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+          child: Form(
+            key: addServiceController.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Upload Images Section
+                Container(
+                  padding: EdgeInsets.all(SizeConfig.size16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    // boxShadow: [AppShadows.textFieldShadow],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    /// Upload images
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const CustomText(
-                            "Upload Images",
-                            fontWeight: FontWeight.w400
-                        ),
-                        const CustomText(
-                            "Min 2 / Max 5",
-                            fontWeight: FontWeight.w400),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.paddingS),
-                    SizedBox(
-                      height: SizeConfig.size80,
-                      child: GridView.builder(
-                        scrollDirection: Axis.horizontal,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 1,
-                          mainAxisSpacing: 8,
-                          childAspectRatio: 1,
-                        ),
-                        itemCount: 5,
-                        itemBuilder: (context, index) {
-                          final imgIdx = index;
-                          return GestureDetector(
-                            key: ValueKey('img_$imgIdx'),
-                            onTap: () {
-                              if (addServiceController.imageLocalPaths.length >= 5) {
-                                commonSnackBar(
-                                  message: 'Limit reached\nYou can upload up to 4 images only.',
-                                );
-                              } else {
-                                addServiceController.pickImages(context);
-                              }
-                            },
-                            onLongPress: () {
-                              final hasImage = imgIdx < addServiceController.imageLocalPaths.length;
-                              if (hasImage) {
-                                addServiceController.removeImageAt(imgIdx);
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.whiteFE,
-                                borderRadius: BorderRadius.circular(6.0),
-                                border: Border.all(color: AppColors.greyE5, width: 1),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Obx(() {
+                      /// Upload images
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const CustomText(
+                              "Upload Images",
+                              fontWeight: FontWeight.w400
+                          ),
+                          const CustomText(
+                              "Min 2 / Max 5",
+                              fontWeight: FontWeight.w400),
+                        ],
+                      ),
+                      SizedBox(height: SizeConfig.paddingS),
+                      SizedBox(
+                        height: SizeConfig.size80,
+                        child: GridView.builder(
+                          scrollDirection: Axis.horizontal,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 1,
+                          ),
+                          itemCount: 5,
+                          itemBuilder: (context, index) {
+                            final imgIdx = index;
+                            return GestureDetector(
+                              key: ValueKey('img_$imgIdx'),
+                              onTap: () {
+                                if (addServiceController.imageLocalPaths.length >= 5) {
+                                  commonSnackBar(
+                                    message: 'Limit reached\nYou can upload up to 4 images only.',
+                                  );
+                                } else {
+                                  addServiceController.pickImages(context);
+                                }
+                              },
+                              onLongPress: () {
                                 final hasImage = imgIdx < addServiceController.imageLocalPaths.length;
-                                return Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    if (hasImage)
-                                      Image.file(
-                                        File(addServiceController.imageLocalPaths[imgIdx]),
-                                        fit: BoxFit.cover,
-                                      )
-                                    else
-                                      Center(
-                                        child: Icon(
-                                          Icons.photo_outlined,
-                                          color:
-                                          AppColors.secondaryTextColor.withValues(alpha: 0.3),
+                                if (hasImage) {
+                                  addServiceController.removeImageAt(imgIdx);
+                                }
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.whiteFE,
+                                  borderRadius: BorderRadius.circular(6.0),
+                                  border: Border.all(color: AppColors.greyE5, width: 1),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Obx(() {
+                                  final hasImage = imgIdx < addServiceController.imageLocalPaths.length;
+                                  return Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      if (hasImage)
+                                        Image.file(
+                                          File(addServiceController.imageLocalPaths[imgIdx]),
+                                          fit: BoxFit.cover,
+                                        )
+                                      else
+                                        Center(
+                                          child: Icon(
+                                            Icons.photo_outlined,
+                                            color:
+                                            AppColors.secondaryTextColor.withValues(alpha: 0.3),
+                                          ),
                                         ),
-                                      ),
-                                    if (hasImage)
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: GestureDetector(
-                                          onTap: () => addServiceController.removeImageAt(imgIdx),
-                                          child: Container(
-                                            width: 22,
-                                            height: 22,
-                                            decoration: const BoxDecoration(
-                                              color: Colors.black54,
-                                              shape: BoxShape.circle,
+                                      if (hasImage)
+                                        Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: GestureDetector(
+                                            onTap: () => addServiceController.removeImageAt(imgIdx),
+                                            child: Container(
+                                              width: 22,
+                                              height: 22,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.black54,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(Icons.close,
+                                                  size: 14, color: Colors.white),
                                             ),
-                                            child: const Icon(Icons.close,
-                                                size: 14, color: Colors.white),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                }),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// service name
+                      CommonTextField(
+                        contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                        title: "Service Name",
+                        hintText: "E.g. Hospital OPD Consultation...",
+                        textEditController: addServiceController.serviceNameCtrl,
+                        validator: addServiceController.validateServiceName,
+                        maxLength: 30,
+                        isCounterVisible: true
+                      ),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// facility
+                      CustomText(
+                        'Facilities',
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size16,
+                          vertical: SizeConfig.size10,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.greyE5, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            Image.asset("assets/icons/tag_icon.png"),
+                            SizedBox(width: SizeConfig.size12),
+                            Expanded(
+                              child: TextField(
+                                controller: addServiceController.facilitiesCtrl,
+                                onChanged: (_) => addServiceController.update(["addIcon"]),
+                                decoration: const InputDecoration(
+                                  hintText: 'Facility',
+                                  hintStyle: TextStyle(
+                                    color: AppColors.grey9B,
+                                    fontSize: 14,
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero,
+                                  isDense: true,
+
+                                ),
+                              ),
+                            ),
+                            GetBuilder<AddServiceController>(
+                              id: "addIcon",
+                              builder: (_) {
+                                return AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  transitionBuilder: (child, anim) =>
+                                      ScaleTransition(scale: anim, child: child),
+                                  child: addServiceController.facilitiesCtrl.text.isNotEmpty
+                                      ? InkWell(
+                                    key: const ValueKey("add"),
+                                    onTap: () {
+                                      addServiceController.addFacility();
+                                      addServiceController.update(["addIcon"]);
+                                      unFocus();
+                                    },
+                                    child: LocalAssets(
+                                      imagePath: AppIconAssets.addBlueIcon,
+                                      // imgColor: AppColors.grey9A
+                                    ),
+                                  )
+                                      : const SizedBox.shrink(key: ValueKey("empty")),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Obx(()=> Wrap(
+                        spacing: 8,
+                        runSpacing: 2,
+                        children: addServiceController.facilities.map((facility) {
+                          return Chip(
+                            label: Text(facility),
+                            backgroundColor: AppColors.lightBlue,
+                            labelStyle: TextStyle(
+                                fontSize: SizeConfig.size14,
+                                color: Colors.black87
+                            ),
+                            deleteIcon: const Icon(Icons.close,
+                                size: 20, color: AppColors.mainTextColor),
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(color: Colors.transparent),
+                                borderRadius: BorderRadius.circular(8.0)),
+                            onDeleted: () => addServiceController.removeFacility(facility),
+                            labelPadding: const EdgeInsets.only(left: 12),
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          );
+                        }).toList(),
+                      )),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// service description
+                      CommonTextField(
+                        title: "Service Description",
+                        hintText: "Horem ipsum dolor sit amet, consectetur adipiscing...",
+                        textEditController: addServiceController.descriptionCtrl,
+                        maxLine: 4,
+                        validator: addServiceController.validateServiceDescription,
+                        maxLength: 600,
+                        isCounterVisible: true
+                      ),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// timing section
+                      _timingSection(),
+
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: SizeConfig.size10),
+
+                Container(
+                  padding: EdgeInsets.all(SizeConfig.size16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    // boxShadow: [AppShadows.textFieldShadow],
+                  ),
+                  child: Column(
+                    children: [
+                      _priceSection(),
+
+                      SizedBox(height: SizeConfig.size10),
+
+                      _discountSection(),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: SizeConfig.size10),
+
+                // Demo Video
+                // _demoVideoSection(),
+                //
+                // SizedBox(height: SizeConfig.size10),
+
+                // Minimum Booking
+
+                Container(
+                  padding: EdgeInsets.all(SizeConfig.size16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    // boxShadow: [AppShadows.textFieldShadow],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children:  [
+                      CommonTextField(
+                        contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 12),
+                        title: "Minimum booking Amount",
+                        hintText: "E.g. ₹300",
+                        textEditController: addServiceController.minBookingCtrl,
+                        keyBoardType: TextInputType.number,
+                        validator: addServiceController.validateAmount,
+                      ),
+                      SizedBox(height: SizeConfig.size30),
+
+                      Obx(()=> addServiceController.detailsList.isNotEmpty ? Column(
+                        children: List.generate(
+                          addServiceController.detailsList.length,
+                              (index) {
+                            final item = addServiceController.detailsList[index];
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: SizeConfig.size15),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+
+                                  if(index==0)...[
+                                    CustomText(
+                                      'Details',
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.black,
+                                    ),
+
+                                    SizedBox(height: SizeConfig.size12),
+                                  ],
+
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 12),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                              color: AppColors.white,
+                                              boxShadow: [AppShadows.textFieldShadow],
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(
+                                                color: AppColors.greyE5,
+                                              )),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Title + Details
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    CustomText(
+                                                      item.title,
+                                                      fontSize: SizeConfig.large,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: AppColors.mainTextColor,
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    CustomText(
+                                                      item.details,
+                                                      fontSize: SizeConfig.medium,
+                                                      fontWeight: FontWeight.w400,
+                                                      color: AppColors.secondaryTextColor,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+                                            ],
                                           ),
                                         ),
                                       ),
-                                  ],
-                                );
-                              }),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// service name
-                    CommonTextField(
-                      contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                      title: "Service Name",
-                      hintText: "E.g. Hospital OPD Consultation...",
-                      textEditController: addServiceController.serviceNameCtrl,
-                      validator: addServiceController.validateServiceName,
-                      maxLength: 30,
-                      isCounterVisible: true
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// facility
-                    CustomText(
-                      'Facilities',
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size16,
-                        vertical: SizeConfig.size10,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.greyE5, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          Image.asset("assets/icons/tag_icon.png"),
-                          SizedBox(width: SizeConfig.size12),
-                          Expanded(
-                            child: TextField(
-                              controller: addServiceController.facilitiesCtrl,
-                              onChanged: (_) => addServiceController.update(["addIcon"]),
-                              decoration: const InputDecoration(
-                                hintText: 'Facility',
-                                hintStyle: TextStyle(
-                                  color: AppColors.grey9B,
-                                  fontSize: 14,
-                                ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                                isDense: true,
-
-                              ),
-                            ),
-                          ),
-                          GetBuilder<AddServiceController>(
-                            id: "addIcon",
-                            builder: (_) {
-                              return AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                transitionBuilder: (child, anim) =>
-                                    ScaleTransition(scale: anim, child: child),
-                                child: addServiceController.facilitiesCtrl.text.isNotEmpty
-                                    ? InkWell(
-                                  key: const ValueKey("add"),
-                                  onTap: () {
-                                    addServiceController.addFacility();
-                                    addServiceController.update(["addIcon"]);
-                                    unFocus();
-                                  },
-                                  child: LocalAssets(
-                                    imagePath: AppIconAssets.addBlueIcon,
-                                    // imgColor: AppColors.grey9A
+                                      Positioned(
+                                          right: 6,
+                                          top: -15,
+                                          child: InkWell(
+                                            onTap: () => addServiceController.removeDetail(index),
+                                            child: Container(
+                                              padding: EdgeInsets.all(6),
+                                              alignment: Alignment.center,
+                                              decoration: BoxDecoration(
+                                                  color: AppColors.white,
+                                                  boxShadow: [AppShadows.textFieldShadow],
+                                                  border: Border.all(
+                                                    color: AppColors.greyE5,
+                                                  ),
+                                                  shape: BoxShape.circle
+                                              ),
+                                              child: Icon(
+                                                Icons.close,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          )
+                                      )
+                                    ],
                                   ),
-                                )
-                                    : const SizedBox.shrink(key: ValueKey("empty")),
-                              );
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ) : SizedBox.shrink()),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CustomText("Add More Details",
+                          fontWeight: FontWeight.w600,),
+                          GestureDetector(
+                            onTap: () {
+                              showAddMoreDetailsDialog(context);
                             },
+                            child: Container(
+                              height: 28,
+                                width: 28,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                color: Colors.blue
+                                ),
+                                child: Center(child: const Icon(CupertinoIcons.add,
+                                  color: Colors.white,size: 21,))),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Obx(()=> Wrap(
-                      spacing: 8,
-                      runSpacing: 2,
-                      children: addServiceController.facilities.map((facility) {
-                        return Chip(
-                          label: Text(facility),
-                          backgroundColor: AppColors.lightBlue,
-                          labelStyle: TextStyle(
-                              fontSize: SizeConfig.size14,
-                              color: Colors.black87
-                          ),
-                          deleteIcon: const Icon(Icons.close,
-                              size: 20, color: AppColors.mainTextColor),
-                          shape: RoundedRectangleBorder(
-                              side: BorderSide(color: Colors.transparent),
-                              borderRadius: BorderRadius.circular(8.0)),
-                          onDeleted: () => addServiceController.removeFacility(facility),
-                          labelPadding: const EdgeInsets.only(left: 12),
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        );
-                      }).toList(),
-                    )),
-                    SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.size30),
 
-                    /// service description
-                    CommonTextField(
-                      title: "Service Description",
-                      hintText: "Horem ipsum dolor sit amet, consectetur adipiscing...",
-                      textEditController: addServiceController.descriptionCtrl,
-                      maxLine: 4,
-                      validator: addServiceController.validateServiceDescription,
-                      maxLength: 600,
-                      isCounterVisible: true
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// timing section
-                    _timingSection(),
-
-                  ],
-                ),
-              ),
-
-              SizedBox(height: SizeConfig.size10),
-
-              Container(
-                padding: EdgeInsets.all(SizeConfig.size16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  // boxShadow: [AppShadows.textFieldShadow],
-                ),
-                child: Column(
-                  children: [
-                    _priceSection(),
-
-                    SizedBox(height: SizeConfig.size10),
-
-                    _discountSection(),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: SizeConfig.size10),
-
-              // Demo Video
-              // _demoVideoSection(),
-              //
-              // SizedBox(height: SizeConfig.size10),
-
-              // Minimum Booking
-
-              Container(
-                padding: EdgeInsets.all(SizeConfig.size16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  // boxShadow: [AppShadows.textFieldShadow],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children:  [
-                    CommonTextField(
-                      contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 12),
-                      title: "Minimum booking Amount",
-                      hintText: "E.g. ₹300",
-                      textEditController: addServiceController.minBookingCtrl,
-                      keyBoardType: TextInputType.number,
-                      validator: addServiceController.validateAmount,
-                    ),
-                    SizedBox(height: SizeConfig.size30),
-
-                    Obx(()=> addServiceController.detailsList.isNotEmpty ? Column(
-                      children: List.generate(
-                        addServiceController.detailsList.length,
-                            (index) {
-                          final item = addServiceController.detailsList[index];
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: SizeConfig.size15),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-
-                                if(index==0)...[
-                                  CustomText(
-                                    'Details',
-                                    fontSize: SizeConfig.medium,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.black,
-                                  ),
-
-                                  SizedBox(height: SizeConfig.size12),
-                                ],
-
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                            color: AppColors.white,
-                                            boxShadow: [AppShadows.textFieldShadow],
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(
-                                              color: AppColors.greyE5,
-                                            )),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            // Title + Details
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  CustomText(
-                                                    item.title,
-                                                    fontSize: SizeConfig.large,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors.mainTextColor,
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  CustomText(
-                                                    item.details,
-                                                    fontSize: SizeConfig.medium,
-                                                    fontWeight: FontWeight.w400,
-                                                    color: AppColors.secondaryTextColor,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                        right: 6,
-                                        top: -15,
-                                        child: InkWell(
-                                          onTap: () => addServiceController.removeDetail(index),
-                                          child: Container(
-                                            padding: EdgeInsets.all(6),
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                                color: AppColors.white,
-                                                boxShadow: [AppShadows.textFieldShadow],
-                                                border: Border.all(
-                                                  color: AppColors.greyE5,
-                                                ),
-                                                shape: BoxShape.circle
-                                            ),
-                                            child: Icon(
-                                              Icons.close,
-                                              size: 18,
-                                            ),
-                                          ),
-                                        )
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                      CustomBtn(
+                        title: 'Post Service',
+                        onTap: ()=> addServiceController.createServiceApi(),
+                        bgColor: AppColors.primaryColor,
+                        textColor: AppColors.white,
+                        height: SizeConfig.size40,
+                        radius: 10.0,
                       ),
-                    ) : SizedBox.shrink()),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CustomText("Add More Details",
-                        fontWeight: FontWeight.w600,),
-                        GestureDetector(
-                          onTap: () {
-                            showAddMoreDetailsDialog(context);
-                          },
-                          child: Container(
-                            height: 28,
-                              width: 28,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                              color: Colors.blue
-                              ),
-                              child: Center(child: const Icon(CupertinoIcons.add,
-                                color: Colors.white,size: 21,))),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size30),
-
-                    CustomBtn(
-                      title: 'Post Service',
-                      onTap: (){},
-                      bgColor: AppColors.primaryColor,
-                      textColor: AppColors.white,
-                      height: SizeConfig.size40,
-                      radius: 10.0,
-                    ),
-
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1266,11 +1281,11 @@ class DiscountCoupon {
   // From JSON
   factory DiscountCoupon.fromJson(Map<String, dynamic> json) {
     return DiscountCoupon(
-      couponName: json['couponName'] ?? '',
+      couponName: json['name'] ?? '',
       description: json['description'] ?? '',
       codeName: json['codeName'],
       totalOff: (json['totalOff'] ?? 0).toDouble(),
-      discountType: json['discountType'] == 'inRupees'
+      discountType: json['type'] == 'flat'
           ? DiscountType.inRupees
           : DiscountType.inPercentage,
     );
@@ -1279,12 +1294,11 @@ class DiscountCoupon {
   // To JSON
   Map<String, dynamic> toJson() {
     return {
-      'couponName': couponName,
+      'name': couponName,
       'description': description,
       'codeName': codeName,
       'totalOff': totalOff,
-      'discountType':
-      discountType == DiscountType.inRupees ? 'inRupees' : 'inPercentage',
+      'type': discountType == DiscountType.inRupees ? 'flat' : 'percentage',
     };
   }
 }
