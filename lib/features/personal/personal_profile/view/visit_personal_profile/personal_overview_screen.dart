@@ -126,7 +126,7 @@ class PersonalOverviewScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  '${controller.testimonialsList.first.fromUser?.name ?? ""}',
+                                  '${controller.testimonialsList.first.fromUser?.name ?? "User"}',
                                   // fontSize: SizeConfig.size16,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.secondaryTextColor,

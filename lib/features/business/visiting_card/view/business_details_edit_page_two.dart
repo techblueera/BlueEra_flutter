@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -16,6 +17,7 @@ import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../auth/model/viewBusinessProfileModel.dart';
@@ -65,11 +67,23 @@ class _BusinessDetailsEditPageTwoState
             data?.ownerDetails?.first.role_in_business ?? '';
       }
       businessDescriptionController.text = data?.businessDescription ?? '';
+      if((viewBusinessDetailsController
+          .selectedSubCategoryOfBusinessNew.value!=null)||(viewBusinessDetailsController
+          .selectedCategoryOfBusiness.value!=null))
+        {
+          subCategorySpecializationTextController.text = data?.specification ?? '';
+
+        }
+      else{
+        subCategorySpecializationTextController.clear();
+
+      }
     }
     super.initState();
   }
 
   final subCategoryTextController = TextEditingController();
+  final subCategorySpecializationTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -94,13 +108,15 @@ class _BusinessDetailsEditPageTwoState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  "Category of Business",
+                  "Category of Business ${viewBusinessDetailsController
+                      .selectedBusinessType?.value.name}",
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w500,
                 ),
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
+
                 Obx(() {
                   return viewBusinessDetailsController
                               .selectedBusinessType?.value.name
@@ -171,6 +187,85 @@ class _BusinessDetailsEditPageTwoState
                                     .value = value;
                               },
                             ),
+                            SizedBox(height: SizeConfig.size10),
+
+                            CommonTextField(
+                              textEditController:subCategorySpecializationTextController,
+                              hintText: "Eg. South Indian Restaurant",
+                              title: "Business Specialization (Optional)",
+                              maxLine: 1,
+                              maxLength: 24,
+                              keyBoardType: TextInputType.text,
+                              textInputAction: TextInputAction.done,
+                              isValidate: false,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(
+                                    RegularExpressionUtils
+                                        .alphabetPatternSpace)),
+                                NoLeadingSpaceFormatter(),
+                                NoConsecutiveSpacesFormatter(),
+                              ],
+                              // we will handle validation manually
+                              onChange: (val) {
+                                String newVal = val;
+                                viewBusinessDetailsController
+                                    .categorySpecializationText.value = val;
+                                // Allow only alphabets + spaces
+                                if (!RegExp(r'^[a-zA-Z ]*$')
+                                    .hasMatch(newVal)) {
+                                  viewBusinessDetailsController.errorMessage.value =
+                                  "Special characters are not allowed";
+                                }
+                                else if (newVal.isEmpty) {
+                                  viewBusinessDetailsController.errorMessage.value =
+                                  "Please enter business specialization";
+                                }
+                                else if (newVal.length < 8) {
+                                  viewBusinessDetailsController.errorMessage.value =
+                                  "Mini 8 char required";
+                                } else if (newVal.length > 24) {
+                                  viewBusinessDetailsController.errorMessage.value =
+                                  "Maxi 24 char allowed";
+                                } else {
+                                  viewBusinessDetailsController.errorMessage.value = "";
+                                }
+
+                                // Keep latest valid value
+                                // authController.otherNatureOfBusinessTextController.text = newVal;
+                                // authController.otherNatureOfBusinessTextController.selection =
+                                //     TextSelection.fromPosition(
+                                //       TextPosition(offset: newVal.length),
+                                //     );
+                              },
+                            ),
+
+                            SizedBox(height: 5),
+
+                            // 👇 Error/Helper Message
+                            Obx(() => viewBusinessDetailsController
+                                .errorMessage.value.isNotEmpty &&
+                                (viewBusinessDetailsController.categorySpecializationText
+                                    .value.isNotEmpty)
+                                ? Align(
+                              alignment: Alignment.centerLeft,
+                              child: CustomText(
+                                viewBusinessDetailsController.errorMessage.value,
+                                color: Colors.red,
+                                fontSize: 12,
+                                textAlign: TextAlign.left,
+                              ),
+                            )
+                                : SizedBox()),
+
+                            // 👇 Counter (bottom right)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Obx(() => CustomText(
+                                "${viewBusinessDetailsController.categorySpecializationText.value.length}/24",
+                                color: Colors.grey,
+                                fontSize: 12,
+                              )),
+                            ),
                           ],
                         )
                       : CommonTextField(
@@ -199,69 +294,7 @@ class _BusinessDetailsEditPageTwoState
                 SizedBox(
                   height: SizeConfig.size20,
                 ),
-                /*    CustomText(
-                  "Sub-category",
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-                Obx(() {
-                  // return CommonDropdown<GenderType>(
-                  //   items: GenderType.values,
-                  //   selectedValue: personalCreateProfileController
-                  //       .selectedGender.value,
-                  //   hintText: "Select Gender",
-                  //   displayValue: (value) => value.displayName,
-                  //   onChanged: (value) {
-                  //     personalCreateProfileController
-                  //         .selectedGender.value = value;
-                  //   },
-                  //   validator: (value) {
-                  //     return null;
-                  //   },
-                  // );
-                  return CommonDropdown<SubCategoryData>(
-                    items: viewBusinessDetailsController.subCategoriesList,
-                    selectedValue: viewBusinessDetailsController
-                        .selectedSubCategoryOfBusiness.value,
-                    hintText:"Select Sub category",
-                    // hintText: appLocalizations?.subCategory.tr ?? "",
 
-                    displayValue: (category) => category.name??"Select Sub category",
-                    onChanged: (value) {
-                      viewBusinessDetailsController
-                          .selectedSubCategoryOfBusiness.value =
-                          value ?? SubCategoryData();
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return appLocalizations?.subCategory;
-                      }
-                      return null;
-                    },
-                  );
-                }),
-                SizedBox(
-                  height: SizeConfig.size20,
-                ),*/
-                /*      CommonTextField(
-                  textEditController: businessDescriptionController,
-                  inputLength: AppConstants.inputCharterLimit50,
-                  keyBoardType: TextInputType.text,
-                  regularExpression:
-                  RegularExpressionUtils.alphabetSpacePatternDigitSpace,
-                  title: "Business Description",
-                  hintText:
-                  "Eg., Visit our store for casual and traditional wear...",
-                  isValidate: false,
-                  maxLine: 3,
-                  onChange: (value) => validateForm(),
-                ),*/
-                // SizedBox(
-                //   height: 28,
-                // ),
                 Center(
                   child: CustomText(
                     "Owner Details",
@@ -376,6 +409,8 @@ class _BusinessDetailsEditPageTwoState
                                       .selectedSubCategoryOfBusinessNew
                                       .value
                                       ?.sId,
+                            if(subCategorySpecializationTextController.text.isNotEmpty)
+                              ApiKeys.specification:subCategorySpecializationTextController.text,
 
                             // "sub_category_Of_Business":
                             // viewBusinessDetailsController

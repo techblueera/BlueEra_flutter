@@ -358,12 +358,12 @@ class BusinessProfileHeader extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfo("Rating",
+                      buildInfo("Rating",
                           "★ ${(businessProfileDetails.rating ?? 0).toStringAsFixed(1)}"),
                       SizedBox(
                         height: SizeConfig.size12,
                       ),
-                      _buildInfo(
+                      buildInfo(
                           "Views", "${formatIndianNumber(businessProfileDetails.total_views ?? 0)}"),
                     ],
                   ),
@@ -397,7 +397,7 @@ class BusinessProfileHeader extends StatelessWidget {
                       children: [
                         Padding(
                           padding:  EdgeInsets.symmetric(),
-                          child: _buildInfo("Inquiries",formatIndianNumber(0) ),
+                          child: buildInfo("Inquiries",formatIndianNumber(0) ),
                         ),
                         SizedBox(
                           height: SizeConfig.size12,
@@ -409,7 +409,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                     userID: businessProfileDetails.id ?? "",
                                   ));
                             },
-                            child: _buildInfo("Followers",
+                            child: buildInfo("Followers",
                                 "${formatIndianNumber(businessProfileDetails.total_followers ?? 0)}")),
                       ],
                     ),
@@ -487,26 +487,27 @@ class BusinessProfileHeader extends StatelessWidget {
         ));
   }
 
-  Widget _buildInfo(String title, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          title + ":",
-          fontSize: SizeConfig.size12,
-          color: AppColors.grayText,
-          fontWeight: FontWeight.w400,
-        ),
-        SizedBox(width: SizeConfig.size6),
-        Flexible(
-          child: CustomText(
-            value ,
-            fontSize: SizeConfig.size12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.secondaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
 }
+Widget buildInfo(String title, String value) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      CustomText(
+        title + ":",
+        fontSize: SizeConfig.size12,
+        color: AppColors.grayText,
+        fontWeight: FontWeight.w400,
+      ),
+      SizedBox(width: SizeConfig.size6),
+      Flexible(
+        child: CustomText(
+          value ,
+          fontSize: SizeConfig.size12,
+          fontWeight: FontWeight.w700,
+          color: AppColors.secondaryTextColor,
+        ),
+      ),
+    ],
+  );
+}
+

@@ -22,15 +22,9 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 class MessagePostController extends GetxController {
   /// ADD MSG POST
   Rx<ApiResponse> addPostMessage = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> editPostMessage = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> deletePostMessage = ApiResponse.initial('Initial').obs;
-  RxString selectedBgImage = ''.obs,
-      selectedFontFamily = ''.obs,
-      uploadMsgPostUrl = "".obs;
+
   RxBool isLoading = false.obs;
 
-  Rx<Color> selectedColor = Colors.white.obs;
-  Rx<Color> selectedBgColor = Colors.white.obs;
   RxString postText = ''.obs;
   RxString messageText = ''.obs;
   RxString messageTitle = ''.obs;
@@ -38,23 +32,13 @@ class MessagePostController extends GetxController {
   RxBool isAddTitle = false.obs;
   RxList<User>? taggedSelectedUsersList = <User>[].obs;
 
-  final List<Map<String, String>> fontStyles = [
-    {'name': 'Style', 'family': 'OpenSans'},
-    {'name': 'Style', 'family': 'Arizonia'},
-    {'name': 'Style', 'family': 'Artifika'},
-    {'name': 'Style', 'family': 'AsapCondensed'},
-  ];
   final postTitleController = TextEditingController().obs;
   final postTextDataController = TextEditingController().obs;
   final descriptionMessage = TextEditingController().obs;
   final natureOfPostController = TextEditingController().obs;
   final referenceLinkController = TextEditingController().obs;
   bool isMsgPostEdit = false;
-  RxBool isCursorHide = true.obs;
   String? postId;
-  final RxList<String> selectedPhotos = <String>[].obs;
-  final int maxPhotos = 5; // Updated to 5 as per requirement
-  final int minPhotos = 1; // Minimum 1 photo required
 
   ///ADD MESSAGE POST...
   Future<void> addMsgPostController({
@@ -127,25 +111,16 @@ class MessagePostController extends GetxController {
     referenceLinkController.value.clear();
     messageText.value = "";
     postText.value = "";
-    selectedFontFamily.value = "";
-    selectedBgImage.value = "";
-    selectedColor.value = Colors.white;
-    selectedBgColor.value = Colors.white;
     isAddLink.value = false;
     Get.find<TagUserController>().clearAllSelections();
     Get.find<TagUserController>().selectedUsers.clear();
   }
 
-  void changeFontFamily(String family) {
-    selectedFontFamily.value = family;
-  }
 
-  final ImagePicker _picker = ImagePicker();
 
   void removePhoto(int index) {
     if (index >= 0 && index < imagesList.length) {
       imagesList.removeAt(index);
-      // images.removeAt(index);
     }
   }
 

@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -19,12 +19,13 @@ import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class BusinessAccountScreen extends StatefulWidget {
@@ -42,6 +43,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
   SizeOfBusiness? _selectedNatureOfBusiness;
   CategoryData? _selectedCategoryOfBusiness;
   SubCategories? _selectedSubCategoryOfBusiness;
+  BusinessCategory? selectedTypeOfBusiness;
 
   bool _referralCodeEnable = false;
   final authController = Get.find<AuthController>();
@@ -104,15 +106,15 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                 Obx(() {
                   return IgnorePointer(
                     ignoring:
-                    (authController.isHaveGstApprove.value) ? true : false,
+                        (authController.isHaveGstApprove.value) ? true : false,
                     child: CommonTextField(
                       textEditController:
-                      authController.businessNameTextController,
+                          authController.businessNameTextController,
                       // inputLength: AppConstants.inputCharterLimit30,
                       maxLength: AppConstants.inputCharterLimit30,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetSpacePattern,
 
                       title: appLocalizations?.businessName,
                       hintText: AppConstants.businessName,
@@ -140,10 +142,10 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                   Align(
                     alignment: Alignment.bottomRight,
                     child: Obx(() => CustomText(
-                      "${authController.businessName.value.length}/${AppConstants.inputCharterLimit30}",
-                      color: AppColors.grey9B,
-                      fontSize: SizeConfig.small,
-                    )),
+                          "${authController.businessName.value.length}/${AppConstants.inputCharterLimit30}",
+                          color: AppColors.grey9B,
+                          fontSize: SizeConfig.small,
+                        )),
                   ),
 
                 SizedBox(
@@ -161,7 +163,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                 Obx(() {
                   return IgnorePointer(
                     ignoring:
-                    (authController.isHaveGstApprove.value) ? true : false,
+                        (authController.isHaveGstApprove.value) ? true : false,
                     child: NewDatePicker(
                       selectedDay: authController.selectedDay?.value,
                       selectedMonth: authController.selectedMonth?.value,
@@ -189,7 +191,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
-                Row(
+                /*   Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     BusinessTypeCard(
@@ -240,7 +242,38 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                       },
                     ),
                   ],
+                ),*/
+                CommonDropdownIconDialog<BusinessCategory>(
+                  items: typeOfBusinessList,
+                  selectedValue: selectedTypeOfBusiness,
+                  hintText: appLocalizations?.selectNatureOfTheBusiness ?? "",
+                  displayValue: (profession) => profession.title,
+                  title: appLocalizations?.natureOfBusiness ??
+                      "Nature of the Business",
+                  onChanged: (value) {
+                    setState(() {
+                      selectedTypeOfBusiness = value;
+                      _selectedCategoryOfBusiness = null;
+                      _selectedSubCategoryOfBusiness = null;
+                      authController.businessSubCategoriesList.clear();
+                      authController.subCategorySpecializationTextController
+                          .clear();
+                      // _typeOfBusiness = type;
+                      if (value?.type == BusinessType.Product.name) {
+                        _typeOfBusiness = BusinessType.Product;
+                      } else if (value?.type == BusinessType.Service.name) {
+                        _typeOfBusiness = BusinessType.Service;
+                      } else if (value?.type == BusinessType.Food.name) {
+                        _typeOfBusiness = BusinessType.Food;
+                      } else {
+                        _typeOfBusiness = BusinessType.Both;
+                      }
+                    });
+                  },
+                  displayValueSubTitle: (profession) => profession.subTitle,
+                  displayValueImagePath: (profession) => profession.icon,
                 ),
+
                 SizedBox(
                   height: SizeConfig.size20,
                 ),
@@ -253,98 +286,183 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                 ),
                 _typeOfBusiness?.name.toLowerCase() != "both"
                     ? GetBuilder<AuthController>(
-                  builder: (controller) {
-                    final categoriesList = controller.businessCategories;
-                    if (categoriesList.isEmpty)
-                      return const SizedBox.shrink();
+                        builder: (controller) {
+                          final categoriesList = controller.businessCategories;
+                          if (categoriesList.isEmpty)
+                            return const SizedBox.shrink();
 
-                    return Column(
-                      children: [
-                        CommonDropdownDialog<CategoryData>(
-                          items: categoriesList
-                              .where((e) =>
-                          e.type?.toLowerCase() ==
-                              _typeOfBusiness?.name.toLowerCase())
-                              .toList(),
-                          selectedValue: _selectedCategoryOfBusiness,
-                          title: appLocalizations?.categoryOfBusiness ??
-                              "Category of Business",
-                          hintText: appLocalizations
-                              ?.selectCategoryOfBusiness ??
-                              "",
-                          displayValue: (category) => "${category.name}",
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedCategoryOfBusiness = value;
-                              authController.businessSubCategoriesList
-                                  .clear();
+                          return Column(
+                            children: [
+                              CommonDropdownDialog<CategoryData>(
+                                items: categoriesList
+                                    .where((e) =>
+                                        e.type?.toLowerCase() ==
+                                        _typeOfBusiness?.name.toLowerCase())
+                                    .toList(),
+                                selectedValue: _selectedCategoryOfBusiness,
+                                title: appLocalizations?.categoryOfBusiness ??
+                                    "Category of Business",
+                                hintText: appLocalizations
+                                        ?.selectCategoryOfBusiness ??
+                                    "",
+                                displayValue: (category) => "${category.name}",
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedCategoryOfBusiness = value;
+                                    authController.businessSubCategoriesList
+                                        .clear();
 
-                              authController.businessSubCategoriesList
-                                  .addAll(value?.subCategories ?? []);
-                              _selectedSubCategoryOfBusiness = null;
-                            });
-                          },
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size20,
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: CustomText(
-                            appLocalizations?.subCategory,
-                            fontSize: SizeConfig.medium,
-                          ),
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size10,
-                        ),
-                        CommonDropdownDialog<SubCategories>(
-                          items: authController.businessSubCategoriesList,
-                          selectedValue: _selectedSubCategoryOfBusiness,
-                          hintText: "Select Sub Category",
-                          title: "Select Sub Category",
-                          displayValue: (category) => "${category.name}",
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedSubCategoryOfBusiness = value;
-                            });
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                )
+                                    authController.businessSubCategoriesList
+                                        .addAll(value?.subCategories ?? []);
+                                    _selectedSubCategoryOfBusiness = null;
+                                  });
+                                },
+                              ),
+                              SizedBox(
+                                height: SizeConfig.size20,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: CustomText(
+                                  appLocalizations?.subCategory,
+                                  fontSize: SizeConfig.medium,
+                                ),
+                              ),
+                              SizedBox(
+                                height: SizeConfig.size10,
+                              ),
+                              CommonDropdownDialog<SubCategories>(
+                                items: authController.businessSubCategoriesList,
+                                selectedValue: _selectedSubCategoryOfBusiness,
+                                hintText: "Select Sub Category",
+                                title: "Select Sub Category",
+                                displayValue: (category) => "${category.name}",
+                                onChanged: (value) {
+                                  authController
+                                      .subCategorySpecializationTextController
+                                      .clear();
+                                  setState(() {
+                                    _selectedSubCategoryOfBusiness = value;
+                                  });
+                                },
+                              ),
+                              SizedBox(
+                                height: SizeConfig.size20,
+                              ),
+// inside your screen/widget
+
+                              CommonTextField(
+                                textEditController: authController
+                                    .subCategorySpecializationTextController,
+                                hintText: "Eg. South Indian Restaurant",
+                                title: "Business Specialization (Optional)",
+                                maxLine: 1,
+                                maxLength: 24,
+                                keyBoardType: TextInputType.text,
+                                textInputAction: TextInputAction.done,
+                                isValidate: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(
+                                      RegularExpressionUtils
+                                          .alphabetPatternSpace)),
+                                  NoLeadingSpaceFormatter(),
+                                  NoConsecutiveSpacesFormatter(),
+                                ],
+                                // we will handle validation manually
+                                onChange: (val) {
+                                  String newVal = val;
+                                  authController
+                                      .categorySpecializationText.value = val;
+                                  // Allow only alphabets + spaces
+                                  if (!RegExp(r'^[a-zA-Z ]*$')
+                                      .hasMatch(newVal)) {
+                                    authController.errorMessage.value =
+                                        "Special characters are not allowed";
+                                  } else if (newVal.isEmpty) {
+                                    authController.errorMessage.value =
+                                        "Please enter business specialization";
+                                  } else if (newVal.length < 8) {
+                                    authController.errorMessage.value =
+                                        "Mini 8 char required";
+                                  } else if (newVal.length > 24) {
+                                    authController.errorMessage.value =
+                                        "Maxi 24 char allowed";
+                                  } else {
+                                    authController.errorMessage.value = "";
+                                  }
+
+                                  // Keep latest valid value
+                                  // authController.otherNatureOfBusinessTextController.text = newVal;
+                                  // authController.otherNatureOfBusinessTextController.selection =
+                                  //     TextSelection.fromPosition(
+                                  //       TextPosition(offset: newVal.length),
+                                  //     );
+                                },
+                              ),
+
+                              SizedBox(height: 5),
+
+                              // 👇 Error/Helper Message
+                              Obx(() => authController
+                                          .errorMessage.value.isNotEmpty &&
+                                      (authController.categorySpecializationText
+                                          .value.isNotEmpty)
+                                  ? Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: CustomText(
+                                        authController.errorMessage.value,
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                        textAlign: TextAlign.left,
+                                      ),
+                                    )
+                                  : SizedBox()),
+
+                              // 👇 Counter (bottom right)
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Obx(() => CustomText(
+                                      "${authController.categorySpecializationText.value.length}/24",
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    )),
+                              ),
+                            ],
+                          );
+                        },
+                      )
                     : CommonTextField(
-                  textEditController:
-                  authController.businessOtherCategoryTextController,
-                  // inputLength: AppConstants.inputCharterLimit30,
-                  maxLength: AppConstants.inputCharterLimit30,
-                  keyBoardType: TextInputType.text,
-                  regularExpression:
-                  RegularExpressionUtils.alphabetSpacePattern,
+                        textEditController:
+                            authController.businessOtherCategoryTextController,
+                        // inputLength: AppConstants.inputCharterLimit30,
+                        maxLength: AppConstants.inputCharterLimit30,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                            RegularExpressionUtils.alphabetSpacePattern,
 
-                  title: "",
-                  hintText: "Enter Category of Business",
-                  isValidate: true,
-                  // autovalidateMode: _autoValidate,
-                  onChange: (val) {
-                    setState(() {});
-                  },
+                        title: "",
+                        hintText: "Enter Category of Business",
+                        isValidate: true,
+                        // autovalidateMode: _autoValidate,
+                        onChange: (val) {
+                          setState(() {});
+                        },
 
-                  validator: (value) {
-                    // if (authController.businessName.value.isEmpty) {
-                    //   return 'Please enter your business or organization name';
-                    // } else if (authController.businessName.value.length <
-                    //     5) {
-                    //   return 'Minimum 5 characters required';
-                    // }
-                    return null;
-                  },
-                ),
+                        validator: (value) {
+                          // if (authController.businessName.value.isEmpty) {
+                          //   return 'Please enter your business or organization name';
+                          // } else if (authController.businessName.value.length <
+                          //     5) {
+                          //   return 'Minimum 5 characters required';
+                          // }
+                          return null;
+                        },
+                      ),
+                // if (selectedTypeOfBusiness?.type ==
+                //     BusinessTypeNew.Product.name) ...[
                 SizedBox(
-                  height: SizeConfig.size20,
+                  height: SizeConfig.size10,
                 ),
-
                 CustomText(
                   appLocalizations?.natureOfBusiness,
                   fontSize: SizeConfig.medium,
@@ -352,7 +470,6 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
-
                 CommonDropdownDialog<SizeOfBusiness>(
                   items: SizeOfBusiness.values,
                   selectedValue: _selectedNatureOfBusiness,
@@ -366,16 +483,15 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                     });
                   },
                 ),
-
                 if (_selectedNatureOfBusiness == SizeOfBusiness.OTHERS) ...[
                   SizedBox(height: SizeConfig.size20),
                   CommonTextField(
                     textEditController:
-                    authController.otherNatureOfBusinessTextController,
+                        authController.otherNatureOfBusinessTextController,
                     inputLength: AppConstants.inputCharterLimit100,
                     keyBoardType: TextInputType.text,
                     regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
+                        RegularExpressionUtils.alphabetSpacePattern,
                     titleColor: Colors.black,
                     hintText: appLocalizations?.pleaseSpecifyIfOther,
                     autovalidateMode: _autoValidate,
@@ -387,43 +503,44 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                     },
                   ),
                 ],
-
                 SizedBox(height: SizeConfig.size20),
+                // ],
+
                 ..._referralCodeEnable
                     ? [
-                  CommonTextField(
-                    textEditController:
-                    authController.referralCodeController,
-                    inputLength: AppConstants.inputCharterLimit10,
-                    keyBoardType: TextInputType.text,
-                    regularExpression:
-                    RegularExpressionUtils.alphanumericPattern,
-                    title: appLocalizations?.referralCode,
-                    hintText: appLocalizations?.enterReferCode,
-                    autovalidateMode: _autoValidate,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter your referral code";
-                      }
-                      return null;
-                    },
-                  ),
-                ]
+                        CommonTextField(
+                          textEditController:
+                              authController.referralCodeController,
+                          inputLength: AppConstants.inputCharterLimit10,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphanumericPattern,
+                          title: appLocalizations?.referralCode,
+                          hintText: appLocalizations?.enterReferCode,
+                          autovalidateMode: _autoValidate,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Please enter your referral code";
+                            }
+                            return null;
+                          },
+                        ),
+                      ]
                     : [
-                  Center(
-                    child: InkWell(
-                      onTap: () =>
-                          setState(() => _referralCodeEnable = true),
-                      child: CustomText(
-                        appLocalizations?.youHaveReferCode,
-                        color: AppColors.primaryColor,
-                        decoration: TextDecoration.underline,
-                        fontSize: SizeConfig.medium,
-                        decorationColor: AppColors.primaryColor,
-                      ),
-                    ),
-                  )
-                ],
+                        Center(
+                          child: InkWell(
+                            onTap: () =>
+                                setState(() => _referralCodeEnable = true),
+                            child: CustomText(
+                              appLocalizations?.youHaveReferCode,
+                              color: AppColors.primaryColor,
+                              decoration: TextDecoration.underline,
+                              fontSize: SizeConfig.medium,
+                              decorationColor: AppColors.primaryColor,
+                            ),
+                          ),
+                        )
+                      ],
               ],
             ),
           ),
@@ -432,15 +549,15 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
       extendBody: true,
       bottomNavigationBar: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
-            child: CustomBtn(
-              onTap: () => _onSubmit(),
-              title: appLocalizations?.submit,
-              isValidate: true,
-              radius: SizeConfig.size8,
-            ),
-          )),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
+        child: CustomBtn(
+          onTap: () => _onSubmit(),
+          title: appLocalizations?.submit,
+          isValidate: true,
+          radius: SizeConfig.size8,
+        ),
+      )),
     );
   }
 
@@ -475,54 +592,11 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
       Map<String, dynamic> requestData = {
         ApiKeys.logo_image: imageByPart,
         ApiKeys.business_name: authController.businessNameTextController.text,
-        "date_of_incorporation": jsonEncode({
+        ApiKeys.date_of_incorporation: jsonEncode({
           ApiKeys.date: authController.selectedDay?.value,
           ApiKeys.month: authController.selectedMonth?.value,
           ApiKeys.year: authController.selectedYear?.value,
         }),
-        ApiKeys.type_of_business: _typeOfBusiness?.name,
-        ApiKeys.nature_of_business: _selectedNatureOfBusiness?.name,
-
-        ///ADDED KEY OTHER KEY HARD CODED AS PER DISCUSIION
-        ApiKeys.category_Of_Business:
-        (_typeOfBusiness?.name.toLowerCase() == "both")
-            ? "68a80b766fdb4e82b42b77c0"
-            : _selectedCategoryOfBusiness?.id,
-        if (_typeOfBusiness?.name.toLowerCase() == "both")
-          ApiKeys.category_other:
-          authController.businessOtherCategoryTextController.text,
-        if (_selectedSubCategoryOfBusiness?.sId?.isNotEmpty ?? false)
-          ApiKeys.sub_category_Of_Business: _selectedSubCategoryOfBusiness?.sId,
-
-        if ((authController.gstVerifyModel?.value.success ?? false) &&
-            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
-                false))
-          ApiKeys.gst_have: true,
-        if ((authController.gstVerifyModel?.value.success ?? false) &&
-            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
-                false))
-          ApiKeys.gst_number: authController.gstVerifyModel?.value.data?.gstin,
-        ApiKeys.gst_verified: ((authController.gstVerifyModel?.value.success ??
-            false) &&
-            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
-                false))
-            ? true
-            : false,
-        if (authController.referralCodeController.text.isNotEmpty)
-          ApiKeys.referral_code: authController.referralCodeController.text,
-      };
-      await authController.addBusinessUser(reqData: requestData);
-
-/*
-      Map<String, dynamic> requestData = {
-        ApiKeys.contact_no: authController.mobileNumberEditController.text,
-        ApiKeys.account_type: AppConstants.business.toUpperCase(),
-        ApiKeys.logo_image: imageByPart,
-        ApiKeys.business_name: authController.businessNameTextController.text,
-        ApiKeys.date_of_incorporation_date: authController.selectedDay?.value,
-        ApiKeys.date_of_incorporation_month:
-            authController.selectedMonth?.value,
-        ApiKeys.date_of_incorporation_year: authController.selectedYear?.value,
         ApiKeys.type_of_business: _typeOfBusiness?.name,
         ApiKeys.nature_of_business: _selectedNatureOfBusiness?.name,
 
@@ -553,9 +627,12 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
             : false,
         if (authController.referralCodeController.text.isNotEmpty)
           ApiKeys.referral_code: authController.referralCodeController.text,
+        if (authController
+            .subCategorySpecializationTextController.text.isNotEmpty)
+          ApiKeys.specification:
+              authController.subCategorySpecializationTextController.text,
       };
-*/
-      // await authController.addNewUser(reqData: requestData);
+      await authController.addBusinessUser(reqData: requestData);
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;

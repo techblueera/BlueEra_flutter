@@ -177,19 +177,7 @@ class _CreateMessagePostScreenNewState
 
                     msgController.postText.value = newVal;
                   },
-                  // onChange: (val) {
-                  //   // Prevent multiple empty newlines at the end
-                  //   if (val.endsWith("\n\n")) {
-                  //     msgController.descriptionMessage.value.text =
-                  //         val.substring(0, val.length - 1); // remove extra newline
-                  //     msgController.descriptionMessage.value.selection =
-                  //         TextSelection.fromPosition(
-                  //           TextPosition(offset: msgController.descriptionMessage.value.text.length),
-                  //         );
-                  //   }
-                  //
-                  //   msgController.postText.value = val;
-                  // },
+
                   validator: (val) {
                     if (val == null || val.trim().length < 50) {
                       return "Message must be at least 50 characters long";
@@ -198,23 +186,6 @@ class _CreateMessagePostScreenNewState
                   },
                 )
 ,
-
-
-                // CommonTextField(
-                //   textEditController: msgController.descriptionMessage.value,
-                //   hintText:
-                //       "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
-                //   title: "Your Message",
-                //   maxLine: 5,
-                //
-                //   maxLength: 1000,
-                //   isValidate: false,
-                //   keyBoardType: TextInputType.multiline,
-                //   textInputAction: TextInputAction.none,
-                //   onChange: (val) {
-                //     msgController.postText.value = val;
-                //   },
-                // ),
                 SizedBox(
                   height: SizeConfig.size5,
                 ),

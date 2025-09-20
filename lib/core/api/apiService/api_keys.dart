@@ -337,4 +337,5 @@ class ApiKeys {
   static const mrpPerUnit = "mrp_per_unit";
   static const productWarranty = "productWarrenty";
   static const expiryTime = "expiry_time";
+  static const specification  = "specification";
 }

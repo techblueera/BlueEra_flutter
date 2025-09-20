@@ -96,7 +96,6 @@ class _MessagePostPreviewScreenNewState
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        msgPostController.isCursorHide.value = true;
 
         return true;
       },
@@ -104,7 +103,6 @@ class _MessagePostPreviewScreenNewState
         appBar: CommonBackAppBar(
           title: 'Post Preview',
           onBackTap: () {
-            msgPostController.isCursorHide.value = true;
             Get.back();
           },
         ),
@@ -315,8 +313,7 @@ class _MessagePostPreviewScreenNewState
                                   Expanded(
                                     child: PositiveCustomBtn(
                                       onTap: () {
-                                        msgPostController.isCursorHide.value =
-                                            true;
+
                                         Get.back();
                                       },
                                       title: "Back",

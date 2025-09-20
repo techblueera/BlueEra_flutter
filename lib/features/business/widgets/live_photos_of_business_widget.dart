@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class BusinessLivePhotos extends StatelessWidget {

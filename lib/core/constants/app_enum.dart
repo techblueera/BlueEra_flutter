@@ -5,14 +5,15 @@ enum ValidationTypeEnum { password, email, pNumber, name, Url, username, lNumber
 ///API TYPES
 enum APIType { aPost, aGet, aDelete, aPut }
 
-enum BusinessType { Product, Service, Both }
+enum BusinessType { Food,Product, Service, Both }
 
-// enum BusinessType { Product, Service, Both }
 
 extension BusinessTypeExtension on BusinessType {
   // Get display name
   String get displayName {
     switch (this) {
+      case BusinessType.Food:
+        return 'Food';
       case BusinessType.Product:
         return 'Product';
       case BusinessType.Service:
@@ -25,6 +26,8 @@ extension BusinessTypeExtension on BusinessType {
   // Get enum from string
   static BusinessType fromString(String value) {
     switch (value.toLowerCase()) {
+      case 'food':
+        return BusinessType.Food;
       case 'product':
         return BusinessType.Product;
       case 'service':
@@ -38,6 +41,42 @@ extension BusinessTypeExtension on BusinessType {
     }
   }
 }
+
+
+//
+// enum BusinessType { Product, Service, Both }
+//
+// // enum BusinessType { Product, Service, Both }
+//
+// extension BusinessTypeExtension on BusinessType {
+//   // Get display name
+//   String get displayName {
+//     switch (this) {
+//       case BusinessType.Product:
+//         return 'Product';
+//       case BusinessType.Service:
+//         return 'Service';
+//       case BusinessType.Both:
+//         return 'Both';
+//     }
+//   }
+//
+//   // Get enum from string
+//   static BusinessType fromString(String value) {
+//     switch (value.toLowerCase()) {
+//       case 'product':
+//         return BusinessType.Product;
+//       case 'service':
+//         return BusinessType.Service;
+//       case 'both':
+//         return BusinessType.Both;
+//       default:
+//         return BusinessType.Both;
+//
+//         throw ArgumentError('Invalid BusinessType value: $value');
+//     }
+//   }
+// }
 // POLITICIANORSOCIALIST,
 
 ///FOR CREATE PERSONAL ACCOUNT...

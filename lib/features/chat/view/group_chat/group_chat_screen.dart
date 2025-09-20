@@ -14,8 +14,6 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
-import '../../../business/visit_business_profile/view/visit_business_profile.dart';
-import '../../../personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
