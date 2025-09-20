@@ -10,7 +10,7 @@ import '../../../../../../core/constants/size_config.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
 import '../../../../../../widgets/local_assets.dart';
 import '../../add_product_screen/add_product_screen.dart';
-import 'add_food_screen.dart';
+import '../add_food/add_food_screen.dart';
 import 'add_services_screen.dart';
 
 class AddProductBtn extends StatelessWidget {
