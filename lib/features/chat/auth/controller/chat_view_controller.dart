@@ -389,6 +389,7 @@ class ChatViewController extends GetxController {
       required bool isInitialMessage,
        String? businessId,
       bool? isFromContactList}) async {
+    print("mncsdkjcnskcnsdkcjscsdckscsdkc ");
     await getLocalConversation(conversationId, userId);
     if (isFromContactList != null && isFromContactList) {
       Get.off(

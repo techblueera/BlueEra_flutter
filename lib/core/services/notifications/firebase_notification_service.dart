@@ -1,8 +1,14 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+
+import '../../../features/chat/auth/controller/chat_view_controller.dart';
+import 'model/OneSignalNotificationDetailsModel.dart';
 
 
 @pragma('vm:entry-point')
@@ -85,7 +91,14 @@ class FirebaseNotificationService {
     RemoteMessage? initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       print('🚀 App launched from notification (terminated)');
-      _handleNavigation(initialMessage);
+
+      // Normalize sender_user
+      Map<String, dynamic> dataa = Map<String, dynamic>.from(initialMessage.data);
+      if (dataa['sender_user'] is String) {
+        dataa['sender_user'] = jsonDecode(dataa['sender_user']);
+      }
+
+      _handleNavigation(RemoteMessage(data: dataa));
     }
   }
 
@@ -139,10 +152,40 @@ class FirebaseNotificationService {
     );
   }
 
+
+
+// When receiving notification
   void _handleNavigation(RemoteMessage message) {
-    String? screen = message.data['screen'];
-    String? chatId = message.data['chatId'];
-    // TODO: Use Navigator or GetX to navigate to the correct screen
-    print('🧭 Navigate to $screen with chatId: $chatId');
+    log('🧭 Navigate to chatId: ${message.data}');
+
+    // Convert everything into a Map
+    Map<String, dynamic> dataa = Map<String, dynamic>.from(message.data);
+
+    // If sender_user is a string, decode it into a Map
+    if (dataa['sender_user'] is String) {
+      dataa['sender_user'] = jsonDecode(dataa['sender_user']);
+    }
+
+    print("skdjnckjs One ");
+    OneSignalNotificationDetailsModel data =
+    OneSignalNotificationDetailsModel.fromJson(dataa);
+    print("skdjnckjs One ");
+
+    final chatViewController = Get.put(ChatViewController());
+    print("skdjnckjs One Twoq ");
+    chatViewController.connectSocket();
+    print("skdjnckjs One KK");
+
+    chatViewController.openAnyOneChatFunction(
+      type: data.conversationType ?? '',
+      conversationId: data.conversationId ?? '',
+      userId: data.senderUser?.id,
+      contactName: data.senderUser?.name,
+      contactNo: data.senderUser?.contact,
+      isInitialMessage: false,
+    );
+    print("ksjdckjsdncksjcns ");
   }
+
 }
+
