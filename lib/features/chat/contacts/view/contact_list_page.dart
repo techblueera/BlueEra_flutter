@@ -541,7 +541,7 @@ class _ContactsPageState extends State<ContactsPage> {
                                     (name == null)
                                         ? SizedBox()
                                         : CustomText(
-                                      phone,
+                                      (contact?.accountType=="INDIVIDUAL")?(contact?.designation=="")?phone:(contact?.designation??'$phone'):"",
                                       fontSize: 14,
                                       fontFamily:
                                       "Rounded Mplus 1c",

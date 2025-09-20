@@ -31,7 +31,7 @@ class AddProductBtn extends StatelessWidget {
           Get.to(()=> AddProductScreen());
         }else if(value.toUpperCase() == "ADD SERVICE"){
           Get.to(()=> AddServicesScreen());
-        }else{
+        }else if(value.toUpperCase() =="ADD FOOD"){
           Get.to(()=> FoodPage());
         }
       },

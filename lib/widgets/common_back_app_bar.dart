@@ -27,6 +27,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../features/personal/personal_profile/view/inventory_screen/widget/add_product_btn.dart';
 
 import '../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -683,35 +684,40 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
 
         if (isAddProduct)
+          // Builder(
+          //   builder: (context) => GestureDetector(
+          //     onTap: ()=> Get.toNamed(RouteHelper.getAddProductScreenRoute()),
+          //     child: Container(
+          //       height: SizeConfig.size30,
+          //       margin: EdgeInsets.only(right: SizeConfig.size10),
+          //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          //       decoration: BoxDecoration(
+          //           borderRadius: BorderRadius.circular(10),
+          //           border: Border.all(color: AppColors.primaryColor)
+          //       ),
+          //       child: Row(
+          //         mainAxisSize: MainAxisSize.min,
+          //         children: [
+          //           const Icon(
+          //             Icons.add,
+          //             color: AppColors.primaryColor,
+          //             size: 16,
+          //           ),
+          //           const SizedBox(width: 4),
+          //           CustomText(
+          //             'Add Product',
+          //             fontSize: 12,
+          //             fontWeight: FontWeight.w600,
+          //             color: AppColors.primaryColor,
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
           Builder(
             builder: (context) => GestureDetector(
-              onTap: ()=> Get.toNamed(RouteHelper.getAddProductScreenRoute()),
-              child: Container(
-                height: SizeConfig.size30,
-                margin: EdgeInsets.only(right: SizeConfig.size10),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryColor)
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.add,
-                      color: AppColors.primaryColor,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      'Add Product',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ],
-                ),
-              ),
+                child: AddProductBtn()
             ),
           ),
 

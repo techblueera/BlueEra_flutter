@@ -721,7 +721,7 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems() {
     // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
     {"id": "ADD PRODUCT",  'title': 'Add product'},
     {"id": "ADD SERVICE",  'title': 'Add Service'},
-    {"id": "ADD GROCERIES",  'title': 'Add Groceries'},
+    {"id": "ADD FOOD",  'title': 'Add Food'},
     // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
   ];
 
