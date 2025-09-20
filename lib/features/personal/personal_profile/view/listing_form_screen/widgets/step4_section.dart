@@ -436,13 +436,13 @@ class _Step4SectionState extends State<Step4Section> {
     ));
   }
 
-  void showAddMoreDetailsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => const AddMoreDetailsDialog(),
-    );
-  }
+  // void showAddMoreDetailsDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: true,
+  //     builder: (_) => const AddMoreDetailsDialog(),
+  //   );
+  // }
 }
 
 

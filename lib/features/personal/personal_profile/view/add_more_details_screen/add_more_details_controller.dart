@@ -1,3 +1,6 @@
+import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/controller/add_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -47,7 +50,7 @@ class AddMoreDetailsController extends GetxController {
   }
 
   // Save Details
-  Future<void> saveDetails() async {
+  Future<void> saveDetails({required String fromScreen}) async {
     if (!formKey.currentState!.validate()) {
       return;
     }
@@ -73,7 +76,11 @@ class AddMoreDetailsController extends GetxController {
 
       print('Saving details: $details');
 
-      Get.find<ManualListingScreenController>().addDetail(detailItem);
+      if(fromScreen == RouteConstant.listingFormScreen) {
+        Get.find<ManualListingScreenController>().addDetail(detailItem);
+      }else if(fromScreen == RouteConstant.addServicesScreen){
+        Get.find<AddServiceController>().addDetail(detailItem);
+      }
 
       Get.back();
       

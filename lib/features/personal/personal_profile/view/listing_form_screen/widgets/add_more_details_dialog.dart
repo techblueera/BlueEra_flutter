@@ -10,14 +10,15 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 
 
 class AddMoreDetailsDialog extends StatelessWidget {
-  const AddMoreDetailsDialog({super.key});
+  final String fromScreen;
+  const AddMoreDetailsDialog({super.key, required this.fromScreen});
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(AddMoreDetailsController());
 
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.all(25),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -30,13 +31,27 @@ class AddMoreDetailsDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  'Add More Details',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      'Add More Details',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: SizeConfig.size30),
+                SizedBox(height: SizeConfig.size15),
 
                 // Title Field
                 CustomText(
@@ -79,7 +94,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
                   title: 'Save',
                   onTap: controller.isLoading.value
                       ? null
-                      : controller.saveDetails,
+                      : ()=> controller.saveDetails(fromScreen: fromScreen),
                   bgColor: AppColors.primaryColor,
                   textColor: AppColors.white,
                   height: 45,

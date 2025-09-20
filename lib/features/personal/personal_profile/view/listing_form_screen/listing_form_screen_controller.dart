@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/create_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/sub_category_root_category_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/repo/listing_form_repo.dart';
@@ -42,40 +43,6 @@ class SelectedColor {
   final String name;
 
   SelectedColor(this.color, this.name);
-}
-
-class DetailItem {
-  final String title;
-  final String details;
-
-  DetailItem({
-    required this.title,
-    required this.details,
-  });
-
-  factory DetailItem.fromJson(Map<String, dynamic> json) {
-    return DetailItem(
-      title: json['title'] ?? '',
-      details: json['details'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'details': details,
-    };
-  }
-
-  DetailItem copyWith({
-    String? title,
-    String? details,
-  }) {
-    return DetailItem(
-      title: title ?? this.title,
-      details: details ?? this.details,
-    );
-  }
 }
 
 

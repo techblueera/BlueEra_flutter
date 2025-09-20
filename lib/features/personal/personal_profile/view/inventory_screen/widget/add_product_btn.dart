@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -11,6 +12,7 @@ import '../../../../../../widgets/local_assets.dart';
 import '../../add_product_screen/add_product_screen.dart';
 import 'add_food_screen.dart';
 import 'add_services_screen.dart';
+
 class AddProductBtn extends StatelessWidget {
   const AddProductBtn({super.key});
 
@@ -28,9 +30,9 @@ class AddProductBtn extends StatelessWidget {
       onSelected: (value) async {
 
         if (value.toUpperCase() == "ADD PRODUCT") {
-          Get.to(()=> AddProductScreen());
+          Get.toNamed(RouteHelper.getAddProductScreenRoute());
         }else if(value.toUpperCase() == "ADD SERVICE"){
-          Get.to(()=> AddServicesScreen());
+          Get.toNamed(RouteHelper.getAddServicesScreenRoute());
         }else if(value.toUpperCase() =="ADD FOOD"){
           Get.to(()=> FoodPage());
         }

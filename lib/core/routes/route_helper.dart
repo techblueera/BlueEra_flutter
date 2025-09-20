@@ -61,6 +61,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/widget/add_services_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
@@ -273,6 +274,8 @@ class RouteHelper {
        RouteConstant.listingFormScreen;
   static String getInventoryScreenRoute() =>
        RouteConstant.inventoryScreen;
+  static String getAddServicesScreenRoute() =>
+       RouteConstant.addServicesScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -814,6 +817,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => InventoryScreen(),
             settings: RouteSettings(name: getInventoryScreenRoute()));
+      case RouteConstant.addServicesScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddServicesScreen(),
+            settings: RouteSettings(name: getAddServicesScreenRoute()));
 
      default:
         return MaterialPageRoute(

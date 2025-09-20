@@ -671,7 +671,6 @@ class Step1Section extends StatelessWidget {
             );
           }).toList(),
         ))
-
       ],
     );
   }

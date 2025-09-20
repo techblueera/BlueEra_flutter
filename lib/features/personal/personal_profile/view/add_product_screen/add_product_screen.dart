@@ -20,7 +20,6 @@ class AddProductScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the controller
     final controller = Get.put(AddProductScreenController());
 
     return Obx(() =>

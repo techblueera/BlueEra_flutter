@@ -3,6 +3,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen_controller.dart';
@@ -310,62 +312,84 @@ class Step2Section extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      CustomText(
-                        'Detail ${index + 1}',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.black,
-                      ),
-
-                      SizedBox(height: SizeConfig.size8),
-
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                              color: AppColors.white,
-                              boxShadow: [AppShadows.textFieldShadow],
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: AppColors.greyE5,
-                              )),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title + Details
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      item.title,
-                                      fontSize: SizeConfig.large,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.mainTextColor,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    CustomText(
-                                      item.details,
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.secondaryTextColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Remove button
-                              GestureDetector(
-                                onTap: () => controller.removeDetail(index),
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
-                          ),
+                      if(index==0)...[
+                        CustomText(
+                          'Details',
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.black,
                         ),
+
+                        SizedBox(height: SizeConfig.size12),
+                      ],
+
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  boxShadow: [AppShadows.textFieldShadow],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.greyE5,
+                                  )),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title + Details
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CustomText(
+                                          item.title,
+                                          fontSize: SizeConfig.large,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.mainTextColor,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        CustomText(
+                                          item.details,
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                              right: 6,
+                              top: -15,
+                              child: InkWell(
+                                onTap: () => controller.removeDetail(index),
+                                child: Container(
+                                  padding: EdgeInsets.all(6),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                      color: AppColors.white,
+                                      boxShadow: [AppShadows.textFieldShadow],
+                                      border: Border.all(
+                                        color: AppColors.greyE5,
+                                      ),
+                                      shape: BoxShape.circle
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 18,
+                                  ),
+                                ),
+                              )
+                          )
+                        ],
                       ),
                     ],
                   ),
@@ -418,7 +442,9 @@ class Step2Section extends StatelessWidget {
    showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => const AddMoreDetailsDialog(),
+      builder: (_) => const AddMoreDetailsDialog(
+        fromScreen: RouteConstant.listingFormScreen
+      ),
     );
 
   }

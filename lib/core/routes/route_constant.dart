@@ -88,4 +88,5 @@ class RouteConstant {
   static const String moreCardsScreen = "/MoreCardsScreen";
   static const String listingFormScreen = "/ListingFormScreen";
   static const String inventoryScreen = "/InventoryScreen";
+  static const String addServicesScreen = "/AddServicesScreen";
 }
