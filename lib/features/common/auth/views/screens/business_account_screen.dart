@@ -458,8 +458,8 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                           return null;
                         },
                       ),
-                // if (selectedTypeOfBusiness?.type ==
-                //     BusinessTypeNew.Product.name) ...[
+                if (selectedTypeOfBusiness?.type ==
+                    BusinessType.Product.name) ...[
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
@@ -504,7 +504,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                   ),
                 ],
                 SizedBox(height: SizeConfig.size20),
-                // ],
+                ],
 
                 ..._referralCodeEnable
                     ? [

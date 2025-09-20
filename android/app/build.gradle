@@ -65,20 +65,20 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 76
-        versionName "13.40.21"
+        versionCode 77
+        versionName "13.40.22"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey,
                 admobAppId: admobId
         ]
     }
     signingConfigs {
-//        release {
-//            keyAlias = keystoreProperties['keyAlias']
-//            keyPassword = keystoreProperties['keyPassword']
-//            storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-//            storePassword = keystoreProperties['storePassword']
-//        }
+        release {
+            keyAlias = keystoreProperties['keyAlias']
+            keyPassword = keystoreProperties['keyPassword']
+            storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword = keystoreProperties['storePassword']
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -88,7 +88,7 @@ android {
         release {
             shrinkResources true
             minifyEnabled true
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
