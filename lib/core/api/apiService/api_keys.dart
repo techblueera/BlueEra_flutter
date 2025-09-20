@@ -337,5 +337,20 @@ class ApiKeys {
   static const mrpPerUnit = "mrp_per_unit";
   static const productWarranty = "productWarrenty";
   static const expiryTime = "expiry_time";
+  static const facilities = "facilities";
+  static const timings = "timings";
+  static const start = "start";
+  static const end = "end";
+  static const special = "special";
+  static const priceType = "priceType";
+  static const priceRange = "priceRange";
+  static const min = "min";
+  static const max = "max";
+  static const singlePrice = "singlePrice";
+  static const perUnit = "perUnit";
+  static const discounts = "discounts";
+  static const amountOff = "amountOff";
+  static const extraDetails = "extraDetails";
+  static const imageContentTypes = "imageContentTypes";
   static const specification  = "specification";
 }
