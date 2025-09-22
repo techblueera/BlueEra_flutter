@@ -7,6 +7,7 @@ import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/core/services/notifications/one_signal_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -33,11 +34,11 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Get.put(AuthController());
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
 
   );
+  Get.put(AuthController());
   ///GET LOGIN USER DATA...
   await getUserLoginStatus();
   await getUserLoginData();
@@ -73,6 +74,8 @@ Future<void> main() async {
   await initializeMappls();
 
   await MobileAds.instance.initialize();
+
+  await OnesignalService().initialize();
 
   cameras = await availableCameras();
   runApp(MyApp());

@@ -267,9 +267,6 @@ class _DeeplinkVideoScreenState extends State<DeeplinkVideoScreen> {
     return AspectRatio(
       aspectRatio: 16/9,
       child: Obx(() {
-        if (videoPlayerController.isVideoLoading.value) {
-          return videoPlayerController.getVideoLoadingWidget();
-        }
 
         if (videoPlayerController.isVideoError.value) {
           return videoPlayerController.getVideoErrorWidget();
