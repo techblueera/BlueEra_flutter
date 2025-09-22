@@ -94,14 +94,33 @@ class _CreateMessagePostScreenNewState
                 bottom: SizeConfig.size15,
                 top: SizeConfig.size5),
             child: CustomBtn(
-                isValidate: msgController.postText.value.isNotEmpty,
-                onTap: msgController.postText.value.isNotEmpty
+                isValidate: (msgController.postText.value.isNotEmpty &&
+                    msgController.messageTitle.value.isNotEmpty &&
+                    (msgController.imagesList.length >=1)),
+                onTap: (msgController.postText.value.isNotEmpty &&
+                    msgController.messageTitle.value.isNotEmpty &&
+                    (msgController.imagesList.length >=1))
                     ? () async {
                         await Future.delayed(Duration(milliseconds: 200));
                         final input = msgController.postText.value.trim();
                         if (containsHttpButNotHttps(input)) {
                           commonSnackBar(
                               message: "Only HTTPS links are allowed");
+                          return;
+                        }
+                        if (msgController.postText.value.isEmpty ||
+                            msgController.postText.value.trim().length < 50) {
+                          return commonSnackBar(
+                              message:
+                                  "Message must be at least 50 characters long");
+                        }
+                        if (msgController.messageTitle.value.isEmpty) {
+                          commonSnackBar(message: "Title is required");
+                          return;
+                        }
+                        if (msgController.imagesList.length < 1) {
+                          commonSnackBar(
+                              message: "At least 1 photo is required");
                           return;
                         }
 
@@ -156,7 +175,45 @@ class _CreateMessagePostScreenNewState
                 CommonTextField(
                   textEditController: msgController.descriptionMessage.value,
                   hintText:
-                  "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                      "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
+                  title: "Your Message",
+                  maxLine: 5,
+                  maxLength: 1000,
+                  isValidate: false,
+                  keyBoardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  onChange: (val) {
+                    // Replace multiple consecutive newlines with a single newline
+                    String newVal = val.replaceAll(RegExp(r'\n{2,}'), '\n');
+
+                    // Block http/https
+                    newVal = newVal.replaceAll(RegExp(r'https?:\/\/\S+'), '');
+
+                    if (newVal != val) {
+                      msgController.descriptionMessage.value.text = newVal;
+                      msgController.descriptionMessage.value.selection =
+                          TextSelection.fromPosition(
+                        TextPosition(offset: newVal.length),
+                      );
+                    }
+
+                    msgController.postText.value = newVal;
+                  },
+                  validator: (val) {
+                    if (val == null || val.trim().length < 50) {
+                      return "Message must be at least 50 characters long";
+                    }
+                    if (RegExp(r'https?').hasMatch(val)) {
+                      return "Links are not allowed in the message";
+                    }
+                    return null;
+                  },
+                ),
+
+                /* CommonTextField(
+                  textEditController: msgController.descriptionMessage.value,
+                  hintText:
+                      "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
                   title: "Your Message",
                   maxLine: 5,
                   maxLength: 1000,
@@ -171,21 +228,19 @@ class _CreateMessagePostScreenNewState
                       msgController.descriptionMessage.value.text = newVal;
                       msgController.descriptionMessage.value.selection =
                           TextSelection.fromPosition(
-                            TextPosition(offset: newVal.length),
-                          );
+                        TextPosition(offset: newVal.length),
+                      );
                     }
 
                     msgController.postText.value = newVal;
                   },
-
                   validator: (val) {
                     if (val == null || val.trim().length < 50) {
                       return "Message must be at least 50 characters long";
                     }
                     return null;
                   },
-                )
-,
+                ),*/
                 SizedBox(
                   height: SizeConfig.size5,
                 ),
@@ -221,19 +276,19 @@ class _CreateMessagePostScreenNewState
                           children: [
                             Expanded(
                                 child: CustomText(
-                              'Add Your Message Title (Optional)',
+                              'Add Your Message Title',
                             )),
-                            InkWell(
-                              onTap: () {
-                                msgController.postTitleController.value.clear();
-                                msgController.messageTitle.value = "";
-                                msgController.isAddTitle.value = false;
-                              },
-                              child: CustomText(
-                                "Remove",
-                                color: AppColors.red,
-                              ),
-                            ),
+                            // InkWell(
+                            //   onTap: () {
+                            //     msgController.postTitleController.value.clear();
+                            //     msgController.messageTitle.value = "";
+                            //     msgController.isAddTitle.value = false;
+                            //   },
+                            //   child: CustomText(
+                            //     "Remove",
+                            //     color: AppColors.red,
+                            //   ),
+                            // ),
                           ],
                         ),
                         SizedBox(

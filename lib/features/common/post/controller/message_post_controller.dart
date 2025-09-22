@@ -29,7 +29,7 @@ class MessagePostController extends GetxController {
   RxString messageText = ''.obs;
   RxString messageTitle = ''.obs;
   RxBool isAddLink = false.obs;
-  RxBool isAddTitle = false.obs;
+  RxBool isAddTitle = true.obs;
   RxList<User>? taggedSelectedUsersList = <User>[].obs;
 
   final postTitleController = TextEditingController().obs;

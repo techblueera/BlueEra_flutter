@@ -162,7 +162,9 @@ class _UserTile extends StatelessWidget {
                         ? user.business_category ??
                             user.categoryOfBusiness ??
                             "Other"
-                        : "${user.designation}",
+                        : user.designation?.toLowerCase() != "null"
+                            ? "${user.designation ?? "Other"}"
+                            : "Other",
                     fontSize: SizeConfig.small,
                     color: Colors.grey.shade600,
                     maxLines: 1,

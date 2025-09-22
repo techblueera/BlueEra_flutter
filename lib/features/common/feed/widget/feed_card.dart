@@ -82,7 +82,9 @@ class _FeedCardState extends State<FeedCard> {
       }
     }
   }
-
+  final feedController = Get.isRegistered<FeedController>()
+      ? Get.find<FeedController>()
+      : Get.put(FeedController());
   @override
   Widget build(BuildContext context) {
     return buildPostWidget();
@@ -104,7 +106,7 @@ class _FeedCardState extends State<FeedCard> {
                   : null,
              ),
           commentView:()=> _onCommentPressed(),
-          buildActions: () => PostActionsBarNew(
+          buildActions: () => PostActionsBar(
             post: _post,
             isLiked: _post?.isLiked ?? false,
             totalLikes: _post?.likesCount ?? 0,
@@ -151,7 +153,7 @@ class _FeedCardState extends State<FeedCard> {
             postedAgo: timeAgo(
                 _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           ),
-          buildActions: () => PostActionsBarNew(
+          buildActions: () => PostActionsBar(
             post: _post,
             isLiked: _post?.isLiked ?? false,
             totalLikes: _post?.likesCount ?? 0,
@@ -212,7 +214,8 @@ class _FeedCardState extends State<FeedCard> {
   }
 
   void _onLikeDislikePressed() {
-    Get.find<FeedController>().postLikeDislike(
+logs("LIKE====");
+    feedController.postLikeDislike(
         postId: _post?.id ?? '0',
         type: widget.postFilteredType,
         sortBy: widget.sortBy);
@@ -228,7 +231,7 @@ class _FeedCardState extends State<FeedCard> {
           totalComments: _post?.commentsCount ?? 0,
           commentType: CommentType.post,
           onNewCommentCount: (int newCommentCount) {
-            Get.find<FeedController>().updateCommentCount(
+            feedController.updateCommentCount(
                 postId: _post?.id ?? '0',
                 type: widget.postFilteredType,
                 sortBy: widget.sortBy,
@@ -238,7 +241,7 @@ class _FeedCardState extends State<FeedCard> {
   }
 
   Future<void> _onSavedUnSavedButtonPressed() async {
-    Get.find<FeedController>().savePostToLocalDB(
+    feedController.savePostToLocalDB(
         postId: _post?.id ?? '0',
         type: widget.postFilteredType,
         sortBy: widget.sortBy

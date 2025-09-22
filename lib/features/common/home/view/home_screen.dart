@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
+import 'package:BlueEra/features/common/home/view/home_feed_screen.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/more/model/card_model.dart';
 import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
@@ -253,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSelectedTabContent() {
     switch (selectedIndex) {
       case 0:
+        // return HomeFeedScreen();
         return FeedScreen(
             key: ValueKey('feedScreen_all'),
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,

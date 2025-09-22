@@ -293,7 +293,8 @@ class _MessagePostPreviewScreenNewState
                                           height: SizeConfig.size10,
                                         ),
                                         CustomText(msgPostController
-                                            .natureOfPostController.value.text),
+                                            .natureOfPostController.value.text.isNotEmpty?msgPostController
+                                            .natureOfPostController.value.text:"Not available"),
                                       ],
                                     )
                                   : CommonTextField(

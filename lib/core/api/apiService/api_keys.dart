@@ -353,4 +353,5 @@ class ApiKeys {
   static const extraDetails = "extraDetails";
   static const imageContentTypes = "imageContentTypes";
   static const specification  = "specification";
+  static const cursor  = "cursor";
 }
