@@ -240,7 +240,7 @@ redirectToProfileScreen(
       Get.to(PersonalProfileSetupScreen());
     } else {
       Get.to(() => NewVisitProfileScreen(
-            authorId: profileId ?? "",
+            authorId: profileId,
             screenFromName: AppConstants.feedScreen,
           ));
     }
@@ -250,7 +250,7 @@ redirectToProfileScreen(
       Get.to(BusinessOwnProfileScreen());
     } else {
       Get.to(() => VisitBusinessProfileNew(
-          businessId:profileId ?? "", screenName:  AppConstants.feedScreen,));
+          businessId:profileId, screenName:  AppConstants.feedScreen,));
     }
   }
 }

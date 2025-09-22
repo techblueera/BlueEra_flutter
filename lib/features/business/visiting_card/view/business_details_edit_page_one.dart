@@ -5,9 +5,7 @@ import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -28,7 +26,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/new_common_date_selection_dropdown.dart';
-import '../../../common/auth/views/widget/business_type_common_widget.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../auth/model/viewBusinessProfileModel.dart';
 import 'business_details_edit_page_two.dart';
