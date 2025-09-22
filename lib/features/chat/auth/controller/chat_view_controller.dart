@@ -155,7 +155,6 @@ class ChatViewController extends GetxController {
       }
 
       chatSocket.listenEvent('ChatList', (data) async {
-
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData,data: data);
         getPersonalFilteredChatListModel?.value=parsedData;
@@ -389,7 +388,7 @@ class ChatViewController extends GetxController {
       required bool isInitialMessage,
        String? businessId,
       bool? isFromContactList}) async {
-    print("mncsdkjcnskcnsdkcjscsdckscsdkc ");
+
     await getLocalConversation(conversationId, userId);
     if (isFromContactList != null && isFromContactList) {
       Get.off(
@@ -422,20 +421,22 @@ class ChatViewController extends GetxController {
   Future<void> getLocalConversation(String conversationId, userId) async {
     final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
-    // if (connectivityResult) {
-    //   loadOfflineMessages(conversationId);
-    // }
-    // else if (openedConversation.contains(conversationId)) {
-    //   loadOfflineMessages(conversationId);
-    // }
-    // else {
+
+
+    if (connectivityResult) {
+      loadOfflineMessages(conversationId);
+    }
+    else if (openedConversation.contains(conversationId)) {
+      loadOfflineMessages(conversationId);
+    }
+    else {
       emitEvent("messageReceived", {
         ApiKeys.conversation_id: conversationId,
         ApiKeys.page: 1,
         ApiKeys.is_online_user: userId,
         ApiKeys.per_page_message: 30,
       });
-    // }
+    }
 
 
   }
@@ -485,16 +486,22 @@ class ChatViewController extends GetxController {
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     try {
       paramsData = params;
-      ResponseModel responseModel =
-          await ChatViewRepo().getConnectionsSync(params);
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        contactsListModel?.value = ContactListModel.fromJson(data);
-        viewContactsListResponse.value = ApiResponse.complete(responseModel);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
+      if(contactsListModel?.value.data==null){
+        ResponseModel responseModel =
+        await ChatViewRepo().getConnectionsSync(params);
+        if (responseModel.isSuccess) {
+          final data = responseModel.response?.data;
+          contactsListModel?.value = ContactListModel.fromJson(data);
+          viewContactsListResponse.value = ApiResponse.complete(responseModel);
+        } else {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+        }
+      }else{
+
+  viewContactsListResponse.value = ApiResponse.complete(contactsListModel?.value);
+  }
+
     } catch (e) {
       viewContactsListResponse.value = ApiResponse.error('error');
     }
@@ -513,7 +520,7 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().getGroupConnectionsSync(query);
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        log('contactsdata:$data');
+
         List<dynamic>? items;
         if (data is List) {
           items = data;

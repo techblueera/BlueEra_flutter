@@ -149,11 +149,10 @@ class ChatViewRepo extends BaseService {
     return response;
   }
   Future<ResponseModel> getConnectionsSync(List<Map<String,dynamic>> params) async {
-  print("allconnection:$params");
     final response = await ApiBaseHelper()
         .postHTTP(connectionsSync,
         params: jsonEncode(params),
-        onError: (error) {}, onSuccess: (data) {});
+        onError: (error) {}, onSuccess: (data) {},showProgress: false);
     return response;
   }
   Future<ResponseModel> getGroupConnectionsSync(Map<String, dynamic> query) async {

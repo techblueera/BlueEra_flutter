@@ -112,6 +112,7 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   Future<void> _refreshContacts() async {
+
     setState(() => _isLoading = true);
 
     PermissionStatus status = await Permission.contacts.status;
@@ -178,6 +179,7 @@ class _ContactsPageState extends State<ContactsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bool isGroupMode = widget.from == "Group";
+
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
@@ -223,11 +225,14 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
             Expanded(
               child: Obx(() {
+
                 if (chatViewController.viewContactsListResponse.value.status ==
                     Status.COMPLETE) {
                   ContactListModel? contactsListModel =
                       chatViewController.contactsListModel?.value;
                   Data? details = contactsListModel?.data;
+                  List<ExistingNotConnected> existingNotConnected=details?.existingNotConnected ?? [];
+                  List<NonExistingContacts> nonExistingContacts=details?.nonExistingContacts ?? [];
                   if (isGroupMode) {
                     // build list from groupConnections (flat list)
                     final groupList = chatViewController.groupConnections;
@@ -361,12 +366,15 @@ class _ContactsPageState extends State<ContactsPage> {
                     );
                   }
                   if (_filteredNonExisting.isEmpty) {
-                    if (details != null) {
-                      _filteredExisting =
-                          List.from(details.existingNotConnected ?? []);
-                      _filteredNonExisting =
-                          List.from(details.nonExistingContacts ?? []);
-                    }
+                    Future.delayed(Duration.zero,(){
+                      if (details != null) {
+                        _filteredExisting =
+                            List.from(existingNotConnected);
+                        _filteredNonExisting =
+                            List.from(nonExistingContacts);
+                      }
+                    });
+
                   }
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -383,16 +391,19 @@ class _ContactsPageState extends State<ContactsPage> {
                           ),
                           const SizedBox(height: 4),
                           _isLoading
-                              ? Center(child: CircularProgressIndicator())
-                              : (_filteredExisting.isEmpty)
+                              ? Center(child: SizedBox(
+                              height: 26,
+                              width: 26,
+                              child: CircularProgressIndicator()))
+                              : ((_searchController.text.isEmpty)?existingNotConnected.isEmpty:_filteredExisting.isEmpty)
                               ? Center(child: Text("No contacts found"))
                               : ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            itemCount: _filteredExisting.length,
+                            itemCount: (_searchController.text.isEmpty)?existingNotConnected.length:_filteredExisting.length,
                             itemBuilder: (context, index) {
                               final contact =
-                              _filteredExisting[index];
+                              (_searchController.text.isEmpty)?existingNotConnected[index]: _filteredExisting[index];
                               final name = contact?.name;
                               final phone =
                               (contact?.contactNo?.isNotEmpty ??
@@ -462,12 +473,12 @@ class _ContactsPageState extends State<ContactsPage> {
                                 leading: CircleAvatar(
                                   radius: 20,
                                   backgroundImage:
-                                  contact?.profileImage != null
+                                  (contact?.profileImage != null&&contact?.profileImage !='')
                                       ? NetworkImage(
                                       contact?.profileImage)
                                       : null,
                                   child: (contact?.profileImage !=
-                                      null)
+                                      null&&contact?.profileImage!='')
                                       ? null
                                       : (name?.isNotEmpty ?? false)
                                       ? CustomText(
@@ -560,16 +571,16 @@ class _ContactsPageState extends State<ContactsPage> {
                           const SizedBox(height: 4),
                           _isLoading
                               ? Center(child: CircularProgressIndicator())
-                              : (_filteredNonExisting.isEmpty)
+                              : ((_searchController.text.isEmpty)?(nonExistingContacts.isEmpty):_filteredNonExisting.isEmpty)
                               ? Center(child: Text("No contacts found"))
                               : ListView.builder(
 
                             physics:
                             const NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            itemCount: _filteredNonExisting.length,
+                            itemCount: (_searchController.text.isEmpty)?nonExistingContacts.length:_filteredNonExisting.length,
                             itemBuilder: (context, index) {
-                              final contact =
+                              final contact = (_searchController.text.isEmpty)?nonExistingContacts[index]:
                               _filteredNonExisting[index];
                               final rawName = contact?.name ?? "";
                               final phone =
@@ -652,7 +663,16 @@ class _ContactsPageState extends State<ContactsPage> {
                     ),
                   );
                 } else {
-                  return SizedBox();
+                  return Center(
+                    child: SizedBox(
+                      height: 26,
+                      width: 26,
+                      child: SizedBox(
+                          height: 26,
+                          width: 26,
+                          child: CircularProgressIndicator()),
+                    ),
+                  );
                 }
               }),
             ),
