@@ -322,7 +322,8 @@ class ProfileSettingsScreen extends StatelessWidget {
             ),
             _buildTile(
                 AppIconAssets.cards, "My Cards", "View/Share Cards.",
-                onTap: () =>  Get.toNamed(RouteHelper.getMoreCardsScreenRoute())),
+                onTap: () =>  Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
+                    arguments: {ApiKeys.isFromHomeScreen: false})),
             if (Platform.isAndroid) ...[
               _buildTile(
                 AppIconAssets.earnWithBlueEra,

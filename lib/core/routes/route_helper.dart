@@ -802,8 +802,18 @@ class RouteHelper {
             builder: (_) => PostDeatilPage(),
             settings: RouteSettings(name: getpostDetailPageRoute()));
       case RouteConstant.moreCardsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final bool isFromHomeScreen = args[ApiKeys.isFromHomeScreen] as bool;
+        final double? headerHeight = args[ApiKeys.headerHeight] as double?;
+        final onHeaderVisibilityChanged =
+                 args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
+
         return MaterialPageRoute(
-            builder: (_) => MoreCardsScreen(),
+            builder: (_) => MoreCardsScreen(
+                isFromHomeScreen: isFromHomeScreen,
+                headerHeight: headerHeight,
+                onHeaderVisibilityChanged: onHeaderVisibilityChanged,
+            ),
             settings: RouteSettings(name: getMoreCardsScreenRoute()));
       case RouteConstant.addProductScreen:
         return MaterialPageRoute(

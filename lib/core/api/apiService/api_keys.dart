@@ -352,5 +352,6 @@ class ApiKeys {
   static const amountOff = "amountOff";
   static const extraDetails = "extraDetails";
   static const imageContentTypes = "imageContentTypes";
-  static const specification  = "specification";
+  static const specification = "specification";
+  static const isFromHomeScreen = "isFromHomeScreen";
 }

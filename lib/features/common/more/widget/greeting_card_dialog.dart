@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -242,7 +243,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                   child: PositiveCustomBtn(
                     onTap: () {
                       Get.back();
-                      Get.toNamed(RouteHelper.getMoreCardsScreenRoute());
+                      Get.toNamed(RouteHelper.getMoreCardsScreenRoute(), arguments: {ApiKeys.isFromHomeScreen: false});
                     },
                     title: 'More Card',
                     bgColor: AppColors.white,

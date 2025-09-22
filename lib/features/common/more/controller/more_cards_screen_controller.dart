@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,11 +9,51 @@ import 'package:get/get.dart';
 
 class MoreCardsScreenController extends GetxController{
   Rx<ApiResponse> AllCardCategoriesResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> cardCategoriesSortedByDateResponse = ApiResponse.initial('Initial').obs;
+
+  /// Home page scroll variable
+  final RxBool isVisible = true.obs;
+  final RxDouble headerOffset = 0.0.obs;
+
   RxBool isLoading = false.obs;
   RxList<Cards> allCards = <Cards>[].obs;
   RxList<Cards> filteredCards = <Cards>[].obs;
   RxString selectedCategory = 'All'.obs;
   RxList<String> allCategories = <String>[].obs;
+
+  RxList<Cards> dayCards = <Cards>[].obs;
+
+  Future<void> getCardCategoriesSortedByDate({required String todayDate}) async {
+    try {
+      Map<String , dynamic> params = {
+        ApiKeys.date: DateTime.now().toIso8601String()
+      };
+      ResponseModel responseModel = await UserRepo().cardCategoriesSortedByDate(queryParams: params);
+      if (responseModel.isSuccess) {
+        cardCategoriesSortedByDateResponse.value = ApiResponse.complete(responseModel);
+        final cardModelResponse = CardModelResponse.fromJson(responseModel.response?.data);
+
+        final List<Cards> cards = [];
+
+        if (cardModelResponse.categories != null) {
+          for (final category in cardModelResponse.categories!) {
+            if (category.cards != null) {
+              cards.addAll(category.cards!);
+            }
+          }
+        }
+
+        dayCards.value = cards;
+
+      } else {
+        cardCategoriesSortedByDateResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      cardCategoriesSortedByDateResponse.value = ApiResponse.error('error');
+    }
+  }
 
   Future<void> getAllCardCategories() async {
     isLoading.value = true;
