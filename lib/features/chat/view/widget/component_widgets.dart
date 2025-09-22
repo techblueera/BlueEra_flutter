@@ -32,7 +32,12 @@ Widget timeAndReadInfoWidget(
         width: 1.5,
       ),
       isMyMessage
-          ? Obx(() {
+          ? (message.sendStatus=="pending")?Icon(
+        Icons.timelapse_outlined,
+        color: Colors.grey,
+        size: 16,
+      ):Obx(() {
+
         return Container(
           child: (message.sendStatus == "pending")
               ? Icon(
@@ -128,7 +133,6 @@ Widget ChatListTile(
     }
     onSelect();
   }
-
   return InkWell(
     onTap: () {
       if (isForwardUI == true) {
@@ -158,6 +162,7 @@ Widget ChatListTile(
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
+
                   return Dialog(
                     insetPadding: const EdgeInsets.all(40),
                     child: ConstrainedBox(
@@ -168,33 +173,47 @@ Widget ChatListTile(
                       child: Stack(
                         children: [
                           // Image Viewer
-                          Center(
-                            child: InteractiveViewer(
-                              panEnabled: true,
-                              minScale: 1.0,
-                              maxScale: 5.0,
-                              child: (chat?.sender?.profileImage
-                                  ?.contains('http') ??
-                                  false)
-                                  ? CachedNetworkImage(
-                                imageUrl:
-                                chat?.sender?.profileImage ?? "",
-                                placeholder: (context, url) =>
-                                const Padding(
-                                  padding: EdgeInsets.all(20),
-                                  child: CircularProgressIndicator(),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                const Icon(Icons.error, size: 40),
-                                fit: BoxFit.contain,
-                              )
-                                  : Image.file(
-                                File(chat?.sender?.profileImage ?? ''),
-                                fit: BoxFit.contain,
-                              ),
+                      Center(
+                      child: InteractiveViewer(
+                      panEnabled: true,
+                        minScale: 1.0,
+                        maxScale: 5.0,
+                        child: (chat?.sender?.profileImage?.isNotEmpty == true &&
+                            chat?.sender?.profileImage?.contains('http') == true)
+                            ? CachedNetworkImage(
+                          imageUrl: chat?.sender?.profileImage ?? "",
+                          placeholder: (context, url) => const Padding(
+                            padding: EdgeInsets.all(20),
+                            child: CircularProgressIndicator(),
+                          ),
+                          errorWidget: (context, url, error) =>
+                          const Icon(Icons.error, size: 40),
+                          fit: BoxFit.contain,
+                        )
+                            : (chat?.sender?.profileImage?.isNotEmpty == true)
+                            ? Image.file(
+                          File(chat!.sender!.profileImage!),
+                          fit: BoxFit.contain,
+                        )
+                            : CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.grey.shade400,
+                          child: Text(
+                            (chat?.sender?.name?.isNotEmpty == true)
+                                ? chat!.sender!.name![0].toUpperCase()
+                                : "?",
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          // Title Bar
+                        ),
+                      ),
+                    ),
+
+
+                    // Title Bar
                           Container(
                             height: 50,
                             decoration: BoxDecoration(
@@ -244,7 +263,7 @@ Widget ChatListTile(
                   : FileImage(File(chat?.sender?.profileImage ?? ''))
               as ImageProvider)
                   : null,
-              child: (chat?.sender?.profileImage != null)
+              child: ((chat?.sender?.profileImage != null&&(chat?.sender?.profileImage?.isNotEmpty??false)))
                   ? null
                   : Center(
                   child: CustomText(
