@@ -78,36 +78,27 @@ class AddProductViaAiController extends GetxController{
   void removeImageStep1(int index) {
     if (index >= 0 && index < step1Images.length) {
       step1Images.removeAt(index);
+      update();
     }
   }
 
   /// Pick images for Step 1
   Future<void> pickImagesStep1(BuildContext context) async {
-    try {
-      final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
-        context,
-        'Product Image',
-      );
-
-      if (selected != null && selected.isNotEmpty) {
-        final remaining = maxStep1Images.value - step1Images.length;
-        if (remaining <= 0) {
-          commonSnackBar(
-            message: 'Limit reached\nYou can upload up to $maxStep1Images images only.',
-          );
-          return;
-        }
-
-        step1Images.addAll(selected.take(remaining));
-      }
-    } catch (e) {
-      commonSnackBar(message: 'Image pick failed: $e');
+    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+      context,
+      'Product Image',
+    );
+    if (selected != null && selected.isNotEmpty) {
+      final remaining = maxStep1Images.value - step1Images.length;
+      step1Images.addAll(selected.take(remaining));
+      update();
     }
   }
 
   /// Preload Step 1 images to Step 2
   void preloadStep1ImagesToStep2() {
     step2Images.value = List.from(step1Images);
+    update();
   }
 
   /// Pick new images for Step 2
@@ -121,6 +112,7 @@ class AddProductViaAiController extends GetxController{
         final remaining = maxStep2Images.value - step2Images.length;
         if (remaining <= 0) return;
         step2Images.addAll(selected.take(remaining));
+        update();
       }
     } catch (e) {
       commonSnackBar(message: 'Image pick failed: $e');
@@ -133,6 +125,7 @@ class AddProductViaAiController extends GetxController{
     // Only allow removal if index >= step1Images.length
     if (index >= step1Images.length && index < step2Images.length) {
       step2Images.removeAt(index);
+      update();
     }
   }
 

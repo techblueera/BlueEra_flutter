@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
@@ -11,9 +12,23 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AddProductViaAiStep1 extends StatelessWidget {
-  final AddProductViaAiController addProductViaAiController = Get.put(AddProductViaAiController());
+class AddProductViaAiStep1 extends StatefulWidget {
+
   AddProductViaAiStep1({super.key});
+
+  @override
+  State<AddProductViaAiStep1> createState() => _AddProductViaAiStep1State();
+}
+
+class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
+  final AddProductViaAiController addProductViaAiController = Get.put(AddProductViaAiController());
+
+
+  @override
+  void dispose() {
+    Get.delete<AddProductViaAiController>();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,67 +63,64 @@ class AddProductViaAiStep1 extends StatelessWidget {
                       SizedBox(height: SizeConfig.size8),
                       SizedBox(
                         height: SizeConfig.size80,
-                        child: Obx(() {
-                          return
-                            GridView.builder(
-                            scrollDirection: Axis.horizontal,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 1,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1,
-                            ),
-                            itemCount: addProductViaAiController.maxStep1Images.value,
-                            itemBuilder: (context, index) {
-                              final hasImage = index < addProductViaAiController.step1Images.length;
+                        child: GetBuilder<AddProductViaAiController>(
+                          builder: (controller) {
+                            return GridView.builder(
+                              scrollDirection: Axis.horizontal,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 1,
+                                mainAxisSpacing: 8,
+                                childAspectRatio: 1,
+                              ),
+                              itemCount: controller.maxStep1Images.value,
+                              itemBuilder: (context, index) {
+                                final hasImage = index < controller.step1Images.length;
 
-                              return GestureDetector(
-                                onTap: () {
-                                  if (!hasImage) addProductViaAiController.pickImagesStep1(context);
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.whiteFE,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: AppColors.greyE5),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      if (hasImage)
-                                        Image.file(
-                                          File(addProductViaAiController.step1Images[index]),
-                                          fit: BoxFit.cover,
-                                        )
-                                      else
-                                        const Center(
-                                          child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
-                                        ),
-                                      if (hasImage)
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () => addProductViaAiController.removeImageStep1(index),
-                                            child: Container(
-                                              width: 22,
-                                              height: 22,
-                                              decoration: const BoxDecoration(
-                                                color: Colors.black54,
-                                                shape: BoxShape.circle,
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (!hasImage) controller.pickImagesStep1(context);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.whiteFE,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.greyE5),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        if (hasImage)
+                                          Image.file(File(controller.step1Images[index]), fit: BoxFit.cover)
+                                        else
+                                          const Center(
+                                            child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
+                                          ),
+                                        if (hasImage)
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: GestureDetector(
+                                              onTap: () => controller.removeImageStep1(index),
+                                              child: Container(
+                                                width: 22,
+                                                height: 22,
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.black54,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(Icons.close, size: 14, color: Colors.white),
                                               ),
-                                              child: const Icon(Icons.close, size: 14, color: Colors.white),
                                             ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          )
-                          ;
-                        }),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
 
                       SizedBox(height: SizeConfig.size10),
@@ -117,7 +129,7 @@ class AddProductViaAiStep1 extends StatelessWidget {
                       CommonTextField(
                           textEditController: addProductViaAiController.productNameController,
                           hintText: 'e.g. t-shirt/mobile',
-                          title: "Product Name",
+                          title: "Product Name & Brand",
                           validator: ValidationMethod().validateProductName,
                           showLabel: true,
                           maxLength: 30,

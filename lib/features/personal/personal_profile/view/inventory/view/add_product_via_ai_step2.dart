@@ -31,10 +31,16 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
   @override
   void initState() {
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       addProductViaAiController.preloadStep1ImagesToStep2();
-    // });
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    Get.delete<AddProductViaAiController>();
+    super.dispose();
   }
 
   @override
@@ -66,73 +72,72 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                         color: AppColors.black28,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      SizedBox(
-                        height: SizeConfig.size80,
-                        child: Obx(() {
-                          final totalImages = addProductViaAiController.step2Images.length;
+                SizedBox(
+                  height: SizeConfig.size80,
+                  child: Obx(() {
+                    final totalImages = addProductViaAiController.step2Images.length;
 
-                          return GridView.builder(
-                            scrollDirection: Axis.horizontal,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 1,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1,
-                            ),
-                            itemCount: addProductViaAiController.maxStep2Images.value,
-                            itemBuilder: (context, index) {
-                              final hasImage = index < totalImages;
-
-                              return GestureDetector(
-                                onTap: () {
-                                  // Empty slot -> pick new image
-                                  if (!hasImage) addProductViaAiController.pickImagesStep2(context);
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.whiteFE,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: AppColors.greyE5),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      if (hasImage)
-                                        Image.file(
-                                          File(addProductViaAiController.step2Images[index]),
-                                          fit: BoxFit.cover,
-                                        )
-                                      else
-                                        const Center(
-                                          child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
-                                        ),
-                                      if (hasImage && index >= addProductViaAiController.step1Images.length)
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () => addProductViaAiController.removeImageStep2(index),
-                                            child: Container(
-                                              width: 22,
-                                              height: 22,
-                                              decoration: const BoxDecoration(
-                                                color: Colors.black54,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.close, size: 14, color: Colors.white),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        }),
+                    return GridView.builder(
+                      scrollDirection: Axis.horizontal,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 8,
+                        childAspectRatio: 1,
                       ),
+                      itemCount: addProductViaAiController.maxStep2Images.value,
+                      itemBuilder: (context, index) {
+                        final hasImage = index < totalImages;
 
-                      SizedBox(height: SizeConfig.size10),
+                        return GestureDetector(
+                          onTap: () {
+                            if (!hasImage) addProductViaAiController.pickImagesStep2(context);
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.whiteFE,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.greyE5),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (hasImage)
+                                  Image.file(
+                                    File(addProductViaAiController.step2Images[index]),
+                                    fit: BoxFit.cover,
+                                  )
+                                else
+                                  const Center(
+                                    child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
+                                  ),
+                                if (hasImage && index >= addProductViaAiController.step1Images.length)
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () => addProductViaAiController.removeImageStep2(index),
+                                      child: Container(
+                                        width: 22,
+                                        height: 22,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }),
+                ),
+
+                SizedBox(height: SizeConfig.size10),
 
                      Container(
                        padding: EdgeInsets.all(10.0),
@@ -319,7 +324,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                             ),
                             Expanded(
                               child: CustomText(
-                                '${widget.generateAiProductContent.specifications?.brand}',
+                                '${widget.generateAiProductContent.specifications?.display}',
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.secondaryTextColor,
@@ -452,26 +457,28 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                           ),
 
                         SizedBox(height: SizeConfig.size10),
-                        Row(
+                        CustomText(
+                          'User Guidance: ',
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        SizedBox(height: SizeConfig.size5),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              'User Guidance: ',
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                            Expanded(
+                          children: List.generate(
+                            widget.generateAiProductContent.userGuide!.length, // number of items
+                                (index) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
                               child: CustomText(
-                                '${widget.generateAiProductContent.userGuide}',
+                                widget.generateAiProductContent.userGuide![index],
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.secondaryTextColor,
-                                height: 1.5,
+                                height: 1.2,
                               ),
                             ),
-
-                          ],
+                          ),
                         ),
                       ],
                     ),

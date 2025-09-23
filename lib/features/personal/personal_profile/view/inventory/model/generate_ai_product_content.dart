@@ -4,7 +4,7 @@ class GenerateAiProductContent {
   final String? productCategory;
   final List<String>? features;
   final Specifications? specifications;
-  final String? userGuide;
+  final List<String>? userGuide; // changed to List<String>
   final List<String>? seoKeywordTags;
   final String? approxMrpInr;
   final List<String>? possibleVariants;
@@ -32,9 +32,9 @@ class GenerateAiProductContent {
       specifications: json['specifications'] != null
           ? Specifications.fromJson(json['specifications'] as Map<String, dynamic>)
           : null,
-      userGuide: json['user_guide'] as String?,
+      userGuide: (json['user_guide'] as List<dynamic>?)?.map((e) => e as String).toList(),
       seoKeywordTags: (json['seo_keyword_tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      approxMrpInr: json['approx_mrp_inr'] as String?,
+      approxMrpInr: json['approx_mrp_inr']?.toString(),
       possibleVariants: (json['possible_variants'] as List<dynamic>?)?.map((e) => e as String).toList(),
       expiryOrWarranty: json['expiry_or_warranty'] as String?,
     );
@@ -59,7 +59,7 @@ class GenerateAiProductContent {
     String? productCategory,
     List<String>? features,
     Specifications? specifications,
-    String? userGuide,
+    List<String>? userGuide,
     List<String>? seoKeywordTags,
     String? approxMrpInr,
     List<String>? possibleVariants,
@@ -81,57 +81,51 @@ class GenerateAiProductContent {
 }
 
 class Specifications {
-  final String? brand;
-  final String? volume;
-  final String? keyIngredient;
-  final String? otherIngredients;
-  final String? skinType;
-  final String? texture;
+  final String? display;
+  final String? processor;
+  final String? camera;
+  final String? storage;
+  final String? operatingSystem;
 
   Specifications({
-    this.brand,
-    this.volume,
-    this.keyIngredient,
-    this.otherIngredients,
-    this.skinType,
-    this.texture,
+    this.display,
+    this.processor,
+    this.camera,
+    this.storage,
+    this.operatingSystem,
   });
 
   factory Specifications.fromJson(Map<String, dynamic> json) {
     return Specifications(
-      brand: json['Brand'] as String?,
-      volume: json['Volume'] as String?,
-      keyIngredient: json['Key Ingredient'] as String?,
-      otherIngredients: json['Other Ingredients'] as String?,
-      skinType: json['Skin Type'] as String?,
-      texture: json['Texture'] as String?,
+      display: json['Display'] as String?,
+      processor: json['Processor'] as String?,
+      camera: json['Camera'] as String?,
+      storage: json['Storage'] as String?,
+      operatingSystem: json['Operating System'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'Brand': brand,
-    'Volume': volume,
-    'Key Ingredient': keyIngredient,
-    'Other Ingredients': otherIngredients,
-    'Skin Type': skinType,
-    'Texture': texture,
+    'Display': display,
+    'Processor': processor,
+    'Camera': camera,
+    'Storage': storage,
+    'Operating System': operatingSystem,
   };
 
   Specifications copyWith({
-    String? brand,
-    String? volume,
-    String? keyIngredient,
-    String? otherIngredients,
-    String? skinType,
-    String? texture,
+    String? display,
+    String? processor,
+    String? camera,
+    String? storage,
+    String? operatingSystem,
   }) {
     return Specifications(
-      brand: brand ?? this.brand,
-      volume: volume ?? this.volume,
-      keyIngredient: keyIngredient ?? this.keyIngredient,
-      otherIngredients: otherIngredients ?? this.otherIngredients,
-      skinType: skinType ?? this.skinType,
-      texture: texture ?? this.texture,
+      display: display ?? this.display,
+      processor: processor ?? this.processor,
+      camera: camera ?? this.camera,
+      storage: storage ?? this.storage,
+      operatingSystem: operatingSystem ?? this.operatingSystem,
     );
   }
 }
