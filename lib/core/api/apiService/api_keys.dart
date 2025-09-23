@@ -18,6 +18,8 @@ class ApiKeys {
   static const device_token = 'device_token';
   static const one_signal_player_id = 'one_signal_player_id';
   static const name = 'name';
+  static const phoneNumber = 'phoneNumber';
+  static const contacts = 'contacts';
   static const account_type = 'account_type';
   static const profile_image = 'profile_image';
   static const logo_image = 'logo_image';
