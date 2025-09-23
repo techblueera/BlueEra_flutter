@@ -16,7 +16,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/account_setting_
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/my_documents_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/payment_setting_screen.dart';
 import 'package:BlueEra/features/subscription/view/subscription_screen.dart';

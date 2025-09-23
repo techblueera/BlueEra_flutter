@@ -2,13 +2,11 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/detail_item.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/create_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/sub_category_root_category_response.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/repo/listing_form_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/category_response.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/model/subcategory_response.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/category_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/model/create_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/model/subcategory_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/repo/listing_form_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/category_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'dart:io' as io;
@@ -17,6 +15,8 @@ import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'model/sub_category_root_category_response.dart';
 
 // Represents one level in the category hierarchy
 class CategoryLevel {
@@ -299,24 +299,7 @@ class ManualListingScreenController extends GetxController {
   //   }
   // }
 
-  // Validation Methods
-  String? validateProductName(String? value) {
-    if (value == null || value.isEmpty) return 'Product name is required';
-    if (value.length < 3) return 'Product name must be at least 3 characters';
-    return null;
-  }
 
-  String? validateBrandName(String? value) {
-    if (value == null || value.isEmpty) return null;
-    if (value.length < 3) return 'Brand name must be at least 3 characters';
-    return null;
-  }
-
-  String? validateProductDescription(String? value) {
-    if (value == null || value.isEmpty) return 'Product description is required';
-    if (value.length < 50) return 'Product description name must be at least 50 characters';
-    return null;
-  }
 
   String? validateCategory(String? value) {
     if (value == null || value.isEmpty) return 'Category is required';

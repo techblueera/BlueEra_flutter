@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/controller/add_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/add_more_details_dialog.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -100,7 +100,7 @@ class _AddServicesScreenState extends State<AddServicesScreen> {
                               onTap: () {
                                 if (addServiceController.imageLocalPaths.length >= 5) {
                                   commonSnackBar(
-                                    message: 'Limit reached\nYou can upload up to 4 images only.',
+                                    message: 'Limit reached\nYou can upload up to 5 images only.',
                                   );
                                 } else {
                                   addServiceController.pickImages(context);

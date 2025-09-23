@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -50,7 +51,7 @@ class Step1Section extends StatelessWidget {
                       textEditController: controller.productNameController,
                       hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
                       title: "Product Name",
-                      validator: controller.validateProductName,
+                      validator: ValidationMethod().validateProductName,
                       showLabel: true,
                       maxLength: 360,
                       isCounterVisible: true
@@ -187,7 +188,7 @@ class Step1Section extends StatelessWidget {
                       textEditController: controller.brandController,
                       hintText: 'E.g. Samsung',
                       title: "Brand ( if any )",
-                      validator: controller.validateBrandName,
+                      validator: ValidationMethod().validateBrandName,
                       showLabel: true,
                       maxLength: 30,
                       isCounterVisible: true
@@ -205,7 +206,7 @@ class Step1Section extends StatelessWidget {
                           "Lorem ipsum dolor sit amet conseceter adisping...",
                       maxLine: 5,
                       title: 'Product Description',
-                      validator: controller.validateProductDescription,
+                      validator: ValidationMethod().validateProductDescription,
                       maxLength: 600,
                       isCounterVisible: true
                     )

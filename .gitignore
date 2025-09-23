@@ -50,4 +50,4 @@ untranslated_messages.txt
 
 # FVM Version Cache
 .fvm/
-lib/features/personal/personal_profile/view/inventory_screen/widgets/catalog.dart
+lib/features/personal/personal_profile/view/inventory/widgets/catalog.dart

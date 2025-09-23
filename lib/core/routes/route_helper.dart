@@ -6,7 +6,6 @@ import 'package:BlueEra/features/business/business_verification/view/ownership_v
 import 'package:BlueEra/features/business/business_verification/view/select_company_verification_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_details_edit_page_one.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_user_account.dart';
@@ -55,14 +54,19 @@ import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/inventory_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/widget/add_services_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/sub_feature/draft_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step1.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
@@ -73,8 +77,6 @@ import 'package:BlueEra/features/personal/resume/create_resume_screen.dart';
 import 'package:BlueEra/features/personal/resume/sections/resume_templates_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/sub_feature/draft_screen.dart';
-
 import '../../features/chat/contacts/view/contact_list_page.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
@@ -276,6 +278,10 @@ class RouteHelper {
        RouteConstant.inventoryScreen;
   static String getAddServicesScreenRoute() =>
        RouteConstant.addServicesScreen;
+  static String getAddProductViaAiStep1Route() =>
+       RouteConstant.addProductViaAiStep1;
+  static String getAddProductViaAiStep2Route() =>
+       RouteConstant.addProductViaAiStep2;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -831,6 +837,20 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => AddServicesScreen(),
             settings: RouteSettings(name: getAddServicesScreenRoute()));
+      case RouteConstant.addProductViaAiStep1:
+        return MaterialPageRoute(
+            builder: (_) => AddProductViaAiStep1(),
+            settings: RouteSettings(name: getAddProductViaAiStep1Route()));
+      case RouteConstant.addProductViaAiStep2:
+        final args = settings.arguments as Map<String, dynamic>;
+        final AddProductViaAiRequest addProductViaAiRequest = args[ApiKeys.addProductViaAiRequest] as AddProductViaAiRequest;
+        final GenerateAiProductContent generateAiProductContent = args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
+
+        return MaterialPageRoute(
+            builder: (_) => AddProductViaAiStep2(
+                generateAiProductContent: generateAiProductContent
+            ),
+            settings: RouteSettings(name: getAddProductViaAiStep2Route()));
 
      default:
         return MaterialPageRoute(

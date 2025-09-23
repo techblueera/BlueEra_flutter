@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_screen_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -13,7 +13,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'add_product_screen_controller.dart';
 
 class AddProductScreen extends StatelessWidget {
   const AddProductScreen({super.key});

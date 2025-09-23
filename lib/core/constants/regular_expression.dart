@@ -113,10 +113,24 @@ class ValidationMethod {
     return null;
   }
 
+  String? validateProductName(String? value) {
+    if (value == null || value.isEmpty) return 'Product name is required';
+    if (value.length < 5) return 'Product name must be at least 5 characters';
+    return null;
+  }
 
+  String? validateBrandName(String? value) {
+    if (value == null || value.isEmpty) return null;
+    if (value.length < 3) return 'Brand name must be at least 3 characters';
+    return null;
+  }
+
+  String? validateProductDescription(String? value) {
+    if (value == null || value.isEmpty) return 'Product description is required';
+    if (value.length < 30) return 'Product description name must be at least 30 characters';
+    return null;
+  }
 }
-
-
 
 
 

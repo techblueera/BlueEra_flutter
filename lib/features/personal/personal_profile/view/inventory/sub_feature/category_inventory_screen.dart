@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/categoryinventory_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/sub_feature/category_inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/sub_feature/category_inventory_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; 
 import 'package:BlueEra/core/constants/app_colors.dart';

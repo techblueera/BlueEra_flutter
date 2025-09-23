@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/categoryinventory_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

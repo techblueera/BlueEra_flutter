@@ -438,6 +438,7 @@ abstract class BaseService {
   String updatePriceAndWarranty(String productId) =>
       'product-service/api/product/updatePriceAndWarranty/$productId';
   final String createService = "services-service/services";
+  final String generateAiContent = "ai-service/api/ai-product/generate-content";
 
 
 

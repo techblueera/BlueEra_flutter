@@ -15,5 +15,17 @@ class InventoryRepo extends BaseService{
     return response;
   }
 
+  ///Add Product...
+  Future<ResponseModel> generateAiProductContent({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      generateAiContent,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }
