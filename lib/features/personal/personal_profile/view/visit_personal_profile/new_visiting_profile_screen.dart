@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
@@ -42,9 +44,10 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   late VisitProfileController controller;
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
-
+  final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
+    _setupScrollListener();
     controller = Get.put(VisitProfileController());
     setFilters();
     controller.fetchUserById(userId: widget.authorId);
@@ -60,6 +63,39 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   setFilters() {
     SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
+
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      // Handle pagination for child sections
+      _handleChildSectionPagination();
+    });
+  }
+
+
+  void _handleChildSectionPagination() {
+    // if (!(_scrollController?.hasClients??true)) return;
+    if (!(_scrollController.hasClients)) return;
+
+    final position = _scrollController.position;
+    final isAtBottom =
+        position.pixels >= (position.maxScrollExtent) - 100; // 100px threshold
+
+    if (isAtBottom) {
+      print('is At Bottom');
+      final feedController = Get.find<FeedController>();
+      logs('Posts pagination check - hasMoreData: ${feedController.isTargetHasMoreData.value}, isLoading: ${feedController.isLoading.value}');
+      if (feedController.isTargetHasMoreData.isTrue &&
+          feedController.isLoading.isFalse) {
+        feedController.getPostsByType(
+          PostType.otherPosts,
+          isInitialLoad: false, // This is pagination, not initial load
+          id: widget.authorId,
+        );
+      }
+    }
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +119,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
             user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
 
         return SingleChildScrollView(
+          controller:_scrollController ,
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),

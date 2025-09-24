@@ -16,13 +16,11 @@ import 'package:get/get.dart';
 
 class PersonalOverviewScreen extends StatelessWidget {
   final String userId;
-  // final String channelId;
   final String videoType;
   final String screenFromName;
 
   PersonalOverviewScreen({
     required this.userId,
-    // required this.channelId,
     required this.videoType,
     required this.screenFromName,
   });
@@ -45,7 +43,6 @@ class PersonalOverviewScreen extends StatelessWidget {
 
       return ListView(
         shrinkWrap: true,
-        // scrollDirection: Axis.vertical,
         padding: EdgeInsets.zero,
         physics: NeverScrollableScrollPhysics(),
         children: [

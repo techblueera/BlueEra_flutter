@@ -235,7 +235,7 @@ class FeedController extends GetxController{
 
           // Update the UI with fresh data (first 20 posts)
           targetList.value = postResponse.data.take(displayLimit).toList();
-
+logs("postResponse.data.length=== ${postResponse.data.length}======initialFetchLimit ${initialFetchLimit}");
           // Set pagination state
           if (postResponse.data.length < initialFetchLimit) {
             isTargetHasMoreData.value = false;
@@ -273,7 +273,7 @@ class FeedController extends GetxController{
       _cachedPosts[type] = [];
       _displayedCounts[type] = 0;
     }
-
+logs("isTargetHasMoreData==== ${isTargetHasMoreData} ==== isTargetMoreDataLoading $isTargetMoreDataLoading");
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
     if (!isInitialLoad) {
@@ -363,12 +363,15 @@ class FeedController extends GetxController{
         final expectedLimit = isInitialLoad ? initialFetchLimit : displayLimit;
         if (postResponse.data.length < expectedLimit) {
           print('📄 No more data from server');
-          isTargetHasMoreData.value = false;
+          // isTargetHasMoreData.value = false;
+          isTargetHasMoreData.value = _hasMoreCachedData(type);
+
         } else {
           print('📄 More data available from server');
           isTargetHasMoreData.value = true;
           onPageIncrement();
         }
+
       } else {
         postsResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

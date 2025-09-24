@@ -13,7 +13,6 @@ class HighlightText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('text -- $text');
     final linkRegex = RegExp(r'(https?:\/\/[^\s]+)');
     final mentionRegex = RegExp(r'(@\w+)');
 
