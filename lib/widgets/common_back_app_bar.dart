@@ -91,9 +91,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.currentCity,
     this.isGuestLogout,
     this.buildCustomWidget,
-    this.isAddProduct = false,
-    this.isAddProductCategory = false,
-    this.isCreateOwnProduct = false
+    // this.isAddProduct = false,
+    // this.isAddProductCategory = false,
+    this.isCreateOwnProduct = false,
+    this.bottomWidget,
+    this.isProductPopUpMenu
   });
 
   // final AppBar? appBar;
@@ -156,9 +158,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final OnTab? onRightTextButtonTap;
   final String? currentCity;
   final Widget Function()? buildCustomWidget;
-  final bool isAddProduct;
-  final bool isAddProductCategory;
+  // final bool isAddProduct;
+  // final bool isAddProductCategory;
   final bool isCreateOwnProduct;
+  final PreferredSizeWidget? bottomWidget;
+  final bool? isProductPopUpMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -451,6 +455,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
+
+            if(isProductPopUpMenu??false)
+              Builder(
+                builder: (context) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Icon(Icons.more_vert, color: AppColors.black),
+                ),
+              ),
           ],
         ),
       ),
@@ -680,43 +692,44 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             builder: (context) => buildCustomWidget!(),
           ),
 
-        if (isAddProduct)
-          Builder(
-            builder: (context) => AddProductBtn(),
-          ),
 
-        if (isAddProductCategory)
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: ()=> Get.to(()=> AddCategoryFolderScreen()),
-              child: Container(
-                height: SizeConfig.size30,
-                margin: EdgeInsets.only(right: SizeConfig.size10),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryColor)
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.add,
-                      color: AppColors.primaryColor,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      'Add Category',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+        // if (isAddProduct)
+        //   Builder(
+        //     builder: (context) => AddProductBtn(),
+        //   ),
+        //
+        // if (isAddProductCategory)
+        //   Builder(
+        //     builder: (context) => GestureDetector(
+        //       onTap: ()=> Get.to(()=> AddCategoryFolderScreen()),
+        //       child: Container(
+        //         height: SizeConfig.size30,
+        //         margin: EdgeInsets.only(right: SizeConfig.size10),
+        //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        //         decoration: BoxDecoration(
+        //             borderRadius: BorderRadius.circular(10),
+        //             border: Border.all(color: AppColors.primaryColor)
+        //         ),
+        //         child: Row(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             const Icon(
+        //               Icons.add,
+        //               color: AppColors.primaryColor,
+        //               size: 16,
+        //             ),
+        //             const SizedBox(width: 4),
+        //             CustomText(
+        //               'Add Category',
+        //               fontSize: 12,
+        //               fontWeight: FontWeight.w600,
+        //               color: AppColors.primaryColor,
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ),
 
         if (isCreateOwnProduct)
           Builder(
@@ -753,6 +766,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 
       ],
+      bottom: bottomWidget,
     );
   }
 

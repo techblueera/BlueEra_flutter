@@ -16,6 +16,9 @@ class InventoryController extends GetxController {
 
   RxBool isMenuOpen = false.obs;
 
+  final List<String> productTab = ["All", "Live", 'Draft', 'Out Of Stock'];
+  RxInt selectedProductIndex = 0.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -46,7 +49,10 @@ class InventoryController extends GetxController {
           currentPrice: 500,
           originalPrice: 600,
           discountPercentage: 10,
-          imageUrl: 'assets/images/shoes.png',
+          multipleImageUrl: [
+            'assets/images/shoes.png',
+            'assets/images/shoes.png',
+          ],
           status: 'Draft',
           stockStatus: 'In stock',
           sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
@@ -58,7 +64,10 @@ class InventoryController extends GetxController {
           currentPrice: 500,
           originalPrice: 600,
           discountPercentage: 10,
-          imageUrl: 'assets/images/shoes.png',
+          multipleImageUrl: [
+            'assets/images/shoes.png',
+            'assets/images/shoes.png',
+          ],
           status: 'Draft',
           stockStatus: 'Out of stock',
           sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
@@ -70,7 +79,10 @@ class InventoryController extends GetxController {
           currentPrice: 500,
           originalPrice: 600,
           discountPercentage: 10,
-          imageUrl: 'assets/images/shoes.png',
+          multipleImageUrl: [
+            'assets/images/shoes.png',
+            'assets/images/shoes.png',
+          ],
           status: 'Draft',
           stockStatus: 'Out of stock',
           sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
@@ -82,7 +94,10 @@ class InventoryController extends GetxController {
           currentPrice: 500,
           originalPrice: 600,
           discountPercentage: 10,
-          imageUrl: 'assets/images/shoes.png',
+          multipleImageUrl: [
+            'assets/images/shoes.png',
+            'assets/images/shoes.png',
+          ],
           status: 'Draft',
           stockStatus: 'In stock',
           sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
@@ -94,7 +109,10 @@ class InventoryController extends GetxController {
           currentPrice: 500,
           originalPrice: 600,
           discountPercentage: 10,
-          imageUrl: 'assets/images/shoes.png',
+          multipleImageUrl: [
+            'assets/images/shoes.png',
+            'assets/images/shoes.png',
+          ],
           status: 'Draft',
           stockStatus: 'In stock',
           sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
