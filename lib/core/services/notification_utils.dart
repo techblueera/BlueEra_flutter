@@ -5,9 +5,10 @@ class NetworkUtils {
   static final List<void Function(bool)> _listeners = [];
 
   static Future<bool> isConnected() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    print("Network_Connectivity_BP ${connectivityResult}");
-    return connectivityResult.contains(ConnectivityResult.none);
+    // final connectivityResult = await Connectivity().checkConnectivity();
+    //
+    // return connectivityResult.contains(ConnectivityResult.none);
+return false;
   }
 
   static void addListener(void Function(bool isConnected) listener) {

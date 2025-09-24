@@ -195,6 +195,7 @@ abstract class BaseService {
   final String messageLikeUnlike = 'chat-service/chat/message-like-unlike';
   final String groupMessageLikeUnlike = 'group-chat-service/chat/message-like-unlike';
   final String getChatRequest = 'chat-service/connections/requests';
+  final String getLatestChat = 'chat-service/chat/latest-chat';
   final String reactChatRequest = 'chat-service/connections/respond';
   final String connectionsSync = 'chat-service/connections/sync';
     final String myconnectionsSync = 'chat-service/connections/my';

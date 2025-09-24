@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
-
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -8,10 +9,12 @@ import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.da
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/foundation.dart'; // for compute
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
@@ -21,10 +24,7 @@ import '../../auth/model/contactListModel.dart';
 
 class ContactsPage extends StatefulWidget {
   final String? from;
-  const ContactsPage({
-    super.key,
-    this.from,
-  });
+  const ContactsPage({super.key, this.from});
 
   @override
   State<ContactsPage> createState() => _ContactsPageState();
@@ -32,21 +32,19 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   final chatThemeController = Get.find<ChatThemeController>();
-  List<Contact> _contacts = [];
-  List<ExistingNotConnected?> _filteredExisting = [];
-  List<NonExistingContacts?> _filteredNonExisting = [];
-
-  bool _isLoading = true;
   final chatViewController = Get.find<ChatViewController>();
   final TextEditingController _searchController = TextEditingController();
+
+  List<ExistingNotConnected?> _filteredExisting = [];
+  List<NonExistingContacts?> _filteredNonExisting = [];
   final Set<String> _selectedUserIds = <String>{};
+
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
     if (widget.from == "Group") {
-      setState(() {
-        _isLoading = false;
-      });
       chatViewController.loadGroupConnections();
     } else {
       _loadContactsFromStorage();
@@ -57,118 +55,126 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged() {
-    String query = _searchController.text.toLowerCase();
-    final details = chatViewController.contactsListModel?.value.data;
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final query = _searchController.text.toLowerCase();
+      final details = chatViewController.contactsListModel?.value.data;
+      if (details != null) {
+        setState(() {
+          _filteredExisting = details.existingNotConnected
+              ?.where((c) =>
+          (c.name?.toLowerCase().contains(query) ?? false) ||
+              (c.contactNo?.toLowerCase().contains(query) ?? false))
+              .toList() ??
+              [];
 
-    if (details != null) {
-      setState(() {
-        _filteredExisting = details.existingNotConnected
-            ?.where((c) =>
-        (c.name?.toLowerCase().contains(query) ?? false) ||
-            (c.contactNo?.toLowerCase().contains(query) ?? false))
-            .toList() ??
-            [];
-
-        _filteredNonExisting = details.nonExistingContacts
-            ?.where((c) =>
-        (c.name?.toLowerCase().contains(query) ?? false) ||
-            (c.contactNo?.toLowerCase().contains(query) ?? false))
-            .toList() ??
-            [];
-      });
-    }
+          _filteredNonExisting = details.nonExistingContacts
+              ?.where((c) =>
+          (c.name?.toLowerCase().contains(query) ?? false) ||
+              (c.contactNo?.toLowerCase().contains(query) ?? false))
+              .toList() ??
+              [];
+        });
+      }
+    });
   }
 
-  List<Map<String, String>> getFormattedContacts() {
-    return _contacts
-        .where((contact) => contact.phones.isNotEmpty)
-        .map((contact) => {
-      ApiKeys.contact_no: contact.phones.first.number,
-      ApiKeys.name: contact.displayName,
-    })
-        .toList();
+  List<Map<String, dynamic>> getFormattedContacts(
+      List<Map<String, dynamic>> rawContacts) {
+    return rawContacts.map((c) {
+      final phones = (c["phones"] as List).cast<String>();
+      return {
+        "name": c["displayName"] ?? "",
+        "contactNo": phones.isNotEmpty ? phones.first : "",
+      };
+    }).toList();
   }
 
   Future<void> _loadContactsFromStorage() async {
     String? storedData = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.saved_contacts);
-
+    log("slkdmcklmslksdmclsdkc ${storedData}");
     if (storedData != null) {
-      List decoded = json.decode(storedData);
-      setState(() {
-        _contacts = decoded.map((c) => Contact.fromJson(c)).toList();
-        // _filteredContacts = List.from(_contacts); // initialize filtered list
-        _isLoading = false;
-      });
+      // decode in background
+      Map<String, dynamic> decoded =
+      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      chatViewController.loadContactsFromLocalStorage(decoded);
     } else {
       await _refreshContacts();
     }
-    List<Map<String, dynamic>> formattedContacts = await getFormattedContacts();
-    chatViewController.uploadContacts(formattedContacts);
+  }
+// This is the isolate function → runs in background
+  List<Map<String, String>> formatContactsInIsolate(
+      List<Map<String, dynamic>> rawContacts) {
+
+    return rawContacts
+        .where((c) => (c["phones"] as List).isNotEmpty)
+        .map((c) => {
+      ApiKeys.contact_no: (c["phones"] as List).first as String,
+      ApiKeys.name: c["displayName"] as String,
+    })
+        .toList();
   }
 
   Future<void> _refreshContacts() async {
-
-    setState(() => _isLoading = true);
-
     PermissionStatus status = await Permission.contacts.status;
-
     if (status.isGranted) {
       List<Contact> contacts =
       await FlutterContacts.getContacts(withProperties: true);
-      List<Map<String, dynamic>> contactList =
-      contacts.map((c) => c.toJson()).toList();
 
-      await SharedPreferenceUtils.setSecureValue(
-        SharedPreferenceUtils.saved_contacts,
-        json.encode(contactList),
-      );
+      // Convert Contacts → plain JSON-safe map
+      List<Map<String, dynamic>> rawContacts = contacts.map((c) {
+        return {
+          "displayName": c.displayName ?? "",
+          "phones": c.phones.map((p) => p.number ?? "").toList(),
+        };
+      }).toList();
 
-      setState(() {
-        _contacts = contacts;
+      // Compute in isolate
+      List<Map<String, String>> formattedContacts = await formatContactsInIsolate(rawContacts);
+      // await compute(formatContactsInIsolate, rawContacts);
 
-        _isLoading = false;
-      });
+      chatViewController.uploadContacts(formattedContacts);
     } else {
       PermissionStatus newStatus = await Permission.contacts.request();
       if (newStatus.isGranted) {
         return _refreshContacts();
       } else if (newStatus.isPermanentlyDenied) {
-        setState(() => _isLoading = false);
         _showPermissionDialog();
       } else {
-        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Permission denied")),
+          const SnackBar(content: Text("Permission denied")),
         );
       }
     }
   }
 
+// Runs in isolate – must only use JSON-safe data
+
+
+
   void _showPermissionDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Permission Required"),
-        content:
-        Text("Please allow contact access in app settings to continue."),
+        title: const Text("Permission Required"),
+        content: const Text("Please allow contact access in app settings."),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await openAppSettings();
             },
-            child: Text("Allow Permission"),
+            child: const Text("Allow Permission"),
           ),
         ],
       ),
@@ -211,11 +217,11 @@ class _ContactsPageState extends State<ContactsPage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: "Search contacts...",
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: theme.colorScheme.surface,
                   contentPadding:
-                  EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
@@ -225,454 +231,105 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
             Expanded(
               child: Obx(() {
-
                 if (chatViewController.viewContactsListResponse.value.status ==
                     Status.COMPLETE) {
-                  ContactListModel? contactsListModel =
-                      chatViewController.contactsListModel?.value;
-                  Data? details = contactsListModel?.data;
-                  List<ExistingNotConnected> existingNotConnected=details?.existingNotConnected ?? [];
-                  List<NonExistingContacts> nonExistingContacts=details?.nonExistingContacts ?? [];
-                  if (isGroupMode) {
-                    // build list from groupConnections (flat list)
-                    final groupList = chatViewController.groupConnections;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 12),
-                            CustomText(
-                              "Select Group Members",
-                              color: theme.colorScheme.inverseSurface,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                            ),
-                            const SizedBox(height: 4),
-                            (groupList.isEmpty)
-                                ? Center(child: Text("No contacts found"))
-                                : ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: groupList.length,
-                              itemBuilder: (context, index) {
-                                final item = groupList[index];
-                                final String? userId =
-                                    item['platform_id'] ??
-                                        item['user_id'];
-                                final String name =
-                                (item['name'] ?? '').toString();
-                                final String phone =
-                                (item['contact_no'] ??
-                                    item['contact'] ??
-                                    '')
-                                    .toString();
-                                final String profileImage =
-                                (item['profile_image'] ?? '')
-                                    .toString();
+                  final details =
+                      chatViewController.contactsListModel?.value.data;
+                  final existing =
+                      details?.existingNotConnected ?? <ExistingNotConnected>[];
+                  final nonExisting =
+                      details?.nonExistingContacts ?? <NonExistingContacts>[];
 
-                                final bool isSelected = userId != null &&
-                                    _selectedUserIds.contains(userId);
-                                return ListTile(
-                                  onTap: () {
-                                    if (userId == null) return;
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedUserIds.remove(userId);
-                                      } else {
-                                        _selectedUserIds.add(userId);
-                                      }
-                                    });
-                                  },
-                                  contentPadding: EdgeInsets.all(0),
-                                  leading: CircleAvatar(
-                                    radius: 24,
-                                    backgroundImage:
-                                    (profileImage.isNotEmpty)
-                                        ? NetworkImage(profileImage)
-                                        : null,
-                                    child: (profileImage.isNotEmpty)
-                                        ? null
-                                        : (name.isNotEmpty)
-                                        ? CustomText(
-                                      name[0].toUpperCase(),
-                                      fontFamily:
-                                      "Rounded Mplus 1c",
-                                      fontWeight:
-                                      FontWeight.w400,
-                                      fontSize: 20,
-                                      color: theme
-                                          .colorScheme.surface,
-                                    )
-                                        : Icon(Icons.person,
-                                        color: theme
-                                            .colorScheme.surface),
-                                  ),
-                                  title: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment
-                                            .spaceBetween,
-                                        children: [
-                                          SizedBox(
-                                            // width: 60,
-                                            child: CustomText(
-                                              overflow:
-                                              TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                              name.isNotEmpty
-                                                  ? name
-                                                  : phone,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
-                                              fontFamily:
-                                              "Rounded Mplus 1c",
-                                            ),
-                                          ),
-                                          Checkbox(
-                                            value: isSelected,
-                                            onChanged: (value) {
-                                              if (userId == null) return;
-                                              setState(() {
-                                                if (value == true) {
-                                                  _selectedUserIds
-                                                      .add(userId);
-                                                } else {
-                                                  _selectedUserIds
-                                                      .remove(userId);
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      CustomText(
-                                        phone,
-                                        fontSize: 14,
-                                        fontFamily: "Rounded Mplus 1c",
-                                      )
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                  if (_filteredExisting.isEmpty &&
+                      _filteredNonExisting.isEmpty &&
+                      _searchController.text.isEmpty) {
+                    _filteredExisting = List.from(existing);
+                    _filteredNonExisting = List.from(nonExisting);
+                  }
+
+                  if (isGroupMode) {
+                    final groupList = chatViewController.groupConnections;
+                    return ListView.builder(physics: NeverScrollableScrollPhysics(),
+                      itemCount: groupList.length,
+                      itemBuilder: (context, index) {
+                        final item = groupList[index];
+                        return _GroupContactTile(
+                          item: item,
+                          isSelected: _selectedUserIds
+                              .contains(item['platform_id'] ?? item['user_id']),
+                          onSelect: (id) {
+                            setState(() {
+                              if (_selectedUserIds.contains(id)) {
+                                _selectedUserIds.remove(id);
+                              } else {
+                                _selectedUserIds.add(id);
+                              }
+                            });
+                          },
+                        );
+                      },
                     );
                   }
-                  if (_filteredNonExisting.isEmpty) {
-                    Future.delayed(Duration.zero,(){
-                      if (details != null) {
-                        _filteredExisting =
-                            List.from(existingNotConnected);
-                        _filteredNonExisting =
-                            List.from(nonExistingContacts);
-                      }
-                    });
 
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 12),
-                          CustomText(
-                            "Contacts Available on BlueEra",
-                            color: theme.colorScheme.inverseSurface,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                          const SizedBox(height: 4),
-                          _isLoading
-                              ? Center(child: SizedBox(
-                              height: 26,
-                              width: 26,
-                              child: CircularProgressIndicator()))
-                              : ((_searchController.text.isEmpty)?existingNotConnected.isEmpty:_filteredExisting.isEmpty)
-                              ? Center(child: Text("No contacts found"))
-                              : ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: (_searchController.text.isEmpty)?existingNotConnected.length:_filteredExisting.length,
-                            itemBuilder: (context, index) {
-                              final contact =
-                              (_searchController.text.isEmpty)?existingNotConnected[index]: _filteredExisting[index];
-                              final name = contact?.name;
-                              final phone =
-                              (contact?.contactNo?.isNotEmpty ??
-                                  false)
-                                  ? contact?.contactNo
-                                  : 'No number';
-
-                              return ListTile(
-                                onTap: () {
-                                  final String? userId =
-                                      _filteredExisting[index]?.id;
-                                  final bool isSelected =
-                                      userId != null &&
-                                          _selectedUserIds
-                                              .contains(userId);
-                                  if (isGroupMode) {
-                                    if (userId != null) {
-                                      setState(() {
-                                        if (isSelected) {
-                                          _selectedUserIds
-                                              .remove(userId);
-                                        } else {
-                                          _selectedUserIds
-                                              .add(userId);
-                                        }
-                                      });
-                                    }
-                                  } else {
-                                    if (details
-                                        ?.existingNotConnected?[
-                                    index]
-                                        .id !=
-                                        null) {
-                                      chatViewController.openAnyOneChatFunction(
-                                          type: details
-                                              ?.existingNotConnected?[
-                                          index]
-                                              .accountType,
-                                          isInitialMessage: true,
-                                          userId: details
-                                              ?.existingNotConnected?[
-                                          index]
-                                              .id,
-                                          conversationId: details
-                                              ?.existingNotConnected?[
-                                          index]
-                                              .conversationId ??
-                                              '',
-                                          profileImage: details
-                                              ?.existingNotConnected?[
-                                          index]
-                                              .profileImage,
-                                          contactName: details
-                                              ?.existingNotConnected?[
-                                          index]
-                                              .name,
-                                          contactNo: details
-                                              ?.existingNotConnected?[
-                                          index]
-                                              .contactNo,
-                                          //  businessId: details.existingNotConnected[index].,
-                                          isFromContactList: true);
-                                    }
-                                  }
-                                },
-                                contentPadding: EdgeInsets.all(0),
-                                leading: CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage:
-                                  (contact?.profileImage != null&&contact?.profileImage !='')
-                                      ? NetworkImage(
-                                      contact?.profileImage)
-                                      : null,
-                                  child: (contact?.profileImage !=
-                                      null&&contact?.profileImage!='')
-                                      ? null
-                                      : (name?.isNotEmpty ?? false)
-                                      ? CustomText(
-                                    name![0].toUpperCase(),
-                                    fontFamily:
-                                    "Rounded Mplus 1c",
-                                    fontWeight:
-                                    FontWeight.w400,
-                                    fontSize: 20,
-                                    color: theme.colorScheme
-                                        .surface,
-                                  )
-                                      : Icon(Icons.person,
-                                      color: theme.colorScheme
-                                          .surface),
-                                ),
-                                title: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .spaceBetween,
-                                      children: [
-                                        SizedBox(
-                                          // width: 170,
-                                          child: CustomText(
-                                            maxLines: 1,
-                                            overflow:
-                                            TextOverflow.ellipsis,
-                                            name ?? phone,
-                                            fontWeight:
-                                            FontWeight.w600,
-                                            fontSize: 16,
-                                            fontFamily:
-                                            "Rounded Mplus 1c",
-                                          ),
-                                        ),
-                                        if (isGroupMode)
-                                          Builder(builder: (context) {
-                                            final String? userId =
-                                                _filteredExisting[
-                                                index]
-                                                    ?.id;
-                                            final bool isSelected =
-                                                userId != null &&
-                                                    _selectedUserIds
-                                                        .contains(
-                                                        userId);
-                                            return Checkbox(
-                                              value: isSelected,
-                                              onChanged: (value) {
-                                                if (userId == null)
-                                                  return;
-                                                setState(() {
-                                                  if (value == true) {
-                                                    _selectedUserIds
-                                                        .add(userId);
-                                                  } else {
-                                                    _selectedUserIds
-                                                        .remove(
-                                                        userId);
-                                                  }
-                                                });
-                                              },
-                                            );
-                                          }),
-                                      ],
-                                    ),
-                                    (name == null)
-                                        ? SizedBox()
-                                        : CustomText(
-                                      (contact?.accountType=="INDIVIDUAL")?(contact?.designation=="")?phone:(contact?.designation??'$phone'):"",
-                                      fontSize: 14,
-                                      fontFamily:
-                                      "Rounded Mplus 1c",
-                                    )
-                                  ],
-                                ),
-                              );
+                  // Normal contacts (with two sections)
+                  return ListView(
+                  children: [
+                    _SectionTitle("Contacts Available on BlueEra", theme),
+                    if ((_searchController.text.isEmpty ? existing.isEmpty : _filteredExisting.isEmpty))
+                      const Center(child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text("No contacts found"),
+                      ))
+                    else
+                      ...List.generate(
+                        _searchController.text.isEmpty ? existing.length : _filteredExisting.length,
+                            (index) {
+                          final contact = _searchController.text.isEmpty
+                              ? existing[index]
+                              : _filteredExisting[index];
+                          return _ExistingContactTile(
+                            contact: contact,
+                            isGroupMode: isGroupMode,
+                            selectedUserIds: _selectedUserIds,
+                            onSelect: (id) {
+                              setState(() {
+                                if (_selectedUserIds.contains(id)) {
+                                  _selectedUserIds.remove(id);
+                                } else {
+                                  _selectedUserIds.add(id);
+                                }
+                              });
                             },
-                          ),
-                          CustomText(
-                            "Invite to BlueEra",
-                            color: theme.colorScheme.inverseSurface,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                          const SizedBox(height: 4),
-                          _isLoading
-                              ? Center(child: CircularProgressIndicator())
-                              : ((_searchController.text.isEmpty)?(nonExistingContacts.isEmpty):_filteredNonExisting.isEmpty)
-                              ? Center(child: Text("No contacts found"))
-                              : ListView.builder(
-
-                            physics:
-                            const NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: (_searchController.text.isEmpty)?nonExistingContacts.length:_filteredNonExisting.length,
-                            itemBuilder: (context, index) {
-                              final contact = (_searchController.text.isEmpty)?nonExistingContacts[index]:
-                              _filteredNonExisting[index];
-                              final rawName = contact?.name ?? "";
-                              final phone =
-                              (contact?.contactNo?.isNotEmpty ??
-                                  false)
-                                  ? contact!.contactNo
-                                  : 'No number';
-
-
-                              final name =
-                              rawName.characters.toString();
-
-
-                              final firstLetter =
-                              name.characters.isNotEmpty
-                                  ? name.characters.first
-                                  .toUpperCase()
-                                  : "A";
-
-                              return ListTile(
-                                contentPadding: EdgeInsets.all(0),
-                                leading: CircleAvatar(
-                                  radius: 20,
-                                  child: CustomText(
-                                    firstLetter,
-                                    fontFamily: "Rounded Mplus 1c",
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 20,
-                                    color: theme.colorScheme.surface,
-                                  ),
-                                ),
-                                title: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          CustomText(
-                                            name,
-                                            maxLines: 1,
-                                            overflow:
-                                            TextOverflow.ellipsis,
-                                            fontWeight:
-                                            FontWeight.w600,
-                                            fontSize: 16,
-                                            fontFamily:
-                                            "Rounded Mplus 1c",
-                                          ),
-                                          const SizedBox(height: 2),
-                                          CustomText(
-                                            phone,
-                                            fontSize: 14,
-                                            fontFamily:
-                                            "Rounded Mplus 1c",
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          VisitingCardHelper.buildAndShareVisitingCard(context),
-                                      child: const Text(
-                                        "Invite",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                            chatViewController: chatViewController,
+                          );
+                        },
                       ),
-                    ),
+
+                    _SectionTitle("Invite to BlueEra", theme),
+                    if ((_searchController.text.isEmpty ? nonExisting.isEmpty : _filteredNonExisting.isEmpty))
+                      const Center(child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text("No contacts found"),
+                      ))
+                    else
+                      ...List.generate(
+                        _searchController.text.isEmpty ? nonExisting.length : _filteredNonExisting.length,
+                            (index) {
+                          final contact = _searchController.text.isEmpty
+                              ? nonExisting[index]
+                              : _filteredNonExisting[index];
+                          return _NonExistingContactTile(contact: contact);
+                        },
+                      ),
+                  ],
                   );
+                  ;
                 } else {
-                  return Center(
-                    child: SizedBox(
-                      height: 26,
-                      width: 26,
+                  return const Center(
                       child: SizedBox(
                           height: 26,
                           width: 26,
-                          child: CircularProgressIndicator()),
-                    ),
-                  );
+                          child: CircularProgressIndicator()));
                 }
               }),
             ),
@@ -689,15 +346,14 @@ class _ContactsPageState extends State<ContactsPage> {
               onTap: _selectedUserIds.isEmpty
                   ? null
                   : () {
-                print("Selected:${_selectedUserIds}");
-                //   Navigator.pop(context, _selectedUserIds.toList());
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddNewGroupPage(
-                          selectedUserIds:
-                          _selectedUserIds.toList(),
-                        )));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddNewGroupPage(
+                      selectedUserIds: _selectedUserIds.toList(),
+                    ),
+                  ),
+                );
               },
               title: _selectedUserIds.isEmpty
                   ? "Select members"
@@ -706,6 +362,180 @@ class _ContactsPageState extends State<ContactsPage> {
           ),
         )
             : null,
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  final ThemeData theme;
+  const _SectionTitle(this.text, this.theme);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
+      child: CustomText(
+        text,
+        color: theme.colorScheme.inverseSurface,
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+}
+
+class _GroupContactTile extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final bool isSelected;
+  final void Function(String id) onSelect;
+
+  const _GroupContactTile({
+    required this.item,
+    required this.isSelected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final userId = item['platform_id'] ?? item['user_id'];
+    final name = (item['name'] ?? '').toString();
+    final phone =
+    (item['contact_no'] ?? item['contact'] ?? '').toString();
+    final profileImage = (item['profile_image'] ?? '').toString();
+
+    return ListTile(
+      onTap: () => onSelect(userId),
+      leading: CircleAvatar(
+        radius: 24,
+        backgroundImage: profileImage.isNotEmpty
+            ? CachedNetworkImageProvider(profileImage)
+            : null,
+        child: profileImage.isEmpty
+            ? CustomText(
+          name.isNotEmpty ? name[0].toUpperCase() : "?",
+          fontSize: 20,
+          color: theme.colorScheme.surface,
+        )
+            : null,
+      ),
+      title: Text(name.isNotEmpty ? name : phone,
+          style: const TextStyle(fontWeight: FontWeight.w600)),
+      subtitle: Text(phone),
+      trailing: Checkbox(
+        value: isSelected,
+        onChanged: (_) => onSelect(userId),
+      ),
+    );
+  }
+}
+
+class _ExistingContactTile extends StatelessWidget {
+  final ExistingNotConnected? contact;
+  final bool isGroupMode;
+  final Set<String> selectedUserIds;
+  final void Function(String id) onSelect;
+  final ChatViewController chatViewController;
+
+  const   _ExistingContactTile({
+    required this.contact,
+    required this.isGroupMode,
+    required this.selectedUserIds,
+    required this.onSelect,
+    required this.chatViewController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final name = contact?.name ?? "";
+    final phone = contact?.contactNo ?? "No number";
+    final profileImage = contact?.profileImage ?? "";
+    final userId = contact?.id ?? "";
+
+    final isSelected = selectedUserIds.contains(userId);
+
+    return ListTile(
+      onTap: () {
+        if (isGroupMode) {
+          if (userId.isNotEmpty) onSelect(userId);
+        } else {
+          if (contact?.id != null) {
+            chatViewController.openAnyOneChatFunction(
+              type: contact?.accountType,
+              isInitialMessage: true,
+              userId: contact?.id,
+              conversationId: contact?.conversationId ?? '',
+              profileImage: contact?.profileImage,
+              contactName: contact?.name,
+              contactNo: contact?.contactNo,
+              isFromContactList: true,
+            );
+          }
+        }
+      },
+      leading: CircleAvatar(
+        radius: 20,
+        backgroundImage:
+        profileImage.isNotEmpty ? CachedNetworkImageProvider(profileImage) : null,
+        child: profileImage.isEmpty
+            ? CustomText(
+          name.isNotEmpty ? name[0].toUpperCase() : "?",
+          fontSize: 20,
+          color: theme.colorScheme.surface,
+        )
+            : null,
+      ),
+      title: Text(name.isNotEmpty ? name : phone,
+          style: const TextStyle(fontWeight: FontWeight.w600)),
+      subtitle: name.isNotEmpty
+          ? Text(
+        (contact?.accountType == "INDIVIDUAL")
+            ? (contact?.designation?.isNotEmpty ?? false)
+            ? contact!.designation!
+            : phone
+            : "",
+      )
+          : null,
+      trailing: isGroupMode
+          ? Checkbox(
+        value: isSelected,
+        onChanged: (_) => onSelect(userId),
+      )
+          : null,
+    );
+  }
+}
+
+class _NonExistingContactTile extends StatelessWidget {
+  final NonExistingContacts? contact;
+  const _NonExistingContactTile({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final name = contact?.name ?? "";
+    final phone = contact?.contactNo ?? "No number";
+    final firstLetter = name.isNotEmpty ? name[0].toUpperCase() : "?";
+
+    return ListTile(
+      leading: CircleAvatar(
+        radius: 20,
+        child: CustomText(
+          firstLetter,
+          fontSize: 20,
+          color: theme.colorScheme.surface,
+        ),
+      ),
+      title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+      subtitle: Text(phone),
+      trailing: TextButton(
+        onPressed: () =>
+            VisitingCardHelper.buildAndShareVisitingCard(context),
+        child: const Text("Invite",
+            style: TextStyle(fontWeight: FontWeight.w600)),
       ),
     );
   }
