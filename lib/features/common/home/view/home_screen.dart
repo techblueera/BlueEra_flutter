@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
             query: searchController.text, headerHeight: _headerHeight
             // You can add _toggleAppBarAndBottomNav later if needed
             );
-    
+
       case 3:
         return SavedFeedScreen(
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
