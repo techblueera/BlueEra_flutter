@@ -258,7 +258,6 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (selectedIndex) {
       case 0:
         // return HomeFeedScreen();
-        // return HomeFeedScreen();
         return FeedScreen(
             key: ValueKey('feedScreen_all'),
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
@@ -275,8 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
             query: searchController.text, headerHeight: _headerHeight
             // You can add _toggleAppBarAndBottomNav later if needed
             );
-      // case 3:
-      //   return Center(child: CustomText("Coming soon..."));
+    
       case 3:
         return SavedFeedScreen(
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
