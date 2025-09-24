@@ -23,7 +23,6 @@ import '../auth/controller/chat_view_controller.dart';
 import '../auth/controller/group_chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
 import 'business_chat/business_chat_list.dart';
-import 'chat_screen_new_sc.dart';
 
 class ChatMainScreen extends StatefulWidget {
   const ChatMainScreen(
@@ -133,7 +132,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                           : Obx(() {
                               return InkWell(
                                 onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>NewScChatListPage()));
+
                                 },
                                 child: CachedAvatarWidget(
                                     imageUrl:
