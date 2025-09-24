@@ -5,18 +5,14 @@ import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
-import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rating_summary/rating_summary.dart';
 
 class PersonalOverviewScreen extends StatelessWidget {
   final String userId;

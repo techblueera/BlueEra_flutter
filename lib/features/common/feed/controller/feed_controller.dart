@@ -6,6 +6,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/all_like_users_list_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -551,7 +552,6 @@ class FeedController extends GetxController{
         final response = await FeedRepo().likePost(
           postId: postId,
         );
-
         if (response.isSuccess) {
           likeDislikeResponse = ApiResponse.complete(response);
 

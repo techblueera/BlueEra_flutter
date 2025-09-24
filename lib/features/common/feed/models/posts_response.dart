@@ -75,6 +75,10 @@ class Post {
   final bool? isPostSavedLocal;
   final Song? song;
   final int? visibilityDuration;
+  final String? videoUrl;
+  final String? thumbnail;
+  final int? duration;
+  final dynamic channel;
 
   Post({
     required this.id,
@@ -105,7 +109,11 @@ class Post {
     this.user,
     this.isPostSavedLocal,
     this.song,
-    this.visibilityDuration
+    this.visibilityDuration,
+    this.videoUrl,
+    this.thumbnail,
+    this.duration,
+    this.channel,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -148,6 +156,10 @@ class Post {
       isPostSavedLocal: json['isPostSavedLocal'],
       song: json['song'] != null ? Song.fromJson(json['song']) : null,
       visibilityDuration: json['visibility_duration'],
+      videoUrl: json['video_url']?.toString().trim(),
+      thumbnail: json['thumbnail']?.toString().trim(),
+      duration: json['duration'],
+      channel: json['channel'],
     );
   }
 
@@ -182,6 +194,10 @@ class Post {
       'isPostSavedLocal': isPostSavedLocal,
       'song': song?.toJson(),
       'visibility_duration': visibilityDuration,
+      'video_url': videoUrl,
+      'thumbnail': thumbnail,
+      'duration': duration,
+      'channel': channel,
     };
   }
 

@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:flutter/material.dart';
 
 class BusinessCategory {
   final String type;

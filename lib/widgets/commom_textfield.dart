@@ -159,10 +159,12 @@ class CommonTextField extends StatelessWidget {
             keyboardType: keyBoardType ?? TextInputType.text,
             maxLines: maxLine ?? 1,
             enableInteractiveSelection: true,
+            textCapitalization: TextCapitalization.none, // 👈 stops auto-capitalization
 
-            textCapitalization: (isCapitalize ?? false)
-                ? TextCapitalization.characters
-                : TextCapitalization.sentences,
+
+            // textCapitalization: /*(isCapitalize ?? false)
+            //     ? TextCapitalization.characters
+            //     :*/ TextCapitalization.sentences,
             inputFormatters: inputFormatters ??
                 [
                   LengthLimitingTextInputFormatter(inputLength),

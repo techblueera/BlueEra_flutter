@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -34,6 +35,13 @@ class PhotoListingWidget extends StatelessWidget {
               top: SizeConfig.size5),
           child: PositiveCustomBtn(
               onTap: () {
+                final msgController = Get.find<MessagePostController>();
+
+                if (msgController.imagesList.length < 1) {
+                  commonSnackBar(
+                      message: "At least 1 photo is required");
+                  return;
+                }
                 Get.off(() => MessagePostPreviewScreenNew(
                       postVia: PostVia.profile, isEdit: false,
                     ));
@@ -65,7 +73,7 @@ class PhotoUploadWidget extends StatelessWidget {
             children: [
               Align(
                   alignment: Alignment.centerLeft,
-                  child: CustomText("Upload Photo (Optional)")),
+                  child: CustomText("Upload Photo (at least 1 photo required)")),
               SizedBox(height: SizeConfig.size10),
               InkWell(
                 onTap: msgController.pickImage,

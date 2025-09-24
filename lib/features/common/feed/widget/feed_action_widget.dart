@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/widgets/common_divider.dart';
 import 'package:BlueEra/widgets/common_icon_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -13,7 +14,7 @@ import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
 import 'package:flutter/material.dart';
 
 class PostActionsBarNew extends StatefulWidget {
-  final Post? post;
+  final FeedItem? post;
   final bool isLiked;
   final int? totalLikes;
   final int? totalComment;
@@ -163,82 +164,6 @@ class _PostActionsBarNewState extends State<PostActionsBarNew> {
           width: SizeConfig.size15,
         ),
       ],
-    );
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size10,
-        vertical: SizeConfig.size12,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          CommonIconRow(
-            onTap: () {
-              if (isGuestUser()) {
-                createProfileScreen();
-              } else {
-                widget.onLikeDislikePressed();
-              }
-            },
-            imageIcon: _isLiked
-                ? LocalAssets(imagePath: AppIconAssets.likeIcon)
-                : LocalAssets(
-                    imagePath: AppIconAssets.unlikeIcon,
-                    imgColor: AppColors.secondaryTextColor),
-            text: _totalLikes.toString(),
-            onTextCallback: () {
-              if (_totalLikes < 1) {
-                return;
-              }
-
-              showDialog(
-                context: context,
-                builder: (context) => PostLikeUserListDialog(
-                  postId: widget.post?.id ?? '',
-                ),
-              );
-            },
-          ),
-          CommonVerticalDivider(),
-
-          // Comment
-          CommonIconRow(
-            onTap: () {
-              if (isGuestUser()) {
-                createProfileScreen();
-              } else {
-                widget.onCommentButtonPressed();
-              }
-            },
-            imageIcon: LocalAssets(imagePath: AppIconAssets.commentIcon),
-            text: _totalComment.toString(),
-          ),
-          CommonVerticalDivider(),
-
-          // Save
-          CommonIconRow(
-            imageIcon: LocalAssets(
-                imagePath: _isPostAlreadySaved
-                    ? AppIconAssets.save_fill
-                    : AppIconAssets.savedIcon),
-            text: "Save",
-            onTap: () {
-              widget.onSavedUnSavedButtonPressed();
-            },
-          ),
-
-          CommonVerticalDivider(),
-
-          // upload
-          CommonIconRow(
-            imageIcon: LocalAssets(imagePath: AppIconAssets.uploadIcon),
-            text: widget.totalRepost.toString(),
-            onTap: () {
-              widget.onShareButtonPressed();
-            },
-          ),
-        ],
-      ),
     );
   }
 }

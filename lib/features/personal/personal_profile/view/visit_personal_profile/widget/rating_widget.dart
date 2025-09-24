@@ -9,7 +9,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rating_summary/rating_summary.dart';
 
 class RatingSummaryWidget extends StatefulWidget {
   final double rating;
