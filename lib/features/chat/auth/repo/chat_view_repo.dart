@@ -140,6 +140,11 @@ class ChatViewRepo extends BaseService {
         .getHTTP(getChatRequest, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> getLatestChatRepo() async {
+    final response = await ApiBaseHelper()
+        .getHTTP(getLatestChat, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
   Future<ResponseModel> getDetailsChatRequestPerson(Map<String,dynamic> params) async {
     final response = await ApiBaseHelper()

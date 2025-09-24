@@ -34,7 +34,7 @@ class ChatSocketService {
 
       _socket.connect();
       _socket.onConnect((_) {
-        print("Socket connected!");
+        print("___ Chat Socket connected!");
         _isConnected = true;
         _socket.emit("screenRoom", {ApiKeys.conversation_id: "online"});
         _socket.emit("ChatList", {ApiKeys.type: "personal"});
@@ -43,7 +43,7 @@ class ChatSocketService {
       });
 
       _socket.onConnectError((err) {
-        print('Connect error: $err');
+        print('Chat Socket Connect error: $err');
 
       });
 
