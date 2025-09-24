@@ -46,7 +46,8 @@ class HorizontalTabSelector<T> extends StatelessWidget {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
           horizontal: horizontalMargin ?? SizeConfig.paddingXSL,
-          vertical: verticalMargin ?? SizeConfig.size2),
+          vertical: verticalMargin ?? SizeConfig.size2
+      ),
       physics: BouncingScrollPhysics(),
       scrollDirection: Axis.horizontal,
       child: Row(

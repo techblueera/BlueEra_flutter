@@ -4,7 +4,7 @@ class AppColors {
   static const Color white = Colors.white;
   static const Color red = Colors.red;
   static const Color black = Color(0xff000000);
-  static const Color black28 = Color(0xff161F28);
+  static const Color black28 = Color(0xFF161F28);
   static const Color blackCC = Color(0xCC161F28);
   static const Color black23 = Color(0xFF232323);
   static const Color black25 = Color(0x40000000);
@@ -105,6 +105,7 @@ static const Color chipTextColor = Color(0xFF303030);
   static const Color whiteF1 = Color(0xFFF1F1F3);
   static const Color orange = Color(0xFFFA6000);
   static const Color grey5B = Color(0xFF5B5B5B);
+  static const Color grey60 = Color(0xFF606060);
   static const Color whiteE5 = Color(0xFFE5E5E5);
   static const Color green7F = Color(0xFF2BB67F);
   static const Color orange27 = Color(0xFFAD4627);

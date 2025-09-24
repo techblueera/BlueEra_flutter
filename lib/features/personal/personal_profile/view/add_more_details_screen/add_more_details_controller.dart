@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/controller/add_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/detail_item.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

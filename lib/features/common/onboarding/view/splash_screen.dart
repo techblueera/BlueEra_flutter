@@ -164,6 +164,36 @@ import 'package:permission_handler/permission_handler.dart';
 
     @override
     Widget build(BuildContext context) {
+      // return Material(
+      //   color: AppColors.white,
+      //   child: Column(
+      //     mainAxisSize: MainAxisSize.max,
+      //     mainAxisAlignment: MainAxisAlignment.start,
+      //     crossAxisAlignment: CrossAxisAlignment.center,
+      //     children: [
+      //       Spacer(flex: 3),
+      //       CustomText(
+      //         "🇮🇳  MADE IN INDIA",
+      //         fontSize: SizeConfig.medium,
+      //         fontWeight: FontWeight.w600,
+      //       ),
+      //       Spacer(flex: 10),
+      //       LocalAssets(
+      //         imagePath: AppIconAssets.blueEraIcon,
+      //         height: SizeConfig.size100,
+      //       ),
+      //       Spacer(flex: 10),
+      //       Padding(
+      //         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
+      //         child: LocalAssets(
+      //           imagePath: AppImageAssets.splashBgImage,
+      //           height: SizeConfig.size70,
+      //         ),
+      //       ),
+      //       Spacer(flex: 1),
+      //     ],
+      //   ),
+      // );
       return FutureBuilder(
         future: Future.wait([
           Future.value(OneSignal.User.pushSubscription.optedIn),

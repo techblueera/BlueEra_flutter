@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -24,37 +25,38 @@ class CustomBtn extends StatelessWidget {
   final TextAlign? textAlign;
   final Alignment? align;
   final bool? isValidate;
+  final bool isLoading;
 
-  const CustomBtn(
-      {super.key,
-      this.isValidate,
-      required this.onTap,
-      required this.title,
-      this.radius,
-      this.toLowerCase = false,
-      this.fontWeight,
-      this.align,
-      this.borderColor,
-      this.height,
-      this.width,
-      this.fontSize,
-      this.bgColor,
-      this.textColor,
-      this.leading,
-      this.withIcon = false,
-      this.iconPath,
-      this.isDownloadFile = false,
-      this.textAlign,
-      this.padding});
+  const CustomBtn({
+    super.key,
+    this.isValidate,
+    required this.onTap,
+    required this.title,
+    this.radius,
+    this.toLowerCase = false,
+    this.fontWeight,
+    this.align,
+    this.borderColor,
+    this.height,
+    this.width,
+    this.fontSize,
+    this.bgColor,
+    this.textColor,
+    this.leading,
+    this.withIcon = false,
+    this.iconPath,
+    this.isDownloadFile = false,
+    this.textAlign,
+    this.padding,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap:  onTap ,
+        onTap: isLoading ? null : onTap, // disable tap when loading
         borderRadius: BorderRadius.circular(radius ?? 10),
         child: Ink(
           height: height ?? SizeConfig.buttonXL,
@@ -63,26 +65,32 @@ class CustomBtn extends StatelessWidget {
           decoration: BoxDecoration(
             color: bgColor == null
                 ? (isValidate ?? false)
-                    ? AppColors.primaryColor
-                    : AppColors.grey9B
+                ? AppColors.primaryColor
+                : AppColors.grey9B
                 : bgColor,
             border: Border.all(color: borderColor ?? Colors.transparent),
             borderRadius: BorderRadius.circular(radius ?? 5),
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: Align(
-                alignment: align ?? Alignment.center,
-                child: CustomText(
-                  (title ?? ""),
-                  fontWeight: fontWeight ?? FontWeight.bold,
-                  color: textColor ?? AppColors.white,
-                  fontSize: fontSize ?? SizeConfig.medium,
-                  textAlign: textAlign ?? TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+          child: Center(
+            child: isLoading
+                ? staggeredDotsWaveLoading(
+                    color: AppColors.white
+                )
+                : FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+                child: Align(
+                  alignment: align ?? Alignment.center,
+                  child: CustomText(
+                    (title ?? ""),
+                    fontWeight: fontWeight ?? FontWeight.bold,
+                    color: textColor ?? AppColors.white,
+                    fontSize: fontSize ?? SizeConfig.medium,
+                    textAlign: textAlign ?? TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
             ),

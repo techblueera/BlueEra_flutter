@@ -12,8 +12,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/listing_form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_product_btn.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_settings_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -27,8 +26,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../features/personal/personal_profile/view/inventory_screen/widget/add_product_btn.dart';
-
 import '../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 

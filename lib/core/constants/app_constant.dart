@@ -758,7 +758,7 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems() {
           height: 1,
           child: Divider(
             indent: 0,
-            endIndent: 10,
+            endIndent: 0,
             height: 1,
             thickness: 0.2,
             color: AppColors.grey99,

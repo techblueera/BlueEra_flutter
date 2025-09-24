@@ -1,12 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/add_product_screen/add_product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/categoryinventory_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory_screen/model/product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -43,12 +42,38 @@ class _InventoryScreenState extends State<InventoryScreen> {
       backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
         controller: searchController,
-        searchHintText:  'Search ${selectedIndex == 0 ? 'Product' : 'Category'}...',
+        searchHintText: 'Search ${selectedIndex == 0 ? 'Product' : 'Category'}...',
         onClearCallback: () => searchController.clear(),
         isSearch: true,
         isAddProduct: selectedIndex == 0,
         isAddProductCategory: selectedIndex == 1
       ),
+      floatingActionButton:
+      // Obx(() {
+         Builder(
+          builder: (context) {
+            return FloatingActionButton(
+              onPressed: () =>
+                showPopUpMenu(context, controller),
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: AnimatedRotation(
+                turns: controller.isMenuOpen.value ? 0.25  : 0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                child: Obx(()=> Icon(
+                  controller.isMenuOpen.value ? Icons.close : Icons.add,
+                  key: ValueKey(controller.isMenuOpen.value), // important for AnimatedSwitcher
+                  size: SizeConfig.size36,
+                )),
+              ),
+            );
+          }
+        ),
+      // }),
       body: GestureDetector(
         onTap: (){
           FocusScope.of(context).unfocus();
@@ -156,7 +181,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                Get.toNamed(RouteHelper.getAddProductScreenRoute());
                             } else {
                               // Add Category
-                              Get.to(()=>AddCategoryFolderScreen());
+                              Get.to(()=> AddCategoryFolderScreen());
                             }
                           },
                             child: Container(
@@ -669,4 +694,49 @@ class _InventoryScreenState extends State<InventoryScreen> {
       ),
     );
   }
+
+  void showPopUpMenu(BuildContext context, InventoryController controller) async {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+    Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    // FAB position & size
+    final Offset fabPosition = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final Size fabSize = button.size;
+
+    // Menu height (approximate based on items * itemHeight)
+    const double itemHeight = 36.0;
+    const int itemCount = 3;
+    const double menuHeight = itemHeight * itemCount;
+
+    final RelativeRect position = RelativeRect.fromLTRB(
+      fabPosition.dx,                               // align with FAB left
+      fabPosition.dy - menuHeight - 24,              // just above FAB
+      overlay.size.width - fabPosition.dx - fabSize.width,
+      overlay.size.height - fabPosition.dy,
+    );
+
+    controller.isMenuOpen.value = true;
+    final result = await showMenu(
+      context: context,
+      position: position,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      items: popupMenuInventoryItems(),
+    );
+    controller.isMenuOpen.value = false;
+
+    if (result != null) {
+      if (result.toUpperCase() == "ADD PRODUCT") {
+        Get.toNamed(RouteHelper.getAddProductViaAiStep1Route());
+      }else if(result.toUpperCase() == "ADD SERVICE"){
+        Get.toNamed(RouteHelper.getAddServicesScreenRoute());
+      }else if(result.toUpperCase() =="ADD FOOD"){
+        Get.to(()=> FoodPage());
+      }
+    }
+  }
+
+
 }

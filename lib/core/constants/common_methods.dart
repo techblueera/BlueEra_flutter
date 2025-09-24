@@ -8,8 +8,6 @@ import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart' as foundationObj;
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
-import 'package:flutter/services.dart';
-
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -437,12 +435,12 @@ bool isNetworkImage(dynamic image) =>
 
 bool isFileImage(dynamic image) => image is File || image is XFile;
 
-Widget staggeredDotsWaveLoading() {
+Widget staggeredDotsWaveLoading({Color color = AppColors.primaryColor}) {
   return Center(
       child: Padding(
           padding: EdgeInsets.all(SizeConfig.size15),
           child: LoadingAnimationWidget.staggeredDotsWave(
-              size: SizeConfig.size40, color: AppColors.primaryColor)));
+              size: SizeConfig.size40, color: color)));
 }
 
 /// Returns true if user has not disabled AND API has not been called today

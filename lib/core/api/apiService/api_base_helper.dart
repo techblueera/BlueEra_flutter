@@ -166,6 +166,8 @@ class ApiBaseHelper {
           }
         });
 
+        logs("FORM DATA FIELDS: ${formData.fields}");
+
         response = await baseAPI.post(
           url,
           data: formData,

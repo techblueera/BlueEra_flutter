@@ -1,13 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/listing_form_screen/widgets/step4_section.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step4_section.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

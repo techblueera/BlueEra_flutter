@@ -401,7 +401,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
     return SafeArea(
       child: Stack(
-        fit: StackFit.expand,
+         fit: StackFit.expand,
         children: [
           _buildVideoPlayer(),
           _buildPlayPauseOverlay(),
@@ -414,16 +414,19 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
   Widget _buildVideoPlayer() {
     return _initialized && _controller != null
-        ? Align(
-            alignment: Alignment.center,
-            child: GestureDetector(
-              onTap: _onVideoTap,
-              child: AspectRatio(
-                aspectRatio: _controller?.value.aspectRatio ?? 9 / 16,
-                child: VideoPlayer(_controller!),
-              ),
-            ),
-          )
+        ? GestureDetector(
+      onTap: _onVideoTap,
+      child: SizedBox.expand(
+        child: FittedBox(
+          fit: BoxFit.cover, // Fills the container, crops if needed
+          child: SizedBox(
+            width: _controller!.value.size.width,
+            height: _controller!.value.size.height,
+            child: VideoPlayer(_controller!),
+          ),
+        ),
+      ),
+    )
         : const Center(
             child: CircularProgressIndicator(),
           );

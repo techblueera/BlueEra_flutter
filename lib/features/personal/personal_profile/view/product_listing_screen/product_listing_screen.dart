@@ -5,7 +5,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../listing_form_screen/listing_form_screen.dart';
 import 'product_listing_controller.dart';
 
 class ProductListingScreen extends StatefulWidget {

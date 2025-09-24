@@ -8,7 +8,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
+import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/model/card_model.dart';
+import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
@@ -45,13 +47,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _headerKey = GlobalKey();
   double _headerHeight = 0;
-  final List<String> postTab = ["All Posts", "Videos", "Shorts", "Saved"];
+  final List<String> postTab = ["All Posts", "Videos", "Shorts", "Saved", "My Cards"];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
   List<SavedFeedTab> filters = SavedFeedTab.values.toList();
   late SavedFeedTab _selectedSavedTab;
   final HomeScreenController homeScreenController =
       Get.put(HomeScreenController());
+  final MoreCardsScreenController moreCardsScreenController = Get.put(MoreCardsScreenController());
 
   @override
   void initState() {
@@ -121,11 +124,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (canCall) {
       try {
-        await homeScreenController.getCardCategoriesSortedByDate(todayDate: today);
+        await moreCardsScreenController.getCardCategoriesSortedByDate(todayDate: today);
 
         await saveApiCallDate();
 
-        final List<Cards> cards = homeScreenController.allCards;
+        final List<Cards> cards = moreCardsScreenController.dayCards;
         log('length of card--> ${cards.length}');
 
         if (cards.isNotEmpty) {
@@ -277,6 +280,12 @@ class _HomeScreenState extends State<HomeScreen> {
             query: searchController.text,
             selectedTab: _selectedSavedTab,
             headerHeight: _headerHeight + SizeConfig.size30);
+      case 4:
+        return MoreCardsScreen(
+            isFromHomeScreen: true,
+            headerHeight: _headerHeight,
+            onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+        );
 
       default:
         return SizedBox();

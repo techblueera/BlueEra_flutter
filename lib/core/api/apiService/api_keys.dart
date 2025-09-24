@@ -354,5 +354,11 @@ class ApiKeys {
   static const amountOff = "amountOff";
   static const extraDetails = "extraDetails";
   static const imageContentTypes = "imageContentTypes";
-  static const specification  = "specification";
+  static const specification = "specification";
+  static const isFromHomeScreen = "isFromHomeScreen";
+  static const images = "images";
+  static const productDetails = "product_details";
+  static const category = "category";
+  static const generateAiProductContent = "GenerateAiProductContent";
+  static const addProductViaAiRequest = "addProductViaAiRequest";
 }
