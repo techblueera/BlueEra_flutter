@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -9,6 +11,9 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
@@ -19,7 +24,6 @@ import 'package:BlueEra/features/common/store/channel_product_screen/channel_pro
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
@@ -29,7 +33,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
-import 'package:BlueEra/widgets/string_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
@@ -68,6 +71,7 @@ class ChannelScreen extends StatefulWidget {
 
 class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProviderStateMixin {
   ChannelController channelController = Get.put(ChannelController());
+  final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
   late List<ChannelTab> _tabsList;
 
@@ -96,6 +100,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
 
     updateFilters();
     _fetchInitialChannelData();
+    _setupScrollListener();
   }
 
   void _onTabChanged() {
@@ -137,10 +142,118 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
     }
   }
 
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      if (!_scrollController.hasClients) return;
+
+      // Handle pagination for child sections
+      _handleChildSectionPagination();
+    });
+  }
+
+  void _handleChildSectionPagination() {
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    final isAtBottom =
+        position.pixels >= position.maxScrollExtent - 100; // 100px threshold
+
+    if (isAtBottom) {
+      print('is At Bottom');
+      // Trigger pagination based on current tab
+      switch (_tabController.index) {
+        case 0:
+        // Trigger pagination for ShortsChannelSection
+          final shortsController = Get.find<ShortsController>();
+          final shorts = _getShortsType();
+          if (shortsController.isHasMoreData(shorts) &&
+              shortsController.isMoreDataLoading(shorts).isFalse) {
+            shortsController.isMoreDataLoading(shorts).value = true;
+            shortsController.getShortsByType(
+                shorts, widget.channelId,
+                widget.authorId,
+                postVia: PostVia.channel
+            );
+          }
+          break;
+        case 1:
+        // Trigger pagination for VideoChannelSection
+          final videosController = Get.find<VideoController>();
+          final videos = _getVideosType();
+          if (videosController.isMoreDataAvailable &&
+              videosController.isLoading.isFalse) {
+            videosController.getVideosByType(
+              videos,
+              widget.channelId,
+              widget.authorId,
+            );
+          }
+          break;
+        case 2:
+        // Trigger pagination for FeedScreen
+          final feedController = Get.find<FeedController>();
+          final postType = _getPostType();
+          log('Posts pagination check - hasMoreData: ${feedController.isTargetHasMoreData.value}, isLoading: ${feedController.isLoading.value}');
+          if (feedController.isTargetHasMoreData.isTrue &&
+              feedController.isLoading.isFalse) {
+            feedController.getPostsByType(
+              postType,
+              isInitialLoad: false,
+              id: widget.authorId,
+            );
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  Shorts _getShortsType() {
+    return switch (channelController.selectedFilter) {
+      SortBy.Latest => Shorts.latest,
+      SortBy.Popular => Shorts.popular,
+      SortBy.Oldest => Shorts.oldest,
+      SortBy.UnderProgress => Shorts.underProgress,
+    };
+  }
+
+  VideoType _getVideosType() {
+    return switch (channelController.selectedFilter) {
+      SortBy.Latest => VideoType.latest,
+      SortBy.Popular => VideoType.popular,
+      SortBy.Oldest => VideoType.oldest,
+      SortBy.UnderProgress => VideoType.underProgress,
+    };
+  }
+
+  PostType _getPostType() {
+    return switch (channelController.selectedFilter) {
+      SortBy.Latest => PostType.latest,
+      SortBy.Popular => PostType.popular,
+      SortBy.Oldest => PostType.oldest,
+      SortBy.UnderProgress => PostType.latest,
+    };
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reset scroll state when dependencies change (e.g., when returning to screen)
+    if (mounted && _scrollController.hasClients) {
+      channelController.isCollapsed.value = false;
+      _scrollController.animateTo(
+        0,
+        duration: Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
@@ -157,6 +270,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
         return DefaultTabController(
           length: _tabsList.length,
           child: NestedScrollView(
+            controller: _scrollController,
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverToBoxAdapter(
                 child: _buildHeaderSection(),
@@ -545,15 +659,6 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
         ),
       ],
     );
-  }
-
-  PostType _getPostType() {
-    return switch (channelController.selectedFilter) {
-      SortBy.Latest => PostType.latest,
-      SortBy.Popular => PostType.popular,
-      SortBy.Oldest => PostType.oldest,
-      SortBy.UnderProgress => PostType.latest,
-    };
   }
 
   Widget _buildVisitingChannelPopUpMenu({

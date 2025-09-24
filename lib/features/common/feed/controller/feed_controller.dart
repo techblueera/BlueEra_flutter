@@ -68,6 +68,7 @@ class FeedController extends GetxController{
             type: type,
             isInitialLoad: isInitialLoad,
             targetList: allPosts,
+            onPageReset: () => allPage = 1,
             onPageIncrement: () => allPage++,
             refresh: refresh,
             id: id,
@@ -80,6 +81,7 @@ class FeedController extends GetxController{
           type: type,
           isInitialLoad: isInitialLoad,
           targetList: myPosts,
+          onPageReset: () => myPage = 1,
           onPageIncrement: () => myPage++,
           refresh: refresh,
           id: id,
@@ -91,6 +93,7 @@ class FeedController extends GetxController{
           type: type,
           isInitialLoad: isInitialLoad,
           targetList: otherPosts,
+          onPageReset: () => otherPage = 1,
           onPageIncrement: () => otherPage++,
           refresh: refresh,
           id: id,
@@ -102,6 +105,7 @@ class FeedController extends GetxController{
           type: type,
           isInitialLoad: isInitialLoad,
           targetList: latestPosts,
+          onPageReset: () => latestPostsPage = 1,
           onPageIncrement: () => latestPostsPage++,
           refresh: refresh,
           id: id,
@@ -113,6 +117,7 @@ class FeedController extends GetxController{
           type: type,
           isInitialLoad: isInitialLoad,
           targetList: popularPosts,
+          onPageReset: () => popularPostsPage = 1,
           onPageIncrement: () => popularPostsPage++,
           refresh: refresh,
           id: id,
@@ -124,6 +129,7 @@ class FeedController extends GetxController{
           type: type,
           isInitialLoad: isInitialLoad,
           targetList: oldestPosts,
+          onPageReset: () => oldestPostsPage = 1,
           onPageIncrement: () => oldestPostsPage++,
           refresh: refresh,
           id: id,
@@ -141,6 +147,7 @@ class FeedController extends GetxController{
     required PostType type,
     required bool isInitialLoad,
     required RxList<Post> targetList,
+    required VoidCallback onPageReset,
     required VoidCallback onPageIncrement,
     required bool refresh,
     String? id,
@@ -186,6 +193,7 @@ class FeedController extends GetxController{
         type: type,
         isInitialLoad: isInitialLoad,
         targetList: targetList,
+        onPageReset: onPageReset,
         onPageIncrement: onPageIncrement,
         refresh: refresh,
         id: id,
@@ -260,6 +268,7 @@ class FeedController extends GetxController{
     required bool isInitialLoad,
     required RxList<Post> targetList,
     required VoidCallback onPageIncrement,
+    required VoidCallback onPageReset,
     required bool refresh,
     String? id,
     String? query
@@ -268,14 +277,18 @@ class FeedController extends GetxController{
 
     if (isInitialLoad) {
       page = 1;
+      onPageReset.call();
       isTargetHasMoreData.value = true;
       isTargetMoreDataLoading.value = false;
       _cachedPosts[type] = [];
       _displayedCounts[type] = 0;
     }
+    print('otherPage $otherPage');
 
+    print('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
+    print('isInitialLoad: $isInitialLoad');
     if (!isInitialLoad) {
       isTargetMoreDataLoading.value = true;
     }
@@ -283,7 +296,7 @@ class FeedController extends GetxController{
     // Check if we have cached data to display first
     if (_hasMoreCachedData(type) && !isInitialLoad) {
       _displayMoreCachedData(type, targetList);
-      return;
+      print('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
     }
 
     // ✅ Only show loader if last id is different
@@ -339,6 +352,7 @@ class FeedController extends GetxController{
         final postResponse = PostResponse.fromJson(response.response?.data);
 
         if (page == 1) {
+          targetList.clear();
           // Initial load: cache all data, display first batch
           _cachedPosts[type] = List.from(postResponse.data);
           _displayedCounts[type] = displayLimit.clamp(0, postResponse.data.length);
@@ -359,15 +373,20 @@ class FeedController extends GetxController{
           print('📦 Added ${postResponse.data.length} new posts to cache. Total cached: ${_cachedPosts[type]!.length}');
         }
 
-        // Check if we have more data available from server
+         // Check if we have more data available from server
         final expectedLimit = isInitialLoad ? initialFetchLimit : displayLimit;
-        if (postResponse.data.length < expectedLimit) {
-          print('📄 No more data from server');
+        final hasServerMore = postResponse.data.length >= expectedLimit;
+        final hasCacheMore = _hasMoreCachedData(type);
+
+        if (!hasServerMore && !hasCacheMore) {
+          print('📄 No more data (server + cache exhausted)');
           isTargetHasMoreData.value = false;
         } else {
-          print('📄 More data available from server');
+          print('📄 More data available (cache or server)');
           isTargetHasMoreData.value = true;
-          onPageIncrement();
+
+          // Only increment page if server had more
+          if (hasServerMore) onPageIncrement();
         }
       } else {
         postsResponse.value = ApiResponse.error('error');

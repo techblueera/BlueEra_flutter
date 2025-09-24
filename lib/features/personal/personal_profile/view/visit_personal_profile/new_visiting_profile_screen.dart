@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
@@ -42,6 +45,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   late VisitProfileController controller;
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -49,8 +53,41 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     setFilters();
     controller.fetchUserById(userId: widget.authorId);
     controller.getUserChannelDetailsController(userId: widget.authorId);
+    _setupScrollListener();
     super.initState();
   }
+
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      if (!_scrollController.hasClients) return;
+
+      // Handle pagination for child sections
+      _handleChildSectionPagination();
+    });
+  }
+
+  void _handleChildSectionPagination() {
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    final isAtBottom =
+        position.pixels >= position.maxScrollExtent - 100; // 100px threshold
+
+    if (isAtBottom) {
+      print('is At Bottom');
+      final feedController = Get.find<FeedController>();
+      log('Posts pagination check - hasMoreData: ${feedController.isTargetHasMoreData.value}, isLoading: ${feedController.isLoading.value}');
+      if (feedController.isTargetHasMoreData.isTrue &&
+          feedController.isLoading.isFalse) {
+        feedController.getPostsByType(
+          PostType.otherPosts,
+          isInitialLoad: false,
+          id: widget.authorId,
+        );
+      }
+    }
+  }
+
 
   @override
   void dispose() {
@@ -83,6 +120,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
             user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
 
         return SingleChildScrollView(
+          controller: _scrollController,
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
@@ -181,8 +219,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
             key: ValueKey('feedScreen_user_posts_${widget.authorId}'),
             postFilterType: PostType.otherPosts,
             isInParentScroll: true,
-            // or whatever enum value you have for user posts
-            id: widget.authorId);
+            id: widget.authorId
+        );
       // case 'Achievements':
       // return AchievementsWidget();
       case 'Testimonials':

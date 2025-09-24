@@ -81,7 +81,6 @@ class _FeedScreenState extends State<FeedScreen> {
 
     if (isAtBottom) {
       print('at bottom');
-      // Trigger pagination for individual page
       feedController.handleScrollToBottom(widget.postFilterType);
     }
   }
