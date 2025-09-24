@@ -548,7 +548,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                           ),
                         ),
 
-                        if(widget.generateAiProductContent.addMoreDetails!=null)
+                        if(manualListingScreenController.detailsList.isNotEmpty)
                           ...[
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -569,7 +569,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                           (index) => Padding(
                                         padding: const EdgeInsets.only(bottom: 4.0),
                                         child: CustomText(
-                                          widget.generateAiProductContent.addProductFeatures![index].title,
+                                          '${manualListingScreenController.detailsList[index].title} - ${manualListingScreenController.detailsList[index].details}',
                                           fontSize: SizeConfig.medium,
                                           fontWeight: FontWeight.w400,
                                           color: AppColors.secondaryTextColor,
