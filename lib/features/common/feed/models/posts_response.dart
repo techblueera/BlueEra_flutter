@@ -65,7 +65,7 @@ class Post {
   final int? totalEngagement;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final List<String>? quesOptions;
+  final String? quesOptions;
   final List<User>? taggedUsers;
   final List<String>? media;
   // final LocationMetadata? locationMetadata;
@@ -135,15 +135,16 @@ class Post {
       viewsCount: json['views_count'],
       sharesCount: json['shares_count'],
       totalEngagement: json['totalEngagement'],
+      quesOptions: json['quesOptions'],
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'])
           : null,
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'])
           : null,
-      quesOptions: json['ques_options'] is List
-          ? (json['ques_options'] as List).map((e) => e.toString()).toList()
-          : null,
+      // quesOptions: json['ques_options'] is List
+      //     ? (json['ques_options'] as List).map((e) => e.toString()).toList()
+      //     : null,
       taggedUsers:
           (json['tagged_users_details'] as List<dynamic>?)?.map((e) => User.fromJson(e as Map<String, dynamic>)).toList(),
       media: (json['media'] as List?)?.map((e) => e.toString()).toList(),
@@ -221,7 +222,8 @@ class Post {
     int? totalEngagement,
     DateTime? createdAt,
     DateTime? updatedAt,
-    List<String>? quesOptions,
+    String? quesOptions,
+    // List<String>? quesOptions,
     List<User>? taggedUsers,
     List<String>? media,
     // LocationMetadata? locationMetadata,
@@ -405,6 +407,7 @@ class PollOption {
     return PollOption(
       text: json['text'] ?? '',
       isCorrect: json['isCorrect'] ?? false,
+      // votes: json['votes'] ?? 0,
       votes: (json['votes'] as List?)?.map((e) => e.toString()).toList(),
     );
   }
@@ -420,6 +423,8 @@ class PollOption {
   PollOption copyWith({
     String? text,
     bool? isCorrect,
+    // int? votes,
+
     List<String>? votes,
   }) {
     return PollOption(

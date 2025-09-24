@@ -137,7 +137,7 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
 
                 // total views
                 Positioned(
-                    bottom: SizeConfig.size8,
+                    top: SizeConfig.size8,
                     right: SizeConfig.size6,
                     child: Container(
                       alignment: Alignment.center,
@@ -165,6 +165,38 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                             fontWeight: FontWeight.w500,
                           ),
                         ],
+                      ),
+                    )),
+                Positioned(
+                    bottom: 0,
+                    right: 0,
+                    left: 0,
+                    // right: SizeConfig.size6,
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      // padding: EdgeInsets.symmetric(
+                      //     vertical: SizeConfig.size2,
+                      //     horizontal: SizeConfig.size5),
+                      padding: EdgeInsets.only(
+                          bottom: 10,
+                          left: SizeConfig.size10,
+                          right: SizeConfig.size10,
+                          top: 5),
+
+                      decoration: (widget.withBackground)
+                          ? BoxDecoration(
+                              color: AppColors.mainTextColor
+                                  .withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(5.0))
+                          : null,
+                      child: CustomText(
+                        "${shortItem?.video?.title}",
+                        color: AppColors.white,
+                        fontSize: SizeConfig.size16,
+                        fontWeight: FontWeight.w700,
+                        maxLines: 2,
+                        fontFamily: "arialround",
+                        overflow: TextOverflow.ellipsis,
                       ),
                     )),
 

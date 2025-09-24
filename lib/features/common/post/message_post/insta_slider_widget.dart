@@ -25,7 +25,8 @@ class _InstaSliderState extends State<InstaSlider> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: Get.width * 0.5,
+      // height: Get.width * 0.5,
+      height: 250,
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: Colors.black,
@@ -33,13 +34,13 @@ class _InstaSliderState extends State<InstaSlider> {
       ),
       child: PageView.builder(
         itemCount: msgPostController.imagesList.length,
-        scrollDirection: Axis.horizontal, // swipe left/right
-        controller: PageController(viewportFraction: 1.0), // full width page
-        onPageChanged: (index){
-          _currentPage=index;
-          setState(() {
-
-          });
+        scrollDirection: Axis.horizontal,
+        // swipe left/right
+        controller: PageController(viewportFraction: 1.0),
+        // full width page
+        onPageChanged: (index) {
+          _currentPage = index;
+          setState(() {});
         },
         itemBuilder: (context, index) {
           MessagePostImageModel imageData = msgPostController.imagesList[index];
@@ -48,20 +49,23 @@ class _InstaSliderState extends State<InstaSlider> {
             children: [
               Center(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                      imageData.imgCropMode == AppConstants.Square ? 0 : 12),
+                  borderRadius: BorderRadius.circular(0),
+                  /*                borderRadius: BorderRadius.circular(
+                      imageData.imgCropMode == AppConstants.Square ? 0 : 12),*/
                   child: Container(
-                    height: Get.width * 0.5,
-                    // height: Get.width * 1.09,
-                    width: imageData.imgCropMode == AppConstants.Square
-                        ? Get.width * 0.5
-                        : double.parse(
-                            imageData.imgWidth ?? Get.width.toString()),
+                    height: 250,
+                    width: 250,
+
+                    // height: Get.width * 0.5,
+                    // width: imageData.imgCropMode == AppConstants.Square
+                    //     ? Get.width * 0.5
+                    //     : double.parse(
+                    //         imageData.imgWidth ?? Get.width.toString()),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(1),
+                      // borderRadius: BorderRadius.circular(1),
                       image: DecorationImage(
                         image: FileImage(File(imageData.imageFile?.path ?? "")),
-                        fit: BoxFit.fitWidth,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
@@ -108,4 +112,3 @@ class _InstaSliderState extends State<InstaSlider> {
     );
   }
 }
-

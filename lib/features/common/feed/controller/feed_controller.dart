@@ -733,10 +733,10 @@ class FeedController extends GetxController{
             selectedOption.votes ??= [];
 
             if (!selectedOption.votes!.contains(currentUserId)) {
-              selectedOption.votes!.add(currentUserId);
+              selectedOption.votes?.add(currentUserId);
 
               // update the poll in the post
-              final updatedPoll = post.poll!.copyWith(options: List.from(options));
+              final updatedPoll = post.poll?.copyWith(options: List.from(options));
               list[postIndex] = post.copyWith(poll: updatedPoll);
             }
           }

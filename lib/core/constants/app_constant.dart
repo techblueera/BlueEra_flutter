@@ -1598,7 +1598,7 @@ Future<File> processImage(File file, String mode) async {
 
   img.Image result;
   logs("modemodemodemode=== $mode");
-  if (mode == AppConstants.Landscape) {
+  // if (mode == AppConstants.Landscape) {
     // --- Target ratio 3:4 ---
     double targetRatio = 16 / 9;
     // double targetRatio = 3 / 4;
@@ -1607,7 +1607,9 @@ Future<File> processImage(File file, String mode) async {
     // Resize first so the shortest side fits
     img.Image resized = img.copyResize(
       original,
-      width: previewWidth.toInt(), // pick your desired width
+      width:250,
+      height: 250// pick your desired width
+      // width: previewWidth.toInt(), // pick your desired width
     );
 
     // Now crop center to match 3:4
@@ -1619,15 +1621,17 @@ Future<File> processImage(File file, String mode) async {
       resized,
       x: 0,
       y: offsetY,
-      width: resized.width,
-      height: cropHeight,
+      width: 250,
+      height: 250
+      // width: resized.width,
+      // height: cropHeight,
     );
-  } else {
+  /*} else {
     double previewWidth = Get.width * (1 / 1);
     // Square 1:1
     //   int size = 600;
     result = img.copyResizeCropSquare(original, size: previewWidth.toInt());
-  }
+  }*/
 
   // Save processed file
   final tempDir = await getTemporaryDirectory();

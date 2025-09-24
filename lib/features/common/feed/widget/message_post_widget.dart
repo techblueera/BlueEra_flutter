@@ -349,7 +349,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
             Padding(
               padding: EdgeInsets.only(
                   bottom: SizeConfig.size5,
-                  // left: SizeConfig.size50
+                  left: SizeConfig.size15
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

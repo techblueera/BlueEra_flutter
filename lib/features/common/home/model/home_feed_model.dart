@@ -57,6 +57,7 @@ class FeedItem {
   final String? videoUrl;
   final String? thumbnail;
   final int? duration;
+  final int? total_votes;
   final dynamic channel;
   final Stats? stats;
   final DateTime? createdAt;
@@ -67,9 +68,12 @@ class FeedItem {
   final Content? content;
   final String? subTitle;
   final String? natureOfPost;
+  final String? question;
   final List<User>? taggedUsers;
   final dynamic song;
   final bool? is_post_liked;
+  final bool? user_has_voted;
+  // final List<PollOption>? options;
 
   FeedItem({
     required this.id,
@@ -77,6 +81,7 @@ class FeedItem {
     this.title,
     this.description,
     this.videoUrl,
+    this.total_votes,
     this.thumbnail,
     this.duration,
     this.channel,
@@ -92,6 +97,10 @@ class FeedItem {
     this.taggedUsers,
     this.song,
     this.is_post_liked,
+    this.question,
+    this.user_has_voted,
+    // this.options,
+
   });
 
   factory FeedItem.fromJson(Map<String, dynamic> json) {
@@ -104,6 +113,7 @@ class FeedItem {
       thumbnail: json['thumbnail']?.toString().trim(),
       duration: json['duration'],
       channel: json['channel'],
+      total_votes: json['total_votes'],
       stats: json['stats'] != null ? Stats.fromJson(json['stats']) : null,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -119,9 +129,14 @@ class FeedItem {
       natureOfPost: json['nature_of_post'],
       song: json['song'],
       is_post_liked: json['is_post_liked'],
+      user_has_voted: json['user_has_voted'],
+      question: json['question'],
       taggedUsers:
       (json['tagged_users'] as List<dynamic>?)?.map((e) => User.fromJson(e as Map<String, dynamic>)).toList(),
-
+      // options: (json['options'] as List?)
+      //     ?.map((e) => PollOption.fromJson(e))
+      //     .toList() ??
+      //     [],
     );
   }
 
@@ -129,6 +144,7 @@ class FeedItem {
     return {
       'id': id,
       'type': type,
+      'total_votes': total_votes,
       'title': title,
       'description': description,
       'video_url': videoUrl,
@@ -146,7 +162,10 @@ class FeedItem {
       'nature_of_post': natureOfPost,
       'song': song,
       'is_post_liked': is_post_liked,
+      'question': question,
+      'user_has_voted': user_has_voted,
       'tagged_users': taggedUsers?.map((e) => e.toJson()).toList(),
+      // 'options': options?.map((e) => e.toJson()).toList(),
 
     };
   }

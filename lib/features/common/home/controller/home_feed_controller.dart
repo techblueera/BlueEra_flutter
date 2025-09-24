@@ -9,9 +9,7 @@ import 'package:get/get.dart';
 class HomeFeedController extends GetxController {
   Rx<ApiResponse> feedResponse = ApiResponse.initial('Initial').obs;
 
-  RxList<PaginationBatch> paginationBatches = <PaginationBatch>[].obs;
-
-  // Pagination variables
+  RxList<Post> mixedFeed = <Post>[].obs;
   RxString cursor = "".obs;
   RxBool isLoading = false.obs;
   RxBool hasMoreData = true.obs;
@@ -25,37 +23,26 @@ class HomeFeedController extends GetxController {
 
   Future<void> getFeed({bool refresh = false}) async {
     if (isLoading.value) return;
-
     if (refresh) {
       cursor.value = "";
-      paginationBatches.clear();
+      mixedFeed.clear();
       hasMoreData.value = true;
     }
-
     if (!hasMoreData.value) return;
-
     isLoading.value = true;
-
     try {
       final timestamp = cursor.value;
-
       ResponseModel responseModel =
           await HomeFeedRepo().homeFeedRepo(queryParam: {
         ApiKeys.limit: "20",
-        ApiKeys.refresh: refresh,
+        ApiKeys.refresh: refresh.toString(),
         if (cursor.value.isNotEmpty) ApiKeys.cursor: timestamp,
       });
-
       if (responseModel.isSuccess) {
         final homeFeedResponse =
             HomeFeedResponse.fromJson(responseModel.response?.data);
 
         if (homeFeedResponse.feed.isNotEmpty) {
-          // Categorize items by type
-          List<Post> posts = [];
-          List<Post> videos = [];
-          List<Post> shorts = [];
-
           for (var item in homeFeedResponse.feed) {
             Post postData = Post(
               id: item.id,
@@ -64,7 +51,7 @@ class HomeFeedController extends GetxController {
               title: item.title,
               subTitle: item.subTitle,
               media: item.content?.images ?? [],
-              message: item.description,
+              message: item.content?.text ?? item.description,
               videoUrl: item.videoUrl,
               thumbnail: item.thumbnail,
               duration: item.duration,
@@ -76,47 +63,27 @@ class HomeFeedController extends GetxController {
               viewsCount: int.parse(item.stats?.views.toString() ?? "0"),
               createdAt: item.createdAt,
               taggedUsers: item.taggedUsers,
+              quesOptions: item.question,
               user: User(
-                  id: item.author.id,
-                  name: item.author.name,
-                  accountType: item.author.accountType,
-                  profileImage: item.author.avatar,
-                  business_id: item.author.id,
-                  businessName: item.author.businessName,
-                  designation: item.author.designation,
-                  username: item.author.username,
-                  categoryOfBusiness: item.author.businessCategory),
+                id: item.author.id,
+                name: item.author.name,
+                accountType: item.author.accountType,
+                profileImage: item.author.avatar,
+                business_id: item.author.id,
+                businessName: item.author.businessName,
+                designation: item.author.designation,
+                username: item.author.username,
+                categoryOfBusiness: item.author.businessCategory,
+              ),
             );
-            if (item.type == 'message_post') {
-              posts.add(postData);
-            } else if (item.type == 'long_video') {
-              videos.add(postData);
-            } else if (item.type == 'short_video') {
-              shorts.add(postData);
-            }
-          }
 
-          // Add videos to the main feed list
-          // videoItems.addAll(videos);
-
-          // Create a new pagination batch with posts and shorts
-          if (posts.isNotEmpty || shorts.isNotEmpty || videos.isNotEmpty) {
-            PaginationBatch newBatch = PaginationBatch(
-                posts: posts,
-                shorts: shorts,
-                timestamp: DateTime.now(),
-                videos: videos);
-
-            // Add the new batch to our list
-            paginationBatches.add(newBatch);
+            // Add to mixed feed for YouTube-style repeating pattern
+            mixedFeed.add(postData);
           }
 
           // Update cursor for next pagination
           if (homeFeedResponse.feed.isNotEmpty) {
-            final lastItem = homeFeedResponse.feed.last;
-            if (lastItem.createdAt != null) {
-              cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
-            }
+            cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
           }
 
           // Check if there's more data to load
@@ -144,19 +111,4 @@ class HomeFeedController extends GetxController {
       getFeed();
     }
   }
-}
-
-// Class to hold items from a single pagination response
-class PaginationBatch {
-  final List<Post> posts;
-  final List<Post> shorts;
-  final List<Post> videos;
-  final DateTime timestamp;
-
-  PaginationBatch({
-    required this.posts,
-    required this.shorts,
-    required this.videos,
-    required this.timestamp,
-  });
 }

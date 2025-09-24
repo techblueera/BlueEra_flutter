@@ -44,7 +44,7 @@ class _FeedPollOptionsWidgetState extends State<FeedPollOptionsWidget> with Auto
     return CustomPollWidget(
         postId: widget.postId,
         question: widget.question,
-        options: widget.poll!.options,
+        options: widget.poll?.options??[],
         postFilteredType: widget.postFilteredType,
         postedAgo: widget.postedAgo,
         message: widget.message,

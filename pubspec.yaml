@@ -125,6 +125,9 @@ flutter:
     - family: AsapCondensed
       fonts:
         - asset: assets/fonts/AsapCondensed.ttf
+    - family: arialround
+      fonts:
+        - asset: assets/fonts/arialround.ttf
 
 
 

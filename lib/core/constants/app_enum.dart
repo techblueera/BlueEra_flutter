@@ -672,13 +672,14 @@ extension GenderTypeExtension on GenderType {
     }
   }
 }
-
 /// FEED TYPE...
 enum FeedType {
   photoPost('PHOTO_POST'),
+  imagePost('IMAGE_POST'),
   messagePost('MESSAGE_POST'),
   qaPost('POLL_POST'),
   shorts('SHORTS');
+
 
   final String label;
 
