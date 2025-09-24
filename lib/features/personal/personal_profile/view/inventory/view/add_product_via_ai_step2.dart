@@ -1,10 +1,15 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step1_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step2_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step3_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step4_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -33,8 +38,50 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       addProductViaAiController.preloadStep1ImagesToStep2();
+      setData();
     });
     super.initState();
+  }
+
+  void setData(){
+    manualListingScreenController.productNameController.text = widget.generateAiProductContent.name??'';
+    manualListingScreenController.shortDescriptionController.text = widget.generateAiProductContent.description??'';
+    manualListingScreenController.brandController.text = widget.generateAiProductContent.brand??'';
+    manualListingScreenController.tags.value = widget.generateAiProductContent.tags??[];
+    List<AddProductFeature> features = widget.generateAiProductContent.addProductFeatures ?? [];
+    if(features.isNotEmpty){
+      for (final feature in features) {
+        manualListingScreenController.featureControllers.add(TextEditingController(text: feature.title));
+      }
+    }
+    if(widget.generateAiProductContent.linkOrReferealWebsite!=null
+       && (widget.generateAiProductContent.linkOrReferealWebsite?.title?.isNotEmpty??false)
+    ){
+      manualListingScreenController.linkController.text = widget.generateAiProductContent.linkOrReferealWebsite?.title??'';
+    }
+
+    List<AddMoreDetail> addMoreDetails = widget.generateAiProductContent.addMoreDetails ?? [];
+    if(addMoreDetails.isNotEmpty){
+      for(final addMoreDetail in addMoreDetails)
+      manualListingScreenController.detailsList.add(addMoreDetail);
+    }
+
+    manualListingScreenController.mrpController.text = widget.generateAiProductContent.mrpPerUnit?.toInt().toString()??'';
+    manualListingScreenController.guidelineController.text = widget.generateAiProductContent.userGuide??'';
+
+    if(widget.generateAiProductContent.expiryTime!=null) {
+      final binding = widget.generateAiProductContent.expiryTime?.asDropdownBinding;
+      manualListingScreenController.selectedExpiryDuration.value = binding?['type'];
+      manualListingScreenController.selectedExpiryValue.value = binding?['value'];
+    }
+
+    if(widget.generateAiProductContent.productWarranty!=null) {
+      final binding = widget.generateAiProductContent.productWarranty?.asDropdownBinding;
+      manualListingScreenController.selectedProductDuration.value = binding?['type'];
+      manualListingScreenController.selectedProductValue.value = binding?['value'];
+    }
+    setState(() {});
+
   }
 
   @override
@@ -139,46 +186,60 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
                 SizedBox(height: SizeConfig.size10),
 
-                     Container(
-                       padding: EdgeInsets.all(10.0),
-                       decoration: BoxDecoration(
-                         borderRadius: BorderRadius.circular(10.0),
-                         border: Border.all(
-                             color: AppColors.whiteE0,
-                         ),
-                         color: Colors.white
-                       ),
-                       child: Column(
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         children: [
-                           CustomText(
-                             widget.generateAiProductContent.productName,
-                             fontSize: SizeConfig.medium,
-                             fontWeight: FontWeight.w400,
-                             color: AppColors.secondaryTextColor,
-                           ),
-                           SizedBox(height: SizeConfig.size10),
-                           // CustomText(
-                           //   addProductViaAiRequest.category,
-                           //   fontSize: SizeConfig.medium,
-                           //   fontWeight: FontWeight.w600,
-                           //   color: AppColors.primaryColor,
-                           // ),
-                           // SizedBox(height: SizeConfig.size10),
-                           ExpandableText(
-                             text: widget.generateAiProductContent.productDescription??'',
-                             trimLines: 4,
-                             style: TextStyle(
-                               color: AppColors.grey60,
-                               fontSize: SizeConfig.medium,
-                               fontWeight: FontWeight.w600,
-                             ),
-                             expandMode: ExpandMode.dialog,
-                             dialogTitle: 'Video Description',
-                           ),
-                         ],
-                       ),
-                     ),
+                     // Container(
+                     //   padding: EdgeInsets.all(10.0),
+                     //   decoration: BoxDecoration(
+                     //     borderRadius: BorderRadius.circular(10.0),
+                     //     border: Border.all(
+                     //         color: AppColors.whiteE0,
+                     //     ),
+                     //     color: Colors.white
+                     //   ),
+                     //   child: Column(
+                     //     crossAxisAlignment: CrossAxisAlignment.start,
+                     //     children: [
+                     //       Row(
+                     //         children: [
+                     //           CustomText(
+                     //             'Product Name: ',
+                     //             fontSize: SizeConfig.medium,
+                     //             fontWeight: FontWeight.w600,
+                     //             color: AppColors.secondaryTextColor,
+                     //           ),
+                     //
+                     //           Expanded(
+                     //             child: CustomText(
+                     //               widget.generateAiProductContent.name,
+                     //               fontSize: SizeConfig.medium,
+                     //               fontWeight: FontWeight.w400,
+                     //               color: AppColors.secondaryTextColor,
+                     //             ),
+                     //           ),
+                     //         ],
+                     //       ),
+                     //       SizedBox(height: SizeConfig.size10),
+                     //
+                     //       CustomText(
+                     //         'Product Description: ',
+                     //         fontSize: SizeConfig.medium,
+                     //         fontWeight: FontWeight.w600,
+                     //         color: AppColors.secondaryTextColor,
+                     //       ),
+                     //       SizedBox(height: SizeConfig.size3),
+                     //       ExpandableText(
+                     //         text: widget.generateAiProductContent.description??'',
+                     //         trimLines: 4,
+                     //         style: TextStyle(
+                     //           fontSize: SizeConfig.medium,
+                     //           fontWeight: FontWeight.w400,
+                     //           color: AppColors.secondaryTextColor,
+                     //         ),
+                     //         expandMode: ExpandMode.dialog,
+                     //         dialogTitle: 'Video Description',
+                     //       ),
+                     //     ],
+                     //   ),
+                     // ),
 
                       SizedBox(height: SizeConfig.size10),
 
@@ -303,7 +364,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               color: AppColors.mainTextColor,
                             ),
                             InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.to(()=> Step1Section(controller: manualListingScreenController));
+                                },
                                 child: LocalAssets(imagePath: AppIconAssets.pen_line))
                           ],
                         ),
@@ -313,6 +376,27 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                           color: AppColors.whiteE0,
                         ),
                         SizedBox(height: SizeConfig.size10),
+                        Row(
+                          children: [
+                            CustomText(
+                              'Product Name: ',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.secondaryTextColor,
+                            ),
+
+                            Expanded(
+                              child: CustomText(
+                                manualListingScreenController.productNameController.text,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -324,7 +408,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                             ),
                             Expanded(
                               child: CustomText(
-                                '${widget.generateAiProductContent.specifications?.display}',
+                                '${manualListingScreenController.brandController.text}',
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.secondaryTextColor,
@@ -334,14 +418,47 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                           ],
                         ),
                         SizedBox(height: SizeConfig.size10),
-                        (widget.generateAiProductContent.seoKeywordTags?.isNotEmpty ?? false)
-                            ? CustomText(
-                          '${widget.generateAiProductContent.seoKeywordTags!.join(', ')}', /// Keyword/tegs
+
+                        CustomText(
+                          'Product Description: ',
                           fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w400,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.secondaryTextColor,
-                          height: 1.5,
-                        ) : SizedBox(),
+                        ),
+                        SizedBox(height: SizeConfig.size3),
+                        ExpandableText(
+                          text: manualListingScreenController.shortDescriptionController.text,
+                          trimLines: 4,
+                          style: TextStyle(
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          expandMode: ExpandMode.dialog,
+                          dialogTitle: 'Video Description',
+                        ),
+
+                        SizedBox(height: SizeConfig.size10),
+                        (manualListingScreenController.tags.isNotEmpty)
+                            ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  'Tags/Keywords: ',
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                                SizedBox(height: SizeConfig.size3),
+                                CustomText(
+                                    '${ manualListingScreenController.tags.join(', ')}', /// Keyword/tegs
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.secondaryTextColor,
+                                    height: 1.5,
+                                  ),
+                              ],
+                            ) : SizedBox(),
                       ],
                     ),
                   ),
@@ -369,7 +486,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               color: AppColors.mainTextColor,
                             ),
                             InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.to(()=> Step2Section(controller: manualListingScreenController));
+                                },
                                 child: LocalAssets(imagePath: AppIconAssets.pen_line))
                           ],
                         ),
@@ -380,16 +499,17 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                         ),
                         SizedBox(height: SizeConfig.size10),
 
-                        if(widget.generateAiProductContent.features?.isNotEmpty ?? false)
+                        if(widget.generateAiProductContent.addProductFeatures!=null)
+                          if(manualListingScreenController.featureControllers.isNotEmpty)
                         ...[
                           Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: List.generate(
-                            widget.generateAiProductContent.features!.length, // number of items
+                            manualListingScreenController.featureControllers.length, // number of items
                                 (index) => Padding(
                                   padding: const EdgeInsets.only(bottom: 4.0),
                                   child: CustomText(
-                                    widget.generateAiProductContent.features![index],
+                                    manualListingScreenController.featureControllers[index].text,
                                     fontSize: SizeConfig.medium,
                                     fontWeight: FontWeight.w400,
                                     color: AppColors.secondaryTextColor,
@@ -398,8 +518,72 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                 ),
                           ),
                         ),
-                          SizedBox(height: SizeConfig.size10),
-                        ]
+                      ],
+
+                        if(manualListingScreenController.linkController.text.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                'Website: ',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: ()=> launchURL(manualListingScreenController.linkController.text),
+                                  child: CustomText(
+                                    '${manualListingScreenController.linkController.text}',
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        ),
+
+                        if(widget.generateAiProductContent.addMoreDetails!=null)
+                          ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    'More Details: ',
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                  SizedBox(height: SizeConfig.size3),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: List.generate(
+                                      widget.generateAiProductContent.addMoreDetails!.length, // number of items
+                                          (index) => Padding(
+                                        padding: const EdgeInsets.only(bottom: 4.0),
+                                        child: CustomText(
+                                          widget.generateAiProductContent.addProductFeatures![index].title,
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                          // height: 1.2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+
                       ],
                     ),
                   ),
@@ -426,7 +610,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               color: AppColors.mainTextColor,
                             ),
                             InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.to(()=> Step3Section(controller: manualListingScreenController));
+                                },
                                 child: LocalAssets(imagePath: AppIconAssets.pen_line))
                           ],
                         ),
@@ -435,51 +621,120 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                           height: 1.0,
                           color: AppColors.whiteE0,
                         ),
-                        SizedBox(height: SizeConfig.size10),
 
-                        widget.generateAiProductContent.approxMrpInr!='0' ?
+                        (manualListingScreenController.mrpController.text.isNotEmpty) ?
                         Padding(
-                          padding: EdgeInsets.only(bottom: 10.0),
-                          child: CustomText(
-                            "${widget.generateAiProductContent.approxMrpInr}",
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.secondaryTextColor,
-                           ),
+                          padding: EdgeInsets.only(top: 10.0),
+                          child: Row(
+                            children: [
+                              CustomText(
+                                'MRP: ',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              Expanded(
+                                child: CustomText(
+                                  "${manualListingScreenController.mrpController.text}",
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.secondaryTextColor,
+                                 ),
+                              ),
+
+                            ],
+                          ),
                          ) : SizedBox(),
 
-                        CustomText(
-                            "${widget.generateAiProductContent.expiryOrWarranty}",
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor,
-                            height: 1.5,
+                        if(widget.generateAiProductContent.productWarranty!=null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Row(
+                            children: [
+                              CustomText(
+                                'Product Warranty: ',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              Expanded(
+                                child: CustomText(
+                                    "${widget.generateAiProductContent.productWarranty?.asText}",
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.secondaryTextColor,
+                                    height: 1.5,
+                                  ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if(widget.generateAiProductContent.expiryTime!=null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10.0),
+                            child: Row(
+                              children: [
+                                CustomText(
+                                  'Expiry Time: ',
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                                Expanded(
+                                  child: CustomText(
+                                    "${widget.generateAiProductContent.expiryTime?.asText}",
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.secondaryTextColor,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
 
-                        SizedBox(height: SizeConfig.size10),
-                        CustomText(
-                          'User Guidance: ',
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                        SizedBox(height: SizeConfig.size5),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: List.generate(
-                            widget.generateAiProductContent.userGuide!.length, // number of items
-                                (index) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: CustomText(
-                                widget.generateAiProductContent.userGuide![index],
+                        if(manualListingScreenController.guidelineController.text.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                'User Guidance: ',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                              SizedBox(height: 3.0),
+                              CustomText(
+                                "${manualListingScreenController.guidelineController.text}",
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.secondaryTextColor,
-                                height: 1.2,
+                                height: 1.5,
                               ),
-                            ),
+                            ],
                           ),
                         ),
+                        SizedBox(height: SizeConfig.size5),
+
+                        // Column(
+                        //   crossAxisAlignment: CrossAxisAlignment.start,
+                        //   children: List.generate(
+                        //     widget.generateAiProductContent.userGuide!.length, // number of items
+                        //         (index) => Padding(
+                        //       padding: const EdgeInsets.only(bottom: 4.0),
+                        //       child: CustomText(
+                        //         widget.generateAiProductContent.userGuide![index],
+                        //         fontSize: SizeConfig.medium,
+                        //         fontWeight: FontWeight.w400,
+                        //         color: AppColors.secondaryTextColor,
+                        //         height: 1.2,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -506,7 +761,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               color: AppColors.mainTextColor,
                             ),
                             InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.to(()=> Step4Section(controller: manualListingScreenController));
+                                },
                                 child: LocalAssets(imagePath: AppIconAssets.pen_line))
                           ],
                         ),
@@ -517,26 +774,26 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                         ),
                         SizedBox(height: SizeConfig.size10),
 
-                        if(widget.generateAiProductContent.possibleVariants?.isNotEmpty ?? false)
-                          ...[
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: List.generate(
-                                widget.generateAiProductContent.possibleVariants!.length, // number of items
-                                    (index) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 4.0),
-                                      child: CustomText(
-                                        widget.generateAiProductContent.possibleVariants![index],
-                                              fontSize: SizeConfig.medium,
-                                              fontWeight: FontWeight.w400,
-                                              color: AppColors.secondaryTextColor,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                              ),
-                            ),
-                            SizedBox(height: SizeConfig.size10),
-                          ],
+                        // if(widget.generateAiProductContent.possibleVariants?.isNotEmpty ?? false)
+                        //   ...[
+                        //     Column(
+                        //       crossAxisAlignment: CrossAxisAlignment.start,
+                        //       children: List.generate(
+                        //         widget.generateAiProductContent.possibleVariants!.length, // number of items
+                        //             (index) => Padding(
+                        //               padding: const EdgeInsets.only(bottom: 4.0),
+                        //               child: CustomText(
+                        //                 widget.generateAiProductContent.possibleVariants![index],
+                        //                       fontSize: SizeConfig.medium,
+                        //                       fontWeight: FontWeight.w400,
+                        //                       color: AppColors.secondaryTextColor,
+                        //                 height: 1.2,
+                        //               ),
+                        //             ),
+                        //       ),
+                        //     ),
+                        //     SizedBox(height: SizeConfig.size10),
+                        //   ],
 
                       ],
                     ),

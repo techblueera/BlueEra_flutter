@@ -5,8 +5,10 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +24,7 @@ class AddProductViaAiStep1 extends StatefulWidget {
 
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   final AddProductViaAiController addProductViaAiController = Get.put(AddProductViaAiController());
-
+  final ManualListingScreenController manualListingScreenController = Get.put(ManualListingScreenController());
 
   @override
   void dispose() {
