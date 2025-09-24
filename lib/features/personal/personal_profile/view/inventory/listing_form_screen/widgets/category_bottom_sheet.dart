@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -33,13 +34,13 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                     CustomText(
-                        "Category",
-                        color: AppColors.mainTextColor,
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: AppConstants.OpenSans,
-                      ),
+                    CustomText(
+                      "Category",
+                      color: AppColors.mainTextColor,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: AppConstants.OpenSans,
+                    ),
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -53,20 +54,52 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
                 color: AppColors.whiteE5,
               ),
 
-              // --- Breadcrumb ---
-              if (controller.breadcrumb.isNotEmpty)
+              // --- Search Bar ---
+
+              Padding(
+                padding: EdgeInsets.all(SizeConfig.size12),
+                child: CommonTextField(
+                  textEditController: controller.searchController,
+                  onChange: (value) => controller.onSearchChanged(value),
+                  hintText: 'Search categories...',
+                  isValidate: false,
+                  hintStyle: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: SizeConfig.medium,
+                    fontFamily: AppConstants.OpenSans,
+                  ),
+                  pIcon: Icon(
+                    Icons.search,
+                    color: Colors.grey[500],
+                    size: SizeConfig.size20,
+                  ),
+                  sIcon: controller.isSearchActive.value
+                      ? IconButton(
+                    icon: Icon(
+                      Icons.clear,
+                      color: Colors.grey[500],
+                      size: SizeConfig.size20,
+                    ),
+                    onPressed: () => controller.clearSearch(),
+                  )
+                      : null,
+                ),
+              ),
+
+              // --- Breadcrumb (only show when not searching) ---
+              if (controller.breadcrumb.isNotEmpty && !controller.isSearchActive.value)
                 Container(
                   width: SizeConfig.screenWidth,
                   padding: EdgeInsets.all(SizeConfig.size12),
-                  margin: EdgeInsets.all(SizeConfig.size12),
+                  margin: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                   decoration: BoxDecoration(
-                    color: AppColors.white, 
-                    boxShadow: [AppShadows.textFieldShadow],
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.greyE5,
-                      width: 1.5
-                    )
+                      color: AppColors.white,
+                      boxShadow: [AppShadows.textFieldShadow],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.greyE5,
+                          width: 1.5
+                      )
                   ),
                   child: Wrap(
                     children: List.generate(
@@ -99,55 +132,23 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
 
               const SizedBox(height: 8),
 
+              // --- Categories List ---
               Expanded(
                 child: controller.loading.value
                     ? const Center(child: CircularProgressIndicator())
-                    : ListView.separated(
-                  itemCount: controller.categories.length,
-                  separatorBuilder: (_, __) =>
-                  CommonHorizontalDivider(
-                      color: AppColors.whiteE5,
-                  ),
-                  itemBuilder: (_, index) {
-                    final cat = controller.categories[index];
-                    return ListTile(
-                      title: CustomText(
-                          cat.name??'',
-                          color: AppColors.mainTextColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppConstants.OpenSans,
-
-                      ),
-                      trailing: (cat.root??false) ? PositiveCustomBtn(
-                        onTap: () {
-                          controller.breadcrumb.add(cat);
-                          Navigator.pop(context, controller.breadcrumb);
-                        },
-                        title: 'Select',
-                        width: SizeConfig.size60,
-                        height: SizeConfig.size30,
-                        bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                        borderColor: AppColors.primaryColor,
-                        textColor: AppColors.primaryColor,
-                        radius: 10.0,
-                      )
-                          : const Icon(Icons.arrow_forward_ios,
-                           size: 14),
-                      onTap: (cat.root??false) ?null :  () => controller.selectCategory(cat),
-                    );
-                  },
-                ),
+                    : controller.isSearchActive.value
+                    ? _buildSearchResults(controller, context)
+                    : _buildManualCategories(controller, context),
               ),
 
-              // --- Back Button ---
-              if (controller.breadcrumb.isNotEmpty)
+              // --- Back Button (only show when not searching and breadcrumb exists) ---
+              if (controller.breadcrumb.isNotEmpty && !controller.isSearchActive.value)
                 Padding(
                   padding: EdgeInsets.only(
-                      left: SizeConfig.size12,
-                      right: SizeConfig.size12,
-                      top: SizeConfig.size12,
-                      bottom: SizeConfig.size30,
+                    left: SizeConfig.size12,
+                    right: SizeConfig.size12,
+                    top: SizeConfig.size12,
+                    bottom: SizeConfig.size30,
                   ),
                   child: PositiveCustomBtn(
                     onTap: () {
@@ -174,4 +175,71 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
   );
 
   return result;
+}
+
+Widget _buildSearchResults(ManualListingScreenController controller, BuildContext context) {
+  return ListView.separated(
+    itemCount: controller.searchResults.length,
+    separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
+    itemBuilder: (_, index) {
+      final cat = controller.searchResults[index];
+      return ListTile(
+        title: CustomText(
+          cat.name ?? '',
+          color: AppColors.mainTextColor,
+          fontSize: SizeConfig.large,
+          fontWeight: FontWeight.w400,
+          fontFamily: AppConstants.OpenSans,
+        ),
+        trailing: PositiveCustomBtn(
+          onTap: () {
+            controller.breadcrumb.add(cat);
+            Navigator.pop(context, controller.breadcrumb);
+          },
+          title: 'Select',
+          width: SizeConfig.size60,
+          height: SizeConfig.size30,
+          bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+          borderColor: AppColors.primaryColor,
+          textColor: AppColors.primaryColor,
+          radius: 10.0,
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildManualCategories(ManualListingScreenController controller, BuildContext context) {
+  return ListView.separated(
+    itemCount: controller.categories.length,
+    separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
+    itemBuilder: (_, index) {
+      final cat = controller.categories[index];
+      return ListTile(
+        title: CustomText(
+          cat.name ?? '',
+          color: AppColors.mainTextColor,
+          fontSize: SizeConfig.large,
+          fontWeight: FontWeight.w400,
+          fontFamily: AppConstants.OpenSans,
+        ),
+        trailing: (cat.root ?? false)
+            ? PositiveCustomBtn(
+          onTap: () {
+            controller.breadcrumb.add(cat);
+            Navigator.pop(context, controller.breadcrumb);
+          },
+          title: 'Select',
+          width: SizeConfig.size60,
+          height: SizeConfig.size30,
+          bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+          borderColor: AppColors.primaryColor,
+          textColor: AppColors.primaryColor,
+          radius: 10.0,
+        )
+            : const Icon(Icons.arrow_forward_ios, size: 14),
+        onTap: (cat.root ?? false) ? null : () => controller.selectCategory(cat),
+      );
+    },
+  );
 }

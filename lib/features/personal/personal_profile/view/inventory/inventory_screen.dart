@@ -27,11 +27,12 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
   late TabController _tabController;
-
+  final controller = Get.put(InventoryController());
 
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
+    controller.loadProducts();
     super.initState();
   }
 
@@ -44,7 +45,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(InventoryController());
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -100,7 +100,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       body: TabBarView(
         controller: _tabController,
         children: [
-          ProductListView(controller: controller),
+          ProductScreen(controller: controller),
           Center(child: Text('My Services', style: TextStyle(fontSize: 18))),
           Center(child: Text('Food & Grocery', style: TextStyle(fontSize: 18))),
         ],

@@ -55,7 +55,7 @@ class ListingFormRepo extends BaseService{
     return response;
   }
 
-  // Init upload for media (presigned URL)
+  // getSubchildORRootCategroy
   Future<ResponseModel> getSubchildORRootCategroy({
     required Map<String, dynamic> queryParams
   }) async {
@@ -101,6 +101,19 @@ class ListingFormRepo extends BaseService{
      updatePriceAndWarranty(productId),
      params: params,
      showProgress: true,
+     onError: (error) {},
+     onSuccess: (data) {},
+   );
+   return response;
+ }
+
+ Future<ResponseModel> searchCategoryOfProduct({
+   required Map<String, dynamic> queryParams
+ }) async {
+   final response = await ApiBaseHelper().getHTTP(
+     searchProductCategory,
+     params: queryParams,
+     showProgress: false,
      onError: (error) {},
      onSuccess: (data) {},
    );

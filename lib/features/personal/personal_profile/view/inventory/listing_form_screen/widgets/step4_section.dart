@@ -7,6 +7,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/widgets/color_picker_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -38,35 +39,41 @@ class _Step4SectionState extends State<Step4Section> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(SizeConfig.size15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: CommonBackAppBar(
+        title: 'Product Variant',
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-          CustomFormCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            CustomFormCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                  _buildColorSection(context),
+                    _buildColorSection(context),
 
-                  SizedBox(height: SizeConfig.size15),
+                    SizedBox(height: SizeConfig.size15),
 
-                  _buildMaterialSection(widget.controller),
+                    _buildMaterialSection(widget.controller),
 
-                ],
-              )
-          ),
-
-
-          SizedBox(height: SizeConfig.size10),
-
-          // Types & Variant Section
-          _buildTypesAndVariant(context),
+                  ],
+                )
+            ),
 
 
-        ],
+            SizedBox(height: SizeConfig.size10),
+
+            // Types & Variant Section
+            _buildTypesAndVariant(context),
+
+
+          ],
+        ),
       ),
     );
   }

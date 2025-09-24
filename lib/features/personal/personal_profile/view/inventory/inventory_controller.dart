@@ -22,7 +22,7 @@ class InventoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadProducts();
+    // loadProducts();
     loadCategories();
     searchController.addListener(_filterData);
     // Ensure search field doesn't auto-focus

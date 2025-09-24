@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -21,9 +22,12 @@ class Step1Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.whiteF3,
-      child: Padding(
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: CommonBackAppBar(
+        title: 'Product Details',
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
         child: Container(
           margin: EdgeInsets.all(SizeConfig.size15),
@@ -41,10 +45,10 @@ class Step1Section extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Product Images
-                    _buildMediaUploadSection(controller),
-
-                    SizedBox(height: SizeConfig.size15),
+                    // /// Product Images
+                    // _buildMediaUploadSection(controller),
+                    //
+                    // SizedBox(height: SizeConfig.size15),
 
                     /// Product Name
                     CommonTextField(
@@ -59,85 +63,85 @@ class Step1Section extends StatelessWidget {
                     SizedBox(height: SizeConfig.size15),
 
                     /// category
-                    CustomText(
-                      'Category',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    Obx(() => InkWell(
-                          onTap: () =>
-                              controller.openCategoryBottomSheet(context),
-                          child: Container(
-                            width: SizeConfig.screenWidth,
-                            decoration: BoxDecoration(
-                                color: AppColors.white,
-                                boxShadow: [AppShadows.textFieldShadow],
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: AppColors.greyE5,
-                                )),
-                            child: controller.selectedBreadcrumb.value != null
-                                ? Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.only(left: SizeConfig.size12),
-                                      constraints: BoxConstraints(
-                                        maxWidth: SizeConfig.screenWidth * 0.7,
-                                      ),
-                                      // width: SizeConfig.screenWidth * 0.5,
-                                      child: Wrap(
-                                          children: List.generate(
-                                            controller.selectedBreadcrumb.value!.length,
-                                            (i) {
-                                              final item = controller.breadcrumb[i];
-
-                                              return Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  CustomText(
-                                                      item.name,
-                                                      fontSize:  SizeConfig.medium,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: AppColors.black
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                    ),
-                                    IconButton(
-                                        onPressed: () {
-                                          controller.selectedBreadcrumb.value = null;
-                                        },
-                                        icon: Icon(Icons.close,
-                                    size: 20, color: AppColors.grey9A)
-                                    )
-                                  ],
-                                )
-                                : Container(
-                                   padding: EdgeInsets.all(SizeConfig.size12),
-                                  child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        CustomText(
-                                          'Select a category',
-                                          color: AppColors.grey9A,
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: SizeConfig.large,
-                                        ),
-                                        const Icon(Icons.arrow_forward_ios,
-                                            size: 16, color: AppColors.grey9A)
-                                      ],
-                                    ),
-                                ),
-                          ),
-                        )),
+                    // CustomText(
+                    //   'Category',
+                    //   fontSize: SizeConfig.medium,
+                    //   fontWeight: FontWeight.w500,
+                    //   color: AppColors.black,
+                    // ),
+                    // SizedBox(height: SizeConfig.size8),
+                    // Obx(() => InkWell(
+                    //       onTap: () =>
+                    //           controller.openCategoryBottomSheet(context),
+                    //       child: Container(
+                    //         width: SizeConfig.screenWidth,
+                    //         decoration: BoxDecoration(
+                    //             color: AppColors.white,
+                    //             boxShadow: [AppShadows.textFieldShadow],
+                    //             borderRadius: BorderRadius.circular(10),
+                    //             border: Border.all(
+                    //               color: AppColors.greyE5,
+                    //             )),
+                    //         child: controller.selectedBreadcrumb.value != null
+                    //             ? Row(
+                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //               children: [
+                    //                 Container(
+                    //                   padding: EdgeInsets.only(left: SizeConfig.size12),
+                    //                   constraints: BoxConstraints(
+                    //                     maxWidth: SizeConfig.screenWidth * 0.7,
+                    //                   ),
+                    //                   // width: SizeConfig.screenWidth * 0.5,
+                    //                   child: Wrap(
+                    //                       children: List.generate(
+                    //                         controller.selectedBreadcrumb.value!.length,
+                    //                         (i) {
+                    //                           final item = controller.breadcrumb[i];
+                    //
+                    //                           return Row(
+                    //                             mainAxisSize: MainAxisSize.min,
+                    //                             children: [
+                    //                               CustomText(
+                    //                                   item.name,
+                    //                                   fontSize:  SizeConfig.medium,
+                    //                                   fontWeight: FontWeight.w600,
+                    //                                   color: AppColors.black
+                    //                               ),
+                    //                             ],
+                    //                           );
+                    //                         },
+                    //                       ),
+                    //                     ),
+                    //                 ),
+                    //                 IconButton(
+                    //                     onPressed: () {
+                    //                       controller.selectedBreadcrumb.value = null;
+                    //                     },
+                    //                     icon: Icon(Icons.close,
+                    //                 size: 20, color: AppColors.grey9A)
+                    //                 )
+                    //               ],
+                    //             )
+                    //             : Container(
+                    //                padding: EdgeInsets.all(SizeConfig.size12),
+                    //               child: Row(
+                    //                   mainAxisSize: MainAxisSize.min,
+                    //                   mainAxisAlignment:
+                    //                       MainAxisAlignment.spaceBetween,
+                    //                   children: [
+                    //                     CustomText(
+                    //                       'Select a category',
+                    //                       color: AppColors.grey9A,
+                    //                       fontWeight: FontWeight.w400,
+                    //                       fontSize: SizeConfig.large,
+                    //                     ),
+                    //                     const Icon(Icons.arrow_forward_ios,
+                    //                         size: 16, color: AppColors.grey9A)
+                    //                   ],
+                    //                 ),
+                    //             ),
+                    //       ),
+                    //     )),
 
                     // return Column(
                     //   children: List.generate(controller.categoryLevels.length, (i) {
@@ -181,7 +185,7 @@ class Step1Section extends StatelessWidget {
                     //   ),
                     // ),
 
-                    SizedBox(height: SizeConfig.size15),
+                    // SizedBox(height: SizeConfig.size15),
 
                     /// Brand
                     CommonTextField(

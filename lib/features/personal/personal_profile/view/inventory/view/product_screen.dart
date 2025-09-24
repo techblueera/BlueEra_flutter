@@ -6,11 +6,12 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 
-class ProductListView extends StatelessWidget {
+class ProductScreen extends StatelessWidget {
   final InventoryController controller;
-  const ProductListView({super.key, required this.controller});
+  const ProductScreen({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -36,46 +37,53 @@ class ProductListView extends StatelessWidget {
         ),
 
         // Products Grid
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Two columns
-                final crossAxisCount = 2;
-                final crossSpacing = 6.0;
-                final mainSpacing = 6.0;
 
-                final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) / crossAxisCount;
+       Obx(()=> (controller.isLoading.value) ?
+       const Center(
+         child: CircularProgressIndicator(
+           color: AppColors.primaryColor,
+         ),
+       ) :
+       Expanded(
+         child: Padding(
+           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+           child: LayoutBuilder(
+             builder: (context, constraints) {
+               // Two columns
+               final crossAxisCount = 2;
+               final crossSpacing = 6.0;
+               final mainSpacing = 6.0;
 
-                final imageHeight = itemWidth * 0.75; // You can tweak ratio if needed
-                final detailsHeight = imageHeight * 0.9; // Approximate details section height
-                final itemHeight = imageHeight + detailsHeight;
+               final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) / crossAxisCount;
 
-                final childAspectRatio = itemWidth / itemHeight;
+               final imageHeight = itemWidth * 0.75; // You can tweak ratio if needed
+               final detailsHeight = imageHeight * 0.9; // Approximate details section height
+               final itemHeight = imageHeight + detailsHeight;
 
-                return GridView.builder(
-                  itemCount: controller.filteredProducts.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: crossSpacing,
-                    mainAxisSpacing: mainSpacing,
-                    childAspectRatio: childAspectRatio,
-                  ),
-                  itemBuilder: (context, index) {
-                    final product = controller.filteredProducts[index];
-                    return ProductCard(
-                      product,
-                      controller,
-                      width: itemWidth,
-                      height: itemHeight,
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ),
+               final childAspectRatio = itemWidth / itemHeight;
+
+               return GridView.builder(
+                 itemCount: controller.filteredProducts.length,
+                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                   crossAxisCount: crossAxisCount,
+                   crossAxisSpacing: crossSpacing,
+                   mainAxisSpacing: mainSpacing,
+                   childAspectRatio: childAspectRatio,
+                 ),
+                 itemBuilder: (context, index) {
+                   final product = controller.filteredProducts[index];
+                   return ProductCard(
+                     product,
+                     controller,
+                     width: itemWidth,
+                     height: itemHeight,
+                   );
+                 },
+               );
+             },
+           ),
+         ),
+       )) ,
       ],
     );
   }
