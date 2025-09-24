@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 class HomeFeedResponse {
   final bool success;
   final List<FeedItem> feed;
@@ -66,8 +67,9 @@ class FeedItem {
   final Content? content;
   final String? subTitle;
   final String? natureOfPost;
-  final List<String>? taggedUsers;
+  final List<User>? taggedUsers;
   final dynamic song;
+  final bool? is_post_liked;
 
   FeedItem({
     required this.id,
@@ -89,6 +91,7 @@ class FeedItem {
     this.natureOfPost,
     this.taggedUsers,
     this.song,
+    this.is_post_liked,
   });
 
   factory FeedItem.fromJson(Map<String, dynamic> json) {
@@ -114,9 +117,11 @@ class FeedItem {
           json['content'] != null ? Content.fromJson(json['content']) : null,
       subTitle: json['sub_title'],
       natureOfPost: json['nature_of_post'],
-      taggedUsers:
-          (json['tagged_users'] as List?)?.map((e) => e.toString()).toList(),
       song: json['song'],
+      is_post_liked: json['is_post_liked'],
+      taggedUsers:
+      (json['tagged_users'] as List<dynamic>?)?.map((e) => User.fromJson(e as Map<String, dynamic>)).toList(),
+
     );
   }
 
@@ -139,8 +144,10 @@ class FeedItem {
       'content': content?.toJson(),
       'sub_title': subTitle,
       'nature_of_post': natureOfPost,
-      'tagged_users': taggedUsers,
       'song': song,
+      'is_post_liked': is_post_liked,
+      'tagged_users': taggedUsers?.map((e) => e.toJson()).toList(),
+
     };
   }
 }

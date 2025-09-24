@@ -1,16 +1,18 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
-import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
 import 'package:BlueEra/features/common/home/controller/home_feed_controller.dart';
-import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
+import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -55,55 +57,40 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
       // ),
       body: Obx(() {
         final apiResponse = _controller.feedResponse.value;
-
+        if (_controller.paginationBatches.isEmpty)
         /*if (apiResponse.status == Status.LOADING &&
             _controller.paginationBatches.isEmpty &&
-            _controller.videoItems.isEmpty) {
+            _controller.videoItems.isEmpty)*/
+        {
           return const Center(child: CircularProgressIndicator());
-        } else*/ if (apiResponse.status == Status.ERROR) {
+        } else if (apiResponse.status == Status.ERROR) {
           return Center(child: CustomText("Error: ${apiResponse.message}"));
         } else {
-          if( _controller.videoItems.isEmpty)
-          {
+          if (_controller.paginationBatches.isEmpty) {
             return Center(child: CustomText("No Data found"));
           }
+
           return RefreshIndicator(
             onRefresh: () => _controller.getFeed(refresh: true),
             child: ListView.builder(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: _controller.paginationBatches.length +
-                  _controller.videoItems.length +
+                  // _controller.videoItems.length +
                   (_controller.isLoading.value ? 1 : 0),
               itemBuilder: (context, index) {
-
                 // Show loading indicator at the bottom
-                if (index ==
-                    _controller.paginationBatches.length +
-                        _controller.videoItems.length) {
+                if (index == _controller.paginationBatches.length
+                    ) {
                   return const Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                // Determine if this index is for a batch or a video item
-                if (index < _controller.paginationBatches.length) {
-                  // This is a batch index - show sliders for posts and shorts
-                  final batch = _controller.paginationBatches[index];
-                  return _buildBatchSection(batch, index);
-                }
-                return const SizedBox.shrink();
+                final batch = _controller.paginationBatches[index];
+                return _buildBatchSection(batch, index);
 
-                /*else {
-                  // This is a video item index - show individual video
-                  final videoIndex = index - _controller.paginationBatches.length;
-                  if (videoIndex < _controller.videoItems.length) {
-                    return _buildVideoItem(_controller.videoItems[videoIndex]);
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                }*/
               },
             ),
           );
@@ -118,41 +105,114 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
       children: [
         // Posts slider (if there are any posts)
         if (batch.posts.isNotEmpty)
-          _buildContentSlider("message_post", batch.posts, Colors.blue),
-
+          _buildContentSlider(
+            "message_post",
+            batch.posts,
+          ),
+        (batch.videos.isNotEmpty)
+            ? _buildContentSlider(
+                "long_video",
+                batch.videos,
+              )
+            : SizedBox.shrink(),
         // // Shorts slider (if there are any shorts)
-        // if (batch.shorts.isNotEmpty)
-        //   _buildContentSlider("Shorts", batch.shorts, Colors.purple),
+        if (batch.shorts.isNotEmpty)
+          _buildContentSlider(
+            "short_video",
+            batch.shorts,
+          ),
       ],
     );
   }
 
-  Widget _buildContentSlider(String title, List<Post> items, Color color) {
+  Widget _buildContentSlider(
+    String title,
+    List<Post> items,
+  ) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Horizontal list of items
-        if (title == "message_post")
-          SizedBox(
-            height:  500,
-            child: ListView.builder(
-              shrinkWrap: true,
+        if (title == 'message_post')
+          Container(
+            padding: EdgeInsets.only(left: SizeConfig.size15),
+            height: SizeConfig.size450,
+            child: PageView.builder(
+              // shrinkWrap: true,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              itemCount: items.length,
+
+              controller: PageController(
+                  viewportFraction: items
+                              .where((data) => data.type == "message_post")
+                              .length ==
+                          1
+                      ? 1
+                      : 0.87),
+              itemCount:
+                  items.where((data) => data.type == "message_post").length,
+              padEnds: false,
               itemBuilder: (context, index) {
                 final item = items[index];
-
                 // Return appropriate widget based on item type
                 if (item.type == 'message_post') {
-                  return _buildPostItemCard(item, index);
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: SizeConfig.size15,
+                      top: SizeConfig
+                          .size15,
+                    ),
+                    child: Container(
+                        width: Get.width,
+                        child: _buildPostItemCard(item, index)),
+                  );
+                } else {
+                  return const SizedBox.shrink();
                 }
-                /* else if (item.type == 'short_video') {
-                return _buildShortVideoItemCard(item);
-              } else {
-                return const SizedBox.shrink();
-              }*/
-                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        if (title == "long_video" &&
+            (items.where((data) => data.type == "long_video").isNotEmpty))
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            scrollDirection: Axis.vertical,
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size10,
+            ),
+            itemCount: items.where((data) => data.type == "long_video").length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  top: SizeConfig.size10,
+                ),
+                child: _buildVideoItem(item),
+              );
+
+              return const SizedBox.shrink();
+            },
+          ),
+        if (title == 'short_video')
+          Container(
+            padding: EdgeInsets.only(left: SizeConfig.size12),
+            height: SizeConfig.size250,
+            child: ListView.builder(
+              // shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+
+              itemCount:
+                  items.where((data) => data.type == "short_video").length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                if (item.type == 'short_video') {
+                  return Padding(
+                    padding: EdgeInsets.only(left: 0),
+                    child: _buildShortVideoItemCard(item, index),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
               },
             ),
           ),
@@ -162,166 +222,73 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
   Widget _buildPostItemCard(Post post, int postIndex) {
     return Container(
-      width: Get.width,
+      padding: EdgeInsets.only(right: SizeConfig.size20),
       child: FeedCard(
         post: post,
         index: postIndex,
         postFilteredType: PostType.all,
+        horizontalPadding: 0,
       ),
     );
-/*  return  Container(
-// height: 400,
-
-    width: Get.width/1.2,
-
-    child: MessagePostWidgetNew(
-      horizontalPadding: 10,
-      post: post,
-      authorSection: () => PostAuthorHeaderNew(
-        post: post,
-        authorId: post.author.id ?? '0',
-        postType: PostType.all,
-        // onTapAvatar: _shouldShowProfileNavigation()
-        //     ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
-        //     : null,
-      ),
-      commentView:()=> null,
-      // commentView:()=> _onCommentPressed(),
-      buildActions: () => PostActionsBarNew(
-        post: post,
-        isLiked:  false,
-        totalLikes: post.stats?.likes ?? 0,
-        totalComment: post.stats?.comments ?? 0,
-        totalRepost: post.stats?.shares ?? 0,
-        isPostAlreadySaved: false,
-        onLikeDislikePressed: () {
-          // _onLikeDislikePressed();
-        },
-        onCommentButtonPressed: () {
-          // _onCommentPressed();
-        },
-        onSavedUnSavedButtonPressed: () {
-          // _onSavedUnSavedButtonPressed();
-        },
-        onShareButtonPressed: () async {
-          // onShareButtonPressed(_post);
-        },
-      ),
-    ),
-  );
-    return Container(
-      width: 250,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Post image if available
-          if (post.content?.images != null && post.content!.images!.isNotEmpty)
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-              child: CachedNetworkImage(
-                imageUrl: post.content!.images![0],
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[300],
-                  height: 150,
-                  width: double.infinity,
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[300],
-                  height: 150,
-                  width: double.infinity,
-                  child: const Icon(Icons.error),
-                ),
-              ),
-            ),
-
-          // Post content
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Author info
-                Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: CachedNetworkImage(
-                        imageUrl: post.author.avatar,
-                        height: 30,
-                        width: 30,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[300],
-                          height: 30,
-                          width: 30,
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[300],
-                          height: 30,
-                          width: 30,
-                          child: const Icon(Icons.person, size: 20),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: CustomText(
-                        post.author.name,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Post subtitle
-                if (post.subTitle != null)
-                  CustomText(
-                    post.subTitle!,
-                    fontSize: 14,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                // Post stats
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatItem(Icons.favorite_outline, post.stats?.likes?.toString() ?? '0'),
-                    _buildStatItem(Icons.comment_outlined, post.stats?.comments?.toString() ?? '0'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );*/
   }
 
-  Widget _buildVideoItem(FeedItem video) {
+  Widget _buildVideoItem(Post video) {
+    ShortFeedItem shortFeedItem = ShortFeedItem(
+        videoId: video.id,
+
+        author: Author(
+          name: video.user?.name,
+          username: video.user?.username,
+          designation: video.user?.designation,
+          profileImage: video.user?.profileImage,
+          accountType: video.user?.accountType,
+          id: video.user?.id,
+        ),
+        metadata: VideoItemMetadata(
+            addedAt: video.createdAt.toString(),
+            source: "personalized",
+            watchedBefore: false),
+        video: VideoData(
+            id: "",
+            userId: video.user?.id,
+            type: "long_video",
+            title: video.title,
+            description: video.message,
+            videoUrl: video.videoUrl,
+            coverUrl: video.thumbnail,
+            duration: video.duration,
+            stats: Stats(
+                comments: video.commentsCount,
+                likes: video.likesCount,
+                shares: video.sharesCount,
+                views: video.viewsCount)),
+        interactions: Interactions(
+            isBookmarked: false, isFollowing: false, isLiked: false));
+
+    return AutoPlayVideoCard(
+      videoItem: shortFeedItem,
+      globalMuteNotifier: ValueNotifier(false),
+      videoType: VideoType.videoFeed,
+      onTapOption: () {
+        openBlockSelectionDialog(
+            context: context,
+            reportType: 'VIDEO_POST',
+            userId: userId,
+            contentId: shortFeedItem.videoId ?? '',
+            userBlockVoidCallback: () async {
+              await Get.find<VideoController>().userBlocked(
+                videoType: VideoType.videoFeed,
+                otherUserId: shortFeedItem.author?.id ?? '',
+              );
+            },
+            reportCallback: (params) {
+              Get.find<VideoController>().videoPostReport(
+                  videoId: shortFeedItem.videoId ?? '',
+                  videoType: VideoType.videoFeed,
+                  params: params);
+            });
+      },
+    );
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -423,7 +390,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(15),
                       child: CachedNetworkImage(
-                        imageUrl: video.author.avatar,
+                        imageUrl: video.user?.profileImage ?? "",
                         height: 30,
                         width: 30,
                         fit: BoxFit.cover,
@@ -443,7 +410,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: CustomText(
-                        video.author.name,
+                        video.user?.name,
                         fontSize: 14,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -458,13 +425,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildStatItem(Icons.visibility_outlined,
-                        video.stats?.views?.toString() ?? '0'),
+                        video.viewsCount?.toString() ?? '0'),
                     _buildStatItem(Icons.favorite_outline,
-                        video.stats?.likes?.toString() ?? '0'),
+                        video.likesCount?.toString() ?? '0'),
                     _buildStatItem(Icons.comment_outlined,
-                        video.stats?.comments?.toString() ?? '0'),
+                        video.commentsCount?.toString() ?? '0'),
                     _buildStatItem(Icons.share_outlined,
-                        video.stats?.shares?.toString() ?? '0'),
+                        video.sharesCount.toString() ?? '0'),
                   ],
                 ),
               ],
@@ -475,7 +442,65 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     );
   }
 
-  Widget _buildShortVideoItemCard(FeedItem shortVideo) {
+  Widget _buildShortVideoItemCard(Post shortVideo, int index) {
+    ShortFeedItem shortFeedItem = ShortFeedItem(
+        author: Author(
+          name: shortVideo.user?.name,
+          username: shortVideo.user?.username,
+          designation: shortVideo.user?.designation,
+          profileImage: shortVideo.user?.profileImage,
+          accountType: shortVideo.user?.accountType,
+          id: shortVideo.user?.id,
+        ),
+        metadata: VideoItemMetadata(
+            addedAt: shortVideo.createdAt.toString(),
+            source: "personalized",
+            watchedBefore: false),
+        video: VideoData(
+            id: "",
+            userId: shortVideo.user?.id,
+            type: "short",
+            title: shortVideo.title,
+            description: shortVideo.message,
+            videoUrl: shortVideo.videoUrl,
+            coverUrl: shortVideo.thumbnail,
+            duration: shortVideo.duration,
+            stats: Stats(
+                comments: shortVideo.commentsCount,
+                likes: shortVideo.likesCount,
+                shares: shortVideo.sharesCount,
+                views: shortVideo.viewsCount)),
+        interactions: Interactions(
+            isBookmarked: false, isFollowing: false, isLiked: false));
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          RouteHelper.getShortsPlayerScreenRoute(),
+          arguments: {
+            ApiKeys.shorts: Shorts.latest,
+            ApiKeys.videoItem: "",
+            ApiKeys.initialIndex: index
+          },
+        );
+      },
+      child: Padding(
+        padding: EdgeInsets.only(right: SizeConfig.size10),
+        child: ClipRRect(
+          borderRadius: (BorderRadius.circular(12)),
+          child: SingleShortStructure(
+            shorts: Shorts.latest,
+            allLoadedShorts: [shortFeedItem],
+            initialIndex: index,
+            shortItem: shortFeedItem,
+            withBackground: true,
+            imageWidth: 170,
+            imageHeight: 250,
+          ),
+        ),
+      ),
+    );
+
     return Container(
       width: 200,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -550,7 +575,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(15),
                       child: CachedNetworkImage(
-                        imageUrl: shortVideo.author.avatar,
+                        imageUrl: shortVideo.user?.profileImage ?? "",
                         height: 24,
                         width: 24,
                         fit: BoxFit.cover,
@@ -570,7 +595,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: CustomText(
-                        shortVideo.author.name,
+                        shortVideo.user?.name,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         maxLines: 1,
@@ -586,9 +611,9 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildStatItem(Icons.favorite_outline,
-                        shortVideo.stats?.likes?.toString() ?? '0'),
+                        /* shortVideo.stats?.likes?.toString() ?? */ '0'),
                     _buildStatItem(Icons.visibility_outlined,
-                        shortVideo.stats?.views?.toString() ?? '0'),
+                        /*shortVideo.stats?.views?.toString() ?? */ '0'),
                   ],
                 ),
               ],

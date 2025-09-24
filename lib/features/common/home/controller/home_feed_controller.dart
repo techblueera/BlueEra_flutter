@@ -1,23 +1,15 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class HomeFeedController extends GetxController {
-  // API response variables
   Rx<ApiResponse> feedResponse = ApiResponse.initial('Initial').obs;
 
-  // Feed data organized by pagination batches
   RxList<PaginationBatch> paginationBatches = <PaginationBatch>[].obs;
-
-  // Individual video items to display in the main feed
-  RxList<Post> videoItems = <Post>[].obs;
 
   // Pagination variables
   RxString cursor = "".obs;
@@ -37,7 +29,6 @@ class HomeFeedController extends GetxController {
     if (refresh) {
       cursor.value = "";
       paginationBatches.clear();
-      videoItems.clear();
       hasMoreData.value = true;
     }
 
@@ -45,10 +36,8 @@ class HomeFeedController extends GetxController {
 
     isLoading.value = true;
 
-    // try {
-      final timestamp = cursor.isEmpty
-          ? DateTime.now().millisecondsSinceEpoch.toString()
-          : cursor.value;
+    try {
+      final timestamp = cursor.value;
 
       ResponseModel responseModel =
           await HomeFeedRepo().homeFeedRepo(queryParam: {
@@ -60,53 +49,63 @@ class HomeFeedController extends GetxController {
       if (responseModel.isSuccess) {
         final homeFeedResponse =
             HomeFeedResponse.fromJson(responseModel.response?.data);
-        List<Post> newFeed = [];
 
         if (homeFeedResponse.feed.isNotEmpty) {
           // Categorize items by type
           List<Post> posts = [];
-          List<FeedItem> videos = [];
-          List<FeedItem> shorts = [];
+          List<Post> videos = [];
+          List<Post> shorts = [];
 
           for (var item in homeFeedResponse.feed) {
             Post postData = Post(
-                id: item.id,
-                type: item.type,
-                authorId: item.author.id,
-                title: item.title,
-                subTitle: item.subTitle,
-                media: item.content?.images ?? [],
-                message: item.description,
-                likesCount: int.parse(item.stats?.likes.toString()??"0"),
-                commentsCount: int.parse(item.stats?.comments.toString()??"0"),
-                repostCount:int.parse( item.stats?.shares.toString()??"0"),
-                viewsCount: int.parse(item.stats?.views.toString()??"0"),
-                user: User(
-                    id: item.author.id,
-                    name: item.author.name,
-                    accountType: item.author.accountType,
-                    profileImage: item.author.avatar,
-                    business_id: item.author.id,
-                    businessName: item.author.businessName,
-                    designation: item.author.designation,
-                    username: item.author.username,
-                    categoryOfBusiness: item.author.businessCategory));
+              id: item.id,
+              type: item.type,
+              authorId: item.author.id,
+              title: item.title,
+              subTitle: item.subTitle,
+              media: item.content?.images ?? [],
+              message: item.description,
+              videoUrl: item.videoUrl,
+              thumbnail: item.thumbnail,
+              duration: item.duration,
+              channel: item.channel,
+              isLiked: item.is_post_liked,
+              likesCount: int.parse(item.stats?.likes.toString() ?? "0"),
+              commentsCount: int.parse(item.stats?.comments.toString() ?? "0"),
+              repostCount: int.parse(item.stats?.shares.toString() ?? "0"),
+              viewsCount: int.parse(item.stats?.views.toString() ?? "0"),
+              createdAt: item.createdAt,
+              taggedUsers: item.taggedUsers,
+              user: User(
+                  id: item.author.id,
+                  name: item.author.name,
+                  accountType: item.author.accountType,
+                  profileImage: item.author.avatar,
+                  business_id: item.author.id,
+                  businessName: item.author.businessName,
+                  designation: item.author.designation,
+                  username: item.author.username,
+                  categoryOfBusiness: item.author.businessCategory),
+            );
             if (item.type == 'message_post') {
               posts.add(postData);
             } else if (item.type == 'long_video') {
-              videos.add(item);
+              videos.add(postData);
             } else if (item.type == 'short_video') {
-              shorts.add(item);
+              shorts.add(postData);
             }
           }
 
           // Add videos to the main feed list
-          videoItems.addAll(posts);
+          // videoItems.addAll(videos);
 
           // Create a new pagination batch with posts and shorts
-          if (posts.isNotEmpty || shorts.isNotEmpty) {
+          if (posts.isNotEmpty || shorts.isNotEmpty || videos.isNotEmpty) {
             PaginationBatch newBatch = PaginationBatch(
-                posts: posts, shorts: shorts, timestamp: DateTime.now());
+                posts: posts,
+                shorts: shorts,
+                timestamp: DateTime.now(),
+                videos: videos);
 
             // Add the new batch to our list
             paginationBatches.add(newBatch);
@@ -116,8 +115,7 @@ class HomeFeedController extends GetxController {
           if (homeFeedResponse.feed.isNotEmpty) {
             final lastItem = homeFeedResponse.feed.last;
             if (lastItem.createdAt != null) {
-              cursor.value =
-                  lastItem.createdAt!.millisecondsSinceEpoch.toString();
+              cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
             }
           }
 
@@ -134,11 +132,11 @@ class HomeFeedController extends GetxController {
       } else {
         feedResponse.value = ApiResponse.error('Failed to load feed');
       }
-    // } catch (e) {
-    //   feedResponse.value = ApiResponse.error(e.toString());
-    // } finally {
-    //   isLoading.value = false;
-    // }
+    } catch (e) {
+      feedResponse.value = ApiResponse.error(e.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void handleScrollToBottom() {
@@ -151,12 +149,14 @@ class HomeFeedController extends GetxController {
 // Class to hold items from a single pagination response
 class PaginationBatch {
   final List<Post> posts;
-  final List<FeedItem> shorts;
+  final List<Post> shorts;
+  final List<Post> videos;
   final DateTime timestamp;
 
   PaginationBatch({
     required this.posts,
     required this.shorts,
+    required this.videos,
     required this.timestamp,
   });
 }
