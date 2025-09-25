@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_switch_widget.dart';
@@ -25,156 +26,164 @@ class Step3Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomFormCard(
-      margin: EdgeInsets.all(SizeConfig.size15),
-      child: Form(
-        key: controller.formKeyStep3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Name
-            // CommonTextField(
-            //   textEditController: controller.productNameController,
-            //   hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
-            //   title: "Product Name",
-            //   validator: controller.validateProductName,
-            //   showLabel: true,
-            // ),
-            // SizedBox(height: SizeConfig.size16),
-            // CommonTextField(
-            //   textEditController: controller.productNameController,
-            //   hintText: 'E.g. TSH-RED-s-0001',
-            //   title: "Product SKU Number (Optional)",
-            //   validator: controller.validateProductName,
-            //   showLabel: true,
-            // ),
-            // SizedBox(height: SizeConfig.size16),
-            // CommonTextField(
-            //   textEditController: controller.productNameController,
-            //   hintText: 'E.g. 1554367',
-            //   title: "Product Id Number",
-            //   validator: controller.validateProductName,
-            //   showLabel: true,
-            // ),
-
-            // SizedBox(height: SizeConfig.size16),
-            // CustomText("Category folder"),
-            // SizedBox(height: SizeConfig.size16),
-            // Container(
-            //   width: double.infinity,
-            //   height: 44,
-            //   decoration: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(10),
-            //       border: Border.all(
-            //           color: AppColors.secondaryTextColor.withOpacity(0.2))),
-            //   padding: EdgeInsets.all(8),
-            //   child: CustomText(
-            //     "Choose Category Folder",
-            //     color: AppColors.secondaryTextColor,
-            //   ),
-            // ),
-            // SizedBox(height: SizeConfig.size16),
-            // // Brand
-            // CommonTextField(
-            //   textEditController: controller.brandController,
-            //   title: 'Brand',
-            //   hintText: 'E.g. Boat',
-            //   validator: controller.validateBrand,
-            //   showLabel: true,
-            // ),
-            // SizedBox(height: SizeConfig.size16),
-
-            /// MRP
-            CommonTextField(
-              textEditController: controller.mrpController,
-              title: 'MRP (Original Price with GST)',
-              hintText: 'E.g. ₹1499',
-              keyBoardType: TextInputType.number,
-              validator: controller.validateMRP,
-              showLabel: true,
-            ),
-            SizedBox(height: SizeConfig.size16),
-
-            // /// Selling Price
-            // CommonTextField(
-            //   textEditController: controller.sellingPriceController,
-            //   title: 'Selling Price (RS.)',
-            //   hintText: 'E.g. ₹500',
-            //   keyBoardType: TextInputType.number,
-            //   validator: controller.validateSellingPrice,
-            //   showLabel: true,
-            // ),
-            // SizedBox(height: SizeConfig.size16),
-
-            // /// Available Stock
-            // CommonTextField(
-            //   textEditController: controller.availableStockController,
-            //   title: 'Available Stock',
-            //   hintText: 'E.g. Text',
-            //   keyBoardType: TextInputType.number,
-            //   validator: controller.validateAvailableStock,
-            //   showLabel: true,
-            // ),
-            // SizedBox(height: SizeConfig.size16),
-
-
-            /// Warranty
-            // CommonTextField(
-            //   title: "Product Warranty",
-            //   hintText: "Eg. 1 Years",
-            //   textEditController: controller.warrantyController,
-            // ),
-            _buildProductWarrantySection(),
-
-            SizedBox(height: SizeConfig.size16),
-
-
-            /// Expiry Date
-            _buildExpiryDateSection(controller),
-
-            // Non-returnable Toggle
-            // _buildNonReturnableSection(controller),
-
-            SizedBox(height: SizeConfig.size16),
-
-              /// Guidelines
-            CommonTextField(
-                title: "User Guideline",
-                hintText: "Lorem ipsum dolor sit amit, adisping...",
-                textEditController: controller.guidelineController,
-                maxLine: 5,
-                validator: controller.validateUserGuidance,
-                maxLength: 600,
-                isCounterVisible: true
-              ),
-
-            SizedBox(height: SizeConfig.size30),
-
-            // Bottom Buttons
-            Row(
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: CommonBackAppBar(
+        title: 'Pricing & Warranty',
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size15),
+        child: CustomFormCard(
+          child: Form(
+            key: controller.formKeyStep3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: PositiveCustomBtn(
-                    onTap: controller.saveAsDraft,
-                    title: 'Save as draft',
-                    bgColor: AppColors.white,
-                    borderColor: AppColors.primaryColor,
-                    textColor: AppColors.primaryColor,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                Expanded(
-                  child: PositiveCustomBtn(
-                    onTap: controller.onNext,
-                    title: 'Next',
-                    bgColor: AppColors.primaryColor,
-                    borderColor: AppColors.primaryColor,
-                  ),
-                ),
-              ],
-            )
+                // Product Name
+                // CommonTextField(
+                //   textEditController: controller.productNameController,
+                //   hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
+                //   title: "Product Name",
+                //   validator: controller.validateProductName,
+                //   showLabel: true,
+                // ),
+                // SizedBox(height: SizeConfig.size16),
+                // CommonTextField(
+                //   textEditController: controller.productNameController,
+                //   hintText: 'E.g. TSH-RED-s-0001',
+                //   title: "Product SKU Number (Optional)",
+                //   validator: controller.validateProductName,
+                //   showLabel: true,
+                // ),
+                // SizedBox(height: SizeConfig.size16),
+                // CommonTextField(
+                //   textEditController: controller.productNameController,
+                //   hintText: 'E.g. 1554367',
+                //   title: "Product Id Number",
+                //   validator: controller.validateProductName,
+                //   showLabel: true,
+                // ),
 
-          ],
+                // SizedBox(height: SizeConfig.size16),
+                // CustomText("Category folder"),
+                // SizedBox(height: SizeConfig.size16),
+                // Container(
+                //   width: double.infinity,
+                //   height: 44,
+                //   decoration: BoxDecoration(
+                //       borderRadius: BorderRadius.circular(10),
+                //       border: Border.all(
+                //           color: AppColors.secondaryTextColor.withOpacity(0.2))),
+                //   padding: EdgeInsets.all(8),
+                //   child: CustomText(
+                //     "Choose Category Folder",
+                //     color: AppColors.secondaryTextColor,
+                //   ),
+                // ),
+                // SizedBox(height: SizeConfig.size16),
+                // // Brand
+                // CommonTextField(
+                //   textEditController: controller.brandController,
+                //   title: 'Brand',
+                //   hintText: 'E.g. Boat',
+                //   validator: controller.validateBrand,
+                //   showLabel: true,
+                // ),
+                // SizedBox(height: SizeConfig.size16),
+
+                /// MRP
+                CommonTextField(
+                  textEditController: controller.mrpController,
+                  title: 'MRP (Original Price with GST)',
+                  hintText: 'E.g. ₹1499',
+                  keyBoardType: TextInputType.number,
+                  validator: controller.validateMRP,
+                  showLabel: true,
+                ),
+                SizedBox(height: SizeConfig.size16),
+
+                // /// Selling Price
+                // CommonTextField(
+                //   textEditController: controller.sellingPriceController,
+                //   title: 'Selling Price (RS.)',
+                //   hintText: 'E.g. ₹500',
+                //   keyBoardType: TextInputType.number,
+                //   validator: controller.validateSellingPrice,
+                //   showLabel: true,
+                // ),
+                // SizedBox(height: SizeConfig.size16),
+
+                // /// Available Stock
+                // CommonTextField(
+                //   textEditController: controller.availableStockController,
+                //   title: 'Available Stock',
+                //   hintText: 'E.g. Text',
+                //   keyBoardType: TextInputType.number,
+                //   validator: controller.validateAvailableStock,
+                //   showLabel: true,
+                // ),
+                // SizedBox(height: SizeConfig.size16),
+
+
+                /// Warranty
+                // CommonTextField(
+                //   title: "Product Warranty",
+                //   hintText: "Eg. 1 Years",
+                //   textEditController: controller.warrantyController,
+                // ),
+                _buildProductWarrantySection(),
+
+                SizedBox(height: SizeConfig.size16),
+
+
+                /// Expiry Date
+                _buildExpiryDateSection(controller),
+
+                // Non-returnable Toggle
+                // _buildNonReturnableSection(controller),
+
+                SizedBox(height: SizeConfig.size16),
+
+                  /// Guidelines
+                CommonTextField(
+                    title: "User Guideline",
+                    hintText: "Lorem ipsum dolor sit amit, adisping...",
+                    textEditController: controller.guidelineController,
+                    maxLine: 5,
+                    validator: controller.validateUserGuidance,
+                    maxLength: 600,
+                    isCounterVisible: true
+                  ),
+
+                SizedBox(height: SizeConfig.size30),
+
+                // Bottom Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: PositiveCustomBtn(
+                        onTap: controller.saveAsDraft,
+                        title: 'Save as draft',
+                        bgColor: AppColors.white,
+                        borderColor: AppColors.primaryColor,
+                        textColor: AppColors.primaryColor,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      child: PositiveCustomBtn(
+                        onTap: controller.onNext,
+                        title: 'Next',
+                        bgColor: AppColors.primaryColor,
+                        borderColor: AppColors.primaryColor,
+                      ),
+                    ),
+                  ],
+                )
+
+              ],
+            ),
+          ),
         ),
       ),
     );

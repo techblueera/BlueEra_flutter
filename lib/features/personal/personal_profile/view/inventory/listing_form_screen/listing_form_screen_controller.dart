@@ -7,6 +7,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/listin
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/category_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'dart:io' as io;
@@ -51,6 +52,7 @@ class ManualListingScreenController extends GetxController {
   Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> updateProductFeatureResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> updatePriceAndWarrantyResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> searchProductCategoryResponse = ApiResponse.initial('Initial').obs;
 
   // Pickers
   final ImagePicker _picker = ImagePicker();
@@ -107,7 +109,6 @@ class ManualListingScreenController extends GetxController {
   // Dynamic product features (details-only fields; title generated as "Feature n")
   final RxList<TextEditingController> featureControllers = <TextEditingController>[
     TextEditingController(),
-    TextEditingController(),
   ].obs;
 
   // Dynamic options (attribute/value pairs)
@@ -132,6 +133,18 @@ class ManualListingScreenController extends GetxController {
   /// Currently displayed categories
   var categories = <CategoryData>[].obs;
   var loading = false.obs;
+
+  final searchController = TextEditingController();
+
+  /// Search results
+  var searchResults = <CategoryData>[].obs;
+
+  /// Is search active
+  var isSearchActive = false.obs;
+
+  /// Search debounce timer
+  Timer? _searchDebounce;
+
 
   final RxList<String> tags = <String>[].obs;
 
@@ -233,7 +246,7 @@ class ManualListingScreenController extends GetxController {
   final formKeyStep3 = GlobalKey<FormState>();
   // final formKeyStep4 = GlobalKey<FormState>();
 
-  var detailsList = <DetailItem>[].obs;
+  var detailsList = <AddMoreDetail>[].obs;
 
   // @override
   // void onInit() {
@@ -271,6 +284,8 @@ class ManualListingScreenController extends GetxController {
  titleController.dispose();
     variantController.dispose();
     materialController.dispose();
+    searchController.dispose();
+    _searchDebounce?.cancel();
     super.onClose();
   }
 
@@ -865,7 +880,7 @@ class ManualListingScreenController extends GetxController {
     selectedColors.remove(selectedColor);
   }
 
-  void addDetail(DetailItem detail) {
+  void addDetail(AddMoreDetail detail) {
     detailsList.add(detail);
   }
 
@@ -1018,5 +1033,57 @@ class ManualListingScreenController extends GetxController {
       // loading.value = false;
     }
   }
+
+  /// Search method
+  void onSearchChanged(String query) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (query.trim().isEmpty) {
+        clearSearch();
+      } else {
+        performSearch(query.trim());
+      }
+    });
+  }
+
+  /// Perform search API call
+  Future<void> performSearch(String keyword) async {
+    try {
+      isSearchActive.value = true;
+      loading.value = true;
+
+      Map<String, dynamic> params = {
+        ApiKeys.q: keyword
+      };
+
+      final responseModel = await ListingFormRepo().searchCategoryOfProduct(queryParams: params);
+      if (responseModel.isSuccess) {
+        searchProductCategoryResponse.value = ApiResponse.complete(responseModel);
+        final subChildORRootCategoryResponse = SubChildORRootCategoryResponse.fromJson(responseModel.response!.data);
+        List<CategoryData> categoryData = subChildORRootCategoryResponse.data??[];
+
+        searchResults.clear();
+        searchResults.assignAll(categoryData);
+
+      } else {
+        searchProductCategoryResponse.value = ApiResponse.error('error');
+      }
+
+      // Replace this with your actual API call
+      loading.value = false;
+    } catch (e) {
+      searchProductCategoryResponse.value = ApiResponse.error('error');
+      loading.value = false;
+    }
+  }
+
+  /// Clear search
+  void clearSearch() {
+    searchController.clear();
+    searchResults.clear();
+    isSearchActive.value = false;
+  }
+
 
 }

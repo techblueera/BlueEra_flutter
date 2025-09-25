@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -94,10 +95,10 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> loadChatListFromLocal(String type) async {
-    final localChats = await localStorageHelper.getChatListFromLocal(type);
+    List<ChatList> localChats = await localStorageHelper.getChatListFromLocal(type);
     getPersonalChatListModel?.value = GetChatListModel(
       success: true,
-      chatList: await localChats,
+      chatList: localChats,
       archived: [],
     );
     personalChatListResponse.value = ApiResponse.complete(getPersonalChatListModel?.value);
@@ -149,10 +150,10 @@ class ChatViewController extends GetxController {
         await chatSocket.connectToSocket();
         socketConnected.value = true;
       }
-      final connectivityResult = await NetworkUtils.isConnected();
-      if (connectivityResult) {
-        await loadChatListFromLocal("personal");
-      }
+      // final connectivityResult = await NetworkUtils.isConnected();
+      // if (connectivityResult) {
+      //   await loadChatListFromLocal("personal");
+      // }
 
       chatSocket.listenEvent('ChatList', (data) async {
         final parsedData = GetChatListModel.fromJson(data);
@@ -166,8 +167,7 @@ class ChatViewController extends GetxController {
             GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent('messageReceived', (data) async {
-
-
+          log("kjdsjdnskjnsd ${data}");
         final parsedData = GetListOfMessageData.fromJson(data);
         
               // Ensure myMessage field is properly set for all messages
@@ -482,7 +482,10 @@ class ChatViewController extends GetxController {
   }
 
   List<Map<String, dynamic>>? paramsData;
-
+  void loadContactsFromLocalStorage(Map<String,dynamic> value){
+    contactsListModel?.value = ContactListModel.fromJson(value);
+    viewContactsListResponse.value = ApiResponse.complete(value);
+  }
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     try {
       paramsData = params;
@@ -491,6 +494,12 @@ class ChatViewController extends GetxController {
         await ChatViewRepo().getConnectionsSync(params);
         if (responseModel.isSuccess) {
           final data = responseModel.response?.data;
+
+          await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.saved_contacts,
+            json.encode(data),
+          );
+
           contactsListModel?.value = ContactListModel.fromJson(data);
           viewContactsListResponse.value = ApiResponse.complete(responseModel);
         } else {
@@ -561,6 +570,20 @@ class ChatViewController extends GetxController {
     }
   }
 
+  Future<void> getLatestChat() async {
+    try {
+      ResponseModel responseModel = await ChatViewRepo().getLatestChatRepo();
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+         log("dclksdmcsldc ${data}");
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+
+    }
+  }
   Future<void> getChatRequestList() async {
     try {
       ResponseModel responseModel = await ChatViewRepo().getChatRequestList();

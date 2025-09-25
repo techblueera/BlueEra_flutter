@@ -485,3 +485,10 @@ bool isHlsUrl(String? url) {
   if (url == null || url.isEmpty) return false;
   return url.toLowerCase().endsWith('.m3u8');
 }
+
+Future<void> launchURL(String url) async {
+  final Uri uri = Uri.parse(url);
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    throw Exception('Could not launch $url');
+  }
+}

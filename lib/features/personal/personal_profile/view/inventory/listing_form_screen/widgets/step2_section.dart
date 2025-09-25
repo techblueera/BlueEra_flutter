@@ -10,6 +10,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/add_more_details
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -23,113 +24,120 @@ class Step2Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-      child: Form(
-        key: controller.formKeyStep2,
-        child: Column(
-          children: [
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: CommonBackAppBar(
+        title: 'Product feature',
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
+        child: Form(
+          key: controller.formKeyStep2,
+          child: Column(
+            children: [
 
-            CustomFormCard(
-              margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title Field
-                  CustomText(
-                    controller.productNameController.text,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.mainTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  CustomText(
-                    controller.selectedBreadcrumb.value
-                        ?.map((e) => e.name.toString())
-                        .join(' - ') ?? '',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                  ),
+              CustomFormCard(
+                margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title Field
+                    CustomText(
+                      controller.productNameController.text,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    CustomText(
+                      controller.selectedBreadcrumb.value!=null
+                          ? controller.selectedBreadcrumb.value
+                          ?.map((e) => e.name.toString())
+                          .join(' - ') ?? ''
+                      : '-',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor,
+                    ),
 
-
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            SizedBox(height: SizeConfig.size12),
+              SizedBox(height: SizeConfig.size12),
 
-            _buildProductFeaturesSection(controller),
+              _buildProductFeaturesSection(controller),
 
-            SizedBox(height: SizeConfig.size12),
+              SizedBox(height: SizeConfig.size12),
 
-            _buildAddOption(context),
+              _buildAddOption(context),
 
-            SizedBox(height: SizeConfig.size30),
+              SizedBox(height: SizeConfig.size30),
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-              child: CustomBtn(
-                title: 'Create',
-                onTap: controller.onNext,
-                bgColor: AppColors.primaryColor,
-                textColor: AppColors.white,
-                height: SizeConfig.size40,
-                radius: 10.0,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                child: CustomBtn(
+                  title: 'Create',
+                  onTap: controller.onNext,
+                  bgColor: AppColors.primaryColor,
+                  textColor: AppColors.white,
+                  height: SizeConfig.size40,
+                  radius: 10.0,
+                ),
               ),
-            ),
 
 
-            // Container(
-            //   margin: EdgeInsets.all(SizeConfig.size15),
-            //   padding: EdgeInsets.all(SizeConfig.size15),
-            //   decoration: BoxDecoration(
-            //     color: AppColors.white,
-            //     borderRadius: BorderRadius.circular(10.0),
-            //     // boxShadow: [AppShadows.textFieldShadow],
-            //   ),
-            //   child: Column(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       // Title Field
-            //       CustomText(
-            //         'Title',
-            //         fontSize: SizeConfig.medium,
-            //         fontWeight: FontWeight.w600,
-            //         color: AppColors.black,
-            //       ),
-            //       SizedBox(height: SizeConfig.size8),
-            //       CommonTextField(
-            //         textEditController: controller.titleController,
-            //         hintText: 'e.g. Size',
-            //         validator: controller.validateTitle,
-            //         showLabel: false,
-            //       ),
-            //
-            //       SizedBox(height: SizeConfig.size20),
-            //
-            //       // Variant Field
-            //       CustomText(
-            //         'Details',
-            //         fontSize: SizeConfig.medium,
-            //         fontWeight: FontWeight.w600,
-            //         color: AppColors.black,
-            //       ),
-            //       SizedBox(height: SizeConfig.size8),
-            //       CommonTextField(
-            //         textEditController: controller.variantController,
-            //         hintText: 'e.g. Wireless Earbuds Bo....',
-            //         validator: controller.validateVariant,
-            //         showLabel: false,
-            //       ),
-            //
-            //       SizedBox(height: SizeConfig.size16),
-            //
-            //
-            //     ],
-            //   ),
-            // ),
-          ],
+              // Container(
+              //   margin: EdgeInsets.all(SizeConfig.size15),
+              //   padding: EdgeInsets.all(SizeConfig.size15),
+              //   decoration: BoxDecoration(
+              //     color: AppColors.white,
+              //     borderRadius: BorderRadius.circular(10.0),
+              //     // boxShadow: [AppShadows.textFieldShadow],
+              //   ),
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       // Title Field
+              //       CustomText(
+              //         'Title',
+              //         fontSize: SizeConfig.medium,
+              //         fontWeight: FontWeight.w600,
+              //         color: AppColors.black,
+              //       ),
+              //       SizedBox(height: SizeConfig.size8),
+              //       CommonTextField(
+              //         textEditController: controller.titleController,
+              //         hintText: 'e.g. Size',
+              //         validator: controller.validateTitle,
+              //         showLabel: false,
+              //       ),
+              //
+              //       SizedBox(height: SizeConfig.size20),
+              //
+              //       // Variant Field
+              //       CustomText(
+              //         'Details',
+              //         fontSize: SizeConfig.medium,
+              //         fontWeight: FontWeight.w600,
+              //         color: AppColors.black,
+              //       ),
+              //       SizedBox(height: SizeConfig.size8),
+              //       CommonTextField(
+              //         textEditController: controller.variantController,
+              //         hintText: 'e.g. Wireless Earbuds Bo....',
+              //         validator: controller.validateVariant,
+              //         showLabel: false,
+              //       ),
+              //
+              //       SizedBox(height: SizeConfig.size16),
+              //
+              //
+              //     ],
+              //   ),
+              // ),
+            ],
+          ),
         ),
       ),
     );
@@ -409,20 +417,17 @@ class Step2Section extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: AppColors.black,
                 ),
-                GestureDetector(
-
-                  child: Container(
-                    width: 32,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      color: AppColors.white,
-                      size: 20,
-                    ),
+                Container(
+                  width: 32,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: AppColors.white,
+                    size: 20,
                   ),
                 ),
               ],

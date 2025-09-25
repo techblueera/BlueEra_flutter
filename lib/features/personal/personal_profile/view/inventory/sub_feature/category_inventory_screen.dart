@@ -220,7 +220,7 @@ void initState() {
                       children: [
                         Positioned.fill(
                           child: Image.asset(
-                            product.imageUrl,
+                            product.imageUrl??'',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Container(
                               decoration: BoxDecoration(
@@ -237,7 +237,7 @@ void initState() {
                         ),
                         Positioned.fill(
                           child: Image.asset(
-                            product.imageUrl,
+                            product.imageUrl??'',
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) => Container(
                               decoration: BoxDecoration(
