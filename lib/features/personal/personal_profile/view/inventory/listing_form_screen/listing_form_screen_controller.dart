@@ -1,15 +1,17 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/model/create_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/model/subcategory_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/repo/listing_form_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/category_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:http_parser/http_parser.dart';
 import 'dart:io' as io;
 import 'dart:convert';
 import 'dart:async';
@@ -44,8 +46,33 @@ class SelectedColor {
   final String name;
 
   SelectedColor(this.color, this.name);
-}
 
+  factory SelectedColor.fromJson(Map<String, dynamic> json) {
+    return SelectedColor(
+      _hexToColor(json['color'] ?? '#000000'),
+      json['name'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'color': _colorToHex(color), // convert to "#ffffff"
+      'name': name,
+    };
+  }
+
+  // Helper: Convert "#rrggbb" to Color
+  static Color _hexToColor(String hex) {
+    hex = hex.replaceAll('#', '');
+    if (hex.length == 6) hex = 'FF$hex'; // add alpha if missing
+    return Color(int.parse(hex, radix: 16));
+  }
+
+  // Helper: Convert Color to "#rrggbb"
+  static String _colorToHex(Color color) {
+    return '#${color.value.toRadixString(16).substring(2).padLeft(6, '0')}';
+  }
+}
 
 class ManualListingScreenController extends GetxController {
   Rx<ApiResponse> getSubChildORRootCategroyResponse = ApiResponse.initial('Initial').obs;
@@ -60,7 +87,7 @@ class ManualListingScreenController extends GetxController {
   // Form Controllers
   final TextEditingController productNameController = TextEditingController();
   final TextEditingController skuController = TextEditingController();
-  final TextEditingController shortDescriptionController = TextEditingController();
+  final TextEditingController productDescriptionController = TextEditingController();
   final TextEditingController warrantyController = TextEditingController();
   final TextEditingController guidelineController = TextEditingController();
   final TextEditingController brandController = TextEditingController();
@@ -107,9 +134,7 @@ class ManualListingScreenController extends GetxController {
   static const int totalSteps = 4;
 
   // Dynamic product features (details-only fields; title generated as "Feature n")
-  final RxList<TextEditingController> featureControllers = <TextEditingController>[
-    TextEditingController(),
-  ].obs;
+  final RxList<TextEditingController> featureControllers = <TextEditingController>[].obs;
 
   // Dynamic options (attribute/value pairs)
   final RxList<TextEditingController> optionAttributeControllers = <TextEditingController>[
@@ -122,16 +147,17 @@ class ManualListingScreenController extends GetxController {
   // UI state
   final RxBool showLinkField = false.obs;
 
-  /// Breadcrumb path: [{id, name}]
-  var breadcrumb = <CategoryData>[].obs;
+  // /// Breadcrumb path: [{id, name}]
+  // var breadcrumb = <CategoryData>[].obs;
+  //
+  // Rxn<List<CategoryData>> selectedBreadcrumb = Rxn<List<CategoryData>>();
+  //
+  // /// Cache categories per parentId
+  // final Map<String?, List<CategoryData>> _cache = {};
+  //
+  // /// Currently displayed categories
+  // var categories = <CategoryData>[].obs;
 
-  Rxn<List<CategoryData>> selectedBreadcrumb = Rxn<List<CategoryData>>();
-
-  /// Cache categories per parentId
-  final Map<String?, List<CategoryData>> _cache = {};
-
-  /// Currently displayed categories
-  var categories = <CategoryData>[].obs;
   var loading = false.obs;
 
   final searchController = TextEditingController();
@@ -226,7 +252,6 @@ class ManualListingScreenController extends GetxController {
   }
 
 
-  RxList<SelectedColor> selectedColors = <SelectedColor>[].obs;
 
   RxString material = ''.obs;
   RxMap<String, String> variantSizes = <String, String>{
@@ -239,31 +264,32 @@ class ManualListingScreenController extends GetxController {
   final Map<String, TextEditingController> variantNameControllers = {};
   RxMap<String, bool> isEditingMap = <String, bool>{}.obs;
 
-  final RxList<String> materials = <String>[].obs;
-
   final formKeyStep1 = GlobalKey<FormState>();
   final formKeyStep2 = GlobalKey<FormState>();
   final formKeyStep3 = GlobalKey<FormState>();
   // final formKeyStep4 = GlobalKey<FormState>();
 
-  var detailsList = <AddMoreDetail>[].obs;
-
-  // @override
-  // void onInit() {
-  //   super.onInit();
-  //   variantSizes.keys.forEach((key) {
-  //     variantNameControllers[key] = TextEditingController(text: key);
-  //     isEditingMap[key] = false;
-  //   });
-  // }
+  final RxList<Specification> detailsList = <Specification>[].obs;
 
   String? productId;
+
+  final RxList<TextEditingController> userGuideLineControllers = <TextEditingController>[].obs;
+  final TextEditingController productWarrantyController = TextEditingController();
+  final TextEditingController productExpiryDurationController = TextEditingController();
+
+  RxList<SelectedColor> selectedColors = <SelectedColor>[].obs;
+  RxList<String> materials = <String>[].obs;
+
+  Map<String, TextEditingController> dynamicControllers = {}; // key -> controller
+  Map<String, RxList<String>> dynamicAttributes = {}; // key -> list of values
+
+  // RxList<ProductVariant> productVariant = <ProductVariant>[].obs;
 
   @override
   void onClose() {
     productNameController.dispose();
     skuController.dispose();
-    shortDescriptionController.dispose();
+    productDescriptionController.dispose();
     warrantyController.dispose();
     guidelineController.dispose();
     brandController.dispose();
@@ -281,7 +307,10 @@ class ManualListingScreenController extends GetxController {
     for (final c in optionValueControllers) {
       c.dispose();
     }
- titleController.dispose();
+    for (final c in userGuideLineControllers) {
+      c.dispose();
+    }
+    titleController.dispose();
     variantController.dispose();
     materialController.dispose();
     searchController.dispose();
@@ -300,22 +329,6 @@ class ManualListingScreenController extends GetxController {
   // Toggle Methods
   void toggleNonReturnable() { isNonReturnable.value = !isNonReturnable.value; }
 
-  // Add Tag
-  // void addTag() {
-  //   if (tagsController.text.isNotEmpty) {
-  //     Get.snackbar(
-  //       'Tag Added',
-  //       'Tag "${tagsController.text}" added successfully',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //       backgroundColor: Colors.green,
-  //       colorText: Colors.white,
-  //     );
-  //     tagsController.clear();
-  //   }
-  // }
-
-
-
   String? validateCategory(String? value) {
     if (value == null || value.isEmpty) return 'Category is required';
     return null;
@@ -331,8 +344,28 @@ class ManualListingScreenController extends GetxController {
     return null;
   }
 
+  String? validateUserGuideLine(String? value, int i) {
+    if (value == null || value.trim().isEmpty) {
+      return "Validation Error, User GuideLine ${i + 1} cannot be empty";
+    }
+    if (value.length < 20) {
+      return "Validation Error, User GuideLine ${i + 1} must be at least 20 characters";
+    }
+    return null;
+  }
+
   String? validateBrand(String? value) {
     if (value == null || value.isEmpty) return 'Brand is required';
+    return null;
+  }
+
+  String? validateProductWarranty(String? value) {
+    if (value == null || value.isEmpty) return 'Product warranty is required';
+    return null;
+  }
+
+  String? validateProductExpiration(String? value) {
+    if (value == null || value.isEmpty) return 'Product expiration is required';
     return null;
   }
 
@@ -408,10 +441,10 @@ class ManualListingScreenController extends GetxController {
 
     if(!formKeyStep1.currentState!.validate()) return false;
 
-     if(selectedBreadcrumb.value == null){
-      _showError('Please select a category');
-      return false;
-    }
+    //  if(selectedBreadcrumb.value == null){
+    //   _showError('Please select a category');
+    //   return false;
+    // }
 
      if(tags.isEmpty){
       _showError('Please add a tag/keyword');
@@ -517,7 +550,7 @@ class ManualListingScreenController extends GetxController {
 
         // Step 2
         'media': <dio.MultipartFile>[],
-        'description': shortDescriptionController.text.trim(),
+        'description': productDescriptionController.text.trim(),
         'is_returnable': !isNonReturnable.value,
         'productWarrenty': warrantyController.text.trim(),
         'video_url': videoPublicUrl.value,
@@ -573,6 +606,17 @@ class ManualListingScreenController extends GetxController {
   void removeFeature(int index) {
     if (index >= 0 && index < featureControllers.length) {
       final ctrl = featureControllers.removeAt(index);
+      ctrl.dispose();
+    }
+  }
+
+  void addUserGuideLine() {
+    userGuideLineControllers.add(TextEditingController());
+  }
+
+  void removedUserGuideLine(int index) {
+    if (index >= 0 && index < userGuideLineControllers.length) {
+      final ctrl = userGuideLineControllers.removeAt(index);
       ctrl.dispose();
     }
   }
@@ -745,69 +789,69 @@ class ManualListingScreenController extends GetxController {
   }
 
 
-  Future<void> loadCategories({String? parentId, bool fromCache = true}) async {
-    if (fromCache && _cache.containsKey(parentId)) {
-      categories.assignAll(_cache[parentId]!);
-      return;
-    }
+  // Future<void> loadCategories({String? parentId, bool fromCache = true}) async {
+  //   if (fromCache && _cache.containsKey(parentId)) {
+  //     categories.assignAll(_cache[parentId]!);
+  //     return;
+  //   }
+  //
+  //   loading.value = true;
+  //   try {
+  //     Map<String, dynamic> params = {};
+  //
+  //     if(parentId!=null){
+  //       params = {
+  //         ApiKeys.id: parentId
+  //       };
+  //     }
+  //
+  //     final responseModel = await ListingFormRepo().getSubchildORRootCategroy(queryParams: params);
+  //     if (responseModel.isSuccess) {
+  //       getSubChildORRootCategroyResponse.value = ApiResponse.complete(responseModel);
+  //       final subChildORRootCategoryResponse = SubChildORRootCategoryResponse.fromJson(responseModel.response!.data);
+  //       List<CategoryData> categoryData = subChildORRootCategoryResponse.data??[];
+  //
+  //       categories.assignAll(categoryData);
+  //
+  //       // Save in cache
+  //       _cache[parentId] = categoryData;
+  //     } else {
+  //       getSubChildORRootCategroyResponse.value = ApiResponse.error('error');
+  //     }
+  //   } catch (e) {
+  //     getSubChildORRootCategroyResponse.value = ApiResponse.error('error');
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // }
 
-    loading.value = true;
-    try {
-      Map<String, dynamic> params = {};
+  // void selectCategory(CategoryData cat) {
+  //   breadcrumb.add(cat);
+  //   loadCategories(parentId: cat.sId??'');
+  // }
+  //
+  // void goToBreadcrumb(int index) {
+  //   breadcrumb.removeRange(index + 1, breadcrumb.length);
+  //   final parentId = breadcrumb.isNotEmpty ? breadcrumb.last.sId : null;
+  //   loadCategories(parentId: parentId);
+  // }
+  //
+  // void reset() {
+  //   breadcrumb.clear();
+  //   loadCategories(parentId: null);
+  // }
 
-      if(parentId!=null){
-        params = {
-          ApiKeys.id: parentId
-        };
-      }
-
-      final responseModel = await ListingFormRepo().getSubchildORRootCategroy(queryParams: params);
-      if (responseModel.isSuccess) {
-        getSubChildORRootCategroyResponse.value = ApiResponse.complete(responseModel);
-        final subChildORRootCategoryResponse = SubChildORRootCategoryResponse.fromJson(responseModel.response!.data);
-        List<CategoryData> categoryData = subChildORRootCategoryResponse.data??[];
-
-        categories.assignAll(categoryData);
-
-        // Save in cache
-        _cache[parentId] = categoryData;
-      } else {
-        getSubChildORRootCategroyResponse.value = ApiResponse.error('error');
-      }
-    } catch (e) {
-      getSubChildORRootCategroyResponse.value = ApiResponse.error('error');
-    } finally {
-      loading.value = false;
-    }
-  }
-
-  void selectCategory(CategoryData cat) {
-    breadcrumb.add(cat);
-    loadCategories(parentId: cat.sId??'');
-  }
-
-  void goToBreadcrumb(int index) {
-    breadcrumb.removeRange(index + 1, breadcrumb.length);
-    final parentId = breadcrumb.isNotEmpty ? breadcrumb.last.sId : null;
-    loadCategories(parentId: parentId);
-  }
-
-  void reset() {
-    breadcrumb.clear();
-    loadCategories(parentId: null);
-  }
-
-  Future<void> openCategoryBottomSheet(BuildContext context) async {
-    if(selectedBreadcrumb.value == null){
-      selectedBreadcrumb.value = await showCategoryBottomSheet(context);
-
-      if (selectedBreadcrumb.value != null) {
-        print("User selected: $selectedBreadcrumb");
-      } else {
-        print("User closed without selecting");
-      }
-    }
-  }
+  // Future<void> openCategoryBottomSheet(BuildContext context) async {
+  //   if(selectedBreadcrumb.value == null){
+  //     selectedBreadcrumb.value = await showCategoryBottomSheet(context);
+  //
+  //     if (selectedBreadcrumb.value != null) {
+  //       print("User selected: $selectedBreadcrumb");
+  //     } else {
+  //       print("User closed without selecting");
+  //     }
+  //   }
+  // }
 
   void addTag() {
     if(tags.length == 10){
@@ -880,7 +924,7 @@ class ManualListingScreenController extends GetxController {
     selectedColors.remove(selectedColor);
   }
 
-  void addDetail(AddMoreDetail detail) {
+  void addDetail(Specification detail) {
     detailsList.add(detail);
   }
 
@@ -939,7 +983,7 @@ class ManualListingScreenController extends GetxController {
     try {
       Map<String, dynamic> params = {
         ApiKeys.name: productNameController.text.trim(),
-        ApiKeys.categoryId: selectedBreadcrumb.value?.last.sId??'',
+        ApiKeys.categoryId: selectedCategoryId,
         ApiKeys.tags: tags
       };
 
@@ -1085,5 +1129,91 @@ class ManualListingScreenController extends GetxController {
     isSearchActive.value = false;
   }
 
+  // Add dynamic value
+  void addDynamicValue(String key, String value) {
+    if (!dynamicAttributes.containsKey(key)) {
+      dynamicAttributes[key] = <String>[].obs;
+      dynamicControllers[key] = TextEditingController();
+    }
+    dynamicAttributes[key]!.add(value);
+    dynamicControllers[key]!.clear();
+    update([key]); // rebuild only this key section
+  }
+
+  // Remove dynamic value
+  void removeDynamicValue(String key, String value) {
+    dynamicAttributes[key]?.remove(value);
+    if (dynamicAttributes[key]?.isEmpty ?? true) {
+      dynamicAttributes.remove(key);
+      dynamicControllers.remove(key);
+    }
+    update([key]);
+  }
+
+  Future<void> createProductViaAi(AddProductViaAiController addProductViaAiController) async {
+    // loading.value = true;
+    try {
+      Map<String, dynamic> params = {
+        if(productNameController.text.trim().isNotEmpty) ApiKeys.name: productNameController.text.trim(),
+        if(productDescriptionController.text.trim().isNotEmpty) ApiKeys.description: productDescriptionController.text.trim(),
+        ApiKeys.categoryId: selectedCategoryId,
+        if(brandController.text.trim().isNotEmpty) ApiKeys.brand: brandController.text.trim(),
+        if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
+        if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),
+        if(productExpiryDurationController.text.trim().isNotEmpty) ApiKeys.expiryTime: productExpiryDurationController.text.trim(),
+        if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
+        if(detailsList.isNotEmpty) ApiKeys.addMoreDetails: jsonEncode(detailsList.map((e) => e.toJson()).toList()),
+        if(featureControllers.isNotEmpty) ApiKeys.addProductFeatures: jsonEncode(featureControllers
+            .where((c) => c.text.trim().isNotEmpty)
+            .map((c) => {ApiKeys.title: c.text.trim()})
+            .toList()),
+        if(linkController.text.trim().isNotEmpty) ApiKeys.linkOrReferealWebsite: linkController.text.trim(),
+      };
+
+      final payload = {
+        'attributes': <String, dynamic>{
+            // color list
+            'color': selectedColors.map((c) => c.toJson()).toList(),
+
+            // flatten every entry of dynamicAttributes into this same map
+          ...dynamicAttributes.map((k, v) => MapEntry(k, v.toList().map((e) => e.toString()).toList())),
+        },
+    };
+      params[ApiKeys.varient] = jsonEncode(payload);
+
+      List<dio.MultipartFile> imageByPart = [];
+
+      for (final path in addProductViaAiController.step2Images) {
+        final fileName = path.split('/').last;
+        final imageInfo = getFileInfo(File(path));
+        final mimeType = imageInfo['mimeType'];
+        imageByPart.add(
+            await dio.MultipartFile.fromFile(
+                path,
+                filename: fileName,
+              contentType: MediaType.parse(mimeType ?? 'application/octet-stream'),
+
+            ));
+      }
+      params[ApiKeys.media] = imageByPart;
+
+      final responseModel = await ListingFormRepo().createProductViaAiApi(params: params);
+      commonSnackBar(message: responseModel.message);
+      if (responseModel.isSuccess) {
+        createProductResponse.value = ApiResponse.complete(responseModel);
+        Get.close(2);
+        // final createProductModel = CreateProductModel.fromJson(responseModel.response!.data);
+        // productId = createProductModel.data?.sId;
+        // currentStep.value += 1;
+      } else {
+        createProductResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      createProductResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: 'something went wrong.');
+    } finally {
+      // loading.value = false;
+    }
+  }
 
 }

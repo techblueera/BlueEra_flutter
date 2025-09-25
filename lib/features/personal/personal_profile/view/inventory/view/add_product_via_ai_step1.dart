@@ -145,10 +145,10 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                           textEditController: addProductViaAiController.productDescriptionController,
                           hintText:
                           "e.g. t-shirt/mens wear/shirt/cotton mix silk/casual wear",
-                          maxLine: 5,
+                          maxLine: 4,
                           title: 'Product Description / Specification',
                           validator: ValidationMethod().validateProductDescription,
-                          maxLength: 360,
+                          maxLength: 100,
                           isCounterVisible: true
                       ),
 
@@ -158,7 +158,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         title: addProductViaAiController.isLoading.value
                           ? null // hide text
                           : 'Generate',
-                        onTap: addProductViaAiController.onGenerate,
+                        onTap: ()=> addProductViaAiController.onGenerate(manualListingScreenController, addProductViaAiController),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

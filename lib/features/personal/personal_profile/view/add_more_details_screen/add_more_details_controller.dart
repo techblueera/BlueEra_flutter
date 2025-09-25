@@ -78,7 +78,7 @@ class AddMoreDetailsController extends GetxController {
       print('Saving details: $details');
 
       if(fromScreen == RouteConstant.listingFormScreen) {
-        final detailItem = AddMoreDetail(
+        final detailItem = Specification(
           title: titleController.text.trim(),
           details: detailController.text.trim(),
         );

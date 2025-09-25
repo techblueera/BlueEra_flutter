@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -6,6 +7,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -132,7 +134,7 @@ class AddProductViaAiController extends GetxController{
   bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
   bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
-  void onGenerate() async {
+  void onGenerate(controller, AddProductViaAiController addProductViaAiController) async {
     if (!_validate()) return;
 
     isLoading.value = true;
@@ -148,7 +150,7 @@ class AddProductViaAiController extends GetxController{
       images: step1Images.toList(),
     );
 
-    await createProductViaAiApi(request);
+    await createProductViaAiApi(request, controller, addProductViaAiController);
 
     isLoading.value = false;
 
@@ -172,7 +174,7 @@ class AddProductViaAiController extends GetxController{
   }
 
 
-  Future<void> createProductViaAiApi(AddProductViaAiRequest request) async {
+  Future<void> createProductViaAiApi(AddProductViaAiRequest request, ManualListingScreenController controller, AddProductViaAiController addProductViaAiController) async {
     try {
       Map<String, dynamic> params = {};
 
@@ -213,11 +215,13 @@ class AddProductViaAiController extends GetxController{
         Get.toNamed(
           RouteHelper.getAddProductViaAiStep2Route(),
           arguments: {
-            ApiKeys.addProductViaAiRequest: request,
+            ApiKeys.controller: controller,
+            ApiKeys.addProductViaAiController: addProductViaAiController,
             ApiKeys.generateAiProductContent: generateAiProductContent,
           },
         );
       } else {
+        commonSnackBar(message: 'something went wrong.');
         generateAiProductContentResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {

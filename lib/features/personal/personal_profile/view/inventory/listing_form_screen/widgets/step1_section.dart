@@ -15,238 +15,305 @@ import 'package:get/get.dart';
 import 'dart:io';
 import '../listing_form_screen_controller.dart';
 
-class Step1Section extends StatelessWidget {
+class Step1Section extends StatefulWidget {
   final ManualListingScreenController controller;
 
   const Step1Section({super.key, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(
-        title: 'Product Details',
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          margin: EdgeInsets.all(SizeConfig.size15),
-          padding: EdgeInsets.all(SizeConfig.size15),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10.0),
-            // boxShadow: [AppShadows.textFieldShadow],
+  State<Step1Section> createState() => _Step1SectionState();
+}
+
+class _Step1SectionState extends State<Step1Section> {
+  late String originalProductName;
+  late String originalBrand;
+  late String originalDescription;
+  late List<String> originalTags;
+
+  @override
+  void initState() {
+    super.initState();
+
+    originalProductName = widget.controller.productNameController.text;
+    originalBrand = widget.controller.brandController.text;
+    originalDescription = widget.controller.productDescriptionController.text;
+    originalTags = List<String>.from(widget.controller.tags);
+  }
+
+  Future<bool> handleBackPress(BuildContext context) async {
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('Do you really want to go back? Unsaved changes will be lost.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // restore old values when user cancels pop
+              widget.controller.productNameController.text = originalProductName;
+              widget.controller.brandController.text = originalBrand;
+              widget.controller.productDescriptionController.text = originalDescription;
+              widget.controller.tags.value = List<String>.from(originalTags);
+              Navigator.of(context).pop(false);
+            },
+            child: const Text('No'),
           ),
-          child: Form(
-            key: controller.formKeyStep1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // /// Product Images
-                    // _buildMediaUploadSection(controller),
-                    //
-                    // SizedBox(height: SizeConfig.size15),
+          TextButton(
+            onPressed: () => Get.close(2),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
 
-                    /// Product Name
-                    CommonTextField(
-                      textEditController: controller.productNameController,
-                      hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
-                      title: "Product Name",
-                      validator: ValidationMethod().validateProductName,
-                      showLabel: true,
-                      maxLength: 360,
-                      isCounterVisible: true
-                    ),
-                    SizedBox(height: SizeConfig.size15),
+    return shouldPop ?? false;
+  }
 
-                    /// category
-                    // CustomText(
-                    //   'Category',
-                    //   fontSize: SizeConfig.medium,
-                    //   fontWeight: FontWeight.w500,
-                    //   color: AppColors.black,
-                    // ),
-                    // SizedBox(height: SizeConfig.size8),
-                    // Obx(() => InkWell(
-                    //       onTap: () =>
-                    //           controller.openCategoryBottomSheet(context),
-                    //       child: Container(
-                    //         width: SizeConfig.screenWidth,
-                    //         decoration: BoxDecoration(
-                    //             color: AppColors.white,
-                    //             boxShadow: [AppShadows.textFieldShadow],
-                    //             borderRadius: BorderRadius.circular(10),
-                    //             border: Border.all(
-                    //               color: AppColors.greyE5,
-                    //             )),
-                    //         child: controller.selectedBreadcrumb.value != null
-                    //             ? Row(
-                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //               children: [
-                    //                 Container(
-                    //                   padding: EdgeInsets.only(left: SizeConfig.size12),
-                    //                   constraints: BoxConstraints(
-                    //                     maxWidth: SizeConfig.screenWidth * 0.7,
-                    //                   ),
-                    //                   // width: SizeConfig.screenWidth * 0.5,
-                    //                   child: Wrap(
-                    //                       children: List.generate(
-                    //                         controller.selectedBreadcrumb.value!.length,
-                    //                         (i) {
-                    //                           final item = controller.breadcrumb[i];
-                    //
-                    //                           return Row(
-                    //                             mainAxisSize: MainAxisSize.min,
-                    //                             children: [
-                    //                               CustomText(
-                    //                                   item.name,
-                    //                                   fontSize:  SizeConfig.medium,
-                    //                                   fontWeight: FontWeight.w600,
-                    //                                   color: AppColors.black
-                    //                               ),
-                    //                             ],
-                    //                           );
-                    //                         },
-                    //                       ),
-                    //                     ),
-                    //                 ),
-                    //                 IconButton(
-                    //                     onPressed: () {
-                    //                       controller.selectedBreadcrumb.value = null;
-                    //                     },
-                    //                     icon: Icon(Icons.close,
-                    //                 size: 20, color: AppColors.grey9A)
-                    //                 )
-                    //               ],
-                    //             )
-                    //             : Container(
-                    //                padding: EdgeInsets.all(SizeConfig.size12),
-                    //               child: Row(
-                    //                   mainAxisSize: MainAxisSize.min,
-                    //                   mainAxisAlignment:
-                    //                       MainAxisAlignment.spaceBetween,
-                    //                   children: [
-                    //                     CustomText(
-                    //                       'Select a category',
-                    //                       color: AppColors.grey9A,
-                    //                       fontWeight: FontWeight.w400,
-                    //                       fontSize: SizeConfig.large,
-                    //                     ),
-                    //                     const Icon(Icons.arrow_forward_ios,
-                    //                         size: 16, color: AppColors.grey9A)
-                    //                   ],
-                    //                 ),
-                    //             ),
-                    //       ),
-                    //     )),
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
 
-                    // return Column(
-                    //   children: List.generate(controller.categoryLevels.length, (i) {
-                    //     final level = controller.categoryLevels[i];
-                    //     final items = level.items.map((e) => e.name).toList();
-                    //     return Padding(
-                    //       padding: EdgeInsets.only(bottom: SizeConfig.size12),
-                    //       child: _buildDropdownField(
-                    //         label: i == 0 ? 'Category' : 'Subcategory $i',
-                    //         hint: i == 0 ? 'Select a category' : 'Select a subcategory',
-                    //         items: items,
-                    //         validator: (value) => i == 0 && value == null ? 'Please select a category' : null,
-                    //         onChanged: (val) => controller.onLevelChanged(i, val),
-                    //         value: level.selectedName.isEmpty ? null : level.selectedName,
-                    //       ),
-                    //     );
-                    //   }),
-                    // );
-                    // GestureDetector(
-                    //   onTap: () {
-                    //     Get.snackbar(
-                    //       'Feature Coming Soon',
-                    //       'New category creation will be available soon',
-                    //       snackPosition: SnackPosition.BOTTOM,
-                    //     );
-                    //   },
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.end,
-                    //     children: [
-                    //       CustomText(
-                    //         "New Category",
-                    //         color: AppColors.primaryColor,
-                    //       ),
-                    //       SizedBox(width: SizeConfig.size4),
-                    //       CustomText(
-                    //         "+",
-                    //         color: AppColors.primaryColor,
-                    //         fontSize: SizeConfig.size30,
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+        final shouldPop = await handleBackPress(context);
+        if (shouldPop) {
+          Navigator.of(context).maybePop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteF3,
+        appBar: CommonBackAppBar(
+          title: 'Product Details',
+          onBackTap: () async {
+            final shouldPop = await handleBackPress(context);
+            if (shouldPop) {
+              Navigator.of(context).maybePop();
+            }
+          },
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            margin: EdgeInsets.all(SizeConfig.size15),
+            padding: EdgeInsets.all(SizeConfig.size15),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              // boxShadow: [AppShadows.textFieldShadow],
+            ),
+            child: Form(
+              key: widget.controller.formKeyStep1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // /// Product Images
+                      // _buildMediaUploadSection(controller),
+                      //
+                      // SizedBox(height: SizeConfig.size15),
 
-                    // SizedBox(height: SizeConfig.size15),
+                      /// Product Name
+                      CommonTextField(
+                        textEditController: widget.controller.productNameController,
+                        hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
+                        title: "Product Name",
+                        validator: ValidationMethod().validateProductName,
+                        showLabel: true,
+                        maxLength: 360,
+                        isCounterVisible: true
+                      ),
+                      SizedBox(height: SizeConfig.size15),
 
-                    /// Brand
-                    CommonTextField(
-                      textEditController: controller.brandController,
-                      hintText: 'E.g. Samsung',
-                      title: "Brand ( if any )",
-                      validator: ValidationMethod().validateBrandName,
-                      showLabel: true,
-                      maxLength: 30,
-                      isCounterVisible: true
-                    ),
-                    SizedBox(height: SizeConfig.size15),
+                      /// category
+                      // CustomText(
+                      //   'Category',
+                      //   fontSize: SizeConfig.medium,
+                      //   fontWeight: FontWeight.w500,
+                      //   color: AppColors.black,
+                      // ),
+                      // SizedBox(height: SizeConfig.size8),
+                      // Obx(() => InkWell(
+                      //       onTap: () =>
+                      //           controller.openCategoryBottomSheet(context),
+                      //       child: Container(
+                      //         width: SizeConfig.screenWidth,
+                      //         decoration: BoxDecoration(
+                      //             color: AppColors.white,
+                      //             boxShadow: [AppShadows.textFieldShadow],
+                      //             borderRadius: BorderRadius.circular(10),
+                      //             border: Border.all(
+                      //               color: AppColors.greyE5,
+                      //             )),
+                      //         child: controller.selectedBreadcrumb.value != null
+                      //             ? Row(
+                      //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //               children: [
+                      //                 Container(
+                      //                   padding: EdgeInsets.only(left: SizeConfig.size12),
+                      //                   constraints: BoxConstraints(
+                      //                     maxWidth: SizeConfig.screenWidth * 0.7,
+                      //                   ),
+                      //                   // width: SizeConfig.screenWidth * 0.5,
+                      //                   child: Wrap(
+                      //                       children: List.generate(
+                      //                         controller.selectedBreadcrumb.value!.length,
+                      //                         (i) {
+                      //                           final item = controller.breadcrumb[i];
+                      //
+                      //                           return Row(
+                      //                             mainAxisSize: MainAxisSize.min,
+                      //                             children: [
+                      //                               CustomText(
+                      //                                   item.name,
+                      //                                   fontSize:  SizeConfig.medium,
+                      //                                   fontWeight: FontWeight.w600,
+                      //                                   color: AppColors.black
+                      //                               ),
+                      //                             ],
+                      //                           );
+                      //                         },
+                      //                       ),
+                      //                     ),
+                      //                 ),
+                      //                 IconButton(
+                      //                     onPressed: () {
+                      //                       controller.selectedBreadcrumb.value = null;
+                      //                     },
+                      //                     icon: Icon(Icons.close,
+                      //                 size: 20, color: AppColors.grey9A)
+                      //                 )
+                      //               ],
+                      //             )
+                      //             : Container(
+                      //                padding: EdgeInsets.all(SizeConfig.size12),
+                      //               child: Row(
+                      //                   mainAxisSize: MainAxisSize.min,
+                      //                   mainAxisAlignment:
+                      //                       MainAxisAlignment.spaceBetween,
+                      //                   children: [
+                      //                     CustomText(
+                      //                       'Select a category',
+                      //                       color: AppColors.grey9A,
+                      //                       fontWeight: FontWeight.w400,
+                      //                       fontSize: SizeConfig.large,
+                      //                     ),
+                      //                     const Icon(Icons.arrow_forward_ios,
+                      //                         size: 16, color: AppColors.grey9A)
+                      //                   ],
+                      //                 ),
+                      //             ),
+                      //       ),
+                      //     )),
 
-                    /// Tag Keywords
-                    _buildTagsSection(controller),
-                    SizedBox(height: SizeConfig.size15),
+                      // return Column(
+                      //   children: List.generate(controller.categoryLevels.length, (i) {
+                      //     final level = controller.categoryLevels[i];
+                      //     final items = level.items.map((e) => e.name).toList();
+                      //     return Padding(
+                      //       padding: EdgeInsets.only(bottom: SizeConfig.size12),
+                      //       child: _buildDropdownField(
+                      //         label: i == 0 ? 'Category' : 'Subcategory $i',
+                      //         hint: i == 0 ? 'Select a category' : 'Select a subcategory',
+                      //         items: items,
+                      //         validator: (value) => i == 0 && value == null ? 'Please select a category' : null,
+                      //         onChanged: (val) => controller.onLevelChanged(i, val),
+                      //         value: level.selectedName.isEmpty ? null : level.selectedName,
+                      //       ),
+                      //     );
+                      //   }),
+                      // );
+                      // GestureDetector(
+                      //   onTap: () {
+                      //     Get.snackbar(
+                      //       'Feature Coming Soon',
+                      //       'New category creation will be available soon',
+                      //       snackPosition: SnackPosition.BOTTOM,
+                      //     );
+                      //   },
+                      //   child: Row(
+                      //     mainAxisAlignment: MainAxisAlignment.end,
+                      //     children: [
+                      //       CustomText(
+                      //         "New Category",
+                      //         color: AppColors.primaryColor,
+                      //       ),
+                      //       SizedBox(width: SizeConfig.size4),
+                      //       CustomText(
+                      //         "+",
+                      //         color: AppColors.primaryColor,
+                      //         fontSize: SizeConfig.size30,
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
 
-                    /// Product Description
-                    CommonTextField(
-                      textEditController: controller.shortDescriptionController,
-                      hintText:
-                          "Lorem ipsum dolor sit amet conseceter adisping...",
-                      maxLine: 5,
-                      title: 'Product Description',
-                      validator: ValidationMethod().validateProductDescription,
-                      maxLength: 600,
-                      isCounterVisible: true
-                    )
-                  ],
-                ),
+                      // SizedBox(height: SizeConfig.size15),
 
-                SizedBox(height: SizeConfig.size30),
+                      /// Brand
+                      CommonTextField(
+                        textEditController: widget.controller.brandController,
+                        hintText: 'E.g. Samsung',
+                        title: "Brand ( if any )",
+                        validator: ValidationMethod().validateBrandName,
+                        showLabel: true,
+                        maxLength: 30,
+                        isCounterVisible: true
+                      ),
+                      SizedBox(height: SizeConfig.size15),
 
-                CustomBtn(
-                  title: 'Next',
-                  onTap: controller.onNext,
-                  bgColor: AppColors.primaryColor,
-                  textColor: AppColors.white,
-                  height: SizeConfig.size40,
-                  radius: 10.0,
-                ),
+                      /// Tag Keywords
+                      _buildTagsSection(widget.controller),
+                      SizedBox(height: SizeConfig.size15),
 
-                // CustomFormCard(
-                //   child: CommonTextField(
-                //     textEditController: controller.productNameController,
-                //     hintText: 'E.g. Samsung',
-                //     title: "Brand ( if any )",
-                //     validator: controller.validateProductName,
-                //     showLabel: true,
-                //   ),
-                // ),
-                // SizedBox(height: SizeConfig.size16),
-                // CustomFormCard(
-                //   child: _buildProductFeaturesSection(controller),
-                // ),
-                // SizedBox(height: SizeConfig.size16),
-                // CustomFormCard(
-                //   child: _buildDescriptionSection(controller),
-                // ),
-                // SizedBox(height: SizeConfig.size16),
-              ],
+                      /// Product Description
+                      CommonTextField(
+                        textEditController: widget.controller.productDescriptionController,
+                        hintText:
+                            "Lorem ipsum dolor sit amet conseceter adisping...",
+                        maxLine: 5,
+                        title: 'Product Description',
+                        validator: ValidationMethod().validateProductDescription,
+                        maxLength: 600,
+                        isCounterVisible: true
+                      )
+                    ],
+                  ),
+
+                  SizedBox(height: SizeConfig.size30),
+
+                  CustomBtn(
+                    title: 'Save',
+                    onTap: ()=> Get.back(),
+                    // onTap: widget.controller.onNext,
+                    bgColor: AppColors.primaryColor,
+                    textColor: AppColors.white,
+                    height: SizeConfig.size40,
+                    radius: 10.0,
+                  ),
+
+                  // CustomFormCard(
+                  //   child: CommonTextField(
+                  //     textEditController: controller.productNameController,
+                  //     hintText: 'E.g. Samsung',
+                  //     title: "Brand ( if any )",
+                  //     validator: controller.validateProductName,
+                  //     showLabel: true,
+                  //   ),
+                  // ),
+                  // SizedBox(height: SizeConfig.size16),
+                  // CustomFormCard(
+                  //   child: _buildProductFeaturesSection(controller),
+                  // ),
+                  // SizedBox(height: SizeConfig.size16),
+                  // CustomFormCard(
+                  //   child: _buildDescriptionSection(controller),
+                  // ),
+                  // SizedBox(height: SizeConfig.size16),
+                ],
+              ),
             ),
           ),
         ),
@@ -492,7 +559,7 @@ class Step1Section extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonTextField(
-          textEditController: controller.shortDescriptionController,
+          textEditController: controller.productDescriptionController,
           hintText: "Lorem ipsum dolor sit amet conseceter adisping...",
           maxLine: 3,
           title: 'Short Description',
@@ -679,5 +746,4 @@ class Step1Section extends StatelessWidget {
       ],
     );
   }
-
 }

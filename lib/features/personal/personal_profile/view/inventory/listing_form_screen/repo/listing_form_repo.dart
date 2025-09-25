@@ -120,4 +120,18 @@ class ListingFormRepo extends BaseService{
    return response;
  }
 
+ // Create Product (multipart)
+ Future<ResponseModel> createProductViaAiApi({required Map<String, dynamic> params}) async {
+   final response = await ApiBaseHelper().postHTTP(
+     createProductViaAi,
+     params: params,
+     isMultipart: true,
+     showProgress: true,
+     onError: (error) {},
+     onSuccess: (data) {},
+   );
+   return response;
+ }
+
+
 }

@@ -441,6 +441,7 @@ abstract class BaseService {
       'product-service/api/product/updatePriceAndWarranty/$productId';
   final String createService = "services-service/services";
   final String generateAiContent = "ai-service/api/ai-product/generate-content";
+  final String createProductViaAi = "product-service/api/product/createProductAI";
 
   final String homeFeed = 'userfeed-service/feed';
   // https://api.blueera.ai/api/userfeed-service/feed?cursor=1758505656000&limit=20&refresh=false&content_types=posts%2Cvideos%2Cproducts&video_types=recent%2Cshort&source=aggregated&language=en&nsfw=false

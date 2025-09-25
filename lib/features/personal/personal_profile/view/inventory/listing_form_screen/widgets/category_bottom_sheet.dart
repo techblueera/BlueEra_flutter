@@ -12,11 +12,13 @@ import 'package:get/get.dart';
 
 import '../model/sub_category_root_category_response.dart';
 
-Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async {
+Future<void> showCategoryBottomSheet(BuildContext context) async {
   final controller = Get.put(ManualListingScreenController());
-  controller.reset();
+  controller.searchResults.clear();
+  controller.searchController.text = controller.selectedCategory.value;
+  controller.onSearchChanged(controller.searchController.text);
 
-  final result = await showModalBottomSheet<List<CategoryData>>(
+  await showModalBottomSheet<List<CategoryData>>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
@@ -55,7 +57,6 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
               ),
 
               // --- Search Bar ---
-
               Padding(
                 padding: EdgeInsets.all(SizeConfig.size12),
                 child: CommonTextField(
@@ -87,85 +88,93 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
               ),
 
               // --- Breadcrumb (only show when not searching) ---
-              if (controller.breadcrumb.isNotEmpty && !controller.isSearchActive.value)
-                Container(
-                  width: SizeConfig.screenWidth,
-                  padding: EdgeInsets.all(SizeConfig.size12),
-                  margin: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      boxShadow: [AppShadows.textFieldShadow],
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                          color: AppColors.greyE5,
-                          width: 1.5
-                      )
-                  ),
-                  child: Wrap(
-                    children: List.generate(
-                      controller.breadcrumb.length,
-                          (i) {
-                        final item = controller.breadcrumb[i];
-                        final isLast = i == controller.breadcrumb.length - 1;
-
-                        return InkWell(
-                          onTap: () => controller.goToBreadcrumb(i),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomText(
-                                item.name,
-                                color: isLast ? AppColors.mainTextColor : AppColors.primaryColor,
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: AppConstants.OpenSans,
-                              ),
-                              if (!isLast)
-                                const Icon(Icons.chevron_right, size: 16),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
+              // if (controller.breadcrumb.isNotEmpty && !controller.isSearchActive.value)
+              //   Container(
+              //     width: SizeConfig.screenWidth,
+              //     padding: EdgeInsets.all(SizeConfig.size12),
+              //     margin: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+              //     decoration: BoxDecoration(
+              //         color: AppColors.white,
+              //         boxShadow: [AppShadows.textFieldShadow],
+              //         borderRadius: BorderRadius.circular(10),
+              //         border: Border.all(
+              //             color: AppColors.greyE5,
+              //             width: 1.5
+              //         )
+              //     ),
+              //     child: Wrap(
+              //       children: List.generate(
+              //         controller.breadcrumb.length,
+              //             (i) {
+              //           final item = controller.breadcrumb[i];
+              //           final isLast = i == controller.breadcrumb.length - 1;
+              //
+              //           return InkWell(
+              //             onTap: () => controller.goToBreadcrumb(i),
+              //             child: Row(
+              //               mainAxisSize: MainAxisSize.min,
+              //               children: [
+              //                 CustomText(
+              //                   item.name,
+              //                   color: isLast ? AppColors.mainTextColor : AppColors.primaryColor,
+              //                   fontSize: SizeConfig.medium,
+              //                   fontWeight: FontWeight.w600,
+              //                   fontFamily: AppConstants.OpenSans,
+              //                 ),
+              //                 if (!isLast)
+              //                   const Icon(Icons.chevron_right, size: 16),
+              //               ],
+              //             ),
+              //           );
+              //         },
+              //       ),
+              //     ),
+              //   ),
 
               const SizedBox(height: 8),
 
               // --- Categories List ---
               Expanded(
-                child: controller.loading.value
-                    ? const Center(child: CircularProgressIndicator())
-                    : controller.isSearchActive.value
-                    ? _buildSearchResults(controller, context)
-                    : _buildManualCategories(controller, context),
+                  child: controller.loading.value
+                      ? Center(child:  CustomText(
+                      'Searching...',
+                      fontSize: SizeConfig.extraLarge22,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor
+                  ))
+                      : controller.isSearchActive.value
+                      ? _buildSearchResults(controller, context)
+                      : _buildSearchIndicationWidget()
+                // : controller.isSearchActive.value
+                // ? _buildSearchResults(controller, context)
+                // : _buildManualCategories(controller, context),
               ),
 
               // --- Back Button (only show when not searching and breadcrumb exists) ---
-              if (controller.breadcrumb.isNotEmpty && !controller.isSearchActive.value)
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: SizeConfig.size12,
-                    right: SizeConfig.size12,
-                    top: SizeConfig.size12,
-                    bottom: SizeConfig.size30,
-                  ),
-                  child: PositiveCustomBtn(
-                    onTap: () {
-                      final lastIndex = controller.breadcrumb.length - 2;
-                      if (lastIndex >= 0) {
-                        controller.goToBreadcrumb(lastIndex);
-                      } else {
-                        controller.reset();
-                      }
-                    },
-                    title: 'Back',
-                    bgColor: AppColors.white,
-                    borderColor: AppColors.primaryColor,
-                    textColor: AppColors.primaryColor,
-                    radius: 10.0,
-                  ),
-                ),
+              // if (controller.breadcrumb.isNotEmpty && !controller.isSearchActive.value)
+              //   Padding(
+              //     padding: EdgeInsets.only(
+              //       left: SizeConfig.size12,
+              //       right: SizeConfig.size12,
+              //       top: SizeConfig.size12,
+              //       bottom: SizeConfig.size30,
+              //     ),
+              //     child: PositiveCustomBtn(
+              //       onTap: () {
+              //         final lastIndex = controller.breadcrumb.length - 2;
+              //         if (lastIndex >= 0) {
+              //           controller.goToBreadcrumb(lastIndex);
+              //         } else {
+              //           controller.reset();
+              //         }
+              //       },
+              //       title: 'Back',
+              //       bgColor: AppColors.white,
+              //       borderColor: AppColors.primaryColor,
+              //       textColor: AppColors.primaryColor,
+              //       radius: 10.0,
+              //     ),
+              //   ),
 
             ],
           ),
@@ -174,11 +183,10 @@ Future<List<CategoryData>?> showCategoryBottomSheet(BuildContext context) async 
     },
   );
 
-  return result;
 }
 
 Widget _buildSearchResults(ManualListingScreenController controller, BuildContext context) {
-  return ListView.separated(
+  return controller.searchResults.isNotEmpty ? ListView.separated(
     itemCount: controller.searchResults.length,
     separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
     itemBuilder: (_, index) {
@@ -193,8 +201,11 @@ Widget _buildSearchResults(ManualListingScreenController controller, BuildContex
         ),
         trailing: PositiveCustomBtn(
           onTap: () {
-            controller.breadcrumb.add(cat);
-            Navigator.pop(context, controller.breadcrumb);
+            controller.selectedCategoryId.value = cat.sId??'';
+            controller.selectedCategory.value = cat.name??'';
+            Navigator.pop(context);
+            // controller.breadcrumb.add(cat);
+            // Navigator.pop(context, controller.breadcrumb);
           },
           title: 'Select',
           width: SizeConfig.size60,
@@ -206,40 +217,85 @@ Widget _buildSearchResults(ManualListingScreenController controller, BuildContex
         ),
       );
     },
+  ) : ListTile(
+    title: CustomText(
+      'Other',
+      color: AppColors.mainTextColor,
+      fontSize: SizeConfig.large,
+      fontWeight: FontWeight.w400,
+      fontFamily: AppConstants.OpenSans,
+    ),
+    trailing: PositiveCustomBtn(
+      onTap: () {
+        controller.selectedCategoryId.value = '68d4e332455cad1af87fac05';
+        controller.selectedCategory.value = 'OTHER';
+        Navigator.pop(context);
+        // controller.breadcrumb.add(cat);
+        // Navigator.pop(context, controller.breadcrumb);
+      },
+      title: 'Select',
+      width: SizeConfig.size60,
+      height: SizeConfig.size30,
+      bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+      borderColor: AppColors.primaryColor,
+      textColor: AppColors.primaryColor,
+      radius: 10.0,
+    ),
   );
 }
 
-Widget _buildManualCategories(ManualListingScreenController controller, BuildContext context) {
-  return ListView.separated(
-    itemCount: controller.categories.length,
-    separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
-    itemBuilder: (_, index) {
-      final cat = controller.categories[index];
-      return ListTile(
-        title: CustomText(
-          cat.name ?? '',
-          color: AppColors.mainTextColor,
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.w400,
-          fontFamily: AppConstants.OpenSans,
+Widget _buildSearchIndicationWidget() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.search,
+          size: 40,
         ),
-        trailing: (cat.root ?? false)
-            ? PositiveCustomBtn(
-          onTap: () {
-            controller.breadcrumb.add(cat);
-            Navigator.pop(context, controller.breadcrumb);
-          },
-          title: 'Select',
-          width: SizeConfig.size60,
-          height: SizeConfig.size30,
-          bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
-          borderColor: AppColors.primaryColor,
-          textColor: AppColors.primaryColor,
-          radius: 10.0,
+        CustomText(
+            'Please search for category',
+             fontSize: SizeConfig.extraLarge22,
+             fontWeight: FontWeight.w600,
+             color: AppColors.mainTextColor
         )
-            : const Icon(Icons.arrow_forward_ios, size: 14),
-        onTap: (cat.root ?? false) ? null : () => controller.selectCategory(cat),
-      );
-    },
+      ],
+    ),
   );
 }
+
+// Widget _buildManualCategories(ManualListingScreenController controller, BuildContext context) {
+//   return ListView.separated(
+//     itemCount: controller.categories.length,
+//     separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
+//     itemBuilder: (_, index) {
+//       final cat = controller.categories[index];
+//       return ListTile(
+//         title: CustomText(
+//           cat.name ?? '',
+//           color: AppColors.mainTextColor,
+//           fontSize: SizeConfig.large,
+//           fontWeight: FontWeight.w400,
+//           fontFamily: AppConstants.OpenSans,
+//         ),
+//         trailing: (cat.root ?? false)
+//             ? PositiveCustomBtn(
+//           onTap: () {
+//             controller.breadcrumb.add(cat);
+//             Navigator.pop(context, controller.breadcrumb);
+//           },
+//           title: 'Select',
+//           width: SizeConfig.size60,
+//           height: SizeConfig.size30,
+//           bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
+//           borderColor: AppColors.primaryColor,
+//           textColor: AppColors.primaryColor,
+//           radius: 10.0,
+//         )
+//             : const Icon(Icons.arrow_forward_ios, size: 14),
+//         onTap: (cat.root ?? false) ? null : () => controller.selectCategory(cat),
+//       );
+//     },
+//   );
+// }

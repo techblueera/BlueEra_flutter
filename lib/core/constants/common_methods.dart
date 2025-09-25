@@ -492,3 +492,12 @@ Future<void> launchURL(String url) async {
     throw Exception('Could not launch $url');
   }
 }
+
+Color hexToColor(String hexString) {
+  hexString = hexString.replaceAll('#', '');
+  if (hexString.length == 6) {
+    hexString = 'FF$hexString'; // Add opacity if not present
+  }
+  return Color(int.parse(hexString, radix: 16));
+}
+

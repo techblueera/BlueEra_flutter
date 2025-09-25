@@ -9,6 +9,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/add_more_details_dialog.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -18,125 +19,206 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class Step2Section extends StatelessWidget {
+class Step2Section extends StatefulWidget {
   final ManualListingScreenController controller;
   const Step2Section({super.key, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(
-        title: 'Product feature',
+  State<Step2Section> createState() => _Step2SectionState();
+}
+
+class _Step2SectionState extends State<Step2Section> {
+  late List<TextEditingController> tempFeatureControllers;
+  late TextEditingController tempLinkController;
+  late List<Specification> tempDetailsList;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 🔹 Copy old values into local variables
+    tempFeatureControllers = widget.controller.featureControllers
+        .map((c) => TextEditingController(text: c.text))
+        .toList();
+
+    tempLinkController =
+        TextEditingController(text: widget.controller.linkController.text);
+
+    tempDetailsList = List<Specification>.from(widget.controller.detailsList);
+  }
+
+  void _restoreOldValues() {
+    widget.controller.featureControllers.clear();
+    for (final c in tempFeatureControllers) {
+      widget.controller.featureControllers.add(TextEditingController(text: c.text));
+    }
+
+    widget.controller.linkController.text = tempLinkController.text;
+
+    widget.controller.detailsList.value = List<Specification>.from(tempDetailsList);
+  }
+
+  Future<bool> _handleBackPress(BuildContext context) async {
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('Your changes will be lost if you go back.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Get.close(2),
+            child: const Text('Discard'),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-        child: Form(
-          key: controller.formKeyStep2,
-          child: Column(
-            children: [
+    );
 
-              CustomFormCard(
-                margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title Field
-                    CustomText(
-                      controller.productNameController.text,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-                    CustomText(
-                      controller.selectedBreadcrumb.value!=null
-                          ? controller.selectedBreadcrumb.value
-                          ?.map((e) => e.name.toString())
-                          .join(' - ') ?? ''
-                      : '-',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                    ),
+    if (shouldPop ?? false) {
+      _restoreOldValues();
+      return true;
+    }
+    return false;
+  }
 
-                  ],
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _handleBackPress(context);
+        if (shouldPop) {
+          Navigator.of(context).maybePop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteF3,
+        appBar: CommonBackAppBar(
+          title: 'Product feature',
+          onBackTap: () async {
+            final shouldPop = await _handleBackPress(context);
+            if (shouldPop) {
+              Navigator.of(context).maybePop();
+            }
+          },
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
+          child: Form(
+            key: widget.controller.formKeyStep2,
+            child: Column(
+              children: [
+
+                CustomFormCard(
+                  margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title Field
+                      CustomText(
+                        widget.controller.productNameController.text,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CustomText(
+                        // widget.controller.selectedBreadcrumb.value!=null
+                        //     ? widget.controller.selectedBreadcrumb.value
+                        //     ?.map((e) => e.name.toString())
+                        //     .join(' - ') ?? ''
+                        // : '-',
+                        widget.controller.selectedCategory.isNotEmpty
+                            ? widget.controller.selectedCategory.value
+                            : '-',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                      ),
+
+                    ],
+                  ),
                 ),
-              ),
 
-              SizedBox(height: SizeConfig.size12),
+                SizedBox(height: SizeConfig.size12),
 
-              _buildProductFeaturesSection(controller),
+                _buildProductFeaturesSection(widget.controller),
 
-              SizedBox(height: SizeConfig.size12),
+                SizedBox(height: SizeConfig.size12),
 
-              _buildAddOption(context),
+                _buildAddOption(context),
 
-              SizedBox(height: SizeConfig.size30),
+                SizedBox(height: SizeConfig.size30),
 
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-                child: CustomBtn(
-                  title: 'Create',
-                  onTap: controller.onNext,
-                  bgColor: AppColors.primaryColor,
-                  textColor: AppColors.white,
-                  height: SizeConfig.size40,
-                  radius: 10.0,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                  child: CustomBtn(
+                    title: 'Save',
+                    onTap: ()=> Get.back(),
+                    // onTap: widget.controller.onNext,
+                    bgColor: AppColors.primaryColor,
+                    textColor: AppColors.white,
+                    height: SizeConfig.size40,
+                    radius: 10.0,
+                  ),
                 ),
-              ),
 
 
-              // Container(
-              //   margin: EdgeInsets.all(SizeConfig.size15),
-              //   padding: EdgeInsets.all(SizeConfig.size15),
-              //   decoration: BoxDecoration(
-              //     color: AppColors.white,
-              //     borderRadius: BorderRadius.circular(10.0),
-              //     // boxShadow: [AppShadows.textFieldShadow],
-              //   ),
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       // Title Field
-              //       CustomText(
-              //         'Title',
-              //         fontSize: SizeConfig.medium,
-              //         fontWeight: FontWeight.w600,
-              //         color: AppColors.black,
-              //       ),
-              //       SizedBox(height: SizeConfig.size8),
-              //       CommonTextField(
-              //         textEditController: controller.titleController,
-              //         hintText: 'e.g. Size',
-              //         validator: controller.validateTitle,
-              //         showLabel: false,
-              //       ),
-              //
-              //       SizedBox(height: SizeConfig.size20),
-              //
-              //       // Variant Field
-              //       CustomText(
-              //         'Details',
-              //         fontSize: SizeConfig.medium,
-              //         fontWeight: FontWeight.w600,
-              //         color: AppColors.black,
-              //       ),
-              //       SizedBox(height: SizeConfig.size8),
-              //       CommonTextField(
-              //         textEditController: controller.variantController,
-              //         hintText: 'e.g. Wireless Earbuds Bo....',
-              //         validator: controller.validateVariant,
-              //         showLabel: false,
-              //       ),
-              //
-              //       SizedBox(height: SizeConfig.size16),
-              //
-              //
-              //     ],
-              //   ),
-              // ),
-            ],
+                // Container(
+                //   margin: EdgeInsets.all(SizeConfig.size15),
+                //   padding: EdgeInsets.all(SizeConfig.size15),
+                //   decoration: BoxDecoration(
+                //     color: AppColors.white,
+                //     borderRadius: BorderRadius.circular(10.0),
+                //     // boxShadow: [AppShadows.textFieldShadow],
+                //   ),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       // Title Field
+                //       CustomText(
+                //         'Title',
+                //         fontSize: SizeConfig.medium,
+                //         fontWeight: FontWeight.w600,
+                //         color: AppColors.black,
+                //       ),
+                //       SizedBox(height: SizeConfig.size8),
+                //       CommonTextField(
+                //         textEditController: controller.titleController,
+                //         hintText: 'e.g. Size',
+                //         validator: controller.validateTitle,
+                //         showLabel: false,
+                //       ),
+                //
+                //       SizedBox(height: SizeConfig.size20),
+                //
+                //       // Variant Field
+                //       CustomText(
+                //         'Details',
+                //         fontSize: SizeConfig.medium,
+                //         fontWeight: FontWeight.w600,
+                //         color: AppColors.black,
+                //       ),
+                //       SizedBox(height: SizeConfig.size8),
+                //       CommonTextField(
+                //         textEditController: controller.variantController,
+                //         hintText: 'e.g. Wireless Earbuds Bo....',
+                //         validator: controller.validateVariant,
+                //         showLabel: false,
+                //       ),
+                //
+                //       SizedBox(height: SizeConfig.size16),
+                //
+                //
+                //     ],
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ),
       ),
@@ -309,11 +391,11 @@ class Step2Section extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
       child: Column(
         children: [
-          Obx(()=> controller.detailsList.isNotEmpty ? Column(
+          Obx(()=> widget.controller.detailsList.isNotEmpty ? Column(
             children: List.generate(
-              controller.detailsList.length,
+              widget.controller.detailsList.length,
                   (index) {
-                final item = controller.detailsList[index];
+                final item = widget.controller.detailsList[index];
                 return Padding(
                   padding: EdgeInsets.only(bottom: SizeConfig.size15),
                   child: Column(
@@ -378,7 +460,7 @@ class Step2Section extends StatelessWidget {
                               right: 6,
                               top: -15,
                               child: InkWell(
-                                onTap: () => controller.removeDetail(index),
+                                onTap: () => widget.controller.removeDetail(index),
                                 child: Container(
                                   padding: EdgeInsets.all(6),
                                   alignment: Alignment.center,
@@ -439,7 +521,7 @@ class Step2Section extends StatelessWidget {
   }
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
-    if(controller.detailsList.length==5){
+    if(widget.controller.detailsList.length==5){
       commonSnackBar(message: 'You can\'t add more than five detail');
       return;
     }
@@ -453,6 +535,4 @@ class Step2Section extends StatelessWidget {
     );
 
   }
-
-
 }

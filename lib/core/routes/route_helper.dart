@@ -61,6 +61,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/sub_feature/draft_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_screen.dart';
@@ -843,11 +844,14 @@ class RouteHelper {
             settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
-        final AddProductViaAiRequest addProductViaAiRequest = args[ApiKeys.addProductViaAiRequest] as AddProductViaAiRequest;
+        final ManualListingScreenController controller = args[ApiKeys.controller] as ManualListingScreenController;
+        final AddProductViaAiController addProductViaAiController = args[ApiKeys.addProductViaAiController] as AddProductViaAiController;
         final GenerateAiProductContent generateAiProductContent = args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
 
         return MaterialPageRoute(
             builder: (_) => AddProductViaAiStep2(
+                controller: controller,
+                addProductViaAiController: addProductViaAiController,
                 generateAiProductContent: generateAiProductContent
             ),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
