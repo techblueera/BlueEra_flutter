@@ -15,6 +15,8 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
+import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_success_sheet.dart';
@@ -59,7 +61,8 @@ class FeedController extends GetxController{
       { bool isInitialLoad = false,
         bool refresh = false,
         String? id,
-        String? query
+        String? query,
+       required String? screenName,
       }) async {
     switch (type) {
       case PostType.all:
@@ -430,22 +433,22 @@ class FeedController extends GetxController{
     // Call the appropriate fetch method based on type
     switch (type) {
       case PostType.all:
-        getPostsByType(PostType.all);
+        getPostsByType(PostType.all, screenName: '');
         break;
       case PostType.myPosts:
-        getPostsByType(PostType.myPosts);
+        getPostsByType(PostType.myPosts, screenName: '');
         break;
       case PostType.otherPosts:
-        getPostsByType(PostType.otherPosts);
+        getPostsByType(PostType.otherPosts, screenName: '');
         break;
       case PostType.latest:
-        getPostsByType(PostType.latest);
+        getPostsByType(PostType.latest, screenName: '');
         break;
       case PostType.popular:
-        getPostsByType(PostType.popular);
+        getPostsByType(PostType.popular, screenName: '');
         break;
       case PostType.oldest:
-        getPostsByType(PostType.oldest);
+        getPostsByType(PostType.oldest, screenName: '');
         break;
       default:
         break;
@@ -656,7 +659,7 @@ class FeedController extends GetxController{
         blockUserResponse = ApiResponse.complete(response);
         BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
         list.removeWhere((p) {
-          return p.authorId == otherUserId;
+          return p.user?.id == otherUserId;
         });
         Get.back();
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
@@ -726,18 +729,19 @@ class FeedController extends GetxController{
 
         if (postIndex != -1) {
           final post = list[postIndex];
-          final options = post.poll?.options;
+          final options = post..poll?.options;
 
-          if (options != null && optionId >= 0 && optionId < options.length) {
-            final selectedOption = options[optionId];
-            selectedOption.votes ??= [];
+          if (options != null && optionId >= 0 && optionId < (options.poll?.options.length??0)) {
+            final selectedOption = options.poll?.options[optionId];
+            selectedOption?.votes ??= [];
 
-            if (!selectedOption.votes!.contains(currentUserId)) {
+            if (!selectedOption!.votes!.contains(currentUserId)) {
               selectedOption.votes?.add(currentUserId);
 
               // update the poll in the post
-              final updatedPoll = post.poll?.copyWith(options: List.from(options));
+              final updatedPoll = post.poll?.copyWith(options: List.from(options.poll?.options??[]));
               list[postIndex] = post.copyWith(poll: updatedPoll);
+              // list[postIndex] = post.copyWith(poll: Poll(options: options.poll?.options??[],question: post.poll?.question));
             }
           }
         }
@@ -844,4 +848,78 @@ class FeedController extends GetxController{
     }
   }
 
+
+  ///new home api call
+  Rx<ApiResponse> feedResponse = ApiResponse.initial('Initial').obs;
+
+  // RxList<Post> mixedFeed = <Post>[].obs;
+  RxString cursor = "".obs;
+  RxBool isLoadingHome = false.obs;
+  RxBool hasMoreData = true.obs;
+  final int limit = 40;
+  Future<void> getFeed({bool refresh = false}) async {
+    if (isLoadingHome.value) return;
+    if (refresh) {
+      cursor.value = "";
+      allPosts.clear();
+      hasMoreData.value = true;
+    }
+    if (!hasMoreData.value) return;
+    isLoadingHome.value = true;
+    try {
+      final timestamp = cursor.value;
+      ResponseModel responseModel =
+      await HomeFeedRepo().homeFeedRepo(queryParam: {
+        ApiKeys.limit: limit,
+        ApiKeys.refresh: refresh.toString(),
+        ApiKeys.content_types: "posts,videos,products",
+
+        if (cursor.value.isNotEmpty) ApiKeys.cursor: timestamp,
+      });
+      if (responseModel.isSuccess) {
+        final homeFeedResponse =
+        HomeFeedResponse.fromJson(responseModel.response?.data);
+
+        if (homeFeedResponse.feed.isNotEmpty) {
+          // mixedFeed.addAll(homeFeedResponse.feed);
+          allPosts.addAll(homeFeedResponse.feed);
+          // for (var item in homeFeedResponse.feed) {
+          //
+          //   // Add to mixed feed for YouTube-style repeating pattern
+          //   mixedFeed.add(postData);
+          // }
+
+          // Update cursor for next pagination
+          if (homeFeedResponse.feed.isNotEmpty) {
+            cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
+          }
+
+          // Check if there's more data to load
+          if (homeFeedResponse.feed.length < limit) {
+            hasMoreData.value = false;
+          }
+
+          feedResponse.value = ApiResponse.complete(homeFeedResponse);
+        } else {
+          hasMoreData.value = false;
+          feedResponse.value = ApiResponse.complete(homeFeedResponse);
+        }
+      } else {
+        feedResponse.value = ApiResponse.error('Failed to load feed');
+      }
+    } catch (e) {
+      feedResponse.value = ApiResponse.error(e.toString());
+    } finally {
+      isLoadingHome.value = false;
+    }
+  }
+
+  void handleScrollToBottomNew() {
+    logs("SCROLL == 1");
+    if (!isLoadingHome.value && hasMoreData.value) {
+      logs("SCROLL == 2");
+
+      getFeed();
+    }
+  }
 }

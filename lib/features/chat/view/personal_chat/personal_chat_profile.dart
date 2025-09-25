@@ -1515,9 +1515,9 @@ class _PersonalChatProfileState extends State<PersonalChatProfile> {
                               width: Get.width * 0.9,
                               child: feedType == FeedType.qaPost
                                   ? FeedPollOptionsWidget(
-                                question: data.poll?.question ?? "",
+                                question: data.quesOptions ?? "",
                                 postId: data.id,
-                                poll: data.poll,
+                                poll: Poll(options: data.poll?.options??[],question: data.poll?.question),
                                 postFilteredType: PostType.latest,
                                 postedAgo: timeAgo(
                                   data.createdAt ?? DateTime.now(),

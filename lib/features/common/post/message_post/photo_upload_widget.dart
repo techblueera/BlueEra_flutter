@@ -172,11 +172,11 @@ class PhotoUploadWidget extends StatelessWidget {
                         ),
 
                         // --- Crop button ---------------------------
-                        Positioned(
-                          bottom: 6,
-                          right: 6,
-                          child: _photoPhotoPopUpMenu(index),
-                        ),
+                        // Positioned(
+                        //   bottom: 6,
+                        //   right: 6,
+                        //   child: _photoPhotoPopUpMenu(index),
+                        // ),
                       ],
                     ),
                   );

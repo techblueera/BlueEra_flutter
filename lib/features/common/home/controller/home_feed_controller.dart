@@ -44,41 +44,9 @@ class HomeFeedController extends GetxController {
 
         if (homeFeedResponse.feed.isNotEmpty) {
           for (var item in homeFeedResponse.feed) {
-            Post postData = Post(
-              id: item.id,
-              type: item.type,
-              authorId: item.author.id,
-              title: item.title,
-              subTitle: item.subTitle,
-              media: item.content?.images ?? [],
-              message: item.content?.text ?? item.description,
-              videoUrl: item.videoUrl,
-              thumbnail: item.thumbnail,
-              duration: item.duration,
-              channel: item.channel,
-              isLiked: item.is_post_liked,
-              likesCount: int.parse(item.stats?.likes.toString() ?? "0"),
-              commentsCount: int.parse(item.stats?.comments.toString() ?? "0"),
-              repostCount: int.parse(item.stats?.shares.toString() ?? "0"),
-              viewsCount: int.parse(item.stats?.views.toString() ?? "0"),
-              createdAt: item.createdAt,
-              taggedUsers: item.taggedUsers,
-              quesOptions: item.question,
-              user: User(
-                id: item.author.id,
-                name: item.author.name,
-                accountType: item.author.accountType,
-                profileImage: item.author.avatar,
-                business_id: item.author.id,
-                businessName: item.author.businessName,
-                designation: item.author.designation,
-                username: item.author.username,
-                categoryOfBusiness: item.author.businessCategory,
-              ),
-            );
 
             // Add to mixed feed for YouTube-style repeating pattern
-            mixedFeed.add(postData);
+            mixedFeed.add(item);
           }
 
           // Update cursor for next pagination

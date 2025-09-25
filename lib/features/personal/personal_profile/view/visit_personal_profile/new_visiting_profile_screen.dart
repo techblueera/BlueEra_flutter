@@ -82,7 +82,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         feedController.getPostsByType(
           PostType.otherPosts,
           isInitialLoad: false,
-          id: widget.authorId,
+          id: widget.authorId, screenName: '',
         );
       }
     }

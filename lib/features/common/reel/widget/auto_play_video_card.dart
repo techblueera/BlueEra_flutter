@@ -57,7 +57,9 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
 
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
-      widget.videoItem.video?.transcodedUrls?.master ?? widget.videoItem.video?.videoUrl ?? '',
+      widget.videoItem.video?.transcodedUrls?.master ??
+          widget.videoItem.video?.videoUrl ??
+          '',
       info.visibleFraction,
     );
   }
@@ -73,8 +75,8 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
         key: ValueKey(widget.videoItem.videoId),
         onVisibilityChanged: _handleVisibilityChange,
         child: Obx(() {
-          final isCurrent =
-              videoManager.currentIndex.value == widget.videoItem.videoId.hashCode;
+          final isCurrent = videoManager.currentIndex.value ==
+              widget.videoItem.videoId.hashCode;
           final controller = videoManager.controller;
           final isScrolling = videoManager.isScrolling.value;
 
@@ -85,36 +87,46 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
               AspectRatio(
                 aspectRatio: 16 / 9,
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                  child: isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(8)),
+                  child: widget.videoItem.video?.coverUrl !=null&&isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
                       ? CachedNetworkImage(
-                    imageUrl: widget.videoItem.video?.coverUrl ?? '',
+                          imageUrl: widget.videoItem.video?.coverUrl ?? '',
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size170,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            width: SizeConfig.screenWidth,
+                            height: SizeConfig.size140,
+                            color: Colors.grey[300],
+                            child: const Center(
+                                child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            width: SizeConfig.screenWidth,
+                            height: SizeConfig.size140,
+                            color: Colors.grey[300],
+                            child:
+                                LocalAssets(imagePath: AppIconAssets.appIcon),
+                          ),
+                        )
+                      : widget.videoItem.video?.coverUrl!=null?Image.file(
+                          File(widget.videoItem.video?.coverUrl ?? ''),
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size170,
+                          fit: BoxFit.cover,
+                        ):Container(
                     width: SizeConfig.screenWidth,
-                    height: SizeConfig.size170,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                      width: SizeConfig.screenWidth,
-                      height: SizeConfig.size140,
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (_, __, ___) => Container(
-                      width: SizeConfig.screenWidth,
-                      height: SizeConfig.size140,
-                      color: Colors.grey[300],
-                      child: LocalAssets(imagePath: AppIconAssets.appIcon),
-                    ),
-                  )
-                      : Image.file(
-                    File(widget.videoItem.video?.coverUrl ?? ''),
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.size170,
-                    fit: BoxFit.cover,
+                    height: SizeConfig.size140,
+                    color: Colors.grey[300],
+                    child: LocalAssets(imagePath: AppIconAssets.blue_era_app_logo),
                   ),
                 ),
               ),
               // Video
-              if (isCurrent && controller != null && controller.value.isInitialized)
+              if (isCurrent &&
+                  controller != null &&
+                  controller.value.isInitialized)
                 VideoPlayer(controller),
 
               // Loading overlay
@@ -158,38 +170,39 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                   totalVideoDuration: formatDuration(
                     Duration(seconds: widget.videoItem.video?.duration ?? 0),
                   ),
-                  totalLikes: widget.videoItem.video?.stats?.likes.toString() ?? '0',
+                  totalLikes:
+                      widget.videoItem.video?.stats?.likes.toString() ?? '0',
                 ),
               ),
 
               // Change Thumbnail button
-              if ((widget.videoItem.channel?.id != null && widget.videoItem.channel?.id == channelId) ||
-                  (widget.videoItem.author?.accountType == AppConstants.individual && widget.videoItem.author?.id == userId))
-
-              Positioned(
-                left: SizeConfig.size10,
-                top: SizeConfig.size12,
-                child: InkWell(
-                  onTap: () => _pickImageFromGallery(context),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.size6,
-                      horizontal: SizeConfig.size8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.blackCC,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: CustomText(
-                      "Change Thumbnail",
-                      color: AppColors.white,
-                      fontSize: SizeConfig.small,
+              if ((widget.videoItem.channel?.id != null &&
+                      widget.videoItem.channel?.id == channelId) ||
+                  (widget.videoItem.author?.accountType ==
+                          AppConstants.individual &&
+                      widget.videoItem.author?.id == userId))
+                Positioned(
+                  left: SizeConfig.size10,
+                  top: SizeConfig.size12,
+                  child: InkWell(
+                    onTap: () => _pickImageFromGallery(context),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size6,
+                        horizontal: SizeConfig.size8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.blackCC,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: CustomText(
+                        "Change Thumbnail",
+                        color: AppColors.white,
+                        fontSize: SizeConfig.small,
+                      ),
                     ),
                   ),
                 ),
-              ),
-
-
             ],
           );
         }),
@@ -227,8 +240,4 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
       );
     }
   }
-
 }
-
-
-

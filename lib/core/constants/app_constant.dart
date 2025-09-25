@@ -188,6 +188,15 @@ String formatIndianNumber(num number) {
 }
 
 String formatNumberLikePost(int number) {
+  if (number >= 10000000) {
+    return '${(number / 10000000).toStringAsFixed((number % 10000000 == 0) ? 0 : 1)}M';
+  } else if (number >= 100000) {
+    return '${(number / 100000).toStringAsFixed((number % 100000 == 0) ? 0 : 1)}L';
+  } else if (number >= 1000) {
+    return '${(number / 1000).toStringAsFixed((number % 1000 == 0) ? 0 : 1)}k';
+  } else {
+    return number.toString();
+  }
   if (number >= 1000000) {
     return "${(number / 1000000).toStringAsFixed(1)}M";
   } else if (number >= 1000) {

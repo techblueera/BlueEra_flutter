@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/home_feed_screen.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
@@ -259,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         // return HomeFeedScreen();
         return FeedScreen(
+        // return HomeFeedScreenNew(
             key: ValueKey('feedScreen_all'),
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
             postFilterType: PostType.all,

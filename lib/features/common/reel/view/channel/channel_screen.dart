@@ -199,7 +199,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
             feedController.getPostsByType(
               postType,
               isInitialLoad: false,
-              id: widget.authorId,
+              id: widget.authorId, screenName: '',
             );
           }
           break;

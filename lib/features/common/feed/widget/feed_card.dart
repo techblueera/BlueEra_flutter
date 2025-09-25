@@ -99,10 +99,10 @@ class _FeedCardState extends State<FeedCard> {
           post: _post,
           authorSection: () => PostAuthorHeader(
               post: _post,
-              authorId: _post?.authorId ?? '0',
+              authorId: _post?.user?.id ?? '0',
               postType: widget.postFilteredType,
               onTapAvatar: _shouldShowProfileNavigation()
-                  ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
+                  ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
                   : null,
              ),
           commentView:()=> _onCommentPressed(),
@@ -133,7 +133,7 @@ class _FeedCardState extends State<FeedCard> {
           post: _post,
 
           postId: _post?.id ?? "0",
-          poll: _post?.poll,
+          poll: Poll(options: _post?.poll?.options??[],question: _post?.poll?.question),
           authorId: _post?.id,
           natureOfPost: _post?.natureOfPost,
           message: _post?.subTitle ?? "",
@@ -145,10 +145,10 @@ class _FeedCardState extends State<FeedCard> {
           referenceLink: _post?.referenceLink ?? '',
           authorSection: () => PostAuthorHeader(
             post: _post,
-            authorId: _post?.authorId ?? '0',
+            authorId: _post?.user?.id ?? '0',
             postType: widget.postFilteredType,
             onTapAvatar: _shouldShowProfileNavigation()
-                ? () => _navigateToProfile(authorId: _post?.authorId ?? '0')
+                ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
                 : null,
             postedAgo: timeAgo(
                 _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),

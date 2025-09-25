@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 class HomeFeedResponse {
   final bool success;
-  final List<FeedItem> feed;
+  final List<Post> feed;
   final MetaData? metaData;
 
   HomeFeedResponse({
@@ -16,7 +16,7 @@ class HomeFeedResponse {
     return HomeFeedResponse(
       success: json['success'] ?? false,
       feed:
-          (json['feed'] as List?)?.map((e) => FeedItem.fromJson(e)).toList() ??
+          (json['data'] as List?)?.map((e) => Post.fromJson(e)).toList() ??
               [],
       metaData: json['meta'] != null ? MetaData.fromJson(json['meta']) : null,
     );
@@ -25,7 +25,7 @@ class HomeFeedResponse {
   Map<String, dynamic> toJson() {
     return {
       'success': success,
-      'feed': feed.map((e) => e.toJson()).toList(),
+      'data': feed.map((e) => e.toJson()).toList(),
       'meta': metaData?.toJson(),
     };
   }
@@ -45,241 +45,6 @@ class MetaData {
   Map<String, dynamic> toJson() {
     return {
       'next_cursor': next_cursor,
-    };
-  }
-}
-
-class FeedItem {
-  final String id;
-  final String type; // post, long_video, short_video
-  final String? title;
-  final String? description;
-  final String? videoUrl;
-  final String? thumbnail;
-  final int? duration;
-  final int? total_votes;
-  final dynamic channel;
-  final Stats? stats;
-  final DateTime? createdAt;
-  final List<String>? tags;
-  final List<String>? categories;
-  final dynamic location;
-  final Author author;
-  final Content? content;
-  final String? subTitle;
-  final String? natureOfPost;
-  final String? question;
-  final List<User>? taggedUsers;
-  final dynamic song;
-  final bool? is_post_liked;
-  final bool? user_has_voted;
-  // final List<PollOption>? options;
-
-  FeedItem({
-    required this.id,
-    required this.type,
-    this.title,
-    this.description,
-    this.videoUrl,
-    this.total_votes,
-    this.thumbnail,
-    this.duration,
-    this.channel,
-    this.stats,
-    this.createdAt,
-    this.tags,
-    this.categories,
-    this.location,
-    required this.author,
-    this.content,
-    this.subTitle,
-    this.natureOfPost,
-    this.taggedUsers,
-    this.song,
-    this.is_post_liked,
-    this.question,
-    this.user_has_voted,
-    // this.options,
-
-  });
-
-  factory FeedItem.fromJson(Map<String, dynamic> json) {
-    return FeedItem(
-      id: json['id'] ?? '',
-      type: json['type'] ?? '',
-      title: json['title'],
-      description: json['description'],
-      videoUrl: json['video_url']?.toString().trim(),
-      thumbnail: json['thumbnail']?.toString().trim(),
-      duration: json['duration'],
-      channel: json['channel'],
-      total_votes: json['total_votes'],
-      stats: json['stats'] != null ? Stats.fromJson(json['stats']) : null,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
-      tags: (json['tags'] as List?)?.map((e) => e.toString()).toList(),
-      categories:
-          (json['categories'] as List?)?.map((e) => e.toString()).toList(),
-      location: json['location'],
-      author: Author.fromJson(json['author'] ?? {}),
-      content:
-          json['content'] != null ? Content.fromJson(json['content']) : null,
-      subTitle: json['sub_title'],
-      natureOfPost: json['nature_of_post'],
-      song: json['song'],
-      is_post_liked: json['is_post_liked'],
-      user_has_voted: json['user_has_voted'],
-      question: json['question'],
-      taggedUsers:
-      (json['tagged_users'] as List<dynamic>?)?.map((e) => User.fromJson(e as Map<String, dynamic>)).toList(),
-      // options: (json['options'] as List?)
-      //     ?.map((e) => PollOption.fromJson(e))
-      //     .toList() ??
-      //     [],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'total_votes': total_votes,
-      'title': title,
-      'description': description,
-      'video_url': videoUrl,
-      'thumbnail': thumbnail,
-      'duration': duration,
-      'channel': channel,
-      'stats': stats?.toJson(),
-      'created_at': createdAt?.toIso8601String(),
-      'tags': tags,
-      'categories': categories,
-      'location': location,
-      'author': author.toJson(),
-      'content': content?.toJson(),
-      'sub_title': subTitle,
-      'nature_of_post': natureOfPost,
-      'song': song,
-      'is_post_liked': is_post_liked,
-      'question': question,
-      'user_has_voted': user_has_voted,
-      'tagged_users': taggedUsers?.map((e) => e.toJson()).toList(),
-      // 'options': options?.map((e) => e.toJson()).toList(),
-
-    };
-  }
-}
-
-class Stats {
-  final dynamic views;
-  final dynamic likes;
-  final dynamic comments;
-  final dynamic shares;
-
-  Stats({
-    this.views,
-    this.likes,
-    this.comments,
-    this.shares,
-  });
-
-  factory Stats.fromJson(Map<String, dynamic> json) {
-    return Stats(
-      views: json['views'],
-      likes: json['likes'],
-      comments: json['comments'],
-      shares: json['shares'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'views': views,
-      'likes': likes,
-      'comments': comments,
-      'shares': shares,
-    };
-  }
-}
-
-class Author {
-  final String id;
-  final String name;
-  final String username;
-  final String avatar;
-  final bool verified;
-  final String accountType;
-  final String? designation;
-  final String? location;
-  final String? businessName;
-  final String? businessCategory;
-
-  Author({
-    required this.id,
-    required this.name,
-    required this.username,
-    required this.avatar,
-    required this.verified,
-    required this.accountType,
-    this.designation,
-    this.location,
-    this.businessName,
-    this.businessCategory,
-  });
-
-  factory Author.fromJson(Map<String, dynamic> json) {
-    return Author(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      username: json['username'] ?? '',
-      avatar: json['avatar']?.toString().trim() ?? '',
-      verified: json['verified_'] ?? false,
-      accountType: json['account_type'] ?? '',
-      designation: json['designation'],
-      location: json['location'],
-      businessName: json['business_name'],
-      businessCategory: json['business_category'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'username': username,
-      'avatar': avatar,
-      'verified': verified,
-      'account_type': accountType,
-      'designation': designation,
-      'location': location,
-      'business_name': businessName,
-      'business_category': businessCategory,
-    };
-  }
-}
-
-class Content {
-  final String? text;
-  final List<String>? images;
-
-  Content({
-    this.text,
-    this.images,
-  });
-
-  factory Content.fromJson(Map<String, dynamic> json) {
-    return Content(
-      text: json['text'],
-      images:
-          (json['images'] as List?)?.map((e) => e.toString().trim()).toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'text': text,
-      'images': images,
     };
   }
 }

@@ -362,4 +362,5 @@ class ApiKeys {
   static const generateAiProductContent = "GenerateAiProductContent";
   static const addProductViaAiRequest = "addProductViaAiRequest";
   static const cursor  = "cursor";
+  static const content_types  = "content_types";
 }

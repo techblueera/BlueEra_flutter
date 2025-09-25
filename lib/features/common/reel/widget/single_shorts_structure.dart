@@ -103,36 +103,43 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
               child: Stack(children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(widget.borderRadius ?? 0),
-                  child: isNetworkImage(thumbnail)
-                      ? CachedNetworkImage(
-                          width: double.infinity,
-                          height: double.infinity,
-                          // height: widget.imageHeight ?? SizeConfig.size220,
-                          fit: BoxFit.cover,
-                          imageUrl: thumbnail,
-                          errorWidget: (context, url, error) => Container(
-                            decoration: BoxDecoration(
-                              border:
-                                  Border.all(color: AppColors.white, width: 1),
-                              borderRadius: BorderRadius.circular(
-                                  widget.borderRadius ?? 8.0),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                  widget.borderRadius ?? 8.0),
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.blueEraIcon,
-                                boxFix: BoxFit.cover,
-                              ),
-                            ),
-                          ),
+                  child: thumbnail.isEmpty
+                      ? Container(
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size140,
+                          color: Colors.grey[300],
+                          child: LocalAssets(imagePath: AppIconAssets.appIcon),
                         )
-                      : Image.file(
-                          File(shortItem?.video?.coverUrl ?? ''),
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                      : isNetworkImage(thumbnail)
+                          ? CachedNetworkImage(
+                              width: double.infinity,
+                              height: double.infinity,
+                              // height: widget.imageHeight ?? SizeConfig.size220,
+                              fit: BoxFit.cover,
+                              imageUrl: thumbnail,
+                              errorWidget: (context, url, error) => Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: AppColors.white, width: 1),
+                                  borderRadius: BorderRadius.circular(
+                                      widget.borderRadius ?? 8.0),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      widget.borderRadius ?? 8.0),
+                                  child: LocalAssets(
+                                    imagePath: AppIconAssets.appIcon,
+                                    boxFix: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Image.file(
+                              File(shortItem?.video?.coverUrl ?? ''),
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                 ),
 
                 // total views
@@ -158,8 +165,9 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                           ],
                           CustomText(
                             (widget.withBackground)
-                                ? "${shortItem?.video?.stats?.views}"
-                                : "${shortItem?.video?.stats?.views} Views",
+                                ? formatNumberLikePost(
+                                    shortItem?.video?.stats?.views ?? 0)
+                                : "${formatNumberLikePost(shortItem?.video?.stats?.views ?? 0)} Views",
                             color: AppColors.white,
                             fontSize: SizeConfig.size13,
                             fontWeight: FontWeight.w500,
