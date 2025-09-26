@@ -15,6 +15,46 @@ class LocalStorageHelper {
 
   LocalStorageHelper._internal();
 
+  Future<void> putConversation(String newMessage) async {
+    final box = await Hive.openBox<String>('conversationBox');
+
+    // Get existing list from Hive
+    final jsonString = box.get('openedConversationList');
+    List<String> conversationList = [];
+
+    if (jsonString != null && jsonString.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(jsonString) as List<dynamic>;
+        conversationList = decoded.cast<String>();
+      } catch (e) {
+        print("Error decoding openedConversationList: $e");
+      }
+    }
+
+    // Append new message
+    conversationList.add(newMessage);
+
+    // Save back to Hive
+    await box.put('openedConversationList', jsonEncode(conversationList));
+  }
+
+
+
+  Future<List<String>> getConversation() async {
+    final box = await Hive.openBox<String>('conversationBox');
+    final jsonString = box.get('openedConversationList');
+
+    if (jsonString == null || jsonString.isEmpty) return [];
+
+    try {
+      final decoded = jsonDecode(jsonString) as List<dynamic>;
+      return decoded.cast<String>();
+    } catch (e) {
+      print("Error decoding openedConversationList: $e");
+      return [];
+    }
+  }
+
   Future<String> _downloadAndSaveImage(String imageUrl, String userId) async {
     try {
       if (userId.trim().isEmpty) {

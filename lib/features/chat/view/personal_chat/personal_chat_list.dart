@@ -31,8 +31,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
-      print("response data : ${chatViewController.personalChatListResponse.value.status ==
-          Status.COMPLETE}");
+
       if (chatViewController.personalChatListResponse.value.status ==
           Status.COMPLETE) {
         GetChatListModel? data =
