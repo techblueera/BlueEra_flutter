@@ -97,6 +97,7 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<BusinessType>? selectedBusinessType = BusinessType.Both.obs;
   RxString? imagePath = "".obs;
   RxString conversationId = "".obs;
+  RxString? otherUserId = "".obs;
   RxInt? selectDay = 0.obs, selectMonth = 0.obs, selectYear = 0.obs;
   RxBool isImageUpdated = false.obs;
   Rx<CategoryData?> selectedCategoryOfBusiness = Rx<CategoryData?>(null);
@@ -180,7 +181,6 @@ class ViewBusinessDetailsController extends GetxController {
                     : businessProfileDetails?.data?.typeOfBusiness == "Food"
                         ? BusinessType.Food
                         : BusinessType.Both;
-logs("businessProfileDetails?.data?.typeOfBusiness==== ${businessProfileDetails?.data?.typeOfBusiness}");
         if (businessProfileDetails?.data?.typeOfBusiness ==
             BusinessType.Product.name) {
           selectedTypeOfBusiness.value =  BusinessCategory(
@@ -444,19 +444,18 @@ logs("businessProfileDetails?.data?.typeOfBusiness==== ${businessProfileDetails?
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
         };
-        chatViewController.checkChatConnection(detas);
+        bool checkCompleted=await chatViewController.checkChatConnection(detas);
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
-        conversationId.value = ((chatViewController
-                        .newVisitContactApiResponse?.value?.data?.otherUserId ==
-                    null)
-                ? chatViewController
-                    .newVisitContactApiResponse?.value?.data?.conversationId
-                : chatViewController
-                    .newVisitContactApiResponse?.value?.data?.otherUserId) ??
-            '';
-        viewBusinessResponseNew = ApiResponse.complete(responseModel);
+
+        conversationId.value =chatViewController
+            .newVisitContactApiResponse?.value?.data?.conversationId??'';
+        otherUserId?.value = chatViewController
+            .newVisitContactApiResponse?.value?.data?.otherUserId??'';
+        if(checkCompleted){
+          viewBusinessResponseNew = ApiResponse.complete(responseModel);
+        }
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
         distanceFromKm.value = await getDistanceInKm(

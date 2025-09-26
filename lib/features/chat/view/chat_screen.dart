@@ -119,6 +119,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
             Column(
               children: [
                 Padding(
+                  
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   child: Row(

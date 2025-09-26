@@ -23,14 +23,21 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   final chatViewController = Get.find<ChatViewController>();
   final groupChatViewController = Get.find<GroupChatViewController>();
 
+@override
+  void initState() {
+    // TODO: implement initState
+    if(chatViewController.canPopBusiness.value){
+      chatViewController.canPopBusiness.value=false;
+    }
 
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
       if (chatViewController.businessChatListResponse.value.status == Status.COMPLETE) {
         GetChatListModel? data = chatViewController.getBusinessChatListModel?.value;
-
         return RefreshIndicator(
           onRefresh: () async{
             chatViewController.emitEvent("ChatList", {

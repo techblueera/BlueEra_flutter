@@ -98,14 +98,14 @@ class _ContactsPageState extends State<ContactsPage> {
   Future<void> _loadContactsFromStorage() async {
     String? storedData = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.saved_contacts);
-    if (storedData != null) {
-      // decode in background
-      Map<String, dynamic> decoded =
-      await compute(jsonDecode, storedData) as Map<String, dynamic>;
-      chatViewController.loadContactsFromLocalStorage(decoded);
-    } else {
+    // if (storedData != null) {
+    //   // decode in background
+    //   Map<String, dynamic> decoded =
+    //   await compute(jsonDecode, storedData) as Map<String, dynamic>;
+    //   chatViewController.loadContactsFromLocalStorage(decoded);
+    // } else {
       await _refreshContacts();
-    }
+    // }
   }
 // This is the isolate function → runs in background
   List<Map<String, String>> formatContactsInIsolate(
@@ -487,10 +487,14 @@ class _ExistingContactTile extends StatelessWidget {
         )
             : null,
       ),
-      title: Text(name.isNotEmpty ? name : phone,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text( name.isNotEmpty ? name : phone,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,),
       subtitle: name.isNotEmpty
-          ? Text(
+          ? CustomText(
         (contact?.accountType == "INDIVIDUAL")
             ? (contact?.designation?.isNotEmpty ?? false)
             ? contact!.designation!
@@ -528,13 +532,18 @@ class _NonExistingContactTile extends StatelessWidget {
           color: theme.colorScheme.surface,
         ),
       ),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(name.isNotEmpty ? name : phone,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,),
       subtitle: Text(phone),
       trailing: TextButton(
         onPressed: () =>
             VisitingCardHelper.buildAndShareVisitingCard(context),
-        child: const Text("Invite",
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        child: const CustomText("Invite",
+            fontWeight: FontWeight.w600),
       ),
     );
   }
