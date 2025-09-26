@@ -25,8 +25,9 @@ class QaPostWidget extends StatefulWidget {
   final Widget Function() buildActions;
   final PostType postFilteredType;
   final Post? post;
+  final double? bottomPadding;
 
-  final VoidCallback  commentView;
+  final VoidCallback commentView;
 
   const QaPostWidget({
     super.key,
@@ -40,7 +41,10 @@ class QaPostWidget extends StatefulWidget {
     required this.referenceLink,
     required this.authorSection,
     required this.buildActions,
-    required this.postFilteredType, this.post, required this.commentView,
+    required this.postFilteredType,
+    this.post,
+    required this.commentView,
+    this.bottomPadding,
   });
 
   @override
@@ -51,26 +55,33 @@ class _QaPostWidgetState extends State<QaPostWidget> {
   @override
   Widget build(BuildContext context) {
     return FeedCardWidget(
-      horizontalPadding:0 ,
-
+      horizontalPadding: 0,
+      bottomPadding: widget.bottomPadding,
       childWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: SizeConfig.size8, bottom: SizeConfig.size5,right: SizeConfig.size10),
+            padding: EdgeInsets.only(
+                top: SizeConfig.size8,
+                bottom: SizeConfig.size5,
+                right: SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 widget.authorSection(),
-                SizedBox(height: SizeConfig.size5,),
-
+                SizedBox(
+                  height: SizeConfig.size5,
+                ),
                 _buildPollOptions(),
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
                 Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.size5,bottom: SizeConfig.size5,left: SizeConfig.size32,right: SizeConfig.size5),
+                  padding: EdgeInsets.only(
+                      top: SizeConfig.size5,
+                      bottom: SizeConfig.size5,
+                      left: SizeConfig.size32,
+                      right: SizeConfig.size5),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     // mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -80,19 +91,22 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                           data: widget.postedAgo),
                       ViewFeedActionWidget(
                         iconPath: AppIconAssets.eye_new,
-                        data: formatNumberLikePost(widget.post?.viewsCount ?? 0),
+                        data:
+                            formatNumberLikePost(widget.post?.viewsCount ?? 0),
                       ),
-                      InkWell(onTap: (){
-                        if (isGuestUser()) {
-                          createProfileScreen();
-                        } else {
-                          widget.commentView();
-                        }
-                      },child:   ViewFeedActionWidget(
-                          iconPath: AppIconAssets.comment_new,
-                          data:
-                          formatNumberLikePost(widget.post?.commentsCount ?? 0)),),
-
+                      InkWell(
+                        onTap: () {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+                          } else {
+                            widget.commentView();
+                          }
+                        },
+                        child: ViewFeedActionWidget(
+                            iconPath: AppIconAssets.comment_new,
+                            data: formatNumberLikePost(
+                                widget.post?.commentsCount ?? 0)),
+                      ),
                       InkWell(
                         onTap: () {
                           if ((widget.post?.likesCount ?? 0) < 1) {
@@ -108,22 +122,25 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                         },
                         child: ViewFeedActionWidget(
                             iconPath: AppIconAssets.like_new,
-                            data:
-                            formatNumberLikePost(widget.post?.likesCount ?? 0)),
+                            data: formatNumberLikePost(
+                                widget.post?.likesCount ?? 0)),
                       ),
                       ViewFeedActionWidget(
                           iconPath: AppIconAssets.repost_new,
-                          data: formatNumberLikePost(widget.post?.repostCount ?? 0)),
+                          data: formatNumberLikePost(
+                              widget.post?.repostCount ?? 0)),
                     ],
                   ),
                 ),
-
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
-
                 Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.size5,bottom: SizeConfig.size5,left: SizeConfig.size20,right: SizeConfig.size5),
+                  padding: EdgeInsets.only(
+                      top: SizeConfig.size5,
+                      bottom: SizeConfig.size5,
+                      left: SizeConfig.size20,
+                      right: SizeConfig.size5),
                   child: widget.buildActions(),
                 ),
                 SizedBox(
@@ -140,23 +157,24 @@ class _QaPostWidgetState extends State<QaPostWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: SizeConfig.size8, bottom: SizeConfig.size5),
+            padding: EdgeInsets.only(
+                top: SizeConfig.size8, bottom: SizeConfig.size5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 widget.authorSection(),
-
                 _buildPollOptions(),
-
                 Padding(
-                  padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15, top: SizeConfig.size15,bottom: 0),
+                  padding: EdgeInsets.only(
+                      left: SizeConfig.size15,
+                      right: SizeConfig.size15,
+                      top: SizeConfig.size15,
+                      bottom: 0),
                   child: CommonHorizontalDivider(
                     color: AppColors.secondaryTextColor,
                     height: 0.5,
                   ),
                 ),
-
                 widget.buildActions(),
               ],
             ),
@@ -176,5 +194,4 @@ class _QaPostWidgetState extends State<QaPostWidget> {
       message: widget.message,
     );
   }
-
 }

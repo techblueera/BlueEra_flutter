@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/home_feed_screen.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
@@ -48,14 +49,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _headerKey = GlobalKey();
   double _headerHeight = 0;
-  final List<String> postTab = ["All Posts", "Videos", "Shorts", "Saved", "My Cards"];
+  final List<String> postTab = [
+    "All Posts",
+    "Videos",
+    "Shorts",
+    "Saved",
+    "My Cards"
+  ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
   List<SavedFeedTab> filters = SavedFeedTab.values.toList();
   late SavedFeedTab _selectedSavedTab;
   final HomeScreenController homeScreenController =
       Get.put(HomeScreenController());
-  final MoreCardsScreenController moreCardsScreenController = Get.put(MoreCardsScreenController());
+  final MoreCardsScreenController moreCardsScreenController =
+      Get.put(MoreCardsScreenController());
 
   @override
   void initState() {
@@ -67,9 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateHeaderHeight();
-       checkAndShowGreetingDialog(context);
+      checkAndShowGreetingDialog(context);
     });
-
   }
 
   Future<void> getPackageData() async {
@@ -117,29 +124,30 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> checkAndShowGreetingDialog(BuildContext context) async {
+  checkAndShowGreetingDialog(BuildContext context) async {
     final result = await canCallCardApi();
     final canCall = result.canCall;
     final today = result.today;
-    log('can call-- $canCall');
 
     if (canCall) {
       try {
-        await moreCardsScreenController.getCardCategoriesSortedByDate(todayDate: today);
+        await moreCardsScreenController.getCardCategoriesSortedByDate(
+            todayDate: today);
 
         await saveApiCallDate();
 
-        final List<Cards> cards = moreCardsScreenController.dayCards;
-        log('length of card--> ${cards.length}');
-
-        if (cards.isNotEmpty) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return GreetingCardDialog(cards: cards);
-            },
-          );
-        }
+        // final List<Cards> cards = moreCardsScreenController.dayCards;
+        //
+        // if (cards.isNotEmpty) {
+        //   return GreetingCardDialog(cards: cards);
+        //
+        //   // showDialog(
+        //   //   context: context,
+        //   //   builder: (BuildContext context) {
+        //   //     return GreetingCardDialog(cards: cards);
+        //   //   },
+        //   // );
+        // }
       } catch (e) {
         print("API error: $e");
       }
@@ -193,7 +201,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
@@ -204,9 +211,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
                   padding: EdgeInsets.only(
-                    top: (selectedIndex == 3
-                            ?  _headerHeight* (1 - homeScreenController.headerOffset.value) + SizeConfig.size30
-                            : _headerHeight * (1 - homeScreenController.headerOffset.value))),
+                      top: (selectedIndex == 3
+                          ? _headerHeight *
+                                  (1 -
+                                      homeScreenController.headerOffset.value) +
+                              SizeConfig.size30
+                          : _headerHeight *
+                              (1 - homeScreenController.headerOffset.value))),
                   child: _buildSelectedTabContent(),
                 ),
 
@@ -225,7 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildCustomAppBar(),
                         SizedBox(height: SizeConfig.size15),
-
                         HorizontalTabSelector(
                           tabs: postTab,
                           selectedIndex: selectedIndex,
@@ -258,12 +268,15 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (selectedIndex) {
       case 0:
         // return HomeFeedScreen();
-        return FeedScreen(
+        // return FeedScreen(
+        return HomeFeedScreenNew(
             key: ValueKey('feedScreen_all'),
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
             postFilterType: PostType.all,
-            query: searchController.text.isEmpty ? null : searchController.text,
-            headerHeight: _headerHeight);
+            query: searchController.text.isEmpty
+                ? null
+                : searchController.text,
+            headerHeight: _headerHeight,isInParentScroll: true,);
       case 1:
         return VideoFeedScreen(
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
@@ -274,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
             query: searchController.text, headerHeight: _headerHeight
             // You can add _toggleAppBarAndBottomNav later if needed
             );
-    
+
       case 3:
         return SavedFeedScreen(
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
@@ -283,9 +296,9 @@ class _HomeScreenState extends State<HomeScreen> {
             headerHeight: _headerHeight + SizeConfig.size30);
       case 4:
         return MoreCardsScreen(
-            isFromHomeScreen: true,
-            headerHeight: _headerHeight,
-            onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+          isFromHomeScreen: true,
+          headerHeight: _headerHeight,
+          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
         );
 
       default:

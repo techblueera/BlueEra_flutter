@@ -136,7 +136,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
     // final permission = await _handleLocationPermission();
     // if (!permission) return;
 
-    final locationData = await LocationService.fetchLocation(context, isPermissionRequired: false);
+    final locationData = await LocationService.fetchLocation( isPermissionRequired: false);
     if (locationData != null) {
       final position = locationData["position"];
       final address = locationData["address"];

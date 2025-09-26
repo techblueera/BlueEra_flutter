@@ -5,16 +5,18 @@ import 'package:flutter/material.dart';
 
 class FeedCardWidget extends StatelessWidget {
   const FeedCardWidget(
-      {super.key, required this.childWidget, this.horizontalPadding});
+      {super.key, required this.childWidget, this.horizontalPadding, this.bottomPadding});
 
   final Widget childWidget;
   final double? horizontalPadding;
+  final double? bottomPadding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
-          bottom: SizeConfig.paddingXSL,
+        // top: 0,
+          bottom: bottomPadding??SizeConfig.paddingXSL,
           left: horizontalPadding ?? SizeConfig.paddingXS,
           right: horizontalPadding ?? SizeConfig.paddingXS
       ),

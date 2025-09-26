@@ -284,7 +284,7 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
           //   'Testimonials',
           //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           // ),
-          TestimonialListingWidget(userId: widget.userId),
+          TestimonialListingWidget(userId: widget.userId, callApi: false,),
 
           const SizedBox(height: 16),
 

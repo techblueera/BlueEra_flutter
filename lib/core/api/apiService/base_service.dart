@@ -444,7 +444,5 @@ abstract class BaseService {
   final String createProductViaAi = "product-service/api/product/createProductAI";
 
   final String homeFeed = 'userfeed-service/feed';
-  // https://api.blueera.ai/api/userfeed-service/feed?cursor=1758505656000&limit=20&refresh=false&content_types=posts%2Cvideos%2Cproducts&video_types=recent%2Cshort&source=aggregated&language=en&nsfw=false
 
 }
-// https://api.blueera.ai/api/user-service/users/689df0cb7e62ed576245195f/rating

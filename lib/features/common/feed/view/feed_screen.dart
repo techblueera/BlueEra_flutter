@@ -5,19 +5,26 @@ import 'package:BlueEra/core/api/dummy_model/media_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_shimmer_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
+import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
+import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/native_ad_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -44,7 +51,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final FeedController feedController = Get.put(FeedController());
+  final  feedController = Get.find<FeedController>();
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
@@ -55,33 +62,34 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+      // fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
 
-    // Only add scroll listener if this is an individual page (not in parent scroll)
-    if (!widget.isInParentScroll) {
-      _scrollController.addListener(_scrollListener);
-    }
+      // Only add scroll listener if this is an individual page (not in parent scroll)
+      if (!widget.isInParentScroll) {
+        _scrollController.addListener(_scrollListener);
+      }
 
-    /// forcefully we are calling api due to page is already loaded but we want to call api due to some new post is added by us
-    ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar, (shouldRefresh) {
-      if (shouldRefresh == true) {
-        fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
-       }
+      /// forcefully we are calling api due to page is already loaded but we want to call api due to some new post is added by us
+      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
+          (shouldRefresh) {
+        if (shouldRefresh == true) {
+          fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+              false;
+        }
       });
     });
-
   }
 
   void _scrollListener() {
     if (!_scrollController.hasClients) return;
 
     final position = _scrollController.position;
-    final isAtBottom = position.pixels >= position.maxScrollExtent - 200; // 100px threshold
+    final isAtBottom =
+        position.pixels >= position.maxScrollExtent - 200; // 100px threshold
 
     if (isAtBottom) {
       print('at bottom');
-      // Trigger pagination for individual page
       feedController.handleScrollToBottom(widget.postFilterType);
     }
   }
@@ -124,14 +132,13 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  void fetchPostData({bool isInitialLoad = false, bool refresh = false, String? id, String? query}) {
-    feedController.getPostsByType(
-      widget.postFilterType,
-      isInitialLoad: isInitialLoad,
-      refresh: refresh,
-      id: id,
-      query: query
-    );
+  void fetchPostData(
+      {bool isInitialLoad = false,
+      bool refresh = false,
+      String? id,
+      String? query}) {
+    feedController.getPostsByType(widget.postFilterType,
+        isInitialLoad: isInitialLoad, refresh: refresh, id: id, query: query, screenName: '');
   }
 
   // Method to be called from parent for pagination
@@ -166,28 +173,53 @@ class _FeedScreenState extends State<FeedScreen> {
     final String? adUnitId = getNativeAdUnitId();
 
     // Show ad after every 9 posts → ad goes at index 9, 19, 29...
-    if (Platform.isAndroid && adUnitId != null &&
+    if (Platform.isAndroid &&
+        adUnitId != null &&
         adUnitId.isNotEmpty &&
         (index + 1) % cycleSize == 0 &&
         postIndex < posts.length) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: SizeConfig.size370,
-          maxHeight: SizeConfig.size450,
-        ),
-        child: Container(
-          margin: EdgeInsets.only(
-            bottom: SizeConfig.paddingXS,
-            left: SizeConfig.paddingXS,
-            right: SizeConfig.paddingXS,
+      if (kReleaseMode) {
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: SizeConfig.size370,
+            maxHeight: SizeConfig.size450,
           ),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            boxShadow: [AppShadows.cardShadow],
+          child: Container(
+            margin: EdgeInsets.only(
+              bottom: SizeConfig.paddingXS,
+              left: SizeConfig.paddingXS,
+              right: SizeConfig.paddingXS,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              boxShadow: [AppShadows.cardShadow],
+            ),
+            child: NativeAdWidget(adUnitId: adUnitId),
           ),
-          child: NativeAdWidget(adUnitId: adUnitId),
-        ),
-      );
+        );
+      }
+      if (kDebugMode) {
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: SizeConfig.size370,
+            maxHeight: SizeConfig.size450,
+          ),
+          child: Container(
+            margin: EdgeInsets.only(
+              bottom: SizeConfig.paddingXS,
+              left: SizeConfig.paddingXS,
+              right: SizeConfig.paddingXS,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              boxShadow: [AppShadows.cardShadow],
+            ),
+            child: Center(child: CustomText("You are in Debug Mode ")),
+          ),
+        );
+
+        return SizedBox();
+      }
     }
 
     // Loader at the end
@@ -198,12 +230,12 @@ class _FeedScreenState extends State<FeedScreen> {
           ? staggeredDotsWaveLoading()
           : const SizedBox.shrink());
     }
-    // Return the actual post
     return FeedCard(
       post: posts[postIndex],
       index: postIndex,
       postFilteredType: widget.postFilterType,
     );
+
   }
 
   @override
@@ -212,7 +244,8 @@ class _FeedScreenState extends State<FeedScreen> {
       if (feedController.isLoading.isFalse) {
         if (feedController.postsResponse.value.status == Status.COMPLETE ||
             widget.postFilterType == PostType.saved) {
-          List<Post> posts = feedController.getListByType(widget.postFilterType);
+          List<Post> posts =
+              feedController.getListByType(widget.postFilterType);
 
           if (posts.isEmpty) {
             return Center(
@@ -227,8 +260,7 @@ class _FeedScreenState extends State<FeedScreen> {
           // 🔹 Build listView once
           final listView = ListView.builder(
             controller: widget.isInParentScroll ? null : _scrollController,
-            keyboardDismissBehavior:
-            ScrollViewKeyboardDismissBehavior.onDrag,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: EdgeInsets.only(
                 top: SizeConfig.size2, bottom: SizeConfig.size80),
             shrinkWrap: widget.isInParentScroll,
@@ -242,10 +274,10 @@ class _FeedScreenState extends State<FeedScreen> {
           );
 
           // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
-          final content =
-          RefreshIndicator(
+          final content = RefreshIndicator(
             notificationPredicate: (notification) {
-              return Get.find<HomeScreenController>().headerOffset.value == 0.0 &&
+              return Get.find<HomeScreenController>().headerOffset.value ==
+                      0.0 &&
                   notification.metrics.pixels <=
                       notification.metrics.minScrollExtent;
             },
@@ -305,7 +337,6 @@ class _FeedScreenState extends State<FeedScreen> {
                 isInitialLoad: true,
                 refresh: true,
                 id: widget.id,
-
               );
             },
           );
@@ -314,75 +345,41 @@ class _FeedScreenState extends State<FeedScreen> {
         return FeedShimmerCard();
       }
 
-      
       return const SizedBox();
     });
   }
 
-}
-
-class PostData {
-  final int id;
-  final String? title;
-  final String? message;
-  final FeedType? type;
-  final int? authorId;
-  final List<Media>? media;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final int totalLikes;
-  final int totalComments;
-  final int totalReposts;
-  final bool isLike;
-  final String totalViews;
-
-  PostData({
-    required this.id,
-    this.title,
-    this.message,
-    this.type,
-    this.authorId,
-    this.media,
-    this.createdAt,
-    this.updatedAt,
-    this.totalLikes = 0,
-    this.totalComments = 0,
-    this.totalReposts = 0,
-    this.totalViews = "0",
-    this.isLike = false,
-  });
-
-  factory PostData.fromJson(Map<String, dynamic> json) => PostData(
-    id: json['id'] ?? 0,
-    title: json['title'],
-    message: json['message'],
-    type: json['type'],
-    authorId: json['author_id'],
-    media: (json['media'] as List<dynamic>?)
-        ?.map((e) => Media.fromJson(e))
-        .toList(),
-    createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
-    updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at']) : null,
-    totalLikes: json['total_likes'] ?? 0,
-    totalComments: json['total_comments'] ?? 0,
-    totalReposts: json['total_reposts'] ?? 0,
-    totalViews: json['total_views'] ?? "0",
-    isLike: json['is_like'] ?? false,
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'message': message,
-    'type': type,
-    'author_id': authorId,
-    'media': media?.map((e) => e.toJson()).toList(),
-    'created_at': createdAt?.toIso8601String(),
-    'updated_at': updatedAt?.toIso8601String(),
-    'total_likes': totalLikes,
-    'total_comments': totalComments,
-    'total_reposts': totalReposts,
-    'total_views': totalViews,
-    'is_like': isLike,
-  };
+  ShortFeedItem getVideoData(Post video) {
+    return ShortFeedItem(
+        videoId: video.id,
+        author: Author(
+          name: video.user?.name,
+          username: video.user?.username,
+          designation: video.user?.designation,
+          profileImage: video.user?.profileImage,
+          accountType: video.user?.accountType,
+          id: video.user?.id,
+        ),
+        metadata: VideoItemMetadata(
+            addedAt: video.createdAt.toString(),
+            source: "personalized",
+            watchedBefore: false),
+        video: VideoData(
+            id: "",
+            userId: video.user?.id,
+            type: "long_video",
+            title: video.title,
+            description: video.message,
+            videoUrl: video.videoUrl,
+            coverUrl: video.thumbnail,
+            createdAt: video.createdAt.toString(),
+            duration: video.duration,
+            stats: Stats(
+                comments: video.commentsCount,
+                likes: video.likesCount,
+                shares: video.sharesCount,
+                views: video.viewsCount)),
+        interactions: Interactions(
+            isBookmarked: false, isFollowing: false, isLiked: false));
+  }
 }

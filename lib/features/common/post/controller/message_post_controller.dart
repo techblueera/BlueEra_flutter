@@ -12,6 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
@@ -136,13 +137,18 @@ class MessagePostController extends GetxController {
   // Aspect ratio (default Square 1:1)
   RxDouble aspectRatio = 1.0.obs;
 
-  Future<void> pickImage() async {
+  Future<void> pickImage(BuildContext context) async {
     if (imagesList.length >= 5) {
       commonSnackBar(message: "Limit Reached You can select max 5 images");
       return;
     }
 
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+      context,
+      cropAspectRatio: const CropAspectRatio(width: 250, height: 250),
+    );
+    XFile image=XFile(croppedPath??"");
     if (image != null) {
       imagesList.add(MessagePostImageModel(
           id: 0, imageFile: image, imgCropMode: AppConstants.Landscape));

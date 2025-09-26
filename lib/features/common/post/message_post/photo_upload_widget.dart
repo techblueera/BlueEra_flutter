@@ -76,7 +76,9 @@ class PhotoUploadWidget extends StatelessWidget {
                   child: CustomText("Upload Photo (at least 1 photo required)")),
               SizedBox(height: SizeConfig.size10),
               InkWell(
-                onTap: msgController.pickImage,
+                onTap:(){
+                  msgController.pickImage(context);
+                },
                 child: Container(
                   width: SizeConfig.screenWidth,
                   height: SizeConfig.size50 + 2,
@@ -122,21 +124,23 @@ class PhotoUploadWidget extends StatelessWidget {
                       children: [
                         Center(
                           child: Container(
-                            height: Get.width * 0.5,
+                          width:250 ,
+                            height: 250,
                             // height: Get.width * 0.5,
-                            width: msgController
-                                        .imagesList[index].imgCropMode ==
-                                AppConstants.Square
-                                ? Get.width * 0.5
-                                : double.parse(
-                                    msgController.imagesList[index].imgWidth ??
-                                        Get.width.toString()),
+                            // // height: Get.width * 0.5,
+                            // width: msgController
+                            //             .imagesList[index].imgCropMode ==
+                            //     AppConstants.Square
+                            //     ? Get.width * 0.5
+                            //     : double.parse(
+                            //         msgController.imagesList[index].imgWidth ??
+                            //             Get.width.toString()),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                  msgController.imagesList[index].imgCropMode ==
-                                      AppConstants.Square
-                                      ? 0
-                                      : 12),
+                              // borderRadius: BorderRadius.circular(
+                              //     msgController.imagesList[index].imgCropMode ==
+                              //         AppConstants.Square
+                              //         ? 0
+                              //         : 12),
                               image: DecorationImage(
                                 image: FileImage(File(msgController
                                         .imagesList[index].imageFile?.path ??
@@ -168,11 +172,11 @@ class PhotoUploadWidget extends StatelessWidget {
                         ),
 
                         // --- Crop button ---------------------------
-                        Positioned(
-                          bottom: 6,
-                          right: 6,
-                          child: _photoPhotoPopUpMenu(index),
-                        ),
+                        // Positioned(
+                        //   bottom: 6,
+                        //   right: 6,
+                        //   child: _photoPhotoPopUpMenu(index),
+                        // ),
                       ],
                     ),
                   );

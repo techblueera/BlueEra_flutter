@@ -452,7 +452,7 @@ Future<GreetingCheckResult> canCallCardApi() async {
   final today = DateTime.now().toIso8601String(); // yyyy-MM-dd
   log('today--> $today');
 
-  if (dontShow == true) {
+  if (dontShow == "true") {
     log("User disabled greeting card ❌");
     return GreetingCheckResult(canCall: false, today: today);
   }
@@ -470,7 +470,7 @@ Future<GreetingCheckResult> canCallCardApi() async {
 Future<void> disableGreetingCard() async {
   await SharedPreferenceUtils.setSecureValue(
     SharedPreferenceUtils.disableGreetingCardKey,
-    true,
+    "true",
   );
 }
 

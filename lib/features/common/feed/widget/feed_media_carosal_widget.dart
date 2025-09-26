@@ -196,8 +196,8 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
       key: Key('feed-carousel-${widget.hashCode}'),
       onVisibilityChanged: _onVisibilityChanged,
       child: SizedBox(
-        // height: SizeConfig.size240,
-        height: Get.width * 0.4,
+        height: SizeConfig.size250,
+        // height: Get.width * 0.4,
 
         child: Stack(
           children: [
@@ -214,19 +214,20 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                   final url = widget.mediaUrls[index];
                   final orientation = _orientationCache[url] ?? "loading";
 
-                  double height = Get.width * 0.5;
-                  double width = Get.width;
+                  double height = 250;
+                  double width = Get.width;/*      double height = Get.width * 0.5;
+                  double width = Get.width;*/
                   /* if (orientation == "portrait") {
                   height = Get.height * 0.5; // taller
                   width = Get.width * 0.7;
                 } else*/
-                  if (orientation == "landscape") {
-                    height = Get.width * 0.5; // shorter
-                    width = Get.width;
-                  } else if (orientation == "square") {
-                    height = Get.width * 0.5;
-                    width = Get.width * 0.5;
-                  }
+                  // if (orientation == "landscape") {
+                  //   height = Get.width * 0.5; // shorter
+                  //   width = Get.width;
+                  // } else if (orientation == "square") {
+                  //   height = Get.width * 0.5;
+                  //   width = Get.width * 0.5;
+                  // }
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
@@ -253,7 +254,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                             child: Center(
                               child: CachedNetworkImage(
                                 imageUrl: url,
-                                fit: BoxFit.fitWidth,
+                                fit: BoxFit.cover,
                                 width: width,
                                 height: height,
                                 placeholder: (context, _) => const Center(

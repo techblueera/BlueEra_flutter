@@ -8,6 +8,7 @@ class FeedRepo extends BaseService{
   ///View Channel details...
   Future<ResponseModel> fetchAllPosts({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
+      // homeFeed,
       getAllPosts,
       showProgress: false,
       params: queryParams,

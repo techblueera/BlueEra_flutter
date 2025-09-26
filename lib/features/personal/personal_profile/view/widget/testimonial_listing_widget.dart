@@ -12,9 +12,13 @@ import 'package:get/get.dart';
 
 class TestimonialListingWidget extends StatefulWidget {
   const TestimonialListingWidget(
-      {super.key, required this.userId, this.showBorder = true});
+      {super.key,
+      required this.userId,
+      this.showBorder = true,
+      required this.callApi});
 
   final bool showBorder;
+  final bool callApi;
   final String? userId;
 
   @override
@@ -33,9 +37,10 @@ class _TestimonialListingWidgetState extends State<TestimonialListingWidget> {
     } else {
       visitController = Get.put(VisitProfileController());
     }
-    apiCalling();
+    if (widget.callApi) apiCalling();
   }
 
+  //
   apiCalling() async {
     await visitController?.getTestimonialController(userID: widget.userId);
   }

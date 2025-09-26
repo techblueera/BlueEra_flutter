@@ -43,7 +43,7 @@ class _PollInputScreenState extends State<PollInputScreen> {
           widget.post?.poll?.question ?? "";
 
       ///ADD OPTION IN POLL
-      widget.post?.poll?.options.forEach((data) {
+      widget.post?.poll?.options?.forEach((data) {
         pollController.optionControllers
             .add(TextEditingController(text: data.text));
       });

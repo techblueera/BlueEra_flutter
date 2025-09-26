@@ -83,16 +83,16 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                     itemCount: widget.imageUrls.length,
                     itemBuilder: (context, index) {
                       final imageUrl = widget.imageUrls[index];
-                      log("Dynamic Value: '$imageUrl'");
 
                       return Center(
                         child: InteractiveViewer(
                           panEnabled: true,
                           transformationController: _transformationController,
-                          minScale: 1.0,
-                          maxScale: 5.0,
+                          // minScale: 1.0,
+                          // maxScale: 5.0,
                           child: CachedNetworkImage(
                             imageUrl: imageUrl,
+                            scale: 1,
                             placeholder: (context, url) =>
                             const CircularProgressIndicator(),
                             errorWidget: (context, url, error) =>
