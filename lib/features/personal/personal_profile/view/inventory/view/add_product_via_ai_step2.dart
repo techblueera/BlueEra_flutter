@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -6,13 +7,13 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/category_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step1_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step2_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step3_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step4_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -24,174 +25,117 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddProductViaAiStep2 extends StatefulWidget {
-  final ManualListingScreenController controller;
-  final AddProductViaAiController addProductViaAiController;
+  final AddProductViaAiController controller;
   final GenerateAiProductContent generateAiProductContent;
 
-  AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller, required this.addProductViaAiController});
+  AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller});
 
   @override
   State<AddProductViaAiStep2> createState() => _AddProductViaAiStep2State();
 }
 
 class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
+ AddProductViaAiController controller = AddProductViaAiController();
 
   @override
   void initState() {
+    controller = widget.controller;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.addProductViaAiController.preloadStep1ImagesToStep2();
+      controller.preloadStep1ImagesToStep2();
       setData();
-    });
+     });
     super.initState();
   }
 
   void setData(){
-    widget.controller.productNameController.clear();
-    widget.controller.productDescriptionController.clear();
-    widget.controller.brandController.clear();
-    widget.controller.linkController.clear();
-    widget.controller.mrpController.clear();
-    widget.controller.guidelineController.clear();
-    widget.controller.tags.clear();
-    widget.controller.featureControllers.clear();
-    widget.controller.detailsList.clear();
-    widget.controller.userGuideLineControllers.clear();
-    widget.controller.selectedColors.clear();
-    widget.controller.materials.clear();
-    widget.controller.dynamicAttributes.clear();
-    widget.controller.selectedCategory.value = '';
-    widget.controller.selectedCategoryId.value = '';
-    // widget.controller.productVariant.clear();
+    controller.productNameController.clear();
+    controller.productDescriptionController.clear();
+    controller.brandController.clear();
+    controller.linkController.clear();
+    controller.mrpController.clear();
+    controller.guidelineController.clear();
+    controller.tags.clear();
+    controller.featureControllers.clear();
+    controller.detailsList.clear();
+    controller.userGuideLineControllers.clear();
+    controller.selectedColors.clear();
+    controller.dynamicAttributes.clear();
+    controller.selectedCategory.value = '';
+    controller.selectedCategoryId.value = '';
+    // controller.productVariant.clear();
 
-    // widget.controller.selectedExpiryDuration = 'Day'.obs;
-    // widget.controller.selectedProductDuration = 'Day'.obs;
-    // widget.controller.selectedExpiryValue = Rx<num>(1);
-    // widget.controller.selectedProductValue = Rx<num>(1);
+    // controller.selectedExpiryDuration = 'Day'.obs;
+    // controller.selectedProductDuration = 'Day'.obs;
+    // controller.selectedExpiryValue = Rx<num>(1);
+    // controller.selectedProductValue = Rx<num>(1);
 
-    widget.controller.productNameController.text = widget.generateAiProductContent.productName??'';
-    widget.controller.productDescriptionController.text = widget.generateAiProductContent.description??'';
-    widget.controller.brandController.text = widget.generateAiProductContent.brand??'';
-    widget.controller.tags.value = widget.generateAiProductContent.tags??[];
-    widget.controller.selectedCategory.value = widget.generateAiProductContent.amazonCategoryPath?.split('>').last??'';
+    controller.productNameController.text = widget.generateAiProductContent.productName??'';
+    controller.productDescriptionController.text = widget.generateAiProductContent.description??'';
+    controller.brandController.text = widget.generateAiProductContent.brand??'';
+    controller.tags.value = widget.generateAiProductContent.tags??[];
+    controller.selectedCategory.value = widget.generateAiProductContent.amazonCategory??'';
+    log('selectedCategory-- ${controller.selectedCategory.value}');
     List<String> features = widget.generateAiProductContent.features ?? [];
     if(features.isNotEmpty){
       for (final feature in features) {
-        widget.controller.featureControllers.add(TextEditingController(text: feature));
+        controller.featureControllers.add(TextEditingController(text: feature));
       }
     }
     List<Specification> addMoreDetails = widget.generateAiProductContent.specifications ?? [];
     if(addMoreDetails.isNotEmpty){
       for(final addMoreDetail in addMoreDetails)
-        widget.controller.detailsList.add(addMoreDetail);
+        controller.detailsList.add(addMoreDetail);
     }
 
     if(widget.generateAiProductContent.brandWebsite!=null){
-      widget.controller.linkController.text = widget.generateAiProductContent.brandWebsite??'';
+      controller.linkController.text = widget.generateAiProductContent.brandWebsite??'';
     }
 
-    widget.controller.mrpController.text = widget.generateAiProductContent.mrp?.toInt().toString()??'';
+    controller.mrpController.text = widget.generateAiProductContent.mrp?.toInt().toString()??'';
     List<String> userGuide = widget.generateAiProductContent.userGuide ?? [];
     if(userGuide.isNotEmpty){
       for (final guideLine in userGuide) {
-        widget.controller.userGuideLineControllers.add(TextEditingController(text: guideLine));
+        controller.userGuideLineControllers.add(TextEditingController(text: guideLine));
       }
     }
 
-    widget.controller.productWarrantyController.text = widget.generateAiProductContent.warranty??'';
-    widget.controller.productExpiryDurationController.text = widget.generateAiProductContent.durationOfExpiryFromManufacture??'';
+    controller.productWarrantyController.text = widget.generateAiProductContent.warranty??'';
+    controller.productExpiryDurationController.text = widget.generateAiProductContent.durationOfExpiryFromManufacture??'';
 
-    // if(widget.generateAiProductContent.expiryTime!=null) {
-    //   final binding = widget.generateAiProductContent.expiryTime?.asDropdownBinding;
-    //   widget.controller.selectedExpiryDuration.value = binding?['type'];
-    //   widget.controller.selectedExpiryValue.value = binding?['value'];
-    // }
-    //
-    // if(widget.generateAiProductContent.productWarranty!=null) {
-    //   final binding = widget.generateAiProductContent.productWarranty?.asDropdownBinding;
-    //   widget.controller.selectedProductDuration.value = binding?['type'];
-    //   widget.controller.selectedProductValue.value = binding?['value'];
-    // }
+    final variantMap = widget.generateAiProductContent.variant ?? {};
 
-    // Process variants from AI data
-    // for (var variant in widget.generateAiProductContent.variants ?? []) {
-    //   final attributes = variant.attributes;
-    //   if (attributes == null) continue;
-    //
-    //   String? colorName;
-    //   String? colorCode;
-    //   String? material;
-    //   Map<String, String> otherAttributes = {};
-    //
-    //   // Iterate key-value pairs
-    //   attributes.forEach((key, value) {
-    //     switch (key) {
-    //       case 'color':
-    //         colorName = value?.toString();
-    //         break;
-    //       case 'color_code':
-    //         colorCode = value?.toString();
-    //         break;
-    //       case 'material':
-    //         material = value?.toString();
-    //         break;
-    //       default:
-    //       // All other dynamic keys (size, style, etc.)
-    //         if (value != null) {
-    //           otherAttributes[key] = value.toString();
-    //         }
-    //     }
-    //   });
-    //
-    //   // Create variant object
-    //   Color? colorValue;
-    //   if (colorCode != null) {
-    //     colorValue = hexToColor(colorCode!);
-    //   }
-    //
-    //   ProductVariant productVariant = ProductVariant(
-    //     colorName: colorName,
-    //     colorCode: colorCode,
-    //     colorValue: colorValue,
-    //     material: material,
-    //     otherAttributes: otherAttributes,
-    //   );
-    //
-    //   widget.controller.productVariant.add(productVariant);
-    // }
+    variantMap.forEach((key, valueList) {
+      if (valueList.isEmpty) return;
 
-    for (var variant in widget.generateAiProductContent.variants ?? []) {
-      final attributes = variant.attributes;
-      if (attributes == null) continue;
+      if (key == 'color') {
+        log('key-- $key');
+        for (final colorItem in valueList) {
+          log('colorItem-- $colorItem');
+          log('colorItem runtimeType: ${colorItem.runtimeType}');
+          if (colorItem is Map<String, dynamic>) {
+            final colorCode = colorItem['color_code'] as String? ?? '#000000';
+            final colorName = colorItem['name'] as String? ?? 'Unknown';
+            Color color = hexToColor(colorCode);
+            log('colorCode-- $colorCode');
+            log('colorName-- $colorCode');
 
-      String? colorName;
-      String? colorCode;
-
-      // Iterate key-value pairs
-      attributes.forEach((key, value) {
-        switch (key) {
-          case 'color':
-            colorName = value?.toString();
-            break;
-          case 'color_code':
-            colorCode = value?.toString();
-            break;
-          default:
-          // All other dynamic keys
-          widget.controller.dynamicAttributes.putIfAbsent(key,() => <String>[].obs);
-          widget.controller.dynamicAttributes[key]!.add(value.toString());
+            controller.selectedColors.add(
+              SelectedColor(color, colorName),
+            );
+            log('Selected colors count: ${controller.selectedColors.length}');
+          }
         }
-      });
-
-      log('colorName -- $colorName');
-      log('colorCode -- $colorCode');
-
-      // Add color if available
-      if (colorCode != null && colorName != null) {
-        Color colorValue = hexToColor(colorCode!);
-        widget.controller.selectedColors.add(SelectedColor(colorValue, colorName!));
-        log('selected color-- ${widget.controller.selectedColors.length}');
+      } else {
+        // Dynamic attributes
+        controller.dynamicAttributes.putIfAbsent(key, () => <String>[].obs);
+        for (final val in valueList) {
+          controller.dynamicAttributes[key]!.add(val.toString());
+        }
       }
-    }
+    });
+
+    log('Selected colors count: ${controller.selectedColors.length}');
+    log('Dynamic attributes: ${controller.dynamicAttributes}');
 
     setState(() {});
 
@@ -199,7 +143,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
   @override
   void dispose() {
-    Get.delete<AddProductViaAiController>();
     super.dispose();
   }
 
@@ -235,7 +178,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       SizedBox(
                         height: SizeConfig.size80,
                         child: Obx(() {
-                          final totalImages = widget.addProductViaAiController.step2Images.length;
+                          final totalImages = controller.step2Images.length;
 
                           return GridView.builder(
                             scrollDirection: Axis.horizontal,
@@ -244,13 +187,13 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               mainAxisSpacing: 8,
                               childAspectRatio: 1,
                             ),
-                            itemCount: widget.addProductViaAiController.maxStep2Images.value,
+                            itemCount: controller.maxStep2Images.value,
                             itemBuilder: (context, index) {
                               final hasImage = index < totalImages;
 
                               return GestureDetector(
                                 onTap: () {
-                                  if (!hasImage) widget.addProductViaAiController.pickImagesStep2(context);
+                                  if (!hasImage) controller.pickImagesStep2(context);
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -264,19 +207,19 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                     children: [
                                       if (hasImage)
                                         Image.file(
-                                          File(widget.addProductViaAiController.step2Images[index]),
+                                          File(controller.step2Images[index]),
                                           fit: BoxFit.cover,
                                         )
                                       else
                                         const Center(
                                           child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
                                         ),
-                                      if (hasImage && index >= widget.addProductViaAiController.step1Images.length)
+                                      if (hasImage && index >= controller.step1Images.length)
                                         Positioned(
                                           top: 4,
                                           right: 4,
                                           child: GestureDetector(
-                                            onTap: () => widget.addProductViaAiController.removeImageStep2(index),
+                                            onTap: () => controller.removeImageStep2(index),
                                             child: Container(
                                               width: 22,
                                               height: 22,
@@ -367,7 +310,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       Obx(() => InkWell(
                         onTap: () async {
                           await showCategoryBottomSheet(context);
-                          // widget.controller.openCategoryBottomSheet(context);
+                          // controller.openCategoryBottomSheet(context);
                         },
                         child: Container(
                           width: SizeConfig.screenWidth,
@@ -382,12 +325,12 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               border: Border.all(
                                 color: AppColors.greyE5,
                               )),
-                          child: widget.controller.selectedCategory.isNotEmpty
+                          child: controller.selectedCategory.isNotEmpty
                               ? Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               CustomText(
-                                  widget.controller.selectedCategory.value,
+                                  controller.selectedCategory.value,
                                   fontSize:  SizeConfig.medium,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.black
@@ -395,11 +338,10 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                             ],
                           )
                               : Container(
-                            padding: EdgeInsets.all(SizeConfig.size12),
+                            // padding: EdgeInsets.all(SizeConfig.size12),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 CustomText(
                                   'Select a category',
@@ -450,15 +392,18 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
                   /// Submit
                   CustomBtn(
-                    title: 'Post Product',
+                      title: controller.isCreateProductLoading.value
+                          ? null // hide text
+                          : 'Post Product',
                     onTap: (){
-                      widget.controller.createProductViaAi(widget.addProductViaAiController);
+                      //Get.to(()=> ProductPreviewScreen(controller: controller));
+                       controller.createProductViaAi(controller);
                     },
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
                     height: SizeConfig.size40,
                     radius: 10.0,
-                    // isLoading: addProductViaAiController.isLoading.value
+                     isLoading: controller.isCreateProductLoading.value
                   ),
                 ],
               ),
@@ -494,7 +439,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               InkWell(
                   onTap: () {
-                    Get.to(()=> Step1Section(controller: widget.controller));
+                    Get.to(()=> Step1Section(controller: controller));
                   },
                   child: LocalAssets(imagePath: AppIconAssets.pen_line))
             ],
@@ -516,7 +461,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
               Expanded(
                 child: CustomText(
-                  widget.controller.productNameController.text,
+                  controller.productNameController.text,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
@@ -537,7 +482,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               Expanded(
                 child: CustomText(
-                  '${widget.controller.brandController.text}',
+                  '${controller.brandController.text}',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
@@ -556,7 +501,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           ),
           SizedBox(height: SizeConfig.size3),
           ExpandableText(
-            text: widget.controller.productDescriptionController.text,
+            text: controller.productDescriptionController.text,
             trimLines: 4,
             style: TextStyle(
               fontSize: SizeConfig.small,
@@ -569,7 +514,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           ),
 
           SizedBox(height: SizeConfig.size10),
-          (widget.controller.tags.isNotEmpty)
+          (controller.tags.isNotEmpty)
               ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -581,7 +526,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               SizedBox(height: SizeConfig.size3),
               CustomText(
-                '${ widget.controller.tags.join(', ')}', /// Keyword/tegs
+                '${ controller.tags.join(', ')}', /// Keyword/tegs
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w400,
                 color: AppColors.secondaryTextColor,
@@ -616,7 +561,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               InkWell(
                   onTap: () {
-                    Get.to(()=> Step2Section(controller: widget.controller));
+                    Get.to(()=> Step2Section(controller: controller));
                   },
                   child: LocalAssets(imagePath: AppIconAssets.pen_line))
             ],
@@ -629,11 +574,11 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
           SizedBox(height: SizeConfig.size10),
 
-          if(widget.controller.featureControllers.isNotEmpty)
+          if(controller.featureControllers.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: List.generate(
-                widget.controller.featureControllers.length,
+                controller.featureControllers.length,
                     (index) => Padding(
                   padding: const EdgeInsets.only(bottom: 4.0),
                   child: Row(
@@ -650,7 +595,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       ),
                       Expanded(
                         child: CustomText(
-                          widget.controller.featureControllers[index].text,
+                          controller.featureControllers[index].text,
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor,
@@ -663,7 +608,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
             ),
 
-          if(widget.controller.linkController.text.isNotEmpty)
+          if(controller.linkController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
@@ -677,9 +622,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   ),
                   Expanded(
                     child: GestureDetector(
-                      onTap: ()=> launchURL(widget.controller.linkController.text),
+                      onTap: ()=> launchURL(controller.linkController.text),
                       child: CustomText(
-                        '${widget.controller.linkController.text}',
+                        '${controller.linkController.text}',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
@@ -691,7 +636,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
             ),
 
-          if(widget.controller.detailsList.isNotEmpty)
+          if(controller.detailsList.isNotEmpty)
             ...[
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -708,7 +653,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: List.generate(
-                        widget.controller.detailsList.length, // number of items
+                        controller.detailsList.length, // number of items
                             (index) => Padding(
                           padding: const EdgeInsets.only(bottom: 4.0),
                           child: Row(
@@ -725,7 +670,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               ),
                               Expanded(
                                 child: CustomText(
-                                  '${widget.controller.detailsList[index].title} - ${widget.controller.detailsList[index].details}',
+                                  '${controller.detailsList[index].title} - ${controller.detailsList[index].details}',
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.secondaryTextColor,
@@ -770,7 +715,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               InkWell(
                   onTap: () {
-                    Get.to(()=> Step3Section(controller: widget.controller));
+                    Get.to(()=> Step3Section(controller: controller));
                   },
                   child: LocalAssets(imagePath: AppIconAssets.pen_line))
             ],
@@ -781,7 +726,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             color: AppColors.whiteE0,
           ),
 
-          (widget.controller.mrpController.text.isNotEmpty) ?
+          (controller.mrpController.text.isNotEmpty) ?
           Padding(
             padding: EdgeInsets.only(top: 10.0),
             child: Row(
@@ -794,7 +739,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 ),
                 Expanded(
                   child: CustomText(
-                    "${widget.controller.mrpController.text}",
+                    "${controller.mrpController.text}",
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w700,
                     color: AppColors.secondaryTextColor,
@@ -805,7 +750,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             ),
           ) : SizedBox(),
 
-          if(widget.controller.productWarrantyController.text.isNotEmpty)
+          if(controller.productWarrantyController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Row(
@@ -818,7 +763,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   ),
                   Expanded(
                     child: CustomText(
-                      "${widget.controller.productWarrantyController.text}",
+                      "${controller.productWarrantyController.text}",
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                       color: AppColors.secondaryTextColor,
@@ -829,7 +774,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
             ),
 
-          if(widget.controller.productExpiryDurationController.text.isNotEmpty)
+          if(controller.productExpiryDurationController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Row(
@@ -842,7 +787,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   ),
                   Expanded(
                     child: CustomText(
-                      "${widget.controller.productExpiryDurationController.text}",
+                      "${controller.productExpiryDurationController.text}",
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                       color: AppColors.secondaryTextColor,
@@ -853,7 +798,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
             ),
 
-          if(widget.controller.userGuideLineControllers.isNotEmpty)
+          if(controller.userGuideLineControllers.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Column(
@@ -869,7 +814,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: List.generate(
-                      widget.controller.userGuideLineControllers.length, // number of items
+                      controller.userGuideLineControllers.length, // number of items
                           (index) => Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Row(
@@ -886,7 +831,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                             ),
                             Expanded(
                               child: CustomText(
-                                widget.controller.userGuideLineControllers[index].text,
+                                controller.userGuideLineControllers[index].text,
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.secondaryTextColor,
@@ -919,22 +864,28 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                'Variant',
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
-              ),
-              InkWell(
-                  onTap: () {
-                    Get.to(()=> Step4Section(controller: widget.controller));
-                  },
-                  child: LocalAssets(imagePath: AppIconAssets.pen_line))
-            ],
+          CustomText(
+            'Variant',
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
           ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     CustomText(
+          //       'Variant',
+          //       fontSize: SizeConfig.large,
+          //       fontWeight: FontWeight.w600,
+          //       color: AppColors.mainTextColor,
+          //     ),
+          //     InkWell(
+          //         onTap: () {
+          //           Get.to(()=> Step4Section(controller: controller));
+          //         },
+          //         child: LocalAssets(imagePath: AppIconAssets.pen_line))
+          //   ],
+          // ),
           SizedBox(height: SizeConfig.size6),
           CommonHorizontalDivider(
             height: 1.0,
@@ -942,7 +893,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           ),
           SizedBox(height: SizeConfig.size8),
 
-          if(widget.controller.selectedColors.isNotEmpty)
+          if(controller.selectedColors.isNotEmpty)
             ...[
               CustomText(
                 'Color: ',
@@ -951,12 +902,13 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 color: AppColors.secondaryTextColor,
               ),
               SizedBox(height: 5.0),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: List.generate(
-                  widget.controller.selectedColors.length, // number of items
+                  controller.selectedColors.length, // number of items
                       (i) {
-                        final selected = widget.controller.selectedColors[i];
+                        final selected = controller.selectedColors[i];
                         return Container(
                           padding: EdgeInsets.all(6.0),
                           margin: EdgeInsets.only(bottom: 6.0),
@@ -994,63 +946,67 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               SizedBox(height: SizeConfig.size10),
             ],
 
-          if(widget.controller.dynamicAttributes.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: widget.controller.dynamicAttributes.entries.map((entry) {
-              final key = entry.key; // attribute name (e.g., "Size", "Pattern")
-              final values = entry.value; // list of values under this attribute
+          Obx(() {
+            if (controller.dynamicAttributes.isEmpty) return SizedBox.shrink();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Attribute title
-                  CustomText(
-                    '$key:',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  const SizedBox(height: 3.0),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: controller.dynamicAttributes.entries.map((entry) {
+                final key = entry.key; // attribute name
+                final values = entry.value; // RxList<String>
 
-                  // Values
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: List.generate(
-                      values.length,
-                          (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                              width: 4.0,
-                              height: 4.0,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryTextColor,
-                                shape: BoxShape.circle,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Attribute title
+                    CustomText(
+                      '$key:',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    const SizedBox(height: 3.0),
+
+                    // Values
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(
+                        values.length,
+                            (index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(top: 6.0, right: 8.0),
+                                width: 4.0,
+                                height: 4.0,
+                                decoration: BoxDecoration(
+                                  color: AppColors.secondaryTextColor,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: CustomText(
-                                values[index],
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.secondaryTextColor,
-                                height: 1.5,
+                              Expanded(
+                                child: CustomText(
+                                  values[index],
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.secondaryTextColor,
+                                  height: 1.5,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: SizeConfig.size8), // space between different attributes
-                ],
-              );
-            }).toList(),
-          )
+                    SizedBox(height: SizeConfig.size8),
+                  ],
+                );
+              }).toList(),
+            );
+          })
+
 
 
         ],

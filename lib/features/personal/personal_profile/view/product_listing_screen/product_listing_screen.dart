@@ -211,7 +211,7 @@ class _ProductListingScreenState extends State<ProductListingScreen>
                             Expanded(
                              child: GestureDetector(
                                onTap: () {
-                                 Get.toNamed(RouteHelper.getListingFormScreenRoute());
+                                 // Get.toNamed(RouteHelper.getListingFormScreenRoute());
                                  // Get.to(() => ListingFormScreen(), arguments: {
                                  //   "listingType": controller.selectedListingType.value,
                                  // });

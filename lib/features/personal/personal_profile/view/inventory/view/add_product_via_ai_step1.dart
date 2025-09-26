@@ -24,7 +24,6 @@ class AddProductViaAiStep1 extends StatefulWidget {
 
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   final AddProductViaAiController addProductViaAiController = Get.put(AddProductViaAiController());
-  final ManualListingScreenController manualListingScreenController = Get.put(ManualListingScreenController());
 
   @override
   void dispose() {
@@ -158,7 +157,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         title: addProductViaAiController.isLoading.value
                           ? null // hide text
                           : 'Generate',
-                        onTap: ()=> addProductViaAiController.onGenerate(manualListingScreenController, addProductViaAiController),
+                        onTap: ()=> addProductViaAiController.onGenerate(addProductViaAiController),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

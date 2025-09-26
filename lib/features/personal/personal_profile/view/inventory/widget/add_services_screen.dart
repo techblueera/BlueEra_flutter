@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
@@ -626,7 +627,7 @@ class _AddServicesScreenState extends State<AddServicesScreen> {
               hintText: "Min - ₹300",
               textEditController: addServiceController.minPriceCtrl,
               keyBoardType: TextInputType.number,
-              validator: (value) => addServiceController.validateMinPrice(value, addServiceController.maxPriceCtrl),
+              validator: (value) => ValidationMethod().validateMinPrice(value, addServiceController.maxPriceCtrl),
             ),
           ),
           SizedBox(width: SizeConfig.size10),
@@ -636,7 +637,7 @@ class _AddServicesScreenState extends State<AddServicesScreen> {
               hintText: "Max - ₹800",
               textEditController: addServiceController.maxPriceCtrl,
               keyBoardType: TextInputType.number,
-              validator: (value) => addServiceController.validateMaxPrice(value, addServiceController.minPriceCtrl),
+              validator: (value) => ValidationMethod().validateMaxPrice(value, addServiceController.minPriceCtrl),
             ),
           ),
         ],

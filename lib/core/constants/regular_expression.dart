@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:flutter/material.dart';
 
 class RegularExpressionUtils {
   ///IN USED..
@@ -130,6 +131,58 @@ class ValidationMethod {
     if (value.length <= 20) return 'Product description name must be at least 20 characters';
     return null;
   }
+
+  String? validateMinPrice(String? value, TextEditingController maxPriceCtrl) {
+    if (value == null || value.trim().isEmpty) {
+      return "Min price is required";
+    }
+
+    final min = int.tryParse(value);
+    if (min == null || min <= 0) {
+      return "Enter valid min price";
+    }
+
+    final max = int.tryParse(maxPriceCtrl.text);
+    if (max != null && min >= max) {
+      return "Min must be less than Max";
+    }
+
+    return null;
+  }
+
+  String? validateMaxPrice(String? value, TextEditingController minPriceCtrl) {
+    if (value == null || value.trim().isEmpty) {
+      return "Max price is required";
+    }
+
+    final max = int.tryParse(value);
+    if (max == null || max <= 0) {
+      return "Enter valid max price";
+    }
+
+    final min = int.tryParse(minPriceCtrl.text);
+    if (min != null && max <= min) {
+      return "Max must be greater than Min";
+    }
+
+    return null;
+  }
+
+  String? validatePrice(String? priceText, String? mrpText) {
+    if (priceText == null || priceText.isEmpty) return "Enter price";
+    if (mrpText == null || mrpText.isEmpty) return "Enter MRP";
+
+    final price = num.tryParse(priceText.replaceAll('₹', '').trim());
+    final mrp = num.tryParse(mrpText.replaceAll('₹', '').trim());
+
+    if (price == null || mrp == null) return "Invalid number";
+
+    if (price > mrp) return "Price cannot be more than MRP";
+
+    return null;
+  }
+
+
 }
 
 

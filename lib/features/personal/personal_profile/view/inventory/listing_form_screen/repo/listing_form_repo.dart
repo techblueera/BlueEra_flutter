@@ -126,7 +126,7 @@ class ListingFormRepo extends BaseService{
      createProductViaAi,
      params: params,
      isMultipart: true,
-     showProgress: true,
+     showProgress: false,
      onError: (error) {},
      onSuccess: (data) {},
    );

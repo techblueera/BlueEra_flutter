@@ -203,7 +203,7 @@ class AddProductScreen extends StatelessWidget {
                       ? GestureDetector(
                       onTap: () {
                         // Navigate or show dialog using GetX
-                        Get.toNamed(RouteHelper.getListingFormScreenRoute());
+                        // Get.toNamed(RouteHelper.getListingFormScreenRoute());
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(

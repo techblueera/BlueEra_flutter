@@ -432,7 +432,7 @@ class GenerateAiProductContent {
   final String? description;
   final String? brand;
   final String? brandWebsite;
-  final String? amazonCategoryPath;
+  final String? amazonCategory;
   final List<String>? userGuide;
   final String? warranty;
   final String? durationOfExpiryFromManufacture;
@@ -440,14 +440,14 @@ class GenerateAiProductContent {
   final List<String>? tags;
   final List<String>? features;
   final List<Specification>? specifications;
-  final List<Variant>? variants;
+  final Map<String, List<dynamic>>? variant; // single object
 
   GenerateAiProductContent({
     this.productName,
     this.description,
     this.brand,
     this.brandWebsite,
-    this.amazonCategoryPath,
+    this.amazonCategory,
     this.userGuide,
     this.warranty,
     this.durationOfExpiryFromManufacture,
@@ -455,16 +455,27 @@ class GenerateAiProductContent {
     this.tags,
     this.features,
     this.specifications,
-    this.variants,
+    this.variant,
   });
 
   factory GenerateAiProductContent.fromJson(Map<String, dynamic> json) {
+    // Convert variants object to Map<String, List<String>>
+    Map<String, List<dynamic>>? variantMap;
+    if (json['variants'] != null && json['variants'] is Map<String, dynamic>) {
+      variantMap = (json['variants'] as Map<String, dynamic>).map(
+            (key, value) => MapEntry(
+          key,
+          value is List ? List<dynamic>.from(value) : [],
+        ),
+      );
+    }
+
     return GenerateAiProductContent(
       productName: json['product_name'],
       description: json['description'],
       brand: json['brand'],
       brandWebsite: json['brand_website'],
-      amazonCategoryPath: json['amazon_category_path'],
+      amazonCategory: json['amazon_category'],
       userGuide: json['user_guide'] != null ? List<String>.from(json['user_guide']) : null,
       warranty: json['warranty'],
       durationOfExpiryFromManufacture: json['duration_of_expiry_from_manufacture'],
@@ -474,9 +485,7 @@ class GenerateAiProductContent {
       specifications: json['specifications'] != null
           ? (json['specifications'] as List).map((e) => Specification.fromJson(e)).toList()
           : null,
-      variants: json['variants'] != null
-          ? (json['variants'] as List).map((e) => Variant.fromJson(e)).toList()
-          : null,
+      variant: variantMap,
     );
   }
 
@@ -485,7 +494,7 @@ class GenerateAiProductContent {
     'description': description,
     'brand': brand,
     'brand_website': brandWebsite,
-    'amazon_category_path': amazonCategoryPath,
+    'amazon_category': amazonCategory,
     'user_guide': userGuide,
     'warranty': warranty,
     'duration_of_expiry_from_manufacture': durationOfExpiryFromManufacture,
@@ -493,7 +502,7 @@ class GenerateAiProductContent {
     'tags': tags,
     'features': features,
     'specifications': specifications?.map((e) => e.toJson()).toList(),
-    'variants': variants?.map((e) => e.toJson()).toList(),
+    'variants': variant,
   };
 }
 
@@ -515,26 +524,50 @@ class Specification {
 }
 
 class Variant {
-  final Map<String, dynamic>? attributes;
+  final Map<String, dynamic> data;
 
-  Variant({this.attributes});
+  Variant({required this.data});
 
-  factory Variant.fromJson(Map<String, dynamic> json) => Variant(
-    attributes: json['attributes'] != null ? Map<String, dynamic>.from(json['attributes']) : null,
-  );
+  factory Variant.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> result = {};
+    json.forEach((key, value) {
+      if (value is List) {
+        // check if list is map or string
+        if (value.isNotEmpty && value.first is Map) {
+          result[key] = value; // keep list of maps as is
+        } else {
+          result[key] = value.map((e) => e.toString()).toList();
+        }
+      }
+    });
+    return Variant(data: result);
+  }
 
-  Map<String, dynamic> toJson() => {
-    'attributes': attributes,
-  };
-
-  /// Helper to get all attribute keys
-  List<String> get keys => attributes?.keys.toList() ?? [];
-
-  /// Helper to get all attribute values
-  List<dynamic> get values => attributes?.values.toList() ?? [];
-
-  /// Helper to get a list of key-value pairs
-  List<MapEntry<String, dynamic>> get entries => attributes?.entries.toList() ?? [];
+  Map<String, dynamic> toJson() => data;
 }
+
+
+// class Variant {
+//   final Map<String, dynamic>? attributes;
+//
+//   Variant({this.attributes});
+//
+//   factory Variant.fromJson(Map<String, dynamic> json) => Variant(
+//     attributes: json['attributes'] != null ? Map<String, dynamic>.from(json['attributes']) : null,
+//   );
+//
+//   Map<String, dynamic> toJson() => {
+//     'attributes': attributes,
+//   };
+//
+//   /// Helper to get all attribute keys
+//   List<String> get keys => attributes?.keys.toList() ?? [];
+//
+//   /// Helper to get all attribute values
+//   List<dynamic> get values => attributes?.values.toList() ?? [];
+//
+//   /// Helper to get a list of key-value pairs
+//   List<MapEntry<String, dynamic>> get entries => attributes?.entries.toList() ?? [];
+// }
 
 

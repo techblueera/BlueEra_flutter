@@ -731,38 +731,38 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         //     ),
         //   ),
 
-        if (isCreateOwnProduct)
-          Builder(
-            builder: (context) => GestureDetector(
-              onTap: ()=> Get.toNamed(RouteHelper.getListingFormScreenRoute()),
-              child: Container(
-                height: SizeConfig.size30,
-                margin: EdgeInsets.only(right: SizeConfig.size10),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryColor)
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.add,
-                      color: AppColors.primaryColor,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      'Create Own',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+        // if (isCreateOwnProduct)
+        //   Builder(
+        //     builder: (context) => GestureDetector(
+        //       onTap: ()=> Get.toNamed(RouteHelper.getListingFormScreenRoute()),
+        //       child: Container(
+        //         height: SizeConfig.size30,
+        //         margin: EdgeInsets.only(right: SizeConfig.size10),
+        //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        //         decoration: BoxDecoration(
+        //             borderRadius: BorderRadius.circular(10),
+        //             border: Border.all(color: AppColors.primaryColor)
+        //         ),
+        //         child: Row(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             const Icon(
+        //               Icons.add,
+        //               color: AppColors.primaryColor,
+        //               size: 16,
+        //             ),
+        //             const SizedBox(width: 4),
+        //             CustomText(
+        //               'Create Own',
+        //               fontSize: 12,
+        //               fontWeight: FontWeight.w600,
+        //               color: AppColors.primaryColor,
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ),
 
 
       ],

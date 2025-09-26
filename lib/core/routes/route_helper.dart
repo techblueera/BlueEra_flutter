@@ -273,8 +273,8 @@ class RouteHelper {
        RouteConstant.moreCardsScreen;
   static String getAddProductScreenRoute() =>
        RouteConstant.addProductScreen;
-  static String getListingFormScreenRoute() =>
-       RouteConstant.listingFormScreen;
+  // static String getListingFormScreenRoute() =>
+  //      RouteConstant.listingFormScreen;
   static String getInventoryScreenRoute() =>
        RouteConstant.inventoryScreen;
   static String getAddServicesScreenRoute() =>
@@ -826,10 +826,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => AddProductScreen(),
             settings: RouteSettings(name: getAddProductScreenRoute()));
-      case RouteConstant.listingFormScreen:
-        return MaterialPageRoute(
-            builder: (_) => ListingFormScreen(),
-            settings: RouteSettings(name: getListingFormScreenRoute()));
+      // case RouteConstant.listingFormScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => ListingFormScreen(),
+      //       settings: RouteSettings(name: getListingFormScreenRoute()));
       case RouteConstant.inventoryScreen:
         return MaterialPageRoute(
             builder: (_) => InventoryScreen(),
@@ -844,14 +844,12 @@ class RouteHelper {
             settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
-        final ManualListingScreenController controller = args[ApiKeys.controller] as ManualListingScreenController;
-        final AddProductViaAiController addProductViaAiController = args[ApiKeys.addProductViaAiController] as AddProductViaAiController;
+        final AddProductViaAiController controller = args[ApiKeys.controller] as AddProductViaAiController;
         final GenerateAiProductContent generateAiProductContent = args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
 
         return MaterialPageRoute(
             builder: (_) => AddProductViaAiStep2(
                 controller: controller,
-                addProductViaAiController: addProductViaAiController,
                 generateAiProductContent: generateAiProductContent
             ),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));

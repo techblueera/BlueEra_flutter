@@ -7,6 +7,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/add_more_details_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
@@ -20,7 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Step2Section extends StatefulWidget {
-  final ManualListingScreenController controller;
+  final AddProductViaAiController controller;
   const Step2Section({super.key, required this.controller});
 
   @override
@@ -226,7 +227,7 @@ class _Step2SectionState extends State<Step2Section> {
   }
 
   Widget _buildProductFeaturesSection(
-      ManualListingScreenController controller) {
+      AddProductViaAiController controller) {
     // min- 20
     return CustomFormCard(
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
@@ -530,7 +531,7 @@ class _Step2SectionState extends State<Step2Section> {
       context: context,
       barrierDismissible: true,
       builder: (_) => const AddMoreDetailsDialog(
-        fromScreen: RouteConstant.listingFormScreen
+        fromScreen: RouteConstant.addProductViaAiStep2
       ),
     );
 
