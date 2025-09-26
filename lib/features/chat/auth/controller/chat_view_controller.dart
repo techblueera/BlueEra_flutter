@@ -113,6 +113,10 @@ class ChatViewController extends GetxController {
     }else if (chatListModel.type=="group"){
       getGroupChatListModel?.value = GroupChatListModel.fromJson(data!);
       groupChatListResponse.value = ApiResponse.complete(getGroupChatListModel?.value);
+    }else{
+      // when type is not come  from backend this is show success in personal chat
+      getPersonalChatListModel?.value = chatListModel;
+      personalChatListResponse.value = ApiResponse.complete(chatListModel);
     }
   }
 
@@ -150,6 +154,7 @@ class ChatViewController extends GetxController {
         await chatSocket.connectToSocket();
         socketConnected.value = true;
       }
+      openedConversation.value=await localStorageHelper.getConversation();
       // final connectivityResult = await NetworkUtils.isConnected();
       // if (connectivityResult) {
       //   await loadChatListFromLocal("personal");
@@ -167,7 +172,6 @@ class ChatViewController extends GetxController {
             GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent('messageReceived', (data) async {
-          log("kjdsjdnskjnsd ${data}");
         final parsedData = GetListOfMessageData.fromJson(data);
         
               // Ensure myMessage field is properly set for all messages
@@ -204,8 +208,7 @@ class ChatViewController extends GetxController {
       });
       chatSocket.listenEvent('newMessageReceived', (data) {
         Messages? message = Messages.fromJson(data['message']);
-  log('personal Data: $message');
-       
+
         if (message.myMessage == null) {
         
           final currentUserId = userId; // Global variable from shared_preference_utils.dart
@@ -358,6 +361,7 @@ class ChatViewController extends GetxController {
   }
 
   void addConversationOnce(String conversationId) {
+    localStorageHelper.putConversation(conversationId);
     if (!openedConversation.contains(conversationId)) {
       openedConversation.add(conversationId);
     }
@@ -426,9 +430,9 @@ class ChatViewController extends GetxController {
     if (connectivityResult) {
       loadOfflineMessages(conversationId);
     }
-    else if (openedConversation.contains(conversationId)) {
-      loadOfflineMessages(conversationId);
-    }
+    // else if (openedConversation.contains(conversationId)) {
+    //   loadOfflineMessages(conversationId);
+    // }
     else {
       emitEvent("messageReceived", {
         ApiKeys.conversation_id: conversationId,
@@ -643,6 +647,16 @@ class ChatViewController extends GetxController {
 
     try {
       clearMessageControllerCommon();
+      log("lfsdkvmlkdfsmdf ${params}");
+      if(params[ApiKeys.message_type]=="text"&&params['reply_id']==null){
+        Messages? message = Messages.fromJson(params);
+        getListOfMessageData?.add(message);
+        message.createdAt=getCurrentIsoTime();
+        message.myMessage=true;
+
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
+      }
       if (replyMessage?.value?.id != null) {
         replyMessage?.value = Messages();
       }
@@ -673,10 +687,12 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-          getListOfMessageData?.add(message);
-         
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
+          if(message.messageType!="text"||params['reply_id']!=null){
+            getListOfMessageData?.add(message);
+
+            getListOfMessageResponse.value =
+                ApiResponse.complete(getListOfMessageData);
+          }
           saveSingleMessageToLocal(
               params[ApiKeys.conversation_id], message, params);
         } else if (message.subType == 'comment') {
@@ -845,20 +861,29 @@ log("AllMembers:$dataList");
       return false;
     }
   }
-
+  String getCurrentIsoTime() {
+    return DateTime.now().toUtc().toIso8601String();
+  }
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
     try {
 
+      Messages? message = Messages.fromJson(params);
+      message.createdAt=getCurrentIsoTime();
+      message.myMessage=true;
+      getListOfMessageData?.add(message);
+      getListOfMessageResponse.value =
+          ApiResponse.complete(getListOfMessageData);
       clearMessageControllerCommon();
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
 
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        Messages? message = Messages.fromJson(data['data']);
-        getListOfMessageData?.add(message);
-        getListOfMessageResponse.value =
-            ApiResponse.complete(getListOfMessageData);
+        // final data = responseModel.response?.data;
+
+        // Messages? message = Messages.fromJson(data['data']);
+        // getListOfMessageData?.add(message);
+        // getListOfMessageResponse.value =
+        //     ApiResponse.complete(getListOfMessageData);
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message, params);
         emitEvent("ChatList", {ApiKeys.type: "personal"}, true);

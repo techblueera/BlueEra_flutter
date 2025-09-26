@@ -98,7 +98,6 @@ class _ContactsPageState extends State<ContactsPage> {
   Future<void> _loadContactsFromStorage() async {
     String? storedData = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.saved_contacts);
-    log("slkdmcklmslksdmclsdkc ${storedData}");
     if (storedData != null) {
       // decode in background
       Map<String, dynamic> decoded =

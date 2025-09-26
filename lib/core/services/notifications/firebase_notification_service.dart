@@ -133,21 +133,46 @@ class FirebaseNotificationService {
     );
   }
 
+  Map<String, List<String>> _messagesMap = {}; // keep this globally or in your service
+
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
-    const androidDetails = AndroidNotificationDetails(
+    final senderId = message.data['senderId'] ?? 'unknown';
+    final senderName = message.data['senderName'] ?? 'Someone';
+    final text = notification?.body ?? '';
+log("lkdmlsdkmlsdvmlsdkm,vv ${notification}");
+log("lkdmlsdkmlsdvmlsdkm,vv ${message.data}");
+log("lkdmlsdkmlsdvmlsdkm,vv ${notification?.body}");
+log("lkdmlsdkmlsdvmlsdkm,vv ${notification?.title}");
+    // store messages per sender
+    if (!_messagesMap.containsKey(senderId)) {
+      _messagesMap[senderId] = [];
+    }
+    _messagesMap[senderId]!.add(text);
+
+    // build inbox style with all messages from this sender
+    final inboxStyle = InboxStyleInformation(
+      _messagesMap[senderId]!
+          .map((msg) => '$senderName: $msg')
+          .toList(),
+      contentTitle: "$senderName (${_messagesMap[senderId]!.length} messages)",
+      summaryText: "New messages",
+    );
+
+    final androidDetails = AndroidNotificationDetails(
       'default_channel',
       'Default',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
+      styleInformation: inboxStyle,
     );
 
     await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      notification?.title ?? 'New Message',
-      notification?.body ?? '',
-      const NotificationDetails(android: androidDetails),
+      senderId.hashCode, // 🔑 same sender = same notification, groups together
+        notification?.title ?? 'New Message',
+        notification?.body ?? '',
+      NotificationDetails(android: androidDetails),
       payload: json.encode(message.data),
     );
   }
