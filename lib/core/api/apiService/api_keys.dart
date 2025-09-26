@@ -364,5 +364,4 @@ class ApiKeys {
   static const cursor = "cursor";
   static const controller = "controller";
   static const varient = "varient";
-  static const addProductViaAiController = "addProductViaAiController";
 }

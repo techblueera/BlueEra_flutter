@@ -501,3 +501,26 @@ Color hexToColor(String hexString) {
   return Color(int.parse(hexString, radix: 16));
 }
 
+const Map<String, String> colorNames = {
+  '#ffffff': 'White',
+  '#000000': 'Black',
+  '#ff0000': 'Red',
+  '#00ff00': 'Green',
+  '#0000ff': 'Blue',
+  '#c0c0c0': 'Silver',
+  '#808080': 'Gray',
+  // add more as needed
+};
+
+String getColorName(String hex) {
+  return colorNames[hex.toLowerCase()] ?? hex; // fallback to hex if unknown
+}
+
+double calculateDiscount(String priceText, String mrpText) {
+  final price = num.tryParse(priceText.replaceAll('₹', '').trim()) ?? 0;
+  final mrp = num.tryParse(mrpText.replaceAll('₹', '').trim()) ?? 0;
+
+  if (mrp == 0) return 0;
+  return ((mrp - price) / mrp) * 100;
+}
+

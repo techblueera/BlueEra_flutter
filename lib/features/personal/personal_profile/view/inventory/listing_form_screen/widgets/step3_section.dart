@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -22,7 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Step3Section extends StatefulWidget {
-  final ManualListingScreenController controller;
+  final AddProductViaAiController controller;
   const Step3Section({super.key, required this.controller});
 
   @override
@@ -393,7 +394,7 @@ class _Step3SectionState extends State<Step3Section> {
     );
   }
 
-   Widget _buildExpiryDateSection(ManualListingScreenController controller) {
+   Widget _buildExpiryDateSection(AddProductViaAiController controller) {
      return Container(
       constraints: const BoxConstraints(minHeight: 80),
       child: Column(
@@ -578,23 +579,4 @@ class _Step3SectionState extends State<Step3Section> {
     );
   }
 
-  Widget _buildNonReturnableSection(ManualListingScreenController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(
-          'This is a non-returnable product',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w500,
-          color: AppColors.black,
-        ),
-        Obx(() => CustomSwitch(
-              containerHeight: 25,
-              containerWidth: 50,
-              value: controller.isNonReturnable.value,
-              onChanged: (value) => controller.toggleNonReturnable(),
-            )),
-      ],
-    );
-  }
 }
