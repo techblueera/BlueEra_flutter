@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
@@ -14,7 +15,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PersonalOverviewScreen extends StatelessWidget {
+class PersonalOverviewScreen extends StatefulWidget {
   final String userId;
   final String videoType;
   final String screenFromName;
@@ -25,12 +26,24 @@ class PersonalOverviewScreen extends StatelessWidget {
     required this.screenFromName,
   });
 
-  final OverviewController controller = Get.put(OverviewController());
+  @override
+  State<PersonalOverviewScreen> createState() => _PersonalOverviewScreenState();
+}
+
+class _PersonalOverviewScreenState extends State<PersonalOverviewScreen> {
+  final OverviewController controller = Get.find<OverviewController>();
+
   final visitingController = Get.find<VisitProfileController>();
 
+  final feedController = Get.find<FeedController>();
+@override
+  void initState() {
+    // TODO: implement initState
+
+  super.initState();
+  }
   @override
   Widget build(BuildContext context) {
-    controller.loadOverviewData(userId, videoType);
 
     return Obx(() {
       if (controller.isLoading.value) {
@@ -38,7 +51,7 @@ class PersonalOverviewScreen extends StatelessWidget {
       }
       if (controller.errorMessage.isNotEmpty) {
         return Center(
-            child: CustomText("Error: ${controller.errorMessage.value}"));
+            child: CustomText("Error:=== ${controller.errorMessage.value}"));
       }
 
       return ListView(
@@ -156,7 +169,7 @@ class PersonalOverviewScreen extends StatelessWidget {
           ],
 
           // ✅ Show only latest post
-          if (controller.postsList.isNotEmpty) ...[
+          if (feedController.otherPosts.isNotEmpty) ...[
             SizedBox(
               height: SizeConfig.size10,
             ),
@@ -169,9 +182,9 @@ class PersonalOverviewScreen extends StatelessWidget {
                 children: [
                   TitleWidget("Post"),
                   FeedCard(
-                    post: controller.postsList.first,
+                    post: feedController.otherPosts.first,
                     index: 0,
-                    postFilteredType: PostType.myPosts,
+                    postFilteredType: PostType.otherPosts,
                     horizontalPadding: 0,
                   ),
                 ],

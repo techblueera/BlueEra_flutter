@@ -89,7 +89,8 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                 child: ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(8)),
-                  child: widget.videoItem.video?.coverUrl !=null&&isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
+                  child: widget.videoItem.video?.coverUrl != null &&
+                          isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
                       ? CachedNetworkImage(
                           imageUrl: widget.videoItem.video?.coverUrl ?? '',
                           width: SizeConfig.screenWidth,
@@ -110,17 +111,20 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                                 LocalAssets(imagePath: AppIconAssets.appIcon),
                           ),
                         )
-                      : widget.videoItem.video?.coverUrl!=null?Image.file(
-                          File(widget.videoItem.video?.coverUrl ?? ''),
-                          width: SizeConfig.screenWidth,
-                          height: SizeConfig.size170,
-                          fit: BoxFit.cover,
-                        ):Container(
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.size140,
-                    color: Colors.grey[300],
-                    child: LocalAssets(imagePath: AppIconAssets.blue_era_app_logo),
-                  ),
+                      : widget.videoItem.video?.coverUrl != null
+                          ? Image.file(
+                              File(widget.videoItem.video?.coverUrl ?? ''),
+                              width: SizeConfig.screenWidth,
+                              height: SizeConfig.size170,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              width: SizeConfig.screenWidth,
+                              height: SizeConfig.size140,
+                              color: Colors.grey[300],
+                              child: LocalAssets(
+                                  imagePath: AppIconAssets.blue_era_app_logo),
+                            ),
                 ),
               ),
               // Video

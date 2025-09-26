@@ -62,8 +62,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
     if (permission == LocationPermission.deniedForever) {
       openAppSettings();
     } else {
-      var locationData = await LocationService.fetchLocation(context);
-      logs("locationData ==== ${locationData}");
+      var locationData = await LocationService.fetchLocation();
       if (locationData != null) {
         var position = locationData["position"];
         final address = locationData["address"];

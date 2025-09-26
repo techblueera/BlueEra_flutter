@@ -31,7 +31,7 @@ class AddPlaceStepOneController extends GetxController {
   Future<void> fetchLocation(BuildContext context) async {
     try {
       isFetchLocationLoading.value = true;
-      final locationData = await LocationService.fetchLocation(context);
+      final locationData = await LocationService.fetchLocation();
       if (locationData != null) {
         final position = locationData["position"];
 

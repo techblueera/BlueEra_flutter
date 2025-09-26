@@ -8,6 +8,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigati
 import 'package:BlueEra/features/common/home/view/home_feed_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/store_screen.dart';
@@ -40,6 +41,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void initState() {
     super.initState();
 
+
     if (channelId.isEmpty) {
       getChannelDetails().then((value) => channelId = value ?? '');
     }
@@ -48,6 +50,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     Get.put(ChatThemeController());
     getOneSignalUpdate();
   }
+
 
   ///GET CHANNEL DETAILS...
   Future<String?> getChannelDetails() async {
@@ -59,7 +62,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         ChannelModel channelModel =
             ChannelModel.fromJson(response.response?.data);
         String channelId = channelModel.data.id;
-        SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channel_Id, channelId);
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channel_Id, channelId);
         return channelId;
       } else {
         return null;
@@ -132,7 +136,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
-        // return HomeFeedScreen();
+      // return HomeFeedScreen();
 
       case 1:
         return StoreScreen(

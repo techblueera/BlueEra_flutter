@@ -1,7 +1,7 @@
-
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -15,7 +15,6 @@ class LocationService {
   static List<String> userCurrentAddress = [];
   static bool isLoading = false;
 
-
   // @override
   // void didChangeAppLifecycleState(AppLifecycleState state) async {
   //   if (state == AppLifecycleState.resumed) {
@@ -27,7 +26,8 @@ class LocationService {
   // }
 
   /// 🌍 Fetches current location and address
-  static Future<Map<String, dynamic>?> fetchLocation(BuildContext context, {bool isPermissionRequired = false}) async {
+  static Future<Map<String, dynamic>?> fetchLocation(
+      {bool isPermissionRequired = false}) async {
     try {
       isLoading = true;
 
@@ -37,11 +37,11 @@ class LocationService {
 
       if (permission.isPermanentlyDenied) {
         _showPermissionDialog(
-          title: 'Location Permission Denied',
-          message: 'Location access is permanently denied. Please enable it manually from the app settings.',
-          openAppSettingsOnConfirm: true,
-          isPermissionRequired: isPermissionRequired
-        );
+            title: 'Location Permission Denied',
+            message:
+                'Location access is permanently denied. Please enable it manually from the app settings.',
+            openAppSettingsOnConfirm: true,
+            isPermissionRequired: isPermissionRequired);
         return null;
       }
 
@@ -51,20 +51,20 @@ class LocationService {
 
         if (result.isPermanentlyDenied) {
           _showPermissionDialog(
-            title: 'Location Permission Denied',
-            message: 'Location access is permanently denied. Please enable it manually from the app settings.',
-            openAppSettingsOnConfirm: true,
-            isPermissionRequired: isPermissionRequired
-          );
+              title: 'Location Permission Denied',
+              message:
+                  'Location access is permanently denied. Please enable it manually from the app settings.',
+              openAppSettingsOnConfirm: true,
+              isPermissionRequired: isPermissionRequired);
           return null;
         }
 
         if (result.isDenied || result.isRestricted) {
           _showPermissionDialog(
-            title: 'Location Access Needed',
-            message: 'This app requires location access to function properly. Please grant permission.',
-            isPermissionRequired: isPermissionRequired
-          );
+              title: 'Location Access Needed',
+              message:
+                  'This app requires location access to function properly. Please grant permission.',
+              isPermissionRequired: isPermissionRequired);
           return null;
         }
       }
@@ -75,11 +75,11 @@ class LocationService {
 
       if (!serviceEnabled) {
         _showPermissionDialog(
-          title: 'Enable Location Services',
-          message: 'Your device\'s location services are turned off. Please enable GPS to continue.',
-          openLocationSettingsOnConfirm: true,
-          isPermissionRequired: isPermissionRequired
-        );
+            title: 'Enable Location Services',
+            message:
+                'Your device\'s location services are turned off. Please enable GPS to continue.',
+            openLocationSettingsOnConfirm: true,
+            isPermissionRequired: isPermissionRequired);
         return null;
       }
 
@@ -110,11 +110,12 @@ class LocationService {
 
         if (userCurrentAddress.isEmpty) {
           userCurrentAddress = [
-            place.subLocality??'',
-            place.locality??'',
-            place.administrativeArea??'',
-            place.country??'',
-          ];;
+            place.subLocality ?? '',
+            place.locality ?? '',
+            place.administrativeArea ?? '',
+            place.country ?? '',
+          ];
+          ;
         }
       } else {
         userCurrentAddress = [];
@@ -132,15 +133,94 @@ class LocationService {
     return null;
   }
 
+  static Future<Map<String, dynamic>?> fetchOnlyLocation(
+      {bool isPermissionRequired = false}) async {
+    try {
+      isLoading = true;
+
+      // Step 1: Check if location permission is granted
+      PermissionStatus permission = await Permission.location.status;
+      log("Initial location permission: $permission");
+
+      if (permission.isPermanentlyDenied) {
+        _showPermissionDialog(
+            title: 'Location Permission Denied',
+            message:
+                'Location access is permanently denied. Please enable it manually from the app settings.',
+            openAppSettingsOnConfirm: true,
+            isPermissionRequired: isPermissionRequired);
+        return null;
+      }
+
+      if (permission.isDenied || permission.isRestricted) {
+        final result = await Permission.location.request();
+        log("Requested location permission result: $result");
+
+        if (result.isPermanentlyDenied) {
+          _showPermissionDialog(
+              title: 'Location Permission Denied',
+              message:
+                  'Location access is permanently denied. Please enable it manually from the app settings.',
+              openAppSettingsOnConfirm: true,
+              isPermissionRequired: isPermissionRequired);
+          return null;
+        }
+
+        if (result.isDenied || result.isRestricted) {
+          _showPermissionDialog(
+              title: 'Location Access Needed',
+              message:
+                  'This app requires location access to function properly. Please grant permission.',
+              isPermissionRequired: isPermissionRequired);
+          return null;
+        }
+      }
+
+      // Step 2: Check if GPS/location services are enabled
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      log("Is location service enabled: $serviceEnabled");
+
+      if (!serviceEnabled) {
+        _showPermissionDialog(
+            title: 'Enable Location Services',
+            message:
+                'Your device\'s location services are turned off. Please enable GPS to continue.',
+            openLocationSettingsOnConfirm: true,
+            isPermissionRequired: isPermissionRequired);
+        return null;
+      }
+      // LAT === 12.949415 === LONG==== 77.58468 ====med
+      // Step 3: Get current position
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+        ),
+      );
+
+      lat = position.latitude;
+      lng = position.longitude;
+
+      logs("LAT === ${lat} === LONG==== ${lng}");
+      return {
+        "position": position,
+        "address": userCurrentAddress,
+      };
+    } catch (e) {
+      debugPrint('Location error: $e');
+    } finally {
+      isLoading = false;
+    }
+    return null;
+  }
+
   /// 📌 Get formatted address parts as a list
-  static List<String> _composeAddress({
-    String? thoroughfare,
-    String? subLocality,
-    String? locality,
-    String? administrativeArea,
-    String? country,
-    String? postalCode
-  }) {
+  static List<String> _composeAddress(
+      {String? thoroughfare,
+      String? subLocality,
+      String? locality,
+      String? administrativeArea,
+      String? country,
+      String? postalCode}) {
     final List<String> parts = [];
 
     if (thoroughfare?.isNotEmpty ?? false) {
@@ -164,7 +244,6 @@ class LocationService {
 
     return parts;
   }
-
 
   /// Helper: Show a permission alert dialog with optional settings redirection
   static Future<void> _showPermissionDialog({
@@ -206,21 +285,18 @@ class LocationService {
               fontWeight: FontWeight.w600,
             ),
           ),
-
-          if(!isPermissionRequired)
-          TextButton(
-            onPressed: () => Get.back(), // cancel closes the popup
-            child: CustomText(
-              cancelText,
-              color: AppColors.red,
-              fontWeight: FontWeight.w600,
+          if (!isPermissionRequired)
+            TextButton(
+              onPressed: () => Get.back(), // cancel closes the popup
+              child: CustomText(
+                cancelText,
+                color: AppColors.red,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
         ],
       ),
       barrierDismissible: false,
     );
   }
-
-
 }

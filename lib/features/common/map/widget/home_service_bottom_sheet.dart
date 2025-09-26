@@ -10,7 +10,6 @@ import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn_with_icon.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

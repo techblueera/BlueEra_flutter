@@ -8,25 +8,19 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
-import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
-
 
 class PostAuthorHeader extends StatelessWidget {
   final Post? post;
@@ -48,7 +42,6 @@ class PostAuthorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     // print('user Id--> ${post?.user?}');
     String name =
         (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
@@ -106,7 +99,9 @@ class PostAuthorHeader extends StatelessWidget {
                     navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
                     Get.to(() => VisitBusinessProfileNew(
-                        businessId: post?.user?.business_id ?? "", screenName:  AppConstants.feedScreen,));
+                          businessId: post?.user?.business_id ?? "",
+                          screenName: AppConstants.feedScreen,
+                        ));
                   }
                 }
               },
@@ -116,7 +111,7 @@ class PostAuthorHeader extends StatelessWidget {
                   userName: '${post?.user?.username}',
                   subtitle: designation != "null" ? designation : 'OTHERS',
                   avatarSize: SizeConfig.size42,
-                  borderColor: AppColors.primaryColor,
+                  borderColor: AppColors.shadowColor,
                   postedAgo: postedAgo),
             ),
           ),
@@ -163,7 +158,6 @@ class PostAuthorHeader extends StatelessWidget {
                 height: 20,
                 width: 20,
                 margin: EdgeInsets.only(right: SizeConfig.size12),
-
                 child: PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   // offset: const Offset(-6, 36),

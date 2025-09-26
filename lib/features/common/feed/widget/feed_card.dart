@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/qa_post_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,13 +28,14 @@ class FeedCard extends StatefulWidget {
   final PostType postFilteredType;
   final SortBy? sortBy;
   final double? horizontalPadding;
+  final double? bottomPadding;
 
   const FeedCard(
       {super.key,
       required this.post,
       required this.index,
       required this.postFilteredType,
-      this.sortBy, this.horizontalPadding});
+      this.sortBy, this.horizontalPadding, this.bottomPadding});
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -96,6 +96,7 @@ class _FeedCardState extends State<FeedCard> {
       case FeedType.messagePost || FeedType.photoPost:
         return MessagePostWidget(
           horizontalPadding: widget.horizontalPadding,
+          bottomPadding: widget.bottomPadding,
           post: _post,
           authorSection: () => PostAuthorHeader(
               post: _post,
@@ -131,7 +132,7 @@ class _FeedCardState extends State<FeedCard> {
       case FeedType.qaPost:
         return QaPostWidget(
           post: _post,
-
+bottomPadding: widget.bottomPadding,
           postId: _post?.id ?? "0",
           poll: Poll(options: _post?.poll?.options??[],question: _post?.poll?.question),
           authorId: _post?.id,
@@ -150,8 +151,9 @@ class _FeedCardState extends State<FeedCard> {
             onTapAvatar: _shouldShowProfileNavigation()
                 ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
                 : null,
-            postedAgo: timeAgo(
-                _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
+            postedAgo: "",
+            // postedAgo: timeAgo(
+            //     _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           ),
           buildActions: () => PostActionsBar(
             post: _post,
@@ -214,7 +216,6 @@ class _FeedCardState extends State<FeedCard> {
   }
 
   void _onLikeDislikePressed() {
-logs("LIKE====");
     feedController.postLikeDislike(
         postId: _post?.id ?? '0',
         type: widget.postFilteredType,

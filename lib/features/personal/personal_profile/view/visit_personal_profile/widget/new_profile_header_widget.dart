@@ -15,7 +15,6 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
-import '../visiting_profile_screen.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
   NewProfileHeaderWidget(

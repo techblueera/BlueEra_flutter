@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/personal_overview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/new_profile_header_widget.dart';
@@ -25,14 +26,15 @@ import '../../controller/profile_controller.dart';
 class NewVisitProfileScreen extends StatefulWidget {
   final String authorId;
   final String screenFromName;
+
   // final String channelId;
 
-  const NewVisitProfileScreen(
-      {super.key,
-      required this.authorId,
-      required this.screenFromName,
-      // required this.channelId
-      });
+  const NewVisitProfileScreen({
+    super.key,
+    required this.authorId,
+    required this.screenFromName,
+    // required this.channelId
+  });
 
   @override
   State<NewVisitProfileScreen> createState() => _NewVisitProfileScreenState();
@@ -46,15 +48,41 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
   final ScrollController _scrollController = ScrollController();
+  final OverviewController overViewController = Get.put(OverviewController());
+  final FeedController feedController = Get.put(FeedController());
+  late VisitProfileController? visitController;
 
   @override
   void initState() {
     controller = Get.put(VisitProfileController());
     setFilters();
+    overViewController.loadOverviewData(
+      widget.authorId,
+      VideoType.latest.name,
+    );
+    feedController.getPostsByType(PostType.otherPosts,
+        isInitialLoad: true,
+        refresh: true,
+        id: widget.authorId,
+        query: "",
+        screenName: '');
+
     controller.fetchUserById(userId: widget.authorId);
     controller.getUserChannelDetailsController(userId: widget.authorId);
+
+    if (Get.isRegistered<VisitProfileController>()) {
+      visitController = Get.find<VisitProfileController>();
+    } else {
+      visitController = Get.put(VisitProfileController());
+    }
+    apiCalling();
+
     _setupScrollListener();
     super.initState();
+  }
+
+  apiCalling() async {
+    await visitController?.getTestimonialController(userID: widget.authorId);
   }
 
   void _setupScrollListener() {
@@ -82,12 +110,12 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         feedController.getPostsByType(
           PostType.otherPosts,
           isInitialLoad: false,
-          id: widget.authorId, screenName: '',
+          id: widget.authorId,
+          screenName: '',
         );
       }
     }
   }
-
 
   @override
   void dispose() {
@@ -130,13 +158,13 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                   NewProfileHeaderWidget(
                     user: user,
                     screenFromName: widget.screenFromName,
-
                   ),
                   SizedBox(
                     height: SizeConfig.size16,
                   ),
                   Padding(
-                    padding:  EdgeInsets.symmetric( horizontal: SizeConfig.size16),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size16),
                     child: HorizontalTabSelector(
                       horizontalMargin: 0,
                       tabs: postTab,
@@ -206,8 +234,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         return PersonalOverviewScreen(
           userId: widget.authorId,
           // channelId: widget.channelId,
-          videoType: VideoType.latest.name, screenFromName: widget.screenFromName,
-
+          videoType: VideoType.latest.name,
+          screenFromName: widget.screenFromName,
         );
       case 'Portfolio':
         return PortfolioWidget(
@@ -219,8 +247,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
             key: ValueKey('feedScreen_user_posts_${widget.authorId}'),
             postFilterType: PostType.otherPosts,
             isInParentScroll: true,
-            id: widget.authorId
-        );
+            id: widget.authorId);
       // case 'Achievements':
       // return AchievementsWidget();
       case 'Testimonials':
@@ -232,7 +259,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         );
       case 'Shorts':
         return ShortsChannelSection(
-          isOwnShorts: true,
+          isOwnShorts: false,
           channelId: '',
           authorId: widget.authorId,
           showShortsInGrid: true,
@@ -247,6 +274,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           sortBy: selectedFilter,
           padding: 0.0,
           postVia: PostVia.profile,
+          isVisiting: true,
         );
       default:
         return const Center(child: CustomText('Coming soon'));

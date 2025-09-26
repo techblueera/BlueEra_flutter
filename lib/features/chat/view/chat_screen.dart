@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
-import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/widget/receive_req_dialoge.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';

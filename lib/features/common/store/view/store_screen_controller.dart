@@ -16,7 +16,7 @@ class StoreScreenController extends GetxController {
    BuildContext context) async {
     try {
       isLoading.value=true;
-      await LocationService.fetchLocation(context);
+      await LocationService.fetchLocation();
 
       final response = await StoreRepo()
           .getStore(lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "", long:  LocationService.lng != 0.0 ? "${LocationService.lng}" : ""); // Make sure repo uses params

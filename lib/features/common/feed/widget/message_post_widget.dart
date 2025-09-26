@@ -24,6 +24,7 @@ class MessagePostWidget extends StatefulWidget {
   final Widget Function() buildActions;
   final VoidCallback  commentView;
   final double? horizontalPadding;
+  final double? bottomPadding;
 
   MessagePostWidget({
     super.key,
@@ -32,6 +33,7 @@ class MessagePostWidget extends StatefulWidget {
     required this.buildActions,
     required this.commentView,
     this.horizontalPadding,
+    this.bottomPadding,
   });
 
   @override
@@ -68,6 +70,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
   Widget build(BuildContext context) {
     return FeedCardWidget(
         horizontalPadding:widget.horizontalPadding ,
+        bottomPadding: widget.bottomPadding,
         childWidget: Column(
           children: [
             widget.authorSection(),

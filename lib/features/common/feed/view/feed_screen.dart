@@ -51,7 +51,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final FeedController feedController = Get.put(FeedController());
+  final  feedController = Get.find<FeedController>();
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
@@ -62,7 +62,7 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+      // fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
 
       // Only add scroll listener if this is an individual page (not in parent scroll)
       if (!widget.isInParentScroll) {
@@ -235,134 +235,7 @@ class _FeedScreenState extends State<FeedScreen> {
       index: postIndex,
       postFilteredType: widget.postFilterType,
     );
-    final item = posts[index];
 
-    /*  if (item.type ==
-        "message_post" ||item.type=="poll_post") {
-      return FeedCard(
-        post: item,
-        index: index,
-        postFilteredType: PostType.all,
-      );
-    }
-    if (item.type == "long_video") {
-      ShortFeedItem videoData = getVideoData(item);
-
-      return Padding(
-        padding:  EdgeInsets.symmetric(),
-        child: AutoPlayVideoCard(
-          videoItem: videoData,
-          globalMuteNotifier: ValueNotifier(false),
-          videoType: VideoType.videoFeed,
-          onTapOption: () {
-            openBlockSelectionDialog(
-                context: context,
-                reportType: 'VIDEO_POST',
-                userId: videoData.video?.userId ?? '',
-                contentId: videoData.video?.id ?? '',
-                userBlockVoidCallback: () async {
-                  await Get.find<VideoController>().userBlocked(
-                    videoType: VideoType.videoFeed,
-                    otherUserId: videoData.video?.userId ?? '',
-                  );
-                },
-                reportCallback: (params) {
-                  Get.find<VideoController>().videoPostReport(
-                      videoId: videoData.video?.id ?? '',
-                      videoType: VideoType.videoFeed,
-                      params: params);
-                });
-          },
-        ),
-      );
-    }*/
-    // 🔹 Check if this is a short_video group (pair of 2)
-    if (item.type == "short_video") {
-      // Only process if index is even (avoid duplicates)
-      if (index % 2 == 0) {
-        final pair = posts
-            .skip(index)
-            .take(2) // ✅ only 2 reels
-            .where((e) => e.type == "short_video")
-            .toList();
-
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 0.85,
-            ),
-            itemCount: pair.length,
-            itemBuilder: (context, i) {
-              final video = pair[i];
-
-              ShortFeedItem reelData = getVideoData(video);
-
-              return ClipRRect(
-                borderRadius: (BorderRadius.circular(12)),
-                child: SingleShortStructure(
-                  shorts: Shorts.latest,
-                  allLoadedShorts: [reelData],
-                  initialIndex: index,
-                  shortItem: reelData,
-                  withBackground: true,
-                  // imageWidth: 170,
-                  imageHeight: 250,
-                ),
-              );
-            },
-          ),
-        );
-      } else {
-        return const SizedBox.shrink();
-
-        // Skip duplicate when index is odd
-      }
-    } else if (item.type == "long_video") {
-      ShortFeedItem videoData = getVideoData(item);
-      logs("thumbnail==== ${item.thumbnail}");
-      logs("videoData==== ${videoData.video?.coverUrl}");
-      return Padding(
-        padding: EdgeInsets.symmetric(),
-        child: AutoPlayVideoCard(
-          videoItem: videoData,
-          globalMuteNotifier: ValueNotifier(false),
-          videoType: VideoType.videoFeed,
-          onTapOption: () {
-            openBlockSelectionDialog(
-                context: context,
-                reportType: 'VIDEO_POST',
-                userId: videoData.video?.userId ?? '',
-                contentId: videoData.video?.id ?? '',
-                userBlockVoidCallback: () async {
-                  await Get.find<VideoController>().userBlocked(
-                    videoType: VideoType.videoFeed,
-                    otherUserId: videoData.video?.userId ?? '',
-                  );
-                },
-                reportCallback: (params) {
-                  Get.find<VideoController>().videoPostReport(
-                      videoId: videoData.video?.id ?? '',
-                      videoType: VideoType.videoFeed,
-                      params: params);
-                });
-          },
-        ),
-      );
-    } else {
-      return FeedCard(
-        post: posts[postIndex],
-        index: postIndex,
-        postFilteredType: widget.postFilterType,
-      );
-    }
-    // return  CustomText("Coming soon ${item.type}");
-    // Return the actual post
   }
 
   @override
@@ -509,74 +382,4 @@ class _FeedScreenState extends State<FeedScreen> {
         interactions: Interactions(
             isBookmarked: false, isFollowing: false, isLiked: false));
   }
-}
-
-class PostData {
-  final int id;
-  final String? title;
-  final String? message;
-  final FeedType? type;
-  final int? authorId;
-  final List<Media>? media;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final int totalLikes;
-  final int totalComments;
-  final int totalReposts;
-  final bool isLike;
-  final String totalViews;
-
-  PostData({
-    required this.id,
-    this.title,
-    this.message,
-    this.type,
-    this.authorId,
-    this.media,
-    this.createdAt,
-    this.updatedAt,
-    this.totalLikes = 0,
-    this.totalComments = 0,
-    this.totalReposts = 0,
-    this.totalViews = "0",
-    this.isLike = false,
-  });
-
-  factory PostData.fromJson(Map<String, dynamic> json) => PostData(
-        id: json['id'] ?? 0,
-        title: json['title'],
-        message: json['message'],
-        type: json['type'],
-        authorId: json['author_id'],
-        media: (json['media'] as List<dynamic>?)
-            ?.map((e) => Media.fromJson(e))
-            .toList(),
-        createdAt: json['created_at'] != null
-            ? DateTime.tryParse(json['created_at'])
-            : null,
-        updatedAt: json['updated_at'] != null
-            ? DateTime.tryParse(json['updated_at'])
-            : null,
-        totalLikes: json['total_likes'] ?? 0,
-        totalComments: json['total_comments'] ?? 0,
-        totalReposts: json['total_reposts'] ?? 0,
-        totalViews: json['total_views'] ?? "0",
-        isLike: json['is_like'] ?? false,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'message': message,
-        'type': type,
-        'author_id': authorId,
-        'media': media?.map((e) => e.toJson()).toList(),
-        'created_at': createdAt?.toIso8601String(),
-        'updated_at': updatedAt?.toIso8601String(),
-        'total_likes': totalLikes,
-        'total_comments': totalComments,
-        'total_reposts': totalReposts,
-        'total_views': totalViews,
-        'is_like': isLike,
-      };
 }

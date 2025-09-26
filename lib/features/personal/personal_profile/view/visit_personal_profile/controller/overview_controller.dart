@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/model/response/get_ratting_summary_response_mod
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -15,7 +16,7 @@ import 'package:get/get.dart';
 
 class OverviewController extends GetxController {
   final testimonialsList = <Testimonials>[].obs;
-  final postsList = <Post>[].obs;
+  // final postsList = <Post>[].obs;
   final shortsList = <ShortFeedItem>[].obs;
   final videosList = <ShortFeedItem>[].obs;
 
@@ -55,27 +56,29 @@ class OverviewController extends GetxController {
   }
 
   Future<void> _getPosts(String userId) async {
-    postsList.clear();
+    final feedController=Get.find<FeedController>();
+    feedController.otherPosts.clear();
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: 1,
-      ApiKeys.limit: 10,
+      ApiKeys.limit: 1,
       ApiKeys.filter: "latest",
       ApiKeys.authorId: userId,
-
+      ApiKeys.refresh: true,
     };
     // authorId=689df0cb7e62ed576245195f
     ResponseModel responseModel =
         await FeedRepo().getAllOtherPosts(queryParams: queryParams);
     if (responseModel.isSuccess) {
       PostResponse data = PostResponse.fromJson(responseModel.response?.data);
-      postsList.assignAll(data.data);
+      // postsList.assignAll(data.data);
+      feedController.otherPosts.addAll(data.data);
     }
   }
 
   Future<void> _getShorts( String userId) async {
     shortsList.clear();
     final params = {
-      ApiKeys.limit: 5,
+      ApiKeys.limit: 1,
       ApiKeys.page: 1,
       ApiKeys.typeFilter: 'short',
       ApiKeys.sortBy: Shorts.latest.queryValue,

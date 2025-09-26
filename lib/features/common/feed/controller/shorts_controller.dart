@@ -267,7 +267,7 @@ class ShortsController extends GetxController{
 
   Future<({double? lat, double? lng})> fetchLocation({required BuildContext context}) async {
     try {
-      final locationData = await LocationService.fetchLocation(context);
+      final locationData = await LocationService.fetchLocation();
       if (locationData != null && locationData["position"] != null) {
         final position = locationData["position"];
         if (position is Position) {

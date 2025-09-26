@@ -121,6 +121,7 @@ class _TestimonialsScreenState extends State<TestimonialsScreen> {
             TestimonialListingWidget(
               userId: widget.visitUserID,
               showBorder: false,
+              callApi:(widget.isSelfTestimonial??false)? true:false,
             ),
             SizedBox(height: SizeConfig.size30,),
 
