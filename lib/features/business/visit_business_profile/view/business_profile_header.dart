@@ -159,9 +159,14 @@ class BusinessProfileHeader extends StatelessWidget {
                                       onTap: () async {
                                         chatViewController
                                             .openAnyOneChatFunction(
+                                          profileImage: businessProfileDetails.logo,
+                                          otherUserId:(viewBusinessDetailsController
+                                              .conversationId.value=='')?viewBusinessDetailsController
+                                            .otherUserId?.value :null,
                                           businessId: businessProfileDetails.id,
                                           type: "business",
-                                          isInitialMessage: false,
+                                          isInitialMessage: (viewBusinessDetailsController
+                                              .conversationId.value=='')?true:false,
                                           userId: businessProfileDetails.userId,
                                           conversationId:
                                               viewBusinessDetailsController

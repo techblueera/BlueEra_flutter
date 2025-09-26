@@ -21,6 +21,7 @@ import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/controller/group_chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
 import '../../map/view/customize_map_screen.dart';
+import '../auth/controller/bottom_bar_controller.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   const BottomNavigationBarScreen({super.key});
@@ -31,10 +32,11 @@ class BottomNavigationBarScreen extends StatefulWidget {
 }
 
 class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
-  int chatNotificationCount = 0, currentIndex = 0;
+  int chatNotificationCount = 0;
   final ValueNotifier<bool> bottomBarVisibleNotifier = ValueNotifier(true);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final chatViewController = Get.put(ChatViewController());
+  final bottomBarController = Get.put(BottomBarController());
   final groupChatViewController = Get.put(GroupChatViewController());
 
   @override
@@ -46,7 +48,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       getChannelDetails().then((value) => channelId = value ?? '');
     }
     chatViewController.connectSocket();
-    groupChatViewController.connectSocket();
+    // groupChatViewController.connectSocket();
     Get.put(ChatThemeController());
     getOneSignalUpdate();
   }
@@ -56,11 +58,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Future<String?> getChannelDetails() async {
     try {
       ResponseModel response =
-          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
+      await ChannelRepo().getChannelDetails(channelOrUserId: userId);
 
       if (response.statusCode == 200) {
         ChannelModel channelModel =
-            ChannelModel.fromJson(response.response?.data);
+        ChannelModel.fromJson(response.response?.data);
         String channelId = channelModel.data.id;
         SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.channel_Id, channelId);
@@ -99,30 +101,35 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             return Stack(
               children: [
                 // 👇 Your dynamic screen based on index
-                Positioned.fill(
-                  child: _getScreen(currentIndex, isVisible),
-                ),
+                Obx(() {
+                  return Positioned.fill(
+                    child: _getScreen(
+                        bottomBarController.currentIndex.value, isVisible),
+                  );
+                }),
 
                 // 👇 Bottom Nav Animation using ValueListenableBuilder
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: AnimatedSlide(
-                    offset: isVisible ? Offset.zero : const Offset(0, 1),
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
-                    child: BottomNavigationBarWidget(
-                      onHeaderVisibilityChanged: _toggleAppBar,
-                      isBottomNavVisible: isVisible,
-                      currentIndex: currentIndex,
-                      onTap: (index) {
-                        setState(() => currentIndex = index);
-                      },
-                      chatNotificationCount: chatNotificationCount,
+                Obx(() {
+                  return Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: AnimatedSlide(
+                      offset: isVisible ? Offset.zero : const Offset(0, 1),
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                      child: BottomNavigationBarWidget(
+                        onHeaderVisibilityChanged: _toggleAppBar,
+                        isBottomNavVisible: isVisible,
+                        currentIndex: bottomBarController.currentIndex.value,
+                        onTap: (index) {
+                          bottomBarController.onChangeIndex(index);
+                        },
+                        chatNotificationCount: chatNotificationCount,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ],
             );
           }),
@@ -136,6 +143,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
+    // return HomeFeedScreen();
       // return HomeFeedScreen();
 
       case 1:
@@ -149,8 +157,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return isGuestUser()
             ? GuestDashBoardScreen()
             : JobsScreen(
-                isHeaderVisible: isVisible,
-                onHeaderVisibilityChanged: _toggleAppBar);
+            isHeaderVisible: isVisible,
+            onHeaderVisibilityChanged: _toggleAppBar);
       case 4:
       default:
         return isGuestUser() ? GuestDashBoardScreen() : ChatMainScreen();
