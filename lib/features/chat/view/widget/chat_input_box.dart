@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/widget/picked_media_preview.dart';
+import 'package:BlueEra/features/chat/view/widget/quick_reply_bottom_sheet.dart';
 import 'package:BlueEra/features/chat/view/widget/send_live_location_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:dio/dio.dart' as dio;
@@ -729,7 +730,8 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   label: 'Quick Reply',
                   onTap: () async {
                     FocusScope.of(context).unfocus();
-                    // Navigator.pop(context);
+                    Navigator.pop(context);
+                      showHiveBottomSheet(context,widget.userId,widget.conversationId,isInitialFlow);
 
                   },
                 ),
