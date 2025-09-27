@@ -38,6 +38,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
 class HomeFeedScreenNew extends StatefulWidget {
   final PostType postFilterType;
@@ -119,130 +122,152 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     return totalItems;
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (feedController.isLoadingHome.isFalse) {
-        if (feedController.feedResponse.value.status == Status.COMPLETE ||
-            widget.postFilterType == PostType.saved) {
-          List<Post> posts = feedController.allPosts;
+      // if (feedController.isLoadingHome.isFalse) {
+      if (feedController.feedResponse.value.status == Status.COMPLETE ||
+          widget.postFilterType == PostType.saved) {
+        List<Post> posts = feedController.allPosts;
 
-          if (posts.isEmpty) {
-            return Center(
-              child: EmptyStateWidget(
-                message: widget.postFilterType == PostType.saved
-                    ? 'No post is in saved.'
-                    : 'No post available.',
-              ),
-            );
-          }
-          // 🔹 Build listView once
-          final listView = SingleChildScrollView(
-            controller: _scrollController,
+        if (posts.isEmpty) {
+          return Column(
+            children: [
+              (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
+                  ? Padding(
+                      padding: EdgeInsets.only(
+                          left: SizeConfig.size8,
+                          right: SizeConfig.size8,
+                          top: SizeConfig.size8),
+                      child: GreetingCardDialog(
+                          cards:
+                              Get.find<MoreCardsScreenController>().dayCards),
+                    )
+                  : SizedBox.shrink(), // skip if no card
 
-            child: Column(
-              children: [
-                if (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(left: SizeConfig.size8,right: SizeConfig.size8,top: SizeConfig.size8),
-                    child: GreetingCardDialog(
-                        cards: Get.find<MoreCardsScreenController>().dayCards),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding:  EdgeInsets.only(bottom: Get.height/10),
+                    child: EmptyStateWidget(
+                      message: widget.postFilterType == PostType.saved
+                          ? 'No post is in saved.'
+                          : 'No post available.',
+                    ),
                   ),
-                ListView.builder(
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: EdgeInsets.only(
-                      top: SizeConfig.size2, bottom: SizeConfig.size80),
-                  shrinkWrap: widget.isInParentScroll,
-                  physics: widget.isInParentScroll
-                      ? const NeverScrollableScrollPhysics()
-                      : const AlwaysScrollableScrollPhysics(),
-                  itemCount: _calculateItemCount(posts.length),
-                  itemBuilder: (context, index) {
-                    return _buildListItem(index, posts);
-                  },
                 ),
-              ],
-            ),
-          );
-
-          // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
-          final content = RefreshIndicator(
-            notificationPredicate: (notification) {
-              return Get.find<HomeScreenController>().headerOffset.value ==
-                      0.0 &&
-                  notification.metrics.pixels <=
-                      notification.metrics.minScrollExtent;
-            },
-            onRefresh: () async {
-              if (Get.find<HomeScreenController>().headerOffset.value != 0.0) {
-                return;
-              }
-
-              // just call your function, then return a completed Future
-              fetchPostData(refreshFlag: true);
-
-              return Future.value();
-            },
-            child: listView,
-          );
-
-          if (widget.postFilterType == PostType.all ||
-              widget.postFilterType == PostType.saved) {
-            return setupScrollVisibilityNotification(
-              controller: widget.isInParentScroll ? null : _scrollController,
-              headerHeight: (widget.headerHeight ?? SizeConfig.size100),
-              onVisibilityChanged: (visible, offset) {
-                final controller = Get.find<HomeScreenController>();
-                final currentOffset = controller.headerOffset.value;
-
-                // Linear animation step (same speed up/down)
-                const step = 0.25;
-
-                double newOffset = currentOffset;
-                if (visible) {
-                  // show header
-                  newOffset = (currentOffset - step).clamp(0.0, 1.0);
-                } else {
-                  // hide header
-                  newOffset = (currentOffset + step).clamp(0.0, 1.0);
-                }
-
-                controller.headerOffset.value = newOffset;
-                controller.isVisible.value = visible;
-                widget.onHeaderVisibilityChanged?.call(visible);
-              },
-              child: content,
-            );
-          }
-
-          return content;
-        } else if (feedController.feedResponse.value.status == Status.ERROR) {
-          return LoadErrorWidget(
-            errorMessage: 'Failed to load posts',
-            onRetry: () {
-              feedController.isLoadingHome.value = true;
-              fetchPostData();
-            },
+              ),
+            ],
           );
         }
-      } else {
-        return Center(child: CircularProgressIndicator());
+        // 🔹 Build listView once
+        final listView = ListView.builder(
+          controller: _scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding:
+              EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
+          shrinkWrap: widget.isInParentScroll,
+          physics: widget.isInParentScroll
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          itemCount: (posts.length),
+          // itemCount: _calculateItemCount(posts.length),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              if (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                      left: SizeConfig.size8,
+                      right: SizeConfig.size8,
+                      top: SizeConfig.size8),
+                  child: GreetingCardDialog(
+                      cards: Get.find<MoreCardsScreenController>().dayCards),
+                );
+              } else {
+                return const SizedBox.shrink(); // skip if no card
+              }
+            }
+            return _buildListItem(index - 1, posts);
+          },
+        );
+
+        // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
+        final content = RefreshIndicator(
+          notificationPredicate: (notification) {
+            return Get.find<HomeScreenController>().headerOffset.value == 0.0 &&
+                notification.metrics.pixels <=
+                    notification.metrics.minScrollExtent;
+          },
+          onRefresh: () async {
+            if (Get.find<HomeScreenController>().headerOffset.value != 0.0) {
+              return;
+            }
+
+            // just call your function, then return a completed Future
+            fetchPostData(refreshFlag: true);
+
+            return Future.value();
+          },
+          child: listView,
+        );
+
+        if (widget.postFilterType == PostType.all ||
+            widget.postFilterType == PostType.saved) {
+          return setupScrollVisibilityNotification(
+            controller: widget.isInParentScroll ? null : _scrollController,
+            headerHeight: (widget.headerHeight ?? SizeConfig.size100),
+            onVisibilityChanged: (visible, offset) {
+              final controller = Get.find<HomeScreenController>();
+              final currentOffset = controller.headerOffset.value;
+
+              // Linear animation step (same speed up/down)
+              const step = 0.25;
+
+              double newOffset = currentOffset;
+              if (visible) {
+                // show header
+                newOffset = (currentOffset - step).clamp(0.0, 1.0);
+              } else {
+                // hide header
+                newOffset = (currentOffset + step).clamp(0.0, 1.0);
+              }
+
+              controller.headerOffset.value = newOffset;
+              controller.isVisible.value = visible;
+              widget.onHeaderVisibilityChanged?.call(visible);
+            },
+            child: content,
+          );
+        }
+
+        return content;
+      } else if (feedController.feedResponse.value.status == Status.ERROR) {
+        return LoadErrorWidget(
+          errorMessage: 'Failed to load posts',
+          onRetry: () {
+            feedController.isLoadingHome.value = true;
+            fetchPostData();
+          },
+        );
       }
+      // } else {
+      //   return Center(child: CircularProgressIndicator());
+      // }
 
       return const SizedBox();
     });
   }
 
-  Widget _buildListItem(int index, List<Post> posts) {
-    // How many ads are inserted before this index
-    int adCountBeforeIndex = (index / cycleSize).floor();
-
-    // The adjusted post index
-    int postIndex = index - adCountBeforeIndex;
-
-    final String? adUnitId = getNativeAdUnitId();
-
+  Widget _buildListItem(int postIndex, List<Post> posts) {
+    // // How many ads are inserted before this index
+    // int adCountBeforeIndex = (index / cycleSize).floor();
+    //
+    // // The adjusted post index
+    // int postIndex = index - adCountBeforeIndex;
+    //
+    // final String? adUnitId = getNativeAdUnitId();
+/*
     // Show ad after every 9 posts → ad goes at index 9, 19, 29...
     if (Platform.isAndroid &&
         adUnitId != null &&
@@ -291,15 +316,15 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           ),
         );
       }
-    }
+    }*/
 
     // Loader at the end
-    if (postIndex >= posts.length) {
+    /*  if (postIndex >= posts.length) {
       // Only show loader if pagination is in progress
       return Obx(() => feedController.hasMoreData.value
           ? staggeredDotsWaveLoading()
           : const SizedBox.shrink());
-    }
+    }*/
 
     final item = posts[postIndex];
 
@@ -398,8 +423,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                 borderRadius: (BorderRadius.circular(12)),
                 child: SingleShortStructure(
                   shorts: Shorts.latest,
-                  allLoadedShorts: [reelData],
-                  initialIndex: postIndex,
+                  allLoadedShorts: feedController.shortFeedItem,
+                  initialIndex: feedController.shortFeedItem
+                      .indexWhere((post) => post.videoId == video.id),
                   shortItem: reelData,
                   withBackground: true,
                   // imageWidth: 170,
@@ -414,6 +440,12 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         // Skip duplicate when index is odd
       }
     } // 🔹 Check if this is a short_video group (pair of 2)
+    /*  if (item.type == "image_post") {
+      return Column(
+        children: buildImagePosts(posts),
+      );
+    }*/
+
     if (item.type == "image_post") {
       if (postIndex % 2 == 0) {
         final pair = posts
@@ -595,39 +627,218 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     return const SizedBox.shrink();
   }
 
-  ShortFeedItem getVideoData(Post video) {
-    return ShortFeedItem(
-        videoId: video.id,
-        author: Author(
-          name: video.user?.name,
-          username: video.user?.username,
-          designation: video.user?.designation,
-          profileImage: video.user?.profileImage,
-          accountType: video.user?.accountType,
-          id: video.user?.id,
+  List<Widget> buildImagePosts(List<Post> posts) {
+    List<Widget> widgets = [];
+
+    for (int i = 0; i < posts.length; i += 2) {
+      // Take 2 items starting from i
+      final pair = posts.skip(i).take(2).toList();
+
+      widgets.add(
+        Padding(
+          padding: EdgeInsets.only(
+            top: SizeConfig.size12,
+            left: SizeConfig.size8,
+            right: SizeConfig.size8,
+          ),
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 0.70,
+            ),
+            itemCount: pair.length,
+            itemBuilder: (context, j) {
+              final imgPostData = pair[j];
+              return ClipRRect(
+                borderRadius: (BorderRadius.circular(12)),
+                child: InkWell(
+                  onTap: () {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: imgPostData.subTitle,
+                        appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                        imageUrls: imgPostData.media ?? [],
+                        initialIndex: i + j,
+                      ),
+                    );
+                  },
+                  child: SizedBox(
+                    width: SizeConfig.size220,
+                    height: 300,
+                    child: Stack(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.blue_era_app_logo,
+                          boxFix: BoxFit.cover,
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(0),
+                        child: CachedNetworkImage(
+                          width: double.infinity,
+                          height: 310,
+                          // height: widget.imageHeight ?? SizeConfig.size220,
+                          fit: BoxFit.cover,
+                          imageUrl: imgPostData.media?.firstOrNull ?? "",
+                          placeholder: (context, str) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.blue_era_app_logo,
+                                boxFix: BoxFit.cover,
+                              ),
+                            );
+                          },
+                          errorWidget: (context, url, error) => Container(
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: AppColors.white, width: 1),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.blueEraIcon,
+                                boxFix: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (imgPostData.subTitle != null &&
+                          (imgPostData.subTitle?.isNotEmpty ?? false) &&
+                          imgPostData.subTitle?.toLowerCase() != "null")
+                        Positioned(
+                            bottom: 0,
+                            right: 0,
+                            left: 0,
+                            // right: SizeConfig.size6,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              padding: EdgeInsets.only(
+                                  bottom: 10,
+                                  left: SizeConfig.size10,
+                                  right: SizeConfig.size10,
+                                  top: 5),
+                              decoration: BoxDecoration(
+                                  color: AppColors.mainTextColor
+                                      .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(5.0)),
+                              child: CustomText(
+                                "${imgPostData.subTitle}",
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w400,
+                                maxLines: 2,
+                                // fontFamily: "arialround",
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )),
+                      if (imgPostData.user?.profileImage != null &&
+                          (imgPostData.user?.profileImage?.isNotEmpty ??
+                              false) &&
+                          imgPostData.user?.profileImage?.toLowerCase() !=
+                              "null")
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: InkWell(
+                            onTap: () {
+                              final authorId = imgPostData.user?.id;
+                              final business_id = imgPostData.user?.business_id;
+                              final accountType =
+                                  imgPostData.user?.accountType?.toUpperCase();
+                              if (accountType == AppConstants.individual) {
+                                if (userId == authorId) {
+                                  navigatePushTo(
+                                      context, PersonalProfileSetupScreen());
+                                } else {
+                                  Get.to(() => NewVisitProfileScreen(
+                                        authorId: authorId ?? "",
+                                        screenFromName: AppConstants.feedScreen,
+                                      ));
+                                }
+                              }
+                              if (accountType == AppConstants.business) {
+                                if (businessId == business_id) {
+                                  navigatePushTo(
+                                      context, BusinessOwnProfileScreen());
+                                } else {
+                                  Get.to(() => VisitBusinessProfileNew(
+                                        businessId: business_id ?? "",
+                                        screenName: AppConstants.feedScreen,
+                                      ));
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50.0),
+                                border: Border.all(
+                                    color: AppColors.primaryColor, width: 1.5),
+                              ),
+                              child: CachedAvatarWidget(
+                                  imageUrl: imgPostData.user?.profileImage,
+                                  size: 30,
+                                  showProfileOnFullScreen: false,
+                                  borderRadius: 100),
+                            ),
+                          ),
+                        ),
+                    ]),
+                  ),
+                ),
+              );
+
+              // return buildImagePostItem(context, imgPostData, i + j);
+            },
+          ),
         ),
-        metadata: VideoItemMetadata(
-            addedAt: video.createdAt.toString(),
-            source: "personalized",
-            watchedBefore: false),
-        video: VideoData(
-            id: video.id,
-            userId: video.user?.id,
-            type: "long_video",
-            title: video.title,
-            description: video.message,
-            videoUrl: video.videoUrl,
-            coverUrl: video.thumbnail,
-            createdAt: video.createdAt.toString(),
-            duration: video.duration,
-            stats: Stats(
-                comments: video.commentsCount,
-                likes: video.likesCount,
-                shares: video.sharesCount,
-                views: video.viewsCount)),
-        interactions: Interactions(
-            isBookmarked: false, isFollowing: false, isLiked: false));
+      );
+    }
+
+    return widgets;
   }
+
+}
+ShortFeedItem getVideoData(Post video) {
+  return ShortFeedItem(
+      videoId: video.id,
+      author: Author(
+        name: video.user?.name,
+        username: video.user?.username,
+        designation: video.user?.designation,
+        profileImage: video.user?.profileImage,
+        accountType: video.user?.accountType,
+        id: video.user?.id,
+      ),
+      metadata: VideoItemMetadata(
+          addedAt: video.createdAt.toString(),
+          source: "personalized",
+          watchedBefore: false),
+      video: VideoData(
+          id: video.id,
+          userId: video.user?.id,
+          type: "long_video",
+          title: video.title,
+          description: video.message,
+          videoUrl: video.videoUrl,
+          coverUrl: video.thumbnail,
+          createdAt: video.createdAt.toString(),
+          duration: video.duration,
+          stats: Stats(
+              comments: video.commentsCount,
+              likes: video.likesCount,
+              shares: video.sharesCount,
+              views: video.viewsCount)),
+      interactions: Interactions(
+          isBookmarked: false, isFollowing: false, isLiked: false));
 }
 
 class PostData {
@@ -699,3 +910,115 @@ class PostData {
         'is_like': isLike,
       };
 }
+
+class ChewieHLSExample extends StatefulWidget {
+  const ChewieHLSExample({Key? key}) : super(key: key);
+
+  @override
+  State<ChewieHLSExample> createState() => _ChewieHLSExampleState();
+}
+
+class _ChewieHLSExampleState extends State<ChewieHLSExample> {
+  late VideoPlayerController _videoPlayerController;
+  ChewieController? _chewieController;
+
+  final String hlsUrl =
+      "https://dz1oexi5wyepv.cloudfront.net/videos/outputs/68d7c51c0ff7b56410a9783c/1758970909704-a25a739e-8324-4cf4-9a5b-c8807396b575.m3u8";
+
+  @override
+  void initState() {
+    super.initState();
+    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(hlsUrl));
+
+    _chewieController = ChewieController(
+      videoPlayerController: _videoPlayerController,
+      autoPlay: true,
+      looping: false,
+      aspectRatio: 16 / 9,
+      materialProgressColors: ChewieProgressColors(
+        playedColor: Colors.blue,
+        handleColor: Colors.blueAccent,
+        backgroundColor: Colors.grey,
+        bufferedColor: Colors.lightGreen,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _videoPlayerController.dispose();
+    _chewieController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Chewie HLS Example")),
+      body: Center(
+        child: _chewieController != null
+            ? Chewie(controller: _chewieController!)
+            : const CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+//
+// class ChewieHLSExample extends StatefulWidget {
+//   const ChewieHLSExample({Key? key}) : super(key: key);
+//
+//   @override
+//   State<ChewieHLSExample> createState() => _ChewieHLSExampleState();
+// }
+//
+// class _ChewieHLSExampleState extends State<ChewieHLSExample> {
+//   late VideoPlayerController _videoPlayerController;
+//   ChewieController? _chewieController;
+//
+//   final String hlsUrl =
+//       "https://dz1oexi5wyepv.cloudfront.net/videos/outputs/68d7c51c0ff7b56410a9783c/1758970909704-a25a739e-8324-4cf4-9a5b-c8807396b575.m3u8";
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(hlsUrl))
+//       ..initialize().then((_) {
+//         setState(() {});
+//       });
+//
+//     _chewieController = ChewieController(
+//       videoPlayerController: _videoPlayerController,
+//       autoPlay: true,
+//       looping: false,
+//       aspectRatio: 16 / 9,
+//       materialProgressColors: ChewieProgressColors(
+//         playedColor: Colors.blue,
+//         handleColor: Colors.blueAccent,
+//         backgroundColor: Colors.grey,
+//         bufferedColor: Colors.lightGreen,
+//       ),
+//     );
+//   }
+//
+//   @override
+//   void dispose() {
+//     _videoPlayerController.dispose();
+//     _chewieController?.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text("Chewie HLS Example")),
+//       body: Center(
+//         child: _chewieController != null &&
+//             _videoPlayerController.value.isInitialized
+//             ? Chewie(controller: _chewieController!)
+//             : const CircularProgressIndicator(),
+//       ),
+//     );
+//   }
+// }

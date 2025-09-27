@@ -23,7 +23,7 @@ class SelectProfilePictureDialog {
         CropAspectRatio? cropAspectRatio,
       }) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
+    final pickedFile = await picker.pickImage(source: source,imageQuality: 90);
 
     if (pickedFile == null) return null;
 

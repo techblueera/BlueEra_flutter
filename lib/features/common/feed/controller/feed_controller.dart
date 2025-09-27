@@ -14,7 +14,9 @@ import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
@@ -905,12 +907,14 @@ class FeedController extends GetxController {
   RxBool hasMoreData = true.obs;
   final int limit = 40;
   dynamic currentLat, currentLong;
+  RxList<ShortFeedItem> shortFeedItem = <ShortFeedItem>[].obs;
 
   Future<void> getFeed({bool refresh = false}) async {
     if (isLoadingHome.value) return;
     if (refresh) {
       cursor.value = "";
       allPosts.clear();
+      shortFeedItem.clear();
       hasMoreData.value = true;
     }
     if (!hasMoreData.value) return;
@@ -933,20 +937,15 @@ class FeedController extends GetxController {
             HomeFeedResponse.fromJson(responseModel.response?.data);
 
         if (homeFeedResponse.feed.isNotEmpty) {
-          // mixedFeed.addAll(homeFeedResponse.feed);
           allPosts.addAll(homeFeedResponse.feed);
-          // for (var item in homeFeedResponse.feed) {
-          //
-          //   // Add to mixed feed for YouTube-style repeating pattern
-          //   mixedFeed.add(postData);
-          // }
-
-          // Update cursor for next pagination
+          allPosts.forEach((data) {
+            if (data.type == "short_video") {
+              shortFeedItem.add(getVideoData(data));
+            }
+          });
           if (homeFeedResponse.feed.isNotEmpty) {
             cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
           }
-
-          // Check if there's more data to load
           if (homeFeedResponse.feed.length < limit) {
             hasMoreData.value = false;
           }

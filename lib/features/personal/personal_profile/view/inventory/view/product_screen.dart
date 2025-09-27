@@ -145,7 +145,7 @@ Widget ProductCard(
           // Product Details
           Flexible(
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -216,30 +216,32 @@ Widget ProductCard(
                   SizedBox(height: 6),
 
                   // Sizes scrollable
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        Row(
-                          children: product.sizes.map((size) {
-                            return Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              margin: EdgeInsets.only(right: 4),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[300]!),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                size,
-                                style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        if (product.sizes.length > 4)
-                          Text('+${product.sizes.length - 4}',
-                              style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                      ],
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          Row(
+                            children: product.sizes.map((size) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                margin: EdgeInsets.only(right: 4),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  size,
+                                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          if (product.sizes.length > 4)
+                            Text('+${product.sizes.length - 4}',
+                                style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                        ],
+                      ),
                     ),
                   ),
                 ],
