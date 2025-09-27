@@ -204,6 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
+
         body: Obx(() => Stack(
               children: [
                 /// Main Scrollable Area with Dynamic Padding
@@ -276,7 +277,8 @@ class _HomeScreenState extends State<HomeScreen> {
             query: searchController.text.isEmpty
                 ? null
                 : searchController.text,
-            headerHeight: _headerHeight,isInParentScroll: true,);
+            headerHeight: _headerHeight,
+          isInParentScroll: false,);
       case 1:
         return VideoFeedScreen(
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,

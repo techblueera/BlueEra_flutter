@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
@@ -611,7 +612,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       }else if(result.toUpperCase() == "ADD SERVICE"){
         Get.toNamed(RouteHelper.getAddServicesScreenRoute());
       }else if(result.toUpperCase() =="ADD FOOD"){
-        Get.to(()=> FoodPage());
+        Get.to(()=> FoodUploadScreen());
+        // Get.to(()=> FoodPage());
       }
     }
   }
