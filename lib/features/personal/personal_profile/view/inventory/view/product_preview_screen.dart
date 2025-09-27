@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/create_varient_screen.dart';
@@ -15,6 +17,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+//// Need to add confirmation popup for data loss when back pressed
 
 class ProductPreviewScreen extends StatefulWidget {
   final AddProductViaAiController controller;
@@ -35,183 +39,229 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     super.initState();
   }
 
+  void handleBackPress(BuildContext context) async {
+     showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('Do you really want to go back? Your product data will be lost.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.until(
+                    (route) =>
+                route.settings.name ==
+                    RouteHelper.getInventoryScreenRoute(),
+              );
+            },
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Stack(
-                children:[
-                  Container(
-                    height: SizeConfig.size350,
-                    color: AppColors.white,
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        CarouselSlider.builder(
-                          carouselController: _carouselController,
-                          itemCount: controller.step2Images.length,
-                          options: CarouselOptions(
-                            height: SizeConfig.size350,
-                            viewportFraction: 1.0,
-                            enlargeCenterPage: false,
-                            enableInfiniteScroll: false,
-                            onPageChanged: (index, reason) {
-                              setState(() => _currentIndex = index);
-                            },
-                          ),
-                          itemBuilder: (context, index, realIdx) {
-                            return Image.file(
-                              File(controller.step2Images[index]),
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                            );
-                          },
-                        ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
 
-                        // 🔹 Positioned indicator at bottom
-                        Positioned(
-                          bottom: 8,
-                          left: 0,
-                          right: 0,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(controller.step2Images.length, (index) {
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                                width: _currentIndex == index ? 8 : 6,
-                                height: _currentIndex == index ? 8 : 6,
-                                decoration: BoxDecoration(
-                                  color: _currentIndex == index
-                                      ? AppColors.primaryColor
-                                      : Colors.grey,
-                                  shape: BoxShape.circle,
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 15,
-                    left: 15,
-                    child: IconButton(
-                    padding: EdgeInsets.zero,
-                        onPressed:() {
-                              Navigator.of(context).pop();
-                            },
-                        icon: LocalAssets(
-                          imagePath: AppIconAssets.back_arrow,
-                          height: SizeConfig.paddingL,
-                          width: SizeConfig.paddingL,
-                          imgColor: Colors.black,
-                        )),
-                  ),
-                ],
-              ),
-
-              CustomFormCard(
-                margin: EdgeInsets.all(SizeConfig.size15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        controller.productNameController.text,
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size12,
-                      ),
-                      Row(
+        handleBackPress(context);
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteF3,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Stack(
+                  children:[
+                    Container(
+                      height: SizeConfig.size350,
+                      color: AppColors.white,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
                         children: [
-                          CustomText(
-                            '₹00,000 ',
-                            fontSize: 24.0,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.mainTextColor,
+                          CarouselSlider.builder(
+                            carouselController: _carouselController,
+                            itemCount: controller.step2Images.length,
+                            options: CarouselOptions(
+                              height: SizeConfig.size350,
+                              viewportFraction: 1.0,
+                              enlargeCenterPage: false,
+                              enableInfiniteScroll: false,
+                              autoPlay: true,
+                              onPageChanged: (index, reason) {
+                                setState(() => _currentIndex = index);
+                              },
+                            ),
+                            itemBuilder: (context, index, realIdx) {
+                              return Image.file(
+                                File(controller.step2Images[index]),
+                                fit: BoxFit.contain,
+                                width: double.infinity,
+                              );
+                            },
                           ),
-                          SizedBox(
-                            width: SizeConfig.size8,
-                          ),
-                          CustomText(
-                            '50% Off ',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          CustomText(
-                            '₹00,000 ',
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor,
+
+                          // 🔹 Positioned indicator at bottom
+                          Positioned(
+                            bottom: 8,
+                            left: 0,
+                            right: 0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(controller.step2Images.length, (index) {
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  width: _currentIndex == index ? 8 : 6,
+                                  height: _currentIndex == index ? 8 : 6,
+                                  decoration: BoxDecoration(
+                                    color: _currentIndex == index
+                                        ? AppColors.primaryColor
+                                        : Colors.grey,
+                                    shape: BoxShape.circle,
+                                  ),
+                                );
+                              }),
+                            ),
                           ),
                         ],
-                      )
-                 ]
-                ),
-              ),
-
-              CustomFormCard(
-                margin: EdgeInsets.only(
-                    left: SizeConfig.size15,
-                    right: SizeConfig.size15,
-                    bottom: SizeConfig.size15
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      'Here Is Your Product details',
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
+                      ),
                     ),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// Product Details
-                    _buildProductDetails(),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// features
-                    _buildProductFeature(),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// pricing & warranty
-                    _buildPricingAndWarranty(),
-                    SizedBox(height: SizeConfig.size10),
-
-                    /// Product variant
-                    _buildProductVariant(),
-
-                    SizedBox(height: SizeConfig.size20),
-
-                    /// Submit
-                    CustomBtn(
-                      title: 'Create Variant - Start Selling',
-                      onTap: (){
-                        Get.to(()=> CreateVariantScreen(controller: controller));
-                        // controller.createProductViaAi(controller);
-                      },
-                      bgColor: AppColors.primaryColor,
-                      textColor: AppColors.white,
-                      height: SizeConfig.size40,
-                      radius: 10.0,
-                      // isLoading: addProductViaAiController.isLoading.value
+                    Positioned(
+                      top: 15,
+                      left: 15,
+                      child: IconButton(
+                      padding: EdgeInsets.zero,
+                          onPressed:() {
+                             handleBackPress(context);
+                            },
+                          icon: LocalAssets(
+                            imagePath: AppIconAssets.back_arrow,
+                            height: SizeConfig.paddingL,
+                            width: SizeConfig.paddingL,
+                            imgColor: Colors.black,
+                          )),
                     ),
                   ],
                 ),
 
-              ),
+                CustomFormCard(
+                  margin: EdgeInsets.all(SizeConfig.size15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          controller.productNameController.text,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size12,
+                        ),
+                        Row(
+                          children: [
+                            CustomText(
+                              '₹00,000 ',
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.mainTextColor,
+                            ),
+                            SizedBox(
+                              width: SizeConfig.size8,
+                            ),
+                            CustomText(
+                              '50% Off ',
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                            CustomText(
+                              '₹00,000 ',
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                          ],
+                        )
+                   ]
+                  ),
+                ),
 
-            ],
+                CustomFormCard(
+                  margin: EdgeInsets.only(
+                      left: SizeConfig.size15,
+                      right: SizeConfig.size15,
+                      bottom: SizeConfig.size15
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Here Is Your Product details',
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// Product Details
+                      _buildProductDetails(),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// features
+                      _buildProductFeature(),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// pricing & warranty
+                      _buildPricingAndWarranty(),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// Product variant
+                      _buildProductVariant(),
+
+                      SizedBox(height: SizeConfig.size20),
+
+                      /// Submit
+                      CustomBtn(
+                        title: 'Create Variant - Start Selling',
+                        onTap: (){
+                          // Get.to(()=> CreateVariantScreen(controller: controller));
+
+                          Get.toNamed(
+                            RouteHelper.getCreateVariantScreenRoute(),
+                            arguments: {
+                              ApiKeys.controller: controller,
+                            },
+                          );
+
+                          // controller.createProductViaAi(controller);
+                        },
+                        bgColor: AppColors.primaryColor,
+                        textColor: AppColors.white,
+                        height: SizeConfig.size40,
+                        radius: 10.0,
+                        // isLoading: addProductViaAiController.isLoading.value
+                      ),
+                    ],
+                  ),
+
+                ),
+
+              ],
+            ),
           ),
         ),
       ),

@@ -55,11 +55,21 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
         ? Get.find<SimplePriorityVideoManager>()
         : Get.put(SimplePriorityVideoManager());
 
+    String videoUrl;
+    if(Platform.isAndroid){
+      videoUrl = widget.videoItem.video?.transcodedUrls?.master ??
+          widget.videoItem.video?.videoUrl ??
+          '';
+    }else{
+      videoUrl =
+          widget.videoItem.video?.videoUrl ??
+          '';
+    }
+
+
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
-      widget.videoItem.video?.transcodedUrls?.master ??
-          widget.videoItem.video?.videoUrl ??
-          '',
+      videoUrl,
       info.visibleFraction,
     );
   }

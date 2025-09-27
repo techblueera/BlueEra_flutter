@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
@@ -10,7 +9,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/color_selection_tile.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/skip_variant_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/submit_varient_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -19,6 +17,11 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+
+/// On next pop up we will ask to add image (up to 2)
+/// Need to aad multiple images slider for product listing
+
 
 class CreateVariantScreen extends StatefulWidget {
   final AddProductViaAiController controller;
@@ -29,6 +32,8 @@ class CreateVariantScreen extends StatefulWidget {
 }
 
 class _CreateVariantScreenState extends State<CreateVariantScreen> {
+  final Map<int, int> _currentIndices = {};
+  final Map<int, CarouselSliderController> _controllers = {};
 
   @override
   Widget build(BuildContext context) {
@@ -152,10 +157,12 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                      shrinkWrap: true,
                      itemCount: widget.controller.listedProducts.length,
                      physics: NeverScrollableScrollPhysics(),
-                     itemBuilder: (context, index) {
-                       final product = widget.controller.listedProducts[index];
-                       // final discountPercent =
-                       // ((product.mrp - product.price) / product.mrp * 100).toStringAsFixed(0);
+                     itemBuilder: (context, productIndex) {
+                       final product = widget.controller.listedProducts[productIndex];
+
+                       // init default values
+                       _currentIndices.putIfAbsent(productIndex, () => 0);
+                       _controllers.putIfAbsent(productIndex, () => CarouselSliderController());
 
                        return Container(
                          margin: EdgeInsets.only(bottom: 16),
@@ -170,39 +177,78 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: [
 
-                             // CarouselSlider.builder(
-                             //   itemCount: widget.controller.step2Images.length,
-                             //   options: CarouselOptions(
-                             //     height: 150,
-                             //     viewportFraction: 1.0,
-                             //     enlargeCenterPage: false,
-                             //     enableInfiniteScroll: false,
-                             //     onPageChanged: (index, reason) {
-                             //       // setState(() => _currentIndex = index);
-                             //     },
-                             //   ),
-                             //   itemBuilder: (context, index, realIdx) {
-                             //     return Image.file(
-                             //       File(product.image[0]),
-                             //       width: 150,
-                             //       height: 150,
-                             //       fit: BoxFit.cover,
-                             //     );
-                             //   },
-                             // ),
+                             SizedBox(
+                               width: 120,
+                               height: 120,
+                               child: Stack(
+                                 children: [
+                                   CarouselSlider.builder(
+                                     carouselController: _controllers[productIndex],
+                                     itemCount: product.image.length,
+                                     options: CarouselOptions(
+                                       height: 120, 
+                                       viewportFraction: 1.0,
+                                       enlargeCenterPage: false,
+                                       enableInfiniteScroll: false,
+                                       onPageChanged: (index, reason) {
+                                         setState(() {
+                                           _currentIndices[productIndex] = index;
+                                         });
+                                       },
+                                     ),
+                                     itemBuilder: (context, imgIndex, realIdx) {
+                                       return ClipRRect(
+                                         borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
+                                         child: Image.file(
+                                           File(product.image[imgIndex]),
+                                           width: 120,
+                                           height: 120,
+                                           fit: BoxFit.cover,
+                                         ),
+                                       );
+                                     },
 
-                             ClipRRect(
-                               borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-                               child: Container(
-                                 color: AppColors.whiteF1,
-                                 child: Image.file(
-                                   File(product.image[0]),
-                                   width: 120,
-                                   height: 120,
-                                   fit: BoxFit.cover,
-                                 ),
+                                   ),
+
+                                   Positioned(
+                                     bottom: 6,
+                                     left: 0,
+                                     right: 0,
+                                     child: Row(
+                                       mainAxisAlignment: MainAxisAlignment.center,
+                                       children: List.generate(product.image.length, (dotIndex) {
+                                         final isActive = _currentIndices[productIndex] == dotIndex;
+                                         return AnimatedContainer(
+                                           duration: const Duration(milliseconds: 300),
+                                           margin: const EdgeInsets.symmetric(horizontal: 3.0),
+                                           width: isActive ? 8 : 6,
+                                           height: isActive ? 8 : 6,
+                                           decoration: BoxDecoration(
+                                             color: isActive ? AppColors.primaryColor : Colors.grey,
+                                             shape: BoxShape.circle,
+                                           ),
+                                         );
+                                       }),
+                                     ),
+                                   ),
+                                 ],
                                ),
                              ),
+
+
+                             // ClipRRect(
+                             //   borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
+                             //   child: Container(
+                             //     color: AppColors.whiteF1,
+                             //     child: Image.file(
+                             //       File(product.image[0]),
+                             //       width: 120,
+                             //       height: 120,
+                             //       fit: BoxFit.cover,
+                             //     ),
+                             //   ),
+                             // ),
+
                              SizedBox(width: 12),
                              Flexible(
                                child: Padding(
@@ -294,7 +340,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                  onSelected: (value) async {
                                    if (value == 'Delete Variant') {
-                                     widget.controller.listedProducts.removeAt(index);
+                                     widget.controller.listedProducts.removeAt(productIndex);
                                    }
                                  },
                                  icon: Icon(Icons.more_vert, color: AppColors.black),
@@ -309,18 +355,27 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                    ),
 
                    SizedBox(height: SizeConfig.size5),
-                   PositiveCustomBtn(
-                     title: 'Go to Product Page',
+                   CustomBtn(
+                     title: widget.controller.isAddProductToInventoryLoading.value
+                         ? null // hide text
+                         : 'Go to Product Page',
                      bgColor: AppColors.primaryColor,
                      borderColor: AppColors.primaryColor,
                      radius: 10.0,
                      textColor: AppColors.white,
                      onTap: () {
-                       Get.snackbar(
-                           'Success',
-                           'Variant added successfully'
+                       widget.controller.addProductToInventory(
+                           addProductViaAiController: widget.controller,
+                           products: widget.controller.listedProducts
                        );
+
+
+                       // Get.snackbar(
+                       //     'Success',
+                       //     'Variant added successfully'
+                       // );
                      },
+                     isLoading: widget.controller.isAddProductToInventoryLoading.value
                    )
                  ],
                ),

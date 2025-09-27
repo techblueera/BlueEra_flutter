@@ -91,4 +91,6 @@ class RouteConstant {
   static const String addServicesScreen = "/AddServicesScreen";
   static const String addProductViaAiStep1 = "/AddProductViaAiStep1";
   static const String addProductViaAiStep2 = "/AddProductViaAiStep2";
+  static const String productPreviewScreen = "/ProductPreviewScreen";
+  static const String createVariantScreen = "/CreateVariantScreen";
 }

@@ -272,7 +272,7 @@ class SelectProfilePictureDialog {
     }
     if (newSize < originalSize) {
       final reduction =
-      ((originalSize - newSize) / originalSize * 100).toStringAsFixed(2);
+      ((originalSize - newSize) / originalSize * 80).toStringAsFixed(2);
       print(
           "✅ Image compressed successfully: $originalSize → $newSize bytes (Reduced $reduction%)");
     } else {

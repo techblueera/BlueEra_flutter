@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -41,7 +43,9 @@ class ReelShortPopUpMenu extends StatelessWidget {
               context,
               RouteHelper.getCreateReelScreenRoute(),
               arguments: {
-                ApiKeys.videoPath: shortFeedItem.video?.transcodedUrls?.master ?? shortFeedItem.video?.videoUrl??'',
+                ApiKeys.videoPath: Platform.isAndroid
+                    ? shortFeedItem.video?.transcodedUrls?.master ?? shortFeedItem.video?.videoUrl??''
+                    : shortFeedItem.video?.videoUrl??'',
                 ApiKeys.videoType:  Video.short,
                 ApiKeys.videoId: shortFeedItem.videoId,
                 ApiKeys.argPostVia: shortFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,

@@ -98,8 +98,14 @@ class SingleVideoPlayerController extends GetxController {
       isVideoCompleted.value = false;
       errorMessage.value = '';
 
-      final videoUrl =
-          videoItem.video?.transcodedUrls?.master ?? videoItem.video?.videoUrl;
+     String? videoUrl;
+      if(GetPlatform.isAndroid){
+        videoUrl =
+            videoItem.video?.transcodedUrls?.master ?? videoItem.video?.videoUrl;
+      }else{
+         videoUrl = videoItem.video?.videoUrl;
+      }
+
       if (videoUrl == null || videoUrl.isEmpty) {
         throw Exception('Video URL is empty or null');
       }

@@ -11,9 +11,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/listin
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step1_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step2_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step3_section.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step4_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';

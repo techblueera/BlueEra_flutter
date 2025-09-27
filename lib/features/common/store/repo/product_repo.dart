@@ -67,4 +67,31 @@ class ProductRepo extends BaseService{
     return response;
   }
 
+  // Create Product (multipart)
+  Future<ResponseModel> createProductViaAiApi({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      createProductViaAi,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Delete Product...
+  Future<ResponseModel> addProductToInventoryApi({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      addProductToInventory,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
 }

@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/store/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -49,6 +51,7 @@ class AddProductViaAiRequest {
 class ProductListing {
   final List<String> image;
   final String name;
+  final Map<String, String>? selectedVariants;
   final String? price;
   final String? mrp;
   final String? minPrice;
@@ -58,6 +61,7 @@ class ProductListing {
   ProductListing({
     required this.image,
     required this.name,
+    this.selectedVariants,
     this.price,
     this.mrp,
     this.minPrice,
@@ -119,6 +123,9 @@ class AddProductViaAiController extends GetxController{
   /// Max images
   final RxInt maxStep1Images = 1.obs;
   final RxInt maxStep2Images = 5.obs;
+
+  final TextEditingController productNameStep1Controller = TextEditingController();
+  final TextEditingController productDescriptionStep1Controller = TextEditingController();
 
   final TextEditingController productNameController = TextEditingController();
   final TextEditingController productDescriptionController = TextEditingController();
@@ -362,8 +369,8 @@ class AddProductViaAiController extends GetxController{
     isLoading.value = true;
 
     final request = AddProductViaAiRequest(
-      productName: productNameController.text.trim(),
-      productDescription: productDescriptionController.text.trim(),
+      productName: productNameStep1Controller.text.trim(),
+      productDescription: productDescriptionStep1Controller.text.trim(),
       // category: Get.find<ManualListingScreenController>()
       //     .selectedBreadcrumb
       //     .value
@@ -376,12 +383,12 @@ class AddProductViaAiController extends GetxController{
 
     isLoading.value = false;
 
-    // Get.toNamed(
-    //   RouteHelper.getAddProductViaAiStep2Route(),
-    //   arguments: {
-    //     ApiKeys.generateAiProductContent: GenerateAiProductContent(),
-    //   },
-    // );
+    Get.toNamed(
+      RouteHelper.getAddProductViaAiStep2Route(),
+      arguments: {
+        ApiKeys.generateAiProductContent: GenerateAiProductContent(),
+      },
+    );
   }
 
   bool _validate() {
@@ -442,13 +449,13 @@ class AddProductViaAiController extends GetxController{
           },
         );
       } else {
-        commonSnackBar(message: 'something went wrong.');
+        commonSnackBar(message: responseModel.message ?? 'something went wrong.');
         generateAiProductContentResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       print('stack trace-- $s');
       generateAiProductContentResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: 'something went wrong.');
+      commonSnackBar(message: e.toString());
     }
   }
 
@@ -579,18 +586,23 @@ class AddProductViaAiController extends GetxController{
       }
       params[ApiKeys.media] = imageByPart;
 
-      final responseModel = await ListingFormRepo().createProductViaAiApi(params: params);
+      final responseModel = await ProductRepo().createProductViaAiApi(params: params);
       commonSnackBar(message: responseModel.message);
       if (responseModel.isSuccess) {
         createProductResponse.value = ApiResponse.complete(responseModel);
-        Get.to(()=> ProductPreviewScreen(controller: addProductViaAiController));
-        // final createProductModel = CreateProductModel.fromJson(responseModel.response!.data);
-        // productId = createProductModel.data?.sId;
-        // currentStep.value += 1;
+        log('id -- ${responseModel.response?.data['data']['_id']}');
+        productId = responseModel.response?.data['data']['_id'];
+        Get.toNamed(
+          RouteHelper.getProductPreviewScreenRoute(),
+          arguments: {
+            ApiKeys.controller: addProductViaAiController,
+          },
+        );
       } else {
         createProductResponse.value = ApiResponse.error('error');
       }
-    } catch (e) {
+    } catch (e, s) {
+      print('stack trace-- $s');
       createProductResponse.value = ApiResponse.error('error');
       commonSnackBar(message: 'something went wrong.');
     } finally {
@@ -598,8 +610,68 @@ class AddProductViaAiController extends GetxController{
     }
   }
 
+  var isAddProductToInventoryLoading = false.obs;
 
+  Future<void> addProductToInventory(
+      {
+        required AddProductViaAiController addProductViaAiController,
+        required List<ProductListing> products
+      }) async {
+    isAddProductToInventoryLoading.value = true;
+    try {
 
+      final payload =
+        products.map((product) {
+          return {
+            ApiKeys.attributes: product.selectedVariants ?? {},
+            // "stock": true,
+            ApiKeys.sellingPrice: int.tryParse(product.price ?? '0') ?? 0,
+            ApiKeys.mrp: int.tryParse(product.mrp ?? '0') ?? 0,
+          };
+        }).toList();
+
+      Map<String, dynamic> params = {
+        ApiKeys.productId: productId,
+        ApiKeys.business_id: userId,
+        ApiKeys.variants: jsonEncode(payload)
+      };
+
+      for (int i = 0; i < products.length; i++) {
+        final product = products[i];
+        final List<dio.MultipartFile> imageByPart = [];
+
+        for (final path in product.image) {
+          final fileName = path.split('/').last;
+          imageByPart.add(
+            await dio.MultipartFile.fromFile(
+              path,
+              filename: fileName,
+            ),
+          );
+        }
+
+        params['variant${i}_files'] = imageByPart;
+      }
+
+      final responseModel = await ProductRepo().addProductToInventoryApi(params: params);
+      if (responseModel.isSuccess) {
+        createProductResponse.value = ApiResponse.complete(responseModel);
+        Get.until(
+              (route) =>
+          route.settings.name ==
+              RouteHelper.getInventoryScreenRoute(),
+        );
+      } else {
+        commonSnackBar(message: responseModel.message);
+        createProductResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      createProductResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: 'something went wrong.');
+    } finally {
+      isAddProductToInventoryLoading.value = false;
+    }
+  }
 
   String? validateCategory(String? value) {
     if (value == null || value.isEmpty) return 'Category is required';

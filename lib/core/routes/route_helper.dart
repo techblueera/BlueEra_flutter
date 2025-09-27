@@ -67,6 +67,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/sub_fe
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step1.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/create_varient_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
@@ -283,6 +285,10 @@ class RouteHelper {
        RouteConstant.addProductViaAiStep1;
   static String getAddProductViaAiStep2Route() =>
        RouteConstant.addProductViaAiStep2;
+  static String getProductPreviewScreenRoute() =>
+       RouteConstant.productPreviewScreen;
+ static String getCreateVariantScreenRoute() =>
+       RouteConstant.createVariantScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -853,6 +859,24 @@ class RouteHelper {
                 generateAiProductContent: generateAiProductContent
             ),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
+      case RouteConstant.productPreviewScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final AddProductViaAiController controller = args[ApiKeys.controller] as AddProductViaAiController;
+
+        return MaterialPageRoute(
+            builder: (_) => ProductPreviewScreen(
+                controller: controller,
+            ),
+            settings: RouteSettings(name: getProductPreviewScreenRoute()));
+    case RouteConstant.createVariantScreen:
+      final args = settings.arguments as Map<String, dynamic>;
+      final AddProductViaAiController controller = args[ApiKeys.controller] as AddProductViaAiController;
+
+        return MaterialPageRoute(
+            builder: (_) => CreateVariantScreen(
+              controller: controller
+            ),
+            settings: RouteSettings(name: getCreateVariantScreenRoute()));
 
      default:
         return MaterialPageRoute(

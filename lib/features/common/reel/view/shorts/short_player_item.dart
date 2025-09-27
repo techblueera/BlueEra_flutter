@@ -290,7 +290,17 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     if (_controller != null || _isDisposed) return;
 
     try {
-      final videoUrl = fullScreenShortController.videoItem?.video?.transcodedUrls?.master ?? fullScreenShortController.videoItem?.video?.videoUrl;
+      String? videoUrl;
+      if(GetPlatform.isAndroid){
+        videoUrl =
+            fullScreenShortController.videoItem?.video?.transcodedUrls?.master
+                ?? fullScreenShortController.videoItem?.video?.videoUrl;
+      }else{
+        videoUrl =
+            fullScreenShortController.videoItem?.video?.videoUrl;
+      }
+      // final videoUrl = fullScreenShortController.videoItem?.video?.transcodedUrls?.master ?? fullScreenShortController.videoItem?.video?.videoUrl;
+
       if (videoUrl == null || videoUrl.isEmpty) {
         if (!_isDisposed) {
           setState(() => _hasError = true);

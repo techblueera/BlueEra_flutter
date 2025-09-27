@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -41,7 +42,10 @@ class ReelVideoPopUpMenu extends StatelessWidget {
             context,
             RouteHelper.getCreateReelScreenRoute(),
             arguments: {
-              ApiKeys.videoPath: videoFeedItem.video?.transcodedUrls?.master ?? videoFeedItem.video?.videoUrl??'',
+              ApiKeys.videoPath:
+              (Platform.isAndroid)
+                  ? videoFeedItem.video?.transcodedUrls?.master ?? videoFeedItem.video?.videoUrl??''
+                  : videoFeedItem.video?.videoUrl??'',
               ApiKeys.videoType: Video.video,
               ApiKeys.videoId: videoFeedItem.videoId,
               ApiKeys.argPostVia: videoFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,

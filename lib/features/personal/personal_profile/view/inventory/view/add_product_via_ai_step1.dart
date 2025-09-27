@@ -128,7 +128,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
 
                       /// Product Name
                       CommonTextField(
-                          textEditController: addProductViaAiController.productNameController,
+                          textEditController: addProductViaAiController.productNameStep1Controller,
                           hintText: 'e.g. t-shirt/mobile',
                           title: "Product Name & Brand",
                           validator: ValidationMethod().validateProductName,
@@ -141,7 +141,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
 
                       /// Product Description
                       CommonTextField(
-                          textEditController: addProductViaAiController.productDescriptionController,
+                          textEditController: addProductViaAiController.productDescriptionStep1Controller,
                           hintText:
                           "e.g. t-shirt/mens wear/shirt/cotton mix silk/casual wear",
                           maxLine: 4,
