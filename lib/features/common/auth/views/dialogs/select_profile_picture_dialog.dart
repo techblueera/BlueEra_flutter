@@ -23,7 +23,7 @@ class SelectProfilePictureDialog {
         CropAspectRatio? cropAspectRatio,
       }) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
+    final pickedFile = await picker.pickImage(source: source,);
 
     if (pickedFile == null) return null;
 
@@ -247,7 +247,7 @@ class SelectProfilePictureDialog {
   }
 
   /// Compression
-  static Future<File?> compressImage(File rawFile, {int quality = 70}) async {
+  static Future<File?> compressImage(File rawFile, {int quality = 85}) async {
     final dir = await getTemporaryDirectory();
     final targetPath =
         '${dir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';

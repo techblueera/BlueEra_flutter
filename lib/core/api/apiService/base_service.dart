@@ -445,5 +445,6 @@ abstract class BaseService {
   final String addProductToInventory = "inventory-service/products/addProductToInventory";
 
   final String homeFeed = 'userfeed-service/feed';
+  final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';
 
 }

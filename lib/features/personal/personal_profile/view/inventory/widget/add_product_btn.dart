@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/constants/app_colors.dart';
@@ -27,7 +28,8 @@ class AddProductBtn extends StatelessWidget {
         }else if(value.toUpperCase() == "ADD SERVICE"){
           Get.toNamed(RouteHelper.getAddServicesScreenRoute());
         }else if(value.toUpperCase() =="ADD FOOD"){
-          Get.to(()=> FoodPage());
+          Get.to(()=> FoodUploadScreen());
+          // Get.to(()=> FoodPage());
         }
       },
       icon: Container(

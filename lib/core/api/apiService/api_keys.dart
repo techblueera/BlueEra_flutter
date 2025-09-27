@@ -365,6 +365,9 @@ class ApiKeys {
   static const content_types  = "content_types";
   static const controller = "controller";
   static const varient = "varient";
+  static const addProductViaAiController = "addProductViaAiController";
+  static const product_details = "product_details";
+  static const product_name = "product_name";
   static const productId = "product_id";
   static const business_id = "business_id";
   static const variants = "variants";

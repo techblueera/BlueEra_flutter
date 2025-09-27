@@ -84,20 +84,18 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                     itemBuilder: (context, index) {
                       final imageUrl = widget.imageUrls[index];
 
-                      return Center(
-                        child: InteractiveViewer(
-                          panEnabled: true,
-                          transformationController: _transformationController,
-                          // minScale: 1.0,
-                          // maxScale: 5.0,
-                          child: CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            scale: 1,
-                            placeholder: (context, url) =>
-                            const CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                          ),
+                      return InteractiveViewer(
+                        panEnabled: true,
+                        transformationController: _transformationController,
+                        // minScale: 1.0,
+                        // maxScale: 5.0,
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          scale: 1,fit: BoxFit.fitWidth,
+                          placeholder: (context, url) =>
+                          const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
                         ),
                       );
                     },

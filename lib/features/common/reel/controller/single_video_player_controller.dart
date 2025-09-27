@@ -121,15 +121,15 @@ class SingleVideoPlayerController extends GetxController {
       // Create new controllers
       _videoPlayerController = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
-        videoPlayerOptions: VideoPlayerOptions(
-          mixWithOthers: true,
-          allowBackgroundPlayback: false,
-        ),
-        httpHeaders: isHlsUrl(videoUrl) ? {
-          'Accept': '*/*',
-          'User-Agent': 'Flutter Video Player',
-          'Connection': 'keep-alive',
-        } : {},
+        // videoPlayerOptions: VideoPlayerOptions(
+        //   mixWithOthers: true,
+        //   allowBackgroundPlayback: false,
+        // ),
+        // httpHeaders: isHlsUrl(videoUrl) ? {
+        //   'Accept': '*/*',
+        //   'User-Agent': 'Flutter Video Player',
+        //   'Connection': 'keep-alive',
+        // } : {},
       );
 
       await _videoPlayerController!.initialize();

@@ -715,6 +715,12 @@ class _VideoPlayerWithControls extends StatelessWidget {
               aspectRatio: videoController.value.aspectRatio,
               child: VideoPlayer(videoController),
             ),
+/*
+   AspectRatio(
+              aspectRatio: videoController.value.aspectRatio,
+              child: VideoPlayer(videoController),
+            ),
+*/
 
             // Replay overlay
             if (isCompleted) getReplayOverlayWidget(),
