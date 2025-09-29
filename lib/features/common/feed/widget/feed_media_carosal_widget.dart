@@ -257,22 +257,13 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                                 fit: BoxFit.cover,
                                 width: width,
                                 height: height,
-                                placeholder: (context, _) => const Center(
+                                placeholder: (context, _) =>  Center(
                                   child:
-                                      CircularProgressIndicator(strokeWidth: 2),
+                                  LocalAssets(imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
                                 ),
-                                errorWidget: (context, _, __) =>LocalAssets(imagePath: AppIconAssets.blue_era_app_logo),
-                              ) /*Container(
-                                    height: height,
-                                    width: width,
-                                    decoration: BoxDecoration(
+                                errorWidget: (context, _, __) =>LocalAssets(imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
+                              )
 
-                                      image: DecorationImage(
-                                        image: NetworkImage(url),
-                                        fit: BoxFit.fitWidth,
-                                      ),
-                                    ),
-                                  )*/
                               ,
                             ),
                           ),

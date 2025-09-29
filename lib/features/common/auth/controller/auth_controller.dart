@@ -25,6 +25,7 @@ import 'package:BlueEra/features/common/auth/views/screens/create_business_accou
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -62,8 +63,8 @@ class AuthController extends GetxController {
     };
     try {
       ResponseModel responseModel =
-      await AuthRepo().authMobileOtpSendRepo(bodyRequest: requestData);
-      logs("responseModel: ${responseModel.statusCode}");
+          await AuthRepo().authMobileOtpSendRepo(bodyRequest: requestData);
+      // logs("responseModel: ${responseModel.statusCode}");
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
         Get.offNamed(
@@ -72,35 +73,41 @@ class AuthController extends GetxController {
         );
         mobileNoOtpSendResponse = ApiResponse.complete(responseModel);
       } else {
+        // commonSnackBar(message: "Something went wrong try after sometimes ELSE");
+
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       mobileNoOtpSendResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: e.toString());
+      // commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
- /// dummy response
- /// {"success":true,"message":"Login successful","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOnsiX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGI5IiwiYWNjb3VudF90eXBlIjoiQlVTSU5FU1MiLCJjb250YWN0X25vIjoiMTMwMDAwMDAwNSIsImJ1c2luZXNzX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGJiIn0sImlhdCI6MTc1NzE0MDMwMywiZXhwIjoxNzcyNjkyMzAzfQ.c1xZ_-gADtDAlLz_dslvhWaC99rIHg-qxJIVblB2yx8","data":{"_id":"68b2da7ec812c11434960db9","account_type":"BUSINESS","contact_no":"1300000005","business":"68b2da7ec812c11434960dbb"},"user":true,"isBlocked":false,"blockedType":null}
- ///  68b04d58e194411532d5707e
+  /// dummy response
+  /// {"success":true,"message":"Login successful","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOnsiX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGI5IiwiYWNjb3VudF90eXBlIjoiQlVTSU5FU1MiLCJjb250YWN0X25vIjoiMTMwMDAwMDAwNSIsImJ1c2luZXNzX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGJiIn0sImlhdCI6MTc1NzE0MDMwMywiZXhwIjoxNzcyNjkyMzAzfQ.c1xZ_-gADtDAlLz_dslvhWaC99rIHg-qxJIVblB2yx8","data":{"_id":"68b2da7ec812c11434960db9","account_type":"BUSINESS","contact_no":"1300000005","business":"68b2da7ec812c11434960dbb"},"user":true,"isBlocked":false,"blockedType":null}
+  ///  68b04d58e194411532d5707e
 
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
-    String? token = await FirebaseMessaging.instance.getToken();
-    Map<String, dynamic> requestData = {
-      ApiKeys.contact_no: mobileNumberEditController.text,
-      ApiKeys.otp: otp,
-      ApiKeys.device_token: token,
-      ApiKeys.one_signal_player_id: "",
-    };
+    String? token = "";
     try {
+      token = await FirebaseMessaging.instance.getToken();
+    } catch (e) {}
+    try {
+      Map<String, dynamic> requestData = {
+        ApiKeys.contact_no: mobileNumberEditController.text,
+        ApiKeys.otp: otp,
+        ApiKeys.device_token: token,
+        ApiKeys.one_signal_player_id: "",
+      };
       ResponseModel response =
-      await AuthRepo().authMobileOtpVerifyRepo(bodyRequest: requestData);
+          await AuthRepo().authMobileOtpVerifyRepo(bodyRequest: requestData);
 
       if (response.statusCode == 200) {
         OtpVerifyModel data =
-        otpVerifyModelFromJson(jsonEncode(response.response?.data));
+            otpVerifyModelFromJson(jsonEncode(response.response?.data));
 
         final dataUser = response.response?.data?[ApiKeys.user] ?? false;
 
@@ -124,7 +131,7 @@ class AuthController extends GetxController {
               await getUserLoginAccountType();
               await getUserAuthToken();
               final viewProfileController =
-              Get.put(ViewBusinessDetailsController());
+                  Get.put(ViewBusinessDetailsController());
 
               await viewProfileController.viewBusinessProfile();
             } else if (data.data?.accountType?.toUpperCase() ==
@@ -139,7 +146,7 @@ class AuthController extends GetxController {
               await getUserLoginAccountType();
 
               final personalController =
-              Get.put(ViewPersonalDetailsController());
+                  Get.put(ViewPersonalDetailsController());
               await personalController.viewPersonalProfile();
 
               await SharedPreferenceUtils.setSecureValue(
@@ -150,7 +157,7 @@ class AuthController extends GetxController {
 
             Get.offNamedUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
-                  (route) => false,
+              (route) => false,
             );
           } else {
             commonSnackBar(message: response.message ?? AppStrings.tokenIsNull);
@@ -172,7 +179,7 @@ class AuthController extends GetxController {
           await Future.delayed(Duration(milliseconds: 350));
           Get.offNamedUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-                (route) => false,
+            (route) => false,
           );
         }
 
@@ -186,83 +193,17 @@ class AuthController extends GetxController {
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        // message:  response.response?.data?[ApiKeys.message]  ?? AppStrings.somethingWentWrong);
       }
-    } catch (e,s) {
+    } catch (e, s) {
       logs("ERROR ${e}");
       logs("STACK TRACE: $s");
       otpVerificationResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: e.toString());
+      // Get.dialog(CustomText(e.toString()));
     }
   }
 
-  /* ///Add User...
-  Future<void> addNewUser({required Map<String, dynamic>? reqData}) async {
-    try {
-      ResponseModel response =
-          await AuthRepo().authUserRegisterRepo(bodyRequest: reqData);
-      if (response.isSuccess) {
-        OtpVerifyModel otpVerifyModel =
-            otpVerifyModelFromJson(jsonEncode(response.response?.data));
-        if (otpVerifyModel.success ?? false) {
-          commonSnackBar(message: response.message ?? AppStrings.success);
-          await SharedPreferenceUtils.userLoggedIn(
-            businesId: otpVerifyModel.business != null
-                ? "${otpVerifyModel.business?.id}"
-                : "",
-            loginUserId_: "${otpVerifyModel.data?.id}",
-            contactNo: "${otpVerifyModel.data?.contactNo}",
-            autToken: "${otpVerifyModel.token}",
-            getUserName: otpVerifyModel.data?.accountType?.toUpperCase() ==
-                    AppConstants.business
-                ? ""
-                : "${otpVerifyModel.data?.name}",
-            profileImage: otpVerifyModel.data?.accountType?.toUpperCase() ==
-                    AppConstants.business
-                ? "${otpVerifyModel.business?.logo}"
-                : "${otpVerifyModel.data?.profileImage}",
-            designation: otpVerifyModel.data?.accountType?.toUpperCase() ==
-                    AppConstants.business
-                ? ""
-                : "${otpVerifyModel.data?.profession}",
-          );
-          await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.accountType,
-              otpVerifyModel.data?.accountType);
-
-          await getUserLoginData();
-          if (otpVerifyModel.data?.accountType?.toUpperCase() ==
-              AppConstants.business) {
-            final viewProfileController =
-                Get.put(ViewBusinessDetailsController());
-            await viewProfileController.viewBusinessProfile();
-            BusinessProfileDetails details =
-                viewProfileController.businessProfileDetails?.data ??
-                    BusinessProfileDetails();
-
-            Get.offAll(CreateBusinessAccountStepTwo());
-          } else {
-            Get.offNamedUntil(
-              RouteHelper.getBottomNavigationBarScreenRoute(),
-              (route) => false,
-            );
-          }
-
-          clearAllData();
-          addUserResponse = ApiResponse.complete(response);
-        } else {
-          commonSnackBar(
-              message: otpVerifyModel.message ?? AppStrings.somethingWentWrong);
-        }
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      addUserResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-  }
-*/
   Future<void> addIndivisualUser(
       {required Map<String, dynamic>? reqData}) async {
     try {
@@ -270,10 +211,8 @@ class AuthController extends GetxController {
           .updateIndividualAccountUserRepo(bodyRequest: reqData);
       if (response.isSuccess) {
         GuestUserResModel guestUserResModel =
-        GuestUserResModel.fromJson(response.response?.data);
+            GuestUserResModel.fromJson(response.response?.data);
         if (guestUserResModel.status ?? false) {
-
-
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.individual);
 
@@ -283,13 +222,12 @@ class AuthController extends GetxController {
           await getUserLoginAccountType();
           await getUserAuthToken();
 
-
           commonSnackBar(message: response.message ?? AppStrings.success);
           final personalController = Get.put(ViewPersonalDetailsController());
           await personalController.viewPersonalProfile();
           Get.offNamedUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-                (route) => false,
+            (route) => false,
           );
 
           clearAllData();
@@ -311,10 +249,10 @@ class AuthController extends GetxController {
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
     try {
       ResponseModel response =
-      await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData);
+          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData);
       if (response.isSuccess) {
         GuestUserResModel guestUserResModel =
-        GuestUserResModel.fromJson(response.response?.data);
+            GuestUserResModel.fromJson(response.response?.data);
         if (guestUserResModel.status ?? false) {
           commonSnackBar(message: response.message ?? AppStrings.success);
           // await getUserLoginData();
@@ -331,7 +269,7 @@ class AuthController extends GetxController {
           await getUserLoginAccountType();
           await getUserAuthToken();
           final viewProfileController =
-          Get.put(ViewBusinessDetailsController());
+              Get.put(ViewBusinessDetailsController());
           await viewProfileController.viewBusinessProfile();
           Get.offAll(CreateBusinessAccountStepTwo());
 
@@ -357,7 +295,7 @@ class AuthController extends GetxController {
   Future<void> getAllCategories() async {
     try {
       ResponseModel responseModel =
-      await AuthRepo().getBusinessCategoriesRepo();
+          await AuthRepo().getBusinessCategoriesRepo();
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
@@ -385,13 +323,13 @@ class AuthController extends GetxController {
   Future<void> getGstVerify({required String? gstNumber}) async {
     try {
       ResponseModel responseModel =
-      await AuthRepo().getUserVerifyGstRepo(gstNumber: gstNumber);
+          await AuthRepo().getUserVerifyGstRepo(gstNumber: gstNumber);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         gstVerifyModel?.value = GstVerifyModel.fromJson(data);
         List<String>? parts =
-        gstVerifyModel?.value.data?.registrationDate?.split("/");
+            gstVerifyModel?.value.data?.registrationDate?.split("/");
 
         selectedDay?.value = int.parse(parts?[0] ?? "");
         selectedMonth?.value = int.parse(parts?[1] ?? "");
@@ -434,7 +372,7 @@ class AuthController extends GetxController {
     userNameList.clear();
     try {
       ResponseModel responseModel =
-      await AuthRepo().getCheckUsernameRepo(userName: value);
+          await AuthRepo().getCheckUsernameRepo(userName: value);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
@@ -507,13 +445,13 @@ class AuthController extends GetxController {
       };
 
       ResponseModel response =
-      await AuthRepo().callForceUpdateApi(params: params);
+          await AuthRepo().callForceUpdateApi(params: params);
 
       if (response.isSuccess) {
         versionControlResponse = ApiResponse.complete(response);
         final data = response.response?.data;
         VersionControlModel versionControlModel =
-        VersionControlModel.fromJson(data);
+            VersionControlModel.fromJson(data);
         return versionControlModel;
       } else {
         versionControlResponse = ApiResponse.error('error');
@@ -544,7 +482,7 @@ class AuthController extends GetxController {
       if (response.isSuccess) {
         blockUserResponse = ApiResponse.complete(response);
         BlockUserResponse blockUser =
-        BlockUserResponse.fromJson(response.response?.data);
+            BlockUserResponse.fromJson(response.response?.data);
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
         blockUserResponse = ApiResponse.error('error');
@@ -588,10 +526,10 @@ class AuthController extends GetxController {
       {required Map<String, dynamic> reqData}) async {
     try {
       ResponseModel response =
-      await AuthRepo().createGuestAccountRepo(params: reqData);
+          await AuthRepo().createGuestAccountRepo(params: reqData);
       if (response.isSuccess) {
         GuestResModel guestResModel =
-        guestResModelFromJson(jsonEncode(response.response?.data));
+            guestResModelFromJson(jsonEncode(response.response?.data));
         if (guestResModel.success ?? false) {
           commonSnackBar(message: response.message ?? AppStrings.success);
           await SharedPreferenceUtils.guestUserLoggedIn(
@@ -606,7 +544,7 @@ class AuthController extends GetxController {
           await Future.delayed(Duration(milliseconds: 350));
           Get.offNamedUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-                (route) => false,
+            (route) => false,
           );
 
           clearAllData();

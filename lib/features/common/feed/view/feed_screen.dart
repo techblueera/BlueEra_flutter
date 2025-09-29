@@ -62,7 +62,7 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+      fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
 
       // Only add scroll listener if this is an individual page (not in parent scroll)
       if (!widget.isInParentScroll) {
@@ -328,7 +328,8 @@ class _FeedScreenState extends State<FeedScreen> {
           }
 
           return content;
-        } else if (feedController.postsResponse.value.status == Status.ERROR) {
+        }
+        else if (feedController.postsResponse.value.status == Status.ERROR) {
           return LoadErrorWidget(
             errorMessage: 'Failed to load posts',
             onRetry: () {

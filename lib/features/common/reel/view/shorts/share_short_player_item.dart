@@ -404,7 +404,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LocalAssets(imagePath: AppIconAssets.appIcon),
+            LocalAssets(imagePath: AppIconAssets.place_holder_image),
             const SizedBox(height: 8),
             CustomText('Failed to load video'),
             const SizedBox(height: 16),

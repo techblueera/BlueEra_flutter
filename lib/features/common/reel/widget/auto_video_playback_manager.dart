@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -76,9 +77,29 @@ class SimplePriorityVideoManager extends GetxController {
     _playDelayTimer = Timer(const Duration(milliseconds: 600), () {
       if (!isScrolling.value && _currentPriorityVideo == videoId) {
         _playVideo(videoId);
+        _scheduleVideoView(videoId);
+        // Future.delayed(const Duration(seconds: 5), () {
+        //   // videoView(videoId: videoController.videoFeedItem!.video!.id ?? '0');
+        // });
+
       }
     });
   }
+
+
+  void _scheduleVideoView(String videoId) {
+    VideoController? videoController;
+
+    if (Get.isRegistered<VideoController>()) {
+      videoController = Get.find<VideoController>();
+    } else {
+      videoController = Get.put(VideoController());
+    }
+    Future.delayed(const Duration(seconds: 5), () {
+      videoController?.videoView(videoId: videoId);
+    });
+  }
+  // _scheduleVideoView();
 
   Future<void> _playVideo(String videoId) async {
     final videoUrl = videoUrls[videoId];

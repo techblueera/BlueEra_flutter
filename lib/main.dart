@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -31,12 +33,19 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/firebase_notification_service.dart';
 import 'firebase_options.dart';
-
+firebaseInitializeApp()
+async {
+  if (Platform.isAndroid) {
+    await Firebase.initializeApp(options: FirebaseOptions(apiKey: androidFirebaseAPIKey, appId: firebaseAppId, messagingSenderId: messagingSenderId, projectId: projectFireBaseId,));
+  } else if (Platform.isIOS) {
+    await Firebase.initializeApp(options: FirebaseOptions(apiKey:iosFirebaseAPIKey , appId: firebaseAppId, messagingSenderId: messagingSenderId, projectId: projectFireBaseId));
+  } else {
+    await Firebase.initializeApp();
+  }
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await firebaseInitializeApp();
   Get.put(AuthController());
   ///GET LOGIN USER DATA...
   await getUserLoginStatus();

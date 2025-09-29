@@ -29,51 +29,93 @@ class ReelShortPopUpMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      right: 0.0,
-      child: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        offset: const Offset(-6, 36),
-        color: AppColors.white,
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        onSelected: (value) async {
-          if (value == 'Edit Short') {
-            Navigator.pushNamed(
-              context,
-              RouteHelper.getCreateReelScreenRoute(),
-              arguments: {
-                ApiKeys.videoPath: Platform.isAndroid
-                    ? shortFeedItem.video?.transcodedUrls?.master ?? shortFeedItem.video?.videoUrl??''
-                    : shortFeedItem.video?.videoUrl??'',
-                ApiKeys.videoType:  Video.short,
-                ApiKeys.videoId: shortFeedItem.videoId,
-                ApiKeys.argPostVia: shortFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,
+    return PopupMenuButton<String>(
+      padding: EdgeInsets.zero,
+      offset: const Offset(-6, 36),
+      color: AppColors.white,
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      onSelected: (value) async {
+        if (value == 'Edit Short') {
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getCreateReelScreenRoute(),
+            arguments: {
+              ApiKeys.videoPath: Platform.isAndroid
+                  ? shortFeedItem.video?.transcodedUrls?.master ?? shortFeedItem.video?.videoUrl??''
+                  : shortFeedItem.video?.videoUrl??'',
+              ApiKeys.videoType:  Video.short,
+              ApiKeys.videoId: shortFeedItem.videoId,
+              ApiKeys.argPostVia: shortFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,
+            },
+          );
+        } else if (value == 'Delete Short') {
+          await showCommonDialog(
+              context: context,
+              text: 'Are you sure you want to delete this short?',
+              confirmCallback: () {
+                Get.find<ShortsController>().shortDelete(
+                  shortsType: shorts,
+                  videoId: shortFeedItem.video?.id ?? '',
+                );
               },
-            );
-          } else if (value == 'Delete Short') {
-            await showCommonDialog(
-                context: context,
-                text: 'Are you sure you want to delete this short?',
-                confirmCallback: () {
-                  Get.find<ShortsController>().shortDelete(
-                      shortsType: shorts,
-                      videoId: shortFeedItem.video?.id ?? '',
-                  );
-                },
-                cancelCallback: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                confirmText: AppLocalizations.of(context)!.yes,
-                cancelText: AppLocalizations.of(context)!.no);
-          }else if(value == 'Change Thumbnail'){
-            pickImageFromGallery(context);
-          }
-        },
-        icon: Icon(Icons.more_vert, color: popUpMenuColor ?? AppColors.white),
-        itemBuilder: (context) => popupShortsMenuItems(),
-      ),
+              cancelCallback: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              confirmText: AppLocalizations.of(context)!.yes,
+              cancelText: AppLocalizations.of(context)!.no);
+        }else if(value == 'Change Thumbnail'){
+          pickImageFromGallery(context);
+        }
+      },
+      icon: Icon(Icons.more_vert, color: popUpMenuColor ?? AppColors.white),
+      itemBuilder: (context) => popupShortsMenuItems(),
     );
+    // return Positioned(
+    //   right: 0.0,
+    //   child: PopupMenuButton<String>(
+    //     padding: EdgeInsets.zero,
+    //     offset: const Offset(-6, 36),
+    //     color: AppColors.white,
+    //     elevation: 8,
+    //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    //     onSelected: (value) async {
+    //       if (value == 'Edit Short') {
+    //         Navigator.pushNamed(
+    //           context,
+    //           RouteHelper.getCreateReelScreenRoute(),
+    //           arguments: {
+    //             ApiKeys.videoPath: Platform.isAndroid
+    //                 ? shortFeedItem.video?.transcodedUrls?.master ?? shortFeedItem.video?.videoUrl??''
+    //                 : shortFeedItem.video?.videoUrl??'',
+    //             ApiKeys.videoType:  Video.short,
+    //             ApiKeys.videoId: shortFeedItem.videoId,
+    //             ApiKeys.argPostVia: shortFeedItem.channel?.id != null ? PostVia.channel : PostVia.profile,
+    //           },
+    //         );
+    //       } else if (value == 'Delete Short') {
+    //         await showCommonDialog(
+    //             context: context,
+    //             text: 'Are you sure you want to delete this short?',
+    //             confirmCallback: () {
+    //               Get.find<ShortsController>().shortDelete(
+    //                   shortsType: shorts,
+    //                   videoId: shortFeedItem.video?.id ?? '',
+    //               );
+    //             },
+    //             cancelCallback: () {
+    //               Navigator.of(context).pop(); // Close the dialog
+    //             },
+    //             confirmText: AppLocalizations.of(context)!.yes,
+    //             cancelText: AppLocalizations.of(context)!.no);
+    //       }else if(value == 'Change Thumbnail'){
+    //         pickImageFromGallery(context);
+    //       }
+    //     },
+    //     icon: Icon(Icons.more_vert, color: popUpMenuColor ?? AppColors.white),
+    //     itemBuilder: (context) => popupShortsMenuItems(),
+    //   ),
+    // );
   }
 
   void pickImageFromGallery(BuildContext context) async {
