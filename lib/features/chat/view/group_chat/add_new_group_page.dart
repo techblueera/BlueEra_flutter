@@ -13,7 +13,6 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/regular_expression.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
-
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';

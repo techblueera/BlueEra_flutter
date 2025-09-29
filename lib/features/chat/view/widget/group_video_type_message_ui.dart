@@ -1,14 +1,13 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
-import '../orders_chat/order_chat_screen.dart';
-import 'custom_video_player.dart';
 import 'group_custom_video_player.dart';
 import 'group_reaction_info_widget.dart';
 

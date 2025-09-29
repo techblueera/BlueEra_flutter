@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -108,7 +108,6 @@ class ChatViewController extends GetxController {
     personalChatListResponse.value = ApiResponse.complete(getPersonalChatListModel?.value);
   }
   void loadChatListWithType({required GetChatListModel chatListModel,Map<String,dynamic>? data}){
-    print("asdlkjcsldkcmslkdc ${chatListModel.type}");
     if(chatListModel.type=="business"){
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
@@ -147,9 +146,7 @@ class ChatViewController extends GetxController {
         loadChatListWithType(chatListModel: getPersonalFilteredChatListModel!.value);
       }
     } else if (selectedChatTabIndex.value == 1) {
-      // same logic for tab 1
     } else if (selectedChatTabIndex.value == 2) {
-      // same logic for tab 2
     }
   }
 
@@ -540,13 +537,12 @@ class ChatViewController extends GetxController {
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     // try {
       paramsData = params;
-                                                    log("skdjcnksljdc  Body was Send ${params}");
       if(contactsListModel?.value.data==null){
         ResponseModel responseModel =
         await ChatViewRepo().getConnectionsSync(params);
         if (responseModel.isSuccess) {
           final data = responseModel.response?.data;
-          log("contact list Response ${data}");
+
           await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.saved_contacts,
             json.encode(data),
@@ -694,15 +690,15 @@ class ChatViewController extends GetxController {
 
     try {
       clearMessageControllerCommon();
-      if(params[ApiKeys.message_type]=="text"&&params['reply_id']==null){
-        Messages? message = Messages.fromJson(params);
-        getListOfMessageData?.add(message);
-        message.createdAt=getCurrentIsoTime();
-        message.myMessage=true;
-
-        getListOfMessageResponse.value =
-            ApiResponse.complete(getListOfMessageData);
-      }
+      // if(params[ApiKeys.message_type]=="text"&&params['reply_id']==null){
+      //   Messages? message = Messages.fromJson(params);
+      //   getListOfMessageData?.add(message);
+      //   message.createdAt=getCurrentIsoTime();
+      //   message.id= "${getCurrentIsoTime()}_${params[ApiKeys.conversation_id]}";
+      //   message.myMessage=true;
+      //   getListOfMessageResponse.value =
+      //       ApiResponse.complete(getListOfMessageData);
+      // }
       if (replyMessage?.value?.id != null) {
         replyMessage?.value = Messages();
       }
@@ -734,12 +730,9 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-          if(message.messageType!="text"||params['reply_id']!=null){
             getListOfMessageData?.add(message);
-
             getListOfMessageResponse.value =
                 ApiResponse.complete(getListOfMessageData);
-          }
           saveSingleMessageToLocal(
               params[ApiKeys.conversation_id], message, params);
         } else if (message.subType == 'comment') {
@@ -915,23 +908,17 @@ class ChatViewController extends GetxController {
   }
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
     try {
-      Messages? message = Messages.fromJson(params);
-      message.createdAt=getCurrentIsoTime();
-      message.myMessage=true;
-      getListOfMessageData?.add(message);
-      getListOfMessageResponse.value =
-          ApiResponse.complete(getListOfMessageData);
       clearMessageControllerCommon();
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
 
       if (responseModel.isSuccess) {
-        // final data = responseModel.response?.data;
+        final data = responseModel.response?.data;
 
-        // Messages? message = Messages.fromJson(data['data']);
-        // getListOfMessageData?.add(message);
-        // getListOfMessageResponse.value =
-        //     ApiResponse.complete(getListOfMessageData);
+        Messages? message = Messages.fromJson(data['data']);
+        getListOfMessageData?.add(message);
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
         if(chatFromBusinessProfile.value){
           canPopBusiness.value=true;
         }

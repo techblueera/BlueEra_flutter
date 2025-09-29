@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';

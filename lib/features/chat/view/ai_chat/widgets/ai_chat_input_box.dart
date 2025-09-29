@@ -21,16 +21,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../../core/constants/app_icon_assets.dart';
-import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/snackbar_helper.dart';
-import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/GetListOfMessageData.dart';
-import 'component_widgets.dart';
+import '../../../../../core/constants/app_icon_assets.dart';
+import '../../../../../core/constants/common_methods.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
+import '../../../auth/controller/chat_theme_controller.dart';
+import '../../../auth/controller/chat_view_controller.dart';
+import '../../../auth/model/GetListOfMessageData.dart';
+import '../../widget/component_widgets.dart';
 
-class ChatInputBar extends StatefulWidget {
-  const ChatInputBar(
+
+class AiChatInputBox extends StatefulWidget {
+  const AiChatInputBox(
       {super.key, required this.conversationId, required this.userId, required this.isInitialMessage});
 
   final String conversationId;
@@ -38,10 +39,10 @@ class ChatInputBar extends StatefulWidget {
   final bool isInitialMessage;
 
   @override
-  State<ChatInputBar> createState() => _ChatInputBarState();
+  State<AiChatInputBox> createState() => _AiChatInputBoxState();
 }
 
-class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserver {
+class _AiChatInputBoxState extends State<AiChatInputBox>   with WidgetsBindingObserver {
   bool get isInitialFlow => widget.isInitialMessage && widget.conversationId.isEmpty;
   bool isKeyboardVisible = false;
   final chatViewController = Get.find<ChatViewController>();
@@ -335,20 +336,13 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                     return null;
                                   },
                                 ),
-
-                                onTap: _toggleEmojiKeyboard,
-                                child: Ink(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 3.0),
-                                    child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
-                                        .chat_box_smile, color: AppColors
-                                        .chat_input_icon_color,),
-                                  ),
-                                ),
+                                onTap:(){
+                                  _showMediaOptions(context);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 9.0,top: 8,left: 6,right: 8),
+                                  child: Icon(Icons.add),
+                                )
                               ),
                             ),
                             Expanded(
@@ -374,13 +368,13 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16),
                                 decoration: InputDecoration(
-                                  hintText: "Type Message...",
+                                  hintText: "Ask Your Friend BlueEra Ai...",
                                   hintStyle: TextStyle(
                                       color: Colors.grey,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500
                                   ),
-                                  contentPadding: EdgeInsets.only(left: 6,bottom: 10,top: 8),
+                                  contentPadding: EdgeInsets.only(left: 6,bottom: 10,top: 10),
                                   fillColor: Colors.transparent,
                                   filled: true,
                                   isDense: true,
@@ -392,72 +386,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                               ),
                             ),
 
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
 
-                      onTap: () {
-                        _showMediaOptions(context);
-                      },
-                      borderRadius: BorderRadius.circular(30),
-                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                            (states) {
-                          if (states.contains(WidgetState.pressed)) {
-                            return Colors.grey.withOpacity(0.4); // pressed
-                          }
-                          if (states.contains(WidgetState.hovered)) {
-                            return Colors.grey.withOpacity(0.2); // hover
-                          }
-                          return null;
-                        },
-                      ),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          // background if you want
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                        child: SvgPicture.asset(
-                          AppIconAssets.chat_pick_media,
-                          height: 22,
-                          width: 22,
-                          color: AppColors.chat_input_icon_color,
-                        ),
-                      ),
-                    ),
-                  ),
-                            ( chatViewController.isTextFieldEmpty.value)?SizedBox():SizedBox(width: 8),
-                            ( chatViewController.isTextFieldEmpty.value)?SizedBox():Material(
-                              color: Colors.transparent,
-
-                              child: InkWell(
-                                onTap: () {
-                                  _pickFromCamera();
-                                },
-                                borderRadius: BorderRadius.circular(30),
-                                overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                      (states) {
-                                    if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey.withOpacity(0.4); // pressed
-                                    }
-                                    if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withOpacity(0.2); // hover
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                child: Ink(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(30),
-                                    // background if you want
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                  child: Icon(Icons.camera_alt_outlined,
-                                      color: AppColors.chat_input_icon_color,
-                                      size: 24),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -573,7 +502,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   },
                     onEmojiSelected: (va,k){
                       chatViewController.isTextFieldEmpty.value = true;
-                  },
+                    },
                     textEditingController: chatViewController.sendMessageController
                         .value,
                     scrollController: _scrollController,
@@ -732,7 +661,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   onTap: () async {
                     FocusScope.of(context).unfocus();
                     Navigator.pop(context);
-                      showHiveBottomSheet(context,widget.userId,widget.conversationId,isInitialFlow);
+                    showHiveBottomSheet(context,widget.userId,widget.conversationId,isInitialFlow);
 
                   },
                 ),

@@ -8,12 +8,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
+import '../chat_screen.dart';
 
 Widget timeAndReadInfoWidget(
     {required Messages message,
@@ -340,6 +347,7 @@ Widget ChatListTile(
                     color: AppColors.grey9A,
                     overflow: TextOverflow.ellipsis,
                   ):CustomText(
+                    maxLines: 1,
                     "${chat?.lastMessage}",
                     fontSize: 14,
                     color: AppColors.grey9A,
@@ -741,5 +749,532 @@ Widget messageTypeIconWithLabel(Messages message) {
     fontWeight: FontWeight.w500,
     color: Colors.black,
     fontSize: 13,
+  );
+}
+void _navigateToProfile({required String authorId,required String type}) {
+  if (type.toUpperCase() == AppConstants.business) {
+    Get.to(() => VisitBusinessProfileNew(businessId: authorId?? '', screenName:  AppConstants.chatScreen,));
+  } else if(type.toUpperCase()==AppConstants.individual){
+    Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen,));
+
+  }
+
+}
+AppBar getChatTitleAppBar(BuildContext context,{
+  required String? userId,
+  required String? type,
+  required String? name,
+  required String? contactNo,
+  String? profileImage,
+}){
+  final theme = Theme.of(context);
+  final chatViewController = Get.find<ChatViewController>();
+  return AppBar(
+    elevation: 0,
+    backgroundColor: Colors.white,
+    leadingWidth: 38,
+    leading: InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        chatViewController.emitEvent(
+            "ChatList", {ApiKeys.type: "personal"}, true);
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(left: 18.0),
+        // Reduce touch padding if needed
+        child: Icon(Icons.arrow_back_ios, color: Colors.black),
+      ),
+    ),
+    titleSpacing: 0,
+    title: Obx(() {
+      return InkWell(
+        onTap: (type!="Admin")?() {
+          _navigateToProfile(authorId: userId ?? '',type: type??"");
+        }:(){},
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: theme.colorScheme.primary,
+              radius: 18,
+              backgroundImage: profileImage != null
+                  ? ((profileImage.contains('http'))
+                  ? NetworkImage(profileImage )
+                  : FileImage(File(profileImage))
+              as ImageProvider)
+                  : null,
+              child: (profileImage != null)
+                  ? null
+                  : (name != null)
+                  ? Center(
+                  child: CustomText(
+                    "${name.split('')[0]}",
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ))
+                  : Center(
+                child: Icon(
+                  Icons.person,
+                  color: theme.colorScheme.surface,
+                ),
+              ),
+            ),
+            SizedBox(width: 6), // Slightly smaller spacing
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 160,
+                  child: CustomText(
+                    '${(name == "null") ? (contactNo) : name ?? contactNo}',
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Row(
+                  children: [
+                    CustomText(
+                      '${(type!="Admin")?chatViewController.userOnlineStatus.value:"BlueCs Limited"}',
+                      color: AppColors.grayText,
+                      fontSize: 12,
+                    ),
+                    const SizedBox(width: 3,),
+                    (type!="Admin")?SizedBox():Icon(Icons.verified,color: Colors.blue,size: 14,),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }),
+    actions:(type=="Admin")?null: [
+      const SizedBox(width: 8),
+      InkWell(
+          onTap: () {
+            launchDialPad(contactNo ?? '');
+          },
+          child: SvgPicture.asset(AppIconAssets.chat_call)),
+      const SizedBox(width: 12),
+      // SvgPicture.asset(AppIconAssets.chat_video_call),
+      // const SizedBox(width: 12),
+      SvgPicture.asset(AppIconAssets.chat_info_pop),
+      const SizedBox(width: 8),
+    ],
+  );
+}
+PreferredSize getChatOptionsAppBar(BuildContext context,{
+  required String? userId,
+  required String? conversationId,
+  required String? type,
+  required String? name,
+  required String? contactNo,
+  required TextEditingController editingController,
+
+  String? profileImage,
+}){
+  final chatViewController = Get.find<ChatViewController>();
+  final chatThemeController = Get.find<ChatThemeController>();
+
+  return PreferredSize(
+    preferredSize: Size.fromHeight(kToolbarHeight),
+    child: AppBar(
+      elevation: 0,
+      backgroundColor: Colors.white,
+      leadingWidth: 38,
+      leading: InkWell(
+        onTap: () {
+          chatThemeController.resetSelection();
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(left: 18.0),
+          child: Icon(Icons.arrow_back_ios,
+              color: AppColors.chat_input_icon_color),
+        ),
+      ),
+      titleSpacing: 8,
+      title: CustomText(
+        "${chatThemeController.selectedId.length}",
+        // or make dynamic
+        color: Colors.black,
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.delete_outline,
+              color: AppColors.chat_input_icon_color),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: CustomText(
+                    "Are you sure you want to delete?",
+                    color: Colors.black),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        FocusScope.of(context).unfocus();
+                        Map<String, dynamic> data = {
+                          ApiKeys.conversation_id:
+                          "${conversationId}",
+                          ApiKeys.delete_from_every_one: false,
+                          ApiKeys.message_id_list:
+                          chatThemeController.selectedId
+                        };
+                        await chatViewController
+                            .deleteChatMessage(
+                            data, userId ?? '');
+                        chatThemeController.resetSelection();
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: CustomText(
+                            "Delete for me",
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    (chatThemeController.isDeleteForEveryOneAvailable.value)?
+                    GestureDetector(
+                      onTap: () async {
+                        FocusScope.of(context).unfocus();
+                        Map<String, dynamic> data = {
+                          ApiKeys.conversation_id:
+                          "${conversationId}",
+                          ApiKeys.delete_from_every_one: true,
+                          ApiKeys.message_id_list:
+                          chatThemeController.selectedId
+                        };
+                        await chatViewController
+                            .deleteChatMessage(
+                            data, userId ?? '');
+                        chatThemeController.resetSelection();
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: CustomText(
+                            "Delete for everyone",
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ):SizedBox(),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        (chatThemeController.selectedId.length == 1 &&
+            chatThemeController.selectedFirstMessage?.value
+                ?.messageType ==
+                "text")
+            ? IconButton(
+          icon: Icon(
+            Icons.edit,
+            color: AppColors.chat_input_icon_color,
+            size: 22,
+          ),
+          onPressed: () {
+            editingController.text = chatThemeController
+                .selectedFirstMessage?.value?.message ??
+                '';
+            showMessageEditDialog(
+              userId??"",conversationId??"",editingController,chatThemeController,chatViewController,
+            );
+          },
+        )
+            : SizedBox(),
+        // IconButton(
+        //   icon:  Icon(Icons.push_pin_outlined,color: AppColors.chat_input_icon_color,size: 22,),
+        //   onPressed: _showPinDialog,
+        // ),
+        Padding(
+          padding: const EdgeInsets.only(left: 6.0),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatMainScreen(
+                        isForwardUI: true,
+                        message: chatThemeController
+                            .selectedFirstMessage?.value,
+                        forwardId: chatThemeController
+                            .selectedFirstMessage
+                            ?.value
+                            ?.id ??
+                            '',
+                      )));
+            },
+            child: SvgPicture.asset(
+              AppIconAssets.chat_media_forward,
+              height: 24,
+              width: 24,
+            ),
+          ),
+        ),
+
+        /// 🔽 Three Dots Menu (Edit option)
+        PopupMenuButton<String>(
+          icon: Icon(Icons.more_vert,
+              color: AppColors.chat_input_icon_color),
+          offset: const Offset(
+              20, 60), // 👈 shift menu 40 pixels downward
+          onSelected: (value) {
+            if (value == 'edit') {
+              print("Edit selected");
+              // Handle your edit logic
+            }
+          },
+          itemBuilder: (context) => [],
+        ),
+
+        const SizedBox(width: 8),
+      ],
+    ),
+  );
+}
+AppBar getAiChatTitleAppBar(BuildContext context,{
+  required String? userId,
+  required String? type,
+  required String? name,
+  required String? contactNo,
+  String? profileImage,
+}){
+  final theme = Theme.of(context);
+  final chatViewController = Get.find<ChatViewController>();
+  return AppBar(
+    elevation: 0,
+    backgroundColor: Colors.white,
+    leadingWidth: 38,
+    leading: InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        chatViewController.emitEvent(
+            "ChatList", {ApiKeys.type: "personal"}, true);
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(left: 18.0),
+        // Reduce touch padding if needed
+        child: Icon(Icons.arrow_back_ios, color: Colors.black),
+      ),
+    ),
+    titleSpacing: 0,
+    title: InkWell(
+      onTap: () {
+        _navigateToProfile(authorId: userId ?? '',type: type??"");
+      },
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: theme.colorScheme.primary,
+            radius: 18,
+            backgroundImage: profileImage != null
+                ? ((profileImage.contains('http'))
+                ? NetworkImage(profileImage )
+                : FileImage(File(profileImage))
+            as ImageProvider)
+                : null,
+            child: (profileImage != null)
+                ? null
+                : (name != null)
+                ? Center(
+                child: CustomText(
+                  "M",
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ))
+                : Center(
+              child: Icon(
+                Icons.person,
+                color: theme.colorScheme.surface,
+              ),
+            ),
+          ),
+          SizedBox(width: 6), // Slightly smaller spacing
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 160,
+                child: CustomText(
+                  'My Friend BlueEra AI',
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              Row(
+                children: [
+                  CustomText(
+                    'Online',
+                    color: AppColors.grayText,
+                    fontSize: 12,
+                  ),
+                  const SizedBox(width: 3,),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+void launchDialPad(String phoneNumber) async {
+  final Uri url = Uri(scheme: 'tel', path: phoneNumber);
+
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  } else {
+    throw 'Could not launch dialer';
+  }
+}
+
+
+void showMessageEditDialog(
+     String userId,
+     String conversationId,
+    TextEditingController editingController,ChatThemeController chatThemeController,ChatViewController chatViewController) {
+  Get.dialog(
+    AlertDialog(
+      insetPadding:
+      EdgeInsets.symmetric(vertical: 12), // Reduced outer spacing
+      contentPadding: const EdgeInsets.only(bottom: 10),
+      backgroundColor: AppColors.appBackgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  'Message',
+                  color: AppColors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Divider(color: AppColors.greyB4),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: TextFormField(
+              controller: editingController,
+              maxLines: 6,
+              minLines: 6,
+              keyboardType: TextInputType.text,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                hintText: 'Type your message...',
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.05),
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                InkWell(
+                  onTap: () => Get.back(),
+                  child: CustomText(
+                    'Close',
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                InkWell(
+                  onTap: () async {
+                    ApiKeys;
+                    Map<String, dynamic> data = {
+                      ApiKeys.id:
+                      "${chatThemeController.selectedFirstMessage?.value?.id}",
+                      ApiKeys.type: "message",
+                      ApiKeys.message: "${editingController.text}"
+                    };
+                    bool value =
+                    await chatViewController.updateMessageApi(data);
+                    if (value) {
+                      chatViewController.emitEvent("messageReceived", {
+                        ApiKeys.conversation_id: conversationId,
+                        ApiKeys.page: 1,
+                        ApiKeys.is_online_user: userId,
+                        ApiKeys.per_page_message: 30,
+                      });
+                      chatThemeController.resetSelection();
+                      Get.back();
+                    }
+                  },
+                  child: CustomText(
+                    'Edit',
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 2),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+        ],
+      ),
+    ),
+    useSafeArea: true,
   );
 }

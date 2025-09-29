@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../../features/chat/auth/controller/chat_view_controller.dart';
 import 'model/OneSignalNotificationDetailsModel.dart';

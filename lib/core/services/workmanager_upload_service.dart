@@ -1,17 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/video_compreesion_service.dart';
-import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:get/get.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:flutter/material.dart';
 
 // Task names
 const String videoUploadTask = 'videoUploadTask';

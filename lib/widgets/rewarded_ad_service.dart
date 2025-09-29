@@ -1,6 +1,6 @@
+import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:BlueEra/environment_config.dart';
 
 class RewardedAdService {
   RewardedAd? _rewardedAd;

@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class CommonDropdownIconDialog<T> extends StatefulWidget {
   final List<T> items;

@@ -20,7 +20,6 @@ import '../../auth/model/GetListOfMessageData.dart';
 import '../chat_screen.dart';
 import '../widget/group_chat_input_box.dart';
 import '../widget/group_message_card.dart';
-import '../widget/message_card.dart';
 
 class GroupChatScreen extends StatefulWidget {
   GroupChatScreen({

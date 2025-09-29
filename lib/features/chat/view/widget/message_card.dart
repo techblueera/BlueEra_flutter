@@ -1,8 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/model/Conversation.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:flutter/material.dart';
@@ -10,14 +7,12 @@ import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
 import 'package:get/get.dart';
-
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -96,7 +91,7 @@ class _MessageCardState extends State<MessageCard>
           'MessageCard: Using myMessage field - myMessage: ${widget.message.myMessage}, isReceive: $isReceive');
     } else {
       final currentUserId = widget.userId;
-      print("receivedUserId:$currentUserId");
+
       final senderId = widget.message.senderId;
       isReceive = currentUserId != senderId;
       print(
@@ -176,7 +171,6 @@ class _MessageCardState extends State<MessageCard>
         );
         break;
     }
-
     return Stack(
       children: [
         Align(
@@ -217,6 +211,7 @@ class _MessageCardState extends State<MessageCard>
             ),
           ),
         ),
+
         (chatThemeController.isMessageSelectionActive.value &&
                 chatThemeController.selectedId
                     .contains(widget.message.id ?? ""))

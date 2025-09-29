@@ -22,6 +22,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../chat_screen.dart';
 import '../widget/chat_input_box.dart';
+import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 
 class BusinessChatScreenUpdated extends StatefulWidget {
@@ -95,22 +96,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
     }
   }
 
-  void _navigateToProfile({required String authorId}) {
-    if (widget.type?.toUpperCase() == AppConstants.business) {
-      Get.to(() => VisitBusinessProfileNew(businessId: authorId?? '', screenName:  AppConstants.chatScreen,));
-    } else if(widget.type?.toUpperCase()==AppConstants.individual){
-      Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen,));
 
-      // Get.to(() => PersonalChatProfile(
-      //       userId: authorId,
-      //       contactNumber: widget.contactNo,isTestimonialRating: true,
-      //     ));
-    }
-
-    // } else if (_post?.user?.accountType?.toUpperCase() == AppConstants.business) {
-    //
-    // }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,290 +120,25 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
       child: Obx(() {
         return Scaffold(
           backgroundColor: backgroundColor,
-          appBar: (chatThemeController.isMessageSelectionActive.value)
-              ? PreferredSize(
-            preferredSize: Size.fromHeight(kToolbarHeight),
-            child: AppBar(
-              elevation: 0,
-              backgroundColor: Colors.white,
-              leadingWidth: 38,
-              leading: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                  chatThemeController.resetSelection();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 18.0),
-                  child: Icon(Icons.arrow_back_ios,
-                      color: AppColors.chat_input_icon_color),
-                ),
-              ),
-              titleSpacing: 8,
-              title: CustomText(
-                "${chatThemeController.selectedId.length}",
-                // or make dynamic
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.delete_outline,
-                      color: AppColors.chat_input_icon_color),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        title: CustomText(
-                            "Are you sure you want to delete?",
-                            color: Colors.black),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                FocusScope.of(context).unfocus();
-                                Map<String, dynamic> data = {
-                                  ApiKeys.conversation_id:
-                                  "${widget.conversationId}",
-                                  ApiKeys.delete_from_every_one: false,
-                                  ApiKeys.message_id_list:
-                                  chatThemeController.selectedId
-                                };
-                                await chatViewController
-                                    .deleteChatMessage(
-                                    data, widget.userId ?? '');
-                                chatThemeController.resetSelection();
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                margin: const EdgeInsets.only(bottom: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Delete for me",
-                                    style: TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                FocusScope.of(context).unfocus();
-                                Map<String, dynamic> data = {
-                                  ApiKeys.conversation_id:
-                                  "${widget.conversationId}",
-                                  ApiKeys.delete_from_every_one: true,
-                                  ApiKeys.message_id_list:
-                                  chatThemeController.selectedId
-                                };
-                                await chatViewController
-                                    .deleteChatMessage(
-                                    data, widget.userId ?? '');
-                                chatThemeController.resetSelection();
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Delete for everyone",
-                                    style: TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                (chatThemeController.selectedId.length == 1 &&
-                    chatThemeController.selectedFirstMessage?.value
-                        ?.messageType ==
-                        "text")
-                    ? IconButton(
-                  icon: Icon(
-                    Icons.edit,
-                    color: AppColors.chat_input_icon_color,
-                    size: 22,
-                  ),
-                  onPressed: () {
-                    editingController.text = chatThemeController
-                        .selectedFirstMessage?.value?.message ??
-                        '';
-                    showMessageEditDialog();
-                  },
-                )
-                    : SizedBox(),
-                // IconButton(
-                //   icon:  Icon(Icons.push_pin_outlined,color: AppColors.chat_input_icon_color,size: 22,),
-                //   onPressed: _showPinDialog,
-                // ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6.0),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatMainScreen(
-                                isForwardUI: true,
-                                message: chatThemeController
-                                    .selectedFirstMessage?.value,
-                                forwardId: chatThemeController
-                                    .selectedFirstMessage
-                                    ?.value
-                                    ?.id ??
-                                    '',
-                              )));
-                    },
-                    child: SvgPicture.asset(
-                      AppIconAssets.chat_media_forward,
-                      height: 24,
-                      width: 24,
-                    ),
-                  ),
-                ),
-
-                /// 🔽 Three Dots Menu (Edit option)
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert,
-                      color: AppColors.chat_input_icon_color),
-                  offset: const Offset(
-                      20, 60), // 👈 shift menu 40 pixels downward
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      print("Edit selected");
-                      // Handle your edit logic
-                    }
-                  },
-                  itemBuilder: (context) => [],
-                ),
-
-                const SizedBox(width: 8),
-              ],
-            ),
+          appBar: (chatThemeController.isMessageSelectionActive.value&&widget.type!="Admin")
+              ?getChatOptionsAppBar(
+              context,
+              profileImage: widget.profileImage,
+              editingController: editingController,
+              conversationId: widget.conversationId,
+              userId: widget.userId,
+              type: widget.type,
+              name: widget.name,
+              contactNo: widget.contactNo
           )
-              : AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            leadingWidth: 38,
-            leading: InkWell(
-              onTap: () {
-                if(chatViewController.canPopBusiness.value){
-                  chatViewController.emitEvent(
-                      "ChatList", {ApiKeys.type: "business"}, true);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  bottomBarController.onChangeIndex(4);
-                  chatViewController.onSelectChatTab(1);
-
-                }else{
-                  Navigator.pop(context);
-                  chatViewController.emitEvent(
-                      "ChatList", {ApiKeys.type: "business"}, true);
-                }
-
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(left: 18.0),
-                // Reduce touch padding if needed
-                child: Icon(Icons.arrow_back_ios, color: Colors.black),
-              ),
-            ),
-            titleSpacing: 0,
-            title: Obx(() {
-              return InkWell(
-                onTap: () {
-                  //  Get.to(()=>PersonalChatProfile());
-                  _navigateToProfile(authorId: widget.userId ?? '');
-                },
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: theme.colorScheme.primary,
-                      radius: 18,
-                      backgroundImage: widget.profileImage != null
-                          ? ((widget.profileImage!.contains('http'))
-                          ? NetworkImage(widget.profileImage ?? "")
-                          : FileImage(File(widget.profileImage ?? ''))
-                      as ImageProvider)
-                          : null,
-                      child: (widget.profileImage != null)
-                          ? null
-                          : (widget.name != null)
-                          ? Center(
-                          child: CustomText(
-                            "${widget.name?.split('')[0]}",
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 18,
-                          ))
-                          : Center(
-                        child: Icon(
-                          Icons.person,
-                          color: theme.colorScheme.surface,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 6), // Slightly smaller spacing
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 160,
-                          child: CustomText(
-                            '${(widget.name == "null") ? (widget.contactNo) : widget.name ?? widget.contactNo}',
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        CustomText(
-                          '${chatViewController.userOnlineStatus.value}',
-                          color: AppColors.grayText,
-                          fontSize: 12,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-            actions: [
-              const SizedBox(width: 8),
-              InkWell(
-                  onTap: () {
-                    launchDialPad(widget.contactNo ?? '');
-                  },
-                  child: SvgPicture.asset(AppIconAssets.chat_call)),
-              const SizedBox(width: 12),
-              // SvgPicture.asset(AppIconAssets.chat_video_call),
-              // const SizedBox(width: 12),
-              SvgPicture.asset(AppIconAssets.chat_info_pop),
-              const SizedBox(width: 8),
-            ],
+              : getChatTitleAppBar(
+              context,
+              userId: widget.userId,
+              type: widget.type,
+              name: widget.name,
+              contactNo: widget.contactNo
           ),
+
           body: Obx(() {
             //  print("sjdnckjsdckjsdc ${chatViewController.getListOfMessageData!}");
             if (chatViewController.getListOfMessageResponse.value.status ==
@@ -575,132 +296,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
     );
   }
 
-  void _showPinDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const CustomText(
-                      "Choose how long your pin lasts",
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    const SizedBox(height: 8),
-                    const CustomText(
-                      "You can unpin at any time",
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
 
-                    RadioListTile(
-                      value: "ONE_DAY",
-                      groupValue: _selectedDuration,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDuration = value!;
-                        });
-                      },
-                      title: const CustomText("24 Hours"),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    RadioTheme(
-                      data: RadioThemeData(
-                        fillColor:
-                        WidgetStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return Colors.blue; // Selected radio circle color
-                          }
-                          return Colors.grey; // Unselected circle fill color
-                        }),
-                      ),
-                      child: RadioListTile<String>(
-                        value: "SEVEN_DAYS",
-                        groupValue: _selectedDuration,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDuration = value!;
-                          });
-                        },
-                        title: const CustomText("30 Days"),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    RadioTheme(
-                      data: RadioThemeData(
-                        fillColor:
-                        WidgetStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return Colors.blue; // Selected radio circle color
-                          }
-                          return Colors.grey; // Unselected circle fill color
-                        }),
-                      ),
-                      child: RadioListTile<String>(
-                        value: "THIRTY_DAYS",
-                        groupValue: _selectedDuration,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDuration = value!;
-                          });
-                        },
-                        title: const CustomText("30 Days"),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Buttons Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const CustomText("Cancel"),
-                        ),
-                        const SizedBox(width: 8),
-                        InkWell(
-                            onTap: () {
-                              Map<String, dynamic> data = {
-                                ApiKeys.message_id:
-                                chatThemeController.selectedId,
-                                ApiKeys.conversation_id: widget.conversationId,
-                                ApiKeys.duration: _selectedDuration,
-                                ApiKeys.remove_from_pin: true,
-                              };
-                              print(data); // your logic
-                              chatViewController.addToPinMessage(data);
-                              Navigator.pop(context);
-                            },
-                            child: CustomText(
-                              "Pin",
-                              color: Colors.blue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            )),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   void showMessageEditDialog() {
     Get.dialog(

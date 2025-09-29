@@ -4,7 +4,6 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../environment_config.dart';
 
 class ChatSocketService {
   static final ChatSocketService _instance = ChatSocketService._internal();
