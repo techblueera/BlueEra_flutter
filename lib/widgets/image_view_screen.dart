@@ -2,10 +2,12 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,12 +18,12 @@ class ImageViewScreen extends StatefulWidget {
   final int initialIndex;
   final String appBarTitle;
 
-   ImageViewScreen({
+  ImageViewScreen({
     super.key,
     required this.imageUrls,
     required this.initialIndex,
     required this.appBarTitle,
-   this.subTitle = '',
+    this.subTitle = '',
   });
 
   @override
@@ -30,7 +32,8 @@ class ImageViewScreen extends StatefulWidget {
 
 class _ImageViewScreenState extends State<ImageViewScreen> {
   late PageController _pageController;
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
   bool _showSubtitle = true;
 
   @override
@@ -50,7 +53,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         setState(() {
           _showSubtitle = !_showSubtitle;
         });
@@ -63,44 +66,47 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 widget.imageUrls.isEmpty ||
-                    (widget.imageUrls.isNotEmpty &&
-                        widget.imageUrls[0] == 'N/A')
+                        (widget.imageUrls.isNotEmpty &&
+                            widget.imageUrls[0] == 'N/A')
                     ? Expanded(
-                  child: Center(
-                    child: Text(
-                      'Not able to download',
-                      style: TextStyle(
-                        fontSize: SizeConfig.screenWidth * 0.05,
-                        color: AppColors.red,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                )
-                    : Flexible(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: widget.imageUrls.length,
-                    itemBuilder: (context, index) {
-                      final imageUrl = widget.imageUrls[index];
-
-                      return InteractiveViewer(
-                        panEnabled: true,
-                        transformationController: _transformationController,
-                        // minScale: 1.0,
-                        // maxScale: 5.0,
-                        child: CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          scale: 1,fit: BoxFit.fitWidth,
-                          placeholder: (context, url) =>
-                          const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
+                        child: Center(
+                          child: Text(
+                            'Not able to download',
+                            style: TextStyle(
+                              fontSize: SizeConfig.screenWidth * 0.05,
+                              color: AppColors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      )
+                    : Flexible(
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: widget.imageUrls.length,
+                          itemBuilder: (context, index) {
+                            final imageUrl = widget.imageUrls[index];
+
+                            return InteractiveViewer(
+                              panEnabled: true,
+                              transformationController:
+                                  _transformationController,
+                              // minScale: 1.0,
+                              // maxScale: 5.0,
+                              child: CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                scale: 1,
+                                fit: BoxFit.fitWidth,
+                                placeholder: (context, url) => LocalAssets(
+                                    imagePath: AppIconAssets
+                                        .place_holder_image) /*const CircularProgressIndicator()*/,
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
               ],
             ),
 
@@ -110,7 +116,8 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
               left: SizeConfig.size15,
               child: SafeArea(
                 child: IconButton(
-                  icon: Icon(Icons.chevron_left, color: Colors.white, size: SizeConfig.size40),
+                  icon: Icon(Icons.chevron_left,
+                      color: Colors.white, size: SizeConfig.size40),
                   onPressed: () {
                     Get.back();
                   },
@@ -125,22 +132,23 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                 left: SizeConfig.size10,
                 right: SizeConfig.size10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                   decoration: BoxDecoration(
                     color: Colors.black54,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                child: ExpandableText(
-                  text: widget.subTitle ?? '',
-                  trimLines: 4,
-                  expandMode: ExpandMode.dialog,
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: AppConstants.OpenSans,
+                  child: ExpandableText(
+                    text: widget.subTitle ?? '',
+                    trimLines: 4,
+                    expandMode: ExpandMode.dialog,
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: AppConstants.OpenSans,
+                    ),
                   ),
-                ),
                   // child: Text(
                   //   widget.subTitle ?? '',
                   //   textAlign: TextAlign.left,
@@ -154,7 +162,6 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
               ),
           ],
         ),
-
       ),
     );
   }

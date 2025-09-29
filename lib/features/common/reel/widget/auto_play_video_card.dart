@@ -109,16 +109,16 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                           placeholder: (_, __) => Container(
                             width: SizeConfig.screenWidth,
                             height: SizeConfig.size140,
-                            color: Colors.grey[300],
-                            child: const Center(
-                                child: CircularProgressIndicator()),
+                            // color: Colors.grey[300],
+                            child:LocalAssets(imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
                           ),
                           errorWidget: (_, __, ___) => Container(
                             width: SizeConfig.screenWidth,
                             height: SizeConfig.size140,
                             color: Colors.grey[300],
                             child:
-                                LocalAssets(imagePath: AppIconAssets.appIcon),
+                                LocalAssets(imagePath:AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
+                                // LocalAssets(imagePath: AppIconAssets.appIcon),
                           ),
                         )
                       : widget.videoItem.video?.coverUrl != null
@@ -133,7 +133,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                               height: SizeConfig.size140,
                               color: Colors.grey[300],
                               child: LocalAssets(
-                                  imagePath: AppIconAssets.blue_era_app_logo),
+                                  imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover),
                             ),
                 ),
               ),

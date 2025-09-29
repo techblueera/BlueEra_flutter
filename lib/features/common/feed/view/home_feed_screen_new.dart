@@ -10,6 +10,8 @@ import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/demo-home.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -38,9 +40,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
-import 'package:chewie/chewie.dart';
 
 class HomeFeedScreenNew extends StatefulWidget {
   final PostType postFilterType;
@@ -77,6 +76,16 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchPostData(refreshFlag: true);
       _scrollController.addListener(_scrollListener);
+
+      /// forcefully we are calling api due to page is already loaded but we want to call api due to some new post is added by us
+      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
+          (shouldRefresh) {
+        if (shouldRefresh == true) {
+          fetchPostData(refreshFlag: true);
+          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+              false;
+        }
+      });
     });
   }
 
@@ -122,6 +131,39 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     return totalItems;
   }
 
+  List<FeedBlock> _buildBlocks(List<Post> items) {
+    final List<FeedBlock> blocks = [];
+    final Set<String> gridTypes = {'image_post', 'short_video'};
+
+    List<Post> buffer = [];
+
+    void flushBuffer() {
+      if (buffer.isNotEmpty) {
+        // If only 1 item in buffer we still show it as a single full-width card
+        if (buffer.length == 1) {
+          blocks.add(FeedBlock(isGrid: false, items: [buffer.first]));
+        } else {
+          blocks.add(FeedBlock(isGrid: true, items: List.from(buffer)));
+        }
+        buffer.clear();
+      }
+    }
+
+    for (final item in items) {
+      if (gridTypes.contains(item.type)) {
+        buffer.add(item);
+        // keep buffering consecutive grid-type items
+      } else {
+        // encountered a normal item -> flush any grid buffer first
+        flushBuffer();
+        blocks.add(FeedBlock(isGrid: false, items: [item]));
+      }
+    }
+
+    // end: flush remaining buffer
+    flushBuffer();
+    return blocks;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +191,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               Expanded(
                 child: Center(
                   child: Padding(
-                    padding:  EdgeInsets.only(bottom: Get.height/10),
+                    padding: EdgeInsets.only(bottom: Get.height / 10),
                     child: EmptyStateWidget(
                       message: widget.postFilterType == PostType.saved
                           ? 'No post is in saved.'
@@ -161,8 +203,379 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             ],
           );
         }
+        final blocks = _buildBlocks(posts);
         // 🔹 Build listView once
-        final listView = ListView.builder(
+        final listView =  ListView.builder(
+          controller: _scrollController,
+
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding:
+          EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
+          itemCount: blocks.length,
+          shrinkWrap: widget.isInParentScroll,
+          physics: widget.isInParentScroll
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),          itemBuilder: (context, index) {
+            final block = blocks[index];
+            if (block.isGrid) {
+              // Render a 4-column grid of thumbnails inside the list
+              // We use shrinkWrap + NeverScrollableScrollPhysics so ListView handles scrolling
+              return Padding(
+                padding: EdgeInsets.only(
+                    left: SizeConfig.size8,
+                    right: SizeConfig.size8,
+                    top: SizeConfig.size10,
+                    bottom: SizeConfig.size5),                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: block.items.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 0.70,
+                    // mainAxisSpacing: 6,
+                    // crossAxisSpacing: 6,
+                    // childAspectRatio: 1,
+                  ),
+                  itemBuilder: (c, postIndex) {
+                    final imgPostData = block.items[postIndex];
+                   if(imgPostData.type=="short_video"){
+
+
+                     ShortFeedItem reelData = getVideoData(imgPostData);
+
+                     return ClipRRect(
+                       borderRadius: (BorderRadius.circular(12)),
+                       child: Stack(
+                         children: [
+                           SingleShortStructure(
+                             shorts: Shorts.latest,
+                             allLoadedShorts: feedController.shortFeedItem,
+                             initialIndex: feedController.shortFeedItem
+                                 .indexWhere((post) => post.videoId == reelData.video?.id),
+                             shortItem: reelData,
+                             withBackground: true,
+                             // imageWidth: 170,
+                             imageHeight: SizeConfig.size310,
+                           ),
+                           // total views
+                           Positioned(
+                             bottom: SizeConfig.size90,
+                             top: SizeConfig.size90,
+                             left: SizeConfig.size90,
+                             right: SizeConfig.size90,
+                             child: IgnorePointer(
+                                 ignoring: true,
+                                 child: LocalAssets(
+                                   imagePath: AppIconAssets.playIcon,
+
+                                 )),
+                           ),
+                         ],
+                       ),
+                     );
+                   }
+                    if(imgPostData.type=="image_post"){
+                      return ClipRRect(
+                        borderRadius: (BorderRadius.circular(12)),
+                        child: InkWell(
+                          onTap: () {
+                            navigatePushTo(
+                              context,
+                              ImageViewScreen(
+                                subTitle: imgPostData.subTitle,
+                                appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                                imageUrls: imgPostData.media ?? [],
+                                initialIndex: postIndex,
+                              ),
+                            );
+                          },
+                          child: SizedBox(
+                            width: SizeConfig.size220,
+                            height: 300,
+                            child: Stack(children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(0),
+                                child: CachedNetworkImage(
+                                  width: double.infinity,
+                                  height: 310,
+                                  // height: widget.imageHeight ?? SizeConfig.size220,
+                                  fit: BoxFit.cover,
+                                  imageUrl: imgPostData.media?.firstOrNull ?? "",
+                                  placeholder: (context, str) {
+                                    return ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: LocalAssets(
+                                        imagePath: AppIconAssets.place_holder_image,
+                                        boxFix: BoxFit.fill,
+                                      ),
+                                    );
+                                  },
+                                  errorWidget: (context, url, error) => Container(
+                                    // width: double.infinity,
+                                    // height: 310,
+                                    width: SizeConfig.size220,
+                                    height: 300,
+                                    decoration: BoxDecoration(
+                                      border:
+                                      Border.all(color: AppColors.white, width: 1),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: LocalAssets(
+                                        imagePath: AppIconAssets.place_holder_image,
+                                        boxFix: BoxFit.fill,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (imgPostData.subTitle != null &&
+                                  (imgPostData.subTitle?.isNotEmpty ?? false) &&
+                                  imgPostData.subTitle?.toLowerCase() != "null")
+                                Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    left: 0,
+                                    // right: SizeConfig.size6,
+                                    child: Container(
+                                      alignment: Alignment.centerLeft,
+                                      padding: EdgeInsets.only(
+                                          bottom: 10,
+                                          left: SizeConfig.size10,
+                                          right: SizeConfig.size10,
+                                          top: 5),
+                                      decoration: BoxDecoration(
+                                          color: AppColors.mainTextColor
+                                              .withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(5.0)),
+                                      child: CustomText(
+                                        "${imgPostData.subTitle}",
+                                        color: AppColors.white,
+                                        fontWeight: FontWeight.w400,
+                                        maxLines: 2,
+                                        // fontFamily: "arialround",
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    )),
+                              if (imgPostData.user?.profileImage != null &&
+                                  (imgPostData.user?.profileImage?.isNotEmpty ??
+                                      false) &&
+                                  imgPostData.user?.profileImage?.toLowerCase() !=
+                                      "null")
+                                Positioned(
+                                  top: 10,
+                                  left: 10,
+                                  child: InkWell(
+                                    onTap: () {
+                                      final authorId = imgPostData.user?.id;
+                                      final business_id = imgPostData.user?.business_id;
+                                      final accountType =
+                                      imgPostData.user?.accountType?.toUpperCase();
+                                      if (accountType == AppConstants.individual) {
+                                        if (userId == authorId) {
+                                          navigatePushTo(
+                                              context, PersonalProfileSetupScreen());
+                                        } else {
+                                          Get.to(() => NewVisitProfileScreen(
+                                            authorId: authorId ?? "",
+                                            screenFromName: AppConstants.feedScreen,
+                                          ));
+                                        }
+                                      }
+                                      if (accountType == AppConstants.business) {
+                                        if (businessId == business_id) {
+                                          navigatePushTo(
+                                              context, BusinessOwnProfileScreen());
+                                        } else {
+                                          Get.to(() => VisitBusinessProfileNew(
+                                            businessId: business_id ?? "",
+                                            screenName: AppConstants.feedScreen,
+                                          ));
+                                        }
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50.0),
+                                        border: Border.all(
+                                            color: AppColors.primaryColor, width: 1.5),
+                                      ),
+                                      child: CachedAvatarWidget(
+                                          imageUrl: imgPostData.user?.profileImage,
+                                          size: 30,
+                                          showProfileOnFullScreen: false,
+                                          borderRadius: 100),
+                                    ),
+                                  ),
+                                ),
+                            ]),
+                          ),
+                        ),
+                      );
+                    }
+                   /*
+                    return GestureDetector(
+                      onTap: () {
+                        // TODO: open image viewer or play short video
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Open ${it.type}')),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          color: Colors.grey.shade200,
+                          child: thumb != null
+                              ? CachedNetworkImage(
+                            imageUrl: thumb,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Center(
+                              child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2)),
+                            ),
+                            errorWidget: (context, url, err) =>
+                                Icon(Icons.broken_image),
+                          )
+                              : Center(child: Icon(Icons.image)),
+                        ),
+                      ),
+                    );
+*/
+                    ;
+
+                  },
+                ),
+              );
+            }
+
+            // Single full-width item
+            final item = block.items.first;
+
+            if (item.type?.toLowerCase() == "message_post" ||
+                item.type?.toLowerCase() == "poll_post") {
+              return Padding(
+                padding: EdgeInsets.only(
+                    left: item.type?.toLowerCase() == "poll_post"
+                        ? SizeConfig.size10
+                        : SizeConfig.size2,
+                    right: item.type?.toLowerCase() == "poll_post"
+                        ? SizeConfig.size10
+                        : SizeConfig.size2,
+                    top: item.type?.toLowerCase() == "poll_post"
+                        ? SizeConfig.size10
+                        : SizeConfig.size10,
+                    bottom: item.type?.toLowerCase() == "message_post"
+                        ? SizeConfig.size5
+                        : 0),
+                child: FeedCard(
+                  post: item,
+                  index: index,
+                  postFilteredType: PostType.all,
+                  bottomPadding: 0,
+                ),
+              );
+            }
+            if (item.type == "long_video") {
+              ShortFeedItem videoData = getVideoData(item);
+
+              return Padding(
+                padding: EdgeInsets.only(
+                    left: SizeConfig.size5,
+                    right: SizeConfig.size5,
+                    top: SizeConfig.size10),
+                child: AutoPlayVideoCard(
+                  videoItem: videoData,
+                  globalMuteNotifier: ValueNotifier(false),
+                  videoType: VideoType.videoFeed,
+                  onTapOption: () {
+                    openBlockSelectionDialog(
+                        context: context,
+                        reportType: 'VIDEO_POST',
+                        userId: videoData.video?.userId ?? '',
+                        contentId: videoData.video?.id ?? '',
+                        userBlockVoidCallback: () async {
+                          await Get.find<VideoController>().userBlocked(
+                            videoType: VideoType.videoFeed,
+                            otherUserId: videoData.video?.userId ?? '',
+                          );
+                        },
+                        reportCallback: (params) {
+                          Get.find<VideoController>().videoPostReport(
+                              videoId: videoData.video?.id ?? '',
+                              videoType: VideoType.videoFeed,
+                              params: params);
+                        });
+                  },
+                ),
+              );
+            }
+            return const SizedBox.shrink(); // skip if no card
+
+         /*   return Card(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (item.title?.isNotEmpty??false)
+                      CustomText(
+                        item.title??"",
+                      ),
+                    if (item.subTitle?.isNotEmpty??false)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0, bottom: 6.0),
+                        child: Text(item?.subTitle??"",
+                            maxLines: 3, overflow: TextOverflow.ellipsis),
+                      ),
+                    if (thumbnail != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedNetworkImage(
+                          imageUrl: thumbnail,
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            height: 180,
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, err) => Container(
+                            height: 180,
+                            color: Colors.grey[200],
+                            child: Icon(Icons.broken_image, size: 48),
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 8),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Text('By ${item.raw['user']?['name'] ?? 'Unknown'}'),
+                    //     Row(children: [
+                    //       Icon(Icons.favorite_border),
+                    //       SizedBox(width: 6),
+                    //       Text('${item.raw['likes_count'] ?? 0}')
+                    //     ])
+                    //   ],
+                    // )
+                  ],
+                ),
+              ),
+            );*/
+          },
+        );
+
+        /*    final listView = ListView.builder(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding:
@@ -172,7 +585,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           itemCount: (posts.length),
-          // itemCount: _calculateItemCount(posts.length),
           itemBuilder: (context, index) {
             if (index == 0) {
               if (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty) {
@@ -190,7 +602,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             }
             return _buildListItem(index - 1, posts);
           },
-        );
+        );*/
 
         // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
         final content = RefreshIndicator(
@@ -260,6 +672,324 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   }
 
   Widget _buildListItem(int postIndex, List<Post> posts) {
+    final item = posts[postIndex];
+
+
+    if (item.type?.toLowerCase() == "message_post" ||
+        item.type?.toLowerCase() == "poll_post") {
+      return Padding(
+        padding: EdgeInsets.only(
+            left: item.type?.toLowerCase() == "poll_post"
+                ? SizeConfig.size10
+                : SizeConfig.size2,
+            right: item.type?.toLowerCase() == "poll_post"
+                ? SizeConfig.size10
+                : SizeConfig.size2,
+            top: item.type?.toLowerCase() == "poll_post"
+                ? SizeConfig.size10
+                : SizeConfig.size10,
+            bottom: item.type?.toLowerCase() == "message_post"
+                ? SizeConfig.size5
+                : 0),
+        child: FeedCard(
+          post: item,
+          index: postIndex,
+          postFilteredType: PostType.all,
+          bottomPadding: 0,
+        ),
+      );
+    }
+    if (item.type == "long_video") {
+      ShortFeedItem videoData = getVideoData(item);
+
+      return Padding(
+        padding: EdgeInsets.only(
+            left: SizeConfig.size5,
+            right: SizeConfig.size5,
+            top: SizeConfig.size10),
+        child: AutoPlayVideoCard(
+          videoItem: videoData,
+          globalMuteNotifier: ValueNotifier(false),
+          videoType: VideoType.videoFeed,
+          onTapOption: () {
+            openBlockSelectionDialog(
+                context: context,
+                reportType: 'VIDEO_POST',
+                userId: videoData.video?.userId ?? '',
+                contentId: videoData.video?.id ?? '',
+                userBlockVoidCallback: () async {
+                  await Get.find<VideoController>().userBlocked(
+                    videoType: VideoType.videoFeed,
+                    otherUserId: videoData.video?.userId ?? '',
+                  );
+                },
+                reportCallback: (params) {
+                  Get.find<VideoController>().videoPostReport(
+                      videoId: videoData.video?.id ?? '',
+                      videoType: VideoType.videoFeed,
+                      params: params);
+                });
+          },
+        ),
+      );
+    }
+    // 🔹 Check if this is a short_video group (pair of 2)
+    if (item.type == "short_video") {
+      // Only process if index is even (avoid duplicates)
+      if (postIndex % 2 == 0) {
+        final pair = posts
+            .skip(postIndex)
+            .take(2) // ✅ only 2 reels
+            .where((e) => e.type == "short_video")
+            .toList();
+
+        return Padding(
+          padding: EdgeInsets.only(
+              left: SizeConfig.size8,
+              right: SizeConfig.size8,
+              top: SizeConfig.size10,
+              bottom: SizeConfig.size5),
+
+          // padding: const EdgeInsets.all(8.0),
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 0.70,
+            ),
+            itemCount: pair.length,
+            itemBuilder: (context, i) {
+              final video = pair[i];
+
+              ShortFeedItem reelData = getVideoData(video);
+
+              return ClipRRect(
+                borderRadius: (BorderRadius.circular(12)),
+                child: Stack(
+                  children: [
+                    SingleShortStructure(
+                      shorts: Shorts.latest,
+                      allLoadedShorts: feedController.shortFeedItem,
+                      initialIndex: feedController.shortFeedItem
+                          .indexWhere((post) => post.videoId == video.id),
+                      shortItem: reelData,
+                      withBackground: true,
+                      // imageWidth: 170,
+                      imageHeight: SizeConfig.size310,
+                    ),
+                    // total views
+                    Positioned(
+                      bottom: SizeConfig.size70,
+                      top: SizeConfig.size70,
+                      left: SizeConfig.size70,
+                      right: SizeConfig.size70,
+                      child: IgnorePointer(
+                          ignoring: true,
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.playIcon,
+                            width: SizeConfig.size30,
+                            height: SizeConfig.size30,
+                          )),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      } else {
+        return const SizedBox.shrink();
+        // Skip duplicate when index is odd
+      }
+    } // 🔹 Check if this is a short_video group (pair of 2)
+    /*  if (item.type == "image_post") {
+      return Column(
+        children: buildImagePosts(posts),
+      );
+    }*/
+
+    if (item.type == "image_post") {
+      if (postIndex % 2 == 0) {
+        final pair = posts
+            .skip(postIndex)
+            .take(2) // ✅ only 2 reels
+            .where((e) => e.type == "image_post")
+            .toList();
+
+        return Padding(
+          padding: EdgeInsets.only(
+              top: SizeConfig.size12,
+              left: SizeConfig.size8,
+              right: SizeConfig.size8),
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 0.70,
+            ),
+            itemCount: pair.length,
+            itemBuilder: (context, i) {
+              final imgPostData = pair[i];
+
+              return ClipRRect(
+                borderRadius: (BorderRadius.circular(12)),
+                child: InkWell(
+                  onTap: () {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: imgPostData.subTitle,
+                        appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                        imageUrls: imgPostData.media ?? [],
+                        initialIndex: postIndex,
+                      ),
+                    );
+                  },
+                  child: SizedBox(
+                    width: SizeConfig.size220,
+                    height: 300,
+                    child: Stack(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(0),
+                        child: CachedNetworkImage(
+                          width: double.infinity,
+                          height: 310,
+                          // height: widget.imageHeight ?? SizeConfig.size220,
+                          fit: BoxFit.cover,
+                          imageUrl: imgPostData.media?.firstOrNull ?? "",
+                          placeholder: (context, str) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
+                              ),
+                            );
+                          },
+                          errorWidget: (context, url, error) => Container(
+                            // width: double.infinity,
+                            // height: 310,
+                            width: SizeConfig.size220,
+                            height: 300,
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: AppColors.white, width: 1),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (imgPostData.subTitle != null &&
+                          (imgPostData.subTitle?.isNotEmpty ?? false) &&
+                          imgPostData.subTitle?.toLowerCase() != "null")
+                        Positioned(
+                            bottom: 0,
+                            right: 0,
+                            left: 0,
+                            // right: SizeConfig.size6,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              padding: EdgeInsets.only(
+                                  bottom: 10,
+                                  left: SizeConfig.size10,
+                                  right: SizeConfig.size10,
+                                  top: 5),
+                              decoration: BoxDecoration(
+                                  color: AppColors.mainTextColor
+                                      .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(5.0)),
+                              child: CustomText(
+                                "${imgPostData.subTitle}",
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w400,
+                                maxLines: 2,
+                                // fontFamily: "arialround",
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )),
+                      if (imgPostData.user?.profileImage != null &&
+                          (imgPostData.user?.profileImage?.isNotEmpty ??
+                              false) &&
+                          imgPostData.user?.profileImage?.toLowerCase() !=
+                              "null")
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: InkWell(
+                            onTap: () {
+                              final authorId = imgPostData.user?.id;
+                              final business_id = imgPostData.user?.business_id;
+                              final accountType =
+                                  imgPostData.user?.accountType?.toUpperCase();
+                              if (accountType == AppConstants.individual) {
+                                if (userId == authorId) {
+                                  navigatePushTo(
+                                      context, PersonalProfileSetupScreen());
+                                } else {
+                                  Get.to(() => NewVisitProfileScreen(
+                                        authorId: authorId ?? "",
+                                        screenFromName: AppConstants.feedScreen,
+                                      ));
+                                }
+                              }
+                              if (accountType == AppConstants.business) {
+                                if (businessId == business_id) {
+                                  navigatePushTo(
+                                      context, BusinessOwnProfileScreen());
+                                } else {
+                                  Get.to(() => VisitBusinessProfileNew(
+                                        businessId: business_id ?? "",
+                                        screenName: AppConstants.feedScreen,
+                                      ));
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50.0),
+                                border: Border.all(
+                                    color: AppColors.primaryColor, width: 1.5),
+                              ),
+                              child: CachedAvatarWidget(
+                                  imageUrl: imgPostData.user?.profileImage,
+                                  size: 30,
+                                  showProfileOnFullScreen: false,
+                                  borderRadius: 100),
+                            ),
+                          ),
+                        ),
+                    ]),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      } else {
+        return const SizedBox.shrink();
+
+        // Skip duplicate when index is odd
+      }
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildListItemOld(int postIndex, List<Post> posts) {
     // // How many ads are inserted before this index
     // int adCountBeforeIndex = (index / cycleSize).floor();
     //
@@ -421,15 +1151,33 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
               return ClipRRect(
                 borderRadius: (BorderRadius.circular(12)),
-                child: SingleShortStructure(
-                  shorts: Shorts.latest,
-                  allLoadedShorts: feedController.shortFeedItem,
-                  initialIndex: feedController.shortFeedItem
-                      .indexWhere((post) => post.videoId == video.id),
-                  shortItem: reelData,
-                  withBackground: true,
-                  // imageWidth: 170,
-                  imageHeight: SizeConfig.size310,
+                child: Stack(
+                  children: [
+                    SingleShortStructure(
+                      shorts: Shorts.latest,
+                      allLoadedShorts: feedController.shortFeedItem,
+                      initialIndex: feedController.shortFeedItem
+                          .indexWhere((post) => post.videoId == video.id),
+                      shortItem: reelData,
+                      withBackground: true,
+                      // imageWidth: 170,
+                      imageHeight: SizeConfig.size310,
+                    ),
+                    // total views
+                    Positioned(
+                      bottom: SizeConfig.size70,
+                      top: SizeConfig.size70,
+                      left: SizeConfig.size70,
+                      right: SizeConfig.size70,
+                      child: IgnorePointer(
+                          ignoring: true,
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.playIcon,
+                            width: SizeConfig.size30,
+                            height: SizeConfig.size30,
+                          )),
+                    ),
+                  ],
                 ),
               );
             },
@@ -491,13 +1239,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     height: 300,
                     child: Stack(children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.blue_era_app_logo,
-                          boxFix: BoxFit.cover,
-                        ),
-                      ),
-                      ClipRRect(
                         borderRadius: BorderRadius.circular(0),
                         child: CachedNetworkImage(
                           width: double.infinity,
@@ -509,12 +1250,16 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                             return ClipRRect(
                               borderRadius: BorderRadius.circular(8.0),
                               child: LocalAssets(
-                                imagePath: AppIconAssets.blue_era_app_logo,
-                                boxFix: BoxFit.cover,
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
                               ),
                             );
                           },
                           errorWidget: (context, url, error) => Container(
+                            // width: double.infinity,
+                            // height: 310,
+                            width: SizeConfig.size220,
+                            height: 300,
                             decoration: BoxDecoration(
                               border:
                                   Border.all(color: AppColors.white, width: 1),
@@ -523,8 +1268,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8.0),
                               child: LocalAssets(
-                                imagePath: AppIconAssets.blueEraIcon,
-                                boxFix: BoxFit.cover,
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
                               ),
                             ),
                           ),
@@ -626,187 +1371,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
     return const SizedBox.shrink();
   }
-
-  List<Widget> buildImagePosts(List<Post> posts) {
-    List<Widget> widgets = [];
-
-    for (int i = 0; i < posts.length; i += 2) {
-      // Take 2 items starting from i
-      final pair = posts.skip(i).take(2).toList();
-
-      widgets.add(
-        Padding(
-          padding: EdgeInsets.only(
-            top: SizeConfig.size12,
-            left: SizeConfig.size8,
-            right: SizeConfig.size8,
-          ),
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 0.70,
-            ),
-            itemCount: pair.length,
-            itemBuilder: (context, j) {
-              final imgPostData = pair[j];
-              return ClipRRect(
-                borderRadius: (BorderRadius.circular(12)),
-                child: InkWell(
-                  onTap: () {
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: imgPostData.subTitle,
-                        appBarTitle: AppLocalizations.of(context)!.imageViewer,
-                        imageUrls: imgPostData.media ?? [],
-                        initialIndex: i + j,
-                      ),
-                    );
-                  },
-                  child: SizedBox(
-                    width: SizeConfig.size220,
-                    height: 300,
-                    child: Stack(children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.blue_era_app_logo,
-                          boxFix: BoxFit.cover,
-                        ),
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(0),
-                        child: CachedNetworkImage(
-                          width: double.infinity,
-                          height: 310,
-                          // height: widget.imageHeight ?? SizeConfig.size220,
-                          fit: BoxFit.cover,
-                          imageUrl: imgPostData.media?.firstOrNull ?? "",
-                          placeholder: (context, str) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.blue_era_app_logo,
-                                boxFix: BoxFit.cover,
-                              ),
-                            );
-                          },
-                          errorWidget: (context, url, error) => Container(
-                            decoration: BoxDecoration(
-                              border:
-                                  Border.all(color: AppColors.white, width: 1),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.blueEraIcon,
-                                boxFix: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (imgPostData.subTitle != null &&
-                          (imgPostData.subTitle?.isNotEmpty ?? false) &&
-                          imgPostData.subTitle?.toLowerCase() != "null")
-                        Positioned(
-                            bottom: 0,
-                            right: 0,
-                            left: 0,
-                            // right: SizeConfig.size6,
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              padding: EdgeInsets.only(
-                                  bottom: 10,
-                                  left: SizeConfig.size10,
-                                  right: SizeConfig.size10,
-                                  top: 5),
-                              decoration: BoxDecoration(
-                                  color: AppColors.mainTextColor
-                                      .withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(5.0)),
-                              child: CustomText(
-                                "${imgPostData.subTitle}",
-                                color: AppColors.white,
-                                fontWeight: FontWeight.w400,
-                                maxLines: 2,
-                                // fontFamily: "arialround",
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            )),
-                      if (imgPostData.user?.profileImage != null &&
-                          (imgPostData.user?.profileImage?.isNotEmpty ??
-                              false) &&
-                          imgPostData.user?.profileImage?.toLowerCase() !=
-                              "null")
-                        Positioned(
-                          top: 10,
-                          left: 10,
-                          child: InkWell(
-                            onTap: () {
-                              final authorId = imgPostData.user?.id;
-                              final business_id = imgPostData.user?.business_id;
-                              final accountType =
-                                  imgPostData.user?.accountType?.toUpperCase();
-                              if (accountType == AppConstants.individual) {
-                                if (userId == authorId) {
-                                  navigatePushTo(
-                                      context, PersonalProfileSetupScreen());
-                                } else {
-                                  Get.to(() => NewVisitProfileScreen(
-                                        authorId: authorId ?? "",
-                                        screenFromName: AppConstants.feedScreen,
-                                      ));
-                                }
-                              }
-                              if (accountType == AppConstants.business) {
-                                if (businessId == business_id) {
-                                  navigatePushTo(
-                                      context, BusinessOwnProfileScreen());
-                                } else {
-                                  Get.to(() => VisitBusinessProfileNew(
-                                        businessId: business_id ?? "",
-                                        screenName: AppConstants.feedScreen,
-                                      ));
-                                }
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(3),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(50.0),
-                                border: Border.all(
-                                    color: AppColors.primaryColor, width: 1.5),
-                              ),
-                              child: CachedAvatarWidget(
-                                  imageUrl: imgPostData.user?.profileImage,
-                                  size: 30,
-                                  showProfileOnFullScreen: false,
-                                  borderRadius: 100),
-                            ),
-                          ),
-                        ),
-                    ]),
-                  ),
-                ),
-              );
-
-              // return buildImagePostItem(context, imgPostData, i + j);
-            },
-          ),
-        ),
-      );
-    }
-
-    return widgets;
-  }
-
 }
+
 ShortFeedItem getVideoData(Post video) {
   return ShortFeedItem(
       videoId: video.id,
@@ -910,115 +1476,3 @@ class PostData {
         'is_like': isLike,
       };
 }
-
-class ChewieHLSExample extends StatefulWidget {
-  const ChewieHLSExample({Key? key}) : super(key: key);
-
-  @override
-  State<ChewieHLSExample> createState() => _ChewieHLSExampleState();
-}
-
-class _ChewieHLSExampleState extends State<ChewieHLSExample> {
-  late VideoPlayerController _videoPlayerController;
-  ChewieController? _chewieController;
-
-  final String hlsUrl =
-      "https://dz1oexi5wyepv.cloudfront.net/videos/outputs/68d7c51c0ff7b56410a9783c/1758970909704-a25a739e-8324-4cf4-9a5b-c8807396b575.m3u8";
-
-  @override
-  void initState() {
-    super.initState();
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(hlsUrl));
-
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController,
-      autoPlay: true,
-      looping: false,
-      aspectRatio: 16 / 9,
-      materialProgressColors: ChewieProgressColors(
-        playedColor: Colors.blue,
-        handleColor: Colors.blueAccent,
-        backgroundColor: Colors.grey,
-        bufferedColor: Colors.lightGreen,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _videoPlayerController.dispose();
-    _chewieController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Chewie HLS Example")),
-      body: Center(
-        child: _chewieController != null
-            ? Chewie(controller: _chewieController!)
-            : const CircularProgressIndicator(),
-      ),
-    );
-  }
-}
-
-//
-// class ChewieHLSExample extends StatefulWidget {
-//   const ChewieHLSExample({Key? key}) : super(key: key);
-//
-//   @override
-//   State<ChewieHLSExample> createState() => _ChewieHLSExampleState();
-// }
-//
-// class _ChewieHLSExampleState extends State<ChewieHLSExample> {
-//   late VideoPlayerController _videoPlayerController;
-//   ChewieController? _chewieController;
-//
-//   final String hlsUrl =
-//       "https://dz1oexi5wyepv.cloudfront.net/videos/outputs/68d7c51c0ff7b56410a9783c/1758970909704-a25a739e-8324-4cf4-9a5b-c8807396b575.m3u8";
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(hlsUrl))
-//       ..initialize().then((_) {
-//         setState(() {});
-//       });
-//
-//     _chewieController = ChewieController(
-//       videoPlayerController: _videoPlayerController,
-//       autoPlay: true,
-//       looping: false,
-//       aspectRatio: 16 / 9,
-//       materialProgressColors: ChewieProgressColors(
-//         playedColor: Colors.blue,
-//         handleColor: Colors.blueAccent,
-//         backgroundColor: Colors.grey,
-//         bufferedColor: Colors.lightGreen,
-//       ),
-//     );
-//   }
-//
-//   @override
-//   void dispose() {
-//     _videoPlayerController.dispose();
-//     _chewieController?.dispose();
-//     super.dispose();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("Chewie HLS Example")),
-//       body: Center(
-//         child: _chewieController != null &&
-//             _videoPlayerController.value.isInitialized
-//             ? Chewie(controller: _chewieController!)
-//             : const CircularProgressIndicator(),
-//       ),
-//     );
-//   }
-// }

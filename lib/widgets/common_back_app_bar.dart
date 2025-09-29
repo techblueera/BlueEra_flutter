@@ -11,8 +11,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_product_btn.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_settings_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -206,7 +204,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     if (onProfileTap != null) {
                       onProfileTap!();
                     } else {
-                      logs("ACCOUNT TYPE === ${accountTypeGlobal}");
                       if (isGuestUser()) {
                         createProfileScreen();
                       } else if (isIndividualUser()) {

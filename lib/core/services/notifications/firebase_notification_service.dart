@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:BlueEra/main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -13,7 +14,9 @@ import 'model/OneSignalNotificationDetailsModel.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  // await Firebase.initializeApp();
+  await firebaseInitializeApp();
+
   print('💤 Background message: ${message.messageId}');
   await _showBackgroundNotification(message);
 }
@@ -63,7 +66,7 @@ class FirebaseNotificationService {
   FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    await Firebase.initializeApp();
+    // await Firebase.initializeApp();
     print("🔧 Initializing Firebase Notification Service");
 
 

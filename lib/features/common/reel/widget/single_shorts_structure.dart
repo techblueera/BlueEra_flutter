@@ -76,157 +76,174 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        InkWell(
-          onTap: () {
-            if (widget.shorts == Shorts.underProgress) {
-              return;
-            }
-            Navigator.pushNamed(
-              context,
-              RouteHelper.getShortsPlayerScreenRoute(),
-              arguments: {
-                ApiKeys.shorts: widget.shorts,
-                ApiKeys.videoItem: widget.allLoadedShorts,
-                ApiKeys.initialIndex: widget.initialIndex
-              },
-            );
+    return InkWell(
+      onTap: () {
+        if (widget.shorts == Shorts.underProgress) {
+          return;
+        }
+        Navigator.pushNamed(
+          context,
+          RouteHelper.getShortsPlayerScreenRoute(),
+          arguments: {
+            ApiKeys.shorts: widget.shorts,
+            ApiKeys.videoItem: widget.allLoadedShorts,
+            ApiKeys.initialIndex: widget.initialIndex
           },
-          child: SizedBox(
-            width: widget.imageWidth ?? SizeConfig.size220,
-            height: widget.imageHeight ?? 250,
-            // height: 250,
-            child: Stack(children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(widget.borderRadius ?? 0),
-                child: thumbnail.isEmpty
-                    ? Container(
-                        width: SizeConfig.screenWidth,
-                        height: SizeConfig.size140,
-                        color: Colors.grey[300],
-                        child: LocalAssets(imagePath: AppIconAssets.appIcon),
-                      )
-                    : isNetworkImage(thumbnail)
-                        ? CachedNetworkImage(
-                            width: double.infinity,
-                            // height: double.infinity,
-                            height: widget.imageHeight ?? SizeConfig.size250,
-                            fit: BoxFit.cover,
-                            imageUrl: thumbnail,
-                            errorWidget: (context, url, error) => Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: AppColors.white, width: 1),
-                                borderRadius: BorderRadius.circular(
-                                    widget.borderRadius ?? 8.0),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    widget.borderRadius ?? 8.0),
-                                child: LocalAssets(
-                                  imagePath: AppIconAssets.appIcon,
-                                  boxFix: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          )
-                        : Image.file(
-                            File(shortItem?.video?.coverUrl ?? ''),
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
+        );
+      },
+      child: SizedBox(
+        width: widget.imageWidth ?? SizeConfig.size220,
+        height: widget.imageHeight ?? SizeConfig.size310,
+        // height: 250,
+        child: Stack(children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 0),
+            child: thumbnail.isEmpty
+                ? Container(
+                    width: SizeConfig.screenWidth,
+                    height:  widget.imageHeight ?? SizeConfig.size310,
+                    // color: Colors.grey[300],
+                    child: LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.fill,),
+                  )
+                : isNetworkImage(thumbnail)
+                    ? CachedNetworkImage(
+                        width: double.infinity,
+                        // height: double.infinity,
+                        height: widget.imageHeight ?? SizeConfig.size250,
+                        fit: BoxFit.cover,
+                        imageUrl: thumbnail,
+
+                        placeholder: (context, data) => Container(
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: AppColors.white, width: 1),
+                            borderRadius: BorderRadius.circular(
+                                widget.borderRadius ?? 8.0),
                           ),
-              ),
-
-              // total views
-              Positioned(
-                  top: SizeConfig.size8,
-                  right: SizeConfig.size6,
-                  child: Container(
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size2,
-                        horizontal: SizeConfig.size5),
-                    decoration: (widget.withBackground)
-                        ? BoxDecoration(
-                            color:
-                                AppColors.mainTextColor.withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(5.0))
-                        : null,
-                    child: Row(
-                      children: [
-                        if (widget.withBackground) ...[
-                          LocalAssets(imagePath: AppIconAssets.viewIcon),
-                          SizedBox(width: SizeConfig.size1),
-                        ],
-                        CustomText(
-                          (widget.withBackground)
-                              ? formatNumberLikePost(
-                                  shortItem?.video?.stats?.views ?? 0)
-                              : "${formatNumberLikePost(shortItem?.video?.stats?.views ?? 0)} Views",
-                          color: AppColors.white,
-                          fontSize: SizeConfig.size13,
-                          fontWeight: FontWeight.w500,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                widget.borderRadius ?? 8.0),
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.fill,
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                  )),
-              Positioned(
-                  bottom: 0,
-                  right: 0,
-                  left: 0,
-                  // right: SizeConfig.size6,
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    padding: EdgeInsets.only(
-                        bottom: 10,
-                        left: SizeConfig.size10,
-                        right: SizeConfig.size10,
-                        top: 5),
-                    decoration: (widget.withBackground)
-                        ? BoxDecoration(
-                            color:
-                                AppColors.mainTextColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(5.0))
-                        : null,
-                    child: CustomText(
-                      "${shortItem?.video?.title}",
-                      color: AppColors.white,
-                      maxLines: 2,
-                      fontWeight: FontWeight.w400,
+                        errorWidget: (context, url, error) => Container(
+                          width: double.infinity,
+                          // height: double.infinity,
+                          height: widget.imageHeight ?? SizeConfig.size250,
 
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )),
-
-              if (canShowMenu && shortItem != null)
-                ReelShortPopUpMenu(
-                  shortFeedItem: shortItem!,
-                  shorts: widget.shorts,
-                ),
-
-              if (widget.shorts == Shorts.underProgress) ...[
-                Positioned.fill(
-                  child: Container(
-                    width: widget.imageWidth ?? SizeConfig.size100,
-                    height: widget.imageHeight ?? SizeConfig.size160,
-                    decoration: BoxDecoration(
-                      color: AppColors.black65,
-                      borderRadius:
-                          BorderRadius.circular(widget.borderRadius ?? 8.0),
-                    ),
-                    child: Center(
-                      child: LocalAssets(
-                          imagePath: AppIconAssets.progressIndicator),
-                    ),
-                  ),
-                )
-              ]
-            ]),
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: AppColors.white, width: 1),
+                            borderRadius: BorderRadius.circular(
+                                widget.borderRadius ?? 8.0),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                widget.borderRadius ?? 8.0),
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.fill,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Image.file(
+                        File(shortItem?.video?.coverUrl ?? ''),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
           ),
-        ),
-      ],
+
+          // total views
+          Positioned(
+              top: SizeConfig.size8,
+              right: SizeConfig.size6,
+              child: Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size2, horizontal: SizeConfig.size5),
+                decoration: (widget.withBackground)
+                    ? BoxDecoration(
+                        color: AppColors.mainTextColor.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(5.0))
+                    : null,
+                child: Row(
+                  children: [
+                    if (widget.withBackground) ...[
+                      LocalAssets(imagePath: AppIconAssets.viewIcon),
+                      SizedBox(width: SizeConfig.size1),
+                    ],
+                    CustomText(
+                      (widget.withBackground)
+                          ? formatNumberLikePost(
+                              shortItem?.video?.stats?.views ?? 0)
+                          : "${formatNumberLikePost(shortItem?.video?.stats?.views ?? 0)} Views",
+                      color: AppColors.white,
+                      fontSize: SizeConfig.size13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+              )),
+          Positioned(
+              bottom: 0,
+              right: 0,
+              left: 0,
+              // right: SizeConfig.size6,
+              child: Container(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.only(
+                    bottom: 10,
+                    left: SizeConfig.size10,
+                    right: SizeConfig.size10,
+                    top: 5),
+                decoration: (widget.withBackground)
+                    ? BoxDecoration(
+                        color: AppColors.mainTextColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(5.0))
+                    : null,
+                child: CustomText(
+                  "${shortItem?.video?.title}",
+                  color: AppColors.white,
+                  maxLines: 2,
+                  fontWeight: FontWeight.w400,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )),
+
+          if (canShowMenu && shortItem != null)
+            Positioned(
+              right: 0.0,
+              child: ReelShortPopUpMenu(
+                shortFeedItem: shortItem!,
+                shorts: widget.shorts,
+              ),
+            ),
+
+          if (widget.shorts == Shorts.underProgress) ...[
+            Positioned.fill(
+              child: Container(
+                width: widget.imageWidth ?? SizeConfig.size100,
+                height: widget.imageHeight ?? SizeConfig.size160,
+                decoration: BoxDecoration(
+                  color: AppColors.black65,
+                  borderRadius:
+                      BorderRadius.circular(widget.borderRadius ?? 8.0),
+                ),
+                child: Center(
+                  child:
+                      LocalAssets(imagePath: AppIconAssets.progressIndicator),
+                ),
+              ),
+            )
+          ]
+        ]),
+      ),
     );
   }
 }

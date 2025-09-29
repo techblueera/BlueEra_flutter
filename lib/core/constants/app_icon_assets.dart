@@ -373,5 +373,6 @@ class AppIconAssets {
   static String service_provider = "${iconPath}service_provider.svg";
   static String food_service = "${iconPath}food_service.svg";
   static String other_type = "${iconPath}other_type.svg";
+  static String place_holder_image = "${AppConstants.baseImageAssetsPath}place_holder_image.jpeg";
 
 }

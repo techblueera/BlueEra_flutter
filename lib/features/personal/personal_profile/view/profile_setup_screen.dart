@@ -192,13 +192,11 @@ class _PersonalProfileSetupScreenState
                               right: SizeConfig.size18,
                               top: SizeConfig.size4),
                           child: Obx(() {
-                            logs("COMMON CALLL");
                             return CommonProfileImage(
                               imagePath: personalCreateProfileController
                                   .imagePath?.value ??
                                   "",
                               onImageUpdate: (image) async {
-                                logs("image==== $image");
                                 personalCreateProfileController
                                     .imagePath?.value = image;
 
@@ -209,7 +207,6 @@ class _PersonalProfileSetupScreenState
                                 var reqProfile = {
                                   ApiKeys.profile_image: dataImage
                                 };
-                                print("Update Params: $reqProfile");
                                 await personalCreateProfileController
                                     .updateUserProfileDetails(
                                     params: reqProfile,

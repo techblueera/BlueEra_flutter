@@ -387,7 +387,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LocalAssets(imagePath: AppIconAssets.appIcon),
+            LocalAssets(imagePath: AppIconAssets.place_holder_image),
             const SizedBox(height: 8),
             const CustomText('Failed to load video'),
             const SizedBox(height: 16),
@@ -423,12 +423,12 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     return _initialized && _controller != null
         ? GestureDetector(
       onTap: _onVideoTap,
-      child: SizedBox.expand(
+      child: SizedBox.shrink(
         child: FittedBox(
           fit: BoxFit.cover, // Fills the container, crops if needed
           child: SizedBox(
-            width: _controller!.value.size.width,
-            height: _controller!.value.size.height,
+            width: _controller?.value.size.width,
+            height: _controller?.value.size.height,
             child: VideoPlayer(_controller!),
           ),
         ),
@@ -468,6 +468,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   Widget _buildActionButtons() {
+    logs("fullScreenShortController.videoItem?.channel?.id== ${fullScreenShortController.videoItem?.channel?.id}");
+    logs("fullScreenShortController.videoItem?.author?.id== ${fullScreenShortController.videoItem?.author?.id}");
+    logs("fullScreenShortController.videoItem?.author?.accountType== ${fullScreenShortController.videoItem?.author?.accountType}");
     return Positioned(
       right: SizeConfig.size20,
       bottom: SizeConfig.size220,
@@ -565,10 +568,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             fontWeight: FontWeight.w700,
             color: AppColors.white,
           ),
-          // SizedBox(height: SizeConfig.size15),
-          // LocalAssets(
-          //     imagePath: AppIconAssets.audioOutlinedIcon,
-          //     imgColor: AppColors.white),
 
           SizedBox(height: SizeConfig.size10),
           if (fullScreenShortController.videoItem?.channel?.id != null)

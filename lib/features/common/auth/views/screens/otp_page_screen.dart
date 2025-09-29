@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -186,6 +187,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                       },
                     ),
                     SizedBox(height: SizeConfig.size20),
+                    // CustomText("_isSubmitDisabled ${_isSubmitDisabled}"),
                     CustomBtn(
                       onTap: () => _isSubmitDisabled
                           ? _onVerifyOtpPressed(context)
@@ -253,6 +255,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
 
   Future<void> _onVerifyOtpPressed(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
+   await   Future.delayed(Duration(seconds: 2));
       if (_otpController.text.length == 6) {
         await Get.find<AuthController>().verifyOTP(otp: _otpController.text);
       }
@@ -269,7 +272,6 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
       return;
     }
     await Get.find<AuthController>().sendOTP();
-    // commonSnackBar(message: 'OTP resent successfully');
     if (Get.find<AuthController>().otpVerificationResponse.status ==
         Status.COMPLETE) {
       _otpController.clear();

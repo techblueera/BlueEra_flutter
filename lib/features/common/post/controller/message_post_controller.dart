@@ -135,7 +135,6 @@ class MessagePostController extends GetxController {
   RxList<String> uploadImageList = <String>[].obs;
 
   // Aspect ratio (default Square 1:1)
-  RxDouble aspectRatio = 1.0.obs;
 
   Future<void> pickImage(BuildContext context) async {
     if (imagesList.length >= 5) {
@@ -149,7 +148,7 @@ class MessagePostController extends GetxController {
       cropAspectRatio: const CropAspectRatio(width: 250, height: 250),
     );
     XFile image=XFile(croppedPath??"");
-    if (image != null) {
+    if (image.path.isNotEmpty) {
       imagesList.add(MessagePostImageModel(
           id: 0, imageFile: image, imgCropMode: AppConstants.Landscape));
     }

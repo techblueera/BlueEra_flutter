@@ -74,8 +74,8 @@ class VideoCard extends StatelessWidget {
                 errorWidget: (_, __, ___) => Container(
                   width: SizeConfig.screenWidth,
                   height: SizeConfig.size140,
-                  color: Colors.grey[300],
-                  child: LocalAssets(imagePath: AppIconAssets.appIcon),
+                  // color: Colors.grey[300],
+                  child: LocalAssets(imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
                 ),
               )
                   : Image.file(
