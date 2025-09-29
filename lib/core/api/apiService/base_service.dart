@@ -427,9 +427,9 @@ abstract class BaseService {
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
   final String socialLinksUpdate = "channel-service/channels/social-links/";
   final String getCountRating="user-service/business/getCountOfRating/";
-    String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
-    String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
-    String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
+  String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
+  String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
+  String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
   String businessGetRattingSummary(String userID)=>"user-service/business/$userID/ratings";
 
   final String subchildORRootCategroy = "product-service/api/categories/getSubchildORRootCategroy";
@@ -443,6 +443,8 @@ abstract class BaseService {
   final String generateAiContent = "ai-service/api/ai-product/generate-content";
   final String createProductViaAi = "product-service/api/product/createProductAI";
   final String addProductToInventory = "inventory-service/products/addProductToInventory";
+  final String getOwnDraftedAndPublicProducts = 'inventory-service/products/getOwnDraftedAndPublicProducts';
+  final String getListOfSearchProduct = 'product-service/product/getListOfSearchProduct';
 
   final String homeFeed = 'userfeed-service/feed';
   final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';

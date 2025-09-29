@@ -14,7 +14,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'inventory_controller.dart';
+import '../controller/inventory_controller.dart';
 
 
 class InventoryScreen extends StatefulWidget {
@@ -33,7 +33,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
-    controller.loadProducts();
     super.initState();
   }
 
@@ -608,7 +607,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
     if (result != null) {
       if (result.toUpperCase() == "ADD PRODUCT") {
-        Get.toNamed(RouteHelper.getAddProductViaAiStep1Route());
+        Get.toNamed(RouteHelper.getAddProductScreenRoute());
       }else if(result.toUpperCase() == "ADD SERVICE"){
         Get.toNamed(RouteHelper.getAddServicesScreenRoute());
       }else if(result.toUpperCase() =="ADD FOOD"){

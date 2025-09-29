@@ -79,7 +79,7 @@ class AddMoreDetailsController extends GetxController {
       print('Saving details: $details');
 
       if(fromScreen == RouteConstant.addProductViaAiStep2) {
-        final detailItem = Specification(
+        final detailItem = ProductMoreDetails(
           title: titleController.text.trim(),
           details: detailController.text.trim(),
         );

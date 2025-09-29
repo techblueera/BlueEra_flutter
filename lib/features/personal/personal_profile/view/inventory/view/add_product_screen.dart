@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_screen_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -14,12 +16,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 
-class AddProductScreen extends StatelessWidget {
+class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
 
   @override
+  State<AddProductScreen> createState() => _AddProductScreenState();
+}
+
+class _AddProductScreenState extends State<AddProductScreen> {
+  final controller = Get.put(InventoryController());
+
+
+  @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AddProductScreenController());
 
     return Obx(() =>
         Scaffold(
@@ -107,13 +116,13 @@ class AddProductScreen extends StatelessWidget {
                             SizedBox(height: SizeConfig.size16),
                             CommonTextField(
                                 textEditController: controller.searchController,
-                                onChange: (value) {
-                                  controller.searchProduct.value = value;
-                                  controller.filterProducts();
-                                },
+                                onChange: (value)=> controller.onSearchChanged(value),
+                                // onChange: (value) {
+                                //   controller.searchProduct.value = value;
+                                //   controller.filterProducts();
+                                // },
                                 hintText: "e.g. Wireless Earbuds Boat Airdope....",
-                                showClearIcon: controller.searchProduct
-                                    .isNotEmpty,
+                                showClearIcon: controller.searchProduct.isNotEmpty,
                                 onClearTap: () {
                                   controller.searchController.clear();
                                   controller.searchProduct.value = '';
@@ -149,8 +158,10 @@ class AddProductScreen extends StatelessWidget {
                                   itemBuilder: (context, index) {
                                     final product =
                                     controller.filteredProducts[index];
-                                    return _buildProductItem(
-                                        controller, product);
+                                    // return _buildProductItem(
+                                    //     controller,
+                                    //     product
+                                    // );
                                   },
                                   separatorBuilder: (BuildContext context,
                                       int index) {
@@ -202,8 +213,7 @@ class AddProductScreen extends StatelessWidget {
                   (controller.searchProduct.isEmpty)
                       ? GestureDetector(
                       onTap: () {
-                        // Navigate or show dialog using GetX
-                        // Get.toNamed(RouteHelper.getListingFormScreenRoute());
+                        Get.toNamed(RouteHelper.getAddProductViaAiStep1Route());
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(
@@ -223,7 +233,7 @@ class AddProductScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CustomText(
-                                    "Create Own Product Manually",
+                                    "Generate Product With AI Within 1 Min. ",
                                     fontSize: SizeConfig.medium15,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.mainTextColor,
@@ -233,7 +243,8 @@ class AddProductScreen extends StatelessWidget {
                                       "Open the full manual form\nto add detailed information section by section.",
                                       color: AppColors.secondaryTextColor,
                                       fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w600
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: AppConstants.OpenSans,
                                   ),
                                 ],
                               ),
@@ -250,8 +261,10 @@ class AddProductScreen extends StatelessWidget {
         ));
   }
 
-  Widget _buildProductItem(AddProductScreenController controller,
-      ProductItem product) {
+  Widget _buildProductItem(
+      InventoryController controller,
+      ProductItem product
+      ) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
       padding: EdgeInsets.all(SizeConfig.size4),
@@ -260,7 +273,7 @@ class AddProductScreen extends StatelessWidget {
         children: [
           // Checkbox
           GestureDetector(
-            onTap: () => controller.toggleProductSelection(product),
+            // onTap: () => controller.toggleProductSelection(product),
             child: Container(
               width: 20,
               height: 20,
@@ -424,8 +437,7 @@ class AddProductScreen extends StatelessWidget {
                             Border.all(color: AppColors.greyE5, width: 1),
                           ),
                           child: TextField(
-                            onChanged: (value) =>
-                                controller.updateSellingPrice(product, value),
+                            // onChanged: (value) => controller.updateSellingPrice(product, value),
                             decoration: const InputDecoration(
                               hintText: "E.g. Text",
                               hintStyle: TextStyle(
@@ -469,7 +481,7 @@ class AddProductScreen extends StatelessWidget {
               // Remove Icon (only shown when selected)
               if (product.isSelected)
                 GestureDetector(
-                  onTap: () => controller.removeProduct(product),
+                  // onTap: () => controller.removeProduct(product),
                   child: Container(
                     width: 24,
                     height: 24,

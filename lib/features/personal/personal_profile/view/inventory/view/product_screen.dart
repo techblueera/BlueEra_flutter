@@ -1,17 +1,38 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/inventory_controller.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import '../model/get_own_product_model.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 
-class ProductScreen extends StatelessWidget {
+class ProductScreen extends StatefulWidget {
   final InventoryController controller;
   const ProductScreen({super.key, required this.controller});
+
+  @override
+  State<ProductScreen> createState() => _ProductScreenState();
+}
+
+class _ProductScreenState extends State<ProductScreen> {
+  final InventoryController inventoryController = Get.find<InventoryController>();
+
+
+  @override
+  void initState() {
+    inventoryController.loadProducts();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,171 +42,275 @@ class ProductScreen extends StatelessWidget {
 
         SizedBox(height: SizeConfig.size8),
 
-        Padding(
+        Obx(()=> Padding(
           padding: EdgeInsets.all(
               SizeConfig.size8
           ),
           child: HorizontalTabSelector(
-            tabs: controller.productTab,
-            selectedIndex: controller.selectedProductIndex.value,
+            tabs: widget.controller.productTab,
+            selectedIndex: widget.controller.selectedProductIndex.value,
             isFilterIconShow: true,
             onTabSelected: (index, value) {
-              controller.selectedProductIndex.value = index;
+              widget.controller.selectedProductIndex.value = index;
+              widget.controller.callApi();
             },
             labelBuilder: (label) => label,
           ),
-        ),
+        )),
+
+       Obx(()=> _buildOwnProductCard())
 
         // Products Grid
 
-       Obx(()=> (controller.isLoading.value) ?
-       const Center(
-         child: CircularProgressIndicator(
-           color: AppColors.primaryColor,
-         ),
-       ) :
-       Expanded(
-         child: Padding(
-           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-           child: LayoutBuilder(
-             builder: (context, constraints) {
-               // Two columns
-               final crossAxisCount = 2;
-               final crossSpacing = 6.0;
-               final mainSpacing = 6.0;
-
-               final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) / crossAxisCount;
-
-               final imageHeight = itemWidth * 0.75; // You can tweak ratio if needed
-               final detailsHeight = imageHeight * 0.9; // Approximate details section height
-               final itemHeight = imageHeight + detailsHeight;
-
-               final childAspectRatio = itemWidth / itemHeight;
-
-               return GridView.builder(
-                 itemCount: controller.filteredProducts.length,
-                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                   crossAxisCount: crossAxisCount,
-                   crossAxisSpacing: crossSpacing,
-                   mainAxisSpacing: mainSpacing,
-                   childAspectRatio: childAspectRatio,
-                 ),
-                 itemBuilder: (context, index) {
-                   final product = controller.filteredProducts[index];
-                   return ProductCard(
-                     product,
-                     controller,
-                     width: itemWidth,
-                     height: itemHeight,
-                   );
-                 },
-               );
-             },
-           ),
-         ),
-       )) ,
       ],
     );
   }
+
+  Widget _buildOwnProductCard(){
+    switch(widget.controller.selectedProductIndex.value){
+      case 0:
+        return _buildAllProductCard();
+        case 1:
+        return _buildLiveProductCard();
+        case 2:
+        return _buildDraftProductCard();
+
+      default:
+        return SizedBox();
+    }
+  }
+
+  Widget _buildAllProductCard(){
+    return (widget.controller.isLoading.value) ?
+    const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primaryColor,
+      ),
+    ) :
+    Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = 2;
+            final crossSpacing = 6.0;
+            final mainSpacing = 6.0;
+
+            final itemWidth =
+                (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
+                    crossAxisCount;
+
+            return MasonryGridView.count(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: crossSpacing,
+              mainAxisSpacing: mainSpacing,
+              itemCount: widget.controller.allProducts.length,
+              itemBuilder: (context, index) {
+                final product = widget.controller.allProducts[index];
+                return ProductCard(
+                  product,
+                  widget.controller,
+                  width: itemWidth,
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+
+  }
+
+  Widget _buildLiveProductCard(){
+    return (widget.controller.isLoading.value) ?
+    const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primaryColor,
+      ),
+    ) :
+    Expanded(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Two columns
+            final crossAxisCount = 2;
+            final crossSpacing = 6.0;
+            final mainSpacing = 6.0;
+
+            final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing))
+                / crossAxisCount;
+
+            return MasonryGridView.count(
+              itemCount: widget.controller.liveProducts.length,
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: crossSpacing,
+              mainAxisSpacing: mainSpacing,
+              itemBuilder: (context, index) {
+                final product = widget.controller.liveProducts[index];
+                return ProductCard(
+                  product,
+                  widget.controller,
+                  width: itemWidth,
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDraftProductCard(){
+    return (widget.controller.isLoading.value) ?
+    const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primaryColor,
+      ),
+    ) :
+    Expanded(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Two columns
+            final crossAxisCount = 2;
+            final crossSpacing = 6.0;
+            final mainSpacing = 6.0;
+
+            final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing))
+                / crossAxisCount;
+
+            return MasonryGridView.count(
+              itemCount: widget.controller.filteredProducts.length,
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: crossSpacing,
+              mainAxisSpacing: mainSpacing,
+              itemBuilder: (context, index) {
+                final product = widget.controller.draftProducts[index];
+                return ProductCard(
+                  product,
+                  widget.controller,
+                  width: itemWidth,
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
 }
 
-
 Widget ProductCard(
-    ProductModel product,
+    OwnProductData product,
     InventoryController controller, {
       required double width,
-      required double height,
     }) {
-  final imageHeight = height * 0.55; // Image ~55% of card height
-
-  return Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    clipBehavior: Clip.antiAlias, // Ensures image respects card border
-    child: Container(
-      width: width,
-      height: height,
-      color: AppColors.whiteFE,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image
-          SizedBox(
-            width: double.infinity,
-            height: imageHeight,
-            child: Stack(
-              children: [
-                CustomImageSlideshow(
-                  isLoading: false,
-                  width: double.infinity,
-                  height: imageHeight,
-                  imagePaths: product.multipleImageUrl!,
-                  isLocal: true,
-                  borderRadius: BorderRadius.zero,
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.more_vert,
-                      color: Colors.white,
-                      size: 16,
+  return GestureDetector(
+    onTap: (){
+     Get.toNamed(
+       RouteHelper.getProductPreviewScreenRoute(),
+       arguments: {
+         ApiKeys.argProductData: product,
+       },
+     );
+    },
+    child: Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        width: width,
+        color: AppColors.whiteFE,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            AspectRatio(
+              aspectRatio: 1.1, // square-ish image (adjust if needed)
+              child: Stack(
+                children: [
+                  CustomImageSlideshow(
+                    isLoading: false,
+                    width: double.infinity,
+                    height: double.infinity,
+                    imagePaths: product.product.details?.media ?? [],
+                    borderRadius: BorderRadius.zero,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _buildIconBox(
+                        Icon(Icons.more_vert, color: Colors.white, size: 16)
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: _buildIconBox(
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CustomText(
+                            product.product.sellerClassification?.variants.length.toString(),
+                            color: AppColors.white,
+                            fontSize: SizeConfig.medium,
+                        ),
+                      ),
+                    )
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Product Details
-          Flexible(
-            child: Padding(
-              padding: EdgeInsets.all(8),
+            // Product Details
+            Padding(
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Product Name
                   CustomText(
-                    product.name,
+                    product.product.details?.name,
                     fontWeight: FontWeight.w600,
                     fontSize: SizeConfig.small,
                     color: AppColors.mainTextColor,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
 
                   // Price Row
-                  Row(
-                    children: [
-                      CustomText(
-                        '₹${product.currentPrice}',
-                        fontWeight: FontWeight.w700,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(width: 8),
-                      CustomText(
-                        '${product.discountPercentage}% Off',
-                         fontSize:  SizeConfig.small11,
-                         color: Colors.green[600],
-                        fontWeight: FontWeight.w400,
-                      ),
-                      CustomText(
-                        ' ₹${product.originalPrice}',
-                        fontSize:  SizeConfig.small11,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 6),
+                  if (product.product.sellerClassification?.variants.isNotEmpty ?? false) ...[
+                    Row(
+                      children: [
+                        CustomText(
+                          '₹${product.product.sellerClassification?.variants[0].sellingPrice}',
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                        ),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          '${calculateDiscount(
+                            product.product.sellerClassification?.variants[0].sellingPrice.toString() ?? "0",
+                            product.product.sellerClassification?.variants[0].mrp.toString() ?? "0",
+                          ).toStringAsFixed(2)}% Off',
+                          fontSize: SizeConfig.small11,
+                          color: Colors.green[600],
+                          fontWeight: FontWeight.w400,
+                        ),
+                        CustomText(
+                          ' ₹${product.product.sellerClassification?.variants[0].mrp}',
+                          fontSize: SizeConfig.small11,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w400,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
 
                   // Status
                   CustomText(
@@ -196,62 +321,26 @@ Widget ProductCard(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 6),
-
-                  // Colors Row
-                  Row(
-                    children: product.colors.take(4).map((color) {
-                      return Container(
-                        width: 12,
-                        height: 12,
-                        margin: EdgeInsets.only(right: 4),
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.whiteE5, width: 0.5),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  SizedBox(height: 6),
-
-                  // Sizes scrollable
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          Row(
-                            children: product.sizes.map((size) {
-                              return Container(
-                                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                margin: EdgeInsets.only(right: 4),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey[300]!),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  size,
-                                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          if (product.sizes.length > 4)
-                            Text('+${product.sizes.length - 4}',
-                                style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ),
   );
 }
 
-
+Widget _buildIconBox(Widget child) {
+  return Container(
+    height: 25,
+    width: 25,
+    decoration: BoxDecoration(
+      color: Colors.black.withValues(alpha: 0.5),
+      shape: BoxShape.circle,
+      boxShadow: [AppShadows.textFieldShadow]
+    ),
+    alignment: Alignment.center,
+    child: child,
+  );
+}

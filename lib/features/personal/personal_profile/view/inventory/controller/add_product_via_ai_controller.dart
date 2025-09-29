@@ -52,10 +52,9 @@ class ProductListing {
   final List<String> image;
   final String name;
   final Map<String, String>? selectedVariants;
+  // final Map<String, dynamic>? selectedVariants;
   final String? price;
   final String? mrp;
-  final String? minPrice;
-  final String? maxPrice;
   final String? discount;
 
   ProductListing({
@@ -64,8 +63,6 @@ class ProductListing {
     this.selectedVariants,
     this.price,
     this.mrp,
-    this.minPrice,
-    this.maxPrice,
     this.discount,
   });
 }
@@ -78,29 +75,35 @@ class SelectedColor {
 
   factory SelectedColor.fromJson(Map<String, dynamic> json) {
     return SelectedColor(
-      _hexToColor(json['color'] ?? '#000000'),
-      json['name'] ?? '',
+      hexToColor(json['color_code'] ?? '#000000'),
+      json['color_name'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'color': _colorToHex(color), // convert to "#ffffff"
-      'name': name,
+      'color_code': colorToHex(color),
+      'color_name': name,
     };
   }
 
-  // Helper: Convert "#rrggbb" to Color
-  static Color _hexToColor(String hex) {
-    hex = hex.replaceAll('#', '');
-    if (hex.length == 6) hex = 'FF$hex'; // add alpha if missing
-    return Color(int.parse(hex, radix: 16));
-  }
+}
 
-  // Helper: Convert Color to "#rrggbb"
-  static String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2).padLeft(6, '0')}';
-  }
+class ProductMoreDetails {
+  final String? title;
+  final String? details;
+
+  ProductMoreDetails({this.title, this.details});
+
+  factory ProductMoreDetails.fromJson(Map<String, dynamic> json) => ProductMoreDetails(
+    title: json['title'],
+    details: json['details'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'details': details,
+  };
 }
 
 class AddProductViaAiController extends GetxController{
@@ -118,7 +121,7 @@ class AddProductViaAiController extends GetxController{
   RxList<String> step1Images = <String>[].obs;
 
   /// Images used on Step 2 (second screen, preloaded + new)
-  RxList<String> step2Images = <String>[].obs;
+  RxList<String> allProductsImages = <String>[].obs;
 
   /// Max images
   final RxInt maxStep1Images = 1.obs;
@@ -170,7 +173,7 @@ class AddProductViaAiController extends GetxController{
   final formKeyStep3 = GlobalKey<FormState>();
   // final formKeyStep4 = GlobalKey<FormState>();
 
-  final RxList<Specification> detailsList = <Specification>[].obs;
+  final RxList<ProductMoreDetails> detailsList = <ProductMoreDetails>[].obs;
 
   String? productId;
 
@@ -180,6 +183,8 @@ class AddProductViaAiController extends GetxController{
   final RxBool showLinkField = false.obs;
 
   final RxList<ProductListing> listedProducts = <ProductListing>[].obs;
+
+  final String otherCategoryId = '68d4e332455cad1af87fac05';
 
   @override
   void onClose() {
@@ -228,7 +233,7 @@ class AddProductViaAiController extends GetxController{
   }
 
   // bool validateCurrentStep() {
-  //   switch (currentStep.value) {
+  //   switch (currentStep.value) {2
   //     case 1: return _validateStep1();
   //     case 2: return _validateStep2();
   //     case 3: return _validateStep3();
@@ -251,7 +256,7 @@ class AddProductViaAiController extends GetxController{
     selectedColors.remove(selectedColor);
   }
 
-  void addDetail(Specification detail) {
+  void addDetail(ProductMoreDetails detail) {
     detailsList.add(detail);
   }
 
@@ -317,7 +322,7 @@ class AddProductViaAiController extends GetxController{
 
   /// Preload Step 1 images to Step 2
   void preloadStep1ImagesToStep2() {
-    step2Images.value = List.from(step1Images);
+    allProductsImages.value = List.from(step1Images);
     update();
   }
 
@@ -340,9 +345,9 @@ class AddProductViaAiController extends GetxController{
         'Product Image',
       );
       if (selected != null && selected.isNotEmpty) {
-        final remaining = maxStep2Images.value - step2Images.length;
+        final remaining = maxStep2Images.value - allProductsImages.length;
         if (remaining <= 0) return;
-        step2Images.addAll(selected.take(remaining));
+        allProductsImages.addAll(selected.take(remaining));
         update();
       }
     } catch (e) {
@@ -354,14 +359,14 @@ class AddProductViaAiController extends GetxController{
   /// Step 1 images (preloaded) cannot be removed
   void removeImageStep2(int index) {
     // Only allow removal if index >= step1Images.length
-    if (index >= step1Images.length && index < step2Images.length) {
-      step2Images.removeAt(index);
+    if (index >= step1Images.length && index < allProductsImages.length) {
+      allProductsImages.removeAt(index);
       update();
     }
   }
 
   bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
-  bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
+  bool canAddMoreStep2() => allProductsImages.length < maxStep2Images.value;
 
   void onGenerate(AddProductViaAiController addProductViaAiController) async {
     if (!_validate()) return;
@@ -491,6 +496,13 @@ class AddProductViaAiController extends GetxController{
         searchResults.clear();
         searchResults.assignAll(categoryData);
 
+        /// set initially category id (If user didn't choose category itSelf)
+        if(searchResults.isNotEmpty){
+          selectedCategoryId.value = searchResults[0].sId??'';
+        }
+        else{
+          selectedCategoryId.value = otherCategoryId;
+        }
       } else {
         searchProductCategoryResponse.value = ApiResponse.error('error');
       }
@@ -544,14 +556,16 @@ class AddProductViaAiController extends GetxController{
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
         if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),
         if(productExpiryDurationController.text.trim().isNotEmpty) ApiKeys.expiryTime: productExpiryDurationController.text.trim(),
-        if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
+        if (tags.isNotEmpty) ApiKeys.tags: tags.join(","),
+        // if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
         if(detailsList.isNotEmpty) ApiKeys.addMoreDetails: jsonEncode(detailsList.map((e) => e.toJson()).toList()),
         if(featureControllers.isNotEmpty) ApiKeys.addProductFeatures: jsonEncode(featureControllers
             .where((c) => c.text.trim().isNotEmpty)
             .map((c) => {ApiKeys.title: c.text.trim()})
             .toList()),
         if(linkController.text.trim().isNotEmpty) ApiKeys.linkOrReferealWebsite: linkController.text.trim(),
-      };
+        if (userGuideLineControllers.isNotEmpty)
+          ApiKeys.guideLine: userGuideLineControllers.map((value) => value.text).toList(),      };
 
       final payload = {
         'attributes': <String, dynamic>{
@@ -572,7 +586,7 @@ class AddProductViaAiController extends GetxController{
 
       List<dio.MultipartFile> imageByPart = [];
 
-      for (final path in addProductViaAiController.step2Images) {
+      for (final path in addProductViaAiController.allProductsImages) {
         final fileName = path.split('/').last;
         final imageInfo = getFileInfo(File(path));
         final mimeType = imageInfo['mimeType'];
@@ -632,7 +646,7 @@ class AddProductViaAiController extends GetxController{
 
       Map<String, dynamic> params = {
         ApiKeys.productId: productId,
-        ApiKeys.business_id: userId,
+        ApiKeys.business_id: businessId,
         ApiKeys.variants: jsonEncode(payload)
       };
 
@@ -782,6 +796,43 @@ class AddProductViaAiController extends GetxController{
   bool isValueSelected(String attributeKey, String value) {
     return selectedVariantValues[attributeKey] == value;
   }
+
+  // RxMap<String, dynamic> selectedVariantValues = <String, dynamic>{}.obs;
+  // RxBool isNextEnabled = false.obs;
+  //
+  // void selectVariantValue(String attributeKey, dynamic value) {
+  //   if (attributeKey.toLowerCase() == 'color' && value is SelectedColor) {
+  //     final colorMap = value.toJson();
+  //     log('valuee--- ${value.toJson()}');
+  //     if (selectedVariantValues[attributeKey] != colorMap) {
+  //       selectedVariantValues[attributeKey] = colorMap;
+  //     } else {
+  //       selectedVariantValues.remove(attributeKey);
+  //     }
+  //   } else {
+  //     if (selectedVariantValues[attributeKey] == value) {
+  //       selectedVariantValues.remove(attributeKey);
+  //     } else {
+  //       selectedVariantValues[attributeKey] = value.toString();
+  //     }
+  //   }
+  //   _updateNextButtonState();
+  // }
+  //
+  // bool isValueSelected(String attributeKey, dynamic value) {
+  //   final selected = selectedVariantValues[attributeKey];
+  //   log('selected valuee--- ${value.runtimeType}');
+  //   if (attributeKey.toLowerCase() == 'color' && value is SelectedColor) {
+  //     if (selected is Map) {
+  //       return selected['color_code'] == colorToHex(value.color)
+  //           && selected['color_name'] == value.name;
+  //     }
+  //     return false;
+  //   } else {
+  //     return selectedVariantValues[attributeKey]?.toString() == value.toString();
+  //   }
+  // }
+
 
   void _updateNextButtonState() {
     // Collect all existing keys dynamically

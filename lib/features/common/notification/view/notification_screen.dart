@@ -69,7 +69,7 @@ bool isLoading = true;
     try {
       isLoading = true;
       final response = await NotificationListRepo().fetchNotification();
-      if (response.statusCode == 200) {
+      if (response.isSuccess) {
         final data = response.response!.data;
 
         final List<NotificationDataList> fetchedData = List<NotificationDataList>.from(

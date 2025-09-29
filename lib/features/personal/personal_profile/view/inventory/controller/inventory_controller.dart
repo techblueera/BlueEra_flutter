@@ -1,10 +1,20 @@
+import 'dart:async';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class InventoryController extends GetxController {
+  Rx<ApiResponse> ownDraftAndPublicProductResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> searchProductResponse = ApiResponse.initial('Initial').obs;
+
   final TextEditingController searchController = TextEditingController();
   
   RxBool isLoading = false.obs;
@@ -18,6 +28,19 @@ class InventoryController extends GetxController {
 
   final List<String> productTab = ["All", "Live", 'Draft', 'Out Of Stock'];
   RxInt selectedProductIndex = 0.obs;
+
+  /// Search debounce timer
+  Timer? _searchDebounce;
+  final RxString searchProduct = ''.obs;
+  final RxBool ProductSearchLoading = false.obs;
+
+  RxList<OwnProductData> allProducts = <OwnProductData>[].obs;
+  RxList<OwnProductData> liveProducts = <OwnProductData>[].obs;
+  RxList<OwnProductData> draftProducts = <OwnProductData>[].obs;
+
+  final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
+  final int maxSelectionLimit = 10;
+  final RxBool showErrorBanner = false.obs;
 
   @override
   void onInit() {
@@ -37,91 +60,121 @@ class InventoryController extends GetxController {
     super.onClose();
   }
 
-  void loadProducts() {
-    isLoading.value = true;
-    
-    // Simulate API call
-    Future.delayed(const Duration(seconds: 1), () {
-      products.value = [
-        ProductModel(
-          id: '1',
-          name: 'Buy Lambard Lightweight Sneake...',
-          currentPrice: 500,
-          originalPrice: 600,
-          discountPercentage: 10,
-          multipleImageUrl: [
-            'assets/images/shoes.png',
-            'assets/images/shoes.png',
-          ],
-          status: 'Draft',
-          stockStatus: 'In stock',
-          sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
-          colors: [Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.blue, Colors.green],
-        ),
-        ProductModel(
-          id: '2',
-          name: 'Buy Lambard Lightweight Sneake...',
-          currentPrice: 500,
-          originalPrice: 600,
-          discountPercentage: 10,
-          multipleImageUrl: [
-            'assets/images/shoes.png',
-            'assets/images/shoes.png',
-          ],
-          status: 'Draft',
-          stockStatus: 'Out of stock',
-          sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
-          colors: [Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.blue, Colors.green],
-        ),
-        ProductModel(
-          id: '3',
-          name: 'Buy Lambard Lightweight Sneake...',
-          currentPrice: 500,
-          originalPrice: 600,
-          discountPercentage: 10,
-          multipleImageUrl: [
-            'assets/images/shoes.png',
-            'assets/images/shoes.png',
-          ],
-          status: 'Draft',
-          stockStatus: 'Out of stock',
-          sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
-          colors: [Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.blue, Colors.green],
-        ),
-        ProductModel(
-          id: '4',
-          name: 'Buy Lambard Lightweight Sneake...',
-          currentPrice: 500,
-          originalPrice: 600,
-          discountPercentage: 10,
-          multipleImageUrl: [
-            'assets/images/shoes.png',
-            'assets/images/shoes.png',
-          ],
-          status: 'Draft',
-          stockStatus: 'In stock',
-          sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
-          colors: [Colors.black, Colors.grey, Colors.red, Colors.orange, Colors.blue, Colors.green],
-        ),
-        ProductModel(
-          id: '5',
-          name: 'Buy Lambard Lightweight Sneake...',
-          currentPrice: 500,
-          originalPrice: 600,
-          discountPercentage: 10,
-          multipleImageUrl: [
-            'assets/images/shoes.png',
-            'assets/images/shoes.png',
-          ],
-          status: 'Draft',
-          stockStatus: 'In stock',
-          sizes: ['7UK', '8UK', '9UK', '10UK', '11UK', '12UK'],
-          colors: [Colors.grey, Colors.black, Colors.red, Colors.orange, Colors.blue, Colors.green],
-        ),
-      ];
-      filteredProducts.value = products;
+  void callApi(){
+    switch(selectedProductIndex.value){
+      case 0:
+        loadProducts();
+        break;
+      case 1:
+        loadProducts(isDraftProduct: false);
+        break;
+      case 2:
+        loadProducts(isDraftProduct: true);
+        break;
+
+    }
+  }
+
+  Future<void> loadProducts({bool? isDraftProduct}) async {
+    try {
+      isLoading.value = true;
+
+      Map<String, dynamic> queryParams= {};
+      if(isDraftProduct!=null){
+        queryParams = {
+          'DRAFT': isDraftProduct
+        };
+      }
+
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      if (response.isSuccess) {
+        ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
+        final getOwnProductModel = GetOwnProductModel.fromJson(response.response!.data);
+        List<OwnProductData> products = getOwnProductModel.data;
+
+        if(isDraftProduct!=null){
+          if(isDraftProduct){
+            draftProducts.clear();
+            draftProducts.assignAll(products);
+          }else{
+            liveProducts.clear();
+            liveProducts.assignAll(products);
+          }
+        }else{
+          allProducts.clear();
+          allProducts.assignAll(products);
+        }
+      } else {
+        print("API failed with status: ${response.statusCode}");
+        ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      print("Error: $e");
+    } finally {
       isLoading.value = false;
+      ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
+    }
+
+
+  }
+
+  /// Clear search
+  void clearSearch() {
+    searchController.clear();
+    // searchResults.clear();
+    searchProduct.value = '';
+  }
+
+  /// Search method
+  void onSearchChanged(String query) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (query.trim().isEmpty) {
+        clearSearch();
+      } else {
+        fetchListOfSearchProductApi(query.trim());
+      }
     });
+  }
+
+  Future<void> fetchListOfSearchProductApi(String keyword) async {
+    try {
+      searchProduct.value = keyword;
+      ProductSearchLoading.value = true;
+
+      Map<String, dynamic> params = {
+        ApiKeys.name: keyword
+      };
+
+      final responseModel = await InventoryRepo().fetchListOfSearchProductApi(queryParams: params);
+      if (responseModel.isSuccess) {
+        searchProductResponse.value = ApiResponse.complete(responseModel);
+        // final getOwnProductModel = GetOwnProductModel.fromJson(responseModel.response!.data);
+        // List<ProductData> allProducts = getOwnProductModel.data;
+        //
+        // if()
+        //
+        // searchResults.clear();
+        // searchResults.assignAll(categoryData);
+        //
+        // /// set initially category id (If user didn't choose category itSelf)
+        // if(searchResults.isNotEmpty){
+        //   selectedCategoryId.value = searchResults[0].sId??'';
+        // }
+        // else{
+        //   selectedCategoryId.value = otherCategoryId;
+        // }
+      } else {
+        searchProductResponse.value = ApiResponse.error('error');
+      }
+
+      // Replace this with your actual API call
+      ProductSearchLoading.value = false;
+    } catch (e) {
+      searchProductResponse.value = ApiResponse.error('error');
+      ProductSearchLoading.value = false;
+    }
   }
 
   void loadCategories() {
@@ -210,6 +263,78 @@ class InventoryController extends GetxController {
       }
     }
     // If there's a search query, let _filterData handle it
+  }
+
+  // void toggleProductSelection(ProductItem product) {
+  //   if (product.isSelected) {
+  //     // Deselect product
+  //     product.isSelected = false;
+  //     product.showSellingPrice = false;
+  //     product.sellingPrice = '';
+  //     selectedProducts.remove(product);
+  //     showErrorBanner.value = false;
+  //   } else {
+  //     // Try to select product
+  //     if (selectedProducts.length >= maxSelectionLimit) {
+  //       showErrorBanner.value = true;
+  //       return;
+  //     }
+  //
+  //     product.isSelected = true;
+  //     product.showSellingPrice = true;
+  //     selectedProducts.add(product);
+  //     showErrorBanner.value = false;
+  //   }
+  //
+  //   // Update the lists
+  //   final index = allProducts.indexWhere((p) => p.id == product.id);
+  //   if (index != -1) {
+  //     allProducts[index] = product;
+  //   }
+  //
+  //   final filteredIndex = filteredProducts.indexWhere((p) => p.id == product.id);
+  //   if (filteredIndex != -1) {
+  //     filteredProducts[filteredIndex] = product;
+  //   }
+  //
+  //   update();
+  // }
+
+  // void updateSellingPrice(ProductItem product, String price) {
+  //   product.sellingPrice = price;
+  //
+  //   // Update the lists
+  //   final index = allProducts.indexWhere((p) => p.id == product.id);
+  //   if (index != -1) {
+  //     allProducts[index] = product;
+  //   }
+  //
+  //   final filteredIndex = filteredProducts.indexWhere((p) => p.id == product.id);
+  //   if (filteredIndex != -1) {
+  //     filteredProducts[filteredIndex] = product;
+  //   }
+  //
+  //   update();
+  // }
+
+
+  void postProduct() {
+    if (selectedProducts.isEmpty) {
+      // Show error or validation
+      return;
+    }
+
+    isLoading.value = true;
+
+    // TODO: Implement post product functionality
+    Future.delayed(const Duration(seconds: 1), () {
+      isLoading.value = false;
+      Get.back();
+    });
+  }
+
+  void dismissErrorBanner() {
+    showErrorBanner.value = false;
   }
 
   void copyListing(String productId) {

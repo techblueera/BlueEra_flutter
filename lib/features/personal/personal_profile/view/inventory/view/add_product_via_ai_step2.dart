@@ -60,7 +60,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     controller.dynamicAttributes.clear();
     controller.selectedCategory.value = '';
     controller.selectedCategoryId.value = '';
-    // controller.productVariant.clear();
+    controller.listedProducts.clear();
 
     // controller.selectedExpiryDuration = 'Day'.obs;
     // controller.selectedProductDuration = 'Day'.obs;
@@ -80,14 +80,14 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
       }
     }
     List<Specification> addMoreDetails = widget.generateAiProductContent.specifications ?? [];
-    if(addMoreDetails.isNotEmpty){
-      for(final addMoreDetail in addMoreDetails)
-        controller.detailsList.add(addMoreDetail);
-    }
+    widget.controller.detailsList.value = addMoreDetails.map((spec) {
+      return ProductMoreDetails(
+        title: spec.title,
+        details: spec.details,
+      );
+    }).toList();
 
-    if(widget.generateAiProductContent.brandWebsite!=null){
-      controller.linkController.text = widget.generateAiProductContent.brandWebsite??'';
-    }
+   if(widget.generateAiProductContent.brandWebsite!=null) controller.linkController.text = widget.generateAiProductContent.brandWebsite??'';
 
     controller.mrpController.text = widget.generateAiProductContent.mrp?.toInt().toString()??'';
     List<String> userGuide = widget.generateAiProductContent.userGuide ?? [];
@@ -176,7 +176,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       SizedBox(
                         height: SizeConfig.size80,
                         child: Obx(() {
-                          final totalImages = controller.step2Images.length;
+                          final totalImages = controller.allProductsImages.length;
 
                           return GridView.builder(
                             scrollDirection: Axis.horizontal,
@@ -205,7 +205,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                     children: [
                                       if (hasImage)
                                         Image.file(
-                                          File(controller.step2Images[index]),
+                                          File(controller.allProductsImages[index]),
                                           fit: BoxFit.cover,
                                         )
                                       else

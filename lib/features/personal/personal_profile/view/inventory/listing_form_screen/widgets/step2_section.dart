@@ -56,7 +56,14 @@ class _Step2SectionState extends State<Step2Section> {
 
     widget.controller.linkController.text = tempLinkController.text;
 
-    widget.controller.detailsList.value = List<Specification>.from(tempDetailsList);
+    // tempDetailsList is List<Specification>
+    widget.controller.detailsList.value = tempDetailsList.map((spec) {
+      return ProductMoreDetails(
+        title: spec.title,
+        details: spec.details,
+      );
+    }).toList();
+
   }
 
   Future<bool> _handleBackPress(BuildContext context) async {

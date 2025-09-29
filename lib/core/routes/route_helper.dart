@@ -59,7 +59,10 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/sub_feature/draft_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_screen.dart';
@@ -78,7 +81,6 @@ import 'package:BlueEra/features/personal/resume/create_resume_screen.dart';
 import 'package:BlueEra/features/personal/resume/sections/resume_templates_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-
 import '../../features/chat/contacts/view/contact_list_page.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
@@ -860,11 +862,11 @@ class RouteHelper {
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
       case RouteConstant.productPreviewScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final AddProductViaAiController controller = args[ApiKeys.controller] as AddProductViaAiController;
+        final OwnProductData? productData = args[ApiKeys.argProductData] as OwnProductData?;
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreen(
-                controller: controller,
+                productData: productData
             ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
     case RouteConstant.createVariantScreen:

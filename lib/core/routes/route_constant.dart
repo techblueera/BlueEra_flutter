@@ -75,7 +75,6 @@ class RouteConstant {
   static const String BookingAndEnquiresScreen = "/BookingsScreen";
   static const String SetAvailabilityScreen = "/SetAvailabilityScreen";
   static const String AppointmentBookingScreen = "/AppointmentBookingScreen";
-  static const String addProductScreen = "/AddProductScreen";
   static const String EnquiryForm = "/EnquiryFormScreen";
   static const String addAccountScreen = "/AddAccountScreen";
   static const String addAccountUpiScreen = "/AddAccountUpiScreen";
@@ -88,6 +87,7 @@ class RouteConstant {
   static const String moreCardsScreen = "/MoreCardsScreen";
   // static const String listingFormScreen = "/ListingFormScreen";
   static const String inventoryScreen = "/InventoryScreen";
+  static const String addProductScreen = "/AddProductScreen";
   static const String addServicesScreen = "/AddServicesScreen";
   static const String addProductViaAiStep1 = "/AddProductViaAiStep1";
   static const String addProductViaAiStep2 = "/AddProductViaAiStep2";
