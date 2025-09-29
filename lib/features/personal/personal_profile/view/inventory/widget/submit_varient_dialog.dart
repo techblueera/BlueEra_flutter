@@ -37,20 +37,6 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
   RxDouble discountPercent = 0.0.obs;
   late String productFullName;
 
-  // Method to calculate discount dynamically
-  void calculateDiscount() {
-    final mrp = num.tryParse(
-        productMrpController.text.replaceAll('₹', '').trim());
-    final price = num.tryParse(
-        productPriceController.text.replaceAll('₹', '').trim());
-
-    if (mrp != null && mrp > 0 && price != null) {
-      discountPercent.value = ((mrp - price) / mrp) * 100;
-    } else {
-      discountPercent.value = 0;
-    }
-  }
-
   Future<void> pickProductImages(BuildContext context) async {
     try {
       final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
@@ -199,7 +185,12 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
                       productPriceController.text, productMrpController.text),
-                  onChange: (_) => calculateDiscount(),
+                  onChange: (_) {
+                    discountPercent.value = calculateDiscount(
+                      productPriceController.text,
+                      productMrpController.text
+                   );
+                  },
                 ),
                 SizedBox(height: SizeConfig.size10),
                 CommonTextField(
@@ -211,7 +202,12 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
                       productPriceController.text, productMrpController.text),
-                   onChange: (_) => calculateDiscount(),
+                  onChange: (_) {
+                    discountPercent.value = calculateDiscount(
+                        productPriceController.text,
+                        productMrpController.text
+                    );
+                  },
                 ),
                 SizedBox(height: SizeConfig.size10),
                 Obx(() =>
@@ -231,7 +227,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                     if (formKey.currentState!.validate()) {
                       widget.controller.addProductsInListing(
                           productListing: ProductListing(
-                              image: productImages,
+                              image: productImages.isNotEmpty ? productImages : widget.controller.allProductsImages,
                               name: productFullName,
                               selectedVariants: widget.controller.selectedVariantValues,
                               price: productPriceController.text.trim(),

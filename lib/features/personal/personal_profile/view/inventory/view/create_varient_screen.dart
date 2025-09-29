@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
@@ -368,12 +369,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                            addProductViaAiController: widget.controller,
                            products: widget.controller.listedProducts
                        );
-
-
-                       // Get.snackbar(
-                       //     'Success',
-                       //     'Variant added successfully'
-                       // );
                      },
                      isLoading: widget.controller.isAddProductToInventoryLoading.value
                    )
@@ -449,8 +444,14 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                 children: widget.controller.selectedColors.map((color) {
                   final isSelected = widget.controller.isValueSelected('color', color.name);
 
+                  // final isSelected = widget.controller.isValueSelected(
+                  //   'color',
+                  //   SelectedColor(color.color, color.name),
+                  // );
+
                   return InkWell(
                     onTap: () => widget.controller.selectVariantValue('color', color.name),
+                    // onTap: () => widget.controller.selectVariantValue('color', color),
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(

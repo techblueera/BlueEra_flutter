@@ -228,7 +228,7 @@ Widget _buildSearchResults(AddProductViaAiController controller, BuildContext co
     ),
     trailing: PositiveCustomBtn(
       onTap: () {
-        controller.selectedCategoryId.value = '68d4e332455cad1af87fac05';
+        controller.selectedCategoryId.value = controller.otherCategoryId;
         controller.selectedCategory.value = 'OTHER';
         Navigator.pop(context);
         // controller.breadcrumb.add(cat);

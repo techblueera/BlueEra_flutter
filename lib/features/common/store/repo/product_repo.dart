@@ -80,7 +80,7 @@ class ProductRepo extends BaseService{
     return response;
   }
 
-  ///Delete Product...
+  ///Add Product To Inventory...
   Future<ResponseModel> addProductToInventoryApi({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       addProductToInventory,
@@ -92,6 +92,5 @@ class ProductRepo extends BaseService{
     );
     return response;
   }
-
 
 }

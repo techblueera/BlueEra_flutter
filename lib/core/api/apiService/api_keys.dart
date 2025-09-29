@@ -374,4 +374,6 @@ class ApiKeys {
   static const attributes = "attributes";
   static const sellingPrice = "sellingPrice";
   static const mrp = "mrp";
+  static const showDataFromApi = "showDataFromApi";
+  static const guideLine = "guideLine";
 }

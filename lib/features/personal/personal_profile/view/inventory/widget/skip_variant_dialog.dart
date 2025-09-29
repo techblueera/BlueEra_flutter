@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -27,20 +28,6 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
     productMrpController.dispose();
     productPriceController.dispose();
     super.dispose();
-  }
-
-  // Method to calculate discount dynamically
-  void calculateDiscount() {
-    final mrp = num.tryParse(
-        productMrpController.text.replaceAll('₹', '').trim());
-    final price = num.tryParse(
-        productPriceController.text.replaceAll('₹', '').trim());
-
-    if (mrp != null && mrp > 0 && price != null) {
-      discountPercent.value = ((mrp - price) / mrp) * 100;
-    } else {
-      discountPercent.value = 0;
-    }
   }
 
   @override
@@ -92,6 +79,12 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
                       productPriceController.text, productMrpController.text),
+                  onChange: (_) {
+                    discountPercent.value = calculateDiscount(
+                        productPriceController.text,
+                        productMrpController.text
+                    );
+                  },
                 ),
                 SizedBox(height: SizeConfig.size10),
                 CommonTextField(
@@ -103,7 +96,12 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
                       productPriceController.text, productMrpController.text),
-                  onChange: (_) => calculateDiscount(),
+                  onChange: (_) {
+                    discountPercent.value = calculateDiscount(
+                        productPriceController.text,
+                        productMrpController.text
+                    );
+                  },
                 ),
                 SizedBox(height: SizeConfig.size10),
                 Obx(() =>
@@ -146,7 +144,7 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                     if (formKey.currentState!.validate()) {
                       widget.controller.addProductsInListing(
                           productListing: ProductListing(
-                              image: widget.controller.step2Images,
+                              image: widget.controller.allProductsImages,
                               name: widget.controller.productNameController.text.trim(),
                               price: productPriceController.text.trim(),
                               mrp: productMrpController.text.trim(),

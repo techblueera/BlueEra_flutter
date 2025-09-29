@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
@@ -9,6 +10,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
@@ -141,9 +143,22 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
                               // ---- Single Photo ----
                               SizedBox(
                                 height: SizeConfig.size300,
-                                child: RepaintBoundary(
-                                  key: _cardKeys[cardIndex],
-                                  child: GreetingCard(imagePath: imageUrl),
+                                child: InkWell(
+                                  onTap: (){
+                                    navigatePushTo(
+                                      context,
+                                      ImageViewScreen(
+                                        subTitle: '',
+                                        appBarTitle: '',
+                                        imageUrls: [imageUrl],
+                                        initialIndex: 0,
+                                      ),
+                                    );
+                                  },
+                                  child: RepaintBoundary(
+                                    key: _cardKeys[cardIndex],
+                                    child: GreetingCard(imagePath: imageUrl),
+                                  ),
                                 ),
                               ),
 
