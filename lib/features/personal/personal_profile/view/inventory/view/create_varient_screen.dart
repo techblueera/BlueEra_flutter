@@ -215,7 +215,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                      bottom: 6,
                                      left: 0,
                                      right: 0,
-                                     child: Row(
+                                     child: product.image.length > 1 ? Row(
                                        mainAxisAlignment: MainAxisAlignment.center,
                                        children: List.generate(product.image.length, (dotIndex) {
                                          final isActive = _currentIndices[productIndex] == dotIndex;
@@ -230,7 +230,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                            ),
                                          );
                                        }),
-                                     ),
+                                     ) : SizedBox(),
                                    ),
                                  ],
                                ),
@@ -394,13 +394,11 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              CustomText(
                 'Color',
-                style: TextStyle(
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.black,
-                ),
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
               ),
               InkWell(
                 onTap: () => _openColorDialog(context),
@@ -429,7 +427,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
           // Color grid
           Obx(
-                () => Container(
+              () => Container(
               width: SizeConfig.screenWidth,
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -442,16 +440,16 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                 spacing: 12,
                 runSpacing: 12,
                 children: widget.controller.selectedColors.map((color) {
-                  final isSelected = widget.controller.isValueSelected('color', color.name);
+                  // final isSelected = widget.controller.isValueSelected('color', color.name);
 
-                  // final isSelected = widget.controller.isValueSelected(
-                  //   'color',
-                  //   SelectedColor(color.color, color.name),
-                  // );
+                  final isSelected = widget.controller.isValueSelected(
+                    'color',
+                    SelectedColor(color.color, color.name),
+                  );
 
                   return InkWell(
-                    onTap: () => widget.controller.selectVariantValue('color', color.name),
-                    // onTap: () => widget.controller.selectVariantValue('color', color),
+                    // onTap: () => widget.controller.selectVariantValue('color', color.name),
+                    onTap: () => widget.controller.selectVariantValue('color', color),
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(

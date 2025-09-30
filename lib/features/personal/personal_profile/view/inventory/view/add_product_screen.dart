@@ -6,6 +6,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -25,7 +26,6 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final controller = Get.put(InventoryController());
-
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +135,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         if(controller.searchProduct.isNotEmpty)
                           ...[
                             // Products List
-                            controller.filteredProducts.isEmpty
+                            controller.searchProductVariants.isEmpty
                                 ? Padding(
                               padding: EdgeInsets.symmetric(
                                   vertical: SizeConfig.size20),
@@ -150,18 +150,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 : Column(
                               children: [
                                 ListView.separated(
-                                  itemCount: controller.filteredProducts.length,
+                                  itemCount: controller.searchProductVariants.length,
                                   padding: EdgeInsets.symmetric(
                                       vertical: SizeConfig.size20),
                                   physics: NeverScrollableScrollPhysics(),
                                   shrinkWrap: true,
                                   itemBuilder: (context, index) {
-                                    final product =
-                                    controller.filteredProducts[index];
-                                    // return _buildProductItem(
-                                    //     controller,
-                                    //     product
-                                    // );
+                                    final productVariants =
+                                    controller.searchProductVariants[index];
+                                    return _buildProductItem(
+                                        controller,
+                                        productVariants
+                                    );
                                   },
                                   separatorBuilder: (BuildContext context,
                                       int index) {
@@ -263,244 +263,245 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Widget _buildProductItem(
       InventoryController controller,
-      ProductItem product
+      Variants product
       ) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
-      padding: EdgeInsets.all(SizeConfig.size4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Checkbox
-          GestureDetector(
-            // onTap: () => controller.toggleProductSelection(product),
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: product.isSelected
-                    ? AppColors.primaryColor
-                    : AppColors.white,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: product.isSelected
-                      ? AppColors.primaryColor
-                      : AppColors.greyE5,
-                  width: 1,
-                ),
-              ),
-              child: product.isSelected
-                  ? const Icon(
-                Icons.check,
-                color: AppColors.white,
-                size: 14,
-              )
-                  : null,
-            ),
-          ),
-
-          SizedBox(width: SizeConfig.size12),
-
-          // Product Image
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.fillColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.greyE5, width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                product.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: AppColors.fillColor,
-                    child: const Icon(
-                      Icons.image,
-                      color: AppColors.grey9B,
-                      size: 30,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          SizedBox(width: SizeConfig.size12),
-
-          // Product Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Description
-                CustomText(
-                  product.description,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.black,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                SizedBox(height: SizeConfig.size8),
-
-                // Product Details Row
-                Wrap(
-                  spacing: SizeConfig.size16,
-                  runSpacing: SizeConfig.size4,
-                  children: [
-                    // Colour
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomText(
-                          'Colour',
-                          fontSize: SizeConfig.extraSmall,
-                          color: AppColors.grey9B,
-                        ),
-                        SizedBox(width: SizeConfig.size4),
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: AppColors.red,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Price (only show if not selected)
-                    if (!product.isSelected)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomText(
-                            'Price',
-                            fontSize: SizeConfig.extraSmall,
-                            color: AppColors.grey9B,
-                          ),
-                          SizedBox(width: SizeConfig.size4),
-                          CustomText(
-                            product.price,
-                            fontSize: SizeConfig.extraSmall,
-                            color: AppColors.black,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ],
-                      ),
-
-                    // Size
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomText(
-                          'Size',
-                          fontSize: SizeConfig.extraSmall,
-                          color: AppColors.grey9B,
-                        ),
-                        SizedBox(width: SizeConfig.size4),
-                        CustomText(
-                          product.size,
-                          fontSize: SizeConfig.extraSmall,
-                          color: AppColors.black,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // Selling Price Input (only shown when selected)
-                if (product.showSellingPrice) ...[
-                  SizedBox(height: SizeConfig.size12),
-                  Row(
-                    children: [
-                      CustomText(
-                        'Selling price',
-                        fontSize: SizeConfig.small,
-                        color: AppColors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      Expanded(
-                        child: Container(
-                          // padding: EdgeInsets.symmetric(
-                          //     horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
-                          decoration: BoxDecoration(
-                            color: AppColors.fillColor,
-                            borderRadius: BorderRadius.circular(6),
-                            border:
-                            Border.all(color: AppColors.greyE5, width: 1),
-                          ),
-                          child: TextField(
-                            // onChanged: (value) => controller.updateSellingPrice(product, value),
-                            decoration: const InputDecoration(
-                              hintText: "E.g. Text",
-                              hintStyle: TextStyle(
-                                color: AppColors.grey9B,
-                                fontSize: 12,
-                              ),
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          SizedBox(width: SizeConfig.size12),
-
-          // Action Icons
-          Column(
-            children: [
-              // View Icon
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.visibility_outlined,
-                  color: AppColors.primaryColor,
-                  size: 16,
-                ),
-              ),
-
-              SizedBox(height: SizeConfig.size8),
-
-              // Remove Icon (only shown when selected)
-              if (product.isSelected)
-                GestureDetector(
-                  // onTap: () => controller.removeProduct(product),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: AppColors.primaryColor,
-                      size: 14,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return SizedBox();
+    // return Container(
+    //   margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+    //   padding: EdgeInsets.all(SizeConfig.size4),
+    //   child: Row(
+    //     crossAxisAlignment: CrossAxisAlignment.start,
+    //     children: [
+    //       // Checkbox
+    //       GestureDetector(
+    //         // onTap: () => controller.toggleProductSelection(product),
+    //         child: Container(
+    //           width: 20,
+    //           height: 20,
+    //           decoration: BoxDecoration(
+    //             color: product.isSelected
+    //                 ? AppColors.primaryColor
+    //                 : AppColors.white,
+    //             borderRadius: BorderRadius.circular(4),
+    //             border: Border.all(
+    //               color: product.isSelected
+    //                   ? AppColors.primaryColor
+    //                   : AppColors.greyE5,
+    //               width: 1,
+    //             ),
+    //           ),
+    //           child: product.isSelected
+    //               ? const Icon(
+    //             Icons.check,
+    //             color: AppColors.white,
+    //             size: 14,
+    //           )
+    //               : null,
+    //         ),
+    //       ),
+    //
+    //       SizedBox(width: SizeConfig.size12),
+    //
+    //       // Product Image
+    //       Container(
+    //         width: 60,
+    //         height: 60,
+    //         decoration: BoxDecoration(
+    //           color: AppColors.fillColor,
+    //           borderRadius: BorderRadius.circular(8),
+    //           border: Border.all(color: AppColors.greyE5, width: 1),
+    //         ),
+    //         child: ClipRRect(
+    //           borderRadius: BorderRadius.circular(8),
+    //           child: Image.asset(
+    //             product.imageUrl,
+    //             fit: BoxFit.cover,
+    //             errorBuilder: (context, error, stackTrace) {
+    //               return Container(
+    //                 color: AppColors.fillColor,
+    //                 child: const Icon(
+    //                   Icons.image,
+    //                   color: AppColors.grey9B,
+    //                   size: 30,
+    //                 ),
+    //               );
+    //             },
+    //           ),
+    //         ),
+    //       ),
+    //
+    //       SizedBox(width: SizeConfig.size12),
+    //
+    //       // Product Details
+    //       Expanded(
+    //         child: Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             // Product Description
+    //             CustomText(
+    //               product.description,
+    //               fontSize: SizeConfig.small,
+    //               color: AppColors.black,
+    //               maxLines: 2,
+    //               overflow: TextOverflow.ellipsis,
+    //             ),
+    //
+    //             SizedBox(height: SizeConfig.size8),
+    //
+    //             // Product Details Row
+    //             Wrap(
+    //               spacing: SizeConfig.size16,
+    //               runSpacing: SizeConfig.size4,
+    //               children: [
+    //                 // Colour
+    //                 Row(
+    //                   mainAxisSize: MainAxisSize.min,
+    //                   children: [
+    //                     CustomText(
+    //                       'Colour',
+    //                       fontSize: SizeConfig.extraSmall,
+    //                       color: AppColors.grey9B,
+    //                     ),
+    //                     SizedBox(width: SizeConfig.size4),
+    //                     Container(
+    //                       width: 12,
+    //                       height: 12,
+    //                       decoration: const BoxDecoration(
+    //                         color: AppColors.red,
+    //                         shape: BoxShape.circle,
+    //                       ),
+    //                     ),
+    //                   ],
+    //                 ),
+    //
+    //                 // Price (only show if not selected)
+    //                 if (!product.isSelected)
+    //                   Row(
+    //                     mainAxisSize: MainAxisSize.min,
+    //                     children: [
+    //                       CustomText(
+    //                         'Price',
+    //                         fontSize: SizeConfig.extraSmall,
+    //                         color: AppColors.grey9B,
+    //                       ),
+    //                       SizedBox(width: SizeConfig.size4),
+    //                       CustomText(
+    //                         product.price,
+    //                         fontSize: SizeConfig.extraSmall,
+    //                         color: AppColors.black,
+    //                         fontWeight: FontWeight.w600,
+    //                       ),
+    //                     ],
+    //                   ),
+    //
+    //                 // Size
+    //                 Row(
+    //                   mainAxisSize: MainAxisSize.min,
+    //                   children: [
+    //                     CustomText(
+    //                       'Size',
+    //                       fontSize: SizeConfig.extraSmall,
+    //                       color: AppColors.grey9B,
+    //                     ),
+    //                     SizedBox(width: SizeConfig.size4),
+    //                     CustomText(
+    //                       product.size,
+    //                       fontSize: SizeConfig.extraSmall,
+    //                       color: AppColors.black,
+    //                       fontWeight: FontWeight.w600,
+    //                     ),
+    //                   ],
+    //                 ),
+    //               ],
+    //             ),
+    //
+    //             // Selling Price Input (only shown when selected)
+    //             if (product.showSellingPrice) ...[
+    //               SizedBox(height: SizeConfig.size12),
+    //               Row(
+    //                 children: [
+    //                   CustomText(
+    //                     'Selling price',
+    //                     fontSize: SizeConfig.small,
+    //                     color: AppColors.black,
+    //                     fontWeight: FontWeight.w600,
+    //                   ),
+    //                   SizedBox(width: SizeConfig.size8),
+    //                   Expanded(
+    //                     child: Container(
+    //                       // padding: EdgeInsets.symmetric(
+    //                       //     horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+    //                       decoration: BoxDecoration(
+    //                         color: AppColors.fillColor,
+    //                         borderRadius: BorderRadius.circular(6),
+    //                         border:
+    //                         Border.all(color: AppColors.greyE5, width: 1),
+    //                       ),
+    //                       child: TextField(
+    //                         // onChanged: (value) => controller.updateSellingPrice(product, value),
+    //                         decoration: const InputDecoration(
+    //                           hintText: "E.g. Text",
+    //                           hintStyle: TextStyle(
+    //                             color: AppColors.grey9B,
+    //                             fontSize: 12,
+    //                           ),
+    //                           border: InputBorder.none,
+    //                         ),
+    //                       ),
+    //                     ),
+    //                   ),
+    //                 ],
+    //               ),
+    //             ],
+    //           ],
+    //         ),
+    //       ),
+    //
+    //       SizedBox(width: SizeConfig.size12),
+    //
+    //       // Action Icons
+    //       Column(
+    //         children: [
+    //           // View Icon
+    //           Container(
+    //             width: 32,
+    //             height: 32,
+    //             decoration: BoxDecoration(
+    //               color: AppColors.primaryColor.withOpacity(0.1),
+    //               shape: BoxShape.circle,
+    //             ),
+    //             child: const Icon(
+    //               Icons.visibility_outlined,
+    //               color: AppColors.primaryColor,
+    //               size: 16,
+    //             ),
+    //           ),
+    //
+    //           SizedBox(height: SizeConfig.size8),
+    //
+    //           // Remove Icon (only shown when selected)
+    //           if (product.isSelected)
+    //             GestureDetector(
+    //               // onTap: () => controller.removeProduct(product),
+    //               child: Container(
+    //                 width: 24,
+    //                 height: 24,
+    //                 decoration: BoxDecoration(
+    //                   color: AppColors.primaryColor.withOpacity(0.1),
+    //                   shape: BoxShape.circle,
+    //                 ),
+    //                 child: const Icon(
+    //                   Icons.close,
+    //                   color: AppColors.primaryColor,
+    //                   size: 14,
+    //                 ),
+    //               ),
+    //             ),
+    //         ],
+    //       ),
+    //     ],
+    //   ),
+    // );
   }
 }
 

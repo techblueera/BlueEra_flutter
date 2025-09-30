@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -138,6 +139,7 @@ class SimplePriorityVideoManager extends GetxController {
         await _controller!.play();
         currentIndex.value = videoId.hashCode;
         print('Video started playing: $videoId');
+        ScreenService.keepOn();
       }
 
       update();
@@ -147,9 +149,10 @@ class SimplePriorityVideoManager extends GetxController {
     }
   }
 
-  void _pauseCurrentVideo() {
+  Future<void> _pauseCurrentVideo() async {
     _controller?.pause();
     _currentPriorityVideo = null;
+    ScreenService.keepOff();
   }
 
   void removeVideo(String videoId) {
@@ -174,6 +177,7 @@ class SimplePriorityVideoManager extends GetxController {
     _scrollStopTimer?.cancel();
     _playDelayTimer?.cancel();
     isMuted.dispose();
+    ScreenService.keepOff();
     super.onClose();
   }
 }

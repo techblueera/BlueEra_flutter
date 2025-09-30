@@ -93,4 +93,17 @@ class ProductRepo extends BaseService{
     return response;
   }
 
+  Future<ResponseModel> searchCategoryOfProduct({
+    required Map<String, dynamic> queryParams
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      searchProductCategory,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

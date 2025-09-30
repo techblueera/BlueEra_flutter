@@ -3,10 +3,10 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/widgets/intertitial_ad_service.dart';
 import 'package:chewie/chewie.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -28,6 +28,7 @@ class SingleVideoPlayerController extends GetxController {
   final RxBool isVideoCompleted = false.obs;
   final RxString errorMessage = ' '.obs;
 
+
   // Observable to show/hide UI controls
   final RxBool showControls = true.obs;
 
@@ -40,13 +41,9 @@ class SingleVideoPlayerController extends GetxController {
 
   // Getters
   InterstitialAdService get interstitialService => _interstitialService;
-
   VideoPlayerController? get videoPlayerController => _videoPlayerController;
-
   ChewieController? get chewieController => _chewieController;
-
   ShortFeedItem? get currentVideoItem => _currentVideoItem;
-
   bool get hasController => _chewieController != null;
 
   Timer? _hideControlsTimer;
@@ -88,12 +85,12 @@ class SingleVideoPlayerController extends GetxController {
 
   /// Initialize a new video
   Future<void> initializeVideo(
-    ShortFeedItem videoItem, {
-    bool autoPlay = false,
-    bool showAd = true,
-    Function? onAdShow,
-    Function? onAdClosed,
-  }) async {
+      ShortFeedItem videoItem, {
+        bool autoPlay = false,
+        bool showAd = true,
+        Function? onAdShow,
+        Function? onAdClosed,
+      }) async {
     if (_isClosed) return;
 
     try {
@@ -102,12 +99,12 @@ class SingleVideoPlayerController extends GetxController {
       isVideoCompleted.value = false;
       errorMessage.value = '';
 
-      String? videoUrl;
-      if (GetPlatform.isAndroid) {
-        videoUrl = videoItem.video?.transcodedUrls?.master ??
-            videoItem.video?.videoUrl;
-      } else {
-        videoUrl = videoItem.video?.videoUrl;
+     String? videoUrl;
+      if(GetPlatform.isAndroid){
+        videoUrl =
+            videoItem.video?.transcodedUrls?.master ?? videoItem.video?.videoUrl;
+      }else{
+         videoUrl = videoItem.video?.videoUrl;
       }
 
       if (videoUrl == null || videoUrl.isEmpty) {
@@ -153,10 +150,8 @@ class SingleVideoPlayerController extends GetxController {
               children: [
                 const Icon(Icons.error, color: Colors.red, size: 60),
                 const SizedBox(height: 16),
-                const Text('Error playing video',
-                    style: TextStyle(color: Colors.red)),
-                Text(err,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                const Text('Error playing video', style: TextStyle(color: Colors.red)),
+                Text(err, style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
           );
@@ -169,18 +164,21 @@ class SingleVideoPlayerController extends GetxController {
       isVideoInitialized.value = true;
       isVideoLoading.value = false;
 
-      // Handle ads or autoplay
-      if (Platform.isAndroid && showAd && kReleaseMode) {
-        await _handleInterstitialAd(
-          onAdShow: onAdShow,
-          onAdClosed: () {
-            if (!_isClosed && _videoPlayerController != null) play();
-            onAdClosed?.call();
-          },
-        );
-      } else if (autoPlay) {
-        play();
-      }
+      // 🔹 Enable screen awake
+      await ScreenService.keepOn();
+
+      // // Handle ads or autoplay
+      // if (Platform.isAndroid && showAd) {
+      //   await _handleInterstitialAd(
+      //     onAdShow: onAdShow,
+      //     onAdClosed: () {
+      //       if (!_isClosed && _videoPlayerController != null) play();
+      //       onAdClosed?.call();
+      //     },
+      //   );
+      // } else if (autoPlay) {
+      //   play();
+      // }
 
       log('Video initialized successfully');
     } catch (e) {
@@ -217,8 +215,7 @@ class SingleVideoPlayerController extends GetxController {
     }
 
     // Normal completion detection
-    if (!ctrl.value.isPlaying &&
-        position >= duration - const Duration(milliseconds: 100)) {
+    if (!ctrl.value.isPlaying && position >= duration - const Duration(milliseconds: 100)) {
       isVideoCompleted.value = true;
       isVideoPlaying.value = false;
       if (isVideoError.value && !ctrl.value.hasError) {
@@ -340,8 +337,7 @@ class SingleVideoPlayerController extends GetxController {
   }
 
   /// Interstitial ad
-  Future<void> _handleInterstitialAd(
-      {Function? onAdShow, Function? onAdClosed}) async {
+  Future<void> _handleInterstitialAd({Function? onAdShow, Function? onAdClosed}) async {
     adUnitId = getInterstitialAdUnitId();
     if (adUnitId != null && _interstitialService.shouldShowAdOnThisVisit()) {
       _interstitialService.loadInterstitialAd(
@@ -366,8 +362,10 @@ class SingleVideoPlayerController extends GetxController {
         children: [
           const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          const Text('Failed to load video',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+              'Failed to load video',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+          ),
           const SizedBox(height: 8),
           Text(
             errorMessage.value.isNotEmpty

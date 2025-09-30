@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/repo/listing_form_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -17,7 +16,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
-import '../listing_form_screen/model/sub_category_root_category_response.dart';
+import '../model/sub_category_root_category_response.dart';
 
 
 class AddProductViaAiRequest {
@@ -51,8 +50,8 @@ class AddProductViaAiRequest {
 class ProductListing {
   final List<String> image;
   final String name;
-  final Map<String, String>? selectedVariants;
-  // final Map<String, dynamic>? selectedVariants;
+  // final Map<String, String>? selectedVariants;
+  final Map<String, dynamic>? selectedVariants;
   final String? price;
   final String? mrp;
   final String? discount;
@@ -181,6 +180,7 @@ class AddProductViaAiController extends GetxController{
   final RxString selectedCategoryId = ''.obs;
 
   final RxBool showLinkField = false.obs;
+  RxInt selectedVariantIndex = (-1).obs;
 
   final RxList<ProductListing> listedProducts = <ProductListing>[].obs;
 
@@ -487,7 +487,7 @@ class AddProductViaAiController extends GetxController{
         ApiKeys.q: keyword
       };
 
-      final responseModel = await ListingFormRepo().searchCategoryOfProduct(queryParams: params);
+      final responseModel = await ProductRepo().searchCategoryOfProduct(queryParams: params);
       if (responseModel.isSuccess) {
         searchProductCategoryResponse.value = ApiResponse.complete(responseModel);
         final subChildORRootCategoryResponse = SubChildORRootCategoryResponse.fromJson(responseModel.response!.data);
@@ -503,6 +503,7 @@ class AddProductViaAiController extends GetxController{
         else{
           selectedCategoryId.value = otherCategoryId;
         }
+        log('category id--> $selectedCategoryId');
       } else {
         searchProductCategoryResponse.value = ApiResponse.error('error');
       }
@@ -555,7 +556,7 @@ class AddProductViaAiController extends GetxController{
         if(brandController.text.trim().isNotEmpty) ApiKeys.brand: brandController.text.trim(),
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
         if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),
-        if(productExpiryDurationController.text.trim().isNotEmpty) ApiKeys.expiryTime: productExpiryDurationController.text.trim(),
+        if(productExpiryDurationController.text.trim().isNotEmpty) ApiKeys.expiryDuration: productExpiryDurationController.text.trim(),
         if (tags.isNotEmpty) ApiKeys.tags: tags.join(","),
         // if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
         if(detailsList.isNotEmpty) ApiKeys.addMoreDetails: jsonEncode(detailsList.map((e) => e.toJson()).toList()),
@@ -565,7 +566,8 @@ class AddProductViaAiController extends GetxController{
             .toList()),
         if(linkController.text.trim().isNotEmpty) ApiKeys.linkOrReferealWebsite: linkController.text.trim(),
         if (userGuideLineControllers.isNotEmpty)
-          ApiKeys.guideLine: userGuideLineControllers.map((value) => value.text).toList(),      };
+          ApiKeys.guideLine: userGuideLineControllers.map((value) => value.text).toList(),
+      };
 
       final payload = {
         'attributes': <String, dynamic>{
@@ -636,6 +638,7 @@ class AddProductViaAiController extends GetxController{
 
       final payload =
         products.map((product) {
+
           return {
             ApiKeys.attributes: product.selectedVariants ?? {},
             // "stock": true,
@@ -779,59 +782,57 @@ class AddProductViaAiController extends GetxController{
     return null;
   }
 
-  RxMap<String, String> selectedVariantValues = <String, String>{}.obs;
+//   RxMap<String, String> selectedVariantValues = <String, String>{}.obs;
+//   RxBool isNextEnabled = false.obs;
+//
+//   void selectVariantValue(String attributeKey, String value) {
+//     // Toggle selection
+//     if (selectedVariantValues[attributeKey] == value) {
+//       selectedVariantValues.remove(attributeKey);
+//     } else {
+//       selectedVariantValues[attributeKey] = value;
+//     }
+//     _updateNextButtonState();
+//   }
+//
+// // Method to check if a value is selected
+//   bool isValueSelected(String attributeKey, String value) {
+//     return selectedVariantValues[attributeKey] == value;
+//   }
+
+  RxMap<String, dynamic> selectedVariantValues = <String, dynamic>{}.obs;
   RxBool isNextEnabled = false.obs;
 
-  void selectVariantValue(String attributeKey, String value) {
-    // Toggle selection
-    if (selectedVariantValues[attributeKey] == value) {
-      selectedVariantValues.remove(attributeKey);
+  void selectVariantValue(String attributeKey, dynamic value) {
+    if (attributeKey.toLowerCase() == 'color' && value is SelectedColor) {
+      final colorMap = value.toJson();
+      if (selectedVariantValues[attributeKey] != colorMap) {
+        selectedVariantValues[attributeKey] = colorMap;
+      } else {
+        selectedVariantValues.remove(attributeKey);
+      }
     } else {
-      selectedVariantValues[attributeKey] = value;
+      if (selectedVariantValues[attributeKey] == value) {
+        selectedVariantValues.remove(attributeKey);
+      } else {
+        selectedVariantValues[attributeKey] = value.toString();
+      }
     }
     _updateNextButtonState();
   }
 
-// Method to check if a value is selected
-  bool isValueSelected(String attributeKey, String value) {
-    return selectedVariantValues[attributeKey] == value;
+  bool isValueSelected(String attributeKey, dynamic value) {
+    final selected = selectedVariantValues[attributeKey];
+    if (attributeKey.toLowerCase() == 'color' && value is SelectedColor) {
+      if (selected is Map) {
+        return selected['color_code'] == colorToHex(value.color)
+            && selected['color_name'] == value.name;
+      }
+      return false;
+    } else {
+      return selectedVariantValues[attributeKey]?.toString() == value.toString();
+    }
   }
-
-  // RxMap<String, dynamic> selectedVariantValues = <String, dynamic>{}.obs;
-  // RxBool isNextEnabled = false.obs;
-  //
-  // void selectVariantValue(String attributeKey, dynamic value) {
-  //   if (attributeKey.toLowerCase() == 'color' && value is SelectedColor) {
-  //     final colorMap = value.toJson();
-  //     log('valuee--- ${value.toJson()}');
-  //     if (selectedVariantValues[attributeKey] != colorMap) {
-  //       selectedVariantValues[attributeKey] = colorMap;
-  //     } else {
-  //       selectedVariantValues.remove(attributeKey);
-  //     }
-  //   } else {
-  //     if (selectedVariantValues[attributeKey] == value) {
-  //       selectedVariantValues.remove(attributeKey);
-  //     } else {
-  //       selectedVariantValues[attributeKey] = value.toString();
-  //     }
-  //   }
-  //   _updateNextButtonState();
-  // }
-  //
-  // bool isValueSelected(String attributeKey, dynamic value) {
-  //   final selected = selectedVariantValues[attributeKey];
-  //   log('selected valuee--- ${value.runtimeType}');
-  //   if (attributeKey.toLowerCase() == 'color' && value is SelectedColor) {
-  //     if (selected is Map) {
-  //       return selected['color_code'] == colorToHex(value.color)
-  //           && selected['color_name'] == value.name;
-  //     }
-  //     return false;
-  //   } else {
-  //     return selectedVariantValues[attributeKey]?.toString() == value.toString();
-  //   }
-  // }
 
 
   void _updateNextButtonState() {
@@ -846,9 +847,31 @@ class AddProductViaAiController extends GetxController{
             existingKeys.every((key) => selectedVariantValues.containsKey(key));
   }
 
-  addProductsInListing({required ProductListing productListing}){
-    listedProducts.add(productListing);
+  addProductsInListing({required ProductListing productListing}) {
+    // Make a deep copy of selectedVariants
+    final copiedVariants = productListing.selectedVariants != null
+        ? Map<String, dynamic>.from(productListing.selectedVariants!)
+        : null;
+
+    final newProductListing = ProductListing(
+      image: List<String>.from(productListing.image),
+      name: productListing.name,
+      selectedVariants: copiedVariants,
+      price: productListing.price,
+      mrp: productListing.mrp,
+      discount: productListing.discount,
+    );
+
+    log('Selected variants -- ${newProductListing.selectedVariants}');
+
+    listedProducts.add(newProductListing);
     listedProducts.refresh();
+
+    log('All listed products variants:');
+    for (var p in listedProducts) {
+      log('Product: ${p.name}, Variants: ${p.selectedVariants}');
+    }
   }
+
 
 }

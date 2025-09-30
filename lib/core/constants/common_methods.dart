@@ -501,30 +501,18 @@ Color hexToColor(String hexString) {
   return Color(int.parse(hexString, radix: 16));
 }
 
-const Map<String, String> colorNames = {
-  '#ffffff': 'White',
-  '#000000': 'Black',
-  '#ff0000': 'Red',
-  '#00ff00': 'Green',
-  '#0000ff': 'Blue',
-  '#c0c0c0': 'Silver',
-  '#808080': 'Gray',
-  // add more as needed
-};
-
 // Hex without alpha: #RRGGBB
 String colorToHex(Color color) {
-  final r = color.r;
-  final g = color.g;
-  final b = color.b;
-  return '#'
+  final r = color.r* 255.0;
+  final g = color.g* 255.0;
+  final b = color.b* 255.0;
+  final hex = '#'
       '${r.toInt().toRadixString(16).padLeft(2, '0')}'
       '${g.toInt().toRadixString(16).padLeft(2, '0')}'
-      '${b.toInt().toRadixString(16).padLeft(2, '0')}'.toUpperCase();
-}
+      '${b.toInt().toRadixString(16).padLeft(2, '0')}'
+      .toUpperCase();
 
-String getColorName(String hex) {
-  return colorNames[hex.toLowerCase()] ?? hex; // fallback to hex if unknown
+  return hex;
 }
 
 double calculateDiscount(String priceText, String mrpText) {

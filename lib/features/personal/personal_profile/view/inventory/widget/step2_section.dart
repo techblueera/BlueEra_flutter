@@ -4,13 +4,9 @@ import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/listing_form_screen_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/add_more_details_dialog.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -31,7 +27,7 @@ class Step2Section extends StatefulWidget {
 class _Step2SectionState extends State<Step2Section> {
   late List<TextEditingController> tempFeatureControllers;
   late TextEditingController tempLinkController;
-  late List<Specification> tempDetailsList;
+  late List<ProductMoreDetails> tempDetailsList;
 
   @override
   void initState() {
@@ -45,7 +41,7 @@ class _Step2SectionState extends State<Step2Section> {
     tempLinkController =
         TextEditingController(text: widget.controller.linkController.text);
 
-    tempDetailsList = List<Specification>.from(widget.controller.detailsList);
+    tempDetailsList = List<ProductMoreDetails>.from(widget.controller.detailsList);
   }
 
   void _restoreOldValues() {

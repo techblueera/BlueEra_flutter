@@ -5,22 +5,12 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../listing_form_screen_controller.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/date_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class Step3Section extends StatefulWidget {
   final AddProductViaAiController controller;
@@ -235,7 +225,7 @@ class _Step3SectionState extends State<Step3Section> {
                     textEditController: widget.controller.productExpiryDurationController,
                     title: 'Add Expiry Date (Optional)',
                     hintText: 'E.g. 1 year',
-                    keyBoardType: TextInputType.number,
+                    keyBoardType: TextInputType.text,
                     validator: widget.controller.validateProductExpiration,
                     showLabel: true,
                   ),
@@ -381,123 +371,6 @@ class _Step3SectionState extends State<Step3Section> {
           //             onChanged: (num? newValue) {
           //               if (newValue != null) {
           //                 controller.onProductValueChanged(newValue);
-          //               }
-          //             },
-          //           ),
-          //         ),
-          //       )),
-          //     ),
-          //   ],
-          // ),
-        ],
-      ),
-    );
-  }
-
-   Widget _buildExpiryDateSection(AddProductViaAiController controller) {
-     return Container(
-      constraints: const BoxConstraints(minHeight: 80),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CommonTextField(
-            textEditController: controller.productExpiryDurationController,
-            title: 'Add Expiry Date (Optional)',
-            hintText: 'E.g. 1 year',
-            keyBoardType: TextInputType.number,
-            validator: controller.validateProductExpiration,
-            showLabel: true,
-          ),
-
-          // CustomText(
-          //   'Add Expiry Date (Optional)',
-          //   fontSize: SizeConfig.medium,
-          //   color: AppColors.black,
-          // ),
-          // SizedBox(height: SizeConfig.size8),
-          //
-          // // Dropdowns Row
-          // Row(
-          //   children: [
-          //     // Duration Type Dropdown
-          //     Expanded(
-          //       flex: 1,
-          //       child: Obx(() => Container(
-          //         padding: EdgeInsets.symmetric(
-          //           horizontal: SizeConfig.size16,
-          //           vertical: SizeConfig.size10,
-          //         ),
-          //         decoration: BoxDecoration(
-          //           color: Colors.white,
-          //           borderRadius: BorderRadius.circular(8),
-          //           border: Border.all(color: AppColors.greyE5),
-          //           boxShadow: [AppShadows.textFieldShadow]
-          //         ),
-          //         child: DropdownButtonHideUnderline(
-          //           child: DropdownButton<String>(
-          //             isDense: true,
-          //             value: controller.selectedExpiryDuration.value,
-          //             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-          //             icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
-          //             style: TextStyle(
-          //               color: Colors.black87,
-          //               fontSize: 16,
-          //             ),
-          //             items: controller.durationTypes.map((String duration) {
-          //               return DropdownMenuItem<String>(
-          //                 value: duration,
-          //                 child: Text(duration),
-          //               );
-          //             }).toList(),
-          //             onChanged: (String? newValue) {
-          //               if (newValue != null) {
-          //                 controller.onDurationChanged(newValue);
-          //               }
-          //             },
-          //           ),
-          //         ),
-          //       )),
-          //     ),
-          //
-          //     SizedBox(width: 12),
-          //
-          //     // Value Dropdown
-          //     Expanded(
-          //       flex: 1,
-          //       child: Obx(() => Container(
-          //         padding: EdgeInsets.symmetric(
-          //           horizontal: SizeConfig.size16,
-          //           vertical: SizeConfig.size10,
-          //         ),
-          //         decoration: BoxDecoration(
-          //           color: Colors.white,
-          //           borderRadius: BorderRadius.circular(8),
-          //             border: Border.all(color: AppColors.greyE5),
-          //             boxShadow: [AppShadows.textFieldShadow]
-          //         ),
-          //         child: DropdownButtonHideUnderline(
-          //           child: DropdownButton<num>(
-          //             isDense: true,
-          //             value: controller.selectedExpiryValue.value,
-          //             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-          //             icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
-          //             style: TextStyle(
-          //               color: Colors.black87,
-          //               fontSize: 16,
-          //             ),
-          //             items: controller.expiryValueRange.map((num value) {
-          //               return DropdownMenuItem<num>(
-          //                 value: value,
-          //                 child: Text(
-          //                   value % 1 == 0 ? value.toInt().toString() : value.toString()
-          //                 ),
-          //               );
-          //             }).toList(),
-          //             onChanged: controller.selectedExpiryDuration.value == 'Life Time'
-          //                 ? null // Disable dropdown for Life Time
-          //                 : (num? newValue) {
-          //               if (newValue != null) {
-          //                 controller.onValueChanged(newValue);
           //               }
           //             },
           //           ),

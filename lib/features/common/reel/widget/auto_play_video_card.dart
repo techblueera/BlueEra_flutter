@@ -43,6 +43,7 @@ class AutoPlayVideoCard extends StatefulWidget {
 }
 
 class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
+
   @override
   void dispose() {
     final videoManager = Get.find<SimplePriorityVideoManager>();
@@ -137,11 +138,14 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                             ),
                 ),
               ),
+
               // Video
               if (isCurrent &&
                   controller != null &&
                   controller.value.isInitialized)
-                VideoPlayer(controller),
+                AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: VideoPlayer(controller)),
 
               // Loading overlay
               if (isScrolling && isCurrent)

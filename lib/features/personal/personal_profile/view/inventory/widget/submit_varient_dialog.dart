@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -57,7 +58,17 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
 
   @override
   void initState() {
-    productFullName = '${widget.controller.productNameController.text} ${widget.controller.selectedVariantValues.values.join(', ')}';
+    productFullName = '${widget.controller.productNameController.text} ' +
+        widget.controller.selectedVariantValues.entries.map((entry) {
+          final key = entry.key;
+          final value = entry.value;
+
+          if (key.toLowerCase() == 'color' && value is Map<String, dynamic>) {
+            return value['color_name'] ?? '';
+          } else {
+            return value.toString();
+          }
+        }).join(', ');
     super.initState();
   }
 
@@ -105,7 +116,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                 ),
 
                 CustomText(
-                  'Upload product Images',
+                  'Upload product Images (Optional)',
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.black28,

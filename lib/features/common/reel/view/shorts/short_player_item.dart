@@ -70,7 +70,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   late String profileImage;
   late String name;
   late String designation;
-  bool _initialized = false;
   bool _hasError = false;
   bool isShortSavedInDb = false;
   bool _isDisposed = false;
@@ -232,7 +231,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         _controller?.setVolume(1.0);
         if (widget.autoPlay) _controller?.play();
         setState(() {
-          _initialized = true;
           _useCover = false;
         });
       }
@@ -338,7 +336,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               width: 45,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
               ),
               child: Icon(_playPauseIcon, size: 36, color: Colors.white),
             ),
@@ -512,6 +510,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       ),
     );
   }
+
   Widget _buildVideoInfo() {
     return Positioned(
       left: 16,
@@ -800,6 +799,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       ),
     );
   }
+
   /// Simple, consistent share experience (like header_widget.dart)
   Future<void> _shareVideoSimple() async {
     // Prevent multiple calls
@@ -1145,7 +1145,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 //     if (_controller != null || _isDisposed) return;
 //
 //     try {
-//       final videoUrl = fullScreenShortController.videoItem?.video?.transcodedUrls?.master ?? fullScreenShortController.videoItem?.video?.videoUrl;
+//       final videoUrl = fullScreenShortController.videoItem?.video?.22transcodedUrls?.master ?? fullScreenShortController.videoItem?.video?.videoUrl;
 //       if (videoUrl == null || videoUrl.isEmpty) {
 //         if (!_isDisposed) {
 //           setState(() => _hasError = true);
