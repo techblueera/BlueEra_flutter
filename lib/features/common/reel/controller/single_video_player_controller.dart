@@ -176,9 +176,10 @@ class SingleVideoPlayerController extends GetxController {
       //       onAdClosed?.call();
       //     },
       //   );
-      // } else if (autoPlay) {
-      //   play();
-      // }
+      // } else
+      if (autoPlay) {
+        play();
+      }
 
       log('Video initialized successfully');
     } catch (e) {
