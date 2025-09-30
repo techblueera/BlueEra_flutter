@@ -316,7 +316,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               .likesCount ??
           0;
     }
-
+    ///EMpty DATA
     String profilePic = !isReplyTemplate
         ? comment.createdBy?.profilePic ?? ''
         : reply?.createdBy?.profilePic ?? '';
@@ -339,16 +339,18 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               context: context,
               text: "Are you sure you want to delete this comment?",
               confirmCallback: () async {
-                logs("widget.commentType==== ${widget.commentType}");
                 Get.back();
                 await commentController.commentPostDeleteController(
                     commentId: commentId,postID: widget.id, commentPostType: widget.commentType);
+                Get.back();
+
               },
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
               confirmText: AppLocalizations.of(context)!.yes,
               cancelText: AppLocalizations.of(context)!.no);
+
       },
       onTap: (){
         onProfileTap(
@@ -587,11 +589,13 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         addCommentToPost();
                       }
                     }
+                    Navigator.of(context).pop(); // Close the dialog
+
                   },
                   child: Container(
                     padding: EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color:AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(18)),
                     child: commentController.isSendCommentLoading.isTrue
                         ? SizedBox(

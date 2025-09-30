@@ -205,17 +205,32 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         }
         final blocks = _buildBlocks(posts);
         // 🔹 Build listView once
-        final listView =  ListView.builder(
+        final listView = ListView.builder(
           controller: _scrollController,
-
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding:
-          EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
+              EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
           itemCount: blocks.length,
           shrinkWrap: widget.isInParentScroll,
           physics: widget.isInParentScroll
               ? const NeverScrollableScrollPhysics()
-              : const AlwaysScrollableScrollPhysics(),          itemBuilder: (context, index) {
+              : const AlwaysScrollableScrollPhysics(),
+          itemBuilder: (context, indexFeed) {
+            if (indexFeed == 0) {
+              if (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                      left: SizeConfig.size8,
+                      right: SizeConfig.size8,
+                      top: SizeConfig.size8),
+                  child: GreetingCardDialog(
+                      cards: Get.find<MoreCardsScreenController>().dayCards),
+                );
+              } else {
+                return const SizedBox.shrink(); // skip if no card
+              }
+            }
+            int index=indexFeed-1;
             final block = blocks[index];
             if (block.isGrid) {
               // Render a 4-column grid of thumbnails inside the list
@@ -225,7 +240,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     left: SizeConfig.size8,
                     right: SizeConfig.size8,
                     top: SizeConfig.size10,
-                    bottom: SizeConfig.size5),                child: GridView.builder(
+                    bottom: SizeConfig.size5),
+                child: GridView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   itemCount: block.items.length,
@@ -240,43 +256,41 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                   ),
                   itemBuilder: (c, postIndex) {
                     final imgPostData = block.items[postIndex];
-                   if(imgPostData.type=="short_video"){
+                    if (imgPostData.type == "short_video") {
+                      ShortFeedItem reelData = getVideoData(imgPostData);
 
-
-                     ShortFeedItem reelData = getVideoData(imgPostData);
-
-                     return ClipRRect(
-                       borderRadius: (BorderRadius.circular(12)),
-                       child: Stack(
-                         children: [
-                           SingleShortStructure(
-                             shorts: Shorts.latest,
-                             allLoadedShorts: feedController.shortFeedItem,
-                             initialIndex: feedController.shortFeedItem
-                                 .indexWhere((post) => post.videoId == reelData.video?.id),
-                             shortItem: reelData,
-                             withBackground: true,
-                             // imageWidth: 170,
-                             imageHeight: SizeConfig.size310,
-                           ),
-                           // total views
-                           Positioned(
-                             bottom: SizeConfig.size90,
-                             top: SizeConfig.size90,
-                             left: SizeConfig.size90,
-                             right: SizeConfig.size90,
-                             child: IgnorePointer(
-                                 ignoring: true,
-                                 child: LocalAssets(
-                                   imagePath: AppIconAssets.playIcon,
-
-                                 )),
-                           ),
-                         ],
-                       ),
-                     );
-                   }
-                    if(imgPostData.type=="image_post"){
+                      return ClipRRect(
+                        borderRadius: (BorderRadius.circular(12)),
+                        child: Stack(
+                          children: [
+                            SingleShortStructure(
+                              shorts: Shorts.latest,
+                              allLoadedShorts: feedController.shortFeedItem,
+                              initialIndex: feedController.shortFeedItem
+                                  .indexWhere((post) =>
+                                      post.videoId == reelData.video?.id),
+                              shortItem: reelData,
+                              withBackground: true,
+                              // imageWidth: 170,
+                              imageHeight: SizeConfig.size310,
+                            ),
+                            // total views
+                            Positioned(
+                              bottom: SizeConfig.size90,
+                              top: SizeConfig.size90,
+                              left: SizeConfig.size90,
+                              right: SizeConfig.size90,
+                              child: IgnorePointer(
+                                  ignoring: true,
+                                  child: LocalAssets(
+                                    imagePath: AppIconAssets.playIcon,
+                                  )),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    if (imgPostData.type == "image_post") {
                       return ClipRRect(
                         borderRadius: (BorderRadius.circular(12)),
                         child: InkWell(
@@ -285,7 +299,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                               context,
                               ImageViewScreen(
                                 subTitle: imgPostData.subTitle,
-                                appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                                appBarTitle:
+                                    AppLocalizations.of(context)!.imageViewer,
                                 imageUrls: imgPostData.media ?? [],
                                 initialIndex: postIndex,
                               ),
@@ -302,30 +317,34 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                   height: 310,
                                   // height: widget.imageHeight ?? SizeConfig.size220,
                                   fit: BoxFit.cover,
-                                  imageUrl: imgPostData.media?.firstOrNull ?? "",
+                                  imageUrl:
+                                      imgPostData.media?.firstOrNull ?? "",
                                   placeholder: (context, str) {
                                     return ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
                                       child: LocalAssets(
-                                        imagePath: AppIconAssets.place_holder_image,
+                                        imagePath:
+                                            AppIconAssets.place_holder_image,
                                         boxFix: BoxFit.fill,
                                       ),
                                     );
                                   },
-                                  errorWidget: (context, url, error) => Container(
+                                  errorWidget: (context, url, error) =>
+                                      Container(
                                     // width: double.infinity,
                                     // height: 310,
                                     width: SizeConfig.size220,
                                     height: 300,
                                     decoration: BoxDecoration(
-                                      border:
-                                      Border.all(color: AppColors.white, width: 1),
+                                      border: Border.all(
+                                          color: AppColors.white, width: 1),
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
                                       child: LocalAssets(
-                                        imagePath: AppIconAssets.place_holder_image,
+                                        imagePath:
+                                            AppIconAssets.place_holder_image,
                                         boxFix: BoxFit.fill,
                                       ),
                                     ),
@@ -350,7 +369,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                       decoration: BoxDecoration(
                                           color: AppColors.mainTextColor
                                               .withValues(alpha: 0.2),
-                                          borderRadius: BorderRadius.circular(5.0)),
+                                          borderRadius:
+                                              BorderRadius.circular(5.0)),
                                       child: CustomText(
                                         "${imgPostData.subTitle}",
                                         color: AppColors.white,
@@ -363,7 +383,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                               if (imgPostData.user?.profileImage != null &&
                                   (imgPostData.user?.profileImage?.isNotEmpty ??
                                       false) &&
-                                  imgPostData.user?.profileImage?.toLowerCase() !=
+                                  imgPostData.user?.profileImage
+                                          ?.toLowerCase() !=
                                       "null")
                                 Positioned(
                                   top: 10,
@@ -371,41 +392,50 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                   child: InkWell(
                                     onTap: () {
                                       final authorId = imgPostData.user?.id;
-                                      final business_id = imgPostData.user?.business_id;
-                                      final accountType =
-                                      imgPostData.user?.accountType?.toUpperCase();
-                                      if (accountType == AppConstants.individual) {
+                                      final business_id =
+                                          imgPostData.user?.business_id;
+                                      final accountType = imgPostData
+                                          .user?.accountType
+                                          ?.toUpperCase();
+                                      if (accountType ==
+                                          AppConstants.individual) {
                                         if (userId == authorId) {
-                                          navigatePushTo(
-                                              context, PersonalProfileSetupScreen());
+                                          navigatePushTo(context,
+                                              PersonalProfileSetupScreen());
                                         } else {
                                           Get.to(() => NewVisitProfileScreen(
-                                            authorId: authorId ?? "",
-                                            screenFromName: AppConstants.feedScreen,
-                                          ));
+                                                authorId: authorId ?? "",
+                                                screenFromName:
+                                                    AppConstants.feedScreen,
+                                              ));
                                         }
                                       }
-                                      if (accountType == AppConstants.business) {
+                                      if (accountType ==
+                                          AppConstants.business) {
                                         if (businessId == business_id) {
-                                          navigatePushTo(
-                                              context, BusinessOwnProfileScreen());
+                                          navigatePushTo(context,
+                                              BusinessOwnProfileScreen());
                                         } else {
                                           Get.to(() => VisitBusinessProfileNew(
-                                            businessId: business_id ?? "",
-                                            screenName: AppConstants.feedScreen,
-                                          ));
+                                                businessId: business_id ?? "",
+                                                screenName:
+                                                    AppConstants.feedScreen,
+                                              ));
                                         }
                                       }
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(3),
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(50.0),
+                                        borderRadius:
+                                            BorderRadius.circular(50.0),
                                         border: Border.all(
-                                            color: AppColors.primaryColor, width: 1.5),
+                                            color: AppColors.primaryColor,
+                                            width: 1.5),
                                       ),
                                       child: CachedAvatarWidget(
-                                          imageUrl: imgPostData.user?.profileImage,
+                                          imageUrl:
+                                              imgPostData.user?.profileImage,
                                           size: 30,
                                           showProfileOnFullScreen: false,
                                           borderRadius: 100),
@@ -417,7 +447,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                         ),
                       );
                     }
-                   /*
+                    /*
                     return GestureDetector(
                       onTap: () {
                         // TODO: open image viewer or play short video
@@ -449,7 +479,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     );
 */
                     ;
-
                   },
                 ),
               );
@@ -518,7 +547,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             }
             return const SizedBox.shrink(); // skip if no card
 
-         /*   return Card(
+            /*   return Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
               shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -673,7 +702,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
   Widget _buildListItem(int postIndex, List<Post> posts) {
     final item = posts[postIndex];
-
 
     if (item.type?.toLowerCase() == "message_post" ||
         item.type?.toLowerCase() == "poll_post") {
@@ -1387,7 +1415,7 @@ ShortFeedItem getVideoData(Post video) {
       metadata: VideoItemMetadata(
           addedAt: video.createdAt.toString(),
           source: "personalized",
-          watchedBefore: false),
+          watchedBefore: false),channel: video.channel,
       video: VideoData(
           id: video.id,
           userId: video.user?.id,
@@ -1475,4 +1503,10 @@ class PostData {
         'total_views': totalViews,
         'is_like': isLike,
       };
+}
+class FeedBlock {
+  final bool isGrid;
+  final List<Post> items;
+
+  FeedBlock({required this.isGrid, required this.items});
 }

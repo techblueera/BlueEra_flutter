@@ -96,7 +96,7 @@ class VideoCard extends StatelessWidget {
               totalVideoDuration: formatDuration(
                 Duration(seconds: videoItem.video?.duration ?? 0),
               ),
-              totalLikes: videoItem.video?.stats?.likes.toString() ?? '0',
+              totalLikes: videoItem.video?.stats?.likes.toString() ?? '0', videoType: videoType,
             ),
           ),
 

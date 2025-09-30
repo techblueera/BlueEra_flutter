@@ -185,7 +185,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                     Duration(seconds: widget.videoItem.video?.duration ?? 0),
                   ),
                   totalLikes:
-                      widget.videoItem.video?.stats?.likes.toString() ?? '0',
+                      widget.videoItem.video?.stats?.likes.toString() ?? '0', videoType: widget.videoType,
                 ),
               ),
 

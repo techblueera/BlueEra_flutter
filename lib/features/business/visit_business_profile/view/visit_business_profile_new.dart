@@ -13,6 +13,8 @@ import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_sectio
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -32,12 +34,14 @@ import '../../../personal/personal_profile/view/visit_personal_profile/visit_per
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../auth/model/visitBusinessDetailedRatingModel.dart';
 import '../../widgets/live_photos_of_business_widget.dart';
+import 'package:BlueEra/features/common/product_listing/view/standalone_product_screen.dart';
 
 class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
   final String screenName;
 
-  const VisitBusinessProfileNew({super.key, required this.businessId, required this.screenName});
+  const VisitBusinessProfileNew(
+      {super.key, required this.businessId, required this.screenName});
 
   @override
   State<VisitBusinessProfileNew> createState() =>
@@ -54,12 +58,10 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   late VisitProfileController visitProfileController;
   final List<String> tabs = [
     'Overview',
-    // 'Products',
-    // 'Reviews',
     'Posts',
     'Shorts',
     'Video',
-    // 'Jobs',
+    'Products',
   ];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
@@ -94,10 +96,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
       body: GetBuilder<ViewBusinessDetailsController>(
         init: controller,
         builder: (controller) {
-          if(controller.isLoading.value)
-            {
-              return const Center(child: CircularProgressIndicator());
-            }
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
           if ((controller.viewBusinessResponseNew.status == Status.COMPLETE)) {
             final businessData = controller.visitedBusinessProfileDetails?.data;
             return DefaultTabController(
@@ -139,12 +140,13 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                         children: [
                           // controller.userData.value?.user
                           RatingSummaryWidget(
-                            rating: businessData?.avg_rating
-                                ?.toDouble() ??
-                                0.0,
-                            ratingPersonCount:  businessData?.total_ratings?.toInt()??0,
-                            userId: businessData?.id??"",
-                            screenFromName: widget.screenName, ratingForAccountName: AppConstants.business, businessId: businessData?.id??"",
+                            rating: businessData?.avg_rating?.toDouble() ?? 0.0,
+                            ratingPersonCount:
+                                businessData?.total_ratings?.toInt() ?? 0,
+                            userId: businessData?.id ?? "",
+                            screenFromName: widget.screenName,
+                            ratingForAccountName: AppConstants.business,
+                            businessId: businessData?.id ?? "",
                           ),
                           // buildRatingSummary(
                           //     ratingsList: ratingDetailedCount,
@@ -169,49 +171,13 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          BusinessLocationWidget(
-                            latitude: businessData?.businessLocation?.lat
-                                    ?.toDouble() ??
-                                0.0,
-                            longitude: businessData?.businessLocation?.lon
-                                    ?.toDouble() ??
-                                0.0,
-                            businessName: businessData?.businessName ?? "N/A",
-                            isTitleShow: true,
-                            locationText: businessData?.address ?? "",
+
+                          StandaloneProductScreen(
+                            businessId: businessData?.id??"", isGrid: false,
                           ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          buildHorizontalProductList(
-                              products: controller.getAllProductDetails?.value),
-                          const SizedBox(height: 12),
-                          // buildReviewCard(),
-                          // const SizedBox(height: 12),
-                          // buildJobCard(),
-                          // const SizedBox(height: 12),
-                          // buildPostCard(controller: controller),
-                          // const SizedBox(height: 12),
-                          // buildHorizontalSortsList(),
-                          // const SizedBox(height: 12),
-                          // customVideoCard(),
-                          //
-                          // const SizedBox(height: 30),
-                          //
-                          // const SizedBox(height: 24),
-                          // */ /*   ProductServicesWidget(),
-                          // const SizedBox(height: 20),
-                          // SimilarStoreWidget(),
-                          // const SizedBox(height: 30),*/
                         ],
                       ),
                     ),
-
-                    // productTab(
-                    //     products: controller.getAllProductDetails?.value),
-                    //
-                    // reviewTab(ratingDetailedCount,ratingData?.avgRating??0,"${ratingData?.totalRatings}"),
 
                     postsTab(data: businessData),
                     // jobsTab(),
@@ -250,17 +216,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       ],
                     ),
 
-                    //   FeedScreen(
-                    //   key: const ValueKey('feedScreen_others_posts'),
-                    //   postFilterType: PostType.otherPosts,
-                    //   id: businessData?.userId,
-                    // ),
-
-                    // Reviews tab
-                    // const Center(child: Text("No reviews yet")),
-                    //
-                    // // Our Branches tab
-                    // const Center(child: Text("No branches yet")),
+                    StandaloneProductScreen(
+                      businessId: businessData?.id??"", isGrid: true,
+                    ),
                   ],
                 ),
               ),

@@ -379,6 +379,7 @@ String? tempImgPath;
 
                           InkWell(
                             onTap: () {
+                              logs("logMsg");
                               Navigator.pushNamed(
                                 context,
                                 RouteHelper.getSearchLocationScreenRoute(),
@@ -402,7 +403,26 @@ String? tempImgPath;
                               hintText: "E.g., Rajiv Chowk, Delhi",
                               isValidate: false,
                               title: "Location",
-
+                              onTap: (){
+                                logs("logMsg 1");
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteHelper.getSearchLocationScreenRoute(),
+                                  arguments: {
+                                    'onPlaceSelected': (double? lat,
+                                        double? lng,
+                                        String? address,
+                                      ) {
+                                      if (address != null) {
+                                        locationController.text = address;
+                                        personalCreateProfileController
+                                            .setStartLocation(lat, lng, address);
+                                      }
+                                    },
+                                    ApiKeys.fromScreen: ""
+                                  },
+                                );
+                              },
                               // onChange: (value) => controller.validateForm(),
                               readOnly: true,
                               // Make it read-only since we'll use the search screen
@@ -584,13 +604,7 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Education,Poetry",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter work specification';
-                              //   }
-                              //   return null;
-                              // }
+
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -608,13 +622,7 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Auto Union",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter NGO / Society ';
-                              //   }
-                              //   return null;
-                              // }
+
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -635,13 +643,7 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. TCS LTD",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter company name';
-                              //   }
-                              //   return null;
-                              // }
+
                             ),
                           ],
 
@@ -658,13 +660,6 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Cooking,Dancing",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter Expertise';
-                              //   }
-                              //   return null;
-                              // }
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -684,13 +679,7 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Banking,Teaching",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter Expertise';
-                              //   }
-                              //   return null;
-                              // }
+
                             ),
                           ],
                           if ((selectedProfession == STUDENT)) ...[
@@ -705,13 +694,7 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. 10th,Diploma,BE,PHD",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter Expertise';
-                              //   }
-                              //   return null;
-                              // }
+
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -745,26 +728,6 @@ String? tempImgPath;
                                     .selectedSubProfession.value = value?.tagId;
                               },
                             ),
-                            // CommonDropdownDialog<ArtistCategory>(
-                            //   items: ArtistCategory.values,
-                            //   selectedValue: personalCreateProfileController
-                            //       .selectedArtistCategory.value,
-                            //   hintText: AppConstants.selectSelfArtist,
-                            //   displayValue: (selfEmployment) =>
-                            //   selfEmployment.displayName,
-                            //   onChanged: (value) {
-                            //     personalCreateProfileController
-                            //         .selectedArtistCategory.value = value;
-                            //   },
-                            //   title: "Select Your Art / Skill",
-                            //
-                            //   // validator: (value) {
-                            //   //   if (value == null) {
-                            //   //     return 'Select your art / skill';
-                            //   //   }
-                            //   //   return null;
-                            //   // },
-                            // ),
                             SizedBox(
                               height: SizeConfig.size20,
                             ),
@@ -800,30 +763,11 @@ String? tempImgPath;
                                   RegularExpressionUtils.alphabetSpacePattern,
                               title: "Sector",
                               hintText: "Eg. IT Sector",
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter your sector';
-                              //   }
-                              //   return null;
-                              // },
-                              // onChange: (val) {
-                              //   filedValidation();
-                              // },
+
                             ),
                             SizedBox(height: SizeConfig.size18),
                           ],
 
-                          // if (shouldShowField('skills')) ...[
-                          //   CommonTextField(
-                          //     title: "Skills",
-                          //     hintText: "Enter your skills (comma separated)",
-                          //     textEditController: skillsController,
-                          //     onChange: (val) {
-                          //       filedValidation();
-                          //     },
-                          //   ),
-                          //   SizedBox(height: SizeConfig.size18),
-                          // ],
 
                           if ((selectedProfession == POLITICIAN)) ...[
                             CommonTextField(
@@ -885,15 +829,7 @@ String? tempImgPath;
                             ),
                             SizedBox(height: SizeConfig.size18),
                           ],
-                          // CommonTextField(
-                          //   title: "Current Organization",
-                          //   hintText: AppConstants.companyOrg,
-                          //   textEditController: organizationController,
-                          //   onChange: (val) {
-                          //     filedValidation();
-                          //   },
-                          // ),
-                          // SizedBox(height: SizeConfig.size18),
+
                           CommonTextField(
                             title: "About Me /Bio",
                             hintText: AppConstants.myBio,
@@ -962,40 +898,7 @@ String? tempImgPath;
                                           return;
                                         }
                                       }
-                                      // if ((personalCreateProfileController
-                                      //         .selectedSelfEmployment.value ==
-                                      //     SELF_EMPLOYED)) {
-                                      //   if (personalCreateProfileController
-                                      //           .selectedSelfEmployment
-                                      //           .value
-                                      //           ?.name
-                                      //           .isEmpty ??
-                                      //       true) {
-                                      //     commonSnackBar(
-                                      //         message: 'Please select work type');
-                                      //
-                                      //     return;
-                                      //   }
-                                      //   if (specializationController
-                                      //       .text.isEmpty) {
-                                      //     commonSnackBar(
-                                      //         message:
-                                      //             'Please enter specialization');
-                                      //
-                                      //     return;
-                                      //   }
-                                      // }
-                                      // if (personalCreateProfileController
-                                      //         .selectedSelfEmployment.value ==
-                                      //     PRIVATE_JOB) {
-                                      //   if (sectorTextController.text.isEmpty) {
-                                      //     commonSnackBar(
-                                      //         message:
-                                      //             'Please enter your sector');
-                                      //
-                                      //     return;
-                                      //   }
-                                      // }
+
                                       String? designation;
                                       if (personalCreateProfileController
                                               .selectedProfession.value ==
@@ -1059,10 +962,7 @@ String? tempImgPath;
                                             OTHERS)
                                           ApiKeys.specilization:
                                               professionOthersController.text,
-                                        // ApiKeys.current_organisation:
-                                        //     organizationController.text.trim(),
-                                        // if (shouldShowField('skills'))
-                                        //   'skills': skillsController.text.trim(),
+
                                         if ((selectedProfession == POLITICIAN))
                                           'political_party':
                                               politicalPartyController.text

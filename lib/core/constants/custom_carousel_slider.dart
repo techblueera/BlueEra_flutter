@@ -106,19 +106,19 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
               final imageWidget = widget.isLocal
                   ? Image.asset(imagePath, fit: BoxFit.cover)
                   : CachedNetworkImage(
-                imageUrl: imagePath,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[200],
-                  child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.broken_image),
-                ),
-              );
+                      imageUrl: imagePath,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.broken_image),
+                      ),
+                    );
 
               return ClipRRect(
                 borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
@@ -128,28 +128,29 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
           ),
 
           // Dots indicator (overlayed at bottom)
-          Positioned(
-            bottom: 8,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(widget.imagePaths.length, (index) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                  width: _currentIndex == index ? 8 : 6,
-                  height: _currentIndex == index ? 8 : 6,
-                  decoration: BoxDecoration(
-                    color: _currentIndex == index
-                        ? widget.dotColor
-                        : widget.dotInactiveColor,
-                    shape: BoxShape.circle,
-                  ),
-                );
-              }),
+          if (widget.imagePaths.length > 1)
+            Positioned(
+              bottom: 8,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(widget.imagePaths.length, (index) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                    width: _currentIndex == index ? 8 : 6,
+                    height: _currentIndex == index ? 8 : 6,
+                    decoration: BoxDecoration(
+                      color: _currentIndex == index
+                          ? widget.dotColor
+                          : widget.dotInactiveColor,
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                }),
+              ),
             ),
-          ),
         ],
       ),
     );
