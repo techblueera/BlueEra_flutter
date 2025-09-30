@@ -17,17 +17,15 @@ import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/visiting_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
@@ -295,7 +293,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LocalAssets(imagePath: AppIconAssets.appIcon),
+            LocalAssets(imagePath: AppIconAssets.place_holder_image),
             const SizedBox(height: 8),
             const CustomText('Failed to load video'),
             const SizedBox(height: 16),
@@ -536,15 +534,15 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             )
           ],
           if (fullScreenShortController
-                  .videoItem?.video?.description?.isNotEmpty ??
+              .videoItem?.video?.description?.isNotEmpty ??
               false) ...[
             Container(
               child: Padding(
                 padding: EdgeInsets.only(right: SizeConfig.size40),
                 child: ExpandableText(
                   text:
-                      fullScreenShortController.videoItem?.video?.description ??
-                          '',
+                  fullScreenShortController.videoItem?.video?.description ??
+                      '',
                   style: TextStyle(
                       color: AppColors.white,
                       fontWeight: FontWeight.w500,
@@ -554,9 +552,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             ),
           ],
           if ((fullScreenShortController.videoItem?.channel?.id?.isNotEmpty ??
-                  false) &&
+              false) &&
               (fullScreenShortController
-                      .videoItem?.video?.acceptBookingsOrEnquiries ??
+                  .videoItem?.video?.acceptBookingsOrEnquiries ??
                   false)) ...[
             SizedBox(height: SizeConfig.size10),
             Row(
@@ -572,20 +570,20 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                     ),
                   ),
                   onPressed: () {
-                      if (isGuestUser()) {
-                        createProfileScreen();
-                      } else {
-                        Navigator.pushNamed(
-                          context,
-                          RouteHelper.sentEnquiresRoute(),
-                          arguments: {
-                            ApiKeys.channelId:
-                            fullScreenShortController.videoItem?.channel?.id,
-                            ApiKeys.videoId:
-                            fullScreenShortController.videoItem?.videoId,
-                          },
-                        );
-                      }
+                    if (isGuestUser()) {
+                      createProfileScreen();
+                    } else {
+                      Navigator.pushNamed(
+                        context,
+                        RouteHelper.sentEnquiresRoute(),
+                        arguments: {
+                          ApiKeys.channelId:
+                          fullScreenShortController.videoItem?.channel?.id,
+                          ApiKeys.videoId:
+                          fullScreenShortController.videoItem?.videoId,
+                        },
+                      );
+                    }
                   },
                   child: CustomText(
                     "Send Enquiry",
@@ -722,28 +720,28 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         RouteHelper.getChannelScreenRoute(),
         arguments: {
           ApiKeys.argAccountType:
-              fullScreenShortController.videoItem?.author?.accountType,
+          fullScreenShortController.videoItem?.author?.accountType,
           ApiKeys.channelId: fullScreenShortController.videoItem?.channel?.id,
           ApiKeys.authorId: fullScreenShortController.videoItem?.author?.id
         },
       );
     } else {
       if (fullScreenShortController.videoItem?.author?.accountType
-              ?.toUpperCase() ==
+          ?.toUpperCase() ==
           AppConstants.individual) {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
           navigatePushTo(context, PersonalProfileSetupScreen());
         } else {
-          Get.to(() => VisitProfileScreen(
-              authorId: fullScreenShortController.videoItem?.author?.id ?? ''));
+          Get.to(() => NewVisitProfileScreen(
+            authorId: fullScreenShortController.videoItem?.author?.id ?? '', screenFromName: AppConstants.feedScreen,));
         }
       } else {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfileNew(
-              businessId:
-                  fullScreenShortController.videoItem?.author?.id ?? ''));
+            businessId:
+            fullScreenShortController.videoItem?.author?.id ?? '', screenName:  AppConstants.feedScreen,));
         }
       }
     }
@@ -786,7 +784,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       builder: (context) => CommentBottomSheet(
         id: fullScreenShortController.videoItem?.video?.id ?? '0',
         totalComments:
-            fullScreenShortController.videoItem?.video?.stats?.comments ?? 0,
+        fullScreenShortController.videoItem?.video?.stats?.comments ?? 0,
         commentType: CommentType.video,
         onNewCommentCount: (int newCommentCount) {
           fullScreenShortController.comments.value = newCommentCount;
@@ -803,7 +801,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       ),
     );
   }
-   /// Simple, consistent share experience (like header_widget.dart)
+  /// Simple, consistent share experience (like header_widget.dart)
   Future<void> _shareVideoSimple() async {
     // Prevent multiple calls
     if (_isShortSharing) return;
