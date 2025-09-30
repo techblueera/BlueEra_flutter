@@ -162,6 +162,34 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> getProductsRepo(Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$getParticularRating",
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
+  // Get products API call
+  Future<ResponseModel> getProducts({
+    required String businessId,
+    bool isDraft = false,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$getOwnDraftedAndPublicProducts",
+      params: {
+        'businessId': businessId,
+        'DRAFT': isDraft,
+      },
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+
+  }
 
 
 

@@ -38,7 +38,6 @@ class PersonalProfileRepo extends BaseService {
   }
 
   Future<ResponseModel> getUserWithFollowersAndPostsCount(String? userId) async {
-    print('userIdnow:$userId');
     final response = await ApiBaseHelper().getHTTP(
       "$FollowersAndPostsCount/$userId",
       showProgress: false,

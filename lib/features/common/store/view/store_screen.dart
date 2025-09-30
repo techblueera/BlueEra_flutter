@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/store_search_suggestion/store_search_suggestion_screen.dart';
@@ -38,7 +37,7 @@ class StoreScreen extends StatefulWidget {
 
 class _StoreScreenState extends State<StoreScreen> {
   late StoreScreenController controller;
-  String? adUnitId;
+  // String? adUnitId;
 
   @override
   void initState() {
@@ -46,7 +45,7 @@ class _StoreScreenState extends State<StoreScreen> {
     controller = Get.put(StoreScreenController());
     apiCalling();
     controller.onHeaderVisibilityChanged = widget.onHeaderVisibilityChanged;
-    adUnitId = getNativeAdUnitId();
+    // adUnitId = getNativeAdUnitId();
   }
 
   @override
@@ -75,69 +74,57 @@ class _StoreScreenState extends State<StoreScreen> {
             children: [
               /// Main Scrollable Area with Dynamic Padding
 
-             AnimatedPadding(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
-                    padding: EdgeInsets.only(
-                        top: controller.isHeaderVisible.value
-                            ? controller.headerHeight.value
-                            : 0),
-                    child: SingleChildScrollView(
-                      controller: controller.scrollController,
-                      physics: AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size50),
-                          _buildSearchBar(),
-                          // SizedBox(height: SizeConfig.size20),
-                          // _buildPopularServicesSection(),
-                          // Transform.translate(
-                          //   offset: Offset(0, -20),
-                          //   // Negative offset to reduce space
-                          //   child: CustomImageSlideshow(
-                          //     isLoading: false,
-                          //     imagePaths: [
-                          //       AppImageAssets.dummy_burger_king,
-                          //       AppImageAssets.dummy_burger_king
-                          //     ],
-                          //     isLocal: true,
-                          //   ),
-                          // ),
-                          SizedBox(height: SizeConfig.size20),
+              AnimatedPadding(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                padding: EdgeInsets.only(
+                    top: controller.isHeaderVisible.value
+                        ? controller.headerHeight.value
+                        : 0),
+                child: SingleChildScrollView(
+                  controller: controller.scrollController,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: SizeConfig.size50),
+                      _buildSearchBar(),
 
+                      SizedBox(height: SizeConfig.size20),
+
+                      // ProductSlider(),
                       _buildStoresSection(
                           categoryName: "Stores", tagName: "store"),
-
-
-                     if(Platform.isAndroid)...[
-                       if(adUnitId!=null)...[
-                         SizedBox(height: SizeConfig.size20),
-                         ConstrainedBox(
-                           constraints: BoxConstraints(
-                             minHeight: SizeConfig.size370,
-                             maxHeight: SizeConfig.size450,
-                           ),
-                           child: Container(
-                             margin: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-                             decoration: BoxDecoration(
-                               color: AppColors.white,
-                               borderRadius: BorderRadius.circular(12),
-                               boxShadow: [
-                                 BoxShadow(
-                                   color: Colors.black.withValues(alpha: 0.1),
-                                   blurRadius: 8,
-                                   offset: Offset(0, 4),
-                                 ),
-                               ],
-                             ),
-                             child: NativeAdWidget(adUnitId: adUnitId!),
-                           ),
-                         ),
-                       ],
-                     ],
-
-                        SizedBox(height: SizeConfig.size20),
+///DO NOT DELETE THIS CODE....
+                /*      if (Platform.isAndroid) ...[
+                        if (adUnitId != null) ...[
+                          SizedBox(height: SizeConfig.size20),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: SizeConfig.size370,
+                              maxHeight: SizeConfig.size450,
+                            ),
+                            child: Container(
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.paddingM),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: NativeAdWidget(adUnitId: adUnitId!),
+                            ),
+                          ),
+                        ],
+                      ],
+*/
+                      SizedBox(height: SizeConfig.size20),
 
                       // Transform.translate(
                       //   offset: Offset(0, -20),
@@ -174,39 +161,38 @@ class _StoreScreenState extends State<StoreScreen> {
                       _buildStoresSection(
                           categoryName: "Services", tagName: "services"),
 
-
-                          if(Platform.isAndroid)...[
-                            if(adUnitId!=null)...[
-                              SizedBox(height: SizeConfig.size20),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: SizeConfig.size370,
-                                  maxHeight: SizeConfig.size450,
-                                ),
-                                child: Container(
-                                  margin: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.1),
-                                        blurRadius: 8,
-                                        offset: Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: NativeAdWidget(adUnitId: adUnitId!),
-                                ),
-                              ),
-                            ],
-                          ],
-
+                 /*     if (Platform.isAndroid) ...[
+                        if (adUnitId != null) ...[
                           SizedBox(height: SizeConfig.size20),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: SizeConfig.size370,
+                              maxHeight: SizeConfig.size450,
+                            ),
+                            child: Container(
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.paddingM),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: NativeAdWidget(adUnitId: adUnitId!),
+                            ),
+                          ),
+                        ],
+                      ],*/
 
+                      SizedBox(height: SizeConfig.size20),
 
-                        _buildStoresSection(
-                              categoryName: "Others", tagName: "others"),
+                      _buildStoresSection(
+                          categoryName: "Others", tagName: "others"),
                     ],
                   ),
                 ),
@@ -265,7 +251,10 @@ class _StoreScreenState extends State<StoreScreen> {
                 children: [
                   CustomText(
                     LocationService.userCurrentAddress.isNotEmpty
-                        ? LocationService.userCurrentAddress.take(3).where((e) => e.isNotEmpty).join(', ')
+                        ? LocationService.userCurrentAddress
+                            .take(3)
+                            .where((e) => e.isNotEmpty)
+                            .join(', ')
                         : "Get current location",
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w500,
@@ -326,7 +315,7 @@ class _StoreScreenState extends State<StoreScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomText(
-                      "Search in${LocationService.userCurrentAddress.isEmpty?"":LocationService.userCurrentAddress.last}",
+                      "Search in ${LocationService.userCurrentAddress.isNotEmpty && LocationService.userCurrentAddress[1].isNotEmpty ? LocationService.userCurrentAddress[1] : "your city.."}",
                       fontSize: SizeConfig.extraLarge,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
@@ -336,7 +325,9 @@ class _StoreScreenState extends State<StoreScreen> {
 
                     GestureDetector(
                       onTap: () {
-                        Get.to(() =>   BusinessChatProfile(userId: '',));
+                        Get.to(() => BusinessChatProfile(
+                              userId: '',
+                            ));
                         // Get.to(() =>   StoreSearchSuggestionScreen());
                       },
                       child: AbsorbPointer(
@@ -387,100 +378,6 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
-  Widget _buildPopularServicesSection() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(10),
-          topRight: Radius.circular(10),
-          bottomLeft: Radius.circular(10),
-          bottomRight: Radius.circular(10),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: SizeConfig.paddingM,
-          right: SizeConfig.paddingM,
-          top: SizeConfig.paddingL,
-          bottom: SizeConfig.size8,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CustomText(
-                  "Categories",
-                  fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.bold,
-                ),
-                // GestureDetector(
-                //   onTap: controller.onSeeAllCategories,
-                //   child: CustomText(
-                //     "See all",
-                //     fontSize: SizeConfig.medium,
-                //     fontWeight: FontWeight.w600,
-                //     color: Colors.blue,
-                //   ),
-                // ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size15),
-            Obx(() => SizedBox(
-                  height: 70,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.categories.length,
-                    itemBuilder: (context, index) {
-                      final category = controller.categories[index];
-                      return GestureDetector(
-                        onTap: () => controller.onCategoryTap(index),
-                        child: Container(
-                          width: 80,
-                          margin: EdgeInsets.only(
-                            right: index < controller.categories.length - 1
-                                ? SizeConfig.size12
-                                : 0,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              LocalAssets(
-                                imagePath: category["icon"] as String,
-                                imgColor: category["color"] as Color,
-                                height: SizeConfig.size32,
-                              ),
-                              SizedBox(height: SizeConfig.size8),
-                              CustomText(
-                                category["title"] as String,
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w500,
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                )),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildStoresSection({String? categoryName, String? tagName}) {
     return Column(
@@ -488,24 +385,10 @@ class _StoreScreenState extends State<StoreScreen> {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                categoryName,
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.bold,
-              ),
-              // GestureDetector(
-              //   onTap: controller.onSeeAllStores,
-              //   child: CustomText(
-              //     "See all",
-              //     fontSize: SizeConfig.medium,
-              //     fontWeight: FontWeight.w600,
-              //     color: Colors.blue,
-              //   ),
-              // ),
-            ],
+          child: CustomText(
+            categoryName,
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.bold,
           ),
         ),
         SizedBox(height: SizeConfig.size15),
@@ -513,20 +396,19 @@ class _StoreScreenState extends State<StoreScreen> {
           List<GetAllStoreResModel> tempStoreList = <GetAllStoreResModel>[];
           if (tagName == "services") {
             tempStoreList.addAll(controller.getAllStore
-                .where((data) =>
-                    data.typeOfBusiness?.toLowerCase() == "service")
+                .where(
+                    (data) => data.typeOfBusiness?.toLowerCase() == "service")
                 .toList());
           }
           if (tagName == "store") {
             tempStoreList.addAll(controller.getAllStore
-                .where((data) =>
-                    data.typeOfBusiness?.toLowerCase() == "product")
+                .where(
+                    (data) => data.typeOfBusiness?.toLowerCase() == "product")
                 .toList());
           }
-          if(tagName == "others") {
+          if (tagName == "others") {
             tempStoreList.addAll(controller.getAllStore
-                .where((data) =>
-                data.typeOfBusiness?.toLowerCase() == "both")
+                .where((data) => data.typeOfBusiness?.toLowerCase() == "both")
                 .toList());
           }
 
@@ -534,72 +416,72 @@ class _StoreScreenState extends State<StoreScreen> {
             height: 290,
             child: tempStoreList.isNotEmpty
                 ? ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding:
-              EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-              itemCount: tempStoreList.length,
-              itemBuilder: (context, index) {
-                GetAllStoreResModel storeData = tempStoreList[index];
-                return GestureDetector(
-                  onTap: () {
-                    if (businessId == storeData.id) {
-                      navigatePushTo(context, BusinessOwnProfileScreen());
-                    } else {
-                      Get.to(() =>
-
-                          VisitBusinessProfileNew(
-                              businessId: storeData.id ?? "", screenName:  AppConstants.feedScreen,));
-                    }
-                  },
-                  child: Container(
-                    width: 180,
-                    margin: EdgeInsets.only(
-                      right: index < tempStoreList.length - 1
-                          ? SizeConfig.size12
-                          : 0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Store Image
-
-                            (storeData.livePhotos?.isNotEmpty ?? false) ?
-                            CustomImageSlideshow(
-                              isLoading: false,
-                              width: double.infinity,
-                              height: 140,
-                              imagePaths: storeData.livePhotos!,
-                              isLocal: false,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                topRight: Radius.circular(12),
-                              ),
-                            )
-                                :  Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              topRight: Radius.circular(12),
-                            ),
-                            child: Image.network(
-                              storeData.logo ?? "",
-                              width: double.infinity,
-                              height: 140,
-                              fit: BoxFit.cover,
-                            ),
+                    scrollDirection: Axis.horizontal,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+                    itemCount: tempStoreList.length,
+                    itemBuilder: (context, index) {
+                      GetAllStoreResModel storeData = tempStoreList[index];
+                      return GestureDetector(
+                        onTap: () {
+                          if (businessId == storeData.id) {
+                            navigatePushTo(context, BusinessOwnProfileScreen());
+                          } else {
+                            Get.to(() => VisitBusinessProfileNew(
+                                  businessId: storeData.id ?? "",
+                                  screenName: AppConstants.feedScreen,
+                                ));
+                          }
+                        },
+                        child: Container(
+                          width: 180,
+                          margin: EdgeInsets.only(
+                            right: index < tempStoreList.length - 1
+                                ? SizeConfig.size12
+                                : 0,
                           ),
-                        ),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Store Image
+
+                              (storeData.livePhotos?.isNotEmpty ?? false)
+                                  ? CustomImageSlideshow(
+                                      isLoading: false,
+                                      width: double.infinity,
+                                      height: 140,
+                                      imagePaths: storeData.livePhotos!,
+                                      isLocal: false,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
+                                      ),
+                                    )
+                                  : Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(12),
+                                          topRight: Radius.circular(12),
+                                        ),
+                                        child: Image.network(
+                                          storeData.logo ?? "",
+                                          width: double.infinity,
+                                          height: 140,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
 
                               Expanded(
                                 child: Padding(
@@ -667,10 +549,14 @@ class _StoreScreenState extends State<StoreScreen> {
                                             color: AppColors.black,
                                           ),
                                           SizedBox(width: 4),
-                                          LocalAssets(imagePath: AppIconAssets.distanceLocation),
+                                          LocalAssets(
+                                              imagePath: AppIconAssets
+                                                  .distanceLocation),
                                           CustomText(
                                             (storeData.distance != null)
-                                                ? (storeData.distance as num).toDouble().toStringAsFixed(2)
+                                                ? (storeData.distance as num)
+                                                    .toDouble()
+                                                    .toStringAsFixed(2)
                                                 : '0.0',
                                             fontSize: SizeConfig.extraSmall,
                                             color: AppColors.black30,

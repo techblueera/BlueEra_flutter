@@ -120,7 +120,7 @@ class LocationService {
       } else {
         userCurrentAddress = [];
       }
-
+logs("userCurrentAddress=== ${userCurrentAddress}");
       return {
         "position": position,
         "address": userCurrentAddress,

@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+
 class PostResponse {
   final bool success;
   final String? message;
@@ -292,6 +294,7 @@ class Post {
   final String? quesOptions;
   final List<User>? taggedUsers;
   final List<String>? media;
+
   // final LocationMetadata? locationMetadata;
   final Poll? poll;
   final bool? isLiked;
@@ -302,7 +305,7 @@ class Post {
   final String? videoUrl;
   final String? thumbnail;
   final int? duration;
-  final dynamic channel;
+  final Channel? channel;
 
   Post({
     required this.id,
@@ -352,11 +355,12 @@ class Post {
       natureOfPost: json['nature_of_post'],
       referenceLink: json['reference_link'],
       // commentsCount: json['comments_count'],
-      commentsCount: int.tryParse(json['comments_count']?.toString() ?? '0') ?? 0,
-        likesCount: int.tryParse(json['likes_count']?.toString() ?? '0') ?? 0,
+      commentsCount:
+          int.tryParse(json['comments_count']?.toString() ?? '0') ?? 0,
+      likesCount: int.tryParse(json['likes_count']?.toString() ?? '0') ?? 0,
       repostCount: int.tryParse(json['repost_count']?.toString() ?? '0') ?? 0,
       viewsCount: int.tryParse(json['views_count']?.toString() ?? '0') ?? 0,
-        sharesCount: int.tryParse(json['shares_count']?.toString() ?? '0') ?? 0,
+      sharesCount: int.tryParse(json['shares_count']?.toString() ?? '0') ?? 0,
 
       totalEngagement: json['totalEngagement'],
       // quesOptions: json['quesOptions'],
@@ -369,8 +373,9 @@ class Post {
       // quesOptions: json['ques_options'] is List
       //     ? (json['ques_options'] as List).map((e) => e.toString()).toList()
       //     : null,
-      taggedUsers:
-          (json['tagged_users_details'] as List<dynamic>?)?.map((e) => User.fromJson(e as Map<String, dynamic>)).toList(),
+      taggedUsers: (json['tagged_users_details'] as List<dynamic>?)
+          ?.map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
       media: (json['media'] as List?)?.map((e) => e.toString()).toList(),
       // locationMetadata: json['location_metadata'] != null
       //     ? LocationMetadata.fromJson(json['location_metadata'])
@@ -385,7 +390,8 @@ class Post {
       videoUrl: json['video_url']?.toString().trim(),
       thumbnail: json['thumbnail']?.toString().trim(),
       duration: json['duration'],
-      channel: json['channel'],
+      channel: json['channel'] != null ? Channel.fromJson(json['channel']) : null,
+
     );
   }
 
@@ -423,7 +429,8 @@ class Post {
       'video_url': videoUrl,
       'thumbnail': thumbnail,
       'duration': duration,
-      'channel': channel,
+      'channel': channel?.toJson(),
+
     };
   }
 
@@ -454,10 +461,10 @@ class Post {
     bool? isPostSavedLocal,
     Song? song,
     int? visibilityDuration,
-     String? videoUrl,
-     String? thumbnail,
-     int? duration,
-     dynamic channel,
+    String? videoUrl,
+    String? thumbnail,
+    int? duration,
+    Channel? channel,
   }) {
     return Post(
       id: id ?? this.id,
@@ -486,6 +493,7 @@ class Post {
       user: user ?? this.user,
       isPostSavedLocal: isPostSavedLocal ?? this.isPostSavedLocal,
       song: song ?? this.song,
+      channel: channel ?? this.channel,
       visibilityDuration: visibilityDuration ?? this.visibilityDuration,
     );
   }
@@ -662,16 +670,10 @@ class CategoryDetails {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'name': name
-    };
+    return {'_id': id, 'name': name};
   }
 
-  CategoryDetails copyWith({
-     String? id,
-     String? name
-  }) {
+  CategoryDetails copyWith({String? id, String? name}) {
     return CategoryDetails(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -696,16 +698,10 @@ class SubCategoryDetails {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'name': name
-    };
+    return {'_id': id, 'name': name};
   }
 
-  SubCategoryDetails copyWith({
-    String? id,
-    String? name
-  }) {
+  SubCategoryDetails copyWith({String? id, String? name}) {
     return SubCategoryDetails(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -840,5 +836,3 @@ class Song {
     };
   }
 }
-
-

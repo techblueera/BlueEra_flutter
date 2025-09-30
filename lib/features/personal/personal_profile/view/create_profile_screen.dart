@@ -121,6 +121,29 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       isValidate: false,
                       title: "Location",
                       readOnly: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your location';
+                        }
+                        return null;
+                      },
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteHelper.getSearchLocationScreenRoute(),
+                          arguments: {
+                            'onPlaceSelected':
+                                (double? lat, double? lng, String? address) {
+                              if (address != null) {
+                                locationController.text = address;
+                                personalCreateProfileController
+                                    .setStartLocation(lat, lng, address);
+                              }
+                            },
+                            ApiKeys.fromScreen: ""
+                          },
+                        );
+                      },
                       // Make it read-only since we'll use the search screen
                     ),
                   ),
@@ -292,5 +315,4 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       ),
     );
   }
-
 }

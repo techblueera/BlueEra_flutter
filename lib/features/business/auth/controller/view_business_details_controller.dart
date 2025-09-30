@@ -1,19 +1,13 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/business/auth/model/view_business_profile_model_new.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/product_listing/models/product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:get/get.dart';
 
@@ -23,7 +17,6 @@ import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../common/reel/models/channel_model.dart';
-import '../../../common/reel/repo/channel_repo.dart';
 import '../model/AllSubCategoryDetailsModel.dart';
 import '../model/GetParticularReviewListModel.dart';
 import '../model/getAllProductDetailsModel.dart';
@@ -74,6 +67,8 @@ class ViewBusinessDetailsController extends GetxController {
   ApiResponse businessGetAllProductResponse = ApiResponse.initial('Initial');
   ApiResponse getParticularRatingResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> fetchVisitBusinessProductResponse =
+      ApiResponse.initial('Initial').obs;
 
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
@@ -138,6 +133,7 @@ class ViewBusinessDetailsController extends GetxController {
 
       await Future.wait([
         viewBusinessProfileById(businessID),
+        fetchProducts(businessID: businessID),
         // getBusinessRatingsSummary(businessID),
         // getBusinessDetailedRatings(businessID)
       ]);
@@ -183,7 +179,7 @@ class ViewBusinessDetailsController extends GetxController {
                         : BusinessType.Both;
         if (businessProfileDetails?.data?.typeOfBusiness ==
             BusinessType.Product.name) {
-          selectedTypeOfBusiness.value =  BusinessCategory(
+          selectedTypeOfBusiness.value = BusinessCategory(
             title: "Product Sales: Shop/Store/Showroom",
             subTitle:
                 "(e.g., Clothes, Electronics, Pharmacy, Toy, Beauty product)",
@@ -192,7 +188,7 @@ class ViewBusinessDetailsController extends GetxController {
           );
         } else if (businessProfileDetails?.data?.typeOfBusiness ==
             BusinessType.Service.name) {
-          selectedTypeOfBusiness.value =  BusinessCategory(
+          selectedTypeOfBusiness.value = BusinessCategory(
             title: "Service Provider: Education/Hospital/Hotel etc.",
             subTitle: "(Consulting Farm, Doctors, All Service providers)",
             icon: AppIconAssets.service_provider,
@@ -208,7 +204,7 @@ class ViewBusinessDetailsController extends GetxController {
             type: BusinessType.Food.name,
           );
         } else {
-          selectedTypeOfBusiness.value =   BusinessCategory(
+          selectedTypeOfBusiness.value = BusinessCategory(
             title: "Others: Manufacturing Unit/Industry/Factory",
             subTitle:
                 "If Your Business Is related to Manufacturing / create products Or other activity",
@@ -444,16 +440,19 @@ class ViewBusinessDetailsController extends GetxController {
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
         };
-        bool checkCompleted=await chatViewController.checkChatConnection(detas);
+        bool checkCompleted =
+            await chatViewController.checkChatConnection(detas);
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
 
-        conversationId.value =chatViewController
-            .newVisitContactApiResponse?.value?.data?.conversationId??'';
+        conversationId.value = chatViewController
+                .newVisitContactApiResponse?.value?.data?.conversationId ??
+            '';
         otherUserId?.value = chatViewController
-            .newVisitContactApiResponse?.value?.data?.otherUserId??'';
-        if(checkCompleted){
+                .newVisitContactApiResponse?.value?.data?.otherUserId ??
+            '';
+        if (checkCompleted) {
           viewBusinessResponseNew = ApiResponse.complete(responseModel);
         }
         visitingcontroller.isFollow.value =
@@ -639,32 +638,27 @@ class ViewBusinessDetailsController extends GetxController {
       return false;
     }
   }
-//
-// Future<void> getAllPostApi(
-//    ) async {
-//   final Map<String, dynamic> queryParams = {
-//     ApiKeys.page: 1,
-//     ApiKeys.limit:10,
-//     ApiKeys.filter: "latest"
-//   };
 
-//   // if (query == null) {
-//     queryParams[ApiKeys.refresh] = refresh;
-//   // }
+  // Fetch products from API
+  final RxList<ProductData> products = <ProductData>[].obs;
 
-//   try {
-//     ResponseModel response =
-//         await FeedRepo().getAllMyPosts(queryParams: queryParams);
-//         if(response.isSuccess){
-// postsResponse.value = ApiResponse.complete(response);
-//       final postResponse = PostResponse.fromJson(response.response?.data);
-//         }else{
-//            postsResponse.value = ApiResponse.error('error');
-//       commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-//         }
-//   } catch (e) {
-//       postsResponse.value = ApiResponse.error('error');
-//     commonSnackBar(message: AppStrings.somethingWentWrong);
-//   }
-// }
+  Future<void> fetchProducts({required String businessID}) async {
+    try {
+      products.clear();
+      errorMessage.value = '';
+      ResponseModel? responseModel =
+          await BusinessProfileRepo().getProducts(businessId: businessID);
+      ProductResponse getParticularReviewListModel =
+          ProductResponse.fromJson(responseModel.response?.data);
+      products.addAll(getParticularReviewListModel.data ?? []);
+      fetchVisitBusinessProductResponse.value =
+          ApiResponse.complete(responseModel);
+    } catch (e) {
+      fetchVisitBusinessProductResponse.value = ApiResponse.error("error");
+
+      errorMessage.value = e.toString();
+    } finally {}
+  }
+
+
 }
