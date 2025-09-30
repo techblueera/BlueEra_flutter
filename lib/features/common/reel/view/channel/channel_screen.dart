@@ -486,32 +486,26 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           SizedBox(height: SizeConfig.size8),
           if (!isOwnChannel) ...[
             SizedBox(height: SizeConfig.size8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: commonButtonWithIcon(
-                    height: SizeConfig.size36,
-                    onTap: () {
-                      if (isGuestUser()) {
-                        createProfileScreen();
-                        return;
-                      }
-                      channelController.followUnfollowChannel(
-                        channelId: widget.channelId,
-                        isFollowing: channelController.isChannelFollow.value,
-                      );
-                    },
-                    title: channelController.isChannelFollow.isTrue ? "Following" : "Follow",
-                    icon: AppIconAssets.personFollowIcon,
-                    iconColor: AppColors.white,
-                    bgColor: AppColors.primaryColor,
-                    isPrefix: false,
-                    radius: SizeConfig.size8,
-                  ),
-                ),
-              ],
-            ),
+            Obx(()=> commonButtonWithIcon(
+              height: SizeConfig.size36,
+              width: SizeConfig.screenWidth,
+              onTap: () {
+                if (isGuestUser()) {
+                  createProfileScreen();
+                  return;
+                }
+                channelController.followUnfollowChannel(
+                  channelId: widget.channelId,
+                  isFollowing: channelController.isChannelFollow.value,
+                );
+              },
+              title: channelController.isChannelFollow.isTrue ? "Following" : "Follow",
+              icon: AppIconAssets.personFollowIcon,
+              iconColor: AppColors.white,
+              bgColor: AppColors.primaryColor,
+              isPrefix: false,
+              radius: SizeConfig.size8,
+            )),
           ],
         ],
       ),
