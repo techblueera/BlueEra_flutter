@@ -21,7 +21,7 @@ class AppShadows {
     spreadRadius: 0,
   );
   static BoxShadow cardShadow =  BoxShadow(
-    color: AppColors.shadowColor.withOpacity(0.98),
+    color: AppColors.shadowColor.withValues(alpha: 0.98),
     offset: const Offset(0, 0.68),
     blurRadius: 1.37,
     spreadRadius: 0,

@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:flutter/material.dart';
@@ -29,18 +30,19 @@ class InventoryController extends GetxController {
   final List<String> productTab = ["All", "Live", 'Draft', 'Out Of Stock'];
   RxInt selectedProductIndex = 0.obs;
 
-  /// Search debounce timer
-  Timer? _searchDebounce;
-  final RxString searchProduct = ''.obs;
-  final RxBool ProductSearchLoading = false.obs;
-
   RxList<OwnProductData> allProducts = <OwnProductData>[].obs;
   RxList<OwnProductData> liveProducts = <OwnProductData>[].obs;
   RxList<OwnProductData> draftProducts = <OwnProductData>[].obs;
 
-  final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
+  // final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
   final int maxSelectionLimit = 10;
   final RxBool showErrorBanner = false.obs;
+
+  /// Search debounce timer
+  Timer? _searchDebounce;
+  final RxString searchProduct = ''.obs;
+  final RxBool ProductSearchLoading = false.obs;
+  RxList<Variants> searchProductVariants = <Variants>[].obs;
 
   @override
   void onInit() {
@@ -79,14 +81,15 @@ class InventoryController extends GetxController {
     try {
       isLoading.value = true;
 
-      Map<String, dynamic> queryParams= {};
+      Map<String, dynamic> params = {
+        ApiKeys.businessId: businessId,
+      };
+
       if(isDraftProduct!=null){
-        queryParams = {
-          'DRAFT': isDraftProduct
-        };
+        params['DRAFT'] = isDraftProduct;
       }
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(params: params);
       if (response.isSuccess) {
         ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel = GetOwnProductModel.fromJson(response.response!.data);
@@ -143,35 +146,76 @@ class InventoryController extends GetxController {
       searchProduct.value = keyword;
       ProductSearchLoading.value = true;
 
-      Map<String, dynamic> params = {
-        ApiKeys.name: keyword
-      };
+      Map<String, dynamic> params = { ApiKeys.name: keyword };
 
-      final responseModel = await InventoryRepo().fetchListOfSearchProductApi(queryParams: params);
+      final responseModel = await InventoryRepo().fetchInventoryBasedSearchProductApi(queryParams: params);
+
       if (responseModel.isSuccess) {
         searchProductResponse.value = ApiResponse.complete(responseModel);
-        // final getOwnProductModel = GetOwnProductModel.fromJson(responseModel.response!.data);
-        // List<ProductData> allProducts = getOwnProductModel.data;
-        //
-        // if()
-        //
-        // searchResults.clear();
-        // searchResults.assignAll(categoryData);
-        //
-        // /// set initially category id (If user didn't choose category itSelf)
-        // if(searchResults.isNotEmpty){
-        //   selectedCategoryId.value = searchResults[0].sId??'';
+
+        // Parse the API response
+        final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
+          responseModel.response?.data,
+        );
+
+        List<Variants> allVariants = [];
+
+        // 1️⃣ Variants from 'data'
+        for (var product in inventoryBasedSearchProductResponse.data) {
+          for (var inventory in product.inventories) {
+            allVariants.addAll(inventory.variants);
+          }
+        }
+
+        // 2️⃣ Wrap unUsedProduct into 'Variants'
+        for (var unusedProduct in inventoryBasedSearchProductResponse.unUsedProduct) {
+          final dummyVariant = Variants(
+            mediaRelatedToVarient: unusedProduct.media,
+            attributes: {}, // or map some attributes if needed
+            sku: '',
+            hsn: '',
+            batchNumber: '',
+            manufacteringDate: DateInfo(date: 0, month: 0, year: 0),
+            stock: true,
+            costPrice: 0,
+            sellingPrice: 0,
+            mrp: unusedProduct.mrpPerUnit,
+            varientIsActive: unusedProduct.isPublished,
+            createdAt: unusedProduct.createdAt,
+            updatedAt: unusedProduct.updatedAt,
+            product: unusedProduct,
+          );
+
+          allVariants.add(dummyVariant);
+        }
+
+        // Update the UI list
+        searchProductVariants.clear();
+        searchProductVariants.assignAll(allVariants);
+
+        print("Total variants including unused products: ${allVariants.length}");
+
+        // Extract all variants
+        // List<Variants> allVariants = [];
+        // for (var product in inventoryBasedSearchProductResponse.data) {
+        //   for (var inventory in product.inventories) {
+        //     allVariants.addAll(inventory.variants);
+        //   }
         // }
-        // else{
-        //   selectedCategoryId.value = otherCategoryId;
-        // }
+        //
+        // // Now you can use `allVariants` for your UI
+        // print("Total variants found: ${allVariants.length}");
+        //
+        // searchProductVariants.clear();
+        // searchProductVariants.assignAll(allVariants);
+
       } else {
         searchProductResponse.value = ApiResponse.error('error');
       }
 
-      // Replace this with your actual API call
       ProductSearchLoading.value = false;
-    } catch (e) {
+    } catch (e, s) {
+      print("stack trace: $s");
       searchProductResponse.value = ApiResponse.error('error');
       ProductSearchLoading.value = false;
     }
@@ -319,10 +363,10 @@ class InventoryController extends GetxController {
 
 
   void postProduct() {
-    if (selectedProducts.isEmpty) {
-      // Show error or validation
-      return;
-    }
+    // if (selectedProducts.isEmpty) {
+    //   // Show error or validation
+    //   return;
+    // }
 
     isLoading.value = true;
 

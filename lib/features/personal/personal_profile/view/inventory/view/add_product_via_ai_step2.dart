@@ -7,10 +7,10 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/category_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step1_section.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step2_section.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/listing_form_screen/widgets/step3_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/category_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/step1_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/step2_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/step3_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -71,7 +71,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     controller.productDescriptionController.text = widget.generateAiProductContent.description??'';
     controller.brandController.text = widget.generateAiProductContent.brand??'';
     controller.tags.value = widget.generateAiProductContent.tags??[];
-    controller.selectedCategory.value = widget.generateAiProductContent.amazonCategory??'';
     log('selectedCategory-- ${controller.selectedCategory.value}');
     List<String> features = widget.generateAiProductContent.features ?? [];
     if(features.isNotEmpty){
@@ -135,7 +134,10 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     log('Selected colors count: ${controller.selectedColors.length}');
     log('Dynamic attributes: ${controller.dynamicAttributes}');
 
-    setState(() {});
+    controller.selectedCategory.value = widget.generateAiProductContent.amazonCategory??'';
+    controller.performSearch(controller.selectedCategory.value);
+
+    // setState(() {});
 
   }
 

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/short_player_item.dart';
@@ -36,12 +37,10 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   late final PageController _pageController;
   int currentIndex = 0;
 
-  /* ------------- NEW: zero-lag cache ------------- */
   final _videoCache = <int, _VideoCacheEntry>{};
   static const int _maxCachedVideos = 3;
   static const double _swipeThreshold = 0.5;
   int _lastRoundedPage = 0;
-  /* ----------------------------------------------- */
 
   final InterstitialAdService _interstitialService = InterstitialAdService();
   String? adUnitId;
@@ -73,6 +72,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   void dispose() {
     print('🔴 DISPOSE: Starting disposal process...');
     WidgetsBinding.instance.removeObserver(this);
+    _releaseWakeLock();
 
     /* 1. Pause every cached controller first */
     print('🔇 DISPOSE: Pausing all cached controllers...');
@@ -110,6 +110,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       if (controller != null) {
         final wasPlaying = controller.value.isPlaying;
         controller.pause();
+        _releaseWakeLock();
         print('🔇 LIFECYCLE: Paused video at index $currentIndex (was playing: $wasPlaying)');
       }
     } else if (state == AppLifecycleState.resumed) {
@@ -117,10 +118,23 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         final controller = _videoCache[currentIndex]?.controller;
         if (controller != null) {
           controller.play();
+          _acquireWakeLock();
           print('▶️ LIFECYCLE: Resumed video at index $currentIndex');
         }
       }
     }
+  }
+
+  Future<void> _acquireWakeLock() async {
+    if (!mounted) return;
+    await ScreenService.keepOn();
+    print('🔒 WAKE-LOCK acquired');
+  }
+
+  Future<void> _releaseWakeLock() async {
+    if (!mounted) return;
+    await ScreenService.keepOff();
+    print('🔓 WAKE-LOCK released');
   }
 
   /* --------------  NEW : half-page swipe  -------------- */
@@ -338,13 +352,16 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
     if (pausedIndices.isNotEmpty) {
       print('🔇 PAGE_CHANGE: Paused controllers at indices: $pausedIndices');
+      _releaseWakeLock();
     }
 
     /* play current */
     final currentController = _videoCache[index]?.controller;
     if (currentController != null) {
       currentController.play();
-      print('▶️ PAGE_CHANGE: Started playing controller at index $index (${currentController.hashCode})');
+      print('▶️ PAGE_CHANGE: Started playing controller at index '
+          '$index (${currentController.hashCode})');
+      _acquireWakeLock();
     } else {
       print('⚠️ PAGE_CHANGE: No controller found for index $index');
     }
@@ -383,6 +400,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (currentController != null) {
       final wasPlaying = currentController.value.isPlaying;
       currentController.pause();
+      _releaseWakeLock();
       print('🔇 BACK_PRESSED: Paused current video at index $currentIndex (was playing: $wasPlaying)');
     } else {
       print('⚠️ BACK_PRESSED: No controller found for current index $currentIndex');
@@ -411,7 +429,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   Widget build(BuildContext context) {
     return PopScope(
       child: PopScope(
-        onPopInvoked: (_) => _onPop(),
+        onPopInvokedWithResult: (_, __) => _onPop(),
         child: Scaffold(
           backgroundColor: AppColors.black,
           body: Stack(

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/widgets/intertitial_ad_service.dart';
 import 'package:chewie/chewie.dart';
@@ -163,18 +164,21 @@ class SingleVideoPlayerController extends GetxController {
       isVideoInitialized.value = true;
       isVideoLoading.value = false;
 
-      // Handle ads or autoplay
-      if (Platform.isAndroid && showAd) {
-        await _handleInterstitialAd(
-          onAdShow: onAdShow,
-          onAdClosed: () {
-            if (!_isClosed && _videoPlayerController != null) play();
-            onAdClosed?.call();
-          },
-        );
-      } else if (autoPlay) {
-        play();
-      }
+      // 🔹 Enable screen awake
+      await ScreenService.keepOn();
+
+      // // Handle ads or autoplay
+      // if (Platform.isAndroid && showAd) {
+      //   await _handleInterstitialAd(
+      //     onAdShow: onAdShow,
+      //     onAdClosed: () {
+      //       if (!_isClosed && _videoPlayerController != null) play();
+      //       onAdClosed?.call();
+      //     },
+      //   );
+      // } else if (autoPlay) {
+      //   play();
+      // }
 
       log('Video initialized successfully');
     } catch (e) {

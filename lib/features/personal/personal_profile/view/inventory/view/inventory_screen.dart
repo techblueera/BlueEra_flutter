@@ -5,6 +5,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_category_folder_screen/add_category_folder_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
@@ -38,6 +39,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   @override
   void dispose() {
+    Get.delete<AddProductViaAiController>();
+    Get.delete<InventoryController>();
     _tabController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -175,7 +178,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             borderRadius: BorderRadius.circular(SizeConfig.size8),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withOpacity(0.05),
+                color: AppColors.black.withValues(alpha: 0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -314,7 +317,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         borderRadius: BorderRadius.circular(SizeConfig.size8),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -607,7 +610,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
     if (result != null) {
       if (result.toUpperCase() == "ADD PRODUCT") {
-        Get.toNamed(RouteHelper.getAddProductScreenRoute());
+        await Get.toNamed(RouteHelper.getAddProductScreenRoute());
+        controller.callApi();
       }else if(result.toUpperCase() == "ADD SERVICE"){
         Get.toNamed(RouteHelper.getAddServicesScreenRoute());
       }else if(result.toUpperCase() =="ADD FOOD"){

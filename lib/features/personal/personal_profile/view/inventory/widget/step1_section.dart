@@ -14,7 +14,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
-import '../listing_form_screen_controller.dart';
 
 class Step1Section extends StatefulWidget {
   final AddProductViaAiController controller;
@@ -395,7 +394,7 @@ class _Step1SectionState extends State<Step1Section> {
         const SizedBox(height: 12),
         Obx(()=> Wrap(
           spacing: 8,
-          runSpacing: 2,
+          runSpacing: 8,
           children: controller.tags.map((tag) {
             return Chip(
               label: Text(tag),

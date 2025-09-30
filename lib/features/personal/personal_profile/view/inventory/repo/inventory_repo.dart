@@ -2,7 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
-class InventoryRepo extends BaseService{
+class InventoryRepo extends BaseService {
 
   ///Add Product...
   Future<ResponseModel> addService({required Map<String, dynamic> params}) async {
@@ -29,10 +29,10 @@ class InventoryRepo extends BaseService{
   }
 
   ///Get Own Products...
-  Future<ResponseModel> fetchOwnDraftedAndPublicProductsApi({required Map<String, dynamic> queryParams}) async {
-    final response = await ApiBaseHelper().getHTTP(
+  Future<ResponseModel> fetchOwnDraftedAndPublicProductsApi({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
       getOwnDraftedAndPublicProducts,
-      params: queryParams,
+      params: params,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -41,9 +41,9 @@ class InventoryRepo extends BaseService{
   }
 
   ///Get Own Products...
-  Future<ResponseModel> fetchListOfSearchProductApi({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> fetchInventoryBasedSearchProductApi({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      getListOfSearchProduct,
+      getInventoryBasedSearchProduct,
       params: queryParams,
       showProgress: false,
       onError: (error) {},

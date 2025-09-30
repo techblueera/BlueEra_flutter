@@ -128,7 +128,8 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
           ),
 
           // Dots indicator (overlayed at bottom)
-          Positioned(
+          (widget.imagePaths.length > 1)
+              ? Positioned(
             bottom: 8,
             left: 0,
             right: 0,
@@ -149,7 +150,8 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
                 );
               }),
             ),
-          ),
+          )
+              : SizedBox(),
         ],
       ),
     );

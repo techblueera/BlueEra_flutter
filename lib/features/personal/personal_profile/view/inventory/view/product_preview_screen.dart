@@ -1,12 +1,15 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -14,6 +17,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../model/get_own_product_model.dart';
 
@@ -74,7 +78,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     : [],
                 name: '${widget.productData?.product.details?.name}  ${ variant.attributes.values.map((v) => v.toString()).join()}',
                 selectedVariants: variant.attributes
-                    .map((key, value) => MapEntry(key, value.toString())),
+                    .map((key, value) => MapEntry(key, value)),
                 price: variant.sellingPrice.toString(),
                 mrp: variant.mrp.toString(),
                 discount: variant.mrp > 0
@@ -90,6 +94,12 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
     }
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    Get.delete<AddProductViaAiController>();
+    super.dispose();
   }
 
   void handleBackPress(BuildContext context) async {
@@ -141,7 +151,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     Container(
                       height: SizeConfig.size350,
                       color: AppColors.white,
-                      child: Stack(
+                      child: Obx(()=>     Stack(
                         alignment: Alignment.bottomCenter,
                         children: [
                           CarouselSlider.builder(
@@ -181,7 +191,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                             },
                           ),
 
-                          Positioned(
+                          (controller.allProductsImages.length > 1)
+                              ? Positioned(
                             bottom: 8,
                             left: 0,
                             right: 0,
@@ -202,9 +213,11 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                                 );
                               }),
                             ),
-                          ),
+                          ) : SizedBox(),
                         ],
-                      ),
+                       ),
+                      )
+
                     ),
                     Positioned(
                       top: 15,
@@ -228,6 +241,10 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     ),
                   ],
                 ),
+
+                 if(widget.productData!=null)
+                    if(controller.listedProducts.isNotEmpty)
+                   _buildListedProducts(),
 
                 CustomFormCard(
                   margin: EdgeInsets.all(SizeConfig.size15),
@@ -294,15 +311,15 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       _buildExpandableSection(title: 'Pricing & Warranty', content: _buildPricingAndWarrantyContent()),
 
                       if(widget.productData==null)
-                      _buildExpandableSection(title: 'Variant', content: _buildProductVariantContent())
-                      else
-                      _buildListedProducts(),
+                      _buildExpandableSection(title: 'Variant', content: _buildProductVariantContent()),
+
 
                       SizedBox(height: SizeConfig.size20),
 
+                      if(widget.productData==null)
                       /// Submit
                       CustomBtn(
-                        title: 'Create More Variant  - Start Selling',
+                        title: 'Create Variant  - Start Selling',
                         onTap: (){
 
                           if(widget.productData==null) {
@@ -836,221 +853,541 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   }
 
   Widget _buildListedProducts() {
-    final Map<int, int> _currentIndices = {};
-    final Map<int, CarouselSliderController> _controllers = {};
-
-    return  Obx(()=>
-    controller.listedProducts.isNotEmpty ?
-    CustomFormCard(
-      margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+    return CustomFormCard(
+      margin: EdgeInsets.only(
+          left: SizeConfig.size15,
+          right: SizeConfig.size15,
+          top: SizeConfig.size15,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Listing',
-            fontWeight: FontWeight.bold,
+            'Listed Variants',
             fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
           ),
           SizedBox(height: SizeConfig.size10),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: controller.listedProducts.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, productIndex) {
-              final product = controller.listedProducts[productIndex];
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = 2;
+              final crossSpacing = 6.0;
+              final mainSpacing = 6.0;
 
-              // init default values
-              _currentIndices.putIfAbsent(productIndex, () => 0);
-              _controllers.putIfAbsent(productIndex, () => CarouselSliderController());
+              final itemWidth =
+                  (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
+                      crossAxisCount;
 
-              return Container(
-                margin: EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                    color: AppColors.whiteFE,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppColors.whiteE5,
-                    )
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: Stack(
-                        children: [
-                          CarouselSlider.builder(
-                            carouselController: _controllers[productIndex],
-                            itemCount: product.image.length,
-                            options: CarouselOptions(
-                              height: 120,
-                              viewportFraction: 1.0,
-                              enlargeCenterPage: false,
-                              enableInfiniteScroll: false,
-                              onPageChanged: (index, reason) {
-                                setState(() {
-                                  _currentIndices[productIndex] = index;
-                                });
-                              },
-                            ),
-                            itemBuilder: (context, imgIndex, realIdx) {
-                              return ClipRRect(
-                                borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
-                                child: CachedNetworkImage(
-                                  imageUrl: product.image[imgIndex],
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    color: Colors.grey[200],
-                                    child: const Center(
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
-                                    color: Colors.grey[200],
-                                    child: const Icon(Icons.broken_image),
-                                  ),
-                                ),
-                              );
-                            },
-
-                          ),
-
-                          Positioned(
-                            bottom: 6,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(product.image.length, (dotIndex) {
-                                final isActive = _currentIndices[productIndex] == dotIndex;
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  margin: const EdgeInsets.symmetric(horizontal: 3.0),
-                                  width: isActive ? 8 : 6,
-                                  height: isActive ? 8 : 6,
-                                  decoration: BoxDecoration(
-                                    color: isActive ? AppColors.primaryColor : Colors.grey,
-                                    shape: BoxShape.circle,
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-
-                    // ClipRRect(
-                    //   borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-                    //   child: Container(
-                    //     color: AppColors.whiteF1,
-                    //     child: Image.file(
-                    //       File(product.image[0]),
-                    //       width: 120,
-                    //       height: 120,
-                    //       fit: BoxFit.cover,
-                    //     ),
-                    //   ),
-                    // ),
-
-                    SizedBox(width: 12),
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              product.name,
-                              fontWeight: FontWeight.bold,
-                              fontSize: SizeConfig.large,
-                              color: AppColors.mainTextColor,
-                            ),
-                            SizedBox(height: 8),
-
-                            Row(
-                              children: [
-                                CustomText(
-                                  '₹${product.price}',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: SizeConfig.large,
-                                  color: AppColors.mainTextColor,
-                                ),
-                                SizedBox(width: 8),
-                                CustomText(
-                                  '₹${product.mrp}',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.secondaryTextColor,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                                SizedBox(width: 8),
-                                CustomText(
-                                  '${product.discount}% off',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: SizeConfig.medium,
-                                  color: Colors.green,
-                                ),
-                              ],
-                            )
-
-                            // product.discount != null
-                            //     ? Row(
-                            //   children: [
-                            //     CustomText(
-                            //       '₹${product.price}',
-                            //       fontWeight: FontWeight.bold,
-                            //       fontSize: SizeConfig.large,
-                            //       color: AppColors.mainTextColor,
-                            //     ),
-                            //     SizedBox(width: 8),
-                            //     CustomText(
-                            //       '₹${product.mrp}',
-                            //       fontWeight: FontWeight.bold,
-                            //       fontSize: SizeConfig.medium,
-                            //       color: AppColors.secondaryTextColor,
-                            //       decoration: TextDecoration.lineThrough,
-                            //     ),
-                            //     SizedBox(width: 8),
-                            //     CustomText(
-                            //       '${product.discount}% off',
-                            //       fontWeight: FontWeight.bold,
-                            //       fontSize: SizeConfig.medium,
-                            //       color: Colors.green,
-                            //     ),
-                            //   ],
-                            // ) : Row(
-                            //   children: [
-                            //     CustomText(
-                            //       '₹${product.minPrice}-${product.maxPrice}',
-                            //       fontWeight: FontWeight.bold,
-                            //       fontSize: SizeConfig.large,
-                            //       color: AppColors.secondaryTextColor
-                            //     )
-                            //   ],
-                            // ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              return MasonryGridView.count(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossSpacing,
+                mainAxisSpacing: mainSpacing,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: controller.listedProducts.length,
+                itemBuilder: (context, index) {
+                  final product =  controller.listedProducts[index];
+                  return ProductCard(
+                    product,
+                    width: itemWidth,
+                    index: index
+                  );
+                },
               );
             },
           ),
         ],
       ),
-    )
-        : SizedBox()
+    );
+
+    // final Map<int, int> _currentIndices = {};
+    // final Map<int, CarouselSliderController> _controllers = {};
+    //
+    // return  Obx(()=>
+    // controller.listedProducts.isNotEmpty ?
+    // CustomFormCard(
+    //   margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+    //   child: Column(
+    //     crossAxisAlignment: CrossAxisAlignment.start,
+    //     children: [
+    //       CustomText(
+    //         'Listing',
+    //         fontWeight: FontWeight.bold,
+    //         fontSize: SizeConfig.large,
+    //         color: AppColors.mainTextColor,
+    //       ),
+    //       SizedBox(height: SizeConfig.size10),
+    //       ListView.builder(
+    //         shrinkWrap: true,
+    //         itemCount: controller.listedProducts.length,
+    //         physics: NeverScrollableScrollPhysics(),
+    //         itemBuilder: (context, productIndex) {
+    //           final product = controller.listedProducts[productIndex];
+    //
+    //           // init default values
+    //           _currentIndices.putIfAbsent(productIndex, () => 0);
+    //           _controllers.putIfAbsent(productIndex, () => CarouselSliderController());
+    //
+    //           return Container(
+    //             margin: EdgeInsets.only(bottom: 16),
+    //             decoration: BoxDecoration(
+    //                 color: AppColors.whiteFE,
+    //                 borderRadius: BorderRadius.circular(10),
+    //                 border: Border.all(
+    //                   color: AppColors.whiteE5,
+    //                 )
+    //             ),
+    //             child: Row(
+    //               crossAxisAlignment: CrossAxisAlignment.start,
+    //               children: [
+    //
+    //                 SizedBox(
+    //                   width: 120,
+    //                   height: 120,
+    //                   child: Stack(
+    //                     children: [
+    //                       CarouselSlider.builder(
+    //                         carouselController: _controllers[productIndex],
+    //                         itemCount: product.image.length,
+    //                         options: CarouselOptions(
+    //                           height: 120,
+    //                           viewportFraction: 1.0,
+    //                           enlargeCenterPage: false,
+    //                           enableInfiniteScroll: false,
+    //                           onPageChanged: (index, reason) {
+    //                             setState(() {
+    //                               _currentIndices[productIndex] = index;
+    //                             });
+    //                           },
+    //                         ),
+    //                         itemBuilder: (context, imgIndex, realIdx) {
+    //                           return ClipRRect(
+    //                             borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
+    //                             child: CachedNetworkImage(
+    //                               imageUrl: product.image[imgIndex],
+    //                               width: 120,
+    //                               height: 120,
+    //                               fit: BoxFit.cover,
+    //                               placeholder: (context, url) => Container(
+    //                                 color: Colors.grey[200],
+    //                                 child: const Center(
+    //                                   child: CircularProgressIndicator(strokeWidth: 2),
+    //                                 ),
+    //                               ),
+    //                               errorWidget: (context, url, error) => Container(
+    //                                 color: Colors.grey[200],
+    //                                 child: const Icon(Icons.broken_image),
+    //                               ),
+    //                             ),
+    //                           );
+    //                         },
+    //
+    //                       ),
+    //
+    //                       Positioned(
+    //                         bottom: 6,
+    //                         left: 0,
+    //                         right: 0,
+    //                         child: Row(
+    //                           mainAxisAlignment: MainAxisAlignment.center,
+    //                           children: List.generate(product.image.length, (dotIndex) {
+    //                             final isActive = _currentIndices[productIndex] == dotIndex;
+    //                             return AnimatedContainer(
+    //                               duration: const Duration(milliseconds: 300),
+    //                               margin: const EdgeInsets.symmetric(horizontal: 3.0),
+    //                               width: isActive ? 8 : 6,
+    //                               height: isActive ? 8 : 6,
+    //                               decoration: BoxDecoration(
+    //                                 color: isActive ? AppColors.primaryColor : Colors.grey,
+    //                                 shape: BoxShape.circle,
+    //                               ),
+    //                             );
+    //                           }),
+    //                         ),
+    //                       ),
+    //                     ],
+    //                   ),
+    //                 ),
+    //
+    //
+    //                 // ClipRRect(
+    //                 //   borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
+    //                 //   child: Container(
+    //                 //     color: AppColors.whiteF1,
+    //                 //     child: Image.file(
+    //                 //       File(product.image[0]),
+    //                 //       width: 120,
+    //                 //       height: 120,
+    //                 //       fit: BoxFit.cover,
+    //                 //     ),
+    //                 //   ),
+    //                 // ),
+    //
+    //                 SizedBox(width: 12),
+    //                 Flexible(
+    //                   child: Padding(
+    //                     padding: const EdgeInsets.symmetric(vertical: 8),
+    //                     child: Column(
+    //                       crossAxisAlignment: CrossAxisAlignment.start,
+    //                       mainAxisAlignment: MainAxisAlignment.start,
+    //                       children: [
+    //                         CustomText(
+    //                           product.name,
+    //                           fontWeight: FontWeight.bold,
+    //                           fontSize: SizeConfig.large,
+    //                           color: AppColors.mainTextColor,
+    //                         ),
+    //                         SizedBox(height: 8),
+    //
+    //                         Row(
+    //                           children: [
+    //                             CustomText(
+    //                               '₹${product.price}',
+    //                               fontWeight: FontWeight.bold,
+    //                               fontSize: SizeConfig.large,
+    //                               color: AppColors.mainTextColor,
+    //                             ),
+    //                             SizedBox(width: 8),
+    //                             CustomText(
+    //                               '₹${product.mrp}',
+    //                               fontWeight: FontWeight.bold,
+    //                               fontSize: SizeConfig.medium,
+    //                               color: AppColors.secondaryTextColor,
+    //                               decoration: TextDecoration.lineThrough,
+    //                             ),
+    //                             SizedBox(width: 8),
+    //                             CustomText(
+    //                               '${product.discount}% off',
+    //                               fontWeight: FontWeight.bold,
+    //                               fontSize: SizeConfig.medium,
+    //                               color: Colors.green,
+    //                             ),
+    //                           ],
+    //                         )
+    //
+    //                         // product.discount != null
+    //                         //     ? Row(
+    //                         //   children: [
+    //                         //     CustomText(
+    //                         //       '₹${product.price}',
+    //                         //       fontWeight: FontWeight.bold,
+    //                         //       fontSize: SizeConfig.large,
+    //                         //       color: AppColors.mainTextColor,
+    //                         //     ),
+    //                         //     SizedBox(width: 8),
+    //                         //     CustomText(
+    //                         //       '₹${product.mrp}',
+    //                         //       fontWeight: FontWeight.bold,
+    //                         //       fontSize: SizeConfig.medium,
+    //                         //       color: AppColors.secondaryTextColor,
+    //                         //       decoration: TextDecoration.lineThrough,
+    //                         //     ),
+    //                         //     SizedBox(width: 8),
+    //                         //     CustomText(
+    //                         //       '${product.discount}% off',
+    //                         //       fontWeight: FontWeight.bold,
+    //                         //       fontSize: SizeConfig.medium,
+    //                         //       color: Colors.green,
+    //                         //     ),
+    //                         //   ],
+    //                         // ) : Row(
+    //                         //   children: [
+    //                         //     CustomText(
+    //                         //       '₹${product.minPrice}-${product.maxPrice}',
+    //                         //       fontWeight: FontWeight.bold,
+    //                         //       fontSize: SizeConfig.large,
+    //                         //       color: AppColors.secondaryTextColor
+    //                         //     )
+    //                         //   ],
+    //                         // ),
+    //                       ],
+    //                     ),
+    //                   ),
+    //                 ),
+    //               ],
+    //             ),
+    //           );
+    //         },
+    //       ),
+    //     ],
+    //   ),
+    // )
+    //     : SizedBox()
+    // );
+  }
+
+  Widget ProductCard(
+      ProductListing product,
+     {
+        required double width,
+       required int index,
+     }) {
+    return Obx(() {
+      final isSelected = controller.selectedVariantIndex.value == index;
+
+      return GestureDetector(
+        onTap: () {
+          // Toggle selection
+          if (isSelected) {
+            controller.selectedVariantIndex.value = -1; // unselect
+            controller.allProductsImages.value = widget.productData?.product.details?.media??[];
+          } else {
+            controller.selectedVariantIndex.value = index; // select
+            controller.allProductsImages.value = product.image; // variant photo
+          }
+        },
+        child: Container(
+          width: width,
+          decoration: BoxDecoration(
+            color: AppColors.whiteFE,
+            boxShadow: isSelected ? null : [AppShadows.cardShadow],
+            borderRadius:  BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? AppColors.primaryColor : Colors.transparent,
+              width: 1.5
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              AspectRatio(
+                aspectRatio: 1.2, // square-ish image (adjust if needed)
+                child: Stack(
+                  children: [
+                    CustomImageSlideshow(
+                      isLoading: false,
+                      width: double.infinity,
+                      height: double.infinity,
+                      imagePaths: product.image,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _buildIconBox(
+                          InkWell(
+                              onTap: ()=> showSelectedVariantsDialog(context, product.selectedVariants),
+                              child: Icon(Icons.remove_red_eye_outlined, color: Colors.white, size: 16))
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Product Details
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    CustomText(
+                      product.name,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.mainTextColor,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Price Row
+                    Row(
+                      children: [
+                        CustomText(
+                          '₹${product.price}',
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                        ),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          ' ₹${product.mrp}',
+                          fontSize: SizeConfig.small11,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w400,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                        CustomText(
+                          ' ${product.discount}% off',
+                          fontSize: SizeConfig.small11,
+                          color: Colors.green[600],
+                          fontWeight: FontWeight.w400,
+                        ),
+
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Status
+                    CustomText(
+                      'Active Products',
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.small11,
+                      color: AppColors.primaryColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+
+  }
+
+  Widget _buildIconBox(Widget child) {
+    return Container(
+      height: 25,
+      width: 25,
+      decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.5),
+          shape: BoxShape.circle,
+          boxShadow: [AppShadows.textFieldShadow]
+      ),
+      alignment: Alignment.center,
+      child: child,
     );
   }
+
+
+  void showSelectedVariantsDialog(BuildContext context, Map<String, dynamic>? selectedVariants) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.only(
+                top: 8.0,
+                left: 16.0,
+                right: 16.0,
+                bottom: 16.0
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                Row(
+                  children: [
+                    Expanded(
+                      child: const Text(
+                        "Selected Variants",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size5),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Variants list
+                if (selectedVariants != null && selectedVariants.isNotEmpty)
+                  buildVariantsList(selectedVariants)
+                else
+                  const Text(
+                    "No variants selected",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildVariantRow(String key, dynamic value) {
+    // Handle color variant specially
+    if (key == 'color' && value is Map<String, dynamic>) {
+      final color = SelectedColor.fromJson(value);
+
+      return Row(
+        children: [
+          CustomText(
+            "$key : ",
+            fontSize: SizeConfig.large,
+          ),
+          CustomText(
+            color.name,
+            fontSize: SizeConfig.medium,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w500,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 6),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color.color,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.greyE5, width: 2.0),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Default text-only variant
+    return Row(
+      children: [
+        CustomText(
+          "$key : ",
+          fontSize: SizeConfig.large,
+        ),
+        CustomText(
+          "$value",
+          fontSize: SizeConfig.medium,
+          color: AppColors.primaryColor,
+          fontWeight: FontWeight.w500,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+
+  Widget buildVariantsList(Map<String, dynamic> selectedVariants) {
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: selectedVariants.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle,
+                      color: Colors.blue, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildVariantRow(entry.key, entry.value)),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
 
 
 }
