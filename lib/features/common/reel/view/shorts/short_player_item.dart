@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
-import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -34,28 +32,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
-
-import 'dart:async';
-import 'dart:ui';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
-import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
-import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
-import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:video_player/video_player.dart';
 
 class ShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -203,11 +179,22 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         ),
       );
     }
+    // return GestureDetector(
+    //   onTap: _onVideoTap,
+    //   child: AspectRatio(
+    //     aspectRatio: _controller?.value.aspectRatio ?? 9 / 16,
+    //     child: VideoPlayer(_controller!),
+    //   ),
+    // );
     return GestureDetector(
       onTap: _onVideoTap,
-      child: AspectRatio(
-        aspectRatio: _controller?.value.aspectRatio ?? 9 / 16,
-        child: VideoPlayer(_controller!),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: SizedBox(
+          width: _controller?.value.size.width,
+          height: _controller?.value.size.height,
+          child: VideoPlayer(_controller!),
+        ),
       ),
     );
   }
@@ -278,7 +265,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         fullScreenShortController.videoItem?.video?.stats?.likes ?? 0;
     fullScreenShortController.comments.value =
         fullScreenShortController.videoItem?.video?.stats?.comments ?? 0;
-
   }
 
   /* public control methods */
@@ -845,6 +831,27 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
 }
 
+// import 'dart:async';
+// import 'dart:ui';
+// import 'package:BlueEra/core/constants/app_colors.dart';
+// import 'package:BlueEra/core/constants/app_constant.dart';
+// import 'package:BlueEra/core/constants/app_icon_assets.dart';
+// import 'package:BlueEra/core/constants/common_methods.dart';
+// import 'package:BlueEra/core/constants/size_config.dart';
+// import 'package:BlueEra/core/routes/route_helper.dart';
+// import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
+// import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
+// import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
+// import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+// import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+// import 'package:BlueEra/widgets/custom_text_cm.dart';
+// import 'package:BlueEra/widgets/expandable_text.dart';
+// import 'package:BlueEra/widgets/local_assets.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+// import 'package:share_plus/share_plus.dart';
+// import 'package:video_player/video_player.dart';
 
 // import 'dart:async';
 // import 'dart:io';
