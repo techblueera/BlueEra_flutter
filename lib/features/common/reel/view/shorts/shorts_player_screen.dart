@@ -2,15 +2,12 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/short_player_item.dart';
 import 'package:BlueEra/widgets/intertitial_ad_service.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -205,6 +202,18 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
             item.video?.videoUrl ??
             ''),
       );
+
+      // Set looping
+      controller.setLooping(true);
+
+      // Optional listener if you need logs
+      controller.addListener(() {
+        if (controller.value.isInitialized &&
+            controller.value.position >= controller.value.duration) {
+          print('🔁 VIDEO: Looping video at index $i');
+        }
+      });
+
       _videoCache[i] = _VideoCacheEntry(
         controller: controller,
         initializeFuture: controller.initialize(),

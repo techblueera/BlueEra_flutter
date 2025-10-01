@@ -240,8 +240,7 @@ class InventoryController extends GetxController {
           description: 'Yorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
           productCount: 12,
           imageUrl: 'assets/images/shoes.png',
-          status: 'Active',
-          createdAt: DateTime.now().subtract(const Duration(days: 3)),
+          status: 'Active', createdAt: DateTime.now().subtract(const Duration(days: 3)),
         ),
         CategoryInventoryModel(
           id: '3',

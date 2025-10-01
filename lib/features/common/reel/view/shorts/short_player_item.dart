@@ -18,6 +18,7 @@ import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -175,24 +176,35 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         ),
       );
     }
-    // return GestureDetector(
-    //   onTap: _onVideoTap,
-    //   child: AspectRatio(
-    //     aspectRatio: _controller?.value.aspectRatio ?? 9 / 16,
-    //     child: VideoPlayer(_controller!),
-    //   ),
-    // );
     return GestureDetector(
       onTap: _onVideoTap,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: SizedBox(
-          width: _controller?.value.size.width,
-          height: _controller?.value.size.height,
-          child: VideoPlayer(_controller!),
+      child: SizedBox.expand(
+        child: FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: _controller!.value.size.width > 0
+                ? _controller!.value.size.width
+                : MediaQuery.of(context).size.width,
+            height: _controller!.value.size.height > 0
+                ? _controller!.value.size.height
+                : MediaQuery.of(context).size.height,
+            child: VideoPlayer(_controller!),
+          ),
         ),
       ),
     );
+
+    // return GestureDetector(
+    //   onTap: _onVideoTap,
+    //   child: FittedBox(
+    //     fit: BoxFit.cover,
+    //     child: SizedBox(
+    //       width: _controller?.value.size.width,
+    //       height: _controller?.value.size.height,
+    //       child: VideoPlayer(_controller!),
+    //     ),
+    //   ),
+    // );
   }
   /* ------------------------------------------------------------------ */
 
@@ -217,14 +229,32 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   Future<void> _initializePlayer() async {
     if (_controller != null || _isDisposed) return;
     try {
-      final url = fullScreenShortController.videoItem?.video?.transcodedUrls
-          ?.master ??
-          fullScreenShortController.videoItem?.video?.videoUrl;
+      String? url;
+      if(GetPlatform.isAndroid){
+        url = fullScreenShortController.videoItem?.video?.transcodedUrls
+            ?.master ??
+            fullScreenShortController.videoItem?.video?.videoUrl;
+      }else{
+        url = fullScreenShortController.videoItem?.video?.videoUrl;
+      }
+
       if (url == null || url.isEmpty) {
         setState(() => _hasError = true);
         return;
       }
-      _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      _controller = VideoPlayerController.networkUrl(
+          Uri.parse(url),
+        videoPlayerOptions: VideoPlayerOptions(
+          mixWithOthers: true,
+          allowBackgroundPlayback: false,
+        ),
+        httpHeaders: isHlsUrl(url) ? {
+          'User-Agent': 'Flutter Video Player',
+          // 'Accept': '*/*',
+          // 'Connection': 'keep-alive',
+        } : {},
+
+      );
       await _controller!.initialize();
       if (!_isDisposed) {
         _controller?.setLooping(true);
@@ -317,6 +347,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
           _buildPlayPauseOverlay(),
           _buildActionButtons(),
           _buildVideoInfo(),
+          _buildBackButton()
         ],
       ),
     );
@@ -708,6 +739,44 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         //   ],
         // )
       ],
+    );
+  }
+
+  Widget _buildBackButton(){
+    return Positioned(
+     left: 20.0,
+     top: 20.0,
+      child: IconButton(
+          padding: EdgeInsets.zero,
+          onPressed: () {
+            Get.back();
+          },
+          icon: LocalAssets(
+            imagePath: AppIconAssets.back_arrow,
+            height: SizeConfig.paddingL,
+            width: SizeConfig.paddingL,
+            imgColor: AppColors.white,
+          ))
+      // child: Container(
+      //   // padding: EdgeInsets.all(6.0),
+      //   decoration: BoxDecoration(
+      //     color: AppColors.black.withValues(alpha: 0.6),
+      //     boxShadow: [AppShadows.textFieldShadow],
+      //     shape: BoxShape.circle
+      //   ),
+      //   alignment: Alignment.center,
+      //   child: IconButton(
+      //       padding: EdgeInsets.zero,
+      //       onPressed: () {
+      //             Get.back();
+      //           },
+      //       icon: LocalAssets(
+      //         imagePath: AppIconAssets.back_arrow,
+      //         height: SizeConfig.paddingL,
+      //         width: SizeConfig.paddingL,
+      //         imgColor: AppColors.white,
+      //       )),
+      // ),
     );
   }
 

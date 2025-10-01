@@ -15,32 +15,45 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.bluehr.screenshot/channel"
+    private val SCREEN_CHANNEL = "com.bluehr.screenshot/channel"
+    private val VIDEO_CHANNEL = "com.bluehr.video/keep_screen_on"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "enableSecureScreen" -> {
-                    window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
-                    result.success(null)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SCREEN_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "enableSecureScreen" -> {
+                        window.setFlags(
+                            WindowManager.LayoutParams.FLAG_SECURE,
+                            WindowManager.LayoutParams.FLAG_SECURE
+                        )
+                        result.success(null)
+                    }
+                    "disableSecureScreen" -> {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
                 }
-                "disableSecureScreen" -> {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                    result.success(null)
-                }
-                "keepOn" -> {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    result.success(null)
-                }
-                "keepOff" -> {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                    result.success(null)
-                }
-                else -> result.notImplemented()
             }
-        }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VIDEO_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "keepOn" -> {
+                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        result.success(null)
+                    }
+                    "keepOff" -> {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
 
         // TODO: Register the ListTileNativeAdFactory
         GoogleMobileAdsPlugin.registerNativeAdFactory(

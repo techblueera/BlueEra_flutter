@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 class ScreenService {
-  static const MethodChannel _channel = MethodChannel('com.example.keep_screen_on');
+  static const MethodChannel _channel = MethodChannel('com.bluehr.video/keep_screen_on');
 
   /// Keep screen awake
   static Future<void> keepOn() async {
