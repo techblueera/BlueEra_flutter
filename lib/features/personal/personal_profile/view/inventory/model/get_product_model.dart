@@ -1,22 +1,22 @@
 import 'dart:convert';
 
-class GetOwnProductModel {
+class GetProductModel {
   final bool status;
   final String message;
-  final List<OwnProductData> data;
+  final List<GetProductData> data;
 
-  GetOwnProductModel({
+  GetProductModel({
     required this.status,
     required this.message,
     required this.data,
   });
 
-  factory GetOwnProductModel.fromJson(Map<String, dynamic> json) {
-    return GetOwnProductModel(
+  factory GetProductModel.fromJson(Map<String, dynamic> json) {
+    return GetProductModel(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
       data: (json['data'] as List<dynamic>? ?? [])
-          .map((e) => OwnProductData.fromJson(e))
+          .map((e) => GetProductData.fromJson(e))
           .toList(),
     );
   }
@@ -30,14 +30,14 @@ class GetOwnProductModel {
   }
 }
 
-class OwnProductData {
-  final Product product;
+class GetProductData {
+  final ProductStore product;
 
-  OwnProductData({required this.product});
+  GetProductData({required this.product});
 
-  factory OwnProductData.fromJson(Map<String, dynamic> json) {
-    return OwnProductData(
-      product: Product.fromJson(json['product'] ?? {}),
+  factory GetProductData.fromJson(Map<String, dynamic> json) {
+    return GetProductData(
+      product: ProductStore.fromJson(json['product'] ?? {}),
     );
   }
 
@@ -48,23 +48,23 @@ class OwnProductData {
   }
 }
 
-class Product {
-  final ProductDetails? details;
+class ProductStore {
+  final ProductDetailsStore? details;
   final SellerClassification? sellerClassification;
   final String? business_name;
   final String? business_logo;
   final String? category;
   final String? user_id;
   final String? mobile_no;
-  Product({this.user_id, this.mobile_no, this.business_name, this.business_logo, this.category,
+  ProductStore({this.user_id, this.mobile_no, this.business_name, this.business_logo, this.category,
     this.details,
     this.sellerClassification,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
+  factory ProductStore.fromJson(Map<String, dynamic> json) {
+    return ProductStore(
       details: json['details'] != null
-          ? ProductDetails.fromJson(json['details'])
+          ? ProductDetailsStore.fromJson(json['details'])
           : null,
       sellerClassification: json['sellerCalsification'] != null
           ? SellerClassification.fromJson(json['sellerCalsification'])
@@ -91,7 +91,7 @@ class Product {
   }
 }
 
-class ProductDetails {
+class ProductDetailsStore {
   final List<ProductOption> options;
   final List<String> media;
   final List<String> videoUrl;
@@ -113,7 +113,7 @@ class ProductDetails {
   final String sku;
   final String hsn;
 
-  ProductDetails({
+  ProductDetailsStore({
     required this.options,
     required this.media,
     required this.videoUrl,
@@ -136,8 +136,8 @@ class ProductDetails {
     required this.hsn,
   });
 
-  factory ProductDetails.fromJson(Map<String, dynamic> json) {
-    return ProductDetails(
+  factory ProductDetailsStore.fromJson(Map<String, dynamic> json) {
+    return ProductDetailsStore(
       options: (json['options'] as List<dynamic>? ?? [])
           .map((e) => ProductOption.fromJson(e))
           .toList(),

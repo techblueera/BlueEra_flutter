@@ -50,7 +50,9 @@ class ChatViewController extends GetxController {
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
   Rx<GroupChatListModel>? getGroupChatListModel = GroupChatListModel().obs;
-  Rx<GetChatListModel>? getPersonalFilteredChatListModel = GetChatListModel().obs;
+  Rx<GetChatListModel>? getPersonalFilteredChatListModel =
+      GetChatListModel().obs;
+
   List<Messages>? get getListOfMessageData =>
       getListOfMessageResponse.value.data;
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
@@ -86,9 +88,11 @@ class ChatViewController extends GetxController {
   void setReplyMessage(Messages? message) {
     replyMessage?.value = message;
   }
+
   void onSelectChatTab(int index) {
     selectedChatTabIndex.value = index;
   }
+
   void isChatFromBusinessProfile(bool value) {
     chatFromBusinessProfile.value = value;
   }
@@ -99,180 +103,171 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> loadChatListFromLocal(String type) async {
-    List<ChatList> localChats = await localStorageHelper.getChatListFromLocal(type);
+    List<ChatList> localChats =
+        await localStorageHelper.getChatListFromLocal(type);
+    getPersonalChatListModel?.value = GetChatListModel(
+      success: true,
+      chatList: localChats,
+      archived: [],
+    );
+    personalChatListResponse.value =
+        ApiResponse.complete(getPersonalChatListModel?.value);
+  }
 
-    if(type=="business"){
-      getBusinessChatListModel?.value = GetChatListModel(
-        success: true,
-        chatList: localChats,
-        archived: [],
-      );
-      businessChatListResponse.value = ApiResponse.complete(getBusinessChatListModel?.value);
-    }else if (type=="personal"){
-      getPersonalChatListModel?.value = GetChatListModel(
-        success: true,
-        chatList: localChats,
-        archived: [],
-      );
-      personalChatListResponse.value = ApiResponse.complete(getPersonalChatListModel?.value);
-    }
- }
-  void loadChatListWithType({required GetChatListModel chatListModel,Map<String,dynamic>? data}){
-    if(chatListModel.type=="business"){
+  void loadChatListWithType(
+      {required GetChatListModel chatListModel, Map<String, dynamic>? data}) {
+    if (chatListModel.type == "business") {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
-    }else if (chatListModel.type=="personal"){
+    } else if (chatListModel.type == "personal") {
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
-    }else if (chatListModel.type=="group"){
+    } else if (chatListModel.type == "group") {
       getGroupChatListModel?.value = GroupChatListModel.fromJson(data!);
-      groupChatListResponse.value = ApiResponse.complete(getGroupChatListModel?.value);
-    }else{
+      groupChatListResponse.value =
+          ApiResponse.complete(getGroupChatListModel?.value);
+    } else {
       // when type is not come  from backend this is show success in personal chat
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
     }
   }
 
-
-
-
-
   void onSearchChatList(String searchQuery) {
-
     if (selectedChatTabIndex.value == 0) {
       // ✅ Always search on the original full list (not filtered list)
-      List<ChatList?>? fullChatList = getPersonalFilteredChatListModel?.value.chatList;
+      List<ChatList?>? fullChatList =
+          getPersonalFilteredChatListModel?.value.chatList;
 
       if (searchQuery.isNotEmpty) {
-
         List<ChatList?> filteredList = fullChatList
-            ?.where((e) => (e?.sender?.name?.toLowerCase().contains(searchQuery) ?? false))
-            .toList() ?? [];
+                ?.where((e) =>
+                    (e?.sender?.name?.toLowerCase().contains(searchQuery) ??
+                        false))
+                .toList() ??
+            [];
         getPersonalChatListModel?.value.chatList = filteredList;
         loadChatListWithType(chatListModel: getPersonalChatListModel!.value);
       } else {
         // if empty query, show full list
-        loadChatListWithType(chatListModel: getPersonalFilteredChatListModel!.value);
+        loadChatListWithType(
+            chatListModel: getPersonalFilteredChatListModel!.value);
       }
     } else if (selectedChatTabIndex.value == 1) {
-    } else if (selectedChatTabIndex.value == 2) {
-    }
+    } else if (selectedChatTabIndex.value == 2) {}
   }
 
   Future<void> connectSocket() async {
     // if (socketConnectedCalled.value == false) {
-      if (socketConnected.value == false) {
-        await chatSocket.connectToSocket();
-        socketConnected.value = true;
-      }
-      openedConversation.value=await localStorageHelper.getConversation();
-      // final connectivityResult = await NetworkUtils.isConnected();
-      // if (connectivityResult) {
-        await loadChatListFromLocal("personal");
-        await loadChatListFromLocal("business");
-      // }
+    if (socketConnected.value == false) {
+      await chatSocket.connectToSocket();
+      socketConnected.value = true;
+    }
+    openedConversation.value = await localStorageHelper.getConversation();
+    // final connectivityResult = await NetworkUtils.isConnected();
+    // if (connectivityResult) {
+    //   await loadChatListFromLocal("personal");
+    // }
 
-      chatSocket.listenEvent('ChatList', (data) async {
-        final parsedData = GetChatListModel.fromJson(data);
-        loadChatListWithType(chatListModel: parsedData,data: data);
-        getPersonalFilteredChatListModel?.value=parsedData;
-        await localStorageHelper.saveChatList(parsedData.chatList ?? [],parsedData.type??'');
-      });
+    chatSocket.listenEvent('ChatList', (data) async {
+      final parsedData = GetChatListModel.fromJson(data);
+      loadChatListWithType(chatListModel: parsedData, data: data);
+      getPersonalFilteredChatListModel?.value = parsedData;
+      await localStorageHelper.saveChatList(
+          parsedData.chatList ?? [], parsedData.type ?? '');
+    });
 
-      chatSocket.listenEvent('messageViewed', (data) {
-        getMediaMsgCommentsModel?.value =
-            GetMediaMsgCommentsModel.fromJson(data);
-      });
-      chatSocket.listenEvent('messageReceived', (data) async {
-        final parsedData = GetListOfMessageData.fromJson(data);
-        
-              // Ensure myMessage field is properly set for all messages
+    chatSocket.listenEvent('messageViewed', (data) {
+      getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
+    });
+    chatSocket.listenEvent('messageReceived', (data) async {
+      final parsedData = GetListOfMessageData.fromJson(data);
+
+      // Ensure myMessage field is properly set for all messages
       if (parsedData.messages != null) {
         for (var message in parsedData.messages!) {
           if (message.myMessage == null) {
-            final currentUserId = userId; // Global variable from shared_preference_utils.dart
+            final currentUserId =
+                userId; // Global variable from shared_preference_utils.dart
             final senderId = message.senderId;
             message.myMessage = currentUserId == senderId;
           }
         }
       }
-        
-        if (parsedData.messages?.isNotEmpty ?? false) {
-          final conversationId =
-              parsedData.messages?.first.conversationId ?? '';
-          if (parsedData.messages != null && conversationId.isNotEmpty) {
-            getListOfMessageResponse.value =
-                ApiResponse.complete(parsedData.messages);
-            scrollDown();
-            Future.delayed(Duration.zero, () {
-              localStorageHelper.saveMessagesByConversationId(
-                  userOpenConversationId.value, parsedData.messages!);
-            });
-          } else {
-            getListOfMessageResponse.value =
-                ApiResponse.complete(parsedData.messages);
-          }
+
+      if (parsedData.messages?.isNotEmpty ?? false) {
+        final conversationId = parsedData.messages?.first.conversationId ?? '';
+        if (parsedData.messages != null && conversationId.isNotEmpty) {
+          getListOfMessageResponse.value =
+              ApiResponse.complete(parsedData.messages);
+          scrollDown();
+          Future.delayed(Duration.zero, () {
+            localStorageHelper.saveMessagesByConversationId(
+                userOpenConversationId.value, parsedData.messages!);
+          });
         } else {
           getListOfMessageResponse.value =
               ApiResponse.complete(parsedData.messages);
         }
-      });
-      chatSocket.listenEvent('newMessageReceived', (data) {
-        Messages? message = Messages.fromJson(data['message']);
+      } else {
+        getListOfMessageResponse.value =
+            ApiResponse.complete(parsedData.messages);
+      }
+    });
+    chatSocket.listenEvent('newMessageReceived', (data) {
+      Messages? message = Messages.fromJson(data['message']);
 
-        if (message.myMessage == null) {
-        
-          final currentUserId = userId; // Global variable from shared_preference_utils.dart
-          final senderId = message.senderId;
-          message.myMessage = currentUserId == senderId;
-        }
+      if (message.myMessage == null) {
+        final currentUserId =
+            userId; // Global variable from shared_preference_utils.dart
+        final senderId = message.senderId;
+        message.myMessage = currentUserId == senderId;
+      }
 
-        if (message.conversation?.type == "personal") {
-          emitEvent("ChatList", {ApiKeys.type: "personal"}, true);
-        } else {
-          emitEvent("ChatList", {ApiKeys.type: "business"}, true);
+      if (message.conversation?.type == "personal") {
+        emitEvent("ChatList", {ApiKeys.type: "personal"}, true);
+      } else {
+        emitEvent("ChatList", {ApiKeys.type: "business"}, true);
+      }
+      String chekedConversationId = userOpenConversationId.value;
+      if (chekedConversationId == message.conversationId) {
+        getListOfMessageData?.add(message); // Add message to UI
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
+        saveSingleMessageToLocal(message.conversationId ?? '', message);
+        scrollDown();
+      }
+    });
+    chatSocket.listenEvent("isOnLine", (data) {
+      if (userOpenUserId.value == data['user_id']) {
+        if (data['is_online']) {
+          userOnlineStatus.value = "Online";
         }
-        String chekedConversationId = userOpenConversationId.value;
-        if (chekedConversationId == message.conversationId) {
-          getListOfMessageData?.add(message); // Add message to UI
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
-          saveSingleMessageToLocal(message.conversationId ?? '', message);
-          scrollDown();
-        }
+      } else {
+        userOnlineStatus.value = "Offline";
+      }
+    });
+    chatSocket.listenEvent("messageStatusUpdate", (data) {
+      if (data['conversation_id'] == userOpenConversationId.value) {
+        readMessageStatus.value = data['status'];
+      }
+    });
+    chatSocket.listenEvent("update_data", (data) {
+      emitEvent("messageReceived", {
+        ApiKeys.conversation_id: data[ApiKeys.conversation_id],
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: userOpenUserId.value,
+        ApiKeys.per_page_message: 30,
       });
-      chatSocket.listenEvent("isOnLine", (data) {
-        if (userOpenUserId.value == data['user_id']) {
-          if (data['is_online']) {
-            userOnlineStatus.value = "Online";
-          }
-        } else {
-          userOnlineStatus.value = "Offline";
-        }
-      });
-      chatSocket.listenEvent("messageStatusUpdate", (data) {
-
-        if (data['conversation_id'] == userOpenConversationId.value) {
-          readMessageStatus.value = data['status'];
-        }
-      });
-      chatSocket.listenEvent("update_data", (data) {
-        emitEvent("messageReceived", {
-          ApiKeys.conversation_id: data[ApiKeys.conversation_id],
-          ApiKeys.page: 1,
-          ApiKeys.is_online_user: userOpenUserId.value,
-          ApiKeys.per_page_message: 30,
-        });
-      });
-      socketConnectedCalled.value = true;
+    });
+    socketConnectedCalled.value = true;
     // }
   }
 
   Future<void> saveSingleMessageToLocal(String conversationId, Messages msg,
       [Map<String, dynamic>? params]) async {
     final connectivityResult = await NetworkUtils.isConnected();
-   
+
     Future.delayed(Duration.zero, () {
       if (connectivityResult) {
         msg.sendPendingMsgParams = params;
@@ -394,22 +389,21 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> openAnyOneChatFunction(
-      {
-        required String conversationId,
-         String? otherUserId,
+      {required String conversationId,
+      String? otherUserId,
       required String? userId,
       required String? type,
       String? profileImage,
       required String? contactName,
       required String? contactNo,
       required bool isInitialMessage,
-       String? businessId,
+      String? businessId,
       bool? isFromContactList}) async {
-    await getLocalConversation(conversationId, userId,otherUserId);
-    if(type=="business"){
+    await getLocalConversation(conversationId, userId, otherUserId);
+    if (type == "business") {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
-              () => BusinessChatScreenUpdated(
+          () => BusinessChatScreenUpdated(
             type: type,
             isInitialMessage: isInitialMessage,
             userId: userId,
@@ -417,12 +411,12 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-            businessId:businessId ,
+            businessId: businessId,
           ),
         );
       } else {
         Get.to(
-              () => BusinessChatScreenUpdated(
+          () => BusinessChatScreenUpdated(
             type: type,
             isInitialMessage: isInitialMessage,
             userId: userId,
@@ -434,10 +428,10 @@ class ChatViewController extends GetxController {
           ),
         );
       }
-    }else{
+    } else {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
-              () => PersonalChatScreen(
+          () => PersonalChatScreen(
             type: type,
             isInitialMessage: isInitialMessage,
             userId: userId,
@@ -445,12 +439,12 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-            businessId:businessId ,
+            businessId: businessId,
           ),
         );
       } else {
         Get.to(
-              () => PersonalChatScreen(
+          () => PersonalChatScreen(
             type: type,
             isInitialMessage: isInitialMessage,
             userId: userId,
@@ -463,12 +457,12 @@ class ChatViewController extends GetxController {
         );
       }
     }
-
   }
-  Future<void> getLocalConversation(String conversationId, userId,[String? otherUserId]) async {
+
+  Future<void> getLocalConversation(String conversationId, userId,
+      [String? otherUserId]) async {
     final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
-
 
     if (connectivityResult) {
       loadOfflineMessages(conversationId);
@@ -477,26 +471,22 @@ class ChatViewController extends GetxController {
     //   loadOfflineMessages(conversationId);
     // }
     else {
-
-
-      emitEvent("messageReceived",
-              (otherUserId!=null)?{
-                ApiKeys.other_user_id: otherUserId,
-                ApiKeys.page: 1,
-                ApiKeys.is_online_user: userId,
-                ApiKeys.per_page_message: 30,
-              }:{
-        ApiKeys.conversation_id: conversationId,
-        ApiKeys.page: 1,
-        ApiKeys.is_online_user: userId,
-        ApiKeys.per_page_message: 30,
-      });
-
-
-
+      emitEvent(
+          "messageReceived",
+          (otherUserId != null)
+              ? {
+                  ApiKeys.other_user_id: otherUserId,
+                  ApiKeys.page: 1,
+                  ApiKeys.is_online_user: userId,
+                  ApiKeys.per_page_message: 30,
+                }
+              : {
+                  ApiKeys.conversation_id: conversationId,
+                  ApiKeys.page: 1,
+                  ApiKeys.is_online_user: userId,
+                  ApiKeys.per_page_message: 30,
+                });
     }
-
-
   }
 
   void emitEvent(String event, dynamic data,
@@ -504,8 +494,10 @@ class ChatViewController extends GetxController {
     if (event == "ChatList" && isFromInitial != true) {
       final connectivityResult = await NetworkUtils.isConnected();
       if (connectivityResult) {
-        final localChats = await localStorageHelper.getChatListFromLocal(data[ApiKeys.type]);
-        loadChatListWithType(chatListModel: GetChatListModel(
+        final localChats =
+            await localStorageHelper.getChatListFromLocal(data[ApiKeys.type]);
+        loadChatListWithType(
+            chatListModel: GetChatListModel(
           type: data[ApiKeys.type],
           success: true,
           chatList: await localChats,
@@ -515,24 +507,21 @@ class ChatViewController extends GetxController {
       }
     }
 
-    if(event=="messageReceived"&&(conversationId??"")!=userOpenConversationId){
-
-
-      getListOfMessageResponse.value= ApiResponse.initial('Initial');
+    if (event == "messageReceived" &&
+        (conversationId ?? "") != userOpenConversationId) {
+      getListOfMessageResponse.value = ApiResponse.initial('Initial');
     }
 
-    if(event=="ChatList"){
-      Map<String,dynamic> dataParams={
+    if (event == "ChatList") {
+      Map<String, dynamic> dataParams = {
         // ApiKeys.type:(selectedChatTabIndex.value==0)?"personal":(selectedChatTabIndex.value==1)?"group":"business"
-        ApiKeys.type:data[ApiKeys.type]
-  };
+        ApiKeys.type: data[ApiKeys.type]
+      };
       chatSocket.emitEvent("screenRoom", {ApiKeys.conversation_id: "online"});
       chatSocket.emitEvent(event, dataParams);
-    }else{
+    } else {
       chatSocket.emitEvent(event, data);
     }
-
-
   }
 
   void disposeSocket() {
@@ -541,41 +530,44 @@ class ChatViewController extends GetxController {
   }
 
   List<Map<String, dynamic>>? paramsData;
-  void loadContactsFromLocalStorage(Map<String,dynamic> value){
+
+  void loadContactsFromLocalStorage(Map<String, dynamic> value) {
     contactsListModel?.value = ContactListModel.fromJson(value);
     viewContactsListResponse.value = ApiResponse.complete(value);
   }
+
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     // try {
-      paramsData = params;
-      if(contactsListModel?.value.data==null){
-        ResponseModel responseModel =
-        await ChatViewRepo().getConnectionsSync(params);
-        if (responseModel.isSuccess) {
-          final data = responseModel.response?.data;
+    paramsData = params;
+    if (contactsListModel?.value.data == null) {
+      ResponseModel responseModel =
+          await ChatViewRepo().getConnectionsSync(params);
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
 
-          await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.saved_contacts,
-            json.encode(data),
-          );
+        await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.saved_contacts,
+          json.encode(data),
+        );
 
-          contactsListModel?.value = ContactListModel.fromJson(data);
-          viewContactsListResponse.value = ApiResponse.complete(responseModel);
-        } else {
-          commonSnackBar(
-              message: responseModel.message ?? AppStrings.somethingWentWrong);
-        }
-      }else{
-
-  viewContactsListResponse.value = ApiResponse.complete(contactsListModel?.value);
-  }
+        contactsListModel?.value = ContactListModel.fromJson(data);
+        viewContactsListResponse.value = ApiResponse.complete(responseModel);
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } else {
+      viewContactsListResponse.value =
+          ApiResponse.complete(contactsListModel?.value);
+    }
 
     // } catch (e) {
     //   viewContactsListResponse.value = ApiResponse.error('error');
     // }
   }
 
-  Future<void> loadGroupConnections({int limit = 20, int offset = 0, String? search}) async {
+  Future<void> loadGroupConnections(
+      {int limit = 20, int offset = 0, String? search}) async {
     try {
       viewContactsListResponse.value = ApiResponse.initial('Initial');
       final Map<String, dynamic> query = {
@@ -638,10 +630,9 @@ class ChatViewController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-
-    }
+    } catch (e) {}
   }
+
   Future<void> getChatRequestList() async {
     try {
       ResponseModel responseModel = await ChatViewRepo().getChatRequestList();
@@ -698,7 +689,6 @@ class ChatViewController extends GetxController {
 
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
-
     try {
       clearMessageControllerCommon();
       // if(params[ApiKeys.message_type]=="text"&&params['reply_id']==null){
@@ -727,7 +717,6 @@ class ChatViewController extends GetxController {
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
       if (responseModel.isSuccess) {
-
         if (sendFiles != null &&
             sendFiles.isNotEmpty &&
             params[ApiKeys.message_type] == 'video') {
@@ -741,9 +730,9 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-            getListOfMessageData?.add(message);
-            getListOfMessageResponse.value =
-                ApiResponse.complete(getListOfMessageData);
+          getListOfMessageData?.add(message);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
               params[ApiKeys.conversation_id], message, params);
         } else if (message.subType == 'comment') {
@@ -759,8 +748,8 @@ class ChatViewController extends GetxController {
                 myComment: true,
               ));
         }
-        if(chatFromBusinessProfile.value){
-          canPopBusiness.value=true;
+        if (chatFromBusinessProfile.value) {
+          canPopBusiness.value = true;
         }
         scrollDown();
 
@@ -818,7 +807,6 @@ class ChatViewController extends GetxController {
     return null;
   }
 
-
   Future<bool> forwardMessageApi(
     Map<String, dynamic> params,
   ) async {
@@ -835,6 +823,7 @@ class ChatViewController extends GetxController {
       return false;
     }
   }
+
   Future<bool> createGroupApi(
     Map<String, dynamic> params,
   ) async {
@@ -844,32 +833,29 @@ class ChatViewController extends GetxController {
     if (responseModel.isSuccess) {
       return true;
     } else {
-
       commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong);
       return false;
     }
   }
+
   Future<void> getGroupMembersApi(
-      Map<String, dynamic> params,
-      ) async {
+    Map<String, dynamic> params,
+  ) async {
     ResponseModel responseModel =
-    await ChatViewRepo().getGroupMembersApi(params);
+        await ChatViewRepo().getGroupMembersApi(params);
 
     if (responseModel.isSuccess) {
+      // Ensure data is a List
+      List dataList = responseModel.data as List;
 
-        // Ensure data is a List
-        List dataList = responseModel.data as List;
-
-        List<GroupMembersListModel> members = dataList
-            .map((item) => GroupMembersListModel.fromJson(item))
-            .toList();
-        getGroupMembersResponse.value = ApiResponse.complete(members);;
-
+      List<GroupMembersListModel> members =
+          dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
+      getGroupMembersResponse.value = ApiResponse.complete(members);
+      ;
     } else {
       commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong);
-
     }
   }
 
@@ -914,9 +900,11 @@ class ChatViewController extends GetxController {
       return false;
     }
   }
+
   String getCurrentIsoTime() {
     return DateTime.now().toUtc().toIso8601String();
   }
+
   Future<void> sendInitialMessage(Map<String, dynamic> params) async {
     try {
       clearMessageControllerCommon();
@@ -930,8 +918,8 @@ class ChatViewController extends GetxController {
         getListOfMessageData?.add(message);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
-        if(chatFromBusinessProfile.value){
-          canPopBusiness.value=true;
+        if (chatFromBusinessProfile.value) {
+          canPopBusiness.value = true;
         }
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message, params);

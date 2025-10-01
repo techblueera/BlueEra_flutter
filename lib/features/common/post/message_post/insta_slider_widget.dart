@@ -26,7 +26,7 @@ class _InstaSliderState extends State<InstaSlider> {
   Widget build(BuildContext context) {
     return Container(
       // height: Get.width * 0.5,
-      height: 250,
+      height: 300,
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: Colors.black,
@@ -53,8 +53,8 @@ class _InstaSliderState extends State<InstaSlider> {
                   /*                borderRadius: BorderRadius.circular(
                       imageData.imgCropMode == AppConstants.Square ? 0 : 12),*/
                   child: Container(
-                    height: 250,
-                    width: 250,
+                    height: 300,
+                    // width: 300,
 
                     // height: Get.width * 0.5,
                     // width: imageData.imgCropMode == AppConstants.Square
@@ -65,7 +65,7 @@ class _InstaSliderState extends State<InstaSlider> {
                       // borderRadius: BorderRadius.circular(1),
                       image: DecorationImage(
                         image: FileImage(File(imageData.imageFile?.path ?? "")),
-                        fit: BoxFit.contain,
+                        fit: BoxFit.fitWidth,
                       ),
                     ),
                   ),

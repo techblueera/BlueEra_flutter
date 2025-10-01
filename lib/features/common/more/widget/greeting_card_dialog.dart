@@ -207,7 +207,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
             ),
           ),
           const SizedBox(height: 8),
-          Container(
+        /*  Container(
             // color: Colors.red,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -239,7 +239,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                 ),
               ],
             ),
-          ),
+          ),*/
           // if (dontShowAgain) const SizedBox(height: 12),
           !dontShowAgain
               ? SizedBox

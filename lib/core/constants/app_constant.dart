@@ -2,6 +2,7 @@
 
 import 'dart:core';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/create_account_model.dart';
@@ -1651,4 +1652,30 @@ Future<File> processImage(File file, String mode) async {
     ..writeAsBytesSync(img.encodeJpg(result, quality: 90));
 
   return outFile;
+}
+int kmRadius100=100;
+int kmRadius500=500;
+int kmRadius1000=1000;
+////businesss 4500--->1 product
+////user login 7222-->
+
+
+
+double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
+  const R = 6371; // Radius of Earth in kilometers
+  final dLat = _deg2rad(lat2 - lat1);
+  final dLon = _deg2rad(lon2 - lon1);
+
+  final a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(_deg2rad(lat1)) * cos(_deg2rad(lat2)) *
+          sin(dLon / 2) * sin(dLon / 2);
+
+  final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+  final distance = R * c;
+
+  return distance; // in kilometers
+}
+
+double _deg2rad(double deg) {
+  return deg * pi / 180;
 }

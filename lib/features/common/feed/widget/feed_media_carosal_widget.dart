@@ -196,7 +196,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
       key: Key('feed-carousel-${widget.hashCode}'),
       onVisibilityChanged: _onVisibilityChanged,
       child: SizedBox(
-        height: SizeConfig.size250,
+        height: SizeConfig.size300,
         // height: Get.width * 0.4,
 
         child: Stack(
@@ -214,7 +214,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                   final url = widget.mediaUrls[index];
                   final orientation = _orientationCache[url] ?? "loading";
 
-                  double height = 250;
+                  double height = 300;
                   double width = Get.width;/*      double height = Get.width * 0.5;
                   double width = Get.width;*/
                   /* if (orientation == "portrait") {

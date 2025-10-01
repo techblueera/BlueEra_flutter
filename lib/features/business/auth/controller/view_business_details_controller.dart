@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -7,8 +9,9 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/product_listing/models/product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
@@ -640,17 +643,16 @@ class ViewBusinessDetailsController extends GetxController {
   }
 
   // Fetch products from API
-  final RxList<ProductData> products = <ProductData>[].obs;
-
+  final RxList<GetProductData> products = <GetProductData>[].obs;
   Future<void> fetchProducts({required String businessID}) async {
     try {
       products.clear();
       errorMessage.value = '';
-      ResponseModel? responseModel =
+      final responseModel =
           await BusinessProfileRepo().getProducts(businessId: businessID);
-      ProductResponse getParticularReviewListModel =
-          ProductResponse.fromJson(responseModel.response?.data);
-      products.addAll(getParticularReviewListModel.data ?? []);
+      final getOwnProductModel = GetProductModel.fromJson(responseModel.response!.data);
+
+      products.addAll(getOwnProductModel.data);
       fetchVisitBusinessProductResponse.value =
           ApiResponse.complete(responseModel);
     } catch (e) {

@@ -56,7 +56,7 @@ class CustomText extends StatelessWidget {
         letterSpacing: letterSpacing,
         decorationColor: decorationColor,
         decorationStyle: decorationStyle,
-        decorationThickness: 3,
+        decorationThickness: 2,
       ),
     );
   }

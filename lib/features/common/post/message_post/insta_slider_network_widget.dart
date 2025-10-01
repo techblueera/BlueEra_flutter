@@ -31,8 +31,8 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 250,
-      width: 250,
+      height: 300,
+      // width: 300,
       // height: Get.width * 0.5,
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
@@ -54,11 +54,11 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
             children: [
               Center(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(0),
                   child: Container(
-                    height: 250,
+                    height: 300,
                     // height: Get.width * 0.5,
-                    width: 250,
+                    // width: 300,
                     // width: Get.width,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(1),

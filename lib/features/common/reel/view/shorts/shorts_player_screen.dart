@@ -30,7 +30,8 @@ class ShortsPlayerScreen extends StatefulWidget {
 
 class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     with WidgetsBindingObserver {
-  final ShortsController shortsFeedController = Get.put(ShortsController());
+  late ShortsController? shortsFeedController;
+
   late final PageController _pageController;
   int currentIndex = 0;
 
@@ -46,6 +47,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   @override
   void initState() {
     super.initState();
+    if (Get.isRegistered<ShortsController>()) {
+      shortsFeedController = Get.find<ShortsController>();
+    } else {
+      shortsFeedController = Get.put(ShortsController());
+    }
     print('🚀 INIT: ShortsPlayerScreen initializing...');
     WidgetsBinding.instance.addObserver(this);
     currentIndex = widget.initialIndex;
@@ -147,22 +153,22 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       setState(() {});
     }
   }
-
-  void _copyStateToNeighbour(int from, int to) {
-    final list = _getCurrentFeedList(shortsFeedController);
-    if (list == null) return;
-    final fromItem = list.elementAtOrNull(from);
-    final toItem = list.elementAtOrNull(to);
-    if (fromItem == null || toItem == null) return;
-    toItem.video?.stats?.likes = fromItem.video?.stats?.likes;
-    toItem.video?.stats?.comments = fromItem.video?.stats?.comments;
-    toItem.interactions?.isLiked = fromItem.interactions?.isLiked;
-  }
+  //
+  // void _copyStateToNeighbour(int from, int to) {
+  //   final list = _getCurrentFeedList(shortsFeedController);
+  //   if (list == null) return;
+  //   final fromItem = list.elementAtOrNull(from);
+  //   final toItem = list.elementAtOrNull(to);
+  //   if (fromItem == null || toItem == null) return;
+  //   toItem.video?.stats?.likes = fromItem.video?.stats?.likes;
+  //   toItem.video?.stats?.comments = fromItem.video?.stats?.comments;
+  //   toItem.interactions?.isLiked = fromItem.interactions?.isLiked;
+  // }
   /* ------------------------------------------------------ */
 
   /* --------------  NEW : OOM-safe cache  -------------- */
   void _warmUpRange(int centre) {
-    final list = _getCurrentFeedList(shortsFeedController);
+    final list = _getCurrentFeedList(shortsFeedController!);
     if (list == null) return;
     final int len = list.length;
     final int left = (centre - 1).clamp(0, len - 1);
@@ -231,37 +237,37 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     print('📋 FEED: Initializing feed data for ${widget.shorts}');
     switch (widget.shorts) {
       case Shorts.trending:
-        shortsFeedController.trendingVideoFeedPosts.value = [
+        shortsFeedController?.trendingVideoFeedPosts.value = [
           ...widget.initialShorts
         ];
         break;
       case Shorts.nearBy:
-        shortsFeedController.nearByVideoFeedPosts.value = [
+        shortsFeedController?.nearByVideoFeedPosts.value = [
           ...widget.initialShorts
         ];
         break;
       case Shorts.personalized:
-        shortsFeedController.personalizedVideoFeedPosts.value = [
+        shortsFeedController?.personalizedVideoFeedPosts.value = [
           ...widget.initialShorts
         ];
         break;
       case Shorts.latest:
-        shortsFeedController.latestShortsPosts.value = [
+        shortsFeedController?.latestShortsPosts.value = [
           ...widget.initialShorts
         ];
         break;
       case Shorts.popular:
-        shortsFeedController.popularShortsPosts.value = [
+        shortsFeedController?.popularShortsPosts.value = [
           ...widget.initialShorts
         ];
         break;
       case Shorts.oldest:
-        shortsFeedController.oldestShortsPosts.value = [
+        shortsFeedController?.oldestShortsPosts.value = [
           ...widget.initialShorts
         ];
         break;
       case Shorts.saved:
-        shortsFeedController.savedShorts.value = [...widget.initialShorts];
+        shortsFeedController?.savedShorts.value = [...widget.initialShorts];
         break;
       default:
         break;
@@ -311,7 +317,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       {required ShortFeedItem videoItem,
         required String otherUserId}) async {
     print('🚫 BLOCK: Blocking user and advancing...');
-    final list = _getCurrentFeedList(shortsFeedController);
+    final list = _getCurrentFeedList(shortsFeedController!);
     if (list == null) return;
     final id = videoItem.video?.id;
     int index = list.indexWhere((v) => v.video?.id == id);
@@ -379,9 +385,9 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     _warmUpRange(index);
 
     /* load more */
-    final list = _getCurrentFeedList(shortsFeedController);
+    final list = _getCurrentFeedList(shortsFeedController!);
     if (index >= (list?.length ?? 0) - 3) {
-      _onScrollToEnd(shortsFeedController);
+      _onScrollToEnd(shortsFeedController!);
     }
 
     /* ads each 6th video */
@@ -444,7 +450,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
           body: Stack(
             children: [
               Obx(() {
-                final list = _getCurrentFeedList(shortsFeedController);
+                final list = _getCurrentFeedList(shortsFeedController!);
                 return NotificationListener<ScrollNotification>(
                   onNotification: (_) {
                     _onScroll(); // half-page swipe

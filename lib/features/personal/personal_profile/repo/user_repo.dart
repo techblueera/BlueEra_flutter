@@ -152,7 +152,7 @@ class UserRepo extends BaseService {
     final response = await ApiBaseHelper().getHTTP(
       cardCategoriesSortByDate,
       params: queryParams,
-      showProgress: false,
+      showProgress: true,
       onError: (error) {},
       onSuccess: (data) {},
     );
