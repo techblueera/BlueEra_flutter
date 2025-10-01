@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
 
 import '../../../personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
+import '../model/getfooddetails_model.dart';
 
 class FoodUploadController extends GetxController {
   Rx<ApiResponse> foodAiResponse = ApiResponse.initial('Initial').obs;
@@ -30,6 +31,8 @@ class FoodUploadController extends GetxController {
   final RxString selectedFoodType2 = "Non-Veg".obs;
   final RxString selectedCookingMethod = "Boiled".obs;
   final RxString selectedItemNature = "Break-Fast".obs;
+  RxList<FoodModel> foodList = <FoodModel>[].obs;
+
 
   // Image selection
   final Rx<File?> selectedImage = Rx<File?>(null);
@@ -110,7 +113,7 @@ Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
     }
   }
   Future<void> addFoodServices(Map<String,dynamic> params) async {
-    try {
+    // try {
 
       ResponseModel responseModel =
           await FoodAiRepo().addFoodService(queryParam: params);
@@ -119,26 +122,39 @@ Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
       } else {
         print("lskdmclksdc  hhhh ${responseModel.response?.data}");
       }
-    } catch (e) {
-      logs("ERROR===== ${e}");
-
-    }
+    // } catch (e) {
+    //   logs("ERROR===== ${e}");
+    //
+    // }
   }
-  Future<void> getFoodService(Map<String,dynamic> params) async {
+  Future<void> getFoodService(Map<String, dynamic> params) async {
     try {
-
       ResponseModel responseModel =
-          await FoodAiRepo().addFoodService(queryParam: params);
+      await FoodAiRepo().getFoodService(queryParam: params);
+
       if (responseModel.isSuccess) {
-      print("lskdmclksdc kk ${responseModel.response?.data}");
+        final data = responseModel.response?.data;
+       log("ksdjncksjdnc ${data}----- ${data is List}");
+        if (data is List) {
+          // if API returns a raw array
+          foodList.value = data.map((e) => FoodModel.fromJson(e)).toList();
+        } else if (data is Map && data['data'] is List) {
+          // if API returns { "data": [...] }
+          foodList.value =
+              (data['data'] as List).map((e) => FoodModel.fromJson(e)).toList();
+        } else {
+          print("⚠️ Unexpected API response: $data");
+        }
+
+        print("✅ Loaded ${foodList.length} food items");
       } else {
-        print("lskdmclksdc hhkk hhhh ${responseModel.response?.data}");
+        print("❌ API failed: ${responseModel.response?.data}");
       }
     } catch (e) {
-      logs("ERROR===== ${e}");
-
+      logs("ERROR===== $e");
     }
   }
+
 
   @override
   void onClose() {

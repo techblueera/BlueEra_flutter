@@ -13,12 +13,16 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 
+import '../../../../../../core/constants/common_methods.dart';
 import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../widgets/common_card_widget.dart';
 import '../../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../../../../common/food/controller/food_upload_controller.dart';
 import '../../../../../common/food/food_ai_res_model.dart';
 import '../widget/add_services_screen.dart';
+import 'dart:async';
+
+import 'package:http_parser/http_parser.dart';
 
 class SubmitFoodProductPage extends StatefulWidget {
    SubmitFoodProductPage({Key? key,required this.foodData,required this.foodDatas,required this.imagePath, required this.categoryTag, required this.subCategory}) : super(key: key);
@@ -44,8 +48,10 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
   File? secondSelectedPhoto;
   bool isMultipleType = true;
   List<Map<String, dynamic>> addOns = [];
+  List<String> filePath=[];
   @override
   void initState() {
+    filePath.add(widget.imagePath);
     // TODO: implement initState
     foodNameCtrl.text=widget.foodDatas.productName?.join(",")??'';
     descCtrl.text=widget.foodDatas.shortDescription.toString();
@@ -89,13 +95,21 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
     final List<Map<String, dynamic>> priceOptions = priceOptionsFromData != null
         ? List<Map<String, dynamic>>.from(priceOptionsFromData)
         : (widget.foodData["priceOptions"] ?? []);
-    String fileName = widget.imagePath.split('/').last ?? "";
-    dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
-        widget.imagePath ?? "",
-        filename: fileName);
-    // Build the body
-    final Map<String, dynamic> body = {
 
+    // Build the body
+   dio.MultipartFile? imageByPart;
+    // for (final path in filePath) {
+      final fileName = filePath.first.split('/').last;
+      final imageInfo = getFileInfo(File(filePath.first));
+      final mimeType = imageInfo['mimeType'];
+
+      imageByPart =await dio.MultipartFile.fromFile(
+        filePath.first,
+        filename: fileName,
+        contentType: MediaType.parse(mimeType ?? 'application/octet-stream'),
+      );
+    // }
+    final Map<String, dynamic> body = {
       "title": foodNameCtrl.text.trim(),
       "description":  descCtrl.text.trim(),
       "type": "food",

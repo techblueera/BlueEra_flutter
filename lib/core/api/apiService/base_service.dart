@@ -450,5 +450,6 @@ abstract class BaseService {
   final String homeFeed = 'userfeed-service/feed';
   final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';
   final String addFoodServices = 'services-service/services';
+  final String getFoodServices = 'services-service/services';
   final String callUser = 'chat-service/call/user';
 }
