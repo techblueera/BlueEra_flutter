@@ -4,8 +4,7 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:dio/dio.dart' as dio;
 
-class FoodAiRepo extends BaseService
-{
+class FoodAiRepo extends BaseService {
   Future<ResponseModel> aiFoodGenerateRepo({Map<String, dynamic>? queryParam}) async {
 
     final response = await ApiBaseHelper().postHTTP(
@@ -13,6 +12,29 @@ class FoodAiRepo extends BaseService
       params:queryParam,
       isMultipart: true,
       showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  Future<ResponseModel> addFoodService({Map<String, dynamic>? queryParam}) async {
+
+    final response = await ApiBaseHelper().postHTTP(
+      addFoodServices,
+      params:queryParam,
+      isMultipart: false,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  Future<ResponseModel> getFoodService({Map<String, dynamic>? queryParam}) async {
+
+    final response = await ApiBaseHelper().getHTTP(
+      addFoodServices,
+      params:queryParam,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

@@ -109,6 +109,36 @@ Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
       foodAiResponse.value = ApiResponse.error(e.toString());
     }
   }
+  Future<void> addFoodServices(Map<String,dynamic> params) async {
+    try {
+
+      ResponseModel responseModel =
+          await FoodAiRepo().addFoodService(queryParam: params);
+      if (responseModel.isSuccess) {
+      print("lskdmclksdc ${responseModel.response?.data}");
+      } else {
+        print("lskdmclksdc  hhhh ${responseModel.response?.data}");
+      }
+    } catch (e) {
+      logs("ERROR===== ${e}");
+
+    }
+  }
+  Future<void> getFoodService(Map<String,dynamic> params) async {
+    try {
+
+      ResponseModel responseModel =
+          await FoodAiRepo().addFoodService(queryParam: params);
+      if (responseModel.isSuccess) {
+      print("lskdmclksdc kk ${responseModel.response?.data}");
+      } else {
+        print("lskdmclksdc hhkk hhhh ${responseModel.response?.data}");
+      }
+    } catch (e) {
+      logs("ERROR===== ${e}");
+
+    }
+  }
 
   @override
   void onClose() {

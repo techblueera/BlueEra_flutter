@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
+import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/cupertino.dart';
@@ -35,6 +35,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
   final foodNameCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final priceCtrl = TextEditingController();
+  final singlePriceController = TextEditingController();
   String selectedCategory = '';
   String selectedSubCategory = '';
   late List<String> ingredients;
@@ -57,7 +58,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
   final controller = Get.find<FoodUploadController>();
 
 
-  Map<String, dynamic> buildRequestBody() {
+  Future<Map<String, dynamic>> buildRequestBody()async {
     // Title & desc (use controller if filled, otherwise fall back to AI/model values)
     final title = foodNameCtrl.text.trim().isNotEmpty
         ? foodNameCtrl.text.trim()
@@ -88,39 +89,50 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
     final List<Map<String, dynamic>> priceOptions = priceOptionsFromData != null
         ? List<Map<String, dynamic>>.from(priceOptionsFromData)
         : (widget.foodData["priceOptions"] ?? []);
-
+    String fileName = widget.imagePath.split('/').last ?? "";
+    dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
+        widget.imagePath ?? "",
+        filename: fileName);
     // Build the body
     final Map<String, dynamic> body = {
-      "title": title,
-      "description": description,
+
+      "title": foodNameCtrl.text.trim(),
+      "description":  descCtrl.text.trim(),
       "type": "food",
       "category": selectedCategory.isNotEmpty ? selectedCategory : (widget.categoryTag ?? ""),
       "subCategory": selectedSubCategory.isNotEmpty ? selectedSubCategory : (widget.subCategory ?? ""),
-      // if you have a veg selector, replace this logic with that value
       // "vegType": widget.foodData["vegType"] ?? widget.foodDatas.vegeType ?? "",
-      "availability": widget.foodData["availability"] ?? "",
+      // "availability": widget.foodData["availability"] ?? "",
       "addOns": normalizedAddOns,
-      "shelfLife": widget.foodData["shelfLife"] ?? "",
+      // "shelfLife": widget.foodData["shelfLife"] ?? "  ",
       "keyIngredients": ingredients,
       "servingOptions": List<Map<String, dynamic>>.from(widget.foodData["servingOptions"] ?? []),
       "accompaniments": accompaniments,
-      "variants": List<Map<String, dynamic>>.from(widget.foodData["variants"] ?? []),
+      // "variants": List<Map<String, dynamic>>.from(widget.foodData["variants"] ?? []),
       "nutritionalSummary_per100g": widget.foodData["nutritionalSummary_per100g"] ?? {},
       "keyMinerals": List<String>.from(widget.foodData["keyMinerals"] ?? []),
       "seoTags": List<String>.from(widget.foodData["seoTags"] ?? []),
       "priceType": isSingleProduct ? "single" : "multiple",
-      "priceOptions": priceOptions,
-      "perUnit": widget.foodData["perUnit"] ?? "",
-      "minimumBookingAmount": widget.foodData["minimumBookingAmount"] ?? 0,
-      "discounts": widget.foodData["discounts"] ?? [],
-      "extraDetails": widget.foodData["extraDetails"] ?? [],
-      "videoContentType": widget.foodData["videoContentType"] ?? "",
-      "imageContentTypes": widget.foodData["imageContentTypes"] ?? [],
-      "images": imagePaths,
+      if(isSingleProduct==false)
+        "priceOptions": priceOptions,
+      if(isSingleProduct&&singlePriceController.text.isNotEmpty)
+        "singlePrice": int.parse(singlePriceController.text??'0'),
+      // "perUnit": widget.foodData["perUnit"] ?? "",
+      // "minimumBookingAmount": widget.foodData["minimumBookingAmount"] ?? 0,
+      // "discounts": widget.foodData["discounts"] ?? [],
+      // "extraDetails": widget.foodData["extraDetails"] ?? [],
+      // "videoContentType": widget.foodData["videoContentType"] ?? "",
+      "imageContentTypes":[
+        "image/jpeg",
+        "image/png"
+      ],
+      "images": imageByPart,
     };
 
     return body;
   }
+
+
 
   /// Helper: parse "₹30", "30", "2.5" => double
   double? _parsePriceToDouble(String raw) {
@@ -133,7 +145,6 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    log("lskdmlcksmlksdcmsdc ${widget.categoryTag}  ${widget.foodDatas.productName?.join(",")} =====");
     return Scaffold(
      appBar:  CommonBackAppBar(
         title: 'Food',
@@ -525,7 +536,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                     // Example size+price fields
                     Row(
                       children: [
-                        Expanded(
+                        (isSingleProduct)?SizedBox():Expanded(
                           child: CommonTextField(
                             contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 12),
 
@@ -538,8 +549,8 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         Expanded(
                           child: CommonTextField(
                             contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 12),
-                            hintText: "₹300",
-                            textEditController: TextEditingController(),
+                            hintText: "E.g. ₹300",
+                            textEditController: singlePriceController,
                             keyBoardType: TextInputType.number,
                           ),
                         ),
@@ -561,7 +572,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         Expanded(
                           child: CommonTextField(
                             contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 12),
-                            hintText: "₹300",
+                            hintText: "E.g. ₹300",
                             textEditController: TextEditingController(),
                             keyBoardType: TextInputType.number,
                           ),
@@ -584,7 +595,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         Expanded(
                           child: CommonTextField(
                             contentPadding: EdgeInsets.symmetric(vertical: 14,horizontal: 12),
-                            hintText: "₹300",
+                            hintText: "E.g. ₹300",
                             textEditController: TextEditingController(),
                             keyBoardType: TextInputType.number,
                           ),
@@ -701,7 +712,13 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                           padding: EdgeInsets.symmetric(
                               vertical: SizeConfig.paddingM),
                         ),
-                        onPressed: () {},
+
+                        onPressed: () async{
+
+                          Map<String,dynamic> data=await buildRequestBody();
+                          log("lsdkcmsdlkcsldkcmslkmcsdc ${data}");
+                          controller.addFoodServices(data);
+                        },
                         child: const CustomText(
                           "Post Food",
                           color: Colors.white,
