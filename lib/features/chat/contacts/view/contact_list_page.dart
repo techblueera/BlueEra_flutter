@@ -98,14 +98,13 @@ class _ContactsPageState extends State<ContactsPage> {
   Future<void> _loadContactsFromStorage() async {
     String? storedData = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.saved_contacts);
-    // if (storedData != null) {
-    //   // decode in background
-    //   Map<String, dynamic> decoded =
-    //   await compute(jsonDecode, storedData) as Map<String, dynamic>;
-    //   chatViewController.loadContactsFromLocalStorage(decoded);
-    // } else {
+    if (storedData != null) {
+      Map<String, dynamic> decoded =
+      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      chatViewController.loadContactsFromLocalStorage(decoded);
+    } else {
       await _refreshContacts();
-    // }
+    }
   }
 // This is the isolate function → runs in background
   List<Map<String, String>> formatContactsInIsolate(

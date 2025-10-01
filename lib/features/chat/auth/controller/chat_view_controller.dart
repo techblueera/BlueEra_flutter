@@ -100,13 +100,23 @@ class ChatViewController extends GetxController {
 
   Future<void> loadChatListFromLocal(String type) async {
     List<ChatList> localChats = await localStorageHelper.getChatListFromLocal(type);
-    getPersonalChatListModel?.value = GetChatListModel(
-      success: true,
-      chatList: localChats,
-      archived: [],
-    );
-    personalChatListResponse.value = ApiResponse.complete(getPersonalChatListModel?.value);
-  }
+
+    if(type=="business"){
+      getBusinessChatListModel?.value = GetChatListModel(
+        success: true,
+        chatList: localChats,
+        archived: [],
+      );
+      businessChatListResponse.value = ApiResponse.complete(getBusinessChatListModel?.value);
+    }else if (type=="personal"){
+      getPersonalChatListModel?.value = GetChatListModel(
+        success: true,
+        chatList: localChats,
+        archived: [],
+      );
+      personalChatListResponse.value = ApiResponse.complete(getPersonalChatListModel?.value);
+    }
+ }
   void loadChatListWithType({required GetChatListModel chatListModel,Map<String,dynamic>? data}){
     if(chatListModel.type=="business"){
       getBusinessChatListModel?.value = chatListModel;
@@ -159,7 +169,8 @@ class ChatViewController extends GetxController {
       openedConversation.value=await localStorageHelper.getConversation();
       // final connectivityResult = await NetworkUtils.isConnected();
       // if (connectivityResult) {
-      //   await loadChatListFromLocal("personal");
+        await loadChatListFromLocal("personal");
+        await loadChatListFromLocal("business");
       // }
 
       chatSocket.listenEvent('ChatList', (data) async {
