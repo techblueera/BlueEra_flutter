@@ -146,19 +146,19 @@
 //     //             image: variant.mediaRelatedToVariant.isNotEmpty
 //     //                 ? variant.mediaRelatedToVariant
 //     //                 : [],
-//     //               name: '${widget.productData?.product.details?.name ?? ''} ' +
-//     //                   variant.attributes.entries.map((entry) {
-//     //                     final key = entry.key.toLowerCase();
-//     //                     final value = entry.value;
-//     //
-//     //                     if (key == 'color' && value is Map<String, dynamic>) {
-//     //                       return value['color_name'] ?? '';
-//     //                     } else if (value != null) {
-//     //                       return value.toString();
-//     //                     } else {
-//     //                       return '';
-//     //                     }
-//     //                   }).where((attr) => attr.isNotEmpty).join(', '),
+//                   name: '${widget.productData?.product.details?.name ?? ''} ' +
+//                       variant.attributes.entries.map((entry) {
+//                         final key = entry.key.toLowerCase();
+//                         final value = entry.value;
+//
+//                         if (key == 'color' && value is Map<String, dynamic>) {
+//                           return value['color_name'] ?? '';
+//                         } else if (value != null) {
+//                           return value.toString();
+//                         } else {
+//                           return '';
+//                         }
+//                       }).where((attr) => attr.isNotEmpty).join(', '),
 //     //               selectedVariants: variant.attributes
 //     //                 .map((key, value) => MapEntry(key, value)),
 //     //             price: variant.sellingPrice.toString(),
@@ -1582,7 +1582,19 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                 image: variant.mediaRelatedToVariant.isNotEmpty
                     ? variant.mediaRelatedToVariant
                     : [],
-                name: '${widget.productData?.product.details?.name}  ${ variant.attributes.values.map((v) => v.toString()).join()}',
+                name: '${widget.productData?.product.details?.name ?? ''} ' +
+                    variant.attributes.entries.map((entry) {
+                      final key = entry.key.toLowerCase();
+                      final value = entry.value;
+
+                      if (key == 'color' && value is Map<String, dynamic>) {
+                        return value['color_name'] ?? '';
+                      } else if (value != null) {
+                        return value.toString();
+                      } else {
+                        return '';
+                      }
+                    }).where((attr) => attr.isNotEmpty).join(', '),
                 selectedVariants: variant.attributes
                     .map((key, value) => MapEntry(key, value)),
                 price: variant.sellingPrice.toString(),
@@ -1595,8 +1607,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             }).toList() ??
                 [];
       }
-
-
 
     }
     super.initState();
@@ -1752,48 +1762,51 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                   if(controller.listedProducts.isNotEmpty)
                     _buildListedProducts(),
 
-                // CustomFormCard(
-                //   margin: EdgeInsets.all(SizeConfig.size15),
-                //   child: Column(
-                //       crossAxisAlignment: CrossAxisAlignment.start,
-                //       children: [
-                //         CustomText(
-                //           controller.productNameController.text,
-                //           fontSize: SizeConfig.large,
-                //           fontWeight: FontWeight.w700,
-                //           color: AppColors.mainTextColor,
-                //         ),
-                //         SizedBox(
-                //           height: SizeConfig.size12,
-                //         ),
-                //         Row(
-                //           children: [
-                //             CustomText(
-                //               '₹00,000 ',
-                //               fontSize: 24.0,
-                //               fontWeight: FontWeight.w600,
-                //               color: AppColors.mainTextColor,
-                //             ),
-                //             SizedBox(
-                //               width: SizeConfig.size8,
-                //             ),
-                //             CustomText(
-                //               '50% Off ',
-                //               fontSize: 14.0,
-                //               fontWeight: FontWeight.w400,
-                //               color: AppColors.secondaryTextColor,
-                //             ),
-                //             CustomText(
-                //               '₹00,000 ',
-                //               fontSize: 14.0,
-                //               fontWeight: FontWeight.w400,
-                //               color: AppColors.secondaryTextColor,
-                //             ),
-                //           ],
-                //         )
-                //       ]
-                //   ),
-                // ),
+                Obx(()=> CustomFormCard(
+                  margin: EdgeInsets.all(SizeConfig.size15),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          controller.productNameController.text,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
+
+                        if(controller.selectedVariantIndex.value != - 1)
+                          Padding(
+                            padding: EdgeInsets.only(top: SizeConfig.size12),
+                            child: Row(
+                              children: [
+                                CustomText(
+                                  '₹${controller.selectedProductOrVariantPrice.value}',
+                                  fontSize: 24.0,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.mainTextColor,
+                                ),
+                                SizedBox(
+                                  width: SizeConfig.size8,
+                                ),
+                                CustomText(
+                                  '₹${controller.selectedProductOrVariantMrp.value}',
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.secondaryTextColor,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                                CustomText(
+                                  ' ${controller.selectedProductOrVariantDiscount.value}% Off ',
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.green7F,
+                                ),
+                              ],
+                            ),
+                          )
+                      ]
+                  ),
+                )),
 
                 CustomFormCard(
                   margin: EdgeInsets.only(
