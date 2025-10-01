@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/inventory_controller.dart';
+import 'foodandgrocery/food_and_grocery_screen.dart';
 
 
 class InventoryScreen extends StatefulWidget {
@@ -105,7 +106,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         children: [
           ProductScreen(controller: controller),
           Center(child: Text('My Services', style: TextStyle(fontSize: 18))),
-          Center(child: Text('Food & Grocery', style: TextStyle(fontSize: 18))),
+          FoodAndGroceryScreen(),
         ],
       ),
     );

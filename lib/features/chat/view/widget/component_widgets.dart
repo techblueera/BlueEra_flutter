@@ -20,6 +20,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
+import '../call_screen/call_screen.dart';
 import '../chat_screen.dart';
 
 Widget timeAndReadInfoWidget(
@@ -854,7 +855,8 @@ AppBar getChatTitleAppBar(BuildContext context,{
       const SizedBox(width: 8),
       InkWell(
           onTap: () {
-            launchDialPad(contactNo ?? '');
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>VoiceCallScreen(callerId: 23872893798, callerName: name??'', )));
+            // launchDialPad(contactNo ?? '');
           },
           child: SvgPicture.asset(AppIconAssets.chat_call)),
       const SizedBox(width: 12),

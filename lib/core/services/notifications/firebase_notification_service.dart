@@ -194,15 +194,15 @@ log("lkdmlsdkmlsdvmlsdkm,vv ${notification?.title}");
       dataa['sender_user'] = jsonDecode(dataa['sender_user']);
     }
 
-    print("skdjnckjs One ");
+
     OneSignalNotificationDetailsModel data =
     OneSignalNotificationDetailsModel.fromJson(dataa);
-    print("skdjnckjs One ");
+
 
     final chatViewController = Get.put(ChatViewController());
-    print("skdjnckjs One Twoq ");
+
     chatViewController.connectSocket();
-    print("skdjnckjs One KK");
+
 
     chatViewController.openAnyOneChatFunction(
       type: data.conversationType ?? '',
@@ -212,7 +212,7 @@ log("lkdmlsdkmlsdvmlsdkm,vv ${notification?.title}");
       contactNo: data.senderUser?.contact,
       isInitialMessage: false,
     );
-    print("ksjdckjsdncksjcns ");
+
   }
 
 }
