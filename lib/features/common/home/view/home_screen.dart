@@ -127,7 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   checkAndShowGreetingDialog(BuildContext context) async {
     final result = await canCallCardApi();
-    final canCall = result.canCall;
+    // final canCall = result.canCall;
+    final canCall = true;
     final today = result.today;
 
     if (canCall) {

@@ -173,7 +173,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                           ),
 
                           StandaloneProductScreen(
-                            businessId: businessData?.id??"", isGrid: false,
+                            businessId: businessData?.id ?? "",
+                            isGrid: false,
+                            businessData: businessData,
                           ),
                         ],
                       ),
@@ -217,7 +219,10 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                     ),
 
                     StandaloneProductScreen(
-                      businessId: businessData?.id??"", isGrid: true,
+                      businessId: businessData?.id ?? "",
+                      isGrid: true,
+                      businessData: businessData,
+
                     ),
                   ],
                 ),

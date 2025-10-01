@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -27,8 +28,9 @@ class FeedPopUpMenu extends StatelessWidget {
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       onSelected: (value) async {
+        logs("value==== ${value} post.type ${post.type}");
         if (value == 'Edit Post') {
-          if (post.type == AppConstants.MESSAGE_POST) {
+          if (post.type?.toUpperCase() == AppConstants.MESSAGE_POST) {
             Get.to(MessagePostPreviewScreenNew(
               isEdit: true,
               post: post,
@@ -37,11 +39,11 @@ class FeedPopUpMenu extends StatelessWidget {
             //     arguments: {ApiKeys.post: post, ApiKeys.isEdit: true});
           }
 
-          if (post.type == AppConstants.POLL_POST) {
+          if (post.type?.toUpperCase() == AppConstants.POLL_POST) {
             Get.toNamed(RouteHelper.getPollInputScreenRoute(),
                 arguments: {ApiKeys.post: post, ApiKeys.isEdit: true});
           }
-          if (post.type == AppConstants.PHOTO_POST) {
+          if (post.type?.toUpperCase() == AppConstants.PHOTO_POST) {
             Get.toNamed(RouteHelper.getPhotoPostScreenRoute(),
                 arguments: {ApiKeys.post: post, ApiKeys.isEdit: true});
           }

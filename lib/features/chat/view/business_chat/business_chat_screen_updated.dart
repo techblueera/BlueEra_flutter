@@ -136,7 +136,8 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
               userId: widget.userId,
               type: widget.type,
               name: widget.name,
-              contactNo: widget.contactNo
+              contactNo: widget.contactNo,
+            profileImage: widget.profileImage,
           ),
 
           body: Obx(() {

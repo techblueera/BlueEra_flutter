@@ -60,6 +60,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/sub_feature/draft_screen.dart';
@@ -68,6 +69,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/a
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/create_varient_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen_product.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
@@ -94,34 +96,27 @@ class RouteHelper {
   static final RouteObserver<PageRoute> routeObserver =
       RouteObserver<PageRoute>();
 
-  static String getMobileNumberLoginRoute() =>
-      RouteConstant.MobileNumberScreen;
+  static String getMobileNumberLoginRoute() => RouteConstant.MobileNumberScreen;
 
   static String getOnboardingSliderScreenRoute() =>
       RouteConstant.OnboardingSliderScreen;
 
   // static String getOnboardingStartedScreenRoute() => RouteConstant.OnboardingStartedScreen;
 
-  static String getOtpPageScreenRoute() =>
-      RouteConstant.OtpPageScreen;
+  static String getOtpPageScreenRoute() => RouteConstant.OtpPageScreen;
 
   static String getSelectAccountScreenRoute() =>
       RouteConstant.SelectAccountScreen;
 
-  static String getCreateUserAccountRoute() =>
-      RouteConstant.CreateUserAccount;
+  static String getCreateUserAccountRoute() => RouteConstant.CreateUserAccount;
 
-  static String getHomeScreenRoute() =>
-      RouteConstant.HomeScreen;
+  static String getHomeScreenRoute() => RouteConstant.HomeScreen;
 
-  static String getSplashScreenRoute() =>
-      RouteConstant.SplashScreen;
+  static String getSplashScreenRoute() => RouteConstant.SplashScreen;
 
-  static String getAudioCallScreenRoute() =>
-      RouteConstant.AudioCallScreen;
+  static String getAudioCallScreenRoute() => RouteConstant.AudioCallScreen;
 
-  static String getBusinessAccountRoute() =>
-      RouteConstant.BusinessAccount;
+  static String getBusinessAccountRoute() => RouteConstant.BusinessAccount;
 
   static String getAddEditVisitingCardScreenRoute() =>
       RouteConstant.AddEditVisitingCardScreen;
@@ -149,11 +144,9 @@ class RouteHelper {
   static String getManageChannelScreenRoute() =>
       RouteConstant.ManageChannelScreen;
 
-  static String getChannelScreenRoute() =>
-      RouteConstant.ChannelScreen;
+  static String getChannelScreenRoute() => RouteConstant.ChannelScreen;
 
-  static String getCreateReelScreenRoute() =>
-      RouteConstant.CreateReelScreen;
+  static String getCreateReelScreenRoute() => RouteConstant.CreateReelScreen;
 
   static String getCustomizeMapScreenRoute() =>
       RouteConstant.CustomizeMapScreen;
@@ -161,8 +154,7 @@ class RouteHelper {
   static String getSearchLocationScreenRoute() =>
       RouteConstant.SearchLocationScreen;
 
-  static String getAddSongScreenRoute() =>
-      RouteConstant.addSongScreen;
+  static String getAddSongScreenRoute() => RouteConstant.addSongScreen;
 
   static String getAddPlaceStepOneScreenRoute() =>
       RouteConstant.addPlaceStepOne;
@@ -173,28 +165,25 @@ class RouteHelper {
   static String getCategorySelectionScreenRoute() =>
       RouteConstant.categorySelectionScreen;
 
-  static String getJobResumeScreenRoute() =>
-      RouteConstant.JobResumeScreen;
+  static String getJobResumeScreenRoute() => RouteConstant.JobResumeScreen;
 
-  static String getJobQnaScreenRoute() =>
-      RouteConstant.JobQnaScreen;
+  static String getJobQnaScreenRoute() => RouteConstant.JobQnaScreen;
 
   static String getJobDetailsOverviewScreenRoute() =>
       RouteConstant.JobDetailsOverviewScreen;
 
-  static String getAppliedJobsScreenRoute() =>
-      RouteConstant.AppliedJobsScreen;
+  static String getAppliedJobsScreenRoute() => RouteConstant.AppliedJobsScreen;
 
   static String getInterviewInvitesScreenRoute() =>
       RouteConstant.InterviewInvitesScreen;
+
   static String getAddUpdateProductScreenRoute() =>
       RouteConstant.addUpdateProductScreen;
 
   static String getFollowerFollowingScreenRoute() =>
       RouteConstant.FollowerFollowingScreen;
 
-  static String getChatContactsRoute() =>
-      RouteConstant.ChatContactsScreen;
+  static String getChatContactsRoute() => RouteConstant.ChatContactsScreen;
 
   static String getCreateJobPostScreenRoute() =>
       RouteConstant.CreateJobPostScreen;
@@ -211,32 +200,25 @@ class RouteHelper {
   static String getCreateJobPostStep5Route() =>
       RouteConstant.CreateJobPostStep5;
 
-  static String getTagPeopleScreenRoute() =>
-      RouteConstant.tagPeopleScreen;
+  static String getTagPeopleScreenRoute() => RouteConstant.tagPeopleScreen;
 
   static String getVideoReelRecorderScreenRoute() =>
       RouteConstant.videoRecorderScreen;
 
-  static String getFullVideoPreviewRoute() =>
-      RouteConstant.fullVideoPreview;
+  static String getFullVideoPreviewRoute() => RouteConstant.fullVideoPreview;
 
-  static String getVideoTrimScreenRoute() =>
-      RouteConstant.videoTrimScreen;
+  static String getVideoTrimScreenRoute() => RouteConstant.videoTrimScreen;
 
-  static String getAllSongsScreenRoute() =>
-      RouteConstant.allSongsScreen;
+  static String getAllSongsScreenRoute() => RouteConstant.allSongsScreen;
 
   static String getCreateMessagePostScreenRoute() =>
       RouteConstant.CreateMessagePostScreen;
 
-  static String getPollInputScreenRoute() =>
-      RouteConstant.PollInputScreen;
+  static String getPollInputScreenRoute() => RouteConstant.PollInputScreen;
 
-  static String getPollReviewScreenRoute() =>
-      RouteConstant.PollReviewScreen;
+  static String getPollReviewScreenRoute() => RouteConstant.PollReviewScreen;
 
-  static String getPhotoPostScreenRoute() =>
-      RouteConstant.PhotoPostScreen;
+  static String getPhotoPostScreenRoute() => RouteConstant.PhotoPostScreen;
 
   static String getPhotoPostPreviewScreenRoute() =>
       RouteConstant.PhotoPostPreviewScreen;
@@ -244,8 +226,7 @@ class RouteHelper {
   static String getPhotoPostReviewScreenRoute() =>
       RouteConstant.PhotoPostReviewScreen;
 
-  static String getVideoPlayerScreenRoute() =>
-      RouteConstant.videoPlayerScreen;
+  static String getVideoPlayerScreenRoute() => RouteConstant.videoPlayerScreen;
 
   // In route_helper.dart
   static String getJourneyPlanningScreenRoute() =>
@@ -266,58 +247,74 @@ class RouteHelper {
 
   static String getProductListingScreenRoute() =>
       RouteConstant.ProductListingScreen;
-  static String getMyBookingScreenRoute() =>
-      RouteConstant.MyBookingScreen;
+
+  static String getMyBookingScreenRoute() => RouteConstant.MyBookingScreen;
+
   static String getReceivedBookingScreenRoute() =>
       RouteConstant.ReceivedBookingScreen;
+
   static String getVideographyTutorialScreenRoute() =>
       RouteConstant.VideographyTutorialScreen;
+
   static String getReceivedEnquiriesScreenRoute() =>
       RouteConstant.ReceivedEnquiriesScreen;
+
   static String getVideographyTutorialScreen2Route() =>
       RouteConstant.VideographyTutorialScreen2;
-  static String getMyEnquiresRoute() =>
-      RouteConstant.MyEnquiresScreen;
-  static String sentEnquiresRoute() =>
-      RouteConstant.EnquiryForm;
+
+  static String getMyEnquiresRoute() => RouteConstant.MyEnquiresScreen;
+
+  static String sentEnquiresRoute() => RouteConstant.EnquiryForm;
+
   static String getBookingAndEnquiresRoute() =>
       RouteConstant.BookingAndEnquiresScreen;
+
   static String getAvailabilityScreenRoute() =>
       RouteConstant.SetAvailabilityScreen;
+
   static String getAppointmentBookingScreenRoute() =>
       RouteConstant.AppointmentBookingScreen;
-  static String getAddAccountScreenRoute() =>
-      RouteConstant.addAccountScreen;
+
+  static String getAddAccountScreenRoute() => RouteConstant.addAccountScreen;
+
   static String getAddAccountUpiScreenRoute() =>
       RouteConstant.addAccountUpiScreen;
-  static String getWalletScreenRoute() =>
-      RouteConstant.walletScreen;
+
+  static String getWalletScreenRoute() => RouteConstant.walletScreen;
+
   static String getAllTransactionsScreen() =>
       RouteConstant.allTransactionsScreen;
-  static String getearnBlueeraScreenRoute() =>
-      RouteConstant.earnBlueeraScreen;
-  static String getaddDocumentScreenRoute() =>
-      RouteConstant.addDocumentScreen;
-  static String getpostDetailPageRoute() =>
-      RouteConstant.postDetailPage;
-  static String getMoreCardsScreenRoute() =>
-       RouteConstant.moreCardsScreen;
-  static String getAddProductScreenRoute() =>
-       RouteConstant.addProductScreen;
+
+  static String getearnBlueeraScreenRoute() => RouteConstant.earnBlueeraScreen;
+
+  static String getaddDocumentScreenRoute() => RouteConstant.addDocumentScreen;
+
+  static String getpostDetailPageRoute() => RouteConstant.postDetailPage;
+
+  static String getMoreCardsScreenRoute() => RouteConstant.moreCardsScreen;
+
+  static String getAddProductScreenRoute() => RouteConstant.addProductScreen;
+
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
-  static String getInventoryScreenRoute() =>
-       RouteConstant.inventoryScreen;
-  static String getAddServicesScreenRoute() =>
-       RouteConstant.addServicesScreen;
+  static String getInventoryScreenRoute() => RouteConstant.inventoryScreen;
+
+  static String getAddServicesScreenRoute() => RouteConstant.addServicesScreen;
+
   static String getAddProductViaAiStep1Route() =>
-       RouteConstant.addProductViaAiStep1;
+      RouteConstant.addProductViaAiStep1;
+
   static String getAddProductViaAiStep2Route() =>
-       RouteConstant.addProductViaAiStep2;
+      RouteConstant.addProductViaAiStep2;
+
   static String getProductPreviewScreenRoute() =>
-       RouteConstant.productPreviewScreen;
- static String getCreateVariantScreenRoute() =>
-       RouteConstant.createVariantScreen;
+      RouteConstant.productPreviewScreen;
+
+  static String getCreateVariantScreenRoute() =>
+      RouteConstant.createVariantScreen;
+
+  static String getProductPreviewScreenProductRoute() =>
+      RouteConstant.productPreviewScreenProduct;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -600,11 +597,7 @@ class RouteHelper {
 
         return MaterialPageRoute(
           builder: (_) => AddSongScreen(
-              video: videoPath,
-              images: images,
-              audioUrl: audioUrl,
-              song: song
-          ),
+              video: videoPath, images: images, audioUrl: audioUrl, song: song),
         );
 
       case RouteConstant.PollInputScreen:
@@ -676,10 +669,8 @@ class RouteHelper {
         final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
         final videoType = args[ApiKeys.videoType] as VideoType;
         return MaterialPageRoute(
-          builder: (_) => VideoPlayerScreen(
-            videoItem: videoItem,
-              videoType: videoType
-          ),
+          builder: (_) =>
+              VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
         );
       case RouteConstant.journeyPlanningScreen:
         return MaterialPageRoute(
@@ -848,14 +839,14 @@ class RouteHelper {
         final bool isFromHomeScreen = args[ApiKeys.isFromHomeScreen] as bool;
         final double? headerHeight = args[ApiKeys.headerHeight] as double?;
         final onHeaderVisibilityChanged =
-                 args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
+            args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
 
         return MaterialPageRoute(
             builder: (_) => MoreCardsScreen(
-                isFromHomeScreen: isFromHomeScreen,
-                headerHeight: headerHeight,
-                onHeaderVisibilityChanged: onHeaderVisibilityChanged,
-            ),
+                  isFromHomeScreen: isFromHomeScreen,
+                  headerHeight: headerHeight,
+                  onHeaderVisibilityChanged: onHeaderVisibilityChanged,
+                ),
             settings: RouteSettings(name: getMoreCardsScreenRoute()));
       case RouteConstant.addProductScreen:
         return MaterialPageRoute(
@@ -879,35 +870,46 @@ class RouteHelper {
             settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
-        final AddProductViaAiController controller = args[ApiKeys.controller] as AddProductViaAiController;
-        final GenerateAiProductContent generateAiProductContent = args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
+        final AddProductViaAiController controller =
+            args[ApiKeys.controller] as AddProductViaAiController;
+        final GenerateAiProductContent generateAiProductContent =
+            args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
 
         return MaterialPageRoute(
             builder: (_) => AddProductViaAiStep2(
                 controller: controller,
-                generateAiProductContent: generateAiProductContent
-            ),
+                generateAiProductContent: generateAiProductContent),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
       case RouteConstant.productPreviewScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final OwnProductData? productData = args[ApiKeys.argProductData] as OwnProductData?;
+        final OwnProductData? productData =
+            args[ApiKeys.argProductData] as OwnProductData?;
 
         return MaterialPageRoute(
-            builder: (_) => ProductPreviewScreen(
-                productData: productData
-            ),
+            builder: (_) => ProductPreviewScreen(productData: productData),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
-    case RouteConstant.createVariantScreen:
-      final args = settings.arguments as Map<String, dynamic>;
-      final AddProductViaAiController controller = args[ApiKeys.controller] as AddProductViaAiController;
+      case RouteConstant.productPreviewScreenProduct:
+        final args = settings.arguments as Map<String, dynamic>;
+        final GetProductData? productData =
+            args[ApiKeys.argProductData] as GetProductData?;
+        final bool? productDataBool =
+            args["isShowBusinessInfo"] as bool?;
 
         return MaterialPageRoute(
-            builder: (_) => CreateVariantScreen(
-              controller: controller
-            ),
+            builder: (_) =>
+                ProductPreviewScreenProduct(productData: productData,isShowBusinessInfo: productDataBool,),
+            settings:
+                RouteSettings(name: getProductPreviewScreenProductRoute()));
+      case RouteConstant.createVariantScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final AddProductViaAiController controller =
+            args[ApiKeys.controller] as AddProductViaAiController;
+
+        return MaterialPageRoute(
+            builder: (_) => CreateVariantScreen(controller: controller),
             settings: RouteSettings(name: getCreateVariantScreenRoute()));
 
-     default:
+      default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
             body: Center(child: CustomText('No route found')),

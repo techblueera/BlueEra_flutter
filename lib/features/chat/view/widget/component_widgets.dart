@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -769,6 +770,7 @@ AppBar getChatTitleAppBar(BuildContext context,{
 }){
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
+  logs("profileImage ${profileImage}");
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,
@@ -807,7 +809,7 @@ AppBar getChatTitleAppBar(BuildContext context,{
                   : (name != null)
                   ? Center(
                   child: CustomText(
-                    "${name.split('')[0]}",
+                      name.isNotEmpty? "${name.split('')[0]}":"U",
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: 18,

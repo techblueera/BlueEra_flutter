@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -9,10 +7,10 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/common/product_listing/widgets/product_card.dart';
 import 'package:BlueEra/features/common/store/store_search_suggestion/store_search_suggestion_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/native_ad_widget.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -37,6 +35,7 @@ class StoreScreen extends StatefulWidget {
 
 class _StoreScreenState extends State<StoreScreen> {
   late StoreScreenController controller;
+
   // String? adUnitId;
 
   @override
@@ -57,12 +56,13 @@ class _StoreScreenState extends State<StoreScreen> {
   }
 
   apiCalling() async {
-    await controller.getAllStoreNearBy(context);
+    await controller.fetchStoresAndProducts();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       body: Obx(() {
         if (controller.isLoading.value) {
           return CircularIndicator();
@@ -91,12 +91,13 @@ class _StoreScreenState extends State<StoreScreen> {
                       _buildSearchBar(),
 
                       SizedBox(height: SizeConfig.size20),
-
+                      _buildStoresProductSection(categoryName: "Product"),
                       // ProductSlider(),
                       _buildStoresSection(
                           categoryName: "Stores", tagName: "store"),
-///DO NOT DELETE THIS CODE....
-                /*      if (Platform.isAndroid) ...[
+
+                      ///DO NOT DELETE THIS CODE....
+                      /*      if (Platform.isAndroid) ...[
                         if (adUnitId != null) ...[
                           SizedBox(height: SizeConfig.size20),
                           ConstrainedBox(
@@ -161,7 +162,7 @@ class _StoreScreenState extends State<StoreScreen> {
                       _buildStoresSection(
                           categoryName: "Services", tagName: "services"),
 
-                 /*     if (Platform.isAndroid) ...[
+                      /*     if (Platform.isAndroid) ...[
                         if (adUnitId != null) ...[
                           SizedBox(height: SizeConfig.size20),
                           ConstrainedBox(
@@ -378,6 +379,48 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
+  Widget _buildStoresProductSection({String? categoryName, String? tagName}) {
+    if (controller.storeProductDataList.isNotEmpty)
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+            child: CustomText(
+              categoryName,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size15),
+          Obx(() {
+            return SizedBox(
+              height: 285,
+              child: controller.storeProductDataList.isNotEmpty
+                  ? ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+                      itemCount: controller.storeProductDataList.length,
+                      itemBuilder: (context, index) {
+                        return ProductCardBusiness(
+                          productData: controller.storeProductDataList[index],
+                          isGridView: false,
+                          isShowChat: false,
+                          isShowKM: true,
+                          isShowBusinessInfo: true,
+                        );
+
+                      },
+                    )
+                  : Center(child: CustomText("No $tagName found yet")),
+            );
+          }),
+          SizedBox(height: SizeConfig.size10),
+        ],
+      );
+    return SizedBox.shrink();
+  }
 
   Widget _buildStoresSection({String? categoryName, String? tagName}) {
     return Column(

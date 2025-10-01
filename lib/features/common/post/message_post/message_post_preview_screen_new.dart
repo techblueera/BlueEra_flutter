@@ -365,11 +365,15 @@ class _MessagePostPreviewScreenNewState
                                                   .imagesList[i];
 
                                               File processed =
+                                              File(
+                                                  data.imageFile?.path ?? "");
+                                              /*
+                                              File processed =
                                                   await processImage(
                                                 File(
                                                     data.imageFile?.path ?? ""),
                                                 data.imgCropMode ?? "",
-                                              );
+                                              );*/
 
                                               String fileName = processed.path
                                                   .split('/')

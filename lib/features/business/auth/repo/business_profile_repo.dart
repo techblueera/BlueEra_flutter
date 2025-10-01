@@ -178,7 +178,7 @@ class BusinessProfileRepo extends BaseService {
     required String businessId,
     bool isDraft = false,
   }) async {
-    final response = await ApiBaseHelper().getHTTP(
+    final response = await ApiBaseHelper().postHTTP(
       "$getOwnDraftedAndPublicProducts",
       params: {
         'businessId': businessId,

@@ -124,8 +124,8 @@ class PhotoUploadWidget extends StatelessWidget {
                       children: [
                         Center(
                           child: Container(
-                          width:250 ,
-                            height: 250,
+                          // width:300 ,
+                            height: 300,
                             // height: Get.width * 0.5,
                             // // height: Get.width * 0.5,
                             // width: msgController
@@ -145,7 +145,7 @@ class PhotoUploadWidget extends StatelessWidget {
                                 image: FileImage(File(msgController
                                         .imagesList[index].imageFile?.path ??
                                     "")),
-                                fit: BoxFit.cover,
+                                fit: BoxFit.fitWidth,
                               ),
                             ),
                           ),

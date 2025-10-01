@@ -449,4 +449,5 @@ abstract class BaseService {
   final String getListOfSearchProduct = 'product-service/product/getListOfSearchProduct';
   final String homeFeed = 'userfeed-service/feed';
   final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';
+  final String homePageProduct = 'inventory-service/products/homePageProduct';
 }

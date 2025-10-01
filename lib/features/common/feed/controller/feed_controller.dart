@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -907,14 +908,20 @@ class FeedController extends GetxController {
   RxBool hasMoreData = true.obs;
   final int limit = 40;
   dynamic currentLat, currentLong;
-  RxList<ShortFeedItem> shortFeedItem = <ShortFeedItem>[].obs;
-
+  // RxList<ShortFeedItem> shortFeedItem = <ShortFeedItem>[].obs;
+  // RxList<ShortFeedItem> latestShortsPosts = <ShortFeedItem>[].obs;
+  late ShortsController? shortsController;
   Future<void> getFeed({bool refresh = false}) async {
+    if (Get.isRegistered<ShortsController>()) {
+      shortsController = Get.find<ShortsController>();
+    } else {
+      shortsController = Get.put(ShortsController());
+    }
     if (isLoadingHome.value) return;
     if (refresh) {
       cursor.value = "";
       allPosts.clear();
-      shortFeedItem.clear();
+      shortsController?.latestShortsPosts.clear();
       hasMoreData.value = true;
     }
     if (!hasMoreData.value) return;
@@ -940,7 +947,7 @@ class FeedController extends GetxController {
           allPosts.addAll(homeFeedResponse.feed);
           allPosts.forEach((data) {
             if (data.type == "short_video") {
-              shortFeedItem.add(getVideoData(data));
+              shortsController?.latestShortsPosts.add(getVideoData(data));
             }
           });
           if (homeFeedResponse.feed.isNotEmpty) {
