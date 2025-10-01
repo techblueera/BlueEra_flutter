@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -13,6 +14,8 @@ import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
+
+import '../../../personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
 
 class FoodUploadController extends GetxController {
   Rx<ApiResponse> foodAiResponse = ApiResponse.initial('Initial').obs;
@@ -90,9 +93,13 @@ Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
       if (responseModel.isSuccess) {
          foodAiResponseModel.value =
             FoodAiResModel.fromJson(responseModel.response?.data);
-
         commonSnackBar(message: "Food added successfully");
-        Get.to(FoodDetailScreen(foodData: responseModel.response?.data,));
+        // FoodDetailScreen
+
+        Get.to(SubmitFoodProductPage(
+          categoryTag:selectedFoodType1.value ,
+          subCategory:selectedFoodType2.value ,
+          foodDatas:  foodAiResponseModel.value,foodData:responseModel.response?.data , imagePath:  selectedImage.value?.path ?? "",));
         foodAiResponse.value = ApiResponse.complete(foodAiResponseModel);
       } else {
         foodAiResponse.value = ApiResponse.error('Failed to load feed');
