@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -61,6 +60,10 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     controller.selectedCategory.value = '';
     controller.selectedCategoryId.value = '';
     controller.listedProducts.clear();
+    controller.selectedVariantIndex.value = 0;
+    controller.selectedProductOrVariantPrice = '00,000'.obs;
+    controller.selectedProductOrVariantDiscount = '0'.obs;
+    controller.selectedProductOrVariantMrp = '00,000'.obs;
 
     // controller.selectedExpiryDuration = 'Day'.obs;
     // controller.selectedProductDuration = 'Day'.obs;

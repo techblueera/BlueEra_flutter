@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -42,7 +42,18 @@ class InventoryController extends GetxController {
   Timer? _searchDebounce;
   final RxString searchProduct = ''.obs;
   final RxBool ProductSearchLoading = false.obs;
-  RxList<Variants> searchProductVariants = <Variants>[].obs;
+
+  RxList<VariantData> searchProductVariantsList = <VariantData>[].obs;
+  RxList<UnUsedProduct> searchProductsList = <UnUsedProduct>[].obs;
+
+  final variantSelection = <String, bool>{}.obs;
+  final variantSellingPrice = <String, String>{}.obs;
+
+  bool isVariantSelected(String id) => variantSelection[id] ?? false;
+  String? getUpdatedPrice(String id) => variantSellingPrice[id];
+  bool hasAnySelected() {
+    return variantSelection.values.any((isSelected) => isSelected);
+  }
 
   @override
   void onInit() {
@@ -62,18 +73,37 @@ class InventoryController extends GetxController {
     super.onClose();
   }
 
-  void callApi(){
-    switch(selectedProductIndex.value){
+  void callApi({bool forceRefresh = false}) {
+    RxList<OwnProductData> targetList;
+
+    switch (selectedProductIndex.value) {
       case 0:
-        loadProducts();
+        targetList = allProducts;
         break;
       case 1:
-        loadProducts(isDraftProduct: false);
+        targetList = liveProducts;
         break;
       case 2:
-        loadProducts(isDraftProduct: true);
+        targetList = draftProducts;
         break;
+      default:
+        targetList = allProducts;
+    }
 
+    log('forceRefresh-- $forceRefresh');
+    log('isEmpty-- ${targetList.isEmpty}');
+    if (forceRefresh || targetList.isEmpty) {
+      switch (selectedProductIndex.value) {
+        case 0:
+          loadProducts();
+          break;
+        case 1:
+          loadProducts(isDraftProduct: false);
+          break;
+        case 2:
+          loadProducts(isDraftProduct: true);
+          break;
+      }
     }
   }
 
@@ -117,8 +147,6 @@ class InventoryController extends GetxController {
       isLoading.value = false;
       ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     }
-
-
   }
 
   /// Clear search
@@ -141,7 +169,33 @@ class InventoryController extends GetxController {
     });
   }
 
+  void toggleVariant(String id) {
+    final currentlySelected = variantSelection.entries
+        .where((e) => e.value == true)
+        .length;
+
+    final isSelected = variantSelection[id] ?? false;
+
+    if (!isSelected && currentlySelected >= maxSelectionLimit) {
+      log("⚠️ Cannot select more than 10 variants");
+      showErrorBanner.value = true;
+      return;
+    }
+
+    showErrorBanner.value = false;
+    variantSelection[id] = !isSelected;
+    log('id-- $id  selected=${variantSelection[id]}');
+  }
+
+  void updateSellingPrice(String id, String value) {
+    variantSellingPrice[id] = value;
+    refresh();
+  }
+
   Future<void> fetchListOfSearchProductApi(String keyword) async {
+
+    if(keyword.length < 3) return;
+
     try {
       searchProduct.value = keyword;
       ProductSearchLoading.value = true;
@@ -158,65 +212,26 @@ class InventoryController extends GetxController {
           responseModel.response?.data,
         );
 
-        List<Variants> allVariants = [];
+        /// search variants
+        searchProductVariantsList.clear();
+        searchProductVariantsList.addAll(inventoryBasedSearchProductResponse.data);
+        print("Total variants products: ${searchProductVariantsList.length}");
 
-        // 1️⃣ Variants from 'data'
-        for (var product in inventoryBasedSearchProductResponse.data) {
-          for (var inventory in product.inventories) {
-            allVariants.addAll(inventory.variants);
-          }
-        }
+        /// search products
+        searchProductsList.clear();
+        searchProductsList.assignAll(inventoryBasedSearchProductResponse.unUsedProduct);
+        print("Total products without variants: ${searchProductsList.length}");
 
-        // 2️⃣ Wrap unUsedProduct into 'Variants'
-        for (var unusedProduct in inventoryBasedSearchProductResponse.unUsedProduct) {
-          final dummyVariant = Variants(
-            mediaRelatedToVarient: unusedProduct.media,
-            attributes: {}, // or map some attributes if needed
-            sku: '',
-            hsn: '',
-            batchNumber: '',
-            manufacteringDate: DateInfo(date: 0, month: 0, year: 0),
-            stock: true,
-            costPrice: 0,
-            sellingPrice: 0,
-            mrp: unusedProduct.mrpPerUnit,
-            varientIsActive: unusedProduct.isPublished,
-            createdAt: unusedProduct.createdAt,
-            updatedAt: unusedProduct.updatedAt,
-            product: unusedProduct,
-          );
-
-          allVariants.add(dummyVariant);
-        }
-
-        // Update the UI list
-        searchProductVariants.clear();
-        searchProductVariants.assignAll(allVariants);
-
-        print("Total variants including unused products: ${allVariants.length}");
-
-        // Extract all variants
-        // List<Variants> allVariants = [];
-        // for (var product in inventoryBasedSearchProductResponse.data) {
-        //   for (var inventory in product.inventories) {
-        //     allVariants.addAll(inventory.variants);
-        //   }
-        // }
-        //
-        // // Now you can use `allVariants` for your UI
-        // print("Total variants found: ${allVariants.length}");
-        //
-        // searchProductVariants.clear();
-        // searchProductVariants.assignAll(allVariants);
+        refresh();
 
       } else {
         searchProductResponse.value = ApiResponse.error('error');
       }
 
-      ProductSearchLoading.value = false;
     } catch (e, s) {
       print("stack trace: $s");
       searchProductResponse.value = ApiResponse.error('error');
+    }finally{
       ProductSearchLoading.value = false;
     }
   }

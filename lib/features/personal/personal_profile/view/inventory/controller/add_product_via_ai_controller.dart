@@ -11,13 +11,13 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 import '../model/sub_category_root_category_response.dart';
-
 
 class AddProductViaAiRequest {
   final String? productName;
@@ -186,6 +186,10 @@ class AddProductViaAiController extends GetxController{
 
   final String otherCategoryId = '68d4e332455cad1af87fac05';
 
+  RxString selectedProductOrVariantPrice = '00,000'.obs;
+  RxString selectedProductOrVariantDiscount = '0'.obs;
+  RxString selectedProductOrVariantMrp = '00,000'.obs;
+
   @override
   void onClose() {
     productNameController.dispose();
@@ -208,28 +212,6 @@ class AddProductViaAiController extends GetxController{
     searchController.dispose();
     _searchDebounce?.cancel();
     super.onClose();
-  }
-
-  // Step-wise validation
-  bool _validateStep1() {
-    if(!formKeyStep1.currentState!.validate()) return false;
-
-    if(tags.isEmpty){
-      commonSnackBar(message: 'Please add a tag/keyword');
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _validateStep2() {
-    if(!formKeyStep2.currentState!.validate()) return false;
-    return true;
-  }
-
-  bool _validateStep3() {
-    if(!formKeyStep3.currentState!.validate()) return false;
-    return true;
   }
 
   // bool validateCurrentStep() {
@@ -606,14 +588,21 @@ class AddProductViaAiController extends GetxController{
       commonSnackBar(message: responseModel.message);
       if (responseModel.isSuccess) {
         createProductResponse.value = ApiResponse.complete(responseModel);
-        log('id -- ${responseModel.response?.data['data']['_id']}');
         productId = responseModel.response?.data['data']['_id'];
         Get.toNamed(
           RouteHelper.getProductPreviewScreenRoute(),
-          arguments: {
-            ApiKeys.controller: addProductViaAiController,
-          },
         );
+
+        // productId = responseModel.response?.data['data']['_id'];
+        // ProductPreviewArgs productPreviewArgs = mapOwnProductToPreviewArgs();
+        // Get.toNamed(
+        //   RouteHelper.getProductPreviewScreenRoute(),
+        //   arguments: {
+        //       ApiKeys.argsProductPreview: productPreviewArgs,
+        //   },
+        //
+        // );
+
       } else {
         createProductResponse.value = ApiResponse.error('error');
       }
@@ -625,6 +614,29 @@ class AddProductViaAiController extends GetxController{
       isCreateProductLoading.value = false;
     }
   }
+
+  // ProductPreviewArgs mapOwnProductToPreviewArgs() {
+  //   // if (src == null) return const ProductPreviewArgs(productId: '');
+  //
+  //   return ProductPreviewArgs(
+  //     productId: productId ?? '',
+  //     media: allProductsImages,
+  //     name: productNameController.text.trim(),
+  //     description: productDescriptionController.text.trim(),
+  //     tags: tags,
+  //     features: featureControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
+  //     link: linkController.text.trim(),
+  //     details: detailsList
+  //         .map((d) => DetailPair(d.title, d.details))
+  //         .toList(),
+  //     mrp: mrpController.text.trim(),
+  //     warranty: productWarrantyController.text.trim(),
+  //     expiry: productExpiryDurationController.text.trim(),
+  //     userGuide: userGuideLineControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
+  //     selectedColors: selectedColors,
+  //     dynamicAttributes: dynamicAttributes
+  //   );
+  // }
 
   var isAddProductToInventoryLoading = false.obs;
 

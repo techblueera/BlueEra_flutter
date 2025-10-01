@@ -81,7 +81,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                     children: [
                       // Show Skip only if nothing is selected
 
-                      if(widget.controller.listedProducts.isEmpty)
+                      if(widget.controller.listedProducts.isEmpty ?? false)
                       if (widget.controller.selectedVariantValues.isEmpty)
                         Expanded(
                           child: PositiveCustomBtn(
@@ -141,7 +141,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
             ),
 
              Obx(()=>
-             widget.controller.listedProducts.isNotEmpty ?
+             (widget.controller.listedProducts.isNotEmpty ?? false) ?
              CustomFormCard(
                margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
                child: Column(
@@ -341,7 +341,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                  onSelected: (value) async {
                                    if (value == 'Delete Variant') {
-                                     widget.controller.listedProducts.removeAt(productIndex);
+                                     widget.controller.listedProducts?.removeAt(productIndex);
                                    }
                                  },
                                  icon: Icon(Icons.more_vert, color: AppColors.black),
