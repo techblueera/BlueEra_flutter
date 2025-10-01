@@ -33,7 +33,7 @@ class FoodAiResModel {
     keyMinerals = json['keyMinerals'] != null ? json['keyMinerals'].cast<String>() : [];
     seoTags = json['seoTags'] != null ? json['seoTags'].cast<String>() : [];
   }
-  String? productName;
+  List? productName;
   String? shortDescription;
   String? category;
   String? cuisine;

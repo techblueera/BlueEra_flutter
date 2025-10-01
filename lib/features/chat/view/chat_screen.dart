@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -7,9 +9,13 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart
 import 'package:BlueEra/features/chat/view/widget/receive_req_dialoge.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/contact.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/constants/app_icon_assets.dart';
@@ -81,6 +87,102 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         }
       }
     });
+    _loadContactsFromStorage();
+  }
+
+  List<Map<String, dynamic>> getFormattedContacts(
+      List<Map<String, dynamic>> rawContacts) {
+    return rawContacts.map((c) {
+      final phones = (c["phones"] as List).cast<String>();
+      return {
+        "name": c["displayName"] ?? "",
+        "contactNo": phones.isNotEmpty ? phones.first : "",
+      };
+    }).toList();
+  }
+
+  Future<void> _loadContactsFromStorage() async {
+    String? storedData = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.saved_contacts);
+    if (storedData != null) {
+      Map<String, dynamic> decoded =
+      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      chatViewController.loadContactsFromLocalStorage(decoded);
+    } else {
+      await _refreshContacts();
+    }
+  }
+// This is the isolate function → runs in background
+  List<Map<String, String>> formatContactsInIsolate(
+      List<Map<String, dynamic>> rawContacts) {
+
+    return rawContacts
+        .where((c) => (c["phones"] as List).isNotEmpty)
+        .map((c) => {
+      ApiKeys.contact_no: (c["phones"] as List).first as String,
+      ApiKeys.name: c["displayName"] as String,
+    })
+        .toList();
+  }
+
+  Future<void> _refreshContacts() async {
+    PermissionStatus status = await Permission.contacts.status;
+    if (status.isGranted) {
+      List<Contact> contacts =
+      await FlutterContacts.getContacts(withProperties: true);
+
+      // Convert Contacts → plain JSON-safe map
+      List<Map<String, dynamic>> rawContacts = contacts.map((c) {
+        return {
+          "displayName": c.displayName ?? "",
+          "phones": c.phones.map((p) => p.number ?? "").toList(),
+        };
+      }).toList();
+
+      // Compute in isolate
+      List<Map<String, String>> formattedContacts = await formatContactsInIsolate(rawContacts);
+      // await compute(formatContactsInIsolate, rawContacts);
+
+      chatViewController.uploadContacts(formattedContacts);
+    } else {
+      PermissionStatus newStatus = await Permission.contacts.request();
+      if (newStatus.isGranted) {
+        return _refreshContacts();
+      } else if (newStatus.isPermanentlyDenied) {
+        _showPermissionDialog();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Permission denied")),
+        );
+      }
+    }
+  }
+
+// Runs in isolate – must only use JSON-safe data
+
+
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Permission Required"),
+        content: const Text("Please allow contact access in app settings."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await openAppSettings();
+            },
+            child: const Text("Allow Permission"),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _isFromForward() {
