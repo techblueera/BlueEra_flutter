@@ -5,7 +5,10 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -58,8 +61,7 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
         )),
 
-       Obx(()=> _buildOwnProductCard())
-
+        Obx(()=> _buildOwnProductCard())
 
       ],
     );
@@ -261,6 +263,13 @@ class _ProductScreenState extends State<ProductScreen> {
             ApiKeys.argProductData: product,
           },
         );
+        // ProductPreviewArgs productPreviewArgs = mapOwnProductToPreviewArgs(product);
+        // Get.toNamed(
+        //   RouteHelper.getProductPreviewScreenRoute(),
+        //   arguments: {
+        //     ApiKeys.argsProductPreview: productPreviewArgs,
+        //   },
+        // );
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -375,7 +384,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       ],
                     ),
 
-                    buildAttributeRows(uniqueAttributes)
+                    AttributeRows(attributeMap: uniqueAttributes),
                   ],
                 ),
               ),
@@ -400,67 +409,71 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  Widget buildAttributeRows(Map<String, List<dynamic>> attributeMap) {
-    final keys = attributeMap.keys.toList();
 
-    if (keys.isEmpty) return SizedBox.shrink();
+  // ProductPreviewArgs mapOwnProductToPreviewArgs(OwnProductData? src) {
+  //   if (src == null) {
+  //     return ProductPreviewArgs(productId: '');
+  //   }
+  //
+  //   final details = src.product.details;
+  //
+  //   final features = details?.addProductFeatures
+  //       .map((f) => f.title ?? '')
+  //       .where((t) => t.isNotEmpty)
+  //       .toList() ??
+  //       [];
+  //
+  //   final detailsList = details?.addMoreDetails
+  //       .map((d) => DetailPair(d.title ?? '', d.details ?? ''))
+  //       .toList() ??
+  //       [];
+  //
+  //   final listedProds = src.product.sellerClassification?.variants
+  //       .map((v) => ProductListing(
+  //     image: v.mediaRelatedToVariant,
+  //     name: '${details?.name ?? ''} ${_buildVariantName('', v.attributes)}'
+  //         .trim(),
+  //     selectedVariants: v.attributes,
+  //     price: v.sellingPrice.toString(),
+  //     mrp: v.mrp.toString(),
+  //     discount: v.mrp > 0
+  //         ? (((v.mrp - v.sellingPrice) / v.mrp) * 100)
+  //         .toStringAsFixed(2)
+  //         : null,
+  //   ))
+  //       .toList() ??
+  //       [];
+  //
+  //   return ProductPreviewArgs(
+  //     productId: details?.id ?? '',
+  //     media: details?.media ?? [],
+  //     name: details?.name ?? '',
+  //     description: details?.description ?? '',
+  //     tags: details?.tags ?? [],
+  //     features: features,
+  //     link: null,
+  //     details: detailsList,
+  //     mrp: details?.name,
+  //     warranty: details?.productWarranty,
+  //     expiry: null,
+  //     userGuide: null,
+  //     listedProducts: listedProds.isEmpty ? null : listedProds,
+  //   );
+  // }
+  //
+  // String _buildVariantName(String baseName, Map<String, dynamic> attr) {
+  //   final suffix = attr.entries.map((e) {
+  //     final key = e.key.toLowerCase();
+  //     final val = e.value;
+  //     if (key == 'color' && val is Map<String, dynamic>) {
+  //       return val['color_name'] ?? '';
+  //     }
+  //     return val?.toString() ?? '';
+  //   }).where((s) => s.isNotEmpty).join(', ');
+  //
+  //   return '$baseName ${suffix.trim()}'.trim();
+  // }
 
-    final firstKey = keys[0];
-    final firstValues = attributeMap[firstKey]!;
-    logs('${firstValues.length}');
-
-    final secondKey = keys.length > 1 ? keys[1] : null;
-    final secondValues = secondKey != null ? attributeMap[secondKey]! : [];
-
-    Widget buildRow(String key, List<dynamic> values) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: values.map((value) {
-            if (key == 'color' && value is Map<String, dynamic>) {
-              log(value["color_code"]);
-              return Container(
-                width: 16,
-                height: 16,
-                margin: EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  color: hexToColor(value["color_code"]),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey, width: 1),
-                ),
-              );
-            } else {
-              return Container(
-                margin: EdgeInsets.only(right: 8),
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: AppColors.whiteE5)
-                ),
-                child: Text(
-                  "$value",
-                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
-                ),
-              );
-            }
-          }).toList(),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 6),
-        buildRow(firstKey, firstValues),
-        if (secondKey != null) ...[
-          SizedBox(height: 6),
-          buildRow(secondKey, secondValues),
-        ]
-      ],
-    );
-  }
 }
 
 

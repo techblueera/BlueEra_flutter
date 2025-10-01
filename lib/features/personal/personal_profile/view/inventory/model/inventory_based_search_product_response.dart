@@ -1,6 +1,6 @@
 class InventoryBasedSearchProductResponse {
-  final List<ProductData> data;
-  final List<ProductDetail> unUsedProduct;
+  List<VariantData> data;
+  List<UnUsedProduct> unUsedProduct;
 
   InventoryBasedSearchProductResponse({
     required this.data,
@@ -9,206 +9,80 @@ class InventoryBasedSearchProductResponse {
 
   factory InventoryBasedSearchProductResponse.fromJson(Map<String, dynamic> json) {
     return InventoryBasedSearchProductResponse(
-      data: (json['data'] as List<dynamic>)
-          .map((e) => ProductData.fromJson(e))
-          .toList(),
-      unUsedProduct: (json['unUsedProduct'] as List<dynamic>)
-          .map((e) => ProductDetail.fromJson(e))
-          .toList(), // <-- map to ProductDetail
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => VariantData.fromJson(e))
+          .toList() ??
+          [],
+      unUsedProduct: (json['unUsedProduct'] as List<dynamic>?)
+          ?.map((e) => UnUsedProduct.fromJson(e))
+          .toList() ??
+          [],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'data': data.map((e) => e.toJson()).toList(),
-      'unUsedProduct': unUsedProduct.map((e) => e.toJson()).toList(),
-    };
   }
 }
 
-class ProductData {
-  final List<Inventory> inventories;
-  final String id;
-  final String productId;
-  final String businessId;
-  final BusinessLocation? businessLocation;
-  final bool published;
-  final bool isActive;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+class VariantData {
+  List<String> mediaRelatedToVarient;
+  Map<String, dynamic> attributes;
+  String sku;
+  String hsn;
+  String batchNumber;
+  DateInfo expiryDate;
+  DateInfo manufacteringDate;
+  bool stock;
+  double costPrice;
+  double sellingPrice;
+  double mrp;
+  bool varientIsActive;
+  // DateTime createdAt;
+  // DateTime updatedAt;
+  ProductInformation productInformation;
 
-  ProductData({
-    required this.inventories,
-    required this.id,
-    required this.productId,
-    required this.businessId,
-    this.businessLocation,
-    required this.published,
-    required this.isActive,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory ProductData.fromJson(Map<String, dynamic> json) {
-    return ProductData(
-      inventories: (json['inventories'] as List<dynamic>)
-          .map((e) => Inventory.fromJson(e))
-          .toList(),
-      id: json['id'],
-      productId: json['product_id'],
-      businessId: json['business_id'],
-      businessLocation: json['business_location'] != null
-          ? BusinessLocation.fromJson(json['business_location'])
-          : null,
-      published: json['published'] ?? false,
-      isActive: json['isActive'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'inventories': inventories.map((e) => e.toJson()).toList(),
-      'id': id,
-      'product_id': productId,
-      'business_id': businessId,
-      'business_location': businessLocation?.toJson(),
-      'published': published,
-      'isActive': isActive,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-}
-
-class Inventory {
-  final List<Variants> variants;
-  final String id;
-  final String productId;
-  final String businessId;
-  final bool published;
-  final bool isActive;
-  final String createdAt;
-  final String updatedAt;
-
-  Inventory({
-    required this.variants,
-    required this.id,
-    required this.productId,
-    required this.businessId,
-    required this.published,
-    required this.isActive,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory Inventory.fromJson(Map<String, dynamic> json) {
-    return Inventory(
-      variants: (json['variants'] as List<dynamic>)
-          .map((e) => Variants.fromJson(e))
-          .toList(),
-      id: json['id'],
-      productId: json['product_id'],
-      businessId: json['business_id'],
-      published: json['published'] ?? false,
-      isActive: json['isActive'] ?? false,
-      createdAt: json['createdAt'] ?? '',
-      updatedAt: json['updatedAt'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'variants': variants.map((e) => e.toJson()).toList(),
-      'id': id,
-      'product_id': productId,
-      'business_id': businessId,
-      'published': published,
-      'isActive': isActive,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-    };
-  }
-}
-
-class Variants {
-  final List<String> mediaRelatedToVarient;
-  final Map<String, dynamic> attributes;
-  final String sku;
-  final String hsn;
-  final String batchNumber;
-  final DateInfo manufacteringDate;
-  final bool stock;
-  final double costPrice;
-  final double sellingPrice;
-  final double mrp;
-  final bool varientIsActive;
-  final String createdAt;
-  final String updatedAt;
-  final ProductDetail product;
-
-  Variants({
+  VariantData({
     required this.mediaRelatedToVarient,
     required this.attributes,
     required this.sku,
     required this.hsn,
     required this.batchNumber,
+    required this.expiryDate,
     required this.manufacteringDate,
     required this.stock,
     required this.costPrice,
     required this.sellingPrice,
     required this.mrp,
     required this.varientIsActive,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.product,
+    // required this.createdAt,
+    // required this.updatedAt,
+    required this.productInformation,
   });
 
-  factory Variants.fromJson(Map<String, dynamic> json) {
-    return Variants(
+  factory VariantData.fromJson(Map<String, dynamic> json) {
+    return VariantData(
       mediaRelatedToVarient:
       List<String>.from(json['media_related_to_varient'] ?? []),
       attributes: Map<String, dynamic>.from(json['attributes'] ?? {}),
       sku: json['sku'] ?? '',
       hsn: json['hsn'] ?? '',
       batchNumber: json['batchNumber'] ?? '',
+      expiryDate: DateInfo.fromJson(json['expiryDate'] ?? {}),
       manufacteringDate: DateInfo.fromJson(json['manufacteringDate'] ?? {}),
-      stock: json['stock'] ?? false,
+      stock: json['stock'] ?? true,
       costPrice: (json['costPrice'] ?? 0).toDouble(),
       sellingPrice: (json['sellingPrice'] ?? 0).toDouble(),
       mrp: (json['mrp'] ?? 0).toDouble(),
-      varientIsActive: json['varientIsActive'] ?? false,
-      createdAt: json['createdAt'] ?? '',
-      updatedAt: json['updatedAt'] ?? '',
-      product: ProductDetail.fromJson(json['product']),
+      varientIsActive: json['varientIsActive'] ?? true,
+      // createdAt: DateTime.parse(json['createdAt']),
+      // updatedAt: DateTime.parse(json['updatedAt']),
+      productInformation:
+      ProductInformation.fromJson(json['product_information'] ?? {}),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'media_related_to_varient': mediaRelatedToVarient,
-      'attributes': attributes,
-      'sku': sku,
-      'hsn': hsn,
-      'batchNumber': batchNumber,
-      'manufacteringDate': manufacteringDate.toJson(),
-      'stock': stock,
-      'costPrice': costPrice,
-      'sellingPrice': sellingPrice,
-      'mrp': mrp,
-      'varientIsActive': varientIsActive,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'product': product.toJson(),
-    };
   }
 }
 
 class DateInfo {
-  final int date;
-  final int month;
-  final int year;
+  int date;
+  int month;
+  int year;
 
   DateInfo({required this.date, required this.month, required this.year});
 
@@ -219,42 +93,188 @@ class DateInfo {
       year: json['year'] ?? 0,
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'date': date,
-      'month': month,
-      'year': year,
-    };
+class ProductInformation {
+  String id;
+  String name;
+  String type;
+  String symbol;
+  String description;
+  String brand;
+  List<String> media;
+  List<String> videoUrl;
+  String productWarrenty;
+  bool isReturnable;
+  int returningDay;
+  bool isPublished;
+  double mrpPerUnit;
+  List<String> guideLine;
+  List<String> tags;
+  List<AddMoreDetail> addMoreDetails;
+  List<ProductFeature> addProductFeatures;
+  List<ProductVariant> variants;
+  String approvalStatus;
+  List<dynamic> options;
+  DateTime createdAt;
+  DateTime updatedAt;
+  bool addedByAdmin;
+
+  ProductInformation({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.symbol,
+    required this.description,
+    required this.brand,
+    required this.media,
+    required this.videoUrl,
+    required this.productWarrenty,
+    required this.isReturnable,
+    required this.returningDay,
+    required this.isPublished,
+    required this.mrpPerUnit,
+    required this.guideLine,
+    required this.tags,
+    required this.addMoreDetails,
+    required this.addProductFeatures,
+    required this.variants,
+    required this.approvalStatus,
+    required this.options,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.addedByAdmin,
+  });
+
+  factory ProductInformation.fromJson(Map<String, dynamic> json) {
+    return ProductInformation(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      type: json['type'] ?? '',
+      symbol: json['symbol'] ?? '',
+      description: json['description'] ?? '',
+      brand: json['brand'] ?? '',
+      media: List<String>.from(json['media'] ?? []),
+      videoUrl: List<String>.from(json['video_url'] ?? []),
+      productWarrenty: json['productWarrenty'] ?? '',
+      isReturnable: json['is_returnable'] ?? false,
+      returningDay: json['returning_day'] ?? 0,
+      isPublished: json['is_published'] ?? false,
+      mrpPerUnit: (json['mrp_per_unit'] ?? 0).toDouble(),
+      guideLine: List<String>.from(json['guideLine'] ?? []),
+      tags: List<String>.from(json['tags'] ?? []),
+      addMoreDetails: (json['addMoreDetails'] as List<dynamic>?)
+          ?.map((e) => AddMoreDetail.fromJson(e))
+          .toList() ??
+          [],
+      addProductFeatures: (json['addProductFeatures'] as List<dynamic>?)
+          ?.map((e) => ProductFeature.fromJson(e))
+          .toList() ??
+          [],
+      variants: (json['variants'] as List<dynamic>?)
+          ?.map((e) => ProductVariant.fromJson(e))
+          .toList() ??
+          [],
+      approvalStatus: json['approval_status'] ?? '',
+      options: json['options'] ?? [],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      addedByAdmin: json['addedByAdmin'] ?? false,
+    );
   }
 }
 
-class ProductDetail {
-  final String id;
-  final String name;
-  final String type;
-  final String symbol;
-  final List<String> media;
-  final List<dynamic> videoUrl;
-  final String categoryId;
-  final bool isReturnable;
-  final int returningDay;
-  final bool isPublished;
-  final List<String> tags;
-  final bool addedByAdmin;
-  final String approvalStatus;
-  final List<Option> options;
-  final List<Map<String, dynamic>> addMoreDetails;
-  final List<Map<String, dynamic>> addProductFeatures;
-  final List<dynamic> variants;
-  final String description;
-  final String brand;
-  final String productWarranty;
-  final double mrpPerUnit;
-  final String createdAt;
-  final String updatedAt;
+class AddMoreDetail {
+  String title;
+  String details;
+  String id;
 
-  ProductDetail({
+  AddMoreDetail({required this.title, required this.details, required this.id});
+
+  factory AddMoreDetail.fromJson(Map<String, dynamic> json) {
+    return AddMoreDetail(
+      title: json['title'] ?? '',
+      details: json['details'] ?? '',
+      id: json['_id'] ?? '',
+    );
+  }
+}
+
+class ProductFeature {
+  String title;
+  String id;
+
+  ProductFeature({required this.title, required this.id});
+
+  factory ProductFeature.fromJson(Map<String, dynamic> json) {
+    return ProductFeature(
+      title: json['title'] ?? '',
+      id: json['_id'] ?? '',
+    );
+  }
+}
+
+class ProductVariant {
+  Map<String, dynamic> attributes;
+  bool stock;
+  List<String> mediaRelatedToVarient;
+  bool varientIsActive;
+  String id;
+  DateTime createdAt;
+  DateTime updatedAt;
+
+  ProductVariant({
+    required this.attributes,
+    required this.stock,
+    required this.mediaRelatedToVarient,
+    required this.varientIsActive,
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ProductVariant.fromJson(Map<String, dynamic> json) {
+    return ProductVariant(
+      attributes: Map<String, dynamic>.from(json['attributes'] ?? {}),
+      stock: json['stock'] ?? true,
+      mediaRelatedToVarient:
+      List<String>.from(json['media_related_to_varient'] ?? []),
+      varientIsActive: json['varientIsActive'] ?? true,
+      id: json['_id'] ?? '',
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+}
+
+class UnUsedProduct {
+  String id;
+  String name;
+  String type;
+  String symbol;
+  List<String> media;
+  List<String> videoUrl;
+  String categoryId;
+  bool isReturnable;
+  int returningDay;
+  bool isPublished;
+  List<String> guideLine;
+  DateInfo expiryTime;
+  List<String> tags;
+  bool addedByAdmin;
+  String approvalStatus;
+  List<dynamic> options;
+  List<AddMoreDetail> addMoreDetails;
+  List<ProductFeature> addProductFeatures;
+  List<ProductVariant> variants;
+  String description;
+  String brand;
+  String productWarrenty;
+  double mrpPerUnit;
+  DateTime createdAt;
+  DateTime updatedAt;
+
+  UnUsedProduct({
     required this.id,
     required this.name,
     required this.type,
@@ -265,6 +285,8 @@ class ProductDetail {
     required this.isReturnable,
     required this.returningDay,
     required this.isPublished,
+    required this.guideLine,
+    required this.expiryTime,
     required this.tags,
     required this.addedByAdmin,
     required this.approvalStatus,
@@ -274,113 +296,49 @@ class ProductDetail {
     required this.variants,
     required this.description,
     required this.brand,
-    required this.productWarranty,
+    required this.productWarrenty,
     required this.mrpPerUnit,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  factory ProductDetail.fromJson(Map<String, dynamic> json) {
-    return ProductDetail(
-      id: json['_id'],
-      name: json['name'],
-      type: json['type'],
-      symbol: json['symbol'],
+  factory UnUsedProduct.fromJson(Map<String, dynamic> json) {
+    return UnUsedProduct(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      type: json['type'] ?? '',
+      symbol: json['symbol'] ?? '',
       media: List<String>.from(json['media'] ?? []),
-      videoUrl: List<dynamic>.from(json['video_url'] ?? []),
-      categoryId: json['category_id'],
+      videoUrl: List<String>.from(json['video_url'] ?? []),
+      categoryId: json['category_id'] ?? '',
       isReturnable: json['is_returnable'] ?? false,
       returningDay: json['returning_day'] ?? 0,
       isPublished: json['is_published'] ?? false,
+      guideLine: List<String>.from(json['guideLine'] ?? []),
+      expiryTime: DateInfo.fromJson(json['expiry_time'] ?? {}),
       tags: List<String>.from(json['tags'] ?? []),
       addedByAdmin: json['addedByAdmin'] ?? false,
       approvalStatus: json['approval_status'] ?? '',
-      options: (json['options'] as List<dynamic>? ?? [])
-          .map((e) => Option.fromJson(e))
-          .toList(),
-      addMoreDetails: List<Map<String, dynamic>>.from(json['addMoreDetails'] ?? []),
-      addProductFeatures:
-      List<Map<String, dynamic>>.from(json['addProductFeatures'] ?? []),
-      variants: List<dynamic>.from(json['variants'] ?? []),
+      options: json['options'] ?? [],
+      addMoreDetails: (json['addMoreDetails'] as List<dynamic>?)
+          ?.map((e) => AddMoreDetail.fromJson(e))
+          .toList() ??
+          [],
+      addProductFeatures: (json['addProductFeatures'] as List<dynamic>?)
+          ?.map((e) => ProductFeature.fromJson(e))
+          .toList() ??
+          [],
+      variants: (json['variants'] as List<dynamic>?)
+          ?.map((e) => ProductVariant.fromJson(e))
+          .toList() ??
+          [],
       description: json['description'] ?? '',
       brand: json['brand'] ?? '',
-      productWarranty: json['productWarrenty'] ?? '',
+      productWarrenty: json['productWarrenty'] ?? '',
       mrpPerUnit: (json['mrp_per_unit'] ?? 0).toDouble(),
-      createdAt: json['createdAt'] ?? '',
-      updatedAt: json['updatedAt'] ?? '',
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'name': name,
-      'type': type,
-      'symbol': symbol,
-      'media': media,
-      'video_url': videoUrl,
-      'category_id': categoryId,
-      'is_returnable': isReturnable,
-      'returning_day': returningDay,
-      'is_published': isPublished,
-      'tags': tags,
-      'addedByAdmin': addedByAdmin,
-      'approval_status': approvalStatus,
-      'options': options.map((e) => e.toJson()).toList(),
-      'addMoreDetails': addMoreDetails,
-      'addProductFeatures': addProductFeatures,
-      'variants': variants,
-      'description': description,
-      'brand': brand,
-      'productWarrenty': productWarranty,
-      'mrp_per_unit': mrpPerUnit,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-    };
   }
 }
 
-class Option {
-  final String attribute;
-  final List<String> value;
-  final String id;
-
-  Option({required this.attribute, required this.value, required this.id});
-
-  factory Option.fromJson(Map<String, dynamic> json) {
-    return Option(
-      attribute: json['attribute'],
-      value: List<String>.from(json['value'] ?? []),
-      id: json['_id'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'attribute': attribute,
-      'value': value,
-      '_id': id,
-    };
-  }
-}
-
-class BusinessLocation {
-  final double latitude;
-  final double longitude;
-
-  BusinessLocation({required this.latitude, required this.longitude});
-
-  factory BusinessLocation.fromJson(Map<String, dynamic> json) {
-    return BusinessLocation(
-      latitude: (json['latitude'] ?? 0).toDouble(),
-      longitude: (json['longitude'] ?? 0).toDouble(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'latitude': latitude,
-      'longitude': longitude,
-    };
-  }
-}

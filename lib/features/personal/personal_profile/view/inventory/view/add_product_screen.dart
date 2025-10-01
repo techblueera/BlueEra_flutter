@@ -1,18 +1,21 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_screen_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -117,10 +120,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             CommonTextField(
                                 textEditController: controller.searchController,
                                 onChange: (value)=> controller.onSearchChanged(value),
-                                // onChange: (value) {
-                                //   controller.searchProduct.value = value;
-                                //   controller.filterProducts();
-                                // },
                                 hintText: "e.g. Wireless Earbuds Boat Airdope....",
                                 showClearIcon: controller.searchProduct.isNotEmpty,
                                 onClearTap: () {
@@ -134,73 +133,126 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                         if(controller.searchProduct.isNotEmpty)
                           ...[
-                            // Products List
-                            controller.searchProductVariants.isEmpty
-                                ? Padding(
-                              padding: EdgeInsets.symmetric(
-                                  vertical: SizeConfig.size20),
-                              child: CustomText(
-                                  "No product Here, don’t worry you can create product manually ",
-                                  fontSize: SizeConfig.small,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.secondaryTextColor,
-                                  textAlign: TextAlign.center
-                              ),
-                            )
-                                : Column(
-                              children: [
-                                ListView.separated(
-                                  itemCount: controller.searchProductVariants.length,
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: SizeConfig.size20),
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  itemBuilder: (context, index) {
-                                    final productVariants =
-                                    controller.searchProductVariants[index];
-                                    return _buildProductItem(
-                                        controller,
-                                        productVariants
-                                    );
-                                  },
-                                  separatorBuilder: (BuildContext context,
-                                      int index) {
-                                    return CommonHorizontalDivider(
-                                      color: AppColors.whiteE5,
-                                    );
-                                  },
-                                ),
-                                Row(
+                            controller.ProductSearchLoading.isTrue ?
+                               Padding(
+                                 padding: const EdgeInsets.all(30.0),
+                                 child: CircularProgressIndicator(),
+                               )
+                            :
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: PositiveCustomBtn(
-                                        onTap: () {
+                                    // Products Variants
+                                    controller.searchProductVariantsList.isEmpty
+                                        ? SizedBox.shrink()
+                                        : Padding(
+                                          padding: const EdgeInsets.only(top: 15.0),
+                                          child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                          CustomText(
+                                              "Product Variants",
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.secondaryTextColor,
+                                              textAlign: TextAlign.center
+                                          ),
+                                          ListView.separated(
+                                            itemCount: controller.searchProductVariantsList.length,
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: SizeConfig.size20),
+                                            physics: NeverScrollableScrollPhysics(),
+                                            shrinkWrap: true,
+                                            itemBuilder: (context, index) {
+                                              final productVariants =
+                                              controller.searchProductVariantsList[index];
+                                              return _buildProductVariantItem(
+                                                  controller,
+                                                  productVariants
+                                              );
+                                            },
+                                            separatorBuilder: (BuildContext context,
+                                                int index) {
+                                              return CommonHorizontalDivider(
+                                                color: AppColors.whiteE5,
+                                              );
+                                            },
+                                          ),
+                                          CustomBtn(
+                                            onTap: controller.hasAnySelected() ? (){
 
-                                        },
-                                        title: 'Save as draft',
-                                        bgColor: AppColors.white,
-                                        borderColor: AppColors.primaryColor,
-                                        textColor: AppColors.primaryColor,
-                                        radius: 10.0,
+                                            } : null,
+                                            title: 'Publish',
+                                            bgColor: controller.hasAnySelected() ? AppColors.primaryColor : Colors.grey,
+                                            borderColor: controller.hasAnySelected() ? AppColors.primaryColor : Colors.grey,
+                                            radius: 10.0,
+                                          )
+                                        ],
                                       ),
                                     ),
-                                    SizedBox(width: SizeConfig.size10),
-                                    Expanded(
-                                      child: PositiveCustomBtn(
-                                        onTap: () {
 
-                                        },
-                                        title: 'Next',
-                                        iconPath: AppIconAssets.shareIcon,
-                                        bgColor: AppColors.primaryColor,
-                                        borderColor: AppColors.primaryColor,
-                                        radius: 10.0,
+                                    // Products
+                                    controller.searchProductsList.isEmpty
+                                        ? Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: SizeConfig.size20),
+                                      child: CustomText(
+                                          "No product Here, don’t worry you can create product manually ",
+                                          fontSize: SizeConfig.small,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                          textAlign: TextAlign.center
+                                      ),
+                                    )
+                                        : Padding(
+                                      padding: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+                                          child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                          CustomText(
+                                              "Products",
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.secondaryTextColor,
+                                              textAlign: TextAlign.center
+                                          ),
+                                          ListView.separated(
+                                            itemCount: controller.searchProductsList.length,
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: SizeConfig.size10),
+                                            physics: NeverScrollableScrollPhysics(),
+                                            shrinkWrap: true,
+                                            itemBuilder: (context, index) {
+                                              final products =
+                                              controller.searchProductsList[index];
+                                              return _buildProductItem(
+                                                  controller,
+                                                  products
+                                              );
+                                            },
+                                            separatorBuilder: (BuildContext context,
+                                                int index) {
+                                              return CommonHorizontalDivider(
+                                                color: AppColors.whiteE5,
+                                              );
+                                            },
+                                          ),
+                                          // PositiveCustomBtn(
+                                          //   onTap: () {
+                                          //
+                                          //   },
+                                          //   title: 'Next',
+                                          //   iconPath: AppIconAssets.shareIcon,
+                                          //   bgColor: AppColors.primaryColor,
+                                          //   borderColor: AppColors.primaryColor,
+                                          //   radius: 10.0,
+                                          // )
+                                          ],
                                       ),
                                     ),
                                   ],
                                 )
-                              ],
-                            ),
+
 
 
                           ]
@@ -261,248 +313,333 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ));
   }
 
+  Widget _buildProductVariantItem(
+      InventoryController controller,
+      VariantData productVariants,
+      ) {
+    return Obx((){
+      final isSelected = controller.isVariantSelected(productVariants.productInformation.id); // use controller
+      final sellingPrice = controller.getUpdatedPrice(productVariants.productInformation.id);
+
+      final productFullNameWithVariants = '${productVariants.productInformation.name} ${productVariants.attributes.entries.map((entry) {
+        final key = entry.key.toLowerCase();
+        final value = entry.value;
+
+        if (key == 'color' && value is Map<String, dynamic>) {
+          return value['color_name'] ?? '';
+        } else if (value != null) {
+          return value.toString();
+        } else {
+          return '';
+        }
+      }).where((attr) => attr.isNotEmpty).join(', ')}';
+
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+        padding: EdgeInsets.all(SizeConfig.size4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Checkbox
+            GestureDetector(
+              onTap: () => controller.toggleVariant(productVariants.productInformation.id),
+              child: Container(
+                width: 20,
+                height: 20,
+                margin: EdgeInsets.only(top: 3.0),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primaryColor : AppColors.white,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                    width: 1,
+                  ),
+                ),
+                child: isSelected
+                    ? const Icon(Icons.check, color: AppColors.white, size: 14)
+                    : null,
+              ),
+            ),
+
+            SizedBox(width: SizeConfig.size12),
+
+            // Product Image
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.fillColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.greyE5, width: 1),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: productVariants.mediaRelatedToVarient.isNotEmpty? productVariants.mediaRelatedToVarient[0] : '',
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.broken_image),
+                  ),
+                )
+              ),
+            ),
+
+            SizedBox(width: SizeConfig.size12),
+
+            // Product Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    productFullNameWithVariants,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w400,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: SizeConfig.size8),
+
+                  // Selling Price Input (only shown when selected)
+                  if (isSelected) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    Row(
+                      children: [
+                        CustomText(
+                          'Selling price',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        SizedBox(width: SizeConfig.size8),
+                        Expanded(
+                          child: CommonTextField(
+                            onChange: (value) => controller
+                                .updateSellingPrice(productVariants.productInformation.id, value),
+                            hintText: sellingPrice ??
+                                productVariants.sellingPrice.toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            SizedBox(width: SizeConfig.size12),
+
+            // Action Icons
+            Column(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.visibility_outlined,
+                    color: AppColors.primaryColor,
+                    size: 16,
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size8),
+                if (isSelected)
+                  GestureDetector(
+                    onTap: () => controller.toggleVariant(productVariants.productInformation.id),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: AppColors.primaryColor,
+                        size: 14,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+
+  }
+
   Widget _buildProductItem(
       InventoryController controller,
-      Variants product
+      UnUsedProduct products,
       ) {
-    return SizedBox();
-    // return Container(
-    //   margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
-    //   padding: EdgeInsets.all(SizeConfig.size4),
-    //   child: Row(
-    //     crossAxisAlignment: CrossAxisAlignment.start,
-    //     children: [
-    //       // Checkbox
-    //       GestureDetector(
-    //         // onTap: () => controller.toggleProductSelection(product),
-    //         child: Container(
-    //           width: 20,
-    //           height: 20,
-    //           decoration: BoxDecoration(
-    //             color: product.isSelected
-    //                 ? AppColors.primaryColor
-    //                 : AppColors.white,
-    //             borderRadius: BorderRadius.circular(4),
-    //             border: Border.all(
-    //               color: product.isSelected
-    //                   ? AppColors.primaryColor
-    //                   : AppColors.greyE5,
-    //               width: 1,
-    //             ),
-    //           ),
-    //           child: product.isSelected
-    //               ? const Icon(
-    //             Icons.check,
-    //             color: AppColors.white,
-    //             size: 14,
-    //           )
-    //               : null,
-    //         ),
-    //       ),
-    //
-    //       SizedBox(width: SizeConfig.size12),
-    //
-    //       // Product Image
-    //       Container(
-    //         width: 60,
-    //         height: 60,
-    //         decoration: BoxDecoration(
-    //           color: AppColors.fillColor,
-    //           borderRadius: BorderRadius.circular(8),
-    //           border: Border.all(color: AppColors.greyE5, width: 1),
-    //         ),
-    //         child: ClipRRect(
-    //           borderRadius: BorderRadius.circular(8),
-    //           child: Image.asset(
-    //             product.imageUrl,
-    //             fit: BoxFit.cover,
-    //             errorBuilder: (context, error, stackTrace) {
-    //               return Container(
-    //                 color: AppColors.fillColor,
-    //                 child: const Icon(
-    //                   Icons.image,
-    //                   color: AppColors.grey9B,
-    //                   size: 30,
-    //                 ),
-    //               );
-    //             },
-    //           ),
-    //         ),
-    //       ),
-    //
-    //       SizedBox(width: SizeConfig.size12),
-    //
-    //       // Product Details
-    //       Expanded(
-    //         child: Column(
-    //           crossAxisAlignment: CrossAxisAlignment.start,
-    //           children: [
-    //             // Product Description
-    //             CustomText(
-    //               product.description,
-    //               fontSize: SizeConfig.small,
-    //               color: AppColors.black,
-    //               maxLines: 2,
-    //               overflow: TextOverflow.ellipsis,
-    //             ),
-    //
-    //             SizedBox(height: SizeConfig.size8),
-    //
-    //             // Product Details Row
-    //             Wrap(
-    //               spacing: SizeConfig.size16,
-    //               runSpacing: SizeConfig.size4,
-    //               children: [
-    //                 // Colour
-    //                 Row(
-    //                   mainAxisSize: MainAxisSize.min,
-    //                   children: [
-    //                     CustomText(
-    //                       'Colour',
-    //                       fontSize: SizeConfig.extraSmall,
-    //                       color: AppColors.grey9B,
-    //                     ),
-    //                     SizedBox(width: SizeConfig.size4),
-    //                     Container(
-    //                       width: 12,
-    //                       height: 12,
-    //                       decoration: const BoxDecoration(
-    //                         color: AppColors.red,
-    //                         shape: BoxShape.circle,
-    //                       ),
-    //                     ),
-    //                   ],
-    //                 ),
-    //
-    //                 // Price (only show if not selected)
-    //                 if (!product.isSelected)
-    //                   Row(
-    //                     mainAxisSize: MainAxisSize.min,
-    //                     children: [
-    //                       CustomText(
-    //                         'Price',
-    //                         fontSize: SizeConfig.extraSmall,
-    //                         color: AppColors.grey9B,
-    //                       ),
-    //                       SizedBox(width: SizeConfig.size4),
-    //                       CustomText(
-    //                         product.price,
-    //                         fontSize: SizeConfig.extraSmall,
-    //                         color: AppColors.black,
-    //                         fontWeight: FontWeight.w600,
-    //                       ),
-    //                     ],
-    //                   ),
-    //
-    //                 // Size
-    //                 Row(
-    //                   mainAxisSize: MainAxisSize.min,
-    //                   children: [
-    //                     CustomText(
-    //                       'Size',
-    //                       fontSize: SizeConfig.extraSmall,
-    //                       color: AppColors.grey9B,
-    //                     ),
-    //                     SizedBox(width: SizeConfig.size4),
-    //                     CustomText(
-    //                       product.size,
-    //                       fontSize: SizeConfig.extraSmall,
-    //                       color: AppColors.black,
-    //                       fontWeight: FontWeight.w600,
-    //                     ),
-    //                   ],
-    //                 ),
-    //               ],
-    //             ),
-    //
-    //             // Selling Price Input (only shown when selected)
-    //             if (product.showSellingPrice) ...[
-    //               SizedBox(height: SizeConfig.size12),
-    //               Row(
-    //                 children: [
-    //                   CustomText(
-    //                     'Selling price',
-    //                     fontSize: SizeConfig.small,
-    //                     color: AppColors.black,
-    //                     fontWeight: FontWeight.w600,
-    //                   ),
-    //                   SizedBox(width: SizeConfig.size8),
-    //                   Expanded(
-    //                     child: Container(
-    //                       // padding: EdgeInsets.symmetric(
-    //                       //     horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
-    //                       decoration: BoxDecoration(
-    //                         color: AppColors.fillColor,
-    //                         borderRadius: BorderRadius.circular(6),
-    //                         border:
-    //                         Border.all(color: AppColors.greyE5, width: 1),
-    //                       ),
-    //                       child: TextField(
-    //                         // onChanged: (value) => controller.updateSellingPrice(product, value),
-    //                         decoration: const InputDecoration(
-    //                           hintText: "E.g. Text",
-    //                           hintStyle: TextStyle(
-    //                             color: AppColors.grey9B,
-    //                             fontSize: 12,
-    //                           ),
-    //                           border: InputBorder.none,
-    //                         ),
-    //                       ),
-    //                     ),
-    //                   ),
-    //                 ],
-    //               ),
-    //             ],
-    //           ],
-    //         ),
-    //       ),
-    //
-    //       SizedBox(width: SizeConfig.size12),
-    //
-    //       // Action Icons
-    //       Column(
-    //         children: [
-    //           // View Icon
-    //           Container(
-    //             width: 32,
-    //             height: 32,
-    //             decoration: BoxDecoration(
-    //               color: AppColors.primaryColor.withOpacity(0.1),
-    //               shape: BoxShape.circle,
-    //             ),
-    //             child: const Icon(
-    //               Icons.visibility_outlined,
-    //               color: AppColors.primaryColor,
-    //               size: 16,
-    //             ),
-    //           ),
-    //
-    //           SizedBox(height: SizeConfig.size8),
-    //
-    //           // Remove Icon (only shown when selected)
-    //           if (product.isSelected)
-    //             GestureDetector(
-    //               // onTap: () => controller.removeProduct(product),
-    //               child: Container(
-    //                 width: 24,
-    //                 height: 24,
-    //                 decoration: BoxDecoration(
-    //                   color: AppColors.primaryColor.withOpacity(0.1),
-    //                   shape: BoxShape.circle,
-    //                 ),
-    //                 child: const Icon(
-    //                   Icons.close,
-    //                   color: AppColors.primaryColor,
-    //                   size: 14,
-    //                 ),
-    //               ),
-    //             ),
-    //         ],
-    //       ),
-    //     ],
-    //   ),
-    // );
+    final variants = products.variants;
+
+    final Map<String, List<dynamic>> uniqueAttributes = {};
+
+    final firstTwoKeys = <String>[];
+    for (var v in variants) {
+      for (var key in v.attributes.keys) {
+        if (!firstTwoKeys.contains(key)) {
+          firstTwoKeys.add(key);
+        }
+        if (firstTwoKeys.length == 2) break;
+      }
+      if (firstTwoKeys.length == 2) break;
+    }
+
+    for (var key in firstTwoKeys) {
+      uniqueAttributes[key] = [];
+      for (var v in variants) {
+        final value = v.attributes[key];
+        if (value != null) {
+          if (key == 'color' && value is Map<String, dynamic>) {
+            final colorMap = {
+              "color_name": value["color_name"] ?? "",
+              "color_code": value["color_code"] ?? ""
+            };
+            if (!uniqueAttributes[key]!.any((e) =>
+            e is Map &&
+                e["color_name"] == colorMap["color_name"] &&
+                e["color_code"] == colorMap["color_code"])) {
+              uniqueAttributes[key]!.add(colorMap);
+            }
+          } else {
+            if (!uniqueAttributes[key]!.contains(value)) {
+              uniqueAttributes[key]!.add(value);
+            }
+          }
+        }
+      }
+    }
+
+
+    return Container(
+        margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+        padding: EdgeInsets.all(SizeConfig.size4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.fillColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.greyE5, width: 1),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child:
+                CachedNetworkImage(
+                  imageUrl: products.media.isNotEmpty?products.media[0]:'',
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.broken_image),
+                  ),
+                )
+              ),
+            ),
+
+            SizedBox(width: SizeConfig.size12),
+
+            // Product Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    products.name,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w400,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: SizeConfig.size2),
+
+                  CustomText(
+                    products.brand,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w500,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: SizeConfig.size2),
+
+                  CustomText(
+                    products.tags.map((tag) => tag.trim()).join(', '),
+                    fontSize: SizeConfig.small,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w400,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: SizeConfig.size6),
+
+                  CustomBtn(
+                    onTap: controller.hasAnySelected() ? (){
+
+                    } : null,
+                    height: 30,
+                    title: 'Create Own Variants',
+                    bgColor: AppColors.primaryColor,
+                    borderColor: AppColors.primaryColor,
+                    radius: 10.0,
+                  )
+
+                ],
+              ),
+            ),
+
+            SizedBox(width: SizeConfig.size12),
+
+            // Action Icons
+            Column(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.visibility_outlined,
+                    color: AppColors.primaryColor,
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
   }
+
 }
 
 

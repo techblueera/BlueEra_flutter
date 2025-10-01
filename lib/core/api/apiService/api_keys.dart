@@ -377,4 +377,5 @@ class ApiKeys {
   static const showDataFromApi = "showDataFromApi";
   static const guideLine = "guideLine";
   static const expiryDuration = "expiry_duration";
+  static const argsProductPreview = "argsProductPreview";
 }

@@ -35,6 +35,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this);
+    controller.callApi(forceRefresh: true);
     super.initState();
   }
 
@@ -612,7 +613,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     if (result != null) {
       if (result.toUpperCase() == "ADD PRODUCT") {
         await Get.toNamed(RouteHelper.getAddProductScreenRoute());
-        controller.callApi();
+        controller.callApi(forceRefresh: true);
       }else if(result.toUpperCase() == "ADD SERVICE"){
         Get.toNamed(RouteHelper.getAddServicesScreenRoute());
       }else if(result.toUpperCase() =="ADD FOOD"){
