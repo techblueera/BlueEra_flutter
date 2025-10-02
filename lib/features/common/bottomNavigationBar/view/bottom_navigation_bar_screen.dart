@@ -36,7 +36,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final chatViewController = Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
-  final callController = Get.put(CallController());
+  // final callController = Get.put(CallController());
   final groupChatViewController = Get.put(GroupChatViewController());
 
   @override

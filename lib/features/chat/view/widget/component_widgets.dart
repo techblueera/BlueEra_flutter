@@ -857,8 +857,8 @@ AppBar getChatTitleAppBar(BuildContext context,{
       const SizedBox(width: 8),
       InkWell(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>VoiceCallScreen(callerId: 23872893798, callerName: name??'', )));
-            // launchDialPad(contactNo ?? '');
+            // Navigator.push(context, MaterialPageRoute(builder: (context)=>VoiceCallScreen(callerId: 23872893798, callerName: name??'', )));
+            launchDialPad(contactNo ?? '');
           },
           child: SvgPicture.asset(AppIconAssets.chat_call)),
       const SizedBox(width: 12),
