@@ -93,6 +93,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                             onTap: () {
                               showDialog(
                                 context: Get.context!,
+                                barrierDismissible: false,
                                 builder: (context) => SkipVariantDialog(
                                   controller: widget.controller,
                                 ),
@@ -120,6 +121,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                               ? () {
                             showDialog(
                               context: Get.context!,
+                              barrierDismissible: false,
                               builder: (context) => SubmitVariantDialog(
                                 controller: widget.controller,
                               ),

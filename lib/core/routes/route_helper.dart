@@ -881,9 +881,9 @@ class RouteHelper {
                 generateAiProductContent: generateAiProductContent),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
       case RouteConstant.productPreviewScreen:
-        final args = settings.arguments as Map<String, dynamic>;
+        final args = settings.arguments as Map<String, dynamic>?;
         final OwnProductData? productData =
-            args[ApiKeys.argProductData] as OwnProductData?;
+            args?[ApiKeys.argProductData] as OwnProductData?;
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreen(productData: productData),

@@ -362,12 +362,12 @@ class BusinessLocation {
   });
 
   BusinessLocation.fromJson(dynamic json) {
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = json['latitude'] is num ? json['latitude'] as num : null;
+    longitude = json['longitude'] is num ? json['longitude'] as num : null;
   }
 
-  double? latitude;
-  double? longitude;
+  num? latitude;
+  num? longitude;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -376,3 +376,4 @@ class BusinessLocation {
     return map;
   }
 }
+

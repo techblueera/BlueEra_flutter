@@ -141,8 +141,8 @@ class InventoryController extends GetxController {
         print("API failed with status: ${response.statusCode}");
         ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
       }
-    } catch (e) {
-      print("Error: $e");
+    } catch (e, s) {
+      print("stack trace: $s");
     } finally {
       isLoading.value = false;
       ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
