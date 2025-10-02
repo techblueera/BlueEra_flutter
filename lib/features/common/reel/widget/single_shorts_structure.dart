@@ -95,7 +95,8 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
         width: widget.imageWidth ?? SizeConfig.size220,
         height: widget.imageHeight ?? SizeConfig.size310,
         // height: 250,
-        child: Stack(children: [
+        child: Stack(
+            children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(widget.borderRadius ?? 0),
             child: thumbnail.isEmpty
@@ -104,7 +105,7 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                     height:  widget.imageHeight ?? SizeConfig.size310,
                     // color: Colors.grey[300],
                     child: LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.fill,),
+                        imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.fill),
                   )
                 : isNetworkImage(thumbnail)
                     ? CachedNetworkImage(

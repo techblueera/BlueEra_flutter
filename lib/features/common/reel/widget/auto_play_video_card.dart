@@ -92,7 +92,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
           final isScrolling = videoManager.isScrolling.value;
 
           return Stack(
-            fit: StackFit.expand,
+            // fit: StackFit.expand,
             children: [
               // Thumbnail
               AspectRatio(

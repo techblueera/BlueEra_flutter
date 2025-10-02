@@ -2,7 +2,7 @@ name: BlueEra
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 13.40.31+86
+version: 13.40.32+87
 
 environment:
   sdk: ">=3.3.3 <4.0.0"

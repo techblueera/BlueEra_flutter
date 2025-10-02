@@ -271,6 +271,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                       return ClipRRect(
                         borderRadius: (BorderRadius.circular(12)),
                         child: Stack(
+                          alignment: Alignment.center,
                           children: [
                             SingleShortStructure(
                               key: ValueKey(shortID),
@@ -283,17 +284,31 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                               imageHeight: SizeConfig.size310,
                             ),
                             // total views
-                            Positioned(
-                              bottom: SizeConfig.size90,
-                              top: SizeConfig.size90,
-                              left: SizeConfig.size90,
-                              right: SizeConfig.size90,
-                              child: IgnorePointer(
-                                  ignoring: true,
-                                  child: LocalAssets(
-                                    imagePath: AppIconAssets.playIcon,
-                                  )),
+                            Align(
+                            alignment: Alignment.center,
+                              child: Container(
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.black.withValues(alpha: 0.4),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [AppShadows.textFieldShadow]
+                                 ),
+                                child: LocalAssets(
+                                  imagePath: AppIconAssets.playIcon,
+                                ),
+                              ),
                             ),
+                            // Positioned(
+                            //   bottom: SizeConfig.size90,
+                            //   top: SizeConfig.size90,
+                            //   left: SizeConfig.size90,
+                            //   right: SizeConfig.size90,
+                            //   child: IgnorePointer(
+                            //       ignoring: true,
+                            //       child: LocalAssets(
+                            //         imagePath: AppIconAssets.playIcon,
+                            //       )),
+                            // ),
                           ],
                         ),
                       );
