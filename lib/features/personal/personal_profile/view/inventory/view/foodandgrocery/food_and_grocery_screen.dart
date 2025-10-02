@@ -171,7 +171,7 @@ class FoodItemCard extends StatelessWidget {
                             spacing: 8,
                             runSpacing: 4,
                             children:(foodData.addOns?.isEmpty??true)?[SizedBox()]: foodData.addOns!.map<Widget>((addon) {
-                              return _addonChip("${addon} (+₹99)");
+                              return _addonChip("${addon}");
                             }).toList(),
                           )
 
