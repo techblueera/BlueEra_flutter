@@ -200,41 +200,41 @@ class _BusinessDetailsEditPageOneState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    ///UPLOAD PROFILE....
-                    Center(
-                      child: CommonProfileImage(
-                        imagePath:
-                        viewBusinessDetailsController.imagePath?.value ??
-                            "",
-                        onImageUpdate: (image) {
-                          viewBusinessDetailsController.imagePath?.value =
-                              image;
-                          viewBusinessDetailsController.isImageUpdated.value =
-                          true;
-                        },
-                        dialogTitle: 'Upload Business Logo',
-                      ),
-                    ),
-
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-                    Center(
-                      child: CustomText(
-                        appLocalizations?.businessLogo,
-                        fontSize: SizeConfig.large,
-                      ),
-                    ),
-                    Center(
-                      child: CustomText(
-                        appLocalizations?.youCanUpdateYourLogoAnytime,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.grey80,
-                      ),
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size30,
-                    ),
+                    // ///UPLOAD PROFILE....
+                    // Center(
+                    //   child: CommonProfileImage(
+                    //     imagePath:
+                    //     viewBusinessDetailsController.imagePath?.value ??
+                    //         "",
+                    //     onImageUpdate: (image) {
+                    //       viewBusinessDetailsController.imagePath?.value =
+                    //           image;
+                    //       viewBusinessDetailsController.isImageUpdated.value =
+                    //       true;
+                    //     },
+                    //     dialogTitle: 'Upload Business Logo',
+                    //   ),
+                    // ),
+                    //
+                    // SizedBox(
+                    //   height: SizeConfig.size20,
+                    // ),
+                    // Center(
+                    //   child: CustomText(
+                    //     appLocalizations?.businessLogo,
+                    //     fontSize: SizeConfig.large,
+                    //   ),
+                    // ),
+                    // Center(
+                    //   child: CustomText(
+                    //     appLocalizations?.youCanUpdateYourLogoAnytime,
+                    //     fontSize: SizeConfig.small,
+                    //     color: AppColors.grey80,
+                    //   ),
+                    // ),
+                    // SizedBox(
+                    //   height: SizeConfig.size30,
+                    // ),
 
                     CommonTextField(
                       textEditController: companyOrgNameTextController,
@@ -671,19 +671,19 @@ class _BusinessDetailsEditPageOneState
   }
 
   Future<Map<String, dynamic>> buildBusinessDetailsPayload() async {
-    dioObj.MultipartFile? imageByPart;
-    if (viewBusinessDetailsController.isImageUpdated.value) {
-      if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ?? false) {
-        String fileName =
-            viewBusinessDetailsController.imagePath?.value
-                .split('/')
-                .last ??
-                "";
-        imageByPart = await dioObj.MultipartFile.fromFile(
-            viewBusinessDetailsController.imagePath?.value ?? "",
-            filename: fileName);
-      }
-    }
+    // dioObj.MultipartFile? imageByPart;
+    // if (viewBusinessDetailsController.isImageUpdated.value) {
+    //   if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ?? false) {
+    //     String fileName =
+    //         viewBusinessDetailsController.imagePath?.value
+    //             .split('/')
+    //             .last ??
+    //             "";
+    //     imageByPart = await dioObj.MultipartFile.fromFile(
+    //         viewBusinessDetailsController.imagePath?.value ?? "",
+    //         filename: fileName);
+    //   }
+    // }
     return {
       ApiKeys.businessId: businessId,
       ApiKeys.business_name: companyOrgNameTextController.text,
@@ -715,9 +715,9 @@ class _BusinessDetailsEditPageOneState
       }),
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,
-      ApiKeys.logo_image: viewBusinessDetailsController.isImageUpdated.value
-          ? imageByPart
-          : null,
+      // ApiKeys.logo_image: viewBusinessDetailsController.isImageUpdated.value
+      //     ? imageByPart
+      //     : null,
     };
   }
 

@@ -48,7 +48,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
               border: Border.all(color: AppColors.primaryColor, width: 1.6),
             ),
             child: CircleAvatar(
-              radius: 50,
+              radius: 40,
               backgroundColor: AppColors.white,
               child: widget.imagePath?.isNotEmpty == true
                   ? ClipOval(

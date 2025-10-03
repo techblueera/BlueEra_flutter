@@ -95,7 +95,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               },
               dialogTitle: 'Upload Business Logo',
             ),
-            SizedBox(width: SizeConfig.size20),
+            SizedBox(width: SizeConfig.size10),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(
@@ -818,6 +818,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               ),
             ],
           ),
+
           // Row(
           //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
           //   children: [
@@ -839,6 +840,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           //         child: SvgPicture.asset(AppIconAssets.profile_pen_tool))
           //   ],
           // ),
+
           Align(
             alignment: Alignment.centerLeft,
             child: CustomText(
