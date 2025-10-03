@@ -120,7 +120,7 @@ class AddProductViaAiController extends GetxController{
   RxList<String> step1Images = <String>[].obs;
 
   /// Images used on Step 2 (second screen, preloaded + new)
-  RxList<String> allProductsImages = <String>[].obs;
+  RxList<String> step2Images = <String>[].obs;
 
   /// Max images
   final RxInt maxStep1Images = 1.obs;
@@ -189,6 +189,9 @@ class AddProductViaAiController extends GetxController{
   RxString selectedProductOrVariantPrice = '00,000'.obs;
   RxString selectedProductOrVariantDiscount = '0'.obs;
   RxString selectedProductOrVariantMrp = '00,000'.obs;
+
+  /// Images used on Step 2 (second screen, preloaded + new)
+  RxList<String> allProductImages = <String>[].obs;
 
   @override
   void onClose() {
@@ -304,7 +307,7 @@ class AddProductViaAiController extends GetxController{
 
   /// Preload Step 1 images to Step 2
   void preloadStep1ImagesToStep2() {
-    allProductsImages.value = List.from(step1Images);
+    step2Images.value = List.from(step1Images);
     update();
   }
 
@@ -327,9 +330,9 @@ class AddProductViaAiController extends GetxController{
         'Product Image',
       );
       if (selected != null && selected.isNotEmpty) {
-        final remaining = maxStep2Images.value - allProductsImages.length;
+        final remaining = maxStep2Images.value - step2Images.length;
         if (remaining <= 0) return;
-        allProductsImages.addAll(selected.take(remaining));
+        step2Images.addAll(selected.take(remaining));
         update();
       }
     } catch (e) {
@@ -341,14 +344,14 @@ class AddProductViaAiController extends GetxController{
   /// Step 1 images (preloaded) cannot be removed
   void removeImageStep2(int index) {
     // Only allow removal if index >= step1Images.length
-    if (index >= step1Images.length && index < allProductsImages.length) {
-      allProductsImages.removeAt(index);
+    if (index >= step1Images.length && index < step2Images.length) {
+      step2Images.removeAt(index);
       update();
     }
   }
 
   bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
-  bool canAddMoreStep2() => allProductsImages.length < maxStep2Images.value;
+  bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
   void onGenerate(AddProductViaAiController addProductViaAiController) async {
     if (!_validate()) return;
@@ -490,7 +493,6 @@ class AddProductViaAiController extends GetxController{
         searchProductCategoryResponse.value = ApiResponse.error('error');
       }
 
-      // Replace this with your actual API call
       loading.value = false;
     } catch (e) {
       searchProductCategoryResponse.value = ApiResponse.error('error');
@@ -505,26 +507,26 @@ class AddProductViaAiController extends GetxController{
     isSearchActive.value = false;
   }
 
-  // Add dynamic value
-  void addDynamicValue(String key, String value) {
-    if (!dynamicAttributes.containsKey(key)) {
-      dynamicAttributes[key] = <String>[].obs;
-      dynamicControllers[key] = TextEditingController();
-    }
-    dynamicAttributes[key]!.add(value);
-    dynamicControllers[key]!.clear();
-    update([key]);
-  }
-
-  // Remove dynamic value
-  void removeDynamicValue(String key, String value) {
-    dynamicAttributes[key]?.remove(value);
-    if (dynamicAttributes[key]?.isEmpty ?? true) {
-      dynamicAttributes.remove(key);
-      dynamicControllers.remove(key);
-    }
-    update([key]);
-  }
+  // // Add dynamic value
+  // void addDynamicValue(String key, String value) {
+  //   if (!dynamicAttributes.containsKey(key)) {
+  //     dynamicAttributes[key] = <String>[].obs;
+  //     dynamicControllers[key] = TextEditingController();
+  //   }
+  //   dynamicAttributes[key]!.add(value);
+  //   dynamicControllers[key]!.clear();
+  //   update([key]);
+  // }
+  //
+  // // Remove dynamic value
+  // void removeDynamicValue(String key, String value) {
+  //   dynamicAttributes[key]?.remove(value);
+  //   if (dynamicAttributes[key]?.isEmpty ?? true) {
+  //     dynamicAttributes.remove(key);
+  //     dynamicControllers.remove(key);
+  //   }
+  //   update([key]);
+  // }
 
   var isCreateProductLoading = false.obs;
 
@@ -539,7 +541,7 @@ class AddProductViaAiController extends GetxController{
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
         if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),
         if(productExpiryDurationController.text.trim().isNotEmpty) ApiKeys.expiryDuration: productExpiryDurationController.text.trim(),
-        if (tags.isNotEmpty) ApiKeys.tags: tags.join(","),
+        if (tags.isNotEmpty) ApiKeys.tags: tags,
         // if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
         if(detailsList.isNotEmpty) ApiKeys.addMoreDetails: jsonEncode(detailsList.map((e) => e.toJson()).toList()),
         if(featureControllers.isNotEmpty) ApiKeys.addProductFeatures: jsonEncode(featureControllers
@@ -570,7 +572,7 @@ class AddProductViaAiController extends GetxController{
 
       List<dio.MultipartFile> imageByPart = [];
 
-      for (final path in addProductViaAiController.allProductsImages) {
+      for (final path in addProductViaAiController.step2Images) {
         final fileName = path.split('/').last;
         final imageInfo = getFileInfo(File(path));
         final mimeType = imageInfo['mimeType'];
@@ -588,20 +590,21 @@ class AddProductViaAiController extends GetxController{
       commonSnackBar(message: responseModel.message);
       if (responseModel.isSuccess) {
         createProductResponse.value = ApiResponse.complete(responseModel);
-        productId = responseModel.response?.data['data']['_id'];
-        Get.toNamed(
-          RouteHelper.getProductPreviewScreenRoute(),
-        );
-
         // productId = responseModel.response?.data['data']['_id'];
-        // ProductPreviewArgs productPreviewArgs = mapOwnProductToPreviewArgs();
         // Get.toNamed(
         //   RouteHelper.getProductPreviewScreenRoute(),
-        //   arguments: {
-        //       ApiKeys.argsProductPreview: productPreviewArgs,
-        //   },
-        //
         // );
+
+        productId = responseModel.response?.data['data']['_id'];
+        ProductPreviewArgs productPreviewArgs = mapOwnProductToPreviewArgs();
+        Get.toNamed(
+          RouteHelper.getProductPreviewScreenRoute(),
+          arguments: {
+              ApiKeys.isFromProductCreation: true,
+              ApiKeys.argProductData: productPreviewArgs,
+          },
+
+        );
 
       } else {
         createProductResponse.value = ApiResponse.error('error');
@@ -615,28 +618,30 @@ class AddProductViaAiController extends GetxController{
     }
   }
 
-  // ProductPreviewArgs mapOwnProductToPreviewArgs() {
-  //   // if (src == null) return const ProductPreviewArgs(productId: '');
-  //
-  //   return ProductPreviewArgs(
-  //     productId: productId ?? '',
-  //     media: allProductsImages,
-  //     name: productNameController.text.trim(),
-  //     description: productDescriptionController.text.trim(),
-  //     tags: tags,
-  //     features: featureControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
-  //     link: linkController.text.trim(),
-  //     details: detailsList
-  //         .map((d) => DetailPair(d.title, d.details))
-  //         .toList(),
-  //     mrp: mrpController.text.trim(),
-  //     warranty: productWarrantyController.text.trim(),
-  //     expiry: productExpiryDurationController.text.trim(),
-  //     userGuide: userGuideLineControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
-  //     selectedColors: selectedColors,
-  //     dynamicAttributes: dynamicAttributes
-  //   );
-  // }
+  ProductPreviewArgs mapOwnProductToPreviewArgs() {
+    // if (src == null) return const ProductPreviewArgs(productId: '');
+
+    return ProductPreviewArgs(
+      productId: productId ?? '',
+      media: step2Images.toList(),
+      name: productNameController.text.trim(),
+      description: productDescriptionController.text.trim(),
+      tags: tags,
+      features: featureControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
+      link: linkController.text.trim(),
+      details: detailsList
+          .map((d) => DetailPair(d.title, d.details))
+          .toList(),
+      MRPPrice: mrpController.text.trim(),
+      warranty: productWarrantyController.text.trim(),
+      expiry: productExpiryDurationController.text.trim(),
+      userGuide: userGuideLineControllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList(),
+      selectedColors: selectedColors.toList(),
+      dynamicAttributes: dynamicAttributes.map(
+            (k, v) => MapEntry(k, v.toList()), // convert RxList -> List
+      ),
+    );
+  }
 
   var isAddProductToInventoryLoading = false.obs;
 
@@ -794,7 +799,7 @@ class AddProductViaAiController extends GetxController{
     return null;
   }
 
-//   RxMap<String, String> selectedVariantValues = <String, String>{}.obs;
+  //   RxMap<String, String> selectedVariantValues = <String, String>{}.obs;
 //   RxBool isNextEnabled = false.obs;
 //
 //   void selectVariantValue(String attributeKey, String value) {

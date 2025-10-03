@@ -51,4 +51,16 @@ class InventoryRepo extends BaseService {
     );
     return response;
   }
+
+  ///Get Own Products...
+  Future<ResponseModel> cloneProductVariantApi({required List<Map<String, dynamic>> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      cloneVariant,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

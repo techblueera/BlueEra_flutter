@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
@@ -15,6 +16,7 @@ import 'package:get/get.dart';
 class InventoryController extends GetxController {
   Rx<ApiResponse> ownDraftAndPublicProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> searchProductResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> cloneVariantProductResponse = ApiResponse.initial('Initial').obs;
 
   final TextEditingController searchController = TextEditingController();
   
@@ -43,6 +45,8 @@ class InventoryController extends GetxController {
   final RxString searchProduct = ''.obs;
   final RxBool ProductSearchLoading = false.obs;
 
+  final RxBool cloneProductVariantLoading = false.obs;
+
   RxList<VariantData> searchProductVariantsList = <VariantData>[].obs;
   RxList<UnUsedProduct> searchProductsList = <UnUsedProduct>[].obs;
 
@@ -53,6 +57,29 @@ class InventoryController extends GetxController {
   String? getUpdatedPrice(String id) => variantSellingPrice[id];
   bool hasAnySelected() {
     return variantSelection.values.any((isSelected) => isSelected);
+  }
+
+  void toggleVariant(String id) {
+    final currentlySelected = variantSelection.entries
+        .where((e) => e.value == true)
+        .length;
+
+    final isSelected = variantSelection[id] ?? false;
+
+    if (!isSelected && currentlySelected >= maxSelectionLimit) {
+      log("⚠️ Cannot select more than 10 variants");
+      showErrorBanner.value = true;
+      return;
+    }
+
+    showErrorBanner.value = false;
+    variantSelection[id] = !isSelected;
+    log('id-- $id  selected=${variantSelection[id]}');
+  }
+
+  void updateSellingPrice(String id, String value) {
+    variantSellingPrice[id] = value;
+    refresh();
   }
 
   @override
@@ -169,29 +196,6 @@ class InventoryController extends GetxController {
     });
   }
 
-  void toggleVariant(String id) {
-    final currentlySelected = variantSelection.entries
-        .where((e) => e.value == true)
-        .length;
-
-    final isSelected = variantSelection[id] ?? false;
-
-    if (!isSelected && currentlySelected >= maxSelectionLimit) {
-      log("⚠️ Cannot select more than 10 variants");
-      showErrorBanner.value = true;
-      return;
-    }
-
-    showErrorBanner.value = false;
-    variantSelection[id] = !isSelected;
-    log('id-- $id  selected=${variantSelection[id]}');
-  }
-
-  void updateSellingPrice(String id, String value) {
-    variantSellingPrice[id] = value;
-    refresh();
-  }
-
   Future<void> fetchListOfSearchProductApi(String keyword) async {
 
     if(keyword.length < 3) return;
@@ -235,6 +239,87 @@ class InventoryController extends GetxController {
       ProductSearchLoading.value = false;
     }
   }
+
+  bool validateSelectedVariants(List<VariantData> allVariants) {
+    for (final entry in variantSelection.entries) {
+      if (entry.value) {
+        final variantId = entry.key;
+        final sellingPriceStr = variantSellingPrice[variantId];
+
+        if (sellingPriceStr == null || sellingPriceStr.trim().isEmpty) {
+          // no price filled
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  Future<void> cloneProductVariantApi() async {
+
+    cloneProductVariantLoading.value = true;
+    try {
+      final params = buildSelectedVariantsPayload(
+        searchProductVariantsList,
+      );
+
+      print("Final Payload: $params");
+
+      final responseModel = await InventoryRepo().cloneProductVariantApi(params: params);
+
+      if (responseModel.isSuccess) {
+        cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
+         Get.until(
+          (route) =>
+                route.settings.name ==
+                    RouteHelper.getInventoryScreenRoute(),
+            );
+        // Parse the API response
+        // final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
+        //   responseModel.response?.data,
+        // );
+
+
+      } else {
+        cloneVariantProductResponse.value = ApiResponse.error('error');
+      }
+
+    } catch (e, s) {
+      print("stack trace: $s");
+      searchProductResponse.value = ApiResponse.error('error');
+    }finally{
+      cloneProductVariantLoading.value = false;
+    }
+  }
+
+  List<Map<String, dynamic>> buildSelectedVariantsPayload(
+      List<VariantData> allVariants) {
+    final payload = <Map<String, dynamic>>[];
+
+    variantSelection.forEach((variantId, isSelected) {
+      if (isSelected) {
+        // find this variant in the full variant list
+        final variantData = allVariants.firstWhere(
+              (v) => v.finalVariant.id == variantId,
+          orElse: () => throw Exception("Variant not found: $variantId"),
+        );
+
+        // get selling price from controller OR fallback to default
+        final sellingPriceStr = variantSellingPrice[variantId];
+        final sellingPrice = double.tryParse(sellingPriceStr ?? '') ??
+            variantData.finalVariant.sellingPrice;
+
+        payload.add({
+          "productId": variantData.productInformation.id,
+          "variantId": variantId,
+          "sellingPrice": sellingPrice,
+        });
+      }
+    });
+
+    return payload;
+  }
+
 
   void loadCategories() {
     // Simulate API call for categories

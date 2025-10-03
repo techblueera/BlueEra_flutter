@@ -453,4 +453,5 @@ abstract class BaseService {
   final String addFoodServices = 'services-service/services';
   final String getFoodServices = 'services-service/services';
   final String callUser = 'chat-service/call/user';
+  final String cloneVariant = 'product-service/api/product/clone-variant';
 }

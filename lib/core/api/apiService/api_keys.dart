@@ -378,4 +378,6 @@ class ApiKeys {
   static const guideLine = "guideLine";
   static const expiryDuration = "expiry_duration";
   static const argsProductPreview = "argsProductPreview";
+  static const isFromProductCreation = "isFromProductCreation";
+  static const isUserCanCreateVariants = "isUserCanCreateVarints";
 }
