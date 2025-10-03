@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:dotted_border/dotted_border.dart';

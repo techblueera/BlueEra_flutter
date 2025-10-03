@@ -1026,43 +1026,6 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
     );
   }
 
-  Widget _demoVideoSection() {
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        // boxShadow: [AppShadows.textFieldShadow],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText("Add Demo Video", fontWeight: FontWeight.w500),
-          SizedBox(height: 12),
-          Container(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.whiteE5)),
-            child: Center(
-              child: Column(
-                children: [
-                  LocalAssets(imagePath: AppIconAssets.upload_video_service),
-                  SizedBox(height: 6),
-                  Center(
-                    child: CustomText(
-                      "Upload your Demo Video",
-                      color: Colors.grey,
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if (addServiceController.detailsList.length == 5) {

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

@@ -20,7 +20,6 @@ import 'package:app_links/app_links.dart';
 import 'package:camera/camera.dart';
 import 'package:croppy/croppy.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -32,7 +31,6 @@ import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/firebase_notification_service.dart';
-import 'firebase_options.dart';
 firebaseInitializeApp()
 async {
   if (Platform.isAndroid) {

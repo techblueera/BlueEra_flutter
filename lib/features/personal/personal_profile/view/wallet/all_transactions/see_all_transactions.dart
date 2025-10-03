@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/see_all_transaction_controller.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -512,7 +511,7 @@ class SeeAllTransactionsView extends StatelessWidget {
                       ],
                     ),
                   );
-                  ;
+
                 },
                 separatorBuilder: (context, index) => SizedBox(
                   height: 20,

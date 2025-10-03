@@ -283,7 +283,7 @@ class BusinessProfileHeader extends StatelessWidget {
                         SizedBox(width: SizeConfig.size5),
                         Flexible(
                           child: CustomText(
-                            "${(viewBusinessDetailsController.distanceFromKm.value ?? 0).toStringAsFixed(2)} Km Far",
+                            "${(viewBusinessDetailsController.distanceFromKm.value).toStringAsFixed(2)} Km Far",
                             color: AppColors.primaryColor,
                             fontSize: SizeConfig.size12,
                             fontWeight: FontWeight.bold,

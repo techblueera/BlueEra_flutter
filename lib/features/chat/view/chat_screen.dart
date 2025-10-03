@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_profile.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/view/widget/receive_req_dialoge.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -134,8 +132,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
         return {
-          "displayName": c.displayName ?? "",
-          "phones": c.phones.map((p) => p.number ?? "").toList(),
+          "displayName": c.displayName,
+          "phones": c.phones.map((p) => p.number).toList(),
         };
       }).toList();
 

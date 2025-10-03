@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
@@ -18,7 +17,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 
 /// On next pop up we will ask to add image (up to 2)
 /// Need to aad multiple images slider for product listing
@@ -343,7 +341,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                  onSelected: (value) async {
                                    if (value == 'Delete Variant') {
-                                     widget.controller.listedProducts?.removeAt(productIndex);
+                                     widget.controller.listedProducts.removeAt(productIndex);
                                    }
                                  },
                                  icon: Icon(Icons.more_vert, color: AppColors.black),

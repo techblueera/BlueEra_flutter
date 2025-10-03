@@ -7,15 +7,12 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_media_carosal_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
-import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
-import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/feed_tag_people_bottom_sheet.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
-import 'package:BlueEra/widgets/post_meta_info.dart';
 import 'package:flutter/material.dart';
 
 class MessagePostWidget extends StatefulWidget {

@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -47,15 +46,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
     mapController = controller;
   }
 
-  Future<void> _onStyleLoaded() async {
-    await mapController.addSymbol(
-      SymbolOptions(
-        geometry: LatLng(widget.latitude, widget.longitude),
-        iconSize: 1.2,
-      ),
-    );
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {

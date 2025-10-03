@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_modal.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/repo/payment_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/withdrawal_response_modal.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_Repo/wallet_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

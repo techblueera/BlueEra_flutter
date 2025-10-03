@@ -17,8 +17,6 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/snackbar_helper.dart';

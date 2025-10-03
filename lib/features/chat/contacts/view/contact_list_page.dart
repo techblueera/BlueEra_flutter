@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/view/group_chat/add_new_group_page.dart';
-import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
@@ -128,8 +125,8 @@ class _ContactsPageState extends State<ContactsPage> {
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
         return {
-          "displayName": c.displayName ?? "",
-          "phones": c.phones.map((p) => p.number ?? "").toList(),
+          "displayName": c.displayName,
+          "phones": c.phones.map((p) => p.number).toList(),
         };
       }).toList();
 
@@ -321,7 +318,7 @@ class _ContactsPageState extends State<ContactsPage> {
                       ),
                   ],
                   );
-                  ;
+
                 } else {
                   return const Center(
                       child: SizedBox(

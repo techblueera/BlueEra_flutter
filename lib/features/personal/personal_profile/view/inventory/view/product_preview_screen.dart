@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -275,7 +274,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: (widget.isFromProductCreation??true) ? false : true,
+      canPop: (widget.isFromProductCreation) ? false : true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
@@ -461,7 +460,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       SizedBox(height: SizeConfig.size20),
 
                       /// Submit
-                      if(widget.isUserCanCreateVariants ?? true)
+                      if(widget.isUserCanCreateVariants)
                       CustomBtn(
                         title: 'Create Variant  - Start Selling',
                         onTap: (){

@@ -308,7 +308,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
             String fileName = imagePath
                 .split('/')
                 .last;
-            String fileExtension = fileName
+            fileName
                 .split('.')
                 .last
                 .toLowerCase();

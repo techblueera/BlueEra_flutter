@@ -13,7 +13,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../../core/services/get_current_location.dart';
 
 class SearchPlaceList extends StatefulWidget {
   final String query;
@@ -126,7 +125,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
     });
 
     try {
-      Position? position = await getCurrentLocation();
     } catch (e) {
       // Handle location error
       if (mounted) {

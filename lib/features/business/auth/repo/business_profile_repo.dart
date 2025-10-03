@@ -98,9 +98,6 @@ class BusinessProfileRepo extends BaseService {
       onSuccess: (data) {},
     );
     return response;
-    return await ApiBaseHelper().getHTTP(
-      "$bussinessProfileById/$userId",
-    );
   }
 
   Future<ResponseModel> getBusinessRatingsSummary(String userId) async {

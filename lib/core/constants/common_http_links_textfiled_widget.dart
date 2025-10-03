@@ -69,26 +69,6 @@ class _HttpsTextFieldState extends State<HttpsTextField> {
     _wasEmpty = false;
   }
 
-  void _prependHttps_() {
-    final text = widget.controller.text;
-
-    if (text.isEmpty) {
-      _wasEmpty = true;
-      return;
-    }
-
-    if (_wasEmpty &&
-        // !text.startsWith('http://') &&
-        !text.startsWith('https://')) {
-      final newText = 'https://$text';
-      widget.controller.value = TextEditingValue(
-        text: newText,
-        selection: TextSelection.collapsed(offset: newText.length),
-      );
-    }
-
-    _wasEmpty = false;
-  }
 
   @override
   Widget build(BuildContext context) {

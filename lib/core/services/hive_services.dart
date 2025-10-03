@@ -21,7 +21,7 @@ class HiveServices{
 
   Future<bool> savePostJson(Post post) async {
     final box = Hive.box(_savedPosts);
-    final String key = '${userId}_${post.id ?? ''}';
+    final String key = '${userId}_${post.id}';
     await box.put(key, post.toJson());
     return true;
   }

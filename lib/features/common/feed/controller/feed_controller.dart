@@ -15,12 +15,10 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_success_sheet.dart';
@@ -772,8 +770,7 @@ class FeedController extends GetxController {
           final post = list[postIndex];
           final options = post..poll?.options;
 
-          if (options != null &&
-              optionId >= 0 &&
+          if (optionId >= 0 &&
               optionId < (options.poll?.options.length ?? 0)) {
             final selectedOption = options.poll?.options[optionId];
             selectedOption?.votes ??= [];

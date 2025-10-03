@@ -2,17 +2,14 @@ import 'dart:convert';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
-import 'package:BlueEra/features/common/business_service/model/add_service_model.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../personal/personal_profile/view/inventory/model/add_service_response_model.dart';
 
 class StoreScreenController extends GetxController {
   Rx<ApiResponse> getAllStoreResponse = ApiResponse.initial('Initial').obs;
@@ -33,12 +30,6 @@ class StoreScreenController extends GetxController {
       // Run both APIs in parallel
       await LocationService.fetchLocation();
 
-      final results = await Future.wait([
-        getAllStoreNearBy(),
-        getAllServiceNearBy(),
-        getAllStoreProductNearBy(),
-
-      ]);
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;

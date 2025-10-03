@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -11,10 +10,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
-import 'package:BlueEra/features/common/reelsModule/font_style.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -23,12 +19,9 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
-import 'package:readmore/readmore.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
-import '../../../../core/constants/common_methods.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
 import '../../auth/controller/view_business_details_controller.dart';
@@ -117,9 +110,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       VisitPersonalProfileTabs(
                         onTab: (index) {
                           if (index == 2) {
-                            Map<String, dynamic> data = {
-                              ApiKeys.businessId: widget.businessId
-                            };
                             // controller.getParticularRatingApi(data);
                           }
                         },
@@ -288,46 +278,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     );
   }
 
-  Widget _buildInfo(String title, String value) {
-    return Row(
-      children: [
-        CustomText(
-          title + ":",
-          fontSize: SizeConfig.size12,
-          color: AppColors.grayText,
-          fontWeight: FontWeight.w400,
-        ),
-        SizedBox(width: SizeConfig.size6),
-        CustomText(
-          value,
-          fontSize: SizeConfig.size12,
-          fontWeight: FontWeight.w700,
-          color: AppColors.secondaryTextColor,
-        ),
-      ],
-    );
-  }
 
-  Widget _buildTag(
-    String text, {
-    Color borderColor = AppColors.greyA5,
-    Color textColor = AppColors.black,
-  }) {
-    return Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8, vertical: SizeConfig.size2),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(SizeConfig.size12),
-          border: Border.all(color: borderColor),
-        ),
-        child: CustomText(
-          text,
-          fontSize: SizeConfig.size10,
-          fontWeight: FontWeight.w400,
-          color: textColor,
-        ));
-  }
 
   bool _isExpanded = false;
 
@@ -392,7 +343,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             ),
                             SizedBox(height: SizeConfig.size4),
                             CustomText(
-                              "${(totalReviews ?? "").toString()} Reviews",
+                              "${(totalReviews).toString()} Reviews",
                               fontSize: SizeConfig.size14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.coloGreyText,
@@ -456,20 +407,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                                 );
                                 return;
                               }
-                              final ViewBusinessDetailsController
-                                  _ratingController =
-                                  ViewBusinessDetailsController();
-                              final success = await _ratingController
-                                  .submitBusinessRating(
-                                businessId: widget.businessId,
-                                rating: rating,
-                                comment: review,
-                              )
-                                  .then((value) {
-                                if (mounted) {
-                                  Get.back();
-                                }
-                              });
                             },
                           ),
                         ),
@@ -1198,130 +1135,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             index: index,
                             postFilteredType: PostType.latest,
                           );
-                          return Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: AppColors.whiteDB, width: 2),
-                                borderRadius:
-                                    BorderRadius.circular(SizeConfig.size12)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft:
-                                            Radius.circular(SizeConfig.size12),
-                                        topRight:
-                                            Radius.circular(SizeConfig.size12)),
-                                    child:
-                                        Image.network(data.media?.first ?? "")
-                                    // Image.asset(
-                                    //   "assets/images/burger.png",
-                                    //   height: SizeConfig.size200,
-                                    //   width: double.infinity,
-                                    //   fit: BoxFit.cover,
-                                    // ),
-                                    ),
-                                Padding(
-                                  padding: EdgeInsets.all(SizeConfig.size10),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      CustomText(
-                                        data.message ?? "",
-                                        fontSize: SizeConfig.size16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      SizedBox(height: SizeConfig.size4),
-                                      CustomText(
-                                        data.subTitle,
-                                        fontSize: SizeConfig.size14,
-                                        color: AppColors.coloGreyText,
-                                      ),
-                                      SizedBox(height: SizeConfig.size10),
-                                      TextField(
-                                        decoration: InputDecoration(
-                                          hintText: "Your Comment.....",
-                                          fillColor: AppColors.whiteF3,
-                                          filled: true,
-                                          contentPadding: EdgeInsets.symmetric(
-                                              horizontal: SizeConfig.size12,
-                                              vertical: SizeConfig.size10),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                SizeConfig.size12),
-                                            borderSide: BorderSide(
-                                                color: AppColors.coloGreyText),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: SizeConfig.size12),
-                                Divider(
-                                  endIndent: SizeConfig.size16,
-                                  indent: SizeConfig.size16,
-                                  height: 8,
-                                  color: AppColors.greyA5,
-                                  thickness: 1,
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.size16,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        CustomText(
-                                            (data.likesCount ?? "").toString()),
-                                        SizedBox(width: 6),
-                                        Icon(Icons.thumb_up_alt,
-                                            color: AppColors.skyBlueDF),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                        height: SizeConfig.size24,
-                                        child: VerticalDivider(
-                                          color: AppColors.coloGreyText,
-                                          width: 2,
-                                          thickness: 1,
-                                        )),
-                                    Row(
-                                      children: [
-                                        CustomText((data.commentsCount ?? "")
-                                            .toString()),
-                                        SizedBox(width: 6),
-                                        Icon(Icons.comment_outlined,
-                                            color: AppColors.coloGreyText),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                        height: SizeConfig.size24,
-                                        child: VerticalDivider(
-                                          color: AppColors.coloGreyText,
-                                          width: 2,
-                                          thickness: 1,
-                                        )),
-                                    Row(
-                                      children: const [
-                                        Text("50"),
-                                        SizedBox(width: 6),
-                                        Icon(Icons.ios_share,
-                                            color: AppColors.coloGreyText),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.size16,
-                                ),
-                              ],
-                            ),
-                          );
                         }),
                   )
                 : SizedBox(
@@ -1943,7 +1756,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
       postFilterType: PostType.otherPosts,
       id: data?.userId,
     );
-    return Text("WIP");
   }
 
   Widget jobsTab() {

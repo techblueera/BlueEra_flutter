@@ -106,24 +106,6 @@ class _CommonDropdownIconDialogState<T>
                           ),
                         ),
                       );
-                      return ListTile(
-                        leading: LocalAssets(
-                            imagePath: widget.displayValueImagePath(item)),
-                        title: CustomText(
-                          widget.displayValue(item),
-                          fontWeight: FontWeight.w600,
-                          // fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                        ),
-                        subtitle: CustomText(
-                          widget.displayValueSubTitle(item),
-                          fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop(item);
-                        },
-                      );
                     },
                   ),
                 ),

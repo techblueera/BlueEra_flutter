@@ -4,8 +4,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -204,10 +202,9 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
 // Reusable Card Widget
 Widget _helpServiceCard(String iconPath, String title, GestureTapCallback? onTap) {
-  final controller = Get.put(AccountSettingsController());
+  Get.put(AccountSettingsController());
   final lang = Get.put(LanguageListController());
 
-  final bool showNotificationSettings = title == "All Notification";
 
   return InkWell(
     onTap: onTap,

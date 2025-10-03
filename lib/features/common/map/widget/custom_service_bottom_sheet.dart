@@ -5,9 +5,7 @@ import 'package:BlueEra/features/common/map/controller/map_service_controller.da
 import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/service_card.dart';
 import 'package:BlueEra/features/common/map/widget/store_list_widget.dart';
-import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,7 +29,6 @@ class _CustomServiceBottomSheetState extends State<CustomServiceBottomSheet> {
   final StoreController StoreControllers = Get.put(StoreController());
   final MapServiceController mapServiceController = Get.find<MapServiceController>();
 
-  int _selectedSubCategoryIndex = 0;
   String? _selectedSubCategory;
   final List<String> subCategories = [];
 
@@ -169,7 +166,6 @@ class _CustomServiceBottomSheetState extends State<CustomServiceBottomSheet> {
 
             if (_selectedSubCategory == null && subCategories.isNotEmpty) {
               _selectedSubCategory = subCategories.first;
-              _selectedSubCategoryIndex = 0;
             }
 
 

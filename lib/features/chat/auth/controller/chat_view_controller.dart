@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -625,7 +624,6 @@ class ChatViewController extends GetxController {
     try {
       ResponseModel responseModel = await ChatViewRepo().getLatestChatRepo();
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);

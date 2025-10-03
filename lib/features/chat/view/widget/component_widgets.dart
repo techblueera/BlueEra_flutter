@@ -21,7 +21,6 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
-import '../call_screen/call_screen.dart';
 import '../chat_screen.dart';
 
 Widget timeAndReadInfoWidget(
@@ -755,7 +754,7 @@ Widget messageTypeIconWithLabel(Messages message) {
 }
 void _navigateToProfile({required String authorId,required String type}) {
   if (type.toUpperCase() == AppConstants.business) {
-    Get.to(() => VisitBusinessProfileNew(businessId: authorId?? '', screenName:  AppConstants.chatScreen,));
+    Get.to(() => VisitBusinessProfileNew(businessId: authorId, screenName:  AppConstants.chatScreen,));
   } else if(type.toUpperCase()==AppConstants.individual){
     Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.chatScreen,));
 

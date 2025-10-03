@@ -61,7 +61,7 @@ class Data {
   String? typeOfBusiness;
   String? logo;
   CategoryOfBusiness? categoryOfBusiness;
-  Null? subCategoryOfBusiness;
+  Null subCategoryOfBusiness;
   String? businessDescription;
   BusinessNumber? businessNumber;
   String? natureOfBusiness;

@@ -1,26 +1,19 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
-import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
-import '../chat_screen.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
@@ -52,7 +45,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
   final Color sentMessageColor = Color(0xFF007AFF);
 
   final Color receivedMessageColor = Color(0xFFECECEC);
-  String _selectedDuration = "ONE_DAY";
   final Color backgroundColor = Color(0xFFF5F5F5);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
@@ -100,7 +92,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return WillPopScope(
       onWillPop: () async {
         if(chatViewController.canPopBusiness.value){

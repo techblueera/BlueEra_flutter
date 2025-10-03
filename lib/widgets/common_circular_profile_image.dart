@@ -90,10 +90,10 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
 
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context,String titleOfDialog) async {
-    final appLocalizations = AppLocalizations.of(context);
+    AppLocalizations.of(context);
 
     widget.imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, titleOfDialog ?? "");
+        context, titleOfDialog);
     print('image path-> ${widget.imagePath}');
     if (widget.imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...

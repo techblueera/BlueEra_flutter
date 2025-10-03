@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/dummy_model/media_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -34,7 +33,6 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/native_ad_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -69,7 +67,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   late ShortsController? shortsController;
 
   static const int postsPerAd = 9;
-  static const int cycleSize = postsPerAd + 1;
 
   @override
   void initState() {
@@ -124,18 +121,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     await feedController.getFeed(refresh: refreshFlag ?? false);
   }
 
-  int _calculateItemCount(int postsLength) {
-    int adCount = postsLength ~/ postsPerAd; // how many ads will fit
-    int totalItems = postsLength + adCount;
-
-    // Add loading indicator if there's more data
-    if (widget.postFilterType != PostType.saved &&
-        feedController.hasMoreData.value) {
-      totalItems += 1;
-    }
-
-    return totalItems;
-  }
 
   List<FeedBlock> _buildBlocks(List<Post> items) {
     final List<FeedBlock> blocks = [];
@@ -472,6 +457,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     }
 
                     ;
+                    return null;
                   },
                 ),
               );

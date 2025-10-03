@@ -6,7 +6,6 @@ import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/constants/app_constant.dart';
 import '../../../../../../core/constants/size_config.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
-import '../add_food/add_food_screen.dart';
 
 class AddProductBtn extends StatelessWidget {
   const AddProductBtn({super.key});

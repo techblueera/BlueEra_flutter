@@ -41,7 +41,6 @@ class GroupChatScreen extends StatefulWidget {
 class _GroupChatScreenState extends State<GroupChatScreen> {
   final Color sentMessageColor = Color(0xFF255DF6);
   final Color receivedMessageColor = Color(0xFFECECEC);
-  String _selectedDuration = "ONE_DAY";
   final Color backgroundColor = Color(0xFFF5F5F5);
   final chatViewController = Get.find<GroupChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
@@ -501,125 +500,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           }),
         );
       }),
-    );
-  }
-  void _showPinDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const CustomText(
-                      "Choose how long your pin lasts",
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    const SizedBox(height: 8),
-                    const CustomText(
-                      "You can unpin at any time",
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-
-                    RadioListTile(
-                      value: "ONE_DAY",
-                      groupValue: _selectedDuration,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDuration = value!;
-                        });
-                      },
-                      title: const CustomText("24 Hours"),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    RadioTheme(
-                      data: RadioThemeData(
-                        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return Colors.blue; // Selected radio circle color
-                          }
-                          return Colors.grey; // Unselected circle fill color
-                        }),
-                      ),
-                      child: RadioListTile<String>(
-                        value: "SEVEN_DAYS",
-                        groupValue: _selectedDuration,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDuration = value!;
-                          });
-                        },
-                        title: const CustomText("30 Days"),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    RadioTheme(
-                      data: RadioThemeData(
-                        fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return Colors.blue; // Selected radio circle color
-                          }
-                          return Colors.grey; // Unselected circle fill color
-                        }),
-                      ),
-                      child: RadioListTile<String>(
-                        value: "THIRTY_DAYS",
-                        groupValue: _selectedDuration,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDuration = value!;
-                          });
-                        },
-                        title: const CustomText("30 Days"),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-
-
-                    const SizedBox(height: 16),
-
-                    // Buttons Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const CustomText("Cancel"),
-                        ),
-                        const SizedBox(width: 8),
-
-                        InkWell(
-                            onTap: (){
-                              Map<String, dynamic> data = {
-                                ApiKeys.message_id: chatThemeController.selectedId,
-                                ApiKeys.conversation_id: widget.conversationId,
-                                ApiKeys.duration: _selectedDuration,
-                                ApiKeys.remove_from_pin: true,
-                              };
-                              print(data); // your logic
-                              chatViewController.addToPinMessage(data);
-                              Navigator.pop(context);
-                            },
-                            child: CustomText("Pin",color: Colors.blue,fontSize: 16,fontWeight: FontWeight.w600,)),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        );
-      },
     );
   }
 

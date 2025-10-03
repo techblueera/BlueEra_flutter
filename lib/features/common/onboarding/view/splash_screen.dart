@@ -7,7 +7,6 @@
   import 'package:BlueEra/core/constants/shared_preference_utils.dart';
   import 'package:BlueEra/core/constants/size_config.dart';
   import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/location_permission_handler.dart';
   import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
   import 'package:BlueEra/widgets/custom_text_cm.dart';
   import 'package:BlueEra/widgets/local_assets.dart';
@@ -15,7 +14,6 @@ import 'package:BlueEra/core/services/location_permission_handler.dart';
   import 'package:flutter/material.dart';
   import 'package:get/get.dart';
   import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
   class SplashScreen extends StatefulWidget {
     const SplashScreen({super.key});
@@ -33,7 +31,6 @@ import 'package:package_info_plus/package_info_plus.dart';
     }
 
     Future<void> askLocationPermission() async {
-      final result = await LocationPermissionHandler.requestLocationPermission();
 
     }
 
@@ -81,39 +78,7 @@ import 'package:package_info_plus/package_info_plus.dart';
       // await OnesignalService().initialize();
     }
 
-    Future<bool> _shouldLogoutAfterUpdate() async {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
-      final lastVersion = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.lastVersion);
 
-      if (lastVersion != null && lastVersion.isNotEmpty && _isVersionChanged(lastVersion, currentVersion)) {
-        // 🔴 App updated → logout
-        await SharedPreferenceUtils.clearPreference();
-
-        // ✅ Save new version after clearing
-        await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.lastVersion, currentVersion);
-        return true;
-      }
-
-      // First launch OR same version → just update the stored version
-      await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.lastVersion, currentVersion);
-      return false;
-    }
-
-    bool _isVersionChanged(String oldV, String newV) {
-      final oldParts = oldV.split('.').map(int.parse).toList();
-      final newParts = newV.split('.').map(int.parse).toList();
-
-      // normalize length (e.g., 1.2 vs 1.2.0)
-      while (oldParts.length < 3) oldParts.add(0);
-      while (newParts.length < 3) newParts.add(0);
-
-      for (int i = 0; i < 3; i++) {
-        if (newParts[i] > oldParts[i]) return true; // version increased
-        if (newParts[i] < oldParts[i]) return false; // shouldn’t happen (downgrade)
-      }
-      return false; // equal
-    }
 
   late final AppLinks _appLinks;
 

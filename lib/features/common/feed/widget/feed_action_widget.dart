@@ -1,11 +1,9 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/widgets/common_divider.dart';
 import 'package:BlueEra/widgets/common_icon_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

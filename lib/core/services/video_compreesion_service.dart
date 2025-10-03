@@ -6,8 +6,6 @@ class VideoCompressionService {
   /// Compress video file before upload
   static Future<File?> compressVideo(String videoPath) async {
     try {
-      final file = File(videoPath);
-      final fileSizeInMB = file.lengthSync() / (1024 * 1024);
 // print("fileSizeInMB Before===== ${fileSizeInMB}");
       // 👉 Decide quality based on file size
       VideoQuality quality;

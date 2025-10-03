@@ -1,19 +1,15 @@
 // received_bookings_screen.dart
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/videography_tutorial_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../../core/constants/app_image_assets.dart';
 import '../../../../../core/constants/size_config.dart';
-import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../../widgets/local_assets.dart';
 
 class ReceivedBookingsScreen extends StatelessWidget {
   final String? channelId;

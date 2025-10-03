@@ -199,13 +199,6 @@ String formatNumberLikePost(int number) {
   } else {
     return number.toString();
   }
-  if (number >= 1000000) {
-    return "${(number / 1000000).toStringAsFixed(1)}M";
-  } else if (number >= 1000) {
-    return "${(number / 1000).toStringAsFixed(1)}K";
-  } else {
-    return number.toString();
-  }
 }
 
 stringDateFormat({required int year, required int month, required int day}) {
@@ -1613,7 +1606,6 @@ Future<File> processImage(File file, String mode) async {
     // --- Target ratio 3:4 ---
     double targetRatio = 16 / 9;
     // double targetRatio = 3 / 4;
-    double previewWidth = Get.width * targetRatio;
 
     // Resize first so the shortest side fits
     img.Image resized = img.copyResize(

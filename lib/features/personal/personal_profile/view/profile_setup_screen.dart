@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -201,8 +200,7 @@ class _PersonalProfileSetupScreenState
                                     .imagePath?.value = image;
 
                                 dynamic dataImage = await multiPartImage(
-                                  imagePath: image ??
-                                      "",
+                                  imagePath: image,
                                 );
                                 var reqProfile = {
                                   ApiKeys.profile_image: dataImage

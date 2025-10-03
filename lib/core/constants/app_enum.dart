@@ -37,7 +37,6 @@ extension BusinessTypeExtension on BusinessType {
       default:
         return BusinessType.Both;
 
-        throw ArgumentError('Invalid BusinessType value: $value');
     }
   }
 }
@@ -181,7 +180,6 @@ extension ProfessionTypeExtension on ProfessionType {
         return ProfessionType.OTHERS;
 
         // throw ArgumentError(value);
-        throw ArgumentError('Invalid ProfessionType value: $value');
     }
   }
 }
@@ -270,7 +268,6 @@ extension SelfEmploymentTypeExtension on SelfEmploymentType {
       default:
         return SelfEmploymentType.OTHER;
 
-        throw ArgumentError('Invalid SelfEmploymentType value: $value');
     }
   }
 }
@@ -451,7 +448,6 @@ extension ArtistCategoryExtension on ArtistCategory {
       default:
         return ArtistCategory.OTHER;
 
-        throw ArgumentError('Invalid ArtistCategory value: $value');
     }
   }
 }
@@ -482,7 +478,6 @@ extension TypesOfBusinessExtension on TypesOfBusiness {
       default:
         return TypesOfBusiness.BOTH_SEEL_AND_PRODUCT;
 
-        throw ArgumentError('Invalid ContactType value: $value');
     }
   }
 }
@@ -513,7 +508,6 @@ extension CommunicationModeExtension on CommunicationMode {
       default:
         return CommunicationMode.PHONE;
 
-        throw ArgumentError('Invalid CommunicationMode value: $value');
     }
   }
 }
@@ -600,7 +594,6 @@ extension SizeOfBusinessExtension on SizeOfBusiness {
       default:
         return SizeOfBusiness.OTHERS;
 
-        throw ArgumentError('Invalid SizeOfBusiness value: $value');
     }
   }
 }
@@ -631,7 +624,6 @@ extension ContactTypeExtension on ContactType {
       default:
         return ContactType.Landline;
 
-        throw ArgumentError('Invalid ContactType value: $value');
     }
   }
 }
@@ -668,7 +660,6 @@ extension GenderTypeExtension on GenderType {
       default:
         return GenderType.Male;
 
-        throw ArgumentError('Invalid Gender value: $value');
     }
   }
 }
@@ -1056,7 +1047,6 @@ extension VideoCategoryTypeExtension on VideoCategoryType {
       default:
         return VideoCategoryType.Other;
 
-        throw ArgumentError('Invalid Video Category value: $value');
     }
   }
 }

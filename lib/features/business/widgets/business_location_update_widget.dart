@@ -16,7 +16,6 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:dio/dio.dart' as dioObj;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

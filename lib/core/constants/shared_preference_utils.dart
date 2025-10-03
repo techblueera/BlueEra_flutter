@@ -153,7 +153,7 @@ class SharedPreferenceUtils {
       userNameAtGlobal = '';
       Get.find<AuthController>().imgPath.value="";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
-    } on Exception catch (e) {
+    } on Exception {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
     }
   }
