@@ -29,7 +29,6 @@ class AppointmentBookingScreen extends StatefulWidget {
 
 String? _selectedFromTime;
 String? _selectedToTime;
-bool _acceptBookings = false;
 List<String> _timeOfDay = [];
 
 
@@ -375,17 +374,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
       ),
     );
   }
-  int _getHour(String time) {
-    final parts = time.split(' ');
-    var hour = int.parse(parts[0].split(':')[0]);
-    if (parts[1] == 'PM' && hour != 12) hour += 12;
-    if (parts[1] == 'AM' && hour == 12) hour = 0;
-    return hour;
-  }
 
-  int _getMinute(String time) {
-    return int.parse(time.split(' ')[0].split(':')[1]);
-  }
 
   // Parse time from 24-hour format (e.g., "14:30" or "09:00")
   int _parseTimeToHour(String time) {

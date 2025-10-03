@@ -60,7 +60,7 @@ class LanguageListController extends GetxController {
     
     final selectedLang = languages.firstWhereOrNull((lang) => lang.code == code);
     if (selectedLang != null) {
-      selectedLanguageName.value = selectedLang.name ?? '';
+      selectedLanguageName.value = selectedLang.name;
     }
   }
 

@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -104,23 +103,6 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
     setState(() {});
   }
 
-  Future<void> _goToTrimScreen() async {
-    log("go to trim");
-    final result = await Navigator.pushNamed(
-      context,
-      RouteHelper.getVideoTrimScreenRoute(),
-      arguments: {
-        ApiKeys.videoPath: widget.videoPath,
-        ApiKeys.videoType: videoType,
-        ApiKeys.isFrom: RouteConstant.fullVideoPreview},
-    ) as String?;
-
-    if (result != null && result.isNotEmpty) {
-      setState(() {
-        _videoPath = result;
-      });
-    }
-  }
 
   Widget _buildVideoPlayer() {
     if (!(_controller?.value.isInitialized ?? false)) {

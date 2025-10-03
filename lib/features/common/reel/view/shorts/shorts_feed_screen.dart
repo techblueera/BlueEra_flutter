@@ -267,7 +267,6 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
       // height: SizeConfig.size160 * 2 + 50,
       child: Obx(() {
         final trendingShorts = shortsFeedController.trendingVideoFeedPosts;
-        final isLoading = shortsFeedController.trendingVideoFeedIsLoadingMore;
 
         // show max 6 + loader (if needed)
         int itemCount = trendingShorts.length;

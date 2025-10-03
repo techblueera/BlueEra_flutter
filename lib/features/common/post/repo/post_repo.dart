@@ -15,7 +15,6 @@ import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as GET;
-import 'package:image_picker/image_picker.dart';
 
 class PostRepo extends BaseService {
   ///ADD POST MSG/PHOTO/QA...

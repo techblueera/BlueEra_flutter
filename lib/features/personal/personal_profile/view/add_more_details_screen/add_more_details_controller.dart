@@ -67,10 +67,6 @@ class AddMoreDetailsController extends GetxController {
         'detail': detailController.text.trim(),
       };
 
-      final detailItem = DetailItem(
-        title: titleController.text.trim(),
-        details: detailController.text.trim(),
-      );
 
       clearForm();
 

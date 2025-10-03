@@ -1,8 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/widgets/intertitial_ad_service.dart';
@@ -337,23 +334,6 @@ class SingleVideoPlayerController extends GetxController {
     }
   }
 
-  /// Interstitial ad
-  Future<void> _handleInterstitialAd({Function? onAdShow, Function? onAdClosed}) async {
-    adUnitId = getInterstitialAdUnitId();
-    if (adUnitId != null && _interstitialService.shouldShowAdOnThisVisit()) {
-      _interstitialService.loadInterstitialAd(
-        adUnitId: adUnitId!,
-        showWhenLoaded: true,
-        onAdShow: () {
-          pause();
-          onAdShow?.call();
-        },
-        onAdClosed: () {
-          onAdClosed?.call();
-        },
-      );
-    }
-  }
 
   /// Error widget
   Widget getVideoErrorWidget() {

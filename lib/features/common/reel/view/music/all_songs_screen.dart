@@ -271,7 +271,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
     }
 
     if (favouriteSongs.isEmpty) {
-      return  EmptyStateWidget(message: 'No favourite Songs.');;
+      return  EmptyStateWidget(message: 'No favourite Songs.');
     }
 
     return ListView.builder(

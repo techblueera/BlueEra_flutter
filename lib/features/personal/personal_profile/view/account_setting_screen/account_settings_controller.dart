@@ -8,8 +8,7 @@ class AccountSettingsController extends GetxController {
     RxString index = ' '.obs;
 
 
-  @override
-    void setTitle(String value) {
+  void setTitle(String value) {
     title.value = value;
   }
   void setIndex( String value) {
