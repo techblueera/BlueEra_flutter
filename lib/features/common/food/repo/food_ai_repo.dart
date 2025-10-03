@@ -22,7 +22,7 @@ class FoodAiRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       addFoodServices,
       params:queryParam,
-      isMultipart: true,
+      isMultipart: false,
       showProgress: true,
       onError: (error) {},
       onSuccess: (data) {},

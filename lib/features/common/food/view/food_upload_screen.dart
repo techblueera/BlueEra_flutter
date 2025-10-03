@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart'; // make sure this import is correct
+
 class FoodUploadScreen extends StatelessWidget {
   final FoodUploadController controller = Get.put(FoodUploadController());
 
@@ -49,27 +51,47 @@ class FoodUploadScreen extends StatelessWidget {
                     SizedBox(height: SizeConfig.size20),
 
                     // Food Type 1 Selection
-                    _buildFoodTypeSection(
+                    _buildTabSection(
                       title: 'Food Type 1',
-                      options: controller.foodType1Options,
-                      groupValue: controller.selectedFoodType1,
+                      tabs: controller.foodType1Options,
+                      selectedIndex: controller.selectedFoodType1Index,
+                      onTabSelected: (index, value) {
+                        controller.selectedFoodType1.value = value;
+                      },
                     ),
                     SizedBox(height: SizeConfig.size20),
 
                     // Food Type 2 Selection
-                    _buildFoodTypeSection(
+                    _buildTabSection(
                       title: 'Food Type 2',
-                      options: controller.foodType2Options,
-                      groupValue: controller.selectedFoodType2,
+                      tabs: controller.foodType2Options,
+                      selectedIndex: controller.selectedFoodType2Index,
+                      onTabSelected: (index, value) {
+                        controller.selectedFoodType2.value = value;
+                      },
                     ),
                     SizedBox(height: SizeConfig.size20),
 
                     // Cooking Method Selection
-                    _buildCookingMethodSection(),
+                    _buildTabSection(
+                      title: 'Cooking Method',
+                      tabs: controller.cookingMethodOptions,
+                      selectedIndex: controller.selectedCookingMethodIndex,
+                      onTabSelected: (index, value) {
+                        controller.selectedCookingMethod.value = value;
+                      },
+                    ),
                     SizedBox(height: SizeConfig.size20),
 
                     // Item Nature Selection
-                    _buildItemNatureSection(),
+                    _buildTabSection(
+                      title: 'Item Nature',
+                      tabs: controller.itemNatureOptions,
+                      selectedIndex: controller.selectedItemNatureIndex,
+                      onTabSelected: (index, value) {
+                        controller.selectedItemNature.value = value;
+                      },
+                    ),
                     SizedBox(height: SizeConfig.size20),
 
                     // City Name Field (Optional)
@@ -104,43 +126,42 @@ class FoodUploadScreen extends StatelessWidget {
         ),
         SizedBox(height: SizeConfig.size10),
         Obx(() => GestureDetector(
-              onTap: () async {
-                final String? selected =
-                    await SelectProfilePictureDialog.showLogoDialog(
-                  context,
-                  "Select Photo",
-                );
-                if ((selected?.isNotEmpty ?? false) && selected != null) {
-                  controller.selectedImage.value = File(selected);
-                } else {
-                  commonSnackBar(
-                      message: "Something went wrong please try again");
-                }
-              },
-              // onTap: () => controller.showImagePickerDialog(context),
-              child: Container(
-                height: 100,
-                width: 100,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: controller.selectedImage.value != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          controller.selectedImage.value!,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Icon(
-                        Icons.add_photo_alternate,
-                        size: 40,
-                        color: Colors.grey[500],
-                      ),
+          onTap: () async {
+            final String? selected =
+            await SelectProfilePictureDialog.showLogoDialog(
+              context,
+              "Select Photo",
+            );
+            if ((selected?.isNotEmpty ?? false) && selected != null) {
+              controller.selectedImage.value = File(selected);
+            } else {
+              commonSnackBar(
+                  message: "Something went wrong please try again");
+            }
+          },
+          child: Container(
+            height: 100,
+            width: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: controller.selectedImage.value != null
+                ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                controller.selectedImage.value!,
+                fit: BoxFit.cover,
               ),
-            )),
+            )
+                : Icon(
+              Icons.add_photo_alternate,
+              size: 40,
+              color: Colors.grey[500],
+            ),
+          ),
+        )),
       ],
     );
   }
@@ -157,7 +178,6 @@ class FoodUploadScreen extends StatelessWidget {
         CustomText(
           label,
           fontSize: SizeConfig.large,
-          // fontWeight: FontWeight.w500,
         ),
         SizedBox(height: SizeConfig.size8),
         CommonTextField(
@@ -173,10 +193,12 @@ class FoodUploadScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFoodTypeSection({
+  /// 🔹 Reusable HorizontalTabSelector Section
+  Widget _buildTabSection({
     required String title,
-    required List<String> options,
-    required RxString groupValue,
+    required List<String> tabs,
+    required RxInt selectedIndex,
+    required Function(int, String) onTabSelected,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,135 +206,18 @@ class FoodUploadScreen extends StatelessWidget {
         CustomText(
           title,
           fontSize: SizeConfig.large,
-          // fontWeight: FontWeight.w500,
         ),
         SizedBox(height: SizeConfig.size10),
-        Obx(() => Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: options.map((option) {
-                return Flexible(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Transform.scale(
-                        scale: 0.9, // adjust size
-                        child: Radio<String>(
-                          value: option,
-                          groupValue: groupValue.value,
-                          onChanged: (value) {
-                            groupValue.value = value!;
-                          },
-                          activeColor: AppColors.primaryColor,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          // removes extra padding
-                          visualDensity:
-                              VisualDensity.compact, // tighter layout
-                        ),
-                      ),
-                      Flexible(
-                          child: Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size5),
-                        child: CustomText(option),
-                      )),
-                      SizedBox(width: SizeConfig.size5),
-                    ],
-                  ),
-                );
-              }).toList(),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildCookingMethodSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Cooking Method',
-          fontSize: SizeConfig.large,
-        ),
-        SizedBox(height: SizeConfig.size10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 5,
-          children: controller.cookingMethodOptions.map((method) {
-            return Obx(() => Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Transform.scale(
-                      scale: 0.9, //
-                      child: Radio<String>(
-                        value: method,
-                        groupValue: controller.selectedCookingMethod.value,
-                        onChanged: (value) {
-                          controller.selectedCookingMethod.value = value!;
-                        },
-                        activeColor: AppColors.primaryColor,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        // removes extra padding
-                        visualDensity: VisualDensity.compact, // tighter layout
-                      ),
-                    ),
-                    Flexible(
-                      child: Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size5),
-                        child: CustomText(
-                          method,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size5),
-                  ],
-                ));
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItemNatureSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Item Nature',
-          fontSize: SizeConfig.large,
-        ),
-        SizedBox(height: SizeConfig.size10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 5,
-          children: controller.itemNatureOptions.map((nature) {
-            return Obx(() => Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Transform.scale(
-                      scale: 0.9,
-                      child: Radio<String>(
-                        value: nature,
-                        groupValue: controller.selectedItemNature.value,
-                        onChanged: (value) {
-                          controller.selectedItemNature.value = value!;
-                        },
-                        activeColor: AppColors.primaryColor,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        // removes extra padding
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                    Flexible(
-                        child: Padding(
-                      padding: EdgeInsets.only(left: SizeConfig.size5),
-                      child: CustomText(nature),
-                    )),
-                    SizedBox(width: SizeConfig.size5),
-                  ],
-                ));
-          }).toList(),
-        ),
+        Obx(() => HorizontalTabSelector(
+          tabs: tabs,
+          selectedIndex: selectedIndex.value,
+          isFilterIconShow: false,
+          onTabSelected: (index, value) {
+            selectedIndex.value = index;
+            onTabSelected(index, value);
+          },
+          labelBuilder: (label) => label,
+        )),
       ],
     );
   }
@@ -323,38 +228,15 @@ class FoodUploadScreen extends StatelessWidget {
           isValidate: (controller.selectedImage.value != null &&
               controller.foodName.value.isNotEmpty),
           onTap: (controller.selectedImage.value != null &&
-                  controller.foodNameController.text.isNotEmpty)
+              controller.foodNameController.text.isNotEmpty)
               ? () {
-                  if (controller.selectedImage.value != null &&
-                      controller.foodNameController.text.isNotEmpty) {
-                    controller.generateFood();
-                  }
-                }
+            if (controller.selectedImage.value != null &&
+                controller.foodNameController.text.isNotEmpty) {
+              controller.generateFood();
+            }
+          }
               : null,
           title: "Generate");
     });
-    /* return SizedBox(
-      width: double.infinity,
-      height: SizeConfig.size50,
-      child: Obx(() => ElevatedButton(
-            onPressed: controller.isLoading.value
-                ? null
-                : () => controller.generateFood(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: controller.isLoading.value
-                ? CircularProgressIndicator(color: Colors.white)
-                : CustomText(
-                    'Generate',
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-          )),
-    );*/
   }
 }
