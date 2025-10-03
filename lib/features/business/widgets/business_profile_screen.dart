@@ -34,12 +34,11 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
   List<String> postTab = [
     'Profile',
+    'My Products',
+    'Subscription',
     'My Posts',
     'Shorts',
     'Videos',
-    'My Products',
-    'Subscription',
-    'Channels'
   ];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;

@@ -11,6 +11,7 @@ class BusinessLocationWidget extends StatefulWidget {
   final String businessName;
   final bool isTitleShow;
   final String? locationText;
+  final double? padding;
 
   const BusinessLocationWidget(
       {super.key,
@@ -18,7 +19,8 @@ class BusinessLocationWidget extends StatefulWidget {
       required this.longitude,
       required this.businessName,
       this.locationText,
-      this.isTitleShow = true});
+      this.isTitleShow = true,
+      this.padding});
 
   @override
   State<BusinessLocationWidget> createState() => _BusinessLocationWidgetState();
@@ -46,7 +48,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
   }
 
   Future<void> _onStyleLoaded() async {
-    // ✅ Now it’s safe to add symbols
     await mapController.addSymbol(
       SymbolOptions(
         geometry: LatLng(widget.latitude, widget.longitude),
@@ -65,7 +66,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
       elevation: 0,
       color: AppColors.white,
       child: Padding(
-        padding: EdgeInsets.all(SizeConfig.size12),
+        padding: EdgeInsets.all(widget.padding ?? SizeConfig.size12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -89,7 +90,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                 // Adjust border radius here
                 child: SizedBox(
                   width: double.infinity,
-                  height: 180, // ✅ Set a fixed height (adjust as needed)
+                  height: 180,
                   child: Stack(
                     children: [
                       MapplsMap(

@@ -6,12 +6,14 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_details_edit_page_one.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
+import 'package:BlueEra/features/business/widgets/business_location_update_widget.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -28,11 +30,8 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../../../core/constants/shared_preference_utils.dart';
 import 'package:dio/dio.dart' as dioObj;
-
 import '../visit_business_profile/view/visit_business_profile_new.dart';
 
 class BusinessProfileWidget extends StatefulWidget {
@@ -729,30 +728,117 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           ),
         ),
 
-        if ((details?.businessLocation?.lat != null &&
-                details?.businessLocation?.lat != 0) &&
-            (details?.businessLocation?.lon != null &&
-                details?.businessLocation?.lon != 0)) ...[
           SizedBox(
             height: SizeConfig.size20,
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: CustomText(
-                  "Your business live location",
-                  fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.bold,
-                  overflow: TextOverflow.ellipsis,
+              Expanded(
+                child: Container(
+                  width: SizeConfig.screenWidth,
+                  height: 2,
+                  color: Colors.black,
                 ),
               ),
-              // InkWell(
-              //     onTap: () {},
-              //     child: SvgPicture.asset(AppIconAssets.profile_pen_tool))
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+                child: CustomText(
+                  color: Colors.black,
+                  appLocalizations?.listYourProductServices,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  width: SizeConfig.screenWidth,
+                  height: 2,
+                  color: Colors.black,
+                ),
+              ),
             ],
           ),
+          SizedBox(
+            height: SizeConfig.size10,
+          ),
+          InkWell(
+            onTap: ()=>
+              Get.toNamed(RouteHelper.getInventoryScreenRoute()),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              decoration: BoxDecoration(
+                  boxShadow: AppShadows.bottomAndTopShadow,
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(10)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          appLocalizations?.createStoreSections,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        CustomText(
+                          "Organize your products into 👔 Men • 👗 Women • 🧒 Kids. Make shopping easier for your customers!",
+                          fontSize: SizeConfig.extraSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: SizeConfig.size20,
+                  ),
+                  LocalAssets(imagePath: AppIconAssets.store_bg)
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: SizeConfig.size20,
+          ),
+
+        if ((details?.businessLocation?.lat != null &&
+            details?.businessLocation?.lat != 0) &&
+            (details?.businessLocation?.lon != null &&
+                details?.businessLocation?.lon != 0)) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              CustomText(
+                "Your business live location",
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.bold,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     Expanded(
+          //       child: CustomText(
+          //         "Your business live location",
+          //         fontSize: SizeConfig.large,
+          //         fontWeight: FontWeight.bold,
+          //         overflow: TextOverflow.ellipsis,
+          //       ),
+          //     ),
+          //     InkWell(
+          //         onTap: () {
+          //           navigatePushTo(
+          //               context,
+          //               BusinessLocationUpdateWidget(
+          //                   prevBusinessDetails: details));
+          //         },
+          //         child: SvgPicture.asset(AppIconAssets.profile_pen_tool))
+          //   ],
+          // ),
           Align(
             alignment: Alignment.centerLeft,
             child: CustomText(
@@ -769,74 +855,12 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               latitude: (details?.businessLocation?.lat?.toDouble() ?? 0.0),
               longitude: (details?.businessLocation?.lon?.toDouble() ?? 0.0),
               businessName: details?.businessName ?? "",
-              isTitleShow: false),
-        ],
-        SizedBox(
-          height: SizeConfig.size20,
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                width: SizeConfig.screenWidth,
-                height: 2,
-                color: Colors.black,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
-              child: CustomText(
-                color: Colors.black,
-                appLocalizations?.listYourProductServices,
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Expanded(
-              child: Container(
-                width: SizeConfig.screenWidth,
-                height: 2,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(
-          height: SizeConfig.size10,
-        ),
-        Container(
-          decoration: BoxDecoration(
-              boxShadow: AppShadows.bottomAndTopShadow,
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(10)),
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size10, vertical: SizeConfig.size10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      appLocalizations?.createStoreSections,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    CustomText(
-                      "Organize your products into 👔 Men • 👗 Women • 🧒 Kids. Make shopping easier for your customers!",
-                      fontSize: SizeConfig.extraSmall,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: SizeConfig.size20,
-              ),
-              LocalAssets(imagePath: AppIconAssets.store_bg)
-            ],
+              isTitleShow: false,
+              locationText: details?.address ?? "",
+              padding: 0,
           ),
-        ),
+        ],
+
         SizedBox(
           height: SizeConfig.size20,
         ),

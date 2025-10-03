@@ -882,13 +882,27 @@ class RouteHelper {
                 controller: controller,
                 generateAiProductContent: generateAiProductContent),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
-      case RouteConstant.productPreviewScreen:
+      // case RouteConstant.productPreviewScreen:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   final OwnProductData? productData =
+      //       args?[ApiKeys.argProductData] as OwnProductData?;
+      //
+      //   return MaterialPageRoute(
+      //       builder: (_) => ProductPreviewScreen(productData: productData),
+      //       settings: RouteSettings(name: getProductPreviewScreenRoute()));
+        case RouteConstant.productPreviewScreen:
         final args = settings.arguments as Map<String, dynamic>?;
-        final OwnProductData? productData =
-            args?[ApiKeys.argProductData] as OwnProductData?;
+        final ProductPreviewArgs? argProductData =
+            args?[ApiKeys.argProductData] as ProductPreviewArgs?;
+        final bool? isFromProductCreation = args?[ApiKeys.isFromProductCreation] as bool?;
+        final bool? isUserCanCreateVariants = args?[ApiKeys.isUserCanCreateVariants] as bool?;
 
         return MaterialPageRoute(
-            builder: (_) => ProductPreviewScreen(productData: productData),
+            builder: (_) => ProductPreviewScreen(
+                productPreviewArgs: argProductData,
+                isFromProductCreation: isFromProductCreation ?? false,
+                isUserCanCreateVariants: isUserCanCreateVariants ?? true,
+            ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.productPreviewScreenProduct:
         final args = settings.arguments as Map<String, dynamic>;

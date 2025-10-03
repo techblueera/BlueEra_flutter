@@ -207,7 +207,7 @@ class ReelUploadDetailsController extends GetxController {
           if (isBusinessUser()) {
             print('business userr herere..');
             Get.to(() => BusinessOwnProfileScreen(
-              selectedIndex: (video == Video.short) ? 2 : 3,
+              selectedIndex: (video == Video.short) ? 4 : 5,
               sortBy: SortBy.UnderProgress,
             ));
           }

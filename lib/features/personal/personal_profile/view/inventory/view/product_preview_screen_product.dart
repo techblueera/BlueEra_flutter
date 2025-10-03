@@ -50,7 +50,7 @@ class _ProductPreviewScreenProductState
   @override
   void initState() {
     if (widget.productData != null) {
-      controller.allProductsImages.value =
+      controller.step2Images.value =
           widget.productData?.product.details?.media ?? [];
       controller.productNameController.text =
           widget.productData?.product.details?.name ?? '';
@@ -177,7 +177,7 @@ class _ProductPreviewScreenProductState
                             children: [
                               CarouselSlider.builder(
                                 carouselController: _carouselController,
-                                itemCount: controller.allProductsImages.length,
+                                itemCount: controller.step2Images.length,
                                 options: CarouselOptions(
                                   height: SizeConfig.size350,
                                   viewportFraction: 1.0,
@@ -190,16 +190,16 @@ class _ProductPreviewScreenProductState
                                 ),
                                 itemBuilder: (context, index, realIdx) {
                                   return !isNetworkImage(
-                                          controller.allProductsImages[index])
+                                          controller.step2Images[index])
                                       ? Image.file(
                                           File(controller
-                                              .allProductsImages[index]),
+                                              .step2Images[index]),
                                           fit: BoxFit.contain,
                                           width: double.infinity,
                                         )
                                       : CachedNetworkImage(
                                           imageUrl: controller
-                                              .allProductsImages[index],
+                                              .step2Images[index],
                                           fit: BoxFit.contain,
                                           width: double.infinity,
                                           placeholder: (context, url) =>
@@ -219,7 +219,7 @@ class _ProductPreviewScreenProductState
                                         );
                                 },
                               ),
-                              (controller.allProductsImages.length > 1)
+                              (controller.step2Images.length > 1)
                                   ? Positioned(
                                       bottom: 8,
                                       left: 0,
@@ -228,7 +228,7 @@ class _ProductPreviewScreenProductState
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: List.generate(
-                                            controller.allProductsImages.length,
+                                            controller.step2Images.length,
                                             (index) {
                                           return AnimatedContainer(
                                             duration: const Duration(
@@ -1279,11 +1279,11 @@ class _ProductPreviewScreenProductState
           // Toggle selection
           if (isSelected) {
             controller.selectedVariantIndex.value = -1; // unselect
-            controller.allProductsImages.value =
+            controller.step2Images.value =
                 widget.productData?.product.details?.media ?? [];
           } else {
             controller.selectedVariantIndex.value = index; // select
-            controller.allProductsImages.value = product.image; // variant photo
+            controller.step2Images.value = product.image; // variant photo
           }
         },
         child: Container(

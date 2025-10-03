@@ -454,4 +454,5 @@ abstract class BaseService {
   final String callUser = 'chat-service/call/user';
   final String aiServiceGenerateContent = 'ai-service/api/ai-service/generate-content';
 
+  final String cloneVariant = 'product-service/api/product/clone-variant';
 }

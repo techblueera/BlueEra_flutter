@@ -22,13 +22,32 @@ class InventoryBasedSearchProductResponse {
 }
 
 class VariantData {
+  ProductInformation productInformation;
+  FinalVariant finalVariant;
+
+  VariantData({
+    required this.productInformation,
+    required this.finalVariant,
+  });
+
+  factory VariantData.fromJson(Map<String, dynamic> json) {
+    return VariantData(
+      productInformation: ProductInformation.fromJson(json['product_information'] ?? {}),
+      finalVariant: FinalVariant.fromJson(json['final_variant'] ?? {}),
+    );
+  }
+}
+
+class FinalVariant {
+  String id;
   List<String> mediaRelatedToVarient;
-  Map<String, dynamic> attributes;
+  Map<String, dynamic> attributesMap;
+  AttributesStruct attributesStruct;
   String sku;
   String hsn;
   String batchNumber;
-  DateInfo expiryDate;
-  DateInfo manufacteringDate;
+  DateInfo? expiryDate;
+  DateInfo? manufacteringDate;
   bool stock;
   double costPrice;
   double sellingPrice;
@@ -36,16 +55,18 @@ class VariantData {
   bool varientIsActive;
   // DateTime createdAt;
   // DateTime updatedAt;
-  ProductInformation productInformation;
+  Map<String, dynamic> attributes;
 
-  VariantData({
+  FinalVariant({
+    required this.id,
     required this.mediaRelatedToVarient,
-    required this.attributes,
+    required this.attributesMap,
+    required this.attributesStruct,
     required this.sku,
     required this.hsn,
     required this.batchNumber,
-    required this.expiryDate,
-    required this.manufacteringDate,
+    this.expiryDate,
+    this.manufacteringDate,
     required this.stock,
     required this.costPrice,
     required this.sellingPrice,
@@ -53,19 +74,20 @@ class VariantData {
     required this.varientIsActive,
     // required this.createdAt,
     // required this.updatedAt,
-    required this.productInformation,
+    required this.attributes,
   });
 
-  factory VariantData.fromJson(Map<String, dynamic> json) {
-    return VariantData(
-      mediaRelatedToVarient:
-      List<String>.from(json['media_related_to_varient'] ?? []),
-      attributes: Map<String, dynamic>.from(json['attributes'] ?? {}),
+  factory FinalVariant.fromJson(Map<String, dynamic> json) {
+    return FinalVariant(
+      id: json['id'] ?? '',
+      mediaRelatedToVarient: List<String>.from(json['media_related_to_varient'] ?? []),
+      attributesMap: Map<String, dynamic>.from(json['attributes_map'] ?? {}),
+      attributesStruct: AttributesStruct.fromJson(json['attributes_struct'] ?? {}),
       sku: json['sku'] ?? '',
       hsn: json['hsn'] ?? '',
       batchNumber: json['batchNumber'] ?? '',
-      expiryDate: DateInfo.fromJson(json['expiryDate'] ?? {}),
-      manufacteringDate: DateInfo.fromJson(json['manufacteringDate'] ?? {}),
+      expiryDate: json['expiryDate'] != null ? DateInfo.fromJson(json['expiryDate']) : null,
+      manufacteringDate: json['manufacteringDate'] != null ? DateInfo.fromJson(json['manufacteringDate']) : null,
       stock: json['stock'] ?? true,
       costPrice: (json['costPrice'] ?? 0).toDouble(),
       sellingPrice: (json['sellingPrice'] ?? 0).toDouble(),
@@ -73,9 +95,18 @@ class VariantData {
       varientIsActive: json['varientIsActive'] ?? true,
       // createdAt: DateTime.parse(json['createdAt']),
       // updatedAt: DateTime.parse(json['updatedAt']),
-      productInformation:
-      ProductInformation.fromJson(json['product_information'] ?? {}),
+      attributes: Map<String, dynamic>.from(json['attributes'] ?? {}),
     );
+  }
+}
+
+class AttributesStruct {
+  Map<String, dynamic> fields;
+
+  AttributesStruct({required this.fields});
+
+  factory AttributesStruct.fromJson(Map<String, dynamic> json) {
+    return AttributesStruct(fields: Map<String, dynamic>.from(json['fields'] ?? {}));
   }
 }
 
@@ -83,14 +114,24 @@ class DateInfo {
   int date;
   int month;
   int year;
+  int week;
+  bool lifetime;
 
-  DateInfo({required this.date, required this.month, required this.year});
+  DateInfo({
+    required this.date,
+    required this.month,
+    required this.year,
+    this.week = 0,
+    this.lifetime = false,
+  });
 
   factory DateInfo.fromJson(Map<String, dynamic> json) {
     return DateInfo(
       date: json['date'] ?? 0,
       month: json['month'] ?? 0,
       year: json['year'] ?? 0,
+      week: json['week'] ?? 0,
+      lifetime: json['lifetime'] ?? false,
     );
   }
 }
@@ -115,7 +156,7 @@ class ProductInformation {
   List<ProductFeature> addProductFeatures;
   List<ProductVariant> variants;
   String approvalStatus;
-  List<dynamic> options;
+  OptionsWrapper? options;
   DateTime createdAt;
   DateTime updatedAt;
   bool addedByAdmin;
@@ -176,11 +217,30 @@ class ProductInformation {
           .toList() ??
           [],
       approvalStatus: json['approval_status'] ?? '',
-      options: json['options'] ?? [],
+      options: json['options'] != null ? OptionsWrapper.fromJson(json['options']) : null,
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       addedByAdmin: json['addedByAdmin'] ?? false,
     );
+  }
+}
+
+class OptionsWrapper {
+  final Map<String, dynamic>? asMap;
+  final List<dynamic>? asList;
+
+  OptionsWrapper({this.asMap, this.asList});
+
+  factory OptionsWrapper.fromJson(dynamic json) {
+    if (json is Map<String, dynamic>) return OptionsWrapper(asMap: json);
+    if (json is List<dynamic>) return OptionsWrapper(asList: json);
+    return OptionsWrapper();
+  }
+
+  dynamic toJson() {
+    if (asMap != null) return asMap;
+    if (asList != null) return asList;
+    return null;
   }
 }
 
@@ -237,8 +297,7 @@ class ProductVariant {
     return ProductVariant(
       attributes: Map<String, dynamic>.from(json['attributes'] ?? {}),
       stock: json['stock'] ?? true,
-      mediaRelatedToVarient:
-      List<String>.from(json['media_related_to_varient'] ?? []),
+      mediaRelatedToVarient: List<String>.from(json['media_related_to_varient'] ?? []),
       varientIsActive: json['varientIsActive'] ?? true,
       id: json['_id'] ?? '',
       createdAt: DateTime.parse(json['createdAt']),
@@ -263,7 +322,7 @@ class UnUsedProduct {
   List<String> tags;
   bool addedByAdmin;
   String approvalStatus;
-  List<dynamic> options;
+  OptionsWrapper? options;
   List<AddMoreDetail> addMoreDetails;
   List<ProductFeature> addProductFeatures;
   List<ProductVariant> variants;
@@ -319,7 +378,7 @@ class UnUsedProduct {
       tags: List<String>.from(json['tags'] ?? []),
       addedByAdmin: json['addedByAdmin'] ?? false,
       approvalStatus: json['approval_status'] ?? '',
-      options: json['options'] ?? [],
+      options: json['options'] != null ? OptionsWrapper.fromJson(json['options']) : null,
       addMoreDetails: (json['addMoreDetails'] as List<dynamic>?)
           ?.map((e) => AddMoreDetail.fromJson(e))
           .toList() ??
@@ -341,4 +400,3 @@ class UnUsedProduct {
     );
   }
 }
-

@@ -181,7 +181,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       SizedBox(
                         height: SizeConfig.size80,
                         child: Obx(() {
-                          final totalImages = controller.allProductsImages.length;
+                          final totalImages = controller.step2Images.length;
 
                           return GridView.builder(
                             scrollDirection: Axis.horizontal,
@@ -210,7 +210,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                     children: [
                                       if (hasImage)
                                         Image.file(
-                                          File(controller.allProductsImages[index]),
+                                          File(controller.step2Images[index]),
                                           fit: BoxFit.cover,
                                         )
                                       else

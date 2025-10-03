@@ -383,4 +383,6 @@ class ApiKeys {
   static const sub_category = "sub_category";
   static const short_description = "short_description";
   static const subCategory = "subCategory";
+  static const isFromProductCreation = "isFromProductCreation";
+  static const isUserCanCreateVariants = "isUserCanCreateVarints";
 }

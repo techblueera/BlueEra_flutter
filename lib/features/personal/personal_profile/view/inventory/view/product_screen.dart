@@ -257,10 +257,12 @@ class _ProductScreenState extends State<ProductScreen> {
 
     return GestureDetector(
       onTap: (){
+        ProductPreviewArgs productPreviewArgs = mapProductDataToPreviewArgs(product);
         Get.toNamed(
           RouteHelper.getProductPreviewScreenRoute(),
           arguments: {
-            ApiKeys.argProductData: product,
+            ApiKeys.isUserCanCreateVariants: false,
+            ApiKeys.argProductData: productPreviewArgs,
           },
         );
         // ProductPreviewArgs productPreviewArgs = mapOwnProductToPreviewArgs(product);
@@ -409,70 +411,58 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
+  ProductPreviewArgs mapProductDataToPreviewArgs(OwnProductData productData) {
+    final product = productData.product;
+    final details = product.details;
 
-  // ProductPreviewArgs mapOwnProductToPreviewArgs(OwnProductData? src) {
-  //   if (src == null) {
-  //     return ProductPreviewArgs(productId: '');
-  //   }
-  //
-  //   final details = src.product.details;
-  //
-  //   final features = details?.addProductFeatures
-  //       .map((f) => f.title ?? '')
-  //       .where((t) => t.isNotEmpty)
-  //       .toList() ??
-  //       [];
-  //
-  //   final detailsList = details?.addMoreDetails
-  //       .map((d) => DetailPair(d.title ?? '', d.details ?? ''))
-  //       .toList() ??
-  //       [];
-  //
-  //   final listedProds = src.product.sellerClassification?.variants
-  //       .map((v) => ProductListing(
-  //     image: v.mediaRelatedToVariant,
-  //     name: '${details?.name ?? ''} ${_buildVariantName('', v.attributes)}'
-  //         .trim(),
-  //     selectedVariants: v.attributes,
-  //     price: v.sellingPrice.toString(),
-  //     mrp: v.mrp.toString(),
-  //     discount: v.mrp > 0
-  //         ? (((v.mrp - v.sellingPrice) / v.mrp) * 100)
-  //         .toStringAsFixed(2)
-  //         : null,
-  //   ))
-  //       .toList() ??
-  //       [];
-  //
-  //   return ProductPreviewArgs(
-  //     productId: details?.id ?? '',
-  //     media: details?.media ?? [],
-  //     name: details?.name ?? '',
-  //     description: details?.description ?? '',
-  //     tags: details?.tags ?? [],
-  //     features: features,
-  //     link: null,
-  //     details: detailsList,
-  //     mrp: details?.name,
-  //     warranty: details?.productWarranty,
-  //     expiry: null,
-  //     userGuide: null,
-  //     listedProducts: listedProds.isEmpty ? null : listedProds,
-  //   );
-  // }
-  //
-  // String _buildVariantName(String baseName, Map<String, dynamic> attr) {
-  //   final suffix = attr.entries.map((e) {
-  //     final key = e.key.toLowerCase();
-  //     final val = e.value;
-  //     if (key == 'color' && val is Map<String, dynamic>) {
-  //       return val['color_name'] ?? '';
-  //     }
-  //     return val?.toString() ?? '';
-  //   }).where((s) => s.isNotEmpty).join(', ');
-  //
-  //   return '$baseName ${suffix.trim()}'.trim();
-  // }
+    List<ProductListing> listedProducts = [];
+    final variants = product.sellerClassification?.variants ?? [];
+    if (variants.isNotEmpty) {
+      listedProducts = variants.map((variant) {
+        final variantName = '${details?.name ?? ''} ' +
+            variant.attributes.entries.map((entry) {
+              final key = entry.key.toLowerCase();
+              final value = entry.value;
+
+              if (key == 'color' && value is Map<String, dynamic>) {
+                return value['color_name'] ?? '';
+              } else if (value != null) {
+                return value.toString();
+              } else {
+                return '';
+              }
+            }).where((attr) => attr.isNotEmpty).join(', ');
+
+        return ProductListing(
+          image: variant.mediaRelatedToVariant,
+          name: variantName,
+          selectedVariants: variant.attributes,
+          price: variant.sellingPrice.toString(),
+          mrp: variant.mrp.toString(),
+          discount: variant.mrp > 0
+              ? (((variant.mrp - variant.sellingPrice) / variant.mrp) * 100)
+              .toStringAsFixed(2)
+              : null,
+        );
+      }).toList();
+    }
+
+    return ProductPreviewArgs(
+      productId: details?.id ?? '',
+      media: details?.media ?? [],
+      name: details?.name ?? '',
+      description: details?.description ?? '',
+      tags: details?.tags ?? [],
+      features: details?.addProductFeatures.map((f) => f.title).toList() ?? [],
+      details: details?.addMoreDetails
+          .map((d) => DetailPair(d.title, d.details))
+          .toList(),
+      warranty: details?.productWarranty ?? '',
+      expiry: '',
+      userGuide: [],
+      listedProducts: listedProducts,
+    );
+  }
 
 }
 
