@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -83,7 +85,11 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
           borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
           color: Colors.grey[200],
         ),
-        child: const Center(child: Text("No banners available")),
+        child: LocalAssets(
+          imagePath: AppIconAssets.place_holder_image,
+          boxFix: BoxFit.cover,
+        ),
+        // child: const Center(child: Text("No banners available")),
       );
     }
 
@@ -114,9 +120,9 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image),
+                      errorWidget: (context, url, error) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.cover,
                       ),
                     );
 

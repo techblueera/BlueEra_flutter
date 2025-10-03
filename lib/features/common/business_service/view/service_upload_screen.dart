@@ -1,0 +1,298 @@
+import 'dart:io';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
+
+class ServiceUploadScreen extends StatefulWidget {
+  ServiceUploadScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ServiceUploadScreen> createState() => _ServiceUploadScreenState();
+}
+
+class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
+  final ServiceController controller = Get.put(ServiceController());
+  final viewBusinessDetailsController =
+  Get.put(ViewBusinessDetailsController());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    viewBusinessDetailsController.getAllCategories();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appLocalizations = AppLocalizations.of(context);
+
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: "Service",
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: CommonCardWidget(
+              child: Padding(
+                padding: EdgeInsets.all(0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: SizeConfig.size10),
+
+
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.lightBlue.shade50,
+                        // light blue background
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.lightBlue.shade200, width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(" ⚠️ "),
+                              Expanded(
+                                child: CustomText(
+                                  "Your Category & Subcategory given below",
+                                  color: Colors.blue.shade800,
+                                  fontSize: SizeConfig.size16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: SizeConfig.size10),
+
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+
+                            children: [
+                              CustomText(
+                                "Category : ",
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade800,
+                              ),
+                              Flexible(
+                                child: CustomText(
+                                  "${viewBusinessDetailsController
+                                      .selectedCategoryOfBusiness.value?.name}",
+                                    color: Colors.blue.shade700,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 3,
+
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: SizeConfig.size5),
+
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                "Subcategory : ",
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade800,
+                              ),
+                              Flexible(
+                                child: CustomText(
+                                  "${viewBusinessDetailsController
+                                      .selectedSubCategoryOfBusinessNew.value?.name} ",
+                                  color: Colors.blue.shade700,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 3,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: SizeConfig.size5),
+
+                          CustomText(
+                            "Kindly add services to your category & subcategory only unless result may effected",
+                            color: AppColors.red00,
+                            overflow: TextOverflow.ellipsis,
+                            fontSize: SizeConfig.small,
+                            maxLines: 3,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: SizeConfig.size20),
+
+                    // Upload Images Section
+                    _buildUploadImagesSection(context),
+                    SizedBox(height: SizeConfig.size20),
+                    // Service Name Field
+                    CommonTextField(
+                      title: 'Service Name',
+                      textEditController: controller.serviceNameController,
+                      hintText: 'E.g. Car washing....',
+                      onChange: (value) {
+                        controller.serviceName.value = value;
+                      },
+                    ),
+
+                    SizedBox(height: SizeConfig.size20),
+                    // Short description Field (Optional)
+                    CommonTextField(
+                      title: 'Short Description / Highlight',
+                      textEditController:
+                      controller.serviceShortDescriptionController,
+                      hintText:
+                      'E.g. Restore your car’s shine with our professional wash service — removing dirt, dust, and grime for a spotless, fresh look every time you drive.',
+                      maxLine: 2,
+                      isValidate: true,
+                      validator: validateServiceDescription,
+                      // minLines: 15,
+                      onChange: (value) {
+                        controller.shortDescriptionName.value = value;
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size30),
+
+                    // Generate Button
+                    _buildGenerateButton(),
+                    SizedBox(height: SizeConfig.size30),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadImagesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          'Upload Images',
+          fontSize: SizeConfig.large,
+        ),
+        SizedBox(height: SizeConfig.size10),
+        Obx(() =>
+            GestureDetector(
+              onTap: () async {
+                final String? selected =
+                await SelectProfilePictureDialog.showLogoDialog(
+                  context,
+                  "Select Photo",
+                );
+                if ((selected?.isNotEmpty ?? false) && selected != null) {
+                  controller.selectedImage.value = File(selected);
+                } else {
+                  commonSnackBar(
+                      message: "Something went wrong please try again");
+                }
+              },
+              // onTap: () => controller.showImagePickerDialog(context),
+              child: Container(
+                height: 100,
+                width: 100,
+                decoration: BoxDecoration(
+                  // color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: controller.selectedImage.value != null
+                    ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    controller.selectedImage.value!,
+                    fit: BoxFit.cover,
+                  ),
+                )
+                    : Padding(
+                  padding: EdgeInsets.all(SizeConfig.size30),
+                  child: LocalAssets(
+                    imagePath: AppIconAssets.chat_input_gallery,
+                    imgColor: AppColors.greyAF,
+                  ),
+                ) /*Icon(
+                        Icons.add_photo_alternate,
+                        size: 40,
+                        color: Colors.grey[500],
+                      )*/
+                ,
+              ),
+            )),
+      ],
+    );
+  }
+
+  Widget _buildGenerateButton() {
+    return Obx(() {
+      return CustomBtn(
+          isValidate: isValidate(),
+          onTap: isValidate()
+              ? () async {
+            if (isValidate()) {
+              await controller
+                  .generateServiceAiController(serviceDetailsReq: {
+                ApiKeys.service_name: controller.serviceName.value,
+                ApiKeys.category: viewBusinessDetailsController
+                    .selectedCategoryOfBusiness.value?.name,
+                ApiKeys.sub_category: viewBusinessDetailsController
+                    .selectedSubCategoryOfBusinessNew.value?.name,
+                if (controller.shortDescriptionName.value.isNotEmpty)
+                  ApiKeys.short_description:
+                  controller.shortDescriptionName.value,
+              });
+            }
+          }
+              : null,
+          title: "Generate");
+    });
+  }
+
+  isValidate() {
+    return (controller.selectedImage.value != null &&
+        controller.serviceName.value.isNotEmpty &&
+        viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
+            null &&
+        viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value !=
+            null);
+  }
+
+  String? validateServiceDescription(String? value) {
+    if (value == null || value.isEmpty)
+      return 'Service description is required';
+    if (value.length < 15)
+      return 'Service description name must be at least 15 characters';
+    return null;
+  }
+}

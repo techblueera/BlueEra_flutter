@@ -172,6 +172,51 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             ),
                           ),
 
+                          if ((businessData?.businessLocation?.lat != null &&
+                              businessData?.businessLocation?.lat != 0) &&
+                              (businessData?.businessLocation?.lon != null &&
+                                  businessData?.businessLocation?.lon != 0)) ...[
+                            SizedBox(
+                              height: SizeConfig.size20,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: CustomText(
+                                    "Your business live location",
+                                    fontSize: SizeConfig.large,
+                                    fontWeight: FontWeight.bold,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                // InkWell(
+                                //     onTap: () {},
+                                //     child: SvgPicture.asset(AppIconAssets.profile_pen_tool))
+                              ],
+                            ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: CustomText(
+                                "Your store’s map location",
+                                fontSize: SizeConfig.medium,
+                                color: AppColors.primaryColor,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(
+                              height: SizeConfig.size10,
+                            ),
+                            BusinessLocationWidget(
+                                latitude: (businessData?.businessLocation?.lat?.toDouble() ?? 0.0),
+                                longitude: (businessData?.businessLocation?.lon?.toDouble() ?? 0.0),
+                                businessName: businessData?.businessName ?? "",
+                                isTitleShow: false),
+                          ],
+                          SizedBox(
+                            height: SizeConfig.size20,
+                          ),
                           StandaloneProductScreen(
                             businessId: businessData?.id ?? "",
                             isGrid: false,

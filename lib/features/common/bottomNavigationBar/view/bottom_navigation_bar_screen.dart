@@ -5,6 +5,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
+import 'package:BlueEra/features/common/business_service/view/service_details.dart';
+import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
@@ -43,7 +45,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void initState() {
     super.initState();
 
-
     if (channelId.isEmpty) {
       getChannelDetails().then((value) => channelId = value ?? '');
     }
@@ -53,16 +54,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     getOneSignalUpdate();
   }
 
-
   ///GET CHANNEL DETAILS...
   Future<String?> getChannelDetails() async {
     try {
       ResponseModel response =
-      await ChannelRepo().getChannelDetails(channelOrUserId: userId);
+          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
 
       if (response.statusCode == 200) {
         ChannelModel channelModel =
-        ChannelModel.fromJson(response.response?.data);
+            ChannelModel.fromJson(response.response?.data);
         String channelId = channelModel.data.id;
         SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.channel_Id, channelId);
@@ -94,6 +94,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //
+      //     Get.to(ServiceUploadScreen());
+      //   },
+      // ),
       // drawer: _buildProfileDrawer(),
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
@@ -143,7 +149,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
-    // return HomeFeedScreen();
+      // return HomeFeedScreen();
       // return HomeFeedScreen();
 
       case 1:
@@ -157,8 +163,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return isGuestUser()
             ? GuestDashBoardScreen()
             : JobsScreen(
-            isHeaderVisible: isVisible,
-            onHeaderVisibilityChanged: _toggleAppBar);
+                isHeaderVisible: isVisible,
+                onHeaderVisibilityChanged: _toggleAppBar);
       case 4:
       default:
         return isGuestUser() ? GuestDashBoardScreen() : ChatMainScreen();

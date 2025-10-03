@@ -1,10 +1,4 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/more/model/card_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
+
 import 'package:get/get.dart';
 
 class GreetingCheckResult {

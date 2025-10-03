@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
+import 'package:BlueEra/features/common/business_service/model/add_service_model.dart';
+import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
@@ -7,13 +12,18 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../personal/personal_profile/view/inventory/model/add_service_response_model.dart';
+
 class StoreScreenController extends GetxController {
   Rx<ApiResponse> getAllStoreResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getAllStoreProductResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getAllStoreServiceResponse =
+      ApiResponse.initial('Initial').obs;
 
   RxList<GetAllStoreResModel> getAllStore = <GetAllStoreResModel>[].obs;
   RxList<GetProductData> storeProductDataList = <GetProductData>[].obs;
+  RxList<GetServiceModel> serviceDataList = <GetServiceModel>[].obs;
   RxBool isLoading = false.obs;
 
   Future<void> fetchStoresAndProducts() async {
@@ -25,7 +35,9 @@ class StoreScreenController extends GetxController {
 
       final results = await Future.wait([
         getAllStoreNearBy(),
+        getAllServiceNearBy(),
         getAllStoreProductNearBy(),
+
       ]);
       isLoading.value = false;
     } catch (e) {
@@ -38,30 +50,30 @@ class StoreScreenController extends GetxController {
 
   Future<void> getAllStoreNearBy() async {
     try {
-    // isLoading.value = true;
-    // await LocationService.fetchLocation();
+      // isLoading.value = true;
+      // await LocationService.fetchLocation();
 
-    final response = await StoreRepo().getStore(
-        lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-        long: LocationService.lng != 0.0
-            ? "${LocationService.lng}"
-            : ""); // Make sure repo uses params
-    if (response.statusCode == 200) {
-      final List<GetAllStoreResModel> places = List<GetAllStoreResModel>.from(
-        (response.response!.data as List)
-            .map((e) => GetAllStoreResModel.fromJson(e)),
-      );
+      final response = await StoreRepo().getStore(
+          lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
+          long: LocationService.lng != 0.0
+              ? "${LocationService.lng}"
+              : ""); // Make sure repo uses params
+      if (response.statusCode == 200) {
+        final List<GetAllStoreResModel> places = List<GetAllStoreResModel>.from(
+          (response.response!.data as List)
+              .map((e) => GetAllStoreResModel.fromJson(e)),
+        );
 
-      getAllStore.value = places;
-      getAllStoreResponse.value = ApiResponse.complete(response);
-      // isLoading.value = false;
-    } else {
-      // isLoading.value = false;
+        getAllStore.value = places;
+        getAllStoreResponse.value = ApiResponse.complete(response);
+        // isLoading.value = false;
+      } else {
+        // isLoading.value = false;
 
-      getAllStoreResponse.value = ApiResponse.error('error');
+        getAllStoreResponse.value = ApiResponse.error('error');
 
-      print("API failed with status: ${response.statusCode}");
-    }
+        print("API failed with status: ${response.statusCode}");
+      }
     } catch (e) {
       // isLoading.value = false;
 
@@ -82,7 +94,7 @@ class StoreScreenController extends GetxController {
               : ""); // Make sure repo uses params
       if (response.isSuccess) {
         final getOwnProductModel =
-        GetProductModel.fromJson(response.response!.data);
+            GetProductModel.fromJson(response.response!.data);
 
         storeProductDataList.value = getOwnProductModel.data;
         getAllStoreProductResponse.value = ApiResponse.complete(response);
@@ -95,6 +107,35 @@ class StoreScreenController extends GetxController {
       print("Error: $e");
 
       getAllStoreProductResponse.value = ApiResponse.error('error');
+    }
+  }
+///GET ALL SERVICE....
+  Future<void> getAllServiceNearBy() async {
+    try {
+      serviceDataList.clear();
+      final response =
+          await ServiceAiRepo().getServiceRepo(); // Make sure repo uses params
+      if (response.isSuccess) {
+        // final getOwnProductModel =
+        // GetServiceModel.fromJson(response.response!.data);
+        //
+        // serviceDataList.value = getOwnProductModel??[];
+
+
+        List<dynamic> jsonData = json.decode(jsonEncode(response.response?.data));
+        serviceDataList.value  =
+        jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
+
+        getAllStoreServiceResponse.value = ApiResponse.complete(response);
+      } else {
+        getAllStoreServiceResponse.value = ApiResponse.error('error');
+
+        print("API failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error: $e");
+
+      getAllStoreServiceResponse.value = ApiResponse.error('error');
     }
   }
 

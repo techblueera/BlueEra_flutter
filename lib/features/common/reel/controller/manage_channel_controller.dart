@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -9,7 +8,6 @@ import 'package:BlueEra/features/common/reel/models/create_channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/api/model/otp_verify_model.dart';
 
 class ManageChannelController extends GetxController {
   ApiResponse createChannelResponse = ApiResponse.initial('Initial');

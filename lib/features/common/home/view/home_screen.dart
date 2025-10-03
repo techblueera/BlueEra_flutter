@@ -1,20 +1,14 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/demo-home.dart';
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:BlueEra/features/common/home/view/home_feed_screen.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
-import 'package:BlueEra/features/common/more/model/card_model.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
-import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -137,24 +131,9 @@ class _HomeScreenState extends State<HomeScreen> {
             todayDate: today);
 
         await saveApiCallDate();
-
-        // final List<Cards> cards = moreCardsScreenController.dayCards;
-        //
-        // if (cards.isNotEmpty) {
-        //   return GreetingCardDialog(cards: cards);
-        //
-        //   // showDialog(
-        //   //   context: context,
-        //   //   builder: (BuildContext context) {
-        //   //     return GreetingCardDialog(cards: cards);
-        //   //   },
-        //   // );
-        // }
       } catch (e) {
         print("API error: $e");
       }
-    } else {
-      print("Already called today ✅ Last call was on $today");
     }
   }
 
@@ -266,119 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  final List<Map<String, dynamic>> exampleData = [
-    {
-      "id": "1",
-      "type": "text_post",
-      "title": "Hello Flutter!",
-      "subtitle": "Building dynamic feed layouts is fun 🚀",
-      "thumbnail": null
-    },
-    {
-      "id": "2",
-      "type": "image_post",
-      "title": "Sunset",
-      "subtitle": "Golden hour vibes 🌅",
-      "thumbnail": "https://picsum.photos/id/1011/400/400"
-    },
-    {
-      "id": "3",
-      "type": "image_post",
-      "title": "Mountain",
-      "subtitle": "Peaceful view 🏔️",
-      "thumbnail": "https://picsum.photos/id/1005/400/400"
-    },
-    {
-      "id": "4",
-      "type": "short_video",
-      "title": "Nature Clip",
-      "subtitle": "A short reel 🎥",
-      "thumbnail": "https://picsum.photos/id/1015/400/400"
-    },
-    {
-      "id": "5",
-      "type": "short_video",
-      "title": "City Life",
-      "subtitle": "Fast forward 🌆",
-      "thumbnail": "https://picsum.photos/id/1020/400/400"
-    },
-    {
-      "id": "6",
-      "type": "text_post",
-      "title": "Another Update",
-      "subtitle": "Just checking in 👋",
-      "thumbnail": null
-    },
-    {
-      "id": "7",
-      "type": "image_post",
-      "title": "Beach",
-      "subtitle": "Waves and sand 🏖️",
-      "thumbnail": "https://picsum.photos/id/1016/400/400"
-    },
-    {
-      "id": "8",
-      "type": "short_video",
-      "title": "Skateboarding",
-      "subtitle": "Kickflip time 🛹",
-      "thumbnail": "https://picsum.photos/id/1025/400/400"
-    }, {
-      "id": "1",
-      "type": "text_post",
-      "title": "Hello Flutter!",
-      "subtitle": "Building dynamic feed layouts is fun 🚀",
-      "thumbnail": null
-    },
-    {
-      "id": "2",
-      "type": "image_post",
-      "title": "Sunset",
-      "subtitle": "Golden hour vibes 🌅",
-      "thumbnail": "https://picsum.photos/id/1011/400/400"
-    },
-    {
-      "id": "3",
-      "type": "image_post",
-      "title": "Mountain",
-      "subtitle": "Peaceful view 🏔️",
-      "thumbnail": "https://picsum.photos/id/1005/400/400"
-    },
-    {
-      "id": "4",
-      "type": "short_video",
-      "title": "Nature Clip",
-      "subtitle": "A short reel 🎥",
-      "thumbnail": "https://picsum.photos/id/1015/400/400"
-    },
-    {
-      "id": "5",
-      "type": "short_video",
-      "title": "City Life",
-      "subtitle": "Fast forward 🌆",
-      "thumbnail": "https://picsum.photos/id/1020/400/400"
-    },
-    {
-      "id": "6",
-      "type": "text_post",
-      "title": "Another Update",
-      "subtitle": "Just checking in 👋",
-      "thumbnail": null
-    },
-    {
-      "id": "7",
-      "type": "image_post",
-      "title": "Beach",
-      "subtitle": "Waves and sand 🏖️",
-      "thumbnail": "https://picsum.photos/id/1016/400/400"
-    },
-    {
-      "id": "8",
-      "type": "short_video",
-      "title": "Skateboarding",
-      "subtitle": "Kickflip time 🛹",
-      "thumbnail": "https://picsum.photos/id/1025/400/400"
-    },
-  ];
 
   Widget _buildSelectedTabContent() {
     switch (selectedIndex) {

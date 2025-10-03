@@ -1,5 +1,3 @@
-import 'package:get/get.dart';
-
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 class HomeFeedResponse {
   final bool success;

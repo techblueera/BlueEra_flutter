@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/auth/views/screens/create_user_account.d
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
+import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -862,7 +863,8 @@ class RouteHelper {
             settings: RouteSettings(name: getInventoryScreenRoute()));
       case RouteConstant.addServicesScreen:
         return MaterialPageRoute(
-            builder: (_) => AddServicesScreen(),
+            builder: (_) => ServiceUploadScreen(),
+            // builder: (_) => AddServicesScreen(),
             settings: RouteSettings(name: getAddServicesScreenRoute()));
       case RouteConstant.addProductViaAiStep1:
         return MaterialPageRoute(
@@ -892,12 +894,13 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final GetProductData? productData =
             args[ApiKeys.argProductData] as GetProductData?;
-        final bool? productDataBool =
-            args["isShowBusinessInfo"] as bool?;
+        final bool? productDataBool = args["isShowBusinessInfo"] as bool?;
 
         return MaterialPageRoute(
-            builder: (_) =>
-                ProductPreviewScreenProduct(productData: productData,isShowBusinessInfo: productDataBool,),
+            builder: (_) => ProductPreviewScreenProduct(
+                  productData: productData,
+                  isShowBusinessInfo: productDataBool,
+                ),
             settings:
                 RouteSettings(name: getProductPreviewScreenProductRoute()));
       case RouteConstant.createVariantScreen:

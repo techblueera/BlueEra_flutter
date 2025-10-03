@@ -69,21 +69,21 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.location_on_outlined,
-                    color: AppColors.black1A),
-                SizedBox(width: SizeConfig.size6),
-                Expanded(
-                    child: CustomText(
-                  widget.locationText,
-                  fontSize: SizeConfig.size14,
-                  color: AppColors.black1A,
-                )),
-              ],
-            ),
-            SizedBox(height: 15),
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: [
+            //     const Icon(Icons.location_on_outlined,
+            //         color: AppColors.black1A),
+            //     SizedBox(width: SizeConfig.size6),
+            //     Expanded(
+            //         child: CustomText(
+            //       widget.locationText,
+            //       fontSize: SizeConfig.size14,
+            //       color: AppColors.black1A,
+            //     )),
+            //   ],
+            // ),
+            // SizedBox(height: 15),
             ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 // Adjust border radius here

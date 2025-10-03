@@ -11,6 +11,7 @@ class CommonDropdownDialog<T> extends StatefulWidget {
   final String Function(T) displayValue;
   final ValueChanged<T?> onChanged;
   final String? errorText;
+  final bool? showDownArrow;
 
   const CommonDropdownDialog({
     Key? key,
@@ -21,6 +22,7 @@ class CommonDropdownDialog<T> extends StatefulWidget {
     required this.displayValue,
     required this.onChanged,
     this.errorText,
+    this.showDownArrow=true,
   }) : super(key: key);
 
   @override
@@ -50,7 +52,6 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w700,
                   fontSize: SizeConfig.size16,
-
                 ),
                 SizedBox(height: SizeConfig.size12),
                 Flexible(
@@ -60,8 +61,8 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                     itemBuilder: (context, index) {
                       final item = widget.items[index];
                       return ListTile(
-                        title: CustomText(widget.displayValue(item),
-
+                        title: CustomText(
+                          widget.displayValue(item),
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,
                         ),
@@ -118,21 +119,19 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                       ? CustomText(
                           widget.displayValue(widget.selectedValue as T),
                           color: Colors.black,
-
-                    fontWeight: FontWeight.w400,
-                    fontSize: SizeConfig.size15,
-                  )
+                          fontWeight: FontWeight.w400,
+                          fontSize: SizeConfig.size15,
+                        )
                       : CustomText(
                           widget.hintText,
                           color: Colors.grey,
                           fontWeight: FontWeight.w400,
-                    fontSize: SizeConfig.size15,
-
-
+                          fontSize: SizeConfig.size15,
                         ),
                 ),
-                const Icon(Icons.keyboard_arrow_down_outlined,
-                    color: Colors.grey),
+                if (widget.showDownArrow??false)
+                  const Icon(Icons.keyboard_arrow_down_outlined,
+                      color: Colors.grey),
               ],
             ),
           ),
