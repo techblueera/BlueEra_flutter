@@ -60,13 +60,11 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: SizeConfig.size10,
-        ),
+       
         Obx(() => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CustomText("Discount", fontWeight: FontWeight.w400),
+            const CustomText("Discount (Optional)", fontWeight: FontWeight.w400),
             SizedBox(
               height: SizeConfig.size8,
             ),
