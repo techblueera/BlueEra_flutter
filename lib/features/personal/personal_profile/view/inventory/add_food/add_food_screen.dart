@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -52,7 +54,231 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
     List<String>.from(widget.foodDatas.accompaniments ?? []);
     super.initState();
   }
+  RxList<DiscountCoupon> coupons = <DiscountCoupon>[].obs;
 
+  Widget _discountSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: SizeConfig.size10,
+        ),
+        Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const CustomText("Discount", fontWeight: FontWeight.w400),
+            SizedBox(
+              height: SizeConfig.size8,
+            ),
+            coupons.isEmpty
+                ? Container(
+              decoration: BoxDecoration(
+                  color: AppColors.white,
+                  boxShadow: [AppShadows.textFieldShadow],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.greyE5,
+                  )),
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16,
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: CustomText(
+                  "Discount Coupon",
+                  fontFamily: "Arial",
+                ),
+                trailing: const Icon(CupertinoIcons.chevron_forward),
+                onTap: () {
+                  showDiscountCouponDialog(context);
+                  setState(() {
+
+                  });
+                },
+              ),
+            )
+                : ListView(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              children: List.generate(
+                coupons.length,
+                    (index) {
+                  final coupon = coupons[index];
+
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        margin:
+                        const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size12,
+                            vertical: SizeConfig.size15),
+                        decoration: BoxDecoration(
+                            color: AppColors.white,
+                            boxShadow: [AppShadows.textFieldShadow],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.greyE5,
+                            )),
+                        child: Row(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    "Discount worth ₹${coupon.totalOff.toStringAsFixed(0)} T&Cs",
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  SizedBox(height: 6),
+                                  CustomText(coupon.description,
+                                      fontSize: SizeConfig.small,
+                                      color: AppColors
+                                          .secondaryTextColor,
+                                      fontWeight: FontWeight.w400),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      DottedBorder(
+                                        borderType: BorderType.RRect,
+                                        radius: Radius.circular(6),
+                                        dashPattern: [6, 3],
+                                        // 6px dash, 3px gap
+                                        color: Colors.green,
+                                        strokeWidth: 1.0,
+                                        child: Container(
+                                          padding:
+                                          EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6),
+                                          child: CustomText(
+                                              coupon.codeName ??
+                                                  "N/A",
+                                              fontSize:
+                                              SizeConfig.small,
+                                              color: AppColors
+                                                  .mainTextColor,
+                                              fontWeight:
+                                              FontWeight.w400),
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      CustomText(
+                                          coupon.discountType ==
+                                              DiscountType
+                                                  .inPercentage
+                                              ? "${coupon.totalOff}% Off"
+                                              : "₹${coupon.totalOff} Off",
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.green7F,
+                                          fontWeight:
+                                          FontWeight.w600),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+
+                            // Right side - Icon
+                            Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.white,
+                                  border: Border.all(
+                                      color: AppColors.primaryColor,
+                                      width: 1.1),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black
+                                          .withValues(alpha: 0.08),
+                                      offset: const Offset(0, 1),
+                                      blurRadius: 2,
+                                      spreadRadius: 0,
+                                    )
+                                  ]),
+                              child: Icon(
+                                Icons.percent,
+                                color: AppColors.orange27,
+                                size: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                          right: 6,
+                          top: -6,
+                          child: InkWell(
+                            onTap: () {
+                              coupons.removeAt(index);
+                              setState(() {
+
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(6),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  boxShadow: [
+                                    AppShadows.textFieldShadow
+                                  ],
+                                  border: Border.all(
+                                    color: AppColors.greyE5,
+                                  ),
+                                  shape: BoxShape.circle),
+                              child: Icon(
+                                Icons.close,
+                                size: 18,
+                              ),
+                            ),
+                          ))
+                    ],
+                  );
+                },
+              ),
+            ),
+            SizedBox(
+              height: SizeConfig.size8,
+            ),
+            if (coupons.isNotEmpty)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      showDiscountCouponDialog(context);
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.add,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
+                        SizedBox(width: 6),
+                        const CustomText(
+                          "Add More Coupon",
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+          ],
+        ))
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -445,6 +671,8 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(height: SizeConfig.size10),
+                    _discountSection(),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText("Price",),

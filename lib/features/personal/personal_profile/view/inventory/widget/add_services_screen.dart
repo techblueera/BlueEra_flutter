@@ -1368,11 +1368,12 @@ void showDiscountCouponDialog(BuildContext context) {
                                     : DiscountType.inPercentage,
                               );
 
-                              Get.find<AddServiceController>()
+                              Get.put(AddServiceController())
                                   .addCoupon(coupon);
 
                               Get.back();
                               Get.snackbar("Success", "Coupon saved!");
+
                             }
                           },
                           child: const CustomText(
