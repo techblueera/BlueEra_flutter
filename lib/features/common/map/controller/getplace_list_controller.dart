@@ -1,5 +1,3 @@
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 // Adjust import path

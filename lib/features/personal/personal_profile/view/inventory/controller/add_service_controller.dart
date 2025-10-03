@@ -29,14 +29,13 @@ class LocalImage {
   });
 
   Map<String, dynamic> toJson() => {
-    "path": path,
-    "mimeType": mimeType,
-    "preSignedUrl": preSignedUrl,
-  };
+        "path": path,
+        "mimeType": mimeType,
+        "preSignedUrl": preSignedUrl,
+      };
 }
 
-
-class AddServiceController extends GetxController{
+class AddServiceController extends GetxController {
   Rx<ApiResponse> createServiceResponse = ApiResponse.initial('Initial').obs;
   ApiResponse uploadFileToS3Response = ApiResponse.initial('Initial');
 
@@ -61,7 +60,8 @@ class AddServiceController extends GetxController{
   // Generate 24-hour railway times (00:00 → 23:30)
   final List<String> timeSlots = List.generate(
     48,
-        (i) => "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+    (i) =>
+        "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
   );
 
   RxString startTime = "".obs;
@@ -78,8 +78,10 @@ class AddServiceController extends GetxController{
   }
 
   String? validateServiceDescription(String? value) {
-    if (value == null || value.isEmpty) return 'Service description is required';
-    if (value.length < 50) return 'Service description name must be at least 50 characters';
+    if (value == null || value.isEmpty)
+      return 'Service description is required';
+    if (value.length < 15)
+      return 'Service description name must be at least 15 characters';
     return null;
   }
 
@@ -130,11 +132,10 @@ class AddServiceController extends GetxController{
     return null;
   }
 
-
   Future<void> pickImages(BuildContext context) async {
     try {
-
-      final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+      final List<String>? selected =
+          await SelectProductImageDialog.showLogoDialog(
         context,
         'Product Image',
       );
@@ -146,7 +147,6 @@ class AddServiceController extends GetxController{
         final addList = selected.take(remaining).map((i) => i).toList();
         imageLocalPaths.addAll(addList);
       }
-
     } catch (e) {
       commonSnackBar(message: 'Image pick failed: $e');
     }
@@ -159,7 +159,7 @@ class AddServiceController extends GetxController{
   }
 
   void addFacility() {
-    if(facilities.length == 10){
+    if (facilities.length == 10) {
       commonSnackBar(message: 'You can\'t add more than 10 facilities');
       return;
     }
@@ -202,14 +202,17 @@ class AddServiceController extends GetxController{
   }
 
   bool isValidate() {
-    if(!formKey.currentState!.validate()) return false;
+    if (!formKey.currentState!.validate()) return false;
 
-    if(imageLocalPaths.length < 2  || imageLocalPaths.length > 5) {
-      commonSnackBar(message: (imageLocalPaths.length < 2) ? 'Please take minimum two product images' : 'You can\'t add more than five images');
+    if (imageLocalPaths.length < 2 || imageLocalPaths.length > 5) {
+      commonSnackBar(
+          message: (imageLocalPaths.length < 2)
+              ? 'Please take minimum two product images'
+              : 'You can\'t add more than five images');
       return false;
     }
 
-    if(facilities.isEmpty){
+    if (facilities.isEmpty) {
       commonSnackBar(message: 'Please add a facility');
       return false;
     }
@@ -232,7 +235,6 @@ class AddServiceController extends GetxController{
       return false;
     }
 
-
     return true;
   }
 
@@ -240,7 +242,8 @@ class AddServiceController extends GetxController{
     if (!isValidate()) return;
 
     try {
-      UploadProgressDialog.show(initialProgress: 0.0, title: "Creating Service...");
+      UploadProgressDialog.show(
+          initialProgress: 0.0, title: "Creating Service...");
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'service',
@@ -255,8 +258,8 @@ class AddServiceController extends GetxController{
         ApiKeys.perUnit: perUnitCtrl.text.trim(),
         if (coupons.isNotEmpty)
           ApiKeys.discounts: coupons.map((e) => e.toJson()).toList(),
-        if (detailsList.isNotEmpty)
-          ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
+        // if (detailsList.isNotEmpty)
+        //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
       };
 
       if (isRange.isTrue) {
@@ -295,8 +298,9 @@ class AddServiceController extends GetxController{
 
         // Set preSignedUrls from response
         final addServiceResponseModel =
-        AddServiceResponseModel.fromJson(responseModel.response!.data);
-        List<String> preSignedUrlImages = addServiceResponseModel.uploadUrls?.images ?? [];
+            AddServiceResponseModel.fromJson(responseModel.response!.data);
+        List<String> preSignedUrlImages =
+            addServiceResponseModel.uploadUrls?.images ?? [];
 
         if (images.length == preSignedUrlImages.length) {
           for (var i = 0; i < images.length; i++) {
@@ -311,6 +315,8 @@ class AddServiceController extends GetxController{
 
         // ✅ Close dialog once and navigate back
         UploadProgressDialog.close();
+        commonSnackBar(message: "Service added successfully");
+        Get.back();
         Get.back();
       } else {
         createServiceResponse.value = ApiResponse.error('error');
@@ -342,7 +348,8 @@ class AddServiceController extends GetxController{
           preSignedUrl: preSignedUrl,
           onProgress: (progress) {
             final imageFraction = 0.8 / totalImages;
-            final overallProgress = 0.2 + (i * imageFraction) + (progress * imageFraction);
+            final overallProgress =
+                0.2 + (i * imageFraction) + (progress * imageFraction);
 
             UploadProgressDialog.update(overallProgress.clamp(0.0, 1.0));
 
@@ -383,6 +390,4 @@ class AddServiceController extends GetxController{
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
-
 }

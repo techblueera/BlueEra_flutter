@@ -1,19 +1,9 @@
-import 'dart:async';
-import 'dart:io';
 
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
-import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'dart:ui' as ui;
 
 class InstaSliderNetwork extends StatefulWidget {
   const InstaSliderNetwork({

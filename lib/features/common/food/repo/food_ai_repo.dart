@@ -20,7 +20,7 @@ class FoodAiRepo extends BaseService {
   Future<ResponseModel> addFoodService({Map<String, dynamic>? queryParam}) async {
 
     final response = await ApiBaseHelper().postHTTP(
-      addFoodServices,
+      businessServices,
       params:queryParam,
       isMultipart: false,
       showProgress: true,
@@ -32,7 +32,7 @@ class FoodAiRepo extends BaseService {
   Future<ResponseModel> getFoodService({Map<String, dynamic>? queryParam}) async {
 
     final response = await ApiBaseHelper().getHTTP(
-      getFoodServices,
+      businessServices,
       params:queryParam,
       showProgress: false,
       onError: (error) {},

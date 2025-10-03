@@ -378,4 +378,9 @@ class ApiKeys {
   static const guideLine = "guideLine";
   static const expiryDuration = "expiry_duration";
   static const argsProductPreview = "argsProductPreview";
+  static const service_details = "service_details";
+  static const service_name = "service_name";
+  static const sub_category = "sub_category";
+  static const short_description = "short_description";
+  static const subCategory = "subCategory";
 }

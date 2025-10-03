@@ -293,6 +293,7 @@ class DialogHeader extends StatelessWidget {
       color: AppColors.primaryColor,
       padding: const EdgeInsets.all(1.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Expanded(
             child: Padding(
@@ -303,7 +304,7 @@ class DialogHeader extends StatelessWidget {
               child: CustomText(
                 title,
                 overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
+                // textAlign: TextAlign.center,
                 color: Colors.white,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
