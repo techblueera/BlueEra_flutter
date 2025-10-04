@@ -5,7 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/food/food_ai_res_model.dart';
+import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ import '../../../../widgets/uploading_progressing_dialog.dart';
 import '../../../personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
 import '../../../personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import '../../reel/repo/channel_repo.dart';
-import '../model/getfooddetails_model.dart';
+import '../model/get_food_details_model.dart';
 import '../model/upload_food_load_url_model.dart';
 class PriceOption {
   TextEditingController labelController;
@@ -58,7 +58,7 @@ class FoodUploadController extends GetxController {
       .obs;
   final RxInt selectedItemNatureIndex = 1
       .obs;
-  RxList<FoodModel> foodList = <FoodModel>[].obs;
+  RxList<GetFoodDetailsModel> foodList = <GetFoodDetailsModel>[].obs;
   RxString selectedCategory = ''.obs;
   RxString selectedSubCategory = ''.obs;
   final RxList<String> imageLocalPaths = <String>[].obs;
@@ -197,7 +197,9 @@ class FoodUploadController extends GetxController {
       "description": descCtrl.text.trim(),
       "type": "food",
       "category":  selectedCategory.value,
-      "subCategory": selectedSubCategory.value,
+      "availability":  selectedItemNature.value,
+      "subCategory": selectedCookingMethod.value,
+      "vegType": selectedSubCategory.value.toLowerCase(),
       "addOns": normalizedAddOns,
       "keyIngredients": ingredients,
       "servingOptions": List<Map<String, dynamic>>.from(
@@ -238,7 +240,7 @@ class FoodUploadController extends GetxController {
         UploadFoodLoadUrlModel data =UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
         UploadProgressDialog.update(0.2);
         List<String> preSignedUrlImages = data.uploadUrls?.images ?? [];
-
+        print("sdkjcslkdcmlksdmclskmcsdjcbn ${preSignedUrlImages.length}");
         if (images.length == preSignedUrlImages.length) {
           for (var i = 0; i < images.length; i++) {
             images[i].preSignedUrl = preSignedUrlImages[i];
@@ -329,11 +331,11 @@ class FoodUploadController extends GetxController {
 
         if (data is List) {
           // if API returns a raw array
-          foodList.value = data.map((e) => FoodModel.fromJson(e)).toList();
+          foodList.value = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
         } else if (data is Map && data['data'] is List) {
           // if API returns { "data": [...] }
           foodList.value =
-              (data['data'] as List).map((e) => FoodModel.fromJson(e)).toList();
+              (data['data'] as List).map((e) => GetFoodDetailsModel.fromJson(e)).toList();
         } else {
           print("⚠️ Unexpected API response: $data");
         }

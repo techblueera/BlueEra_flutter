@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
@@ -9,6 +10,10 @@ import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/api/apiService/response_model.dart';
+import '../../food/model/get_food_details_model.dart';
+import '../../food/repo/food_ai_repo.dart';
 
 
 class StoreScreenController extends GetxController {
@@ -22,21 +27,55 @@ class StoreScreenController extends GetxController {
   RxList<GetProductData> storeProductDataList = <GetProductData>[].obs;
   RxList<GetServiceModel> serviceDataList = <GetServiceModel>[].obs;
   RxBool isLoading = false.obs;
+  RxList<GetFoodDetailsModel> foodList = <GetFoodDetailsModel>[].obs;
 
   Future<void> fetchStoresAndProducts() async {
-    try {
+    // try {
       isLoading.value = true;
 
       // Run both APIs in parallel
       await LocationService.fetchLocation();
 
+      await Future.wait([
+        getAllStoreNearBy(),
+        getAllServiceNearBy(),
+        getAllStoreProductNearBy(),
+        getAllFoodService(),
+      ]);
+
       isLoading.value = false;
-    } catch (e) {
-      isLoading.value = false;
-      print("Error: $e");
-      getAllStoreResponse.value = ApiResponse.error('error');
-      getAllStoreProductResponse.value = ApiResponse.error('error');
+    // } catch (e) {
+    //   isLoading.value = false;
+    //   print("Error: $e");
+    //   getAllStoreResponse.value = ApiResponse.error('error');
+    //   getAllStoreProductResponse.value = ApiResponse.error('error');
+    // }
+  }
+  Future<void> getAllFoodService() async {
+    // try {
+    Map<String, dynamic> params = {"all": true, "type": "food"};
+    ResponseModel responseModel =
+    await FoodAiRepo().getFoodService(queryParam: params);
+    if (responseModel.isSuccess) {
+      final data = responseModel.response?.data;
+      if (data is List) {
+        // if API returns a raw array
+        foodList.value = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+      } else if (data is Map && data['data'] is List) {
+        // if API returns { "data": [...] }
+        foodList.value =
+            (data['data'] as List).map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+      } else {
+        print("⚠️ Unexpected API response: $data");
+      }
+
+      print("✅ Loaded ${foodList.length} food items");
+    } else {
+      print("❌ API failed: ${responseModel.response?.data}");
     }
+    // } catch (e) {
+    //   logs("ERROR===== $e");
+    // }
   }
 
   Future<void> getAllStoreNearBy() async {

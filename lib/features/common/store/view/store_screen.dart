@@ -18,6 +18,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../food/view/widget/food_product_card.dart';
 import 'store_screen_controller.dart';
 
 class StoreScreen extends StatefulWidget {
@@ -96,6 +97,8 @@ class _StoreScreenState extends State<StoreScreen> {
 
                        SizedBox(height: SizeConfig.size20),
                       _buildStoresServiceSection(categoryName: "Service"),
+                      SizedBox(height: SizeConfig.size20),
+                      _buildFoodServiceSection(categoryName: "Food"),
                       // ProductSlider(),
                       _buildStoresSection(
                           categoryName: "Stores", tagName: "store"),
@@ -451,6 +454,50 @@ class _StoreScreenState extends State<StoreScreen> {
                       itemBuilder: (context, index) {
                         return ServiceCardBusiness(
                           serviceData: controller.serviceDataList[index],
+                          isGridView: false,
+                          isShowChat: false,
+                          isShowKM: true,
+                          isShowBusinessInfo: true,
+                        );
+
+                      },
+                    )
+                  : Center(child: CustomText("No $tagName found yet")),
+            );
+          }),
+          SizedBox(height: SizeConfig.size10),
+        ],
+      );
+    return SizedBox.shrink();
+  }
+  Widget _buildFoodServiceSection({String? categoryName, String? tagName}) {
+    if (controller.foodList.isNotEmpty)
+
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+            child: CustomText(
+              categoryName,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size15),
+          Obx(() {
+            return SizedBox(
+              height: 278,
+              child: controller.foodList.isNotEmpty
+                  ? ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+                      itemCount: controller.foodList.length,
+                      itemBuilder: (context, index) {
+                        return FoodCardBusiness(
+                          serviceData: controller.foodList[index],
                           isGridView: false,
                           isShowChat: false,
                           isShowKM: true,

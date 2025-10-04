@@ -14,7 +14,7 @@ import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../widgets/common_card_widget.dart';
 import '../../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../../../../common/food/controller/food_upload_controller.dart';
-import '../../../../../common/food/food_ai_res_model.dart';
+import '../../../../../common/food/model/food_ai_res_model.dart';
 import '../widget/add_services_screen.dart';
 
 
@@ -38,7 +38,9 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
   @override
   void initState() {
-    controller.imageLocalPaths.add(widget.imagePath);
+    if(controller.imageLocalPaths.isEmpty){
+      controller.imageLocalPaths.add(widget.imagePath);
+    }
     // TODO: implement initState
     controller.foodNameCtrl.text =
         widget.foodDatas.productName?.join(",") ?? '';
@@ -509,6 +511,14 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // 🔹 Key Ingredients
+                              const SizedBox(height: 10),
+                              _buildSectionTitle("Cooking Method"),
+                              const SizedBox(height: 6),
+                              CustomText("${controller.selectedCookingMethod.value}",fontSize: 16,fontWeight: FontWeight.w500,),
+                              const SizedBox(height: 10),
+                              _buildSectionTitle("Item Nature"),
+                              const SizedBox(height: 6),
+                              CustomText("${controller.selectedItemNature.value}",fontSize: 16,fontWeight: FontWeight.w500,),
                               const SizedBox(height: 10),
                               _buildSectionTitle("Key Ingredients"),
                               const SizedBox(height: 4),

@@ -1,0 +1,218 @@
+import 'dart:developer';
+
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../model/get_food_details_model.dart';
+
+
+class FoodCardBusiness extends StatefulWidget {
+  final GetFoodDetailsModel serviceData;
+  final bool isGridView;
+  final bool isShowChat;
+  final bool isShowKM;
+  final bool isShowBusinessInfo;
+  final BusinessProfileDetails? businessData;
+
+  const FoodCardBusiness({
+    Key? key,
+    required this.serviceData,
+    this.isGridView = false,
+    this.isShowChat = true,
+    this.isShowKM = false,
+    this.isShowBusinessInfo = false,
+    this.businessData,
+  }) : super(key: key);
+
+  @override
+  State<FoodCardBusiness> createState() => _FoodCardBusinessState();
+}
+
+class _FoodCardBusinessState extends State<FoodCardBusiness> {
+  final chatViewController = Get.find<ChatViewController>();
+
+  GetFoodDetailsModel? serviceData;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    serviceData = widget.serviceData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //
+    // if (widget.serviceData) {
+    //   return const SizedBox();
+    // }
+    final priceOptions = serviceData?.priceOptions;
+
+    String priceText = "N/A";
+    if (priceOptions != null && priceOptions.isNotEmpty) {
+      if (priceOptions.length == 1) {
+        priceText = "₹${priceOptions.first.price ?? ''}";
+      } else {
+        final prices = priceOptions.map((e) => e.price ?? 0).toList();
+        prices.sort();
+        priceText = "₹${prices.first} - ₹${prices.last}";
+      }
+    }
+
+    return InkWell(
+      onTap: () {},
+      child: Container(
+        margin: EdgeInsets.only(right: 20),
+        width: MediaQuery.of(context).size.width * 0.45,
+        // responsive width
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: 1.1, // square-ish image (adjust if needed)
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(16)),
+                    child: CustomImageSlideshow(
+                      isLoading: false,
+                      width: double.infinity,
+                      height: double.infinity,
+                      imagePaths: serviceData?.photos ?? [],
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  // if ((product.details?.media.length ?? 0) > 1)
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+
+            // Title & price
+            Container(
+              height: SizeConfig.size20,
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.title ?? "N/A",
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: Row(
+                children: [
+                  (serviceData?.vegType==null)?SizedBox():Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: (serviceData?.vegType=="veg"??false)?Colors.green:Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child:  CustomText(
+
+                      "${serviceData?.vegType ?? "veg"}",
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600),
+
+                  ),
+
+                  (serviceData?.vegType==null)?SizedBox():const SizedBox(width: 6,),
+                  Row(
+                    children: [
+                      Icon(Icons.food_bank_outlined,size: 19,),
+                      CustomText(
+                        serviceData?.subCategory ?? "N/A",
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.navy,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            //   child: CustomText(
+            //     serviceData?.availability ?? "N/A",
+            //     fontSize: SizeConfig.small,
+            //     fontWeight: FontWeight.w500,
+            //     overflow: TextOverflow.ellipsis,
+            //     maxLines: 1,
+            //   ),
+            // ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                "Energy : ${serviceData?.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            Container(
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.keyIngredients?.join(",") ?? "N/A",
+                fontSize: SizeConfig.small,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            (serviceData?.priceType=="single")?Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                "Price : ₹ ${serviceData?.singlePrice ?? "N/A"}",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                color: Colors.blue,
+              ),
+            ):Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                "Price : ${priceText}",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+                color: Colors.blue,
+                maxLines: 1,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+
+          ],
+        ),
+      ),
+    );
+  }
+}
+

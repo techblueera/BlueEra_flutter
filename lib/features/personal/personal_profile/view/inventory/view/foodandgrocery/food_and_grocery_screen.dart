@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';
 import '../../../../../../common/food/controller/food_upload_controller.dart';
-import '../../../../../../common/food/model/getfooddetails_model.dart';
+import '../../../../../../common/food/model/get_food_details_model.dart';
 
 class FoodAndGroceryScreen extends StatefulWidget {
   const FoodAndGroceryScreen({super.key});
@@ -48,7 +48,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen> {
 class FoodItemCard extends StatelessWidget {
   const FoodItemCard({super.key, required this.foodData});
 
-  final FoodModel foodData;
+  final GetFoodDetailsModel foodData;
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +158,7 @@ class FoodItemCard extends StatelessWidget {
 
                     // Price options (Small / Medium / Large)
                     CustomText(
-                      "Rs ${foodData.singlePrice.toString()}",
+                      "Rs ${foodData.singlePrice ??"N/A"}",
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
