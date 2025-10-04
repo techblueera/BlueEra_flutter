@@ -6507,7 +6507,7 @@ abstract class AppLocalizations {
   /// No description provided for @listYourProductServices.
   ///
   /// In en, this message translates to:
-  /// **'List Your Product/ Services'**
+  /// **'List Your Product / Services'**
   String get listYourProductServices;
 
   /// No description provided for @createStoreSections.
@@ -6881,6 +6881,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'select your work mode'**
   String get selectYourWorkMode;
+
+  /// No description provided for @addYourProductServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Product / Service Here'**
+  String get addYourProductServices;
+
+  /// No description provided for @startSellingNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Selling Now'**
+  String get startSellingNow;
 }
 
 class _AppLocalizationsDelegate

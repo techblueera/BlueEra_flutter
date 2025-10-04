@@ -147,6 +147,18 @@ class UserRepo extends BaseService {
     return response;
   }
 
+  /// Card Categories
+  Future<ResponseModel> getAllCards({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      allCardCategories,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Card Categories By Date
   Future<ResponseModel> cardCategoriesSortedByDate({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

@@ -385,4 +385,6 @@ class ApiKeys {
   static const subCategory = "subCategory";
   static const isFromProductCreation = "isFromProductCreation";
   static const isUserCanCreateVariants = "isUserCanCreateVarints";
+  static const fromDate = "fromDate";
+  static const toDate = "toDate";
 }

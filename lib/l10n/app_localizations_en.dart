@@ -3341,7 +3341,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get visitingCard => 'Visiting Card';
 
   @override
-  String get listYourProductServices => 'List Your Product/ Services';
+  String get listYourProductServices => 'List Your Product / Services';
 
   @override
   String get createStoreSections => 'Create Store Sections';
@@ -3544,4 +3544,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectYourWorkMode => 'select your work mode';
+
+  @override
+  String get addYourProductServices => 'Add Product / Service Here';
+
+  @override
+  String get startSellingNow => 'Start Selling Now';
 }

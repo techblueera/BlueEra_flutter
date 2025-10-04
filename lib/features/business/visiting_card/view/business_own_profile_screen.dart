@@ -33,7 +33,7 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
     AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
         isLeading: true,
         isLogout: true,

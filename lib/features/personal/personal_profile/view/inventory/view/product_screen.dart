@@ -27,11 +27,17 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  final InventoryController inventoryController = Get.find<InventoryController>();
+  late final InventoryController inventoryController;
+
 
 
   @override
   void initState() {
+    if(Get.isRegistered<InventoryController>()){
+      inventoryController = Get.find<InventoryController>();
+    } else {
+      inventoryController = Get.put(InventoryController());
+    }
     inventoryController.loadProducts();
     super.initState();
   }

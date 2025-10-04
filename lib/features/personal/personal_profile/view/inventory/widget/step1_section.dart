@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -30,40 +31,37 @@ class _Step1SectionState extends State<Step1Section> {
   @override
   void initState() {
     super.initState();
-
     originalProductName = widget.controller.productNameController.text;
     originalBrand = widget.controller.brandController.text;
     originalDescription = widget.controller.productDescriptionController.text;
     originalTags = List<String>.from(widget.controller.tags);
   }
 
+
   Future<bool> handleBackPress(BuildContext context) async {
-    final shouldPop = await showDialog<bool>(
+    bool shouldPop = false;
+
+    await showCommonDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('Do you really want to go back? Unsaved changes will be lost.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // restore old values when user cancels pop
-              widget.controller.productNameController.text = originalProductName;
-              widget.controller.brandController.text = originalBrand;
-              widget.controller.productDescriptionController.text = originalDescription;
-              widget.controller.tags.value = List<String>.from(originalTags);
-              Navigator.of(context).pop(false);
-            },
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Get.close(2),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
+      text: 'Do you really want to go back? Unsaved changes will be lost.',
+      confirmText: 'Discard',
+      cancelText: 'Cancel',
+      confirmCallback: () {
+        Get.close(2);
+        shouldPop = true;
+      },
+      cancelCallback: () {
+        // Restore old values when user cancels pop
+        widget.controller.productNameController.text = originalProductName;
+        widget.controller.brandController.text = originalBrand;
+        widget.controller.productDescriptionController.text = originalDescription;
+        widget.controller.tags.value = List<String>.from(originalTags);
+        Navigator.of(context).pop();
+        shouldPop = false;
+      },
     );
 
-    return shouldPop ?? false;
+    return shouldPop;
   }
 
   @override

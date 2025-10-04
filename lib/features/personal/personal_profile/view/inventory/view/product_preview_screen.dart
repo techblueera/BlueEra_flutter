@@ -9,6 +9,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -243,32 +244,22 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   }
 
   void handleBackPress(BuildContext context) async {
-     showDialog<bool>(
+    await showCommonDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('Do you really want to go back? Your product data will be lost.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.until(
-                    (route) =>
-                route.settings.name ==
-                    RouteHelper.getInventoryScreenRoute(),
-              );
-            },
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
+      text: 'Do you really want to go back? Your product data will be lost.',
+      confirmText: 'Yes',
+      cancelText: 'No',
+      confirmCallback: () {
+        Navigator.of(context).pop(); // Close dialog first
+        Get.until(
+              (route) =>
+          route.settings.name == RouteHelper.getInventoryScreenRoute(),
+        );
+      },
+      cancelCallback: () {
+        Navigator.of(context).pop(); // Just close dialog
+      },
     );
-
   }
 
   @override

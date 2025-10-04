@@ -5,6 +5,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -55,32 +56,25 @@ class _Step3SectionState extends State<Step3Section> {
   }
 
   Future<bool> _handleBackPress(BuildContext context) async {
-    final shouldPop = await showDialog<bool>(
+    bool shouldPop = false;
+
+    await showCommonDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('Your changes will be lost if you go back.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              _restoreOldValues();
-              Get.close(2);
-            },
-            child: const Text('Discard'),
-          ),
-        ],
-      ),
+      text: 'Your changes will be lost if you go back.',
+      confirmText: 'Discard',
+      cancelText: 'Cancel',
+      confirmCallback: () {
+        _restoreOldValues();
+        Get.close(2);
+        shouldPop = true;
+      },
+      cancelCallback: () {
+        Navigator.of(context).pop(false);
+        shouldPop = false;
+      },
     );
 
-    if (shouldPop ?? false) {
-      _restoreOldValues();
-      return true;
-    }
-    return false;
+    return shouldPop;
   }
 
   @override

@@ -273,6 +273,8 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
+  final RxBool isCategoriesLoading = false.obs;
+  final RxBool isSubCategoriesLoading = false.obs;
   RxList<CategoryData> businessCategoriesList = <CategoryData>[].obs;
   RxList<SubCategories> businessSubCategoriesList = <SubCategories>[].obs;
   RxString categorySpecializationText = "".obs;
@@ -280,6 +282,7 @@ class ViewBusinessDetailsController extends GetxController {
 
   Future<void> getAllCategories() async {
     businessSubCategoriesList.clear();
+    isCategoriesLoading.value = true;
     try {
       ResponseModel responseModel =
           await AuthRepo().getBusinessCategoriesRepo();
@@ -304,10 +307,13 @@ class ViewBusinessDetailsController extends GetxController {
       }
     } catch (e) {
       businessCategoryResponse = ApiResponse.error('error');
+    }finally{
+      isCategoriesLoading.value = false;
     }
   }
 
   Future<void> getSubCategory() async {
+    isSubCategoriesLoading.value = true;
     try {
       ResponseModel responseModel =
           await BusinessProfileRepo().getSubBusinessCat();
@@ -322,6 +328,8 @@ class ViewBusinessDetailsController extends GetxController {
       }
     } catch (e) {
       subCategoryResponse = ApiResponse.error('error');
+    }finally{
+      isSubCategoriesLoading.value = false;
     }
   }
 

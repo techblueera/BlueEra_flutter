@@ -1095,7 +1095,7 @@
   "supplyChain":"Supply Chain",
   "fullBusinessAddress":"Full Business Address",
   "visitingCard":"Visiting Card",
-  "listYourProductServices":"List Your Product/ Services",
+  "listYourProductServices":"List Your Product / Services",
   "createStoreSections":"Create Store Sections",
   "switchBusinessTypeQuestion":"Switch Business Type?",
   "confirmSwitchBusinessTypeMessage": "Switching business type will result in the loss of existing form data. Do you want to proceed?",
@@ -1169,7 +1169,9 @@
   "pleaseSpecifyIfOther": "Please specify (if other)",
   "selectYourEducation": "select your education",
   "selectYourWorkType": "select your work type",
-  "selectYourWorkMode": "select your work mode"
+  "selectYourWorkMode": "select your work mode",
+  "addYourProductServices": "Add Product / Service Here",
+  "startSellingNow": "Start Selling Now"
 }
 
 

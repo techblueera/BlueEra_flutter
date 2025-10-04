@@ -146,6 +146,8 @@
     "selectAccountType",
     "selectYourEducation",
     "selectYourWorkType",
-    "selectYourWorkMode"
+    "selectYourWorkMode",
+    "addYourProductServices",
+    "startSellingNow"
   ]
 }
