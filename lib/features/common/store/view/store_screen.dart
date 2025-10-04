@@ -93,15 +93,18 @@ class _StoreScreenState extends State<StoreScreen> {
                       _buildSearchBar(),
 
                       SizedBox(height: SizeConfig.size20),
-                      _buildStoresProductSection(categoryName: "Product"),
+                      _buildFoodServiceSection(categoryName: "Food"),
+
 
                        SizedBox(height: SizeConfig.size20),
-                      _buildStoresServiceSection(categoryName: "Service"),
+                      _buildStoresProductSection(categoryName: "Product"),
+
                       SizedBox(height: SizeConfig.size20),
-                      _buildFoodServiceSection(categoryName: "Food"),
+                      _buildStoresServiceSection(categoryName: "Service"),
+
                       // ProductSlider(),
                       _buildStoresSection(
-                          categoryName: "Stores", tagName: "store"),
+                          categoryName: "Shop", tagName: "store"),
 
                       ///DO NOT DELETE THIS CODE....
                       /*      if (Platform.isAndroid) ...[
@@ -167,7 +170,7 @@ class _StoreScreenState extends State<StoreScreen> {
                       //   ),
                       // ),
                       _buildStoresSection(
-                          categoryName: "Services", tagName: "services"),
+                          categoryName: "Business", tagName: "services"),
 
                       /*     if (Platform.isAndroid) ...[
                         if (adUnitId != null) ...[
@@ -444,7 +447,7 @@ class _StoreScreenState extends State<StoreScreen> {
           SizedBox(height: SizeConfig.size15),
           Obx(() {
             return SizedBox(
-              height: 300,
+              height: 315,
               child: controller.serviceDataList.isNotEmpty
                   ? ListView.builder(
                       scrollDirection: Axis.horizontal,
@@ -488,7 +491,7 @@ class _StoreScreenState extends State<StoreScreen> {
           SizedBox(height: SizeConfig.size15),
           Obx(() {
             return SizedBox(
-              height: 278,
+              height: 310,
               child: controller.foodList.isNotEmpty
                   ? ListView.builder(
                       scrollDirection: Axis.horizontal,

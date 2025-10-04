@@ -1,12 +1,18 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 
 class ServiceCardBusiness extends StatefulWidget {
   final GetServiceModel serviceData;
@@ -34,6 +40,7 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
   final chatViewController = Get.find<ChatViewController>();
 
   GetServiceModel? serviceData;
+  var kmAway;
 
   @override
   void initState() {
@@ -44,10 +51,21 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
 
   @override
   Widget build(BuildContext context) {
-    //
-    // if (widget.serviceData) {
-    //   return const SizedBox();
-    // }
+    // Find max discount
+    Discounts? maxDiscount;
+    if ((serviceData?.discounts?.length ?? 0) > 0)
+      maxDiscount = serviceData?.discounts
+          ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+    if (serviceData?.business?.businessLocation != null &&
+        serviceData?.business?.businessLocation?.lat != null &&
+        serviceData?.business?.businessLocation?.lon != null)
+      {
+        kmAway = calculateDistanceKm(
+            LocationService.lat,
+            LocationService.lng,
+            serviceData?.business?.businessLocation?.lat?.toDouble() ?? 0.0,
+            serviceData?.business?.businessLocation?.lon?.toDouble() ?? 0.0);
+      }
 
     return InkWell(
       onTap: () {},
@@ -105,11 +123,24 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
             ),
             SizedBox(height: SizeConfig.size5),
             Container(
-              height: SizeConfig.size40,
+              // height: SizeConfig.size20,
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                serviceData?.description ?? "N/A",
+                serviceData?.subCategory ?? "N/A",
+                fontSize: SizeConfig.small,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+
+            SizedBox(height: SizeConfig.size5),
+            Container(
+              // height: SizeConfig.size20,
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.business?.businessName ?? "N/A",
                 fontSize: SizeConfig.small,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
@@ -117,53 +148,65 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
             ),
             SizedBox(height: SizeConfig.size5),
             Container(
-              // height: SizeConfig.size20,
-              alignment: Alignment.centerLeft,
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: Row(
-                children: [
-                  CustomText(
-                    "Start Time : ",
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.bold,
-                    maxLines: 1,
-                  ),
-                  Flexible(
-                    child: CustomText(
-                      serviceData?.timings?.firstOrNull?.start ?? "N/A",
-                      fontSize: SizeConfig.small,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    ),
-                  ),
-                ],
+              // alignment: Alignment.center,
+              margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                  color: Colors.green, borderRadius: BorderRadius.circular(30)),
+              child: CustomText(
+                (maxDiscount?.amountOff != null)
+                    ? "${maxDiscount?.amountOff.toString()}% Off"
+                    : "0% Off",
+                fontSize: SizeConfig.size10,
+                color: Colors.white,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            Container(
-              // height: SizeConfig.size20,
-              alignment: Alignment.centerLeft,
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: Row(
-                children: [
-                  CustomText(
-                    "End Time : ",
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.bold,
-                    maxLines: 1,
+            SizedBox(height: SizeConfig.size5),
+
+            if ((kmAway) != null)
+              InkWell(
+                onTap: () async {
+                  final Uri googleMapUrl = Uri.parse(
+                      "https://www.google.com/maps/search/?api=1&query=${serviceData?.business?.businessLocation?.lat?.toDouble() ?? 0.0},${serviceData?.business?.businessLocation?.lon?.toDouble() ?? 0.0}");
+
+                  if (await canLaunchUrl(googleMapUrl)) {
+                    await launchUrl(googleMapUrl,
+                        mode: LaunchMode.externalApplication);
+                  } else {
+                    throw "Could not open Google Maps";
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  child: Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.location_new,
+                        imgColor: AppColors.primaryColor,
+                      ),
+                      SizedBox(
+                        width: SizeConfig.size5,
+                      ),
+                      CustomText(
+                        "${kmAway.toStringAsFixed(0)} km away from you!",
+                        fontSize: SizeConfig.small,
+                        maxLines: 1,
+                        decoration: TextDecoration.underline,
+                        color: AppColors.primaryColor,
+                        decorationColor: AppColors.primaryColor,
+                        decorationStyle: TextDecorationStyle.solid,
+                      ),
+                    ],
                   ),
-                  Flexible(
-                    child: CustomText(
-                      serviceData?.timings?.firstOrNull?.end ?? "N/A",
-                      fontSize: SizeConfig.small,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            SizedBox(height: SizeConfig.size5),
           ],
         ),
       ),
     );
   }
 }
-
