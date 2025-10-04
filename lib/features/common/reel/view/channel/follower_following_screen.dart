@@ -1,11 +1,20 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/follower_controller.dart';
 import 'package:BlueEra/features/common/reel/models/follow_following_res_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -53,7 +62,18 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CommonBackAppBar(),
+      appBar: CommonBackAppBar(
+          isFollowRefresh: true,
+          isFollowRefreshWidget: () {
+            return Padding(
+              padding:  EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                  onPressed: () {
+                    apiCalling(followFollowerController.selectedIndex.value);
+                  },
+                  icon: Icon(Icons.refresh,color: AppColors.primaryColor,)),
+            );
+          }),
       body: SafeArea(
         child: Obx(() {
           return Column(
@@ -61,6 +81,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
               TabBar(
                 controller: _tabController,
                 onTap: (index) {
+                  followFollowerController.selectedIndex.value = index;
                   apiCalling(index);
                 },
                 labelColor: AppColors.primaryColor,
@@ -80,38 +101,60 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-
-                    followFollowerController.isFollowingLoading.isFalse ?
-                    (followFollowerController.followingResponse.value.status == Status.COMPLETE
-                         && (followFollowerController.followingList.isNotEmpty))
-                        ? ListView.builder(
-                      itemCount: followFollowerController.followingList.length,
-                      itemBuilder: (context, index) {
-                        FollowingData singleFollowingDta = followFollowerController.followingList[index];
-                        return _buildUserTile(
-                          singleFollowingDta.following,
-                        );
-                      },
-                    )
-                        : EmptyStateWidget(
-                      message: 'Not following anyone',
-                      imageSize: SizeConfig.size120,
-                    ) : Center(child: CircularProgressIndicator()),
-
-
-                    followFollowerController.isFollowerLoading.isFalse ?
-                    (followFollowerController.followerResponse.value.status == Status.COMPLETE
-                            && (followFollowerController.followerList.isNotEmpty ?? false))
-                        ? ListView.builder(
-                      itemCount: followFollowerController.followerList.length,
-                      itemBuilder: (context, index) => _buildUserTile(
-                          followFollowerController.followerList[index].follower),
-                    )
-                        : EmptyStateWidget(
-                      message: 'No followers',
-                      imageSize: SizeConfig.size120,
-                    ) : Center(child: CircularProgressIndicator()),
-
+                    followFollowerController.isFollowingLoading.isFalse
+                        ? (followFollowerController
+                                        .followingResponse.value.status ==
+                                    Status.COMPLETE &&
+                                (followFollowerController
+                                    .followingList.isNotEmpty))
+                            ? RefreshIndicator(
+                                onRefresh: () async {
+                                  apiCalling(0);
+                                },
+                                child: ListView.builder(
+                                  itemCount: followFollowerController
+                                      .followingList.length,
+                                  itemBuilder: (context, index) {
+                                    FollowingData singleFollowingDta =
+                                        followFollowerController
+                                            .followingList[index];
+                                    return _buildUserTile(
+                                        singleFollowingDta.following,
+                                        "FOLLOWING");
+                                  },
+                                ),
+                              )
+                            : EmptyStateWidget(
+                                message: 'Not following anyone',
+                                imageSize: SizeConfig.size120,
+                              )
+                        : Center(child: CircularProgressIndicator()),
+                    followFollowerController.isFollowerLoading.isFalse
+                        ? (followFollowerController
+                                        .followerResponse.value.status ==
+                                    Status.COMPLETE &&
+                                (followFollowerController
+                                        .followerList.isNotEmpty ??
+                                    false))
+                            ? RefreshIndicator(
+                                onRefresh: () async {
+                                  apiCalling(1);
+                                },
+                                child: ListView.builder(
+                                  itemCount: followFollowerController
+                                      .followerList.length,
+                                  itemBuilder: (context, index) =>
+                                      _buildUserTile(
+                                          followFollowerController
+                                              .followerList[index].follower,
+                                          "FOLLOWER"),
+                                ),
+                              )
+                            : EmptyStateWidget(
+                                message: 'No followers',
+                                imageSize: SizeConfig.size120,
+                              )
+                        : Center(child: CircularProgressIndicator()),
                   ],
                 ),
               ),
@@ -122,58 +165,207 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
     );
   }
 
-  Widget _buildUserTile(FollowingFollower? user) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundImage: NetworkImage(user?.profileImage ?? ""),
-            backgroundColor: Colors.grey.shade100,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  user?.name ?? "",
-                ),
-                CustomText(
-                  user?.username ?? "",
-                  fontSize: SizeConfig.small,
-                ),
-              ],
+  Widget _buildUserTile(FollowingFollower? user, String? viewTag) {
+    return InkWell(
+      onTap: () {
+        if (user?.accountType?.toUpperCase() == AppConstants.business) {
+          Get.to(() => VisitBusinessProfileNew(
+                businessId: user?.id ?? "",
+                screenName: AppConstants.feedScreen,
+              ));
+        }
+        if (user?.accountType?.toUpperCase() == AppConstants.individual) {
+          Get.to(() => NewVisitProfileScreen(
+                authorId: user?.id ?? '',
+                screenFromName: AppConstants.feedScreen,
+              ));
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundImage: NetworkImage(
+                  user?.accountType?.toUpperCase() == AppConstants.business
+                      ? user?.business_logo ?? ""
+                      : user?.profileImage ?? ""),
+              backgroundColor: Colors.grey.shade100,
             ),
-          ),
-          _FollowButton(
-            onPressed: () {},
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    user?.accountType?.toUpperCase() == AppConstants.business
+                        ? user?.business_name
+                        : user?.name ?? "",
+                  ),
+                  CustomText(
+                    user?.username ?? "",
+                    fontSize: SizeConfig.small,
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () async {
+                if (isValidation(user)) {
+                  final chatViewController = Get.find<ChatViewController>();
+                  Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};
+                  chatViewController.newVisitContactApiResponse?.value;
+                  await chatViewController.checkChatConnection(detas);
+
+                  chatViewController.openAnyOneChatFunction(
+                    profileImage: user?.accountType?.toUpperCase() ==
+                            AppConstants.business
+                        ? user?.business_logo
+                        : user?.profileImage,
+                    otherUserId: (chatViewController.newVisitContactApiResponse
+                                    ?.value?.data?.conversationId ??
+                                '') ==
+                            ""
+                        ? chatViewController.newVisitContactApiResponse?.value
+                                ?.data?.otherUserId ??
+                            ''
+                        : null,
+                    businessId: "",
+                    type: user?.accountType?.toLowerCase(),
+                    isInitialMessage: (chatViewController
+                                    .newVisitContactApiResponse
+                                    ?.value
+                                    ?.data
+                                    ?.conversationId ??
+                                '') ==
+                            ""
+                        ? true
+                        : false,
+                    userId: user?.id,
+                    conversationId: (chatViewController
+                            .newVisitContactApiResponse
+                            ?.value
+                            ?.data
+                            ?.conversationId ??
+                        ''),
+                    contactName: user?.accountType?.toUpperCase() ==
+                            AppConstants.business
+                        ? user?.business_name
+                        : user?.name,
+                    contactNo: "",
+                  );
+                } else {
+                  final controllerVisit = Get.put(VisitProfileController());
+
+                  await controllerVisit.followUserController(
+                      candidateResumeId: user?.id);
+                  apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
+                }
+                // setState(() => _isFollowing = !_isFollowing);
+                // widget.onPressed();
+              },
+              child: AnimatedContainer(
+                width: 100,
+                alignment: Alignment.center,
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: isValidation(user)
+                      ? AppColors.primaryColor
+                      : AppColors.white,
+                  border: Border.all(
+                    color: AppColors.primaryColor,
+                    width: 1.5,
+                  ),
+                ),
+                child: CustomText(
+                  isValidation(user) ? "Chat" : 'Follow',
+                  color: isValidation(user)
+                      ? AppColors.white
+                      : AppColors.primaryColor,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  bool isValidation(FollowingFollower? user) {
+    return ((user?.isFollowing ?? false) ||
+        (user?.accountType?.toUpperCase() == AppConstants.business));
+  }
 }
 
+/*
 class _FollowButton extends StatefulWidget {
-  const _FollowButton({required this.onPressed});
+  const _FollowButton({required this.onPressed, required this.user});
 
   final VoidCallback onPressed;
+  final FollowingFollower user;
 
   @override
   State<_FollowButton> createState() => _FollowButtonState();
 }
 
 class _FollowButtonState extends State<_FollowButton> {
-  bool _isFollowing = true;
+  final controller = Get.find<VisitProfileController>();
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() => _isFollowing = !_isFollowing);
-        widget.onPressed();
+      onTap: () async {
+        if (isValidation()) {
+          final chatViewController = Get.find<ChatViewController>();
+          Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};
+          chatViewController.newVisitContactApiResponse?.value;
+          await chatViewController.checkChatConnection(detas);
+
+          chatViewController.openAnyOneChatFunction(
+            profileImage:
+                user?.accountType?.toUpperCase() == AppConstants.business
+                    ? user?.business_logo
+                    : user?.profileImage,
+            otherUserId: (chatViewController.newVisitContactApiResponse?.value
+                            ?.data?.conversationId ??
+                        '') ==
+                    ""
+                ? chatViewController
+                        .newVisitContactApiResponse?.value?.data?.otherUserId ??
+                    ''
+                : null,
+            businessId: "",
+            type:
+                user?.accountType?.toUpperCase() == AppConstants.business
+                    ? AppConstants.business.toLowerCase()
+                    : "personal",
+            isInitialMessage: (chatViewController.newVisitContactApiResponse
+                            ?.value?.data?.conversationId ??
+                        '') ==
+                    ""
+                ? true
+                : false,
+            userId: user?.id,
+            conversationId: (chatViewController
+                    .newVisitContactApiResponse?.value?.data?.conversationId ??
+                ''),
+            contactName:
+                user?.accountType?.toUpperCase() == AppConstants.business
+                    ? user?.business_name
+                    : user?.name,
+            contactNo: "",
+          );
+        } else {
+          await controller.followUserController(
+              candidateResumeId: user?.id);
+          apiCalling(0)
+        }
+        // setState(() => _isFollowing = !_isFollowing);
+        // widget.onPressed();
       },
       child: AnimatedContainer(
         width: 100,
@@ -182,21 +374,32 @@ class _FollowButtonState extends State<_FollowButton> {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: _isFollowing ? Colors.white10 : AppColors.primaryColor,
+          color: isValidation() ? AppColors.primaryColor : AppColors.white,
           border: Border.all(
-            color: _isFollowing ? AppColors.primaryColor : Colors.transparent,
+            color: AppColors.primaryColor,
             width: 1.5,
           ),
         ),
-        child: Text(
-          _isFollowing ? 'Following' : 'Follow',
-          style: TextStyle(
-            color: _isFollowing ? AppColors.primaryColor : Colors.white,
-            fontSize: 13,
-          ),
+        child: CustomText(
+          isValidation() ? "Chat" : 'Follow',
+          color: isValidation() ? AppColors.white : AppColors.primaryColor,
+          fontSize: 13,
         ),
       ),
     );
   }
-}
+  apiCalling(int index) {
+    if (index == 0) {
+      followFollowerController.getFollowingController(userID: user?ID);
+    }
+    if (index == 1) {
+      followFollowerController.getFollowerController(userID: user?ID);
+    }
+  }
 
+  bool isValidation() {
+    return ((user?.isFollowing ?? false) ||
+        (user?.accountType?.toUpperCase() == AppConstants.business));
+  }
+}
+*/

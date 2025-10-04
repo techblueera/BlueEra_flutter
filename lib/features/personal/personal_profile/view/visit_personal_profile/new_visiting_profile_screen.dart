@@ -56,28 +56,32 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   void initState() {
     controller = Get.put(VisitProfileController());
     setFilters();
-    overViewController.loadOverviewData(
-      widget.authorId,
-      VideoType.latest.name,
-    );
-    feedController.getPostsByType(PostType.otherPosts,
-        isInitialLoad: true,
-        refresh: true,
-        id: widget.authorId,
-        query: "",
-        screenName: '');
 
-    controller.fetchUserById(userId: widget.authorId);
-    controller.getUserChannelDetailsController(userId: widget.authorId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      overViewController.loadOverviewData(
+        widget.authorId,
+        VideoType.latest.name,
+      );
+      feedController.getPostsByType(PostType.otherPosts,
+          isInitialLoad: true,
+          refresh: true,
+          id: widget.authorId,
+          query: "",
+          screenName: '');
 
-    if (Get.isRegistered<VisitProfileController>()) {
-      visitController = Get.find<VisitProfileController>();
-    } else {
-      visitController = Get.put(VisitProfileController());
-    }
-    apiCalling();
+      controller.fetchUserById(userId: widget.authorId);
+      controller.getUserChannelDetailsController(userId: widget.authorId);
 
-    _setupScrollListener();
+      if (Get.isRegistered<VisitProfileController>()) {
+        visitController = Get.find<VisitProfileController>();
+      } else {
+        visitController = Get.put(VisitProfileController());
+      }
+      apiCalling();
+
+      _setupScrollListener();
+    });
+
     super.initState();
   }
 

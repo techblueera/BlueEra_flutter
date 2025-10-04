@@ -159,6 +159,19 @@ class PostRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> postByViewCountIDApi({required String id}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      postByID ,
+      params: {
+        ApiKeys.postId:id
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///GET ALL Songs...
   Future<ResponseModel> getAllSongs(
       {required Map<String, dynamic> queryParams}) async {

@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,6 +32,7 @@ class PersonalChatScreen extends StatefulWidget {
   final String? type;
   final bool isInitialMessage;
   final String? contactNo;
+
   @override
   State<PersonalChatScreen> createState() => _PersonalChatScreenState();
 }
@@ -48,7 +48,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   @override
   void initState() {
-
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatViewController.listenUserNewMessages(
@@ -73,8 +72,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     super.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -89,24 +86,22 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
       child: Obx(() {
         return Scaffold(
           backgroundColor: backgroundColor,
-          appBar: (chatThemeController.isMessageSelectionActive.value&&widget.type!="Admin")
-              ?getChatOptionsAppBar(
-            context,
-              profileImage: widget.profileImage,
-              editingController: editingController,
-              conversationId: widget.conversationId,
-              userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              contactNo: widget.contactNo
-          )
-              : getChatTitleAppBar(
-              context,
-              userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              contactNo: widget.contactNo
-          ),
+          appBar: (chatThemeController.isMessageSelectionActive.value &&
+                  widget.type != "Admin")
+              ? getChatOptionsAppBar(context,
+                  profileImage: widget.profileImage,
+                  editingController: editingController,
+                  conversationId: widget.conversationId,
+                  userId: widget.userId,
+                  type: widget.type,
+                  name: widget.name,
+                  contactNo: widget.contactNo)
+              : getChatTitleAppBar(context,
+                  userId: widget.userId,
+                  type: widget.type,
+                  name: widget.name,
+                  profileImage: widget.profileImage,
+                  contactNo: widget.contactNo),
           body: Obx(() {
             //  print("sjdnckjsdckjsdc ${chatViewController.getListOfMessageData!}");
             if (chatViewController.getListOfMessageResponse.value.status ==
@@ -197,7 +192,9 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                                             padding: EdgeInsets.zero,
                                             controller: chatViewController
                                                 .scrollController,
-                                            reverse: (widget.type=="Admin")?false:true,
+                                            reverse: (widget.type == "Admin")
+                                                ? false
+                                                : true,
                                             child: Column(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.end,
@@ -226,11 +223,13 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                         const SizedBox(
                           height: 6,
                         ),
-                        (widget.type=="Admin")?SizedBox(): ChatInputBar(
-                          isInitialMessage: widget.isInitialMessage,
-                          userId: widget.userId ?? '',
-                          conversationId: widget.conversationId ?? '',
-                        ),
+                        (widget.type == "Admin")
+                            ? SizedBox()
+                            : ChatInputBar(
+                                isInitialMessage: widget.isInitialMessage,
+                                userId: widget.userId ?? '',
+                                conversationId: widget.conversationId ?? '',
+                              ),
                         const SizedBox(height: 14),
                       ],
                     ),
@@ -263,6 +262,4 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
       }),
     );
   }
-
-
 }

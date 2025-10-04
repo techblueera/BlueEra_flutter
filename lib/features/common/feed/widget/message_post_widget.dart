@@ -114,7 +114,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                             ),
                             child: ExpandableText(
                               text: subTitle.trim(),
-                              trimLines: 2,expandMode: ExpandMode.dialog,
+                              trimLines: 5,
+                              expandMode: ExpandMode.dialog,
                               style: TextStyle(
                                 color: AppColors.mainTextColor,
                                 fontFamily: AppConstants.OpenSans,

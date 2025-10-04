@@ -43,18 +43,22 @@ class AutoPlayVideoCard extends StatefulWidget {
 }
 
 class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
-
+  final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
+      ? Get.find<SimplePriorityVideoManager>()
+      : Get.put(SimplePriorityVideoManager());
   @override
   void dispose() {
-    final videoManager = Get.find<SimplePriorityVideoManager>();
+    // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
+    //     ? Get.find<SimplePriorityVideoManager>()
+    //     : Get.put(SimplePriorityVideoManager());
     videoManager.removeVideo(widget.videoItem.videoId ?? '');
     super.dispose();
   }
 
   void _handleVisibilityChange(VisibilityInfo info) {
-    final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-        ? Get.find<SimplePriorityVideoManager>()
-        : Get.put(SimplePriorityVideoManager());
+    // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
+    //     ? Get.find<SimplePriorityVideoManager>()
+    //     : Get.put(SimplePriorityVideoManager());
 
     String videoUrl;
     if(Platform.isAndroid){
@@ -77,7 +81,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
 
   @override
   Widget build(BuildContext context) {
-    final videoManager = Get.put(SimplePriorityVideoManager());
+    // final videoManager = Get.put(SimplePriorityVideoManager());
 
     // 👇 only the video section
     final mainContent = AspectRatio(

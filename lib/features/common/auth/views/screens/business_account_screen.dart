@@ -458,50 +458,50 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                       ),
                 if (selectedTypeOfBusiness?.type ==
                     BusinessType.Product.name) ...[
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-                CustomText(
-                  appLocalizations?.natureOfBusiness,
-                  fontSize: SizeConfig.medium,
-                ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-                CommonDropdownDialog<SizeOfBusiness>(
-                  items: SizeOfBusiness.values,
-                  selectedValue: _selectedNatureOfBusiness,
-                  hintText: appLocalizations?.selectNatureOfTheBusiness ?? "",
-                  displayValue: (profession) => profession.displayName,
-                  title: appLocalizations?.natureOfBusiness ??
-                      "Nature of the Business",
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedNatureOfBusiness = value;
-                    });
-                  },
-                ),
-                if (_selectedNatureOfBusiness == SizeOfBusiness.OTHERS) ...[
-                  SizedBox(height: SizeConfig.size20),
-                  CommonTextField(
-                    textEditController:
-                        authController.otherNatureOfBusinessTextController,
-                    inputLength: AppConstants.inputCharterLimit100,
-                    keyBoardType: TextInputType.text,
-                    regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                    titleColor: Colors.black,
-                    hintText: appLocalizations?.pleaseSpecifyIfOther,
-                    autovalidateMode: _autoValidate,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter other nature of business';
-                      }
-                      return null;
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  CustomText(
+                    appLocalizations?.natureOfBusiness,
+                    fontSize: SizeConfig.medium,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  CommonDropdownDialog<SizeOfBusiness>(
+                    items: SizeOfBusiness.values,
+                    selectedValue: _selectedNatureOfBusiness,
+                    hintText: appLocalizations?.selectNatureOfTheBusiness ?? "",
+                    displayValue: (profession) => profession.displayName,
+                    title: appLocalizations?.natureOfBusiness ??
+                        "Nature of the Business",
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedNatureOfBusiness = value;
+                      });
                     },
                   ),
-                ],
-                SizedBox(height: SizeConfig.size20),
+                  if (_selectedNatureOfBusiness == SizeOfBusiness.OTHERS) ...[
+                    SizedBox(height: SizeConfig.size20),
+                    CommonTextField(
+                      textEditController:
+                          authController.otherNatureOfBusinessTextController,
+                      inputLength: AppConstants.inputCharterLimit100,
+                      keyBoardType: TextInputType.text,
+                      regularExpression:
+                          RegularExpressionUtils.alphabetSpacePattern,
+                      titleColor: Colors.black,
+                      hintText: appLocalizations?.pleaseSpecifyIfOther,
+                      autovalidateMode: _autoValidate,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter other nature of business';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                  SizedBox(height: SizeConfig.size20),
                 ],
 
                 ..._referralCodeEnable

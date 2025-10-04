@@ -12,7 +12,7 @@ class FollowerController extends GetxController {
 
   RxBool isFollowerLoading = true.obs;
   RxBool isFollowingLoading = true.obs;
-
+RxInt selectedIndex=0.obs;
   ///GET CHANNEL DETAILS...
   Future<void> getFollowerController({required String userID}) async {
 

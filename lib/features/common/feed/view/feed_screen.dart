@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_shimmer_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
+import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class FeedScreen extends StatefulWidget {
   final PostType postFilterType;
@@ -46,7 +48,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final  feedController = Get.find<FeedController>();
+  final feedController = Get.find<FeedController>();
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
@@ -133,7 +135,11 @@ class _FeedScreenState extends State<FeedScreen> {
       String? id,
       String? query}) {
     feedController.getPostsByType(widget.postFilterType,
-        isInitialLoad: isInitialLoad, refresh: refresh, id: id, query: query, screenName: '');
+        isInitialLoad: isInitialLoad,
+        refresh: refresh,
+        id: id,
+        query: query,
+        screenName: '');
   }
 
   // Method to be called from parent for pagination
@@ -212,7 +218,6 @@ class _FeedScreenState extends State<FeedScreen> {
             child: Center(child: CustomText("You are in Debug Mode ")),
           ),
         );
-
       }
     }
 
@@ -224,12 +229,24 @@ class _FeedScreenState extends State<FeedScreen> {
           ? staggeredDotsWaveLoading()
           : const SizedBox.shrink());
     }
-    return FeedCard(
-      post: posts[postIndex],
-      index: postIndex,
-      postFilteredType: widget.postFilterType,
-    );
 
+    return VisibilityDetector(
+
+      key: Key('post_$index'),
+      onVisibilityChanged: (visibilityInfo) {
+        if (visibilityInfo.visibleFraction > 0.5) {
+          // Post is at least 50% visible
+          trackPostView(posts[postIndex].id);
+          print("Post ${posts[postIndex].id} is visible");
+          // _callViewApi(post.id); // 👈 Call your view API here
+        }
+      },
+      child: FeedCard(
+        post: posts[postIndex],
+        index: postIndex,
+        postFilteredType: widget.postFilterType,
+      ),
+    );
   }
 
   @override
@@ -251,21 +268,7 @@ class _FeedScreenState extends State<FeedScreen> {
             );
           }
 
-          // 🔹 Build listView once
-          final listView = ListView.builder(
-            controller: widget.isInParentScroll ? null : _scrollController,
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.only(
-                top: SizeConfig.size2, bottom: SizeConfig.size80),
-            shrinkWrap: widget.isInParentScroll,
-            physics: widget.isInParentScroll
-                ? const NeverScrollableScrollPhysics()
-                : const AlwaysScrollableScrollPhysics(),
-            itemCount: _calculateItemCount(posts.length),
-            itemBuilder: (context, index) {
-              return _buildListItem(index, posts);
-            },
-          );
+
 
           // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
           final content = RefreshIndicator(
@@ -289,7 +292,21 @@ class _FeedScreenState extends State<FeedScreen> {
 
               return Future.value();
             },
-            child: listView,
+            child: ListView.builder(
+              controller: widget.isInParentScroll ? null : _scrollController,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.only(
+                  top: SizeConfig.size2, bottom: SizeConfig.size80),
+              shrinkWrap: widget.isInParentScroll,
+              physics: widget.isInParentScroll
+                  ? const NeverScrollableScrollPhysics()
+                  : const AlwaysScrollableScrollPhysics(),
+              itemCount: _calculateItemCount(posts.length),
+              itemBuilder: (context, index) {
+                print("DATA INDEX ${index}");
+                return _buildListItem(index, posts);
+              },
+            ),
           );
 
           if (widget.postFilterType == PostType.all ||
@@ -322,8 +339,7 @@ class _FeedScreenState extends State<FeedScreen> {
           }
 
           return content;
-        }
-        else if (feedController.postsResponse.value.status == Status.ERROR) {
+        } else if (feedController.postsResponse.value.status == Status.ERROR) {
           return LoadErrorWidget(
             errorMessage: 'Failed to load posts',
             onRetry: () {

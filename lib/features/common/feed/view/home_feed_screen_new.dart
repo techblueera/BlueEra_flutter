@@ -17,10 +17,12 @@ import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/feed/view/image_feed_status_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
+import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
@@ -65,8 +67,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   final FeedController feedController = Get.put(FeedController());
   final ScrollController _scrollController = ScrollController();
   late ShortsController? shortsController;
-
-  static const int postsPerAd = 9;
 
   @override
   void initState() {
@@ -120,7 +120,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   fetchPostData({bool? refreshFlag}) async {
     await feedController.getFeed(refresh: refreshFlag ?? false);
   }
-
 
   List<FeedBlock> _buildBlocks(List<Post> items) {
     final List<FeedBlock> blocks = [];
@@ -221,8 +220,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                 return const SizedBox.shrink(); // skip if no card
               }
             }
-            int index=indexFeed-1;
+            int index = indexFeed - 1;
             final block = blocks[index];
+
             if (block.isGrid) {
               // Render a 4-column grid of thumbnails inside the list
               // We use shrinkWrap + NeverScrollableScrollPhysics so ListView handles scrolling
@@ -241,18 +241,16 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     childAspectRatio: 0.70,
-                    // mainAxisSpacing: 6,
-                    // crossAxisSpacing: 6,
-                    // childAspectRatio: 1,
                   ),
                   itemBuilder: (c, postIndex) {
                     final imgPostData = block.items[postIndex];
+
                     if (imgPostData.type == "short_video") {
                       ShortFeedItem reelData = getVideoData(imgPostData);
-                   int shortID=    shortsController?.latestShortsPosts
-                          .indexWhere((post) =>
-                      post.videoId == reelData.video?.id)??0;
-                   logs("INDEX======= $shortID");
+                      int shortID = shortsController?.latestShortsPosts
+                              .indexWhere((post) =>
+                                  post.videoId == reelData.video?.id) ??
+                          0;
                       return ClipRRect(
                         borderRadius: (BorderRadius.circular(12)),
                         child: Stack(
@@ -261,7 +259,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                             SingleShortStructure(
                               key: ValueKey(shortID),
                               shorts: Shorts.latest,
-                              allLoadedShorts: shortsController?.latestShortsPosts,
+                              allLoadedShorts:
+                                  shortsController?.latestShortsPosts,
                               initialIndex: shortID,
                               shortItem: reelData,
                               withBackground: true,
@@ -270,40 +269,39 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                             ),
                             // total views
                             Align(
-                            alignment: Alignment.center,
+                              alignment: Alignment.center,
                               child: Container(
                                 padding: EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
-                                  color: AppColors.black.withValues(alpha: 0.4),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [AppShadows.textFieldShadow]
-                                 ),
+                                    color:
+                                        AppColors.black.withValues(alpha: 0.4),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [AppShadows.textFieldShadow]),
                                 child: LocalAssets(
                                   imagePath: AppIconAssets.playIcon,
                                 ),
                               ),
                             ),
-                            // Positioned(
-                            //   bottom: SizeConfig.size90,
-                            //   top: SizeConfig.size90,
-                            //   left: SizeConfig.size90,
-                            //   right: SizeConfig.size90,
-                            //   child: IgnorePointer(
-                            //       ignoring: true,
-                            //       child: LocalAssets(
-                            //         imagePath: AppIconAssets.playIcon,
-                            //       )),
-                            // ),
                           ],
                         ),
                       );
                     }
                     if (imgPostData.type == "image_post") {
+                      trackPostView(imgPostData.id);
+
                       return ClipRRect(
                         borderRadius: (BorderRadius.circular(12)),
                         child: InkWell(
                           onTap: () {
-                            navigatePushTo(
+                            // Get.to(StatusViewer(
+                            //   posts: posts
+                            //       .where((data) =>
+                            //           data.type?.toLowerCase() == "image_post")
+                            //       .toList(),
+                            //   currentViewIndex: postIndex,
+                            // ));
+
+                              navigatePushTo(
                               context,
                               ImageViewScreen(
                                 subTitle: imgPostData.subTitle,
@@ -468,6 +466,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
             if (item.type?.toLowerCase() == "message_post" ||
                 item.type?.toLowerCase() == "poll_post") {
+              trackPostView(item.id);
+
               return Padding(
                 padding: EdgeInsets.only(
                     left: item.type?.toLowerCase() == "poll_post"
@@ -525,92 +525,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               );
             }
             return const SizedBox.shrink(); // skip if no card
-
-            /*   return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (item.title?.isNotEmpty??false)
-                      CustomText(
-                        item.title??"",
-                      ),
-                    if (item.subTitle?.isNotEmpty??false)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6.0, bottom: 6.0),
-                        child: Text(item?.subTitle??"",
-                            maxLines: 3, overflow: TextOverflow.ellipsis),
-                      ),
-                    if (thumbnail != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: thumbnail,
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            height: 180,
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                          errorWidget: (context, url, err) => Container(
-                            height: 180,
-                            color: Colors.grey[200],
-                            child: Icon(Icons.broken_image, size: 48),
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: 8),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     Text('By ${item.raw['user']?['name'] ?? 'Unknown'}'),
-                    //     Row(children: [
-                    //       Icon(Icons.favorite_border),
-                    //       SizedBox(width: 6),
-                    //       Text('${item.raw['likes_count'] ?? 0}')
-                    //     ])
-                    //   ],
-                    // )
-                  ],
-                ),
-              ),
-            );*/
           },
         );
-
-        /*    final listView = ListView.builder(
-          controller: _scrollController,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding:
-              EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
-          shrinkWrap: widget.isInParentScroll,
-          physics: widget.isInParentScroll
-              ? const NeverScrollableScrollPhysics()
-              : const AlwaysScrollableScrollPhysics(),
-          itemCount: (posts.length),
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              if (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                      left: SizeConfig.size8,
-                      right: SizeConfig.size8,
-                      top: SizeConfig.size8),
-                  child: GreetingCardDialog(
-                      cards: Get.find<MoreCardsScreenController>().dayCards),
-                );
-              } else {
-                return const SizedBox.shrink(); // skip if no card
-              }
-            }
-            return _buildListItem(index - 1, posts);
-          },
-        );*/
 
         // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
         final content = RefreshIndicator(
@@ -678,8 +594,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       return const SizedBox();
     });
   }
-
-
 }
 
 ShortFeedItem getVideoData(Post video) {
@@ -696,7 +610,8 @@ ShortFeedItem getVideoData(Post video) {
       metadata: VideoItemMetadata(
           addedAt: video.createdAt.toString(),
           source: "personalized",
-          watchedBefore: false),channel: video.channel,
+          watchedBefore: false),
+      channel: video.channel,
       video: VideoData(
           id: video.id,
           userId: video.user?.id,
@@ -785,6 +700,7 @@ class PostData {
         'is_like': isLike,
       };
 }
+
 class FeedBlock {
   final bool isGrid;
   final List<Post> items;

@@ -128,6 +128,9 @@ class FollowingFollower {
     this.name,
     this.profileImage,
     this.username,
+    this.business_name,
+    this.business_logo,
+    this.isFollowing,
     this.accountType,});
 
   FollowingFollower.fromJson(dynamic json) {
@@ -136,12 +139,18 @@ class FollowingFollower {
     profileImage = json['profile_image'];
     username = json['username'];
     accountType = json['account_type'];
+    business_name = json['business_name'];
+    business_logo = json['business_logo'];
+    isFollowing = json['isFollowing'];
   }
   String? id;
   String? name;
   String? profileImage;
   String? username;
   String? accountType;
+  String? business_name;
+  String? business_logo;
+  bool? isFollowing;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -150,6 +159,9 @@ class FollowingFollower {
     map['profile_image'] = profileImage;
     map['username'] = username;
     map['account_type'] = accountType;
+    map['business_name'] = business_name;
+    map['business_logo'] = business_logo;
+    map['isFollowing'] = isFollowing;
     return map;
   }
 
