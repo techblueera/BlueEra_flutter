@@ -29,73 +29,74 @@ import '../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonBackAppBar({
-    super.key,
-    this.title,
-    this.isLeading = true,
-    this.isFilter = false,
-    this.isNotification = false,
-    this.bellIconNotEmpty = false,
-    this.onNotificationTap,
-    this.onBackTap,
-    this.appBarColor,
-    this.isTextButton = false,
-    this.actionText,
-    this.actionTextColor,
-    this.isShareButton,
-    this.isLogout,
-    this.isDownloadButton,
-    this.isChangeToEditMode = false,
-    this.isQrCodeButton,
-    this.onQrCodeTap,
-    this.onShareTap,
-    this.isLocation,
-    this.isMore,
-    this.isSearch,
-    this.controller,
-    this.onSearchTap,
-    this.onClearCallback,
-    this.searchHintText,
-    this.onLocationTap,
-    this.onMoreTap,
-    this.isTrimmedButton,
-    this.onTrimmedTap,
-    this.isSaveButton,
-    this.onSavedTap,
-    this.iClearButton,
-    this.onClearNotificationsTap,
-    this.isSettingButton,
-    this.isAddPlace,
-    this.onAddPlaceTap,
-    this.isEndJourney,
-    this.onEndJourneyTap,
-    this.titleColor,
-    this.isCancelButton,
-    this.onCancelTap,
-    this.isJobPopUpMenuButton,
-    this.isProfile,
-    this.isResumeCardButton,
-    this.isReloadContactButton,
-    this.onRefreshContact,
-    this.onProfileTap,
-    this.isPDFExport,
-    this.onPDFExportTap,
-    this.jobID,
-    this.jobStatus,
-    this.showRightTextButton = false,
-    this.rightTextButtonText,
-    this.rightTextButtonColor,
-    this.onRightTextButtonTap,
-    this.isShowCursor,
-    this.currentCity,
-    this.isGuestLogout,
-    this.buildCustomWidget,
-    // this.isAddProduct = false,
-    // this.isAddProductCategory = false,
-    this.isCreateOwnProduct = false,
-    this.bottomWidget,
-    this.isProductPopUpMenu
-  });
+  const CommonBackAppBar(
+      {super.key,
+      this.title,
+      this.isLeading = true,
+      this.isFilter = false,
+      this.isNotification = false,
+      this.bellIconNotEmpty = false,
+      this.onNotificationTap,
+      this.onBackTap,
+      this.appBarColor,
+      this.isTextButton = false,
+      this.actionText,
+      this.actionTextColor,
+      this.isShareButton,
+      this.isLogout,
+      this.isDownloadButton,
+      this.isChangeToEditMode = false,
+      this.isQrCodeButton,
+      this.onQrCodeTap,
+      this.onShareTap,
+      this.isLocation,
+      this.isMore,
+      this.isSearch,
+      this.controller,
+      this.onSearchTap,
+      this.onClearCallback,
+      this.searchHintText,
+      this.onLocationTap,
+      this.onMoreTap,
+      this.isTrimmedButton,
+      this.onTrimmedTap,
+      this.isSaveButton,
+      this.onSavedTap,
+      this.iClearButton,
+      this.onClearNotificationsTap,
+      this.isSettingButton,
+      this.isAddPlace,
+      this.onAddPlaceTap,
+      this.isEndJourney,
+      this.onEndJourneyTap,
+      this.titleColor,
+      this.isCancelButton,
+      this.onCancelTap,
+      this.isJobPopUpMenuButton,
+      this.isProfile,
+      this.isResumeCardButton,
+      this.isReloadContactButton,
+      this.onRefreshContact,
+      this.onProfileTap,
+      this.isPDFExport,
+      this.onPDFExportTap,
+      this.jobID,
+      this.jobStatus,
+      this.showRightTextButton = false,
+      this.rightTextButtonText,
+      this.rightTextButtonColor,
+      this.onRightTextButtonTap,
+      this.isShowCursor,
+      this.currentCity,
+      this.isGuestLogout,
+      this.buildCustomWidget,
+      // this.isAddProduct = false,
+      // this.isAddProductCategory = false,
+      this.isCreateOwnProduct = false,
+      this.bottomWidget,
+      this.isFollowRefreshWidget,
+      this.isFollowRefresh=false,
+      this.isProductPopUpMenu});
 
   // final AppBar? appBar;
   final String? title;
@@ -157,11 +158,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final OnTab? onRightTextButtonTap;
   final String? currentCity;
   final Widget Function()? buildCustomWidget;
+
   // final bool isAddProduct;
   // final bool isAddProductCategory;
   final bool isCreateOwnProduct;
   final PreferredSizeWidget? bottomWidget;
   final bool? isProductPopUpMenu;
+  final bool? isFollowRefresh;
+  final Widget Function()? isFollowRefreshWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -252,15 +256,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             left:
                                 (isLeading ?? false) ? 0.0 : SizeConfig.size15),
                         child: CommonSearchBar(
-                          controller: controller!,
-                          isShowCursor: isShowCursor,
-                          onSearchTap: onSearchTap ?? () {},
-                          // onClearCallback: () {
-                          //   controller?.clear();
-                          // },
-                          onClearCallback: onClearCallback,
-                          hintText: searchHintText
-                        ),
+                            controller: controller!,
+                            isShowCursor: isShowCursor,
+                            onSearchTap: onSearchTap ?? () {},
+                            // onClearCallback: () {
+                            //   controller?.clear();
+                            // },
+                            onClearCallback: onClearCallback,
+                            hintText: searchHintText),
                       ),
                     ),
             if (currentCity != null)
@@ -299,7 +302,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             if (isNotification ?? false)
-
               Builder(builder: (context) {
                 return Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size15),
@@ -428,16 +430,16 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   margin: EdgeInsets.only(right: SizeConfig.size20),
                   child: IconButton(
                     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                    onPressed:  () async {
+                    onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text:
-                          AppLocalizations.of(context)!.areYouSureYouWantToLogout,
+                          text: AppLocalizations.of(context)!
+                              .areYouSureYouWantToLogout,
                           confirmCallback: () async {
                             await SharedPreferenceUtils.clearPreference();
                             Navigator.of(context).pushNamedAndRemoveUntil(
                                 RouteHelper.getMobileNumberLoginRoute(),
-                                    (Route<dynamic> route) => false);
+                                (Route<dynamic> route) => false);
                           },
                           cancelCallback: () {
                             Navigator.of(context).pop(); // Close the dialog
@@ -454,7 +456,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
 
-            if(isProductPopUpMenu??false)
+            if (isProductPopUpMenu ?? false)
               Builder(
                 builder: (context) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -465,6 +467,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        if (isFollowRefresh ?? false)
+          Builder(
+            builder: (context) => isFollowRefreshWidget!(),
+          ),
         if (isLogout ?? false)
           Builder(
             builder: (context) => Container(
@@ -685,11 +691,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
 
-        if (buildCustomWidget!=null)
+        if (buildCustomWidget != null)
           Builder(
             builder: (context) => buildCustomWidget!(),
           ),
-
 
         // if (isAddProduct)
         //   Builder(
@@ -732,15 +737,15 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isCreateOwnProduct)
           Builder(
             builder: (context) => GestureDetector(
-              onTap: ()=> Get.toNamed(RouteHelper.getAddProductViaAiStep1Route()),
+              onTap: () =>
+                  Get.toNamed(RouteHelper.getAddProductViaAiStep1Route()),
               child: Container(
                 height: SizeConfig.size30,
                 margin: EdgeInsets.only(right: SizeConfig.size20),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryColor)
-                ),
+                    border: Border.all(color: AppColors.primaryColor)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -761,8 +766,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
-
       ],
       bottom: bottomWidget,
     );

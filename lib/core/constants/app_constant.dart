@@ -17,6 +17,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -1670,4 +1671,24 @@ double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
 
 double _deg2rad(double deg) {
   return deg * pi / 180;
+}
+
+List<String> isTempList = [];
+
+void trackPostView(String postID) {
+  // call API asynchronously without blocking UI
+  Future.microtask(() async {
+    try {
+      if (!isTempList.contains(postID)) {
+        isTempList.add(postID);
+        PostRepo().postByViewCountIDApi(id: postID);
+
+        logs("API CALL $postID");
+      }
+      // await ApiSer
+      // vice.trackView(post.id);
+    } catch (e) {
+      print("Failed to track view: $e");
+    }
+  });
 }

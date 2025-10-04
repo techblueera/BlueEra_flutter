@@ -333,6 +333,8 @@ class AuthController extends GetxController {
         isHaveGstApprove.value = true;
         businessNameTextController.text =
             gstVerifyModel?.value.data?.tradeName ?? "";
+        businessName.value =
+            gstVerifyModel?.value.data?.tradeName ?? "";
         Get.toNamed(RouteHelper.getBusinessAccountRoute());
         gstVerifyResponse.value = ApiResponse.complete(responseModel);
       } else {

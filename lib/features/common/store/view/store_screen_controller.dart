@@ -30,6 +30,12 @@ class StoreScreenController extends GetxController {
       // Run both APIs in parallel
       await LocationService.fetchLocation();
 
+    await Future.wait([
+        getAllStoreNearBy(),
+        getAllServiceNearBy(),
+        getAllStoreProductNearBy(),
+
+      ]);
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;

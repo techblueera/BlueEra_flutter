@@ -71,7 +71,6 @@ class _PersonalProfileSetupScreenState
   @override
   void initState() {
     super.initState();
-    print('calllllll');
     selectedFilter = widget.sortBy ?? SortBy.Latest;
     setFilters();
     _loadInitialData();

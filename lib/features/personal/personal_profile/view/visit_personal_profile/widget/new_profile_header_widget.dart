@@ -294,27 +294,17 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            InkWell(
-                              onTap: () {
-                                Get.to(() => FollowersFollowingPage(
-                                      tabIndex: 0,
-                                      userID: controller
-                                              .userData.value?.user?.id ??
-                                          "",
-                                    ));
-                              },
-                              child: StatBlock(
-                                  count:
-                                      controller.userData.value?.totalPosts !=
-                                              null
-                                          ? formatIndianNumber(num.parse(
-                                              controller.userData.value
-                                                      ?.totalPosts
-                                                      .toString() ??
-                                                  "0"))
-                                          : "0",
-                                  label: "Post"),
-                            ),
+                            StatBlock(
+                                count:
+                                    controller.userData.value?.totalPosts !=
+                                            null
+                                        ? formatIndianNumber(num.parse(
+                                            controller.userData.value
+                                                    ?.totalPosts
+                                                    .toString() ??
+                                                "0"))
+                                        : "0",
+                                label: "Post"),
                             Container(
                               height: 15,
                               width: 0.9,

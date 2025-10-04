@@ -105,9 +105,6 @@
       debugPrint(
           "=====================================Deep link received:========================= $uri");
       try {
-        print("iiiiidddddddddddddddddddddddddd  " +
-            (uri.toString().split("/").last));
-
         Get.to(()=>PostDeatilPage(),
             arguments: {"postId": (uri.toString().split("/").last)});
       } on Exception catch (e) {
