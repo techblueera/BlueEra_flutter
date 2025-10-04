@@ -10,6 +10,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -63,30 +64,54 @@ class _Step2SectionState extends State<Step2Section> {
   }
 
   Future<bool> _handleBackPress(BuildContext context) async {
-    final shouldPop = await showDialog<bool>(
+    bool shouldPop = false;
+
+    await showCommonDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('Your changes will be lost if you go back.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Get.close(2),
-            child: const Text('Discard'),
-          ),
-        ],
-      ),
+      text: 'Do you really want to go back? Unsaved changes will be lost.',
+      confirmText: 'Discard',
+      cancelText: 'Cancel',
+      confirmCallback: () {
+        _restoreOldValues(); // Restore previous values
+        Get.close(2); // Close two screens
+        shouldPop = true;
+      },
+      cancelCallback: () {
+        Navigator.of(context).pop(); // Close the dialog
+        shouldPop = false;
+      },
     );
 
-    if (shouldPop ?? false) {
-      _restoreOldValues();
-      return true;
-    }
-    return false;
+    return shouldPop;
   }
+
+
+
+  // Future<bool> _handleBackPress(BuildContext context) async {
+  //   final shouldPop = await showDialog<bool>(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Discard changes?'),
+  //       content: const Text('Your changes will be lost if you go back.'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.of(context).pop(false),
+  //           child: const Text('Cancel'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () => Get.close(2),
+  //           child: const Text('Discard'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  //
+  //   if (shouldPop ?? false) {
+  //     _restoreOldValues();
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   @override
   Widget build(BuildContext context) {

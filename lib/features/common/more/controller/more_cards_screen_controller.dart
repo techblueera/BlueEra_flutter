@@ -94,6 +94,49 @@ class MoreCardsScreenController extends GetxController{
     }
   }
 
+  Future<void> getAllCards() async {
+    isLoading.value = true;
+    try {
+      Map<String , dynamic> queryParams = {
+        ApiKeys.fromDate: DateTime.now().toIso8601String(),
+        ApiKeys.toDate: DateTime.now().add(Duration(days: 1)).toIso8601String(),
+      };
+      ResponseModel responseModel = await UserRepo().getAllCards(queryParams: queryParams);
+      if (responseModel.isSuccess) {
+        AllCardCategoriesResponse.value = ApiResponse.complete(responseModel);
+        final cardModelResponse = CardModelResponse.fromJson(responseModel.response?.data);
+
+        final List<Cards> cards = [];
+        final List<String> categories = [];
+
+        if (cardModelResponse.categories != null) {
+          for (final category in cardModelResponse.categories!) {
+            if (category.name != null) {
+              print('category name -- ${category.name!}');
+              categories.add(category.name!);
+            }
+            if (category.cards != null) {
+              cards.addAll(category.cards!);
+            }
+          }
+        }
+
+        allCards.value = cards;
+        allCategories.value = categories;
+
+        filteredCards.value = List.from(cards);
+      } else {
+        AllCardCategoriesResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      AllCardCategoriesResponse.value = ApiResponse.error('error');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   void filterCardsByCategory(String? categoryName) {
     if (categoryName == null || categoryName.isEmpty || categoryName == "All") {
       filteredCards.value = List.from(allCards);

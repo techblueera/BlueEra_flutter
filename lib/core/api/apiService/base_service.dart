@@ -232,6 +232,7 @@ abstract class BaseService {
   final String favouriteSearchSongPost = 'post-service/favorites/search';
   final String cardCategories = 'post-service/categories';
   final String cardCategoriesSortByDate = 'post-service/categories/sorted/by-date';
+  final String allCardCategories = 'post-service/categories/cards/all';
 
   /// Comment
   String postComments(String postId) =>

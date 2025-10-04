@@ -122,7 +122,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   // }
 
 
-
   Widget _buildCategoryCard(CategoryInventoryModel category, InventoryController controller) {
     return Material(
       color: Colors.transparent,
@@ -268,7 +267,6 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       ),
     );
   }
-
 
   void showPopUpMenu(BuildContext context, InventoryController controller) async {
     final RenderBox button = context.findRenderObject() as RenderBox;

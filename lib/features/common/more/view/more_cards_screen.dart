@@ -37,6 +37,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
   @override
   void initState() {
     super.initState();
+    // moreCardsScreenController.getAllCards();
     moreCardsScreenController.getAllCardCategories();
   }
 

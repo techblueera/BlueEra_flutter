@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
@@ -513,8 +514,14 @@ bool isLoading = true;
           backgroundColor: AppColors.white,
           contentPadding: EdgeInsets.zero,
           content: Container(
-            margin: EdgeInsets.symmetric(
-                vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
+            margin: EdgeInsets.only(
+                left: SizeConfig.size16,
+                right: SizeConfig.size16,
+                bottom: SizeConfig.size16,
+                top: SizeConfig.size8
+            ),
+            // margin: EdgeInsets.symmetric(
+            //     vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -522,6 +529,16 @@ bool isLoading = true;
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Align(
+                        alignment: Alignment.topRight,
+                        child: InkWell(
+                          onTap: ()=> Get.back(),
+                          child: Icon(
+                            Icons.close,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        )
+                    ),
                     LocalAssets(
                         imagePath: AppIconAssets.goldenNotificationIcon),
                     SizedBox(width: SizeConfig.size5),
@@ -530,7 +547,7 @@ bool isLoading = true;
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.w700,
                       textAlign: TextAlign.center,
-                      color: AppColors.black30,
+                      color: AppColors.mainTextColor,
                     ),
                   ],
                 ),
@@ -541,19 +558,24 @@ bool isLoading = true;
                     selected == 0? "This will remove all your current notifications. You won’t be able to view them again.":"This will remove your current notifications. You won’t be able to view them again.",
                     fontSize: SizeConfig.medium,
                     textAlign: TextAlign.center,
-                    color: AppColors.black30),
+                    color: AppColors.secondaryTextColor
+                ),
                 SizedBox(height: SizeConfig.size15),
                 Row(
                   children: [
                     Expanded(
-                        child: IconButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      icon: CustomText(
-                        "Cancel",
-                        fontSize: SizeConfig.large,
-                        color: AppColors.black30,
+                      child: CustomBtn(
+                        height: SizeConfig.size45,
+                        onTap: () {
+                          Navigator.pop(context, false);
+                        },
+                        title: "Cancel",
+                        textColor: AppColors.secondaryTextColor,
+                        bgColor: AppColors.white,
+                        borderColor: AppColors.secondaryTextColor,
+                        radius: 8.0,
                       ),
-                    )),
+                    ),
                     Expanded(
                       child: CustomBtn(
                         height: SizeConfig.size45,
