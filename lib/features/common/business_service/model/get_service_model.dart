@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import '../../../business/auth/model/ReleatedStoresList.dart';
 GetServiceModel getServiceModelFromJson(String str) => GetServiceModel.fromJson(json.decode(str));
 String getServiceModelToJson(GetServiceModel data) => json.encode(data.toJson());
 class GetServiceModel {
@@ -22,12 +24,16 @@ class GetServiceModel {
       this.extraDetails, 
       this.isActive, 
       this.isDeleted, 
-      this.addOns, 
+      this.category,
+      this.businessName,
+      this.subCategory,
+      this.addOns,
       this.priceOptions, 
       this.createdAt, 
       this.updatedAt, 
       this.v, 
       this.servingOptions, 
+      this.business,
       this.variants,});
 
   GetServiceModel.fromJson(dynamic json) {
@@ -37,6 +43,9 @@ class GetServiceModel {
 
     id = json['_id'];
     userId = json['userId'];
+    category = json['category'];
+    businessName = json['businessName'];
+    subCategory = json['subCategory'];
     type = json['type'];
     title = json['title'];
     description = json['description'];
@@ -74,6 +83,9 @@ class GetServiceModel {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
+    business = json['business'] != null
+        ? new BusinessService.fromJson(json['business'])
+        : null;
 
   }
   PriceRange? priceRange;
@@ -86,6 +98,9 @@ class GetServiceModel {
   String? type;
   String? title;
   String? description;
+  String? category;
+  String? subCategory;
+  String? businessName;
   List<String>? photos;
   List<Timings>? timings;
   List<String>? facilities;
@@ -102,8 +117,11 @@ class GetServiceModel {
   int? v;
   List<dynamic>? servingOptions;
   List<dynamic>? variants;
+  BusinessService? business;
+
 
   Map<String, dynamic> toJson() {
+
     final map = <String, dynamic>{};
     if (priceRange != null) {
       map['priceRange'] = priceRange?.toJson();
@@ -111,6 +129,9 @@ class GetServiceModel {
 
     map['_id'] = id;
     map['userId'] = userId;
+    map['category'] = category;
+    map['businessName'] = businessName;
+    map['subCategory'] = subCategory;
     map['type'] = type;
     map['title'] = title;
     map['description'] = description;
@@ -146,6 +167,9 @@ class GetServiceModel {
     if (variants != null) {
       map['variants'] = variants?.map((v) => v.toJson()).toList();
     }
+    if (this.business != null) {
+      map['business'] = this.business!.toJson();
+    }
     return map;
   }
 
@@ -180,22 +204,26 @@ class Discounts {
   Discounts({
       this.name, 
       this.description, 
+      this.amountOff,
       this.type,});
 
   Discounts.fromJson(dynamic json) {
     name = json['name'];
     description = json['description'];
     type = json['type'];
+    amountOff = json['amountOff'];
   }
   String? name;
   String? description;
   String? type;
+  num? amountOff;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['name'] = name;
     map['description'] = description;
     map['type'] = type;
+    map['amountOff'] = amountOff;
     return map;
   }
 
@@ -249,4 +277,84 @@ class PriceRange {
     return map;
   }
 
+}
+
+class BusinessLocation {
+  BusinessLocation({
+    this.lat,
+    this.lon,});
+
+  BusinessLocation.fromJson(dynamic json) {
+    lat = json['lat'];
+    lon = json['lon'];
+  }
+  num? lat;
+  num? lon;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['lat'] = lat;
+    map['lon'] = lon;
+    return map;
+  }
+
+}
+class BusinessService {
+  String? id;
+  String? userId;
+  String? businessName;
+  String? typeOfBusiness;
+  String? logo;
+  BusinessLocation? businessLocation;
+  String? createdAt;
+  String? updatedAt;
+
+  BusinessService(
+      {
+
+        this.id,
+        this.userId,
+        this.businessName,
+        this.typeOfBusiness,
+        this.logo,
+
+        this.businessLocation,
+        this.createdAt,
+        this.updatedAt,
+     });
+
+  BusinessService.fromJson(Map<String, dynamic> json) {
+
+    id = json['id'];
+    userId = json['user_id'];
+    businessName = json['business_name'];
+
+    typeOfBusiness = json['type_of_business'];
+    logo = json['logo'];
+    businessLocation = json['business_location'] != null
+        ? new BusinessLocation.fromJson(json['business_location'])
+        : null;
+    createdAt = json['created_at'];
+    updatedAt = json['updated_at'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+
+
+
+    data['id'] = this.id;
+    data['user_id'] = this.userId;
+    data['business_name'] = this.businessName;
+
+    data['type_of_business'] = this.typeOfBusiness;
+    data['logo'] = this.logo;
+
+    if (this.businessLocation != null) {
+      data['business_location'] = this.businessLocation!.toJson();
+    }
+    data['created_at'] = this.createdAt;
+    data['updated_at'] = this.updatedAt;
+    return data;
+  }
 }

@@ -177,8 +177,9 @@ class _ProductCardState extends State<ProductCardBusiness> {
                       ),
                       Flexible(
                         child: Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(horizontal: 2),
+                          // alignment: Alignment.center,
+                          // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                          padding: EdgeInsets.symmetric(horizontal: 5,vertical: 2),
                           decoration: BoxDecoration(
                               color: Colors.green,
                               borderRadius: BorderRadius.circular(30)),

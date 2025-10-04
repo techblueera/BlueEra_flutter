@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+
 /// _id : "68dcaa3fd0dc5de645817be8"
 /// userId : "68beb748ae9530cebdebcb6a"
 /// type : "food"
@@ -58,7 +60,9 @@ class GetFoodDetailsModel {
     String? updatedAt,
     num? v,
     String? availability,   // ✅ added
-    String? vegType,        // ✅ added
+    String? vegType,
+    BusinessService? business,
+// ✅ added
   }) {
     _id = id;
     _userId = userId;
@@ -91,6 +95,7 @@ class GetFoodDetailsModel {
     _v = v;
     _availability = availability;   // ✅ added
     _vegType = vegType;             // ✅ added
+    _business = business;             // ✅ added
   }
 
   GetFoodDetailsModel.fromJson(dynamic json) {
@@ -171,7 +176,10 @@ class GetFoodDetailsModel {
     _updatedAt = json['updatedAt'];
     _v = json['__v'];
     _availability = json['availability']; // ✅ added
-    _vegType = json['vegType'];           // ✅ added
+    _vegType = json['vegType'];
+    _business = json['business'] != null
+        ? new BusinessService.fromJson(json['business'])
+        : null;// ✅ added
   }
 
   String? _id;
@@ -205,6 +213,7 @@ class GetFoodDetailsModel {
   num? _v;
   String? _availability;  // ✅ added
   String? _vegType;       // ✅ added
+  BusinessService? _business;
 
   GetFoodDetailsModel copyWith({
     String? id,
@@ -237,7 +246,9 @@ class GetFoodDetailsModel {
     String? updatedAt,
     num? v,
     String? availability,   // ✅ added
-    String? vegType,        // ✅ added
+    String? vegType,
+    BusinessService? business,
+// ✅ added
   }) =>
       GetFoodDetailsModel(
         id: id ?? _id,
@@ -272,6 +283,7 @@ class GetFoodDetailsModel {
         v: v ?? _v,
         availability: availability ?? _availability, // ✅ added
         vegType: vegType ?? _vegType,               // ✅ added
+        business: business ?? _business,               // ✅ added
       );
 
   // ✅ Getters
@@ -306,6 +318,7 @@ class GetFoodDetailsModel {
   num? get v => _v;
   String? get availability => _availability;  // ✅ added
   String? get vegType => _vegType;            // ✅ added
+  BusinessService? get business => _business;            // ✅ added
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

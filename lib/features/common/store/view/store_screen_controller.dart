@@ -146,12 +146,6 @@ class StoreScreenController extends GetxController {
       final response =
           await ServiceAiRepo().getServiceRepo(); // Make sure repo uses params
       if (response.isSuccess) {
-        // final getOwnProductModel =
-        // GetServiceModel.fromJson(response.response!.data);
-        //
-        // serviceDataList.value = getOwnProductModel??[];
-
-
         List<dynamic> jsonData = json.decode(jsonEncode(response.response?.data));
         serviceDataList.value  =
         jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
