@@ -8,7 +8,7 @@
 // import 'package:BlueEra/core/constants/size_config.dart';
 // import 'package:BlueEra/core/routes/route_helper.dart';
 // import 'package:BlueEra/core/widgets/custom_form_card.dart';
-// import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+// import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 // import 'package:BlueEra/widgets/common_box_shadow.dart';
 // import 'package:BlueEra/widgets/custom_btn.dart';
 // import 'package:BlueEra/widgets/custom_text_cm.dart';

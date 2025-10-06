@@ -1,9 +1,8 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
 class SubmitVariantDialog extends StatefulWidget {
-  final AddProductViaAiController controller;
+  final ProductController controller;
 
   const SubmitVariantDialog({
     super.key,

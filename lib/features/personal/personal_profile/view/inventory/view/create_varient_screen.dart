@@ -1,10 +1,9 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_variant_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/color_selection_tile.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/skip_variant_dialog.dart';
@@ -18,12 +17,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// On next pop up we will ask to add image (up to 2)
-/// Need to aad multiple images slider for product listing
-
-
 class CreateVariantScreen extends StatefulWidget {
-  final AddProductViaAiController controller;
+  final ProductController controller;
   const CreateVariantScreen({super.key, required this.controller});
 
   @override
@@ -75,73 +70,73 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                   SizedBox(height: SizeConfig.size20), // Extra space for bottom buttons
 
                   // Bottom buttons (fixed at bottom)
-                  Obx(() => Row(
-                    children: [
-                      // Show Skip only if nothing is selected
-
-                      if(widget.controller.listedProducts.isEmpty ?? false)
-                      if (widget.controller.selectedVariantValues.isEmpty)
-                        Expanded(
+                  Obx(() {
+                    final selectedEmpty = widget.controller.selectedVariantValues.isEmpty; // compute reactively if needed
+                    return Row(
+                      children: [
+                        if(widget.controller.listedProducts.isEmpty)
+                        if (selectedEmpty)
+                          Expanded(
+                            child: PositiveCustomBtn(
+                              title: 'Skip',
+                              bgColor: AppColors.white,
+                              borderColor: AppColors.primaryColor,
+                              textColor: AppColors.primaryColor,
+                              radius: 10.0,
+                              onTap: () {
+                                showDialog(
+                                  context: Get.context!,
+                                  barrierDismissible: false,
+                                  builder: (context) => SkipVariantDialog(
+                                    controller: widget.controller,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        if (selectedEmpty)
+                          SizedBox(width: SizeConfig.size10),
+                          Expanded(
                           child: PositiveCustomBtn(
-                            title: 'Skip',
-                            bgColor: AppColors.white,
-                            borderColor: AppColors.primaryColor,
-                            textColor: AppColors.primaryColor,
+                            title: 'Next',
+                            bgColor: widget.controller.isNextEnabled.value
+                                ? AppColors.primaryColor
+                                : AppColors.greyE5,
+                            borderColor: widget.controller.isNextEnabled.value
+                                ? AppColors.primaryColor
+                                : Colors.grey,
                             radius: 10.0,
-                            onTap: () {
+                            textColor: widget.controller.isNextEnabled.value
+                                ? AppColors.white
+                                : AppColors.primaryColor,
+                            onTap: widget.controller.isNextEnabled.value
+                                ? () {
                               showDialog(
                                 context: Get.context!,
                                 barrierDismissible: false,
-                                builder: (context) => SkipVariantDialog(
+                                builder: (context) => SubmitVariantDialog(
                                   controller: widget.controller,
                                 ),
                               );
-
+                            }
+                                : () {
+                              Get.snackbar(
+                                'Error',
+                                'Please select each variant to further proceed',
+                              );
                             },
                           ),
                         ),
-                      if (widget.controller.selectedVariantValues.isEmpty)
-                        SizedBox(width: SizeConfig.size10),
-                      Expanded(
-                        child: PositiveCustomBtn(
-                          title: 'Next',
-                          bgColor: widget.controller.isNextEnabled.value
-                              ? AppColors.primaryColor
-                              : AppColors.greyE5,
-                          borderColor: widget.controller.isNextEnabled.value
-                              ? AppColors.primaryColor
-                              : Colors.grey,
-                          radius: 10.0,
-                          textColor: widget.controller.isNextEnabled.value
-                              ? AppColors.white
-                              : AppColors.primaryColor,
-                          onTap: widget.controller.isNextEnabled.value
-                              ? () {
-                            showDialog(
-                              context: Get.context!,
-                              barrierDismissible: false,
-                              builder: (context) => SubmitVariantDialog(
-                                controller: widget.controller,
-                              ),
-                            );
-                          }
-                              : () {
-                            Get.snackbar(
-                                'Error',
-                                'Please select each variant to further proceed'
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ))
+                      ],
+                    );
+                  })
 
                 ],
               ),
             ),
 
              Obx(()=>
-             (widget.controller.listedProducts.isNotEmpty ?? false) ?
+             (widget.controller.listedProducts.isNotEmpty) ?
              CustomFormCard(
                margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
                child: Column(
@@ -670,11 +665,13 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
 
   void _openColorDialog(BuildContext context) {
-    RxList<SelectedColor> selectedColors = <SelectedColor>[].obs;
+    // Clone existing selected colors
+    final existingColors = widget.controller.selectedColors.toList();
+    final newColors = <SelectedColor>[].obs; // Only new picks
 
     showDialog(
       context: context,
-      barrierDismissible: true, // closes when tapping outside
+      barrierDismissible: true,
       builder: (context) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -689,50 +686,41 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ColorSelectionTile(
-                      controller: widget.controller,
-                      onSelectedColor: (color, colorName){
-                        if (!selectedColors.any((c) => c.color == color)) {
-                          selectedColors.add(SelectedColor(color, colorName));
-                        }
+                    controller: widget.controller,
+                    onSelectedColor: (color, colorName) {
+                      // Only add if not already in existing or new
+                      if (!existingColors.any((c) => c.color == color) &&
+                          !newColors.any((c) => c.color == color)) {
+                        newColors.add(SelectedColor(color, colorName));
                       }
+                    },
                   ),
+
                   Obx(() => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: List.generate(selectedColors.length, (i) {
-                        final selected = selectedColors[i];
-                        return Chip(
-                          backgroundColor: AppColors.lightBlue,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(color: Colors.transparent),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          deleteIcon: const Icon(
-                            Icons.close,
-                            size: 18,
-                            color: AppColors.mainTextColor,
-                          ),
-                          onDeleted: () {
-                            selectedColors.remove(selected);
-                          },
+                      children: [
+                        // Existing colors (non-deletable)
+                        ...existingColors.map((c) => Chip(
+                          backgroundColor: AppColors.grey5B.withValues(alpha: 0.3),
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Container(
                                 width: 16,
                                 height: 16,
                                 decoration: BoxDecoration(
-                                  color: selected.color,
+                                  color: c.color,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 1),
+                                  border: Border.all(
+                                      color: Colors.white, width: 1),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '${selected.name}',
+                                c.name,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.secondaryTextColor,
@@ -740,22 +728,69 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                               ),
                             ],
                           ),
-                          labelPadding: const EdgeInsets.only(left: 12),
-                          padding: EdgeInsets.zero,
-                          visualDensity: VisualDensity.compact,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        );
-                      }),
+                        )),
+
+                        // New colors (deletable)
+                        ...newColors.map((c) => Chip(
+                          backgroundColor: AppColors.lightBlue,
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: c.color,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: Colors.white, width: 1),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                c.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          deleteIcon: const Icon(
+                            Icons.close,
+                            size: 18,
+                            color: AppColors.mainTextColor,
+                          ),
+                          onDeleted: () => newColors.remove(c),
+                        )),
+                      ],
                     ),
                   )),
-                  PositiveCustomBtn(
-                    onTap: () {
-                      for(var selectedColor in selectedColors){
-                        widget.controller.addColor(selectedColor.color, selectedColor.name);
-                       }
-                      Get.back();
-                     },
-                    title: 'Save',
+
+                  CustomBtn(
+                    onTap: () async {
+
+                      final allColors = [
+                        ...existingColors,
+                        ...newColors,
+                      ];
+
+                      final success = await widget.controller.addUpdateProductVariantApi(
+                          allColors: allColors,
+                          allDynamicAttributes: widget.controller.dynamicAttributes.map(
+                                (key, value) => MapEntry(key, value.toList()),
+                          )
+                      );
+
+                      if (success) {
+                        widget.controller.selectedColors.assignAll(allColors);
+                        Get.back();
+                      }
+                    },
+                    title: widget.controller.isAddUpdateProductVariantLoading.value
+                        ? null
+                        : 'Save',
+                    isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
                     bgColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     radius: 10.0,
@@ -773,9 +808,11 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
       BuildContext context,
       String attributeKey,
       ) {
-    // Local temp storage
-    List<String> tempValues =
+    final existingValues =
         widget.controller.dynamicAttributes[attributeKey]?.toList() ?? [];
+
+    // Temp list for newly added values
+    List<String> newValues = [];
 
     final textCtrl = TextEditingController();
     String inputText = '';
@@ -849,9 +886,12 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                   ? InkWell(
                                 key: ValueKey("add_$attributeKey"),
                                 onTap: () {
-                                  if (!tempValues.contains(inputText)) {
+                                  final val = inputText.trim();
+                                  if (val.isNotEmpty &&
+                                      !existingValues.contains(val) &&
+                                      !newValues.contains(val)) {
                                     setState(() {
-                                      tempValues.add(inputText);
+                                      newValues.add(val);
                                       inputText = '';
                                       textCtrl.clear();
                                     });
@@ -874,43 +914,75 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 2,
-                        children: tempValues.map((val) {
-                          return Chip(
-                            label: Text(val),
-                            backgroundColor: AppColors.lightBlue,
-                            labelStyle: TextStyle(
-                              fontSize: SizeConfig.size14,
-                              color: Colors.black87,
-                            ),
-                            deleteIcon: const Icon(
-                              Icons.close,
-                              size: 20,
-                              color: AppColors.mainTextColor,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.transparent),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            onDeleted: () => setState(() => tempValues.remove(val)),
-                            labelPadding: const EdgeInsets.only(left: 12),
-                            padding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          );
-                        }).toList(),
+                        children: [
+                          // Existing values (non-deletable)
+                          ...existingValues.map((val) {
+                            return Chip(
+                              label: Text(val),
+                              backgroundColor: AppColors.grey5B.withValues(alpha: 0.3),
+                              labelStyle: TextStyle(
+                                fontSize: SizeConfig.size14,
+                                color: Colors.black87,
+                              ),
+                            );
+                          }),
+                          // Newly added values (deletable)
+                          ...newValues.map((val) {
+                            return Chip(
+                              label: Text(val),
+                              backgroundColor: AppColors.lightBlue,
+                              labelStyle: TextStyle(
+                                fontSize: SizeConfig.size14,
+                                color: Colors.black87,
+                              ),
+                              deleteIcon: const Icon(
+                                Icons.close,
+                                size: 20,
+                                color: AppColors.mainTextColor,
+                              ),
+                              onDeleted: () => setState(() => newValues.remove(val)),
+                            );
+                          }),
+                        ],
                       ),
 
                       const SizedBox(height: 16),
 
                       // Save button
-                      PositiveCustomBtn(
-                        onTap: () {
-                          // Update main attributes
-                          widget.controller.dynamicAttributes[attributeKey] = tempValues.obs;
-                          setState(() {});
-                          Navigator.pop(context);
+                      CustomBtn(
+                        onTap: () async {
+
+                          final updatedValues = [
+                            ...existingValues,
+                            ...newValues,
+                          ];
+
+                          final Map<String, List<String>> dynamicAttributesCopy = widget.controller.dynamicAttributes.map(
+                                (key, value) => MapEntry(key, value.toList()),
+                          );
+
+                          dynamicAttributesCopy[attributeKey] = updatedValues;
+
+                          final success = await widget.controller.addUpdateProductVariantApi(
+                            allColors: widget.controller.selectedColors,
+                            allDynamicAttributes: dynamicAttributesCopy,
+                          );
+
+                          if(success){
+                            final updatedValues = [
+                              ...existingValues,
+                              ...newValues
+                            ];
+                            widget.controller.dynamicAttributes[attributeKey] = updatedValues.obs;
+                            widget.controller.dynamicAttributes.refresh();
+                            Get.back();
+                          }
+
                         },
-                        title: 'Save',
+                        title: widget.controller.isAddUpdateProductVariantLoading.value
+                            ? null
+                            : 'Save',
+                        isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
                         bgColor: AppColors.primaryColor,
                         borderColor: AppColors.primaryColor,
                         radius: 10.0,
@@ -925,6 +997,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
       },
     );
   }
+
 
   List<PopupMenuEntry<String>> popupProductListedVariantMenuItems() {
     final items = <Map<String, dynamic>>[

@@ -3,7 +3,7 @@
 // import 'package:BlueEra/core/constants/common_methods.dart';
 // import 'package:BlueEra/core/constants/size_config.dart';
 // import 'package:BlueEra/core/widgets/custom_form_card.dart';
-// import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+// import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 // import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/color_selection_tile.dart';
 // import 'package:BlueEra/widgets/color_picker_widget.dart';
 // import 'package:BlueEra/widgets/common_back_app_bar.dart';

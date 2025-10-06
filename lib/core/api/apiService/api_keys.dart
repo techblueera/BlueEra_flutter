@@ -364,7 +364,6 @@ class ApiKeys {
   static const cursor  = "cursor";
   static const content_types  = "content_types";
   static const controller = "controller";
-  static const varient = "varient";
   static const addProductViaAiController = "addProductViaAiController";
   static const product_details = "product_details";
   static const product_name = "product_name";
@@ -387,4 +386,6 @@ class ApiKeys {
   static const isUserCanCreateVariants = "isUserCanCreateVarints";
   static const fromDate = "fromDate";
   static const toDate = "toDate";
+  static const variantId = "variantId";
+  static const updateFields = "updateFields";
 }

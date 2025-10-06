@@ -55,7 +55,7 @@ class InventoryRepo extends BaseService {
   ///Get Own Products...
   Future<ResponseModel> cloneProductVariantApi({required List<Map<String, dynamic>> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      cloneVariant,
+      cloneProductInventory,
       params: params,
       showProgress: false,
       onError: (error) {},

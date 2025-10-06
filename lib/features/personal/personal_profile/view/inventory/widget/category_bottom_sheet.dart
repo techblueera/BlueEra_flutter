@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 import '../model/sub_category_root_category_response.dart';
 
 Future<void> showCategoryBottomSheet(BuildContext context) async {
-  final controller = Get.put(AddProductViaAiController());
+  final controller = Get.put(ProductController());
   controller.searchResults.clear();
   controller.searchController.text = controller.selectedCategory.value;
   controller.onSearchChanged(controller.searchController.text);
@@ -184,7 +184,7 @@ Future<void> showCategoryBottomSheet(BuildContext context) async {
 
 }
 
-Widget _buildSearchResults(AddProductViaAiController controller, BuildContext context) {
+Widget _buildSearchResults(ProductController controller, BuildContext context) {
   return controller.searchResults.isNotEmpty ? ListView.separated(
     itemCount: controller.searchResults.length,
     separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
