@@ -151,7 +151,7 @@ class PostRepo extends BaseService {
 
   Future<ResponseModel> postByIDApi({required String id}) async {
     var response = await ApiBaseHelper().getHTTP(
-      postByID + id,
+      "${postByID}/" + id,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -160,6 +160,7 @@ class PostRepo extends BaseService {
   }
 
   Future<ResponseModel> postByViewCountIDApi({required String id}) async {
+
     var response = await ApiBaseHelper().postHTTP(
       postByID ,
       params: {

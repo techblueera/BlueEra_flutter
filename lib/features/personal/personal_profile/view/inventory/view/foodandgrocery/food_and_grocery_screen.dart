@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,7 +19,11 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen> {
   @override
   void initState() {
     // TODO: implement initState
-    Map<String, dynamic> params = {"all": false, "type": "food"};
+    Map<String, dynamic> params = {
+      "all": false,
+      "type": "food",
+      "radius": kmRadius1000
+    };
     controller.getFoodService(params);
     super.initState();
   }
@@ -53,9 +58,8 @@ class FoodItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2.0,top: 2,left: 8,right: 8),
+      padding: const EdgeInsets.only(bottom: 2.0, top: 2, left: 8, right: 8),
       child: Card(
-
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -83,11 +87,10 @@ class FoodItemCard extends StatelessWidget {
                     ),
                   ),
                   errorWidget: (context, url, error) =>
-                  const Icon(Icons.broken_image, size: 40),
+                      const Icon(Icons.broken_image, size: 40),
                 ),
               ),
             ),
-
 
             // CONTENT SECTION
             Expanded(
@@ -158,7 +161,7 @@ class FoodItemCard extends StatelessWidget {
 
                     // Price options (Small / Medium / Large)
                     CustomText(
-                      "Rs ${foodData.singlePrice ??"N/A"}",
+                      "Rs ${foodData.singlePrice ?? "N/A"}",
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -196,18 +199,17 @@ class FoodItemCard extends StatelessWidget {
                         spacing: 12,
                         runSpacing: 4,
                         children: foodData.addOns!
-                            .map((addon) =>
-                            InkWell(
-                              onTap: () {},
-                              child: Text(
-                                addon,
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  fontSize: 13,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ))
+                            .map((addon) => InkWell(
+                                  onTap: () {},
+                                  child: Text(
+                                    addon,
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 13,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ))
                             .toList(),
                       )
                   ],

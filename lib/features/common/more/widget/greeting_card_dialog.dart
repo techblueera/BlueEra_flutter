@@ -60,34 +60,6 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                          "Share This Card To Your Friend Or Family",
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                          fontSize: SizeConfig.small,
-                          fontFamily: AppConstants.OpenSans),
-                    ),
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: InkWell(
-                        onTap: () async {
-                          await VisitingCardHelper().shareVisitingCard(
-                            _cardKey[_currentIndex],
-                          );
-                          // doNotShowCardAgain();
-                        },
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: SizeConfig.size5,right: SizeConfig.size5,top: SizeConfig.size5),
-                          child: LocalAssets(imagePath: AppIconAssets.share_bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -202,7 +174,37 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                         ),
                       ),
                   ],
-                )
+                ),
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                          "Share This Card To Your Friend Or Family",
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w400,
+                          fontSize: SizeConfig.small,
+                          fontFamily: AppConstants.OpenSans),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: InkWell(
+                        onTap: () async {
+                          await VisitingCardHelper().shareVisitingCard(
+                            _cardKey[_currentIndex],
+                          );
+                          // doNotShowCardAgain();
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: SizeConfig.size5,right: SizeConfig.size5,top: SizeConfig.size5),
+                          child: LocalAssets(imagePath: AppIconAssets.share_bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
               ],
             ),
           ),

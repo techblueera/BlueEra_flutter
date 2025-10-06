@@ -194,13 +194,15 @@ class OwnerDetails {
   String? name;
   String? roleInBusiness;
   String? email;
+  String? logo;
 
-  OwnerDetails({this.name, this.roleInBusiness, this.email});
+  OwnerDetails({this.name, this.roleInBusiness, this.email, this.logo});
 
   OwnerDetails.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     roleInBusiness = json['role_in_business'];
     email = json['email'];
+    logo = json['logo'];
   }
 
   Map<String, dynamic> toJson() {
@@ -208,6 +210,7 @@ class OwnerDetails {
     data['name'] = this.name;
     data['role_in_business'] = this.roleInBusiness;
     data['email'] = this.email;
+    data['logo'] = this.logo;
     return data;
   }
 }

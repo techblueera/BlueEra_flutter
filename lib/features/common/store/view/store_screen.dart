@@ -7,12 +7,15 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/business_service/widget/service_card.dart';
+import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
+import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/product_listing/widgets/product_card.dart';
 import 'package:BlueEra/features/common/store/store_search_suggestion/store_search_suggestion_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -64,7 +67,6 @@ class _StoreScreenState extends State<StoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: Obx(() {
         if (controller.isLoading.value) {
           return CircularIndicator();
@@ -91,119 +93,17 @@ class _StoreScreenState extends State<StoreScreen> {
                     children: [
                       SizedBox(height: SizeConfig.size50),
                       _buildSearchBar(),
-
                       SizedBox(height: SizeConfig.size20),
                       _buildFoodServiceSection(categoryName: "Food"),
-
-
-                       SizedBox(height: SizeConfig.size20),
                       _buildStoresProductSection(categoryName: "Product"),
-
-                      SizedBox(height: SizeConfig.size20),
                       _buildStoresServiceSection(categoryName: "Service"),
-
-                      // ProductSlider(),
                       _buildStoresSection(
                           categoryName: "Shop", tagName: "store"),
-
-                      ///DO NOT DELETE THIS CODE....
-                      /*      if (Platform.isAndroid) ...[
-                        if (adUnitId != null) ...[
-                          SizedBox(height: SizeConfig.size20),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: SizeConfig.size370,
-                              maxHeight: SizeConfig.size450,
-                            ),
-                            child: Container(
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.paddingM),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 8,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: NativeAdWidget(adUnitId: adUnitId!),
-                            ),
-                          ),
-                        ],
-                      ],
-*/
-                      SizedBox(height: SizeConfig.size20),
-
-                      // Transform.translate(
-                      //   offset: Offset(0, -20),
-                      //
-                      //   // Negative offset to reduce space
-                      //   child: CustomImageSlideshow(
-                      //     isLoading: false,
-                      //     height: SizeConfig.size200,
-                      //     imagePaths: [
-                      //       "assets/images/BANNER_1.jpeg",
-                      //       "assets/images/BANNER_2.jpeg"
-                      //     ],
-                      //     isLocal: true,
-                      //
-                      //   ),
-                      // ),
-
-                      // _buildStoresSection(
-                      //     categoryName: "Products", tagName: "products"),
-
-                      // SizedBox(height: SizeConfig.size20),
-                      // Transform.translate(
-                      //   offset: Offset(0, -20),
-                      //   // Negative offset to reduce space
-                      //   child: CustomImageSlideshow(
-                      //     isLoading: false,
-                      //     imagePaths: [
-                      //       AppImageAssets.dummy_burger_king,
-                      //       AppImageAssets.dummy_burger_king,
-                      //     ],
-                      //     isLocal: true,
-                      //   ),
-                      // ),
                       _buildStoresSection(
                           categoryName: "Business", tagName: "services"),
-
-                      /*     if (Platform.isAndroid) ...[
-                        if (adUnitId != null) ...[
-                          SizedBox(height: SizeConfig.size20),
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: SizeConfig.size370,
-                              maxHeight: SizeConfig.size450,
-                            ),
-                            child: Container(
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.paddingM),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 8,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: NativeAdWidget(adUnitId: adUnitId!),
-                            ),
-                          ),
-                        ],
-                      ],*/
-
-                      SizedBox(height: SizeConfig.size20),
-
                       _buildStoresSection(
                           categoryName: "Others", tagName: "others"),
+                      SizedBox(height: SizeConfig.size60),
                     ],
                   ),
                 ),
@@ -226,7 +126,6 @@ class _StoreScreenState extends State<StoreScreen> {
                         children: [
                           SizedBox(height: SizeConfig.size10),
                           _buildLocationHeader(),
-                          // SizedBox(height: SizeConfig.size10),
                         ],
                       ),
                     ),
@@ -274,26 +173,6 @@ class _StoreScreenState extends State<StoreScreen> {
                 ],
               ),
             ),
-            /* Stack(
-              alignment: Alignment.topRight,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Get.to(() => StoreWishlistScreen());
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.primaryColor)),
-                    child: CustomText(
-                      "Wishlist",
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),*/
           ],
         ),
       ),
@@ -339,7 +218,6 @@ class _StoreScreenState extends State<StoreScreen> {
                         Get.to(() => BusinessChatProfile(
                               userId: '',
                             ));
-                        // Get.to(() =>   StoreSearchSuggestionScreen());
                       },
                       child: AbsorbPointer(
                         child: Container(
@@ -370,11 +248,6 @@ class _StoreScreenState extends State<StoreScreen> {
                                   fontSize: SizeConfig.size15,
                                   color: AppColors.secondaryTextColor,
                                 )),
-                                // LocalAssets(
-                                //   height: SizeConfig.size18,
-                                //   imagePath: AppIconAssets.mic,
-                                //   imgColor: AppColors.secondaryTextColor,
-                                // ),
                               ],
                             )),
                       ),
@@ -420,17 +293,17 @@ class _StoreScreenState extends State<StoreScreen> {
                           isShowKM: true,
                           isShowBusinessInfo: true,
                         );
-
                       },
                     )
                   : Center(child: CustomText("No $tagName found yet")),
             );
           }),
-          SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size20),
         ],
       );
     return SizedBox.shrink();
   }
+
   Widget _buildStoresServiceSection({String? categoryName, String? tagName}) {
     if (controller.serviceDataList.isNotEmpty)
       return Column(
@@ -447,7 +320,7 @@ class _StoreScreenState extends State<StoreScreen> {
           SizedBox(height: SizeConfig.size15),
           Obx(() {
             return SizedBox(
-              height: 315,
+              height: 295,
               child: controller.serviceDataList.isNotEmpty
                   ? ListView.builder(
                       scrollDirection: Axis.horizontal,
@@ -462,21 +335,19 @@ class _StoreScreenState extends State<StoreScreen> {
                           isShowKM: true,
                           isShowBusinessInfo: true,
                         );
-
                       },
                     )
                   : Center(child: CustomText("No $tagName found yet")),
             );
           }),
-          SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size20),
         ],
       );
     return SizedBox.shrink();
   }
+
   Widget _buildFoodServiceSection({String? categoryName, String? tagName}) {
     if (controller.foodList.isNotEmpty)
-
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -506,13 +377,12 @@ class _StoreScreenState extends State<StoreScreen> {
                           isShowKM: true,
                           isShowBusinessInfo: true,
                         );
-
                       },
                     )
                   : Center(child: CustomText("No $tagName found yet")),
             );
           }),
-          SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size20),
         ],
       );
     return SizedBox.shrink();
@@ -552,7 +422,7 @@ class _StoreScreenState extends State<StoreScreen> {
           }
 
           return SizedBox(
-            height: 290,
+            height: 285,
             child: tempStoreList.isNotEmpty
                 ? ListView.builder(
                     scrollDirection: Axis.horizontal,
@@ -561,6 +431,7 @@ class _StoreScreenState extends State<StoreScreen> {
                     itemCount: tempStoreList.length,
                     itemBuilder: (context, index) {
                       GetAllStoreResModel storeData = tempStoreList[index];
+
                       return GestureDetector(
                         onTap: () {
                           if (businessId == storeData.id) {
@@ -573,7 +444,9 @@ class _StoreScreenState extends State<StoreScreen> {
                           }
                         },
                         child: Container(
-                          width: 180,
+                          // width: 180,
+                          width: MediaQuery.of(context).size.width * 0.45,
+
                           margin: EdgeInsets.only(
                             right: index < tempStoreList.length - 1
                                 ? SizeConfig.size12
@@ -594,12 +467,11 @@ class _StoreScreenState extends State<StoreScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Store Image
-
                               (storeData.livePhotos?.isNotEmpty ?? false)
                                   ? CustomImageSlideshow(
                                       isLoading: false,
                                       width: double.infinity,
-                                      height: 140,
+                                      height: 160,
                                       imagePaths: storeData.livePhotos!,
                                       isLocal: false,
                                       borderRadius: BorderRadius.only(
@@ -607,19 +479,37 @@ class _StoreScreenState extends State<StoreScreen> {
                                         topRight: Radius.circular(12),
                                       ),
                                     )
-                                  : Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(12),
-                                          topRight: Radius.circular(12),
-                                        ),
-                                        child: Image.network(
-                                          storeData.logo ?? "",
-                                          width: double.infinity,
-                                          height: 140,
-                                          fit: BoxFit.cover,
-                                        ),
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
                                       ),
+                                      child: CachedNetworkImage(
+                                        imageUrl: storeData.logo ?? "",
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: 160,
+                                        placeholder: (context, url) =>
+                                            Container(
+                                          color: Colors.grey[200],
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            LocalAssets(
+                                          imagePath:
+                                              AppIconAssets.place_holder_image,
+                                          boxFix: BoxFit.cover,
+                                        ),
+                                      ) /*Image.network(
+                                      storeData.logo ?? "",
+                                      width: double.infinity,
+                                      height: 160,
+                                      fit: BoxFit.cover,
+                                    )*/
+                                      ,
                                     ),
 
                               Expanded(
@@ -628,9 +518,21 @@ class _StoreScreenState extends State<StoreScreen> {
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
+                                    // mainAxisAlignment:
+                                    //     MainAxisAlignment.spaceEvenly,
                                     children: [
+                                      // Store Name and Rating
+                                      CustomText(
+                                        storeData.businessName,
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.black,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+
+                                      SizedBox(height: SizeConfig.size8),
+
                                       // Category Tag
                                       Container(
                                         padding: EdgeInsets.symmetric(
@@ -652,20 +554,8 @@ class _StoreScreenState extends State<StoreScreen> {
                                           maxLines: 1,
                                         ),
                                       ),
-
-                                      SizedBox(height: SizeConfig.size8),
-
-                                      // Store Name and Rating
-                                      CustomText(
-                                        storeData.businessName,
-                                        fontSize: SizeConfig.medium,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.black,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-
                                       // SizedBox(height: SizeConfig.size4),
+                                      SizedBox(height: SizeConfig.size8),
 
                                       Row(
                                         crossAxisAlignment:
@@ -687,44 +577,17 @@ class _StoreScreenState extends State<StoreScreen> {
                                             fontWeight: FontWeight.w500,
                                             color: AppColors.black,
                                           ),
-                                          SizedBox(width: 4),
-                                          LocalAssets(
-                                              imagePath: AppIconAssets
-                                                  .distanceLocation),
-                                          CustomText(
-                                            (storeData.distance != null)
-                                                ? (storeData.distance as num)
-                                                    .toDouble()
-                                                    .toStringAsFixed(2)
-                                                : '0.0',
-                                            fontSize: SizeConfig.extraSmall,
-                                            color: AppColors.black30,
-                                          ),
                                         ],
                                       ),
-
-                                      // SizedBox(height: SizeConfig.size8),
-                                      //
-                                      // // Operating Hours
-                                      // CustomText(
-                                      //   store["status"]!,
-                                      //   fontSize: SizeConfig.small,
-                                      //   color: Colors.green,
-                                      //   fontWeight: FontWeight.w500,
-                                      // ),
-
                                       SizedBox(height: SizeConfig.size8),
-
-                                      // Address
-                                      CustomText(
-                                        (storeData.address?.isNotEmpty ?? false)
-                                            ? storeData.address
-                                            : "N/A",
-                                        fontSize: SizeConfig.medium,
-                                        color: AppColors.secondaryTextColor,
-                                        fontWeight: FontWeight.w400,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                                      KmAwayTextWidget(
+                                        lat: storeData.businessLocation?.lat
+                                                .toString() ??
+                                            "",
+                                        long: storeData.businessLocation?.lon
+                                                ?.toString() ??
+                                            "",
+                                        isPadding: 0,
                                       ),
                                     ],
                                   ),
@@ -739,6 +602,7 @@ class _StoreScreenState extends State<StoreScreen> {
                 : Center(child: CustomText("No $tagName found yet")),
           );
         }),
+        SizedBox(height: SizeConfig.size20),
       ],
     );
   }

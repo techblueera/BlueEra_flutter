@@ -1,18 +1,13 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/common/business_service/view/service_details_view_screen.dart';
+import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ServiceCardBusiness extends StatefulWidget {
   final GetServiceModel serviceData;
@@ -40,7 +35,8 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
   final chatViewController = Get.find<ChatViewController>();
 
   GetServiceModel? serviceData;
-  var kmAway;
+
+  // var kmAway;
 
   @override
   void initState() {
@@ -56,19 +52,13 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
     if ((serviceData?.discounts?.length ?? 0) > 0)
       maxDiscount = serviceData?.discounts
           ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
-    if (serviceData?.business?.businessLocation != null &&
-        serviceData?.business?.businessLocation?.lat != null &&
-        serviceData?.business?.businessLocation?.lon != null)
-      {
-        kmAway = calculateDistanceKm(
-            LocationService.lat,
-            LocationService.lng,
-            serviceData?.business?.businessLocation?.lat?.toDouble() ?? 0.0,
-            serviceData?.business?.businessLocation?.lon?.toDouble() ?? 0.0);
-      }
 
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        Get.to(ServiceDetailsScreen(
+          service: serviceData ?? GetServiceModel(),
+        ));
+      },
       child: Container(
         margin: EdgeInsets.only(right: 20),
         width: MediaQuery.of(context).size.width * 0.45,
@@ -87,25 +77,17 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AspectRatio(
-              aspectRatio: 1.1, // square-ish image (adjust if needed)
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16)),
-                    child: CustomImageSlideshow(
-                      isLoading: false,
-                      width: double.infinity,
-                      height: double.infinity,
-                      imagePaths: serviceData?.photos ?? [],
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  // if ((product.details?.media.length ?? 0) > 1)
-                ],
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              child: CustomImageSlideshow(
+                isLoading: false,
+                width: double.infinity,
+                height: 170,
+                imagePaths: serviceData?.photos ?? [],
+                borderRadius: BorderRadius.zero,
               ),
             ),
+
             SizedBox(height: SizeConfig.size5),
 
             // Title & price
@@ -127,7 +109,7 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                serviceData?.subCategory ?? "N/A",
+                serviceData?.business?.categoryOfBusiness?.name ?? "N/A",
                 fontSize: SizeConfig.small,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -165,44 +147,13 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
               ),
             ),
             SizedBox(height: SizeConfig.size5),
+            KmAwayTextWidget(
+                lat: serviceData?.business?.businessLocation?.lat.toString() ??
+                    "",
+                long:
+                    serviceData?.business?.businessLocation?.lon?.toString() ??
+                        ""),
 
-            if ((kmAway) != null)
-              InkWell(
-                onTap: () async {
-                  final Uri googleMapUrl = Uri.parse(
-                      "https://www.google.com/maps/search/?api=1&query=${serviceData?.business?.businessLocation?.lat?.toDouble() ?? 0.0},${serviceData?.business?.businessLocation?.lon?.toDouble() ?? 0.0}");
-
-                  if (await canLaunchUrl(googleMapUrl)) {
-                    await launchUrl(googleMapUrl,
-                        mode: LaunchMode.externalApplication);
-                  } else {
-                    throw "Could not open Google Maps";
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.location_new,
-                        imgColor: AppColors.primaryColor,
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size5,
-                      ),
-                      CustomText(
-                        "${kmAway.toStringAsFixed(0)} km away from you!",
-                        fontSize: SizeConfig.small,
-                        maxLines: 1,
-                        decoration: TextDecoration.underline,
-                        color: AppColors.primaryColor,
-                        decorationColor: AppColors.primaryColor,
-                        decorationStyle: TextDecorationStyle.solid,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             SizedBox(height: SizeConfig.size5),
           ],
         ),
