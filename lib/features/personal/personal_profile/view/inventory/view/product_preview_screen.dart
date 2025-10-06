@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -33,6 +33,7 @@ class ProductPreviewArgs {
   final String? MRPPrice;
   final String? warranty;
   final String? expiry;
+  final String? linkOrReferralUrl;
   final List<String>? userGuide;
   final List<ProductListing>? listedProducts; /// for seeing listed products
 
@@ -53,6 +54,7 @@ class ProductPreviewArgs {
     this.MRPPrice,
     this.warranty,
     this.expiry,
+    this.linkOrReferralUrl,
     this.userGuide,
     this.selectedColors,
     this.dynamicAttributes,
@@ -80,7 +82,7 @@ class ProductPreviewScreen extends StatefulWidget {
 
 class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   final CarouselSliderController _carouselController = CarouselSliderController();
-  final AddProductViaAiController controller = Get.put(AddProductViaAiController());
+  final ProductController controller = Get.put(ProductController());
   int _currentIndex = 0;
 
   @override
@@ -169,6 +171,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
     controller.productNameController.text = args.name ?? '';
     controller.productDescriptionController.text = args.description ?? '';
+    controller.linkController.text = args.linkOrReferralUrl ?? '';
 
     controller.selectedProductOrVariantMrp.value = args.MRPPrice ?? '';
     controller.selectedProductOrVariantPrice.value = args.sellingPrice ?? '';
@@ -239,7 +242,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
   @override
   void dispose() {
-    Get.delete<AddProductViaAiController>();
+    Get.delete<ProductController>();
     super.dispose();
   }
 
@@ -1537,7 +1540,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 // import 'package:BlueEra/core/constants/size_config.dart';
 // import 'package:BlueEra/core/routes/route_helper.dart';
 // import 'package:BlueEra/core/widgets/custom_form_card.dart';
-// import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+// import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 // import 'package:BlueEra/widgets/common_box_shadow.dart';
 // import 'package:BlueEra/widgets/custom_btn.dart';
 // import 'package:BlueEra/widgets/custom_text_cm.dart';

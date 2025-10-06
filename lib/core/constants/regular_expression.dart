@@ -182,6 +182,42 @@ class ValidationMethod {
     return null;
   }
 
+  String? validateMRP(String? value) {
+    if (value == null || value.isEmpty) return 'MRP is required';
+    if (double.tryParse(value) == null) return 'Please enter a valid price';
+    if (double.parse(value) <= 0) return 'MRP must be greater than 0';
+    return null;
+  }
+
+  String? validateProductWarranty(String? value) {
+    if (value == null || value.isEmpty) return 'Product warranty is required';
+    return null;
+  }
+
+  String? validateFeatures(String? value, int i) {
+    if (value == null || value.trim().isEmpty) {
+      return "Validation Error, Feature ${i + 1} cannot be empty";
+    }
+    if (value.length < 20) {
+      return "Validation Error, Feature ${i + 1} must be at least 20 characters";
+    }
+    return null;
+  }
+
+  String? validateUserGuideLine(String? value, int i) {
+    if (value == null || value.trim().isEmpty) {
+      return "Validation Error, User GuideLine ${i + 1} cannot be empty";
+    }
+    if (value.length < 20) {
+      return "Validation Error, User GuideLine ${i + 1} must be at least 20 characters";
+    }
+    return null;
+  }
+
+  String? validateProductExpiration(String? value) {
+    if (value == null || value.isEmpty) return 'Product expiration is required';
+    return null;
+  }
 
 }
 

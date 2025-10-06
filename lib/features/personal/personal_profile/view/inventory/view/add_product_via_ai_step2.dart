@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/category_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/step1_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/step2_section.dart';
@@ -22,7 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddProductViaAiStep2 extends StatefulWidget {
-  final AddProductViaAiController controller;
+  final ProductController controller;
   final GenerateAiProductContent generateAiProductContent;
 
   AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller});
@@ -32,7 +32,7 @@ class AddProductViaAiStep2 extends StatefulWidget {
 }
 
 class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
- AddProductViaAiController controller = AddProductViaAiController();
+ ProductController controller = ProductController();
 
   @override
   void initState() {

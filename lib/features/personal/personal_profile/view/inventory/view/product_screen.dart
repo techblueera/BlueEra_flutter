@@ -4,8 +4,8 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -463,8 +463,9 @@ class _ProductScreenState extends State<ProductScreen> {
           .map((d) => DetailPair(d.title, d.details))
           .toList(),
       warranty: details?.productWarranty ?? '',
-      expiry: '',
-      userGuide: [],
+      // linkOrReferralUrl: details?.linkOrReferralUrl ?? '',
+      // expiry: details?.expiry ?? '',
+      // userGuide: details?.userGuide ?? [],
       listedProducts: listedProducts,
     );
   }

@@ -59,7 +59,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
@@ -870,8 +870,8 @@ class RouteHelper {
             settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
-        final AddProductViaAiController controller =
-            args[ApiKeys.controller] as AddProductViaAiController;
+        final ProductController controller =
+            args[ApiKeys.controller] as ProductController;
         final GenerateAiProductContent generateAiProductContent =
             args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
 
@@ -917,8 +917,8 @@ class RouteHelper {
                 RouteSettings(name: getProductPreviewScreenProductRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final AddProductViaAiController controller =
-            args[ApiKeys.controller] as AddProductViaAiController;
+        final ProductController controller =
+            args[ApiKeys.controller] as ProductController;
 
         return MaterialPageRoute(
             builder: (_) => CreateVariantScreen(controller: controller),

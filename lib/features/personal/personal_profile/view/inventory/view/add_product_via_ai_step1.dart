@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -20,11 +20,11 @@ class AddProductViaAiStep1 extends StatefulWidget {
 }
 
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
-  final AddProductViaAiController addProductViaAiController = Get.put(AddProductViaAiController());
+  final ProductController addProductViaAiController = Get.put(ProductController());
 
   @override
   void dispose() {
-    Get.delete<AddProductViaAiController>();
+    Get.delete<ProductController>();
     super.dispose();
   }
 
@@ -61,7 +61,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                       SizedBox(height: SizeConfig.size8),
                       SizedBox(
                         height: SizeConfig.size80,
-                        child: GetBuilder<AddProductViaAiController>(
+                        child: GetBuilder<ProductController>(
                           builder: (controller) {
                             return GridView.builder(
                               scrollDirection: Axis.horizontal,

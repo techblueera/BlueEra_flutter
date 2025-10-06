@@ -3,9 +3,9 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 
@@ -20,8 +20,8 @@ Widget_infoRow(
   return Row(
     mainAxisAlignment: MainAxisAlignment.start,
     children: [
-      SvgPicture.asset(
-        imagePath,
+      LocalAssets(
+        imagePath: imagePath,
         height: 18,
         width: 18,
       ),
@@ -61,9 +61,9 @@ Widget buildCard1(BusinessProfileDetails data) {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: SvgPicture.asset(
-                    AppIconAssets.visiting_bg,
-                    fit: BoxFit.cover,
+                  child: LocalAssets(
+                    imagePath:AppIconAssets.visiting_bg,
+                    boxFix: BoxFit.cover,
                   ),
                 ),
               ),
@@ -544,11 +544,11 @@ Widget buildCard3(BusinessProfileDetails data) {
         Stack(
           alignment: Alignment.center,
           children: [
-            SvgPicture.asset(
-              imagePath,
+            LocalAssets(
+              imagePath: imagePath,
               height: 18,
               width: 18,
-              color: Colors.black,
+              imgColor: Colors.black,
             ),
             Icon(
               icon,
@@ -1053,11 +1053,11 @@ Widget buildCard5(BusinessProfileDetails data) {
         Stack(
           alignment: Alignment.center,
           children: [
-            SvgPicture.asset(
-              imagePath,
+            LocalAssets(
+              imagePath: imagePath,
               height: 22,
               width: 22,
-              color: Color(0xff184797),
+              imgColor: Color(0xff184797),
             ),
             Icon(
               icon,
@@ -1871,11 +1871,11 @@ Widget buildCard8(BusinessProfileDetails data) {
         Stack(
           alignment: Alignment.center,
           children: [
-            SvgPicture.asset(
-              imagePath,
+            LocalAssets(
+              imagePath: imagePath,
               height: 18,
               width: 18,
-              color: Colors.white,
+              imgColor: Colors.white,
             ),
             Icon(
               icon,
@@ -2287,7 +2287,7 @@ Widget buildCard9(BusinessProfileDetails data) {
                         padding: EdgeInsets.symmetric(vertical: 2, horizontal: 6),
                         decoration: BoxDecoration(color: Colors.white, boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3), // Shadow color
+                            color: Colors.black.withValues(alpha: 0.3), // Shadow color
                             spreadRadius: 1,
                             blurRadius: 6,
                             offset: Offset(-4, 0),
@@ -2670,7 +2670,7 @@ Widget buildCard10(BusinessProfileDetails data) {
                         color: AppColors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 4,
                             spreadRadius: 1,
                             offset: Offset(-4, 0), // Push left

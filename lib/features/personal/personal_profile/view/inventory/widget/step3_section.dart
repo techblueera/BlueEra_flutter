@@ -1,8 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -14,7 +15,7 @@ import 'package:get/get.dart';
 
 
 class Step3Section extends StatefulWidget {
-  final AddProductViaAiController controller;
+  final ProductController controller;
   const Step3Section({super.key, required this.controller});
 
   @override
@@ -165,7 +166,7 @@ class _Step3SectionState extends State<Step3Section> {
                     title: 'MRP (Original Price with GST)',
                     hintText: 'E.g. ₹1499',
                     keyBoardType: TextInputType.number,
-                    validator: widget.controller.validateMRP,
+                    validator: ValidationMethod().validateMRP,
                     showLabel: true,
                   ),
                   SizedBox(height: SizeConfig.size16),
@@ -205,7 +206,7 @@ class _Step3SectionState extends State<Step3Section> {
                     title: 'Product Warranty',
                     hintText: 'E.g. 1 year',
                     keyBoardType: TextInputType.number,
-                    validator: widget.controller.validateProductWarranty,
+                    validator: ValidationMethod().validateProductWarranty,
                     showLabel: true,
                   ),
 
@@ -220,7 +221,7 @@ class _Step3SectionState extends State<Step3Section> {
                     title: 'Add Expiry Date (Optional)',
                     hintText: 'E.g. 1 year',
                     keyBoardType: TextInputType.text,
-                    validator: widget.controller.validateProductExpiration,
+                    validator: ValidationMethod().validateProductExpiration,
                     showLabel: true,
                   ),
 
@@ -290,7 +291,7 @@ class _Step3SectionState extends State<Step3Section> {
                       hintText: 'E.g. Vorem ipsum dolor sit amet,',
                       textEditController: widget.controller.featureControllers[i],
                       maxLine: 2,
-                      validator: (value)=> widget.controller.validateUserGuideLine(value, i),
+                      validator: (value)=> ValidationMethod().validateUserGuideLine(value, i),
                       maxLength: 140,
                       isCounterVisible: true,
                     ),

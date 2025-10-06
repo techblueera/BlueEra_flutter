@@ -105,11 +105,13 @@ class ProductMoreDetails {
   };
 }
 
-class AddProductViaAiController extends GetxController{
+class ProductController extends GetxController{
   Rx<ApiResponse> generateAiProductContentResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getSubChildORRootCategroyResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getSubChildORRootCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> searchProductCategoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> addProductToInventoryResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> addUpdateProductVariantApiResponse = ApiResponse.initial('Initial').obs;
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // final RxList<String> imageLocalPaths = <String>[].obs;
@@ -216,15 +218,6 @@ class AddProductViaAiController extends GetxController{
     _searchDebounce?.cancel();
     super.onClose();
   }
-
-  // bool validateCurrentStep() {
-  //   switch (currentStep.value) {2
-  //     case 1: return _validateStep1();
-  //     case 2: return _validateStep2();
-  //     case 3: return _validateStep3();
-  //     default: return true;
-  //   }
-  // }
 
   void addColor(Color color, String name) {
     // if (selectedColors.length == 5) {
@@ -353,7 +346,7 @@ class AddProductViaAiController extends GetxController{
   bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
   bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
-  void onGenerate(AddProductViaAiController addProductViaAiController) async {
+  void onGenerate(ProductController addProductViaAiController) async {
     if (!_validate()) return;
 
     isLoading.value = true;
@@ -393,7 +386,7 @@ class AddProductViaAiController extends GetxController{
   }
 
 
-  Future<void> createProductViaAiApi(AddProductViaAiRequest request, AddProductViaAiController addProductViaAiController) async {
+  Future<void> createProductViaAiApi(AddProductViaAiRequest request, ProductController addProductViaAiController) async {
     try {
       Map<String, dynamic> params = {};
 
@@ -530,7 +523,7 @@ class AddProductViaAiController extends GetxController{
 
   var isCreateProductLoading = false.obs;
 
-  Future<void> createProductViaAi(AddProductViaAiController addProductViaAiController) async {
+  Future<void> createProductViaAi(ProductController addProductViaAiController) async {
     isCreateProductLoading.value = true;
     try {
       Map<String, dynamic> params = {
@@ -553,8 +546,7 @@ class AddProductViaAiController extends GetxController{
           ApiKeys.guideLine: userGuideLineControllers.map((value) => value.text).toList(),
       };
 
-      final payload = {
-        'attributes': <String, dynamic>{
+      final payload = <String, dynamic>{
           // color list
           if (selectedColors.isNotEmpty)
             'color': selectedColors.map((c) => c.toJson()).toList(),
@@ -563,12 +555,11 @@ class AddProductViaAiController extends GetxController{
           ...dynamicAttributes.map(
                 (k, v) => MapEntry(
               k,
-              v.map((e) => e.toString()).toList(),
+              v.map((e) => {'properties': e.toString()}).toList(),
             ),
           ),
-        },
-      };
-      params[ApiKeys.varient] = jsonEncode(payload);
+        };
+      params[ApiKeys.options] = jsonEncode(payload);
 
       List<dio.MultipartFile> imageByPart = [];
 
@@ -647,7 +638,7 @@ class AddProductViaAiController extends GetxController{
 
   Future<void> addProductToInventory(
       {
-        required AddProductViaAiController addProductViaAiController,
+        required ProductController addProductViaAiController,
         required List<ProductListing> products
       }) async {
     isAddProductToInventoryLoading.value = true;
@@ -689,7 +680,7 @@ class AddProductViaAiController extends GetxController{
 
       final responseModel = await ProductRepo().addProductToInventoryApi(params: params);
       if (responseModel.isSuccess) {
-        createProductResponse.value = ApiResponse.complete(responseModel);
+        addProductToInventoryResponse.value = ApiResponse.complete(responseModel);
         Get.until(
               (route) =>
           route.settings.name ==
@@ -697,125 +688,15 @@ class AddProductViaAiController extends GetxController{
         );
       } else {
         commonSnackBar(message: responseModel.message);
-        createProductResponse.value = ApiResponse.error('error');
+        addProductToInventoryResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      createProductResponse.value = ApiResponse.error('error');
+      addProductToInventoryResponse.value = ApiResponse.error('error');
       commonSnackBar(message: 'something went wrong.');
     } finally {
       isAddProductToInventoryLoading.value = false;
     }
   }
-
-  String? validateCategory(String? value) {
-    if (value == null || value.isEmpty) return 'Category is required';
-    return null;
-  }
-
-  String? validateFeatures(String? value, int i) {
-    if (value == null || value.trim().isEmpty) {
-      return "Validation Error, Feature ${i + 1} cannot be empty";
-    }
-    if (value.length < 20) {
-      return "Validation Error, Feature ${i + 1} must be at least 20 characters";
-    }
-    return null;
-  }
-
-  String? validateUserGuideLine(String? value, int i) {
-    if (value == null || value.trim().isEmpty) {
-      return "Validation Error, User GuideLine ${i + 1} cannot be empty";
-    }
-    if (value.length < 20) {
-      return "Validation Error, User GuideLine ${i + 1} must be at least 20 characters";
-    }
-    return null;
-  }
-
-  String? validateBrand(String? value) {
-    if (value == null || value.isEmpty) return 'Brand is required';
-    return null;
-  }
-
-  String? validateProductWarranty(String? value) {
-    if (value == null || value.isEmpty) return 'Product warranty is required';
-    return null;
-  }
-
-  String? validateProductExpiration(String? value) {
-    if (value == null || value.isEmpty) return 'Product expiration is required';
-    return null;
-  }
-
-  String? validateMRP(String? value) {
-    if (value == null || value.isEmpty) return 'MRP is required';
-    if (double.tryParse(value) == null) return 'Please enter a valid price';
-    if (double.parse(value) <= 0) return 'MRP must be greater than 0';
-    return null;
-  }
-
-  String? validateUserGuidance(String? value) {
-    if (value == null || value.isEmpty) return 'User guidance is required';
-    if (value.length < 20) return 'Product description name must be at least 20 characters';
-    return null;
-  }
-
-  String? validateSellingPrice(String? value) {
-    if (value == null || value.isEmpty) return 'Selling price is required';
-    if (double.tryParse(value) == null) return 'Please enter a valid price';
-    if (double.parse(value) <= 0) return 'Selling price must be greater than 0';
-    if (mrpController.text.isNotEmpty) {
-      double mrp = double.tryParse(mrpController.text) ?? 0;
-      double sellingPrice = double.parse(value);
-      if (sellingPrice > mrp) return 'Selling price cannot be greater than MRP';
-    }
-    return null;
-  }
-
-  String? validateAvailableStock(String? value) {
-    if (value == null || value.isEmpty) return 'Available stock is required';
-    if (int.tryParse(value) == null) return 'Please enter a valid number';
-    if (int.parse(value) < 0) return 'Stock cannot be negative';
-    return null;
-  }
-  // Validation Methods
-  String? validateTitle(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Title is required';
-    }
-    if (value.trim().length < 2) {
-      return 'Title must be at least 2 characters';
-    }
-    return null;
-  }
-
-  String? validateVariant(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Variant is required';
-    }
-    if (value.trim().length < 2) {
-      return 'Variant must be at least 2 characters';
-    }
-    return null;
-  }
-
-  //   RxMap<String, String> selectedVariantValues = <String, String>{}.obs;
-//   RxBool isNextEnabled = false.obs;
-//
-//   void selectVariantValue(String attributeKey, String value) {
-//     // Toggle selection
-//     if (selectedVariantValues[attributeKey] == value) {
-//       selectedVariantValues.remove(attributeKey);
-//     } else {
-//       selectedVariantValues[attributeKey] = value;
-//     }
-//     _updateNextButtonState();
-//   }
-//
-// // Method to check if a value is selected
-//   bool isValueSelected(String attributeKey, String value) {
-//     return selectedVariantValues[attributeKey] == value;
-//   }
 
   RxMap<String, dynamic> selectedVariantValues = <String, dynamic>{}.obs;
   RxBool isNextEnabled = false.obs;
@@ -887,6 +768,58 @@ class AddProductViaAiController extends GetxController{
     log('All listed products variants:');
     for (var p in listedProducts) {
       log('Product: ${p.name}, Variants: ${p.selectedVariants}');
+    }
+  }
+
+  var isAddUpdateProductVariantLoading = false.obs;
+
+  Future<bool> addUpdateProductVariantApi({
+    required List<SelectedColor> allColors,
+    required Map<String, List<String>> allDynamicAttributes,
+  }) async {
+    isAddUpdateProductVariantLoading.value = true;
+
+    try {
+      final payload = <String, dynamic>{
+        ApiKeys.options: {
+          // color list
+          if (allColors.isNotEmpty)
+            'color': allColors.map((c) => c.toJson()).toList(),
+
+          // flatten every entry of dynamicAttributes into this same map
+          ...allDynamicAttributes.map(
+                (k, v) => MapEntry(
+              k,
+              v.map((e) => {'properties': e.toString()}).toList(),
+            ),
+          ),
+        }
+      };
+
+      final params = {
+        ApiKeys.productId: productId,
+        ApiKeys.updateFields: jsonEncode(payload),
+      };
+
+      final responseModel = await ProductRepo()
+          .addUpdateProductVariantApi(params: params, productId: productId ?? '');
+
+      if (responseModel.isSuccess) {
+        addUpdateProductVariantApiResponse.value =
+            ApiResponse.complete(responseModel);
+        return true;
+      } else {
+        commonSnackBar(message: responseModel.message);
+        addUpdateProductVariantApiResponse.value =
+            ApiResponse.error('error');
+        return false;
+      }
+    } catch (e) {
+      addUpdateProductVariantApiResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: 'Something went wrong.');
+      return false;
+    } finally {
+      isAddUpdateProductVariantLoading.value = false;
     }
   }
 

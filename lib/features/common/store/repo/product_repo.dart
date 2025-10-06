@@ -106,4 +106,19 @@ class ProductRepo extends BaseService{
     return response;
   }
 
+  Future<ResponseModel> addUpdateProductVariantApi({
+    required Map<String, dynamic> params,
+    required String productId,
+
+  }) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      addUpdateProductVariant(productId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
