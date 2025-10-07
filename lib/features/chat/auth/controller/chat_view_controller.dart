@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -387,18 +388,69 @@ class ChatViewController extends GetxController {
     scrollDown();
   }
 
+  Future<bool?> sendProductMessages(Map<String, dynamic> params) async {
+    try {
+      ResponseModel responseModel =
+      await ChatViewRepo().sendMessageToUserLargeFile(params);
+      clearMessageControllerCommon();
+      if (responseModel.isSuccess) {
+
+        final data = responseModel.response?.data;
+        Messages? message = Messages.fromJson(data['data']);
+        if (message.subType != "comment") {
+            getListOfMessageData?.add(message);
+            getListOfMessageResponse.value =
+                ApiResponse.complete(getListOfMessageData);
+            scrollDown();
+            saveSingleMessageToLocal(
+                message.conversationId ?? '', message, params);
+
+        } else if (message.subType == 'comment') {
+          getMediaMsgCommentsModel?.value.comments?.insert(
+              0,
+              Comments(
+                message: message.message,
+                likesCount: 0,
+                sender: cmdImport.Sender(
+                    name: message.sender?.name,
+                    profileImage: message.sender?.profileImage),
+                updatedAt: message.updatedAt,
+                myComment: true,
+              ));
+        }
+
+        scrollDown();
+
+        clearMessageControllerCommon();
+        return true;
+      } else {
+        clearMessageControllerCommon();
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+     print("Error ==> $e");
+    }
+    return null;
+  }
+
   Future<void> openAnyOneChatFunction(
       {required String conversationId,
       String? otherUserId,
       required String? userId,
       required String? type,
       String? profileImage,
+      bool? isWithProductSend,
+      Map<String,dynamic>? shareProductParams,
       required String? contactName,
       required String? contactNo,
       required bool isInitialMessage,
       String? businessId,
       bool? isFromContactList}) async {
     await getLocalConversation(conversationId, userId, otherUserId);
+    if(isWithProductSend==true){
+      sendProductMessages(shareProductParams??{});
+    }
     if (type == "business") {
       if (isFromContactList != null && isFromContactList) {
         Get.off(

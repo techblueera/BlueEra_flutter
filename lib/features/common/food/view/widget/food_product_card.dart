@@ -15,6 +15,7 @@ class FoodCardBusiness extends StatefulWidget {
   final bool isGridView;
   final bool isShowChat;
   final bool isShowKM;
+  final bool isFromChatCard;
   final bool isShowBusinessInfo;
   final BusinessProfileDetails? businessData;
 
@@ -24,6 +25,7 @@ class FoodCardBusiness extends StatefulWidget {
     this.isGridView = false,
     this.isShowChat = true,
     this.isShowKM = false,
+    this.isFromChatCard= false,
     this.isShowBusinessInfo = false,
     this.businessData,
   }) : super(key: key);
@@ -51,19 +53,22 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
     String priceText = "N/A";
     if (priceOptions != null && priceOptions.isNotEmpty) {
       if (priceOptions.length == 1) {
-        priceText = "₹${priceOptions.first.price ?? ''}";
+        priceText = "${priceOptions.first.price ?? ''}";
       } else {
         final prices = priceOptions.map((e) => e.price ?? 0).toList();
         prices.sort();
-        priceText = "₹${prices.first} - ₹${prices.last}";
+        priceText = "${prices.first} - ₹${prices.last}";
       }
     }
 
     return InkWell(
       onTap: () {
-        Get.to(FoodDetailsViewScreen(
-          data: serviceData ?? GetFoodDetailsModel(),
-        ));
+        if(widget.isFromChatCard==false){
+          Get.to(FoodDetailsViewScreen(
+            productPriceFormat:(serviceData?.priceType == "single")?"${serviceData?.singlePrice ?? "0"}": "$priceText",
+            data: serviceData ?? GetFoodDetailsModel(),
+          ));
+        }
       },
       child: Container(
         margin: EdgeInsets.only(right: 20),
@@ -185,7 +190,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                     padding:
                         EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     child: CustomText(
-                      "Price : ${priceText}",
+                      "Price : ₹ ${priceText}",
                       fontWeight: FontWeight.w600,
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.primaryColor,

@@ -101,7 +101,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                   type: widget.type,
                   name: widget.name,
                   profileImage: widget.profileImage,
-                  contactNo: widget.contactNo),
+                  contactNo: widget.contactNo, conversationId: widget.conversationId),
           body: Obx(() {
             //  print("sjdnckjsdckjsdc ${chatViewController.getListOfMessageData!}");
             if (chatViewController.getListOfMessageResponse.value.status ==

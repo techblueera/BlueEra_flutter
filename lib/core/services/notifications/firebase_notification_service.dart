@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../features/chat/auth/controller/chat_view_controller.dart';
+import '../../../features/chat/view/call_screen/widget/incoming_call_screen.dart';
 import 'model/OneSignalNotificationDetailsModel.dart';
 
 
@@ -14,9 +15,28 @@ import 'model/OneSignalNotificationDetailsModel.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // await Firebase.initializeApp();
   await firebaseInitializeApp();
+  log('📩 Background message received: ${message.data}');
 
-  print('💤 Background message: ${message.messageId}');
-  await _showBackgroundNotification(message);
+  if (message.data['call_type'] == 'audio_call') {
+    print("FirebaseMessaging.onMessage audio call screen");
+    if (message.data['missed_call'] == "true") {
+      Get.back();
+    } else {
+      // Get.to(IncomingCallScrenn(
+      //   roomID: message.data['room_id'],
+      //   callerImage: message.data['sender_profile_image'],
+      //   senderName: message.data['senderName'],
+      //   conversation_id: message.data['conversation_id'],
+      //   message_id: message.data['message_id'],
+      //   caller_id: message.data['senderId'],
+      //   forVideoCall: false,
+      //   receiverImage: message.data['receiver_profile_image'],
+      //   isGroupCall: message.data['is_group'],
+      // ));
+    }
+  }else {
+    await _showBackgroundNotification(message);
+  }
 }
 
 
@@ -78,8 +98,28 @@ class FirebaseNotificationService {
 
     // Foreground message
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('📩 Foreground message received: ${message.data}');
-      _showLocalNotification(message);
+      log('📩 Foreground message received: ${message.data}');
+      if (message.data['call_type'] == 'audio_call') {
+        print("FirebaseMessaging.onMessage audio call screen");
+        if (message.data['missed_call'] == "true") {
+          Get.back();
+        } else {
+          // Get.to(IncomingCallScrenn(
+          //   roomID: message.data['room_id'],
+          //   callerImage: message.data['profile_image'],
+          //   senderName: message.data['name'],
+          //   conversation_id: message.data['conversation_id'],
+          //   message_id: message.data['message_id'],
+          //   caller_id: message.data['id'],
+          //   forVideoCall: false,
+          //   receiverImage: message.data['profile_image'],
+          //   isGroupCall: message.data['is_group'],
+          // ));
+        }
+      }else{
+        _showLocalNotification(message);
+      }
+
     });
 
     // When user taps on notification (while in background)
@@ -141,10 +181,7 @@ class FirebaseNotificationService {
     final senderId = message.data['senderId'] ?? 'unknown';
     final senderName = message.data['senderName'] ?? 'Someone';
     final text = notification?.body ?? '';
-log("lkdmlsdkmlsdvmlsdkm,vv ${notification}");
-log("lkdmlsdkmlsdvmlsdkm,vv ${message.data}");
-log("lkdmlsdkmlsdvmlsdkm,vv ${notification?.body}");
-log("lkdmlsdkmlsdvmlsdkm,vv ${notification?.title}");
+
     // store messages per sender
     if (!_messagesMap.containsKey(senderId)) {
       _messagesMap[senderId] = [];

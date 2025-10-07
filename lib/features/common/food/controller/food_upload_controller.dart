@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -344,6 +345,23 @@ class FoodUploadController extends GetxController {
       } else {
         print("❌ API failed: ${responseModel.response?.data}");
       }
+    // } catch (e) {
+    //   logs("ERROR===== $e");
+    // }
+  }
+  Future<void> getFoodDetailsFromId(Map<String, dynamic> params,{required String userId}) async {
+    // try {
+      ResponseModel responseModel =
+      await FoodAiRepo().getProductDetailsById(queryParam: params, userId: userId);
+
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+        log("sdkjncksjdnc ${jsonEncode(data)}");
+        print("✅ Loaded ${foodList.length} food items");
+      } else {
+        print("❌ API failed: ${responseModel.response?.data}");
+      }
+
     // } catch (e) {
     //   logs("ERROR===== $e");
     // }

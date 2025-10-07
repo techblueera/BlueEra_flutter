@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
+import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
@@ -14,6 +15,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../widgets/custom_text_cm.dart';
+import '../../../common/business_service/model/get_service_model.dart';
+import '../../../common/business_service/widget/service_card.dart';
+import '../../../common/food/model/get_food_details_model.dart';
+import '../../../common/food/view/widget/food_product_card.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import 'audio_type_message_ui.dart';
@@ -80,7 +85,6 @@ class _MessageCardState extends State<MessageCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final text = widget.message.message ?? '';
 
     bool isReceive;
@@ -162,6 +166,71 @@ class _MessageCardState extends State<MessageCard>
               '${(widget.message.url == null) ? widget.message.docFileName : widget.message.url?.first.name}',
           time: time,
         );
+      case "food":
+      List<String> url=[];
+
+      url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
+      List<String> message=widget.message.message?.split('.')??[];
+      if(message.isNotEmpty){
+        messageWidget = FoodCardBusiness(
+          isFromChatCard: true,
+          serviceData: GetFoodDetailsModel(
+              subCategory: message[2],
+              id: widget.message.metadata?.foodId,
+              userId: widget.userId,
+              type: "food",
+              title: message.first,
+              priceType: "single",
+              singlePrice: widget.message.metadata?.price,
+              photos:url,
+              vegType: message[1],
+              nutritionalSummaryPer100g: NutritionalSummaryPer100g(
+                  caloriesKcal: message.last
+              )
+          ),
+          isGridView: false,
+          isShowChat: false,
+          isShowKM: false,
+          isShowBusinessInfo: true,
+        );
+      }else{
+        messageWidget=SizedBox();
+      }
+      case "service":
+        List<String> url=[];
+
+        url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
+        List<String> message=widget.message.message?.split('.')??[];
+        if(message.isNotEmpty){
+          messageWidget = ServiceCardBusiness(
+            isFromChatCard: true,
+
+            //service.business?.categoryOfBusiness?.name
+            //service.business?.businessName
+            serviceData: GetServiceModel(
+              business: BusinessService(
+                businessName:message.last ,
+                categoryOfBusiness: CategoryOfBusiness(name:message[1])
+              ),
+
+                id: widget.message.metadata?.serviceId,
+                discounts: [Discounts(amountOff: num.tryParse(widget.message.metadata?.discount ?? '0'))],
+                userId: widget.userId,
+                type: "service",
+                title: message.first,
+                priceType: "single",
+                photos:url,
+
+            ),
+            isGridView: false,
+            isShowChat: false,
+            isShowKM: false,
+            isShowBusinessInfo: true,
+          );
+        }else{
+          messageWidget=SizedBox();
+        }
+
       default:
         messageWidget = _buildReceivedMessage(
           widget.message,

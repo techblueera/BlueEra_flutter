@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:hive/hive.dart';
 
 import '../../auth/repo/languages_repo.dart';

@@ -13,6 +13,8 @@ class ServiceCardBusiness extends StatefulWidget {
   final GetServiceModel serviceData;
   final bool isGridView;
   final bool isShowChat;
+  final bool isFromChatCard;
+
   final bool isShowKM;
   final bool isShowBusinessInfo;
   final BusinessProfileDetails? businessData;
@@ -22,6 +24,7 @@ class ServiceCardBusiness extends StatefulWidget {
     required this.serviceData,
     this.isGridView = false,
     this.isShowChat = true,
+    this.isFromChatCard= false,
     this.isShowKM = false,
     this.isShowBusinessInfo = false,
     this.businessData,
@@ -55,9 +58,12 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
 
     return InkWell(
       onTap: () {
-        Get.to(ServiceDetailsScreen(
-          service: serviceData ?? GetServiceModel(),
-        ));
+        if(widget.isFromChatCard==false){
+          Get.to(ServiceDetailsScreen(
+            service: serviceData ?? GetServiceModel(),
+          ));
+        }
+
       },
       child: Container(
         margin: EdgeInsets.only(right: 20),

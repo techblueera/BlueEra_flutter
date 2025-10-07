@@ -89,13 +89,48 @@ class ServiceDetailsScreen extends StatelessWidget {
                     ),
                     InkWell(
                       onTap: () async {
+                        Discounts? maxDiscount;
+                        if ((service.discounts?.length ?? 0) > 0)
+                          maxDiscount = service.discounts
+                              ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+
                         final chatViewController = Get.find<ChatViewController>();
                         Map<String, dynamic> detas = {
                           ApiKeys.user_id: service.userId
                         };
                         chatViewController.newVisitContactApiResponse?.value;
                         await chatViewController.checkChatConnection(detas);
+                        List<Map<String, String>> urlList = service.photos?.map((e) => {"url": e}).toList()??[];
+                        Map<String,dynamic> data={
+                          // "food_id": "${item.id}",
+                          // "product_id": "string",
+                          "service_id": "${service.id}",
+                          "price": "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                          "discount": "${(maxDiscount?.amountOff != null)
+                              ? "${maxDiscount?.amountOff.toString()}% Off"
+                              : "0% Off"}",
+                          if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
+                            ApiKeys.other_user_id: (chatViewController
+                                .newVisitContactApiResponse
+                                ?.value
+                                ?.data
+                                ?.otherUserId ??
+                                '')
+                          else
+                            ApiKeys.conversation_id:(chatViewController
+                                .newVisitContactApiResponse
+                                ?.value
+                                ?.data
+                                ?.conversationId ??
+                                ''),
+
+                          "message": "${service.title}.${service.business?.categoryOfBusiness?.name ?? "N/A"}.${service.business?.businessName ?? "N/A"}",
+                          "message_type": "service",
+                          "url": urlList,
+                        };
                         chatViewController.openAnyOneChatFunction(
+                          shareProductParams:data,
+                          isWithProductSend: true,
                           profileImage: service.business?.logo,
                           otherUserId: (chatViewController
                                           .newVisitContactApiResponse

@@ -14,8 +14,9 @@ import '../model/get_food_details_model.dart';
 
 class FoodDetailsViewScreen extends StatelessWidget {
   final GetFoodDetailsModel data;
+  final String productPriceFormat;
 
-  const FoodDetailsViewScreen({super.key, required this.data});
+  const FoodDetailsViewScreen({super.key, required this.data, required this.productPriceFormat});
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +101,34 @@ class FoodDetailsViewScreen extends StatelessWidget {
                         };
                         chatViewController.newVisitContactApiResponse?.value;
                         await chatViewController.checkChatConnection(detas);
+                        List<Map<String, String>> urlList = photos.map((e) => {"url": e}).toList();
+                        Map<String,dynamic> data={
+                          "food_id": "${item.id}",
+                          // "product_id": "string",
+                          // "service_id": "string",
+                          "price": "${productPriceFormat}",
+                          "discount": "20%",
+                            if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
+                              ApiKeys.other_user_id: (chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.otherUserId ??
+                                  '')
+                            else
+                              ApiKeys.conversation_id:(chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.conversationId ??
+                                  ''),
+                          "message": "${item.title}.${item.vegType}.${item.subCategory}.${item.nutritionalSummaryPer100g?.caloriesKcal}",
+                          "message_type": "food",
+                          "url": urlList,
+                        };
                         chatViewController.openAnyOneChatFunction(
+                          shareProductParams:data ,
+                          isWithProductSend: true,
                           profileImage: business?.logo,
                           otherUserId: (chatViewController
                                           .newVisitContactApiResponse

@@ -77,7 +77,8 @@ class Messages {
       this.whoSeenTheMessage, 
       this.messageRead, 
       this.videoTime, 
-      this.audioTime, 
+      this.metadata,
+      this.audioTime,
       this.sendStatus,
       this.sendPendingMsgParams,
       this.latitude,
@@ -120,6 +121,9 @@ class Messages {
         whoSeenTheMessage?.add(v);
       });
     }
+    metadata = json['metadata'] != null
+        ? MessageMetadata.fromJson(Map<String, dynamic>.from(json['metadata']))
+        : null;
     messageRead = json['message_read'];
     videoTime = json['video_time'];
     audioTime = json['audio_time'];
@@ -167,6 +171,7 @@ class Messages {
   String? message;
   String? status;
   String? messageType;
+  MessageMetadata? metadata;
   String? subType;
   List<dynamic>? whoSeenTheMessage;
   int? messageRead;
@@ -251,9 +256,59 @@ class Messages {
     if (sender != null) {
       map['sender'] = sender?.toJson();
     }
+    if (metadata != null) {
+      map['metadata'] = metadata!.toJson();
+    }
     return map;
   }
 
+}
+class MessageMetadata {
+  String? foodId;
+  String? productId;
+  String? serviceId;
+  String? price;
+  String? discount;
+  bool? missedCall;
+  bool? callAccept;
+  bool? callDecline;
+
+  MessageMetadata({
+    this.foodId,
+    this.productId,
+    this.serviceId,
+    this.price,
+    this.discount,
+    this.missedCall,
+    this.callAccept,
+    this.callDecline,
+  });
+
+  factory MessageMetadata.fromJson(Map<String, dynamic> json) {
+    return MessageMetadata(
+      foodId: json['food_id']?.toString(),
+      productId: json['product_id']?.toString(),
+      serviceId: json['service_id']?.toString(),
+      price: json['price']?.toString(),
+      discount: json['discount']?.toString(),
+      missedCall: json['missed_call'] ?? false,
+      callAccept: json['call_accept'] ?? false,
+      callDecline: json['call_decline'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'food_id': foodId,
+      'product_id': productId,
+      'service_id': serviceId,
+      'price': price,
+      'discount': discount,
+      'missed_call': missedCall,
+      'call_accept': callAccept,
+      'call_decline': callDecline,
+    };
+  }
 }
 
 /// profile_image : ""
