@@ -6,13 +6,13 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
  import 'package:BlueEra/features/business/visiting_card/view/widget/business_details_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/custom_card_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/owner_details_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -60,7 +60,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     return Column(
       children: [
 
-        CustomCardWidget(
+        CustomFormCard(
+          padding: EdgeInsets.all(SizeConfig.size10),
           child: Column(
             children: [
               ///COMPANY PROFILE VIEW ....
@@ -570,7 +571,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         
         ///ABOUT YOUR BUSINESS...
         Obx(() {
-          return CustomCardWidget(
+          return CustomFormCard(
+            padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -711,7 +713,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         ),
 
         /// Inventory
-        CustomCardWidget(
+        CustomFormCard(
+          padding: EdgeInsets.all(SizeConfig.size10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -785,7 +788,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         ),
 
         ///STORE IMAGE...
-        CustomCardWidget(
+        CustomFormCard(
+            padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -925,7 +929,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           //   ],
           // ),
 
-          CustomCardWidget(
+          CustomFormCard(
+            padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

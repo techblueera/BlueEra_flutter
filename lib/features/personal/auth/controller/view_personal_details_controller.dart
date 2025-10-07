@@ -56,8 +56,7 @@ class ViewPersonalDetailsController extends GetxController {
 
   // RxList<Projects>? projectsList=<Projects>[].obs;
   RxString overView = ''.obs;
-
-
+  RxBool isMyProfileShow = false.obs;
 
   Future<void> viewPersonalProfile() async {
     final personalController= Get.put(PersonalCreateProfileController());

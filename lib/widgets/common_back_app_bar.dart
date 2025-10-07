@@ -11,6 +11,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_settings_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -212,6 +213,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       if (isGuestUser()) {
                         createProfileScreen();
                       } else if (isIndividualUser()) {
+                        // navigatePushTo(context, PersonalProfileSetupNewScreen());
                         navigatePushTo(context, PersonalProfileSetupScreen());
                       } else if (isBusinessUser()) {
                         navigatePushTo(context, BusinessOwnProfileScreen());
@@ -588,7 +590,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   borderColor: AppColors.primaryColor,
                   textColor: AppColors.primaryColor,
                   iconColor: AppColors.primaryColor,
-                  isPrefix: true),
+                  isPrefix: true
+              ),
             ),
           ),
 

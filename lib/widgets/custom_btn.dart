@@ -113,7 +113,7 @@ class PositiveCustomBtn extends StatelessWidget {
   final double? fontSize;
   final bool? isDownloadFile;
   final IconData? leading;
-  final bool? withIcon;
+  final Color? iconColor;
   final bool? toLowerCase;
   final String? iconPath;
   final FontWeight? fontWeight;
@@ -136,7 +136,7 @@ class PositiveCustomBtn extends StatelessWidget {
       this.bgColor,
       this.textColor,
       this.leading,
-      this.withIcon = false,
+      this.iconColor,
       this.iconPath,
       this.isDownloadFile = false,
       this.textAlign,
@@ -178,7 +178,7 @@ class PositiveCustomBtn extends StatelessWidget {
                   ),
                   if(iconPath!=null) Padding(
                     padding: const EdgeInsets.only(left: 3.0),
-                    child: LocalAssets(imagePath: iconPath!),
+                    child: LocalAssets(imagePath: iconPath!, imgColor: iconColor),
                   )
                 ],
               ),

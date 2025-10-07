@@ -1,4 +1,7 @@
 
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
@@ -20,13 +23,17 @@ class StatBlock extends StatelessWidget {
         children: [
           CustomText(
             count,
-            color: Colors.black,
+            color: AppColors.mainTextColor,
             fontWeight: FontWeight.w600,
+            fontSize: SizeConfig.medium,
+            fontFamily: AppConstants.OpenSans,
           ),
           CustomText(
             label,
-            color: Color.fromRGBO(107, 124, 147, 1),
+            color: AppColors.secondaryTextColor,
             fontWeight: FontWeight.w400,
+            fontSize: SizeConfig.medium,
+            fontFamily: AppConstants.OpenSans,
           ),
         ],
       ),
