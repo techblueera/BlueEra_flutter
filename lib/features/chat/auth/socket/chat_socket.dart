@@ -4,6 +4,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../environment_config.dart';
 
 class ChatSocketService {
   static final ChatSocketService _instance = ChatSocketService._internal();
@@ -12,7 +13,7 @@ class ChatSocketService {
 
   ChatSocketService._internal();
 
-  late IO.Socket _socket;
+  static late IO.Socket _socket;
 
 
   bool _isConnected = false;
@@ -21,7 +22,7 @@ class ChatSocketService {
     try {
 
       print("Attempting to connect to socket...");
-      _socket = IO.io("wss://chat.blueera.ai",
+      _socket = IO.io(chatSocketUrl,
       // _socket = IO.io('http://13.127.15.108:3000/',
         IO.OptionBuilder()
             .setTransports(['websocket'])

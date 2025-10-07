@@ -39,4 +39,15 @@ class FoodAiRepo extends BaseService {
     );
     return response;
   }
+  Future<ResponseModel> getProductDetailsById({Map<String, dynamic>? queryParam,required String userId}) async {
+
+    final response = await ApiBaseHelper().getHTTP(
+      "${businessServices}/$userId",
+      // params:queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/api/apiService/api_keys.dart';
+import '../../controller/food_upload_controller.dart';
 import '../../model/get_food_details_model.dart';
 
 class FoodCardBusiness extends StatefulWidget {
@@ -40,7 +42,7 @@ class FoodCardBusiness extends StatefulWidget {
 
 class _FoodCardBusinessState extends State<FoodCardBusiness> {
   final chatViewController = Get.find<ChatViewController>();
-
+  final foodController = Get.put(FoodUploadController());
   GetFoodDetailsModel? serviceData;
   var kmAway;
 
@@ -80,7 +82,52 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
     }
 
     return InkWell(
-      onTap: () {},
+      onTap: ()async {
+        
+        log("ksdjncksdjncksjdcnsdc ${widget.serviceData.toJson()}");
+        Map<String, dynamic> detas = {
+          ApiKeys.user_id: widget.serviceData.userId
+        };
+        bool checkCompleted =
+            await chatViewController.checkChatConnection(detas);
+        
+        if(checkCompleted){
+          
+         String conversationId = chatViewController
+              .newVisitContactApiResponse?.value?.data?.conversationId ??
+              '';
+          String otherUserId = chatViewController
+              .newVisitContactApiResponse?.value?.data?.otherUserId ??
+              '';
+          log("sldkclskdmlskdcmsdc ${chatViewController
+              .newVisitContactApiResponse?.value?.data?.toJson()}");
+         Map<String, dynamic> detas = {
+           ApiKeys.id: widget.serviceData.id
+         };
+         foodController.getFoodDetailsFromId(detas, userId: widget.serviceData.id??"");
+         chatViewController
+             .openAnyOneChatFunction(
+           profileImage: chatViewController
+               .newVisitContactApiResponse?.value?.data?.sender?.profileImage,
+           otherUserId:(conversationId=='')?otherUserId :null,
+           businessId: chatViewController
+               .newVisitContactApiResponse?.value?.data?.sender?.id,
+           type: chatViewController
+               .newVisitContactApiResponse?.value?.data?.conversationStatus,
+           isInitialMessage: (conversationId=='')?true:false,
+           userId: chatViewController
+               .newVisitContactApiResponse?.value?.data?.sender?.id,
+           conversationId:
+           conversationId,
+           contactName: chatViewController
+               .newVisitContactApiResponse?.value?.data?.sender?.name,
+           contactNo: chatViewController
+               .newVisitContactApiResponse?.value?.data?.sender?.contact,
+         );
+        }
+
+
+      },
       child: Container(
         margin: EdgeInsets.only(right: 20),
         width: MediaQuery.of(context).size.width * 0.45,

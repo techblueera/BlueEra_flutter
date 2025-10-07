@@ -14,6 +14,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
+import '../../view/orders_chat/order_chat_screen.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
@@ -401,29 +402,30 @@ class ChatViewController extends GetxController {
     await getLocalConversation(conversationId, userId, otherUserId);
     if (type == "business") {
       if (isFromContactList != null && isFromContactList) {
+
         Get.off(
-          () => BusinessChatScreenUpdated(
-            type: type,
-            isInitialMessage: isInitialMessage,
-            userId: userId,
-            conversationId: conversationId,
-            profileImage: profileImage,
-            name: contactName,
-            contactNo: contactNo,
-            businessId: businessId,
+          () => OrderChatScreen(
+            // type: type,
+            // isInitialMessage: isInitialMessage,
+            // userId: userId,
+            // conversationId: conversationId,
+            // profileImage: profileImage,
+            // name: contactName,
+            // contactNo: contactNo,
+            // businessId: businessId,
           ),
         );
       } else {
         Get.to(
-          () => BusinessChatScreenUpdated(
-            type: type,
-            isInitialMessage: isInitialMessage,
-            userId: userId,
-            conversationId: conversationId,
-            profileImage: profileImage,
-            name: contactName,
-            contactNo: contactNo,
-            businessId: businessId,
+          () => OrderChatScreen(
+            // type: type,
+            // isInitialMessage: isInitialMessage,
+            // userId: userId,
+            // conversationId: conversationId,
+            // profileImage: profileImage,
+            // name: contactName,
+            // contactNo: contactNo,
+            // businessId: businessId,
           ),
         );
       }

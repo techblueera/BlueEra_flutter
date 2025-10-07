@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/services/notifications/one_signal_services.dart';
+import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/controller/group_chat_view_controller.dart';
@@ -36,7 +37,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final chatViewController = Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
-  // final callController = Get.put(CallController());
+  final callController = Get.put(CallController());
   final groupChatViewController = Get.put(GroupChatViewController());
 
   @override

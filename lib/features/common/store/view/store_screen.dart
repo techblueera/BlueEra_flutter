@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -18,6 +20,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../food/view/widget/food_product_card.dart';
 import 'store_screen_controller.dart';
 
@@ -474,6 +477,7 @@ class _StoreScreenState extends State<StoreScreen> {
     return SizedBox.shrink();
   }
   Widget _buildFoodServiceSection({String? categoryName, String? tagName}) {
+    final chatViewController = Get.find<ChatViewController>();
     if (controller.foodList.isNotEmpty)
 
 

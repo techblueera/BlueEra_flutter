@@ -80,7 +80,7 @@ class _MessageCardState extends State<MessageCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    print("sdlkclskdmclskdc ${widget.message.messageType}");
     final text = widget.message.message ?? '';
 
     bool isReceive;
