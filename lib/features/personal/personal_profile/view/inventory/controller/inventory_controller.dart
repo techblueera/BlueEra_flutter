@@ -46,6 +46,10 @@ class InventoryController extends GetxController {
   final RxBool ProductSearchLoading = false.obs;
 
   final RxBool cloneProductVariantLoading = false.obs;
+  int page = 1;
+  int limit = 10;
+  bool hasMoreData = true;
+  bool isLoadingMore = false;
 
   RxList<VariantData> searchProductVariantsList = <VariantData>[].obs;
   RxList<UnUsedProduct> searchProductsList = <UnUsedProduct>[].obs;
@@ -117,8 +121,6 @@ class InventoryController extends GetxController {
         targetList = allProducts;
     }
 
-    log('forceRefresh-- $forceRefresh');
-    log('isEmpty-- ${targetList.isEmpty}');
     if (forceRefresh || targetList.isEmpty) {
       switch (selectedProductIndex.value) {
         case 0:
@@ -196,35 +198,57 @@ class InventoryController extends GetxController {
     });
   }
 
-  Future<void> fetchListOfSearchProductApi(String keyword) async {
-
+  Future<void> fetchListOfSearchProductApi(String keyword, {bool isLoadMore = false}) async {
     if(keyword.length < 3) return;
 
-    try {
-      searchProduct.value = keyword;
-      ProductSearchLoading.value = true;
+    searchProduct.value = keyword;
 
-      Map<String, dynamic> params = { ApiKeys.name: keyword };
+    if (isLoadingMore) return;
+
+    try {
+      if (!isLoadMore) {
+        page = 1;
+        hasMoreData = true;
+        searchProductVariantsList.clear();
+        searchProductsList.clear();
+        ProductSearchLoading.value = true;
+      } else {
+        isLoadingMore = true;
+        log('loading more -- $isLoadMore');
+      }
+
+      Map<String, dynamic> params = {
+        ApiKeys.name: keyword,
+        ApiKeys.page: page,
+        ApiKeys.limit: limit,
+      };
 
       final responseModel = await InventoryRepo().fetchInventoryBasedSearchProductApi(queryParams: params);
 
       if (responseModel.isSuccess) {
         searchProductResponse.value = ApiResponse.complete(responseModel);
 
-        // Parse the API response
         final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
           responseModel.response?.data,
         );
 
-        /// search variants
-        searchProductVariantsList.clear();
-        searchProductVariantsList.addAll(inventoryBasedSearchProductResponse.data);
-        print("Total variants products: ${searchProductVariantsList.length}");
+        final newVariants = inventoryBasedSearchProductResponse.data;
+        final newProducts = inventoryBasedSearchProductResponse.unUsedProduct;
 
-        /// search products
-        searchProductsList.clear();
-        searchProductsList.assignAll(inventoryBasedSearchProductResponse.unUsedProduct);
-        print("Total products without variants: ${searchProductsList.length}");
+        if (!isLoadMore) {
+          searchProductVariantsList.assignAll(newVariants);
+          searchProductsList.assignAll(newProducts);
+        }else {
+          searchProductVariantsList.addAll(newVariants);
+          searchProductsList.addAll(newProducts);
+        }
+
+        log('total length-- ${newVariants.length + newProducts.length}');
+        if (newVariants.length + newProducts.length < limit) {
+          hasMoreData = false;
+        } else {
+          page++;
+        }
 
         refresh();
 
@@ -236,7 +260,11 @@ class InventoryController extends GetxController {
       print("stack trace: $s");
       searchProductResponse.value = ApiResponse.error('error');
     }finally{
-      ProductSearchLoading.value = false;
+      if (isLoadMore) {
+        isLoadingMore = false;
+      } else {
+        ProductSearchLoading.value = false;
+      }
     }
   }
 
@@ -256,7 +284,6 @@ class InventoryController extends GetxController {
   }
 
   Future<void> cloneProductVariantApi() async {
-
     cloneProductVariantLoading.value = true;
     try {
       final params = buildSelectedVariantsPayload(
@@ -274,11 +301,6 @@ class InventoryController extends GetxController {
                 route.settings.name ==
                     RouteHelper.getInventoryScreenRoute(),
             );
-        // Parse the API response
-        // final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
-        //   responseModel.response?.data,
-        // );
-
 
       } else {
         cloneVariantProductResponse.value = ApiResponse.error('error');
@@ -298,7 +320,6 @@ class InventoryController extends GetxController {
 
     variantSelection.forEach((variantId, isSelected) {
       if (isSelected) {
-        // find this variant in the full variant list
         final variantData = allVariants.firstWhere(
               (v) => v.finalVariant.id == variantId,
           orElse: () => throw Exception("Variant not found: $variantId"),
@@ -310,7 +331,7 @@ class InventoryController extends GetxController {
             variantData.finalVariant.sellingPrice;
 
         payload.add({
-          "productId": variantData.productInformation.id,
+          "product_id": variantData.productInformation.id,
           "variantId": variantId,
           "sellingPrice": sellingPrice,
         });

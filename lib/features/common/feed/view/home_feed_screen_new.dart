@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
@@ -17,12 +16,10 @@ import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/feed/view/image_feed_status_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
-import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
@@ -301,7 +298,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                             //   currentViewIndex: postIndex,
                             // ));
 
-                              navigatePushTo(
+                            navigatePushTo(
                               context,
                               ImageViewScreen(
                                 subTitle: imgPostData.subTitle,
@@ -492,37 +489,37 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             }
             if (item.type == "long_video") {
               ShortFeedItem videoData = getVideoData(item);
-
-              return Padding(
-                padding: EdgeInsets.only(
-                    left: SizeConfig.size5,
-                    right: SizeConfig.size5,
-                    top: SizeConfig.size10),
-                child: AutoPlayVideoCard(
-                  videoItem: videoData,
-                  globalMuteNotifier: ValueNotifier(false),
-                  videoType: VideoType.videoFeed,
-                  onTapOption: () {
-                    openBlockSelectionDialog(
-                        context: context,
-                        reportType: 'VIDEO_POST',
-                        userId: videoData.video?.userId ?? '',
-                        contentId: videoData.video?.id ?? '',
-                        userBlockVoidCallback: () async {
-                          await Get.find<VideoController>().userBlocked(
-                            videoType: VideoType.videoFeed,
-                            otherUserId: videoData.video?.userId ?? '',
-                          );
-                        },
-                        reportCallback: (params) {
-                          Get.find<VideoController>().videoPostReport(
-                              videoId: videoData.video?.id ?? '',
+              if ((videoData.video?.duration ?? 0) > 0)
+                return Padding(
+                  padding: EdgeInsets.only(
+                      left: SizeConfig.size5,
+                      right: SizeConfig.size5,
+                      top: SizeConfig.size10),
+                  child: AutoPlayVideoCard(
+                    videoItem: videoData,
+                    globalMuteNotifier: ValueNotifier(false),
+                    videoType: VideoType.videoFeed,
+                    onTapOption: () {
+                      openBlockSelectionDialog(
+                          context: context,
+                          reportType: 'VIDEO_POST',
+                          userId: videoData.video?.userId ?? '',
+                          contentId: videoData.video?.id ?? '',
+                          userBlockVoidCallback: () async {
+                            await Get.find<VideoController>().userBlocked(
                               videoType: VideoType.videoFeed,
-                              params: params);
-                        });
-                  },
-                ),
-              );
+                              otherUserId: videoData.video?.userId ?? '',
+                            );
+                          },
+                          reportCallback: (params) {
+                            Get.find<VideoController>().videoPostReport(
+                                videoId: videoData.video?.id ?? '',
+                                videoType: VideoType.videoFeed,
+                                params: params);
+                          });
+                    },
+                  ),
+                );
             }
             return const SizedBox.shrink(); // skip if no card
           },

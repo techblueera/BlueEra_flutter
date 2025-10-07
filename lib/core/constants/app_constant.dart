@@ -31,6 +31,7 @@ import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../l10n/app_localizations.dart';
@@ -255,7 +256,9 @@ redirectToProfileScreen(
       Get.to(BusinessOwnProfileScreen());
     } else {
       Get.to(() => VisitBusinessProfileNew(
-          businessId:profileId, screenName:  AppConstants.feedScreen,));
+            businessId: profileId,
+            screenName: AppConstants.feedScreen,
+          ));
     }
   }
 }
@@ -499,7 +502,10 @@ openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
     Get.to(() => BusinessOwnProfileScreen);
   } else {
-    Get.to(() => VisitBusinessProfileNew(businessId: businessUserId ?? "", screenName:  AppConstants.feedScreen,));
+    Get.to(() => VisitBusinessProfileNew(
+          businessId: businessUserId ?? "",
+          screenName: AppConstants.feedScreen,
+        ));
   }
 }
 
@@ -508,7 +514,10 @@ openPersonalProfile({required String? userID}) {
     Get.to(PersonalProfileSetupScreen());
   } else {
     // Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: '', channelId: channelId,));
-    Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: AppConstants.feedScreen,));
+    Get.to(() => NewVisitProfileScreen(
+          authorId: userID ?? "",
+          screenFromName: AppConstants.feedScreen,
+        ));
   }
 }
 // List<EmojiReaction> reactions = [
@@ -724,9 +733,9 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
 List<PopupMenuEntry<String>> popupMenuInventoryItems() {
   final items = <Map<String, dynamic>>[
     // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-    {"id": "ADD PRODUCT",  'title': 'Add product'},
-    {"id": "ADD SERVICE",  'title': 'Add Service'},
-    {"id": "ADD FOOD",  'title': 'Add Food'},
+    {"id": "ADD PRODUCT", 'title': 'Add product'},
+    {"id": "ADD SERVICE", 'title': 'Add Service'},
+    {"id": "ADD FOOD", 'title': 'Add Food'},
     // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
   ];
 
@@ -775,6 +784,7 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems() {
 
   return entries;
 }
+
 List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
   final items = <Map<String, dynamic>>[
     // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
@@ -1604,32 +1614,25 @@ Future<File> processImage(File file, String mode) async {
   img.Image result;
   logs("modemodemodemode=== $mode");
   // if (mode == AppConstants.Landscape) {
-    // --- Target ratio 3:4 ---
-    double targetRatio = 16 / 9;
-    // double targetRatio = 3 / 4;
+  // --- Target ratio 3:4 ---
+  double targetRatio = 16 / 9;
+  // double targetRatio = 3 / 4;
 
-    // Resize first so the shortest side fits
-    img.Image resized = img.copyResize(
-      original,
-      width:250,
-      height: 250// pick your desired width
+  // Resize first so the shortest side fits
+  img.Image resized = img.copyResize(original,
+      width: 250, height: 250 // pick your desired width
       // width: previewWidth.toInt(), // pick your desired width
-    );
+      );
 
-    // Now crop center to match 3:4
-    int cropHeight = (resized.width / targetRatio).toInt();
-    int offsetY =
-        ((resized.height - cropHeight) / 2).clamp(0, resized.height).toInt();
+  // Now crop center to match 3:4
+  int cropHeight = (resized.width / targetRatio).toInt();
+  int offsetY =
+      ((resized.height - cropHeight) / 2).clamp(0, resized.height).toInt();
 
-    result = img.copyCrop(
-      resized,
-      x: 0,
-      y: offsetY,
-      width: 250,
-      height: 250
+  result = img.copyCrop(resized, x: 0, y: offsetY, width: 250, height: 250
       // width: resized.width,
       // height: cropHeight,
-    );
+      );
   /*} else {
     double previewWidth = Get.width * (1 / 1);
     // Square 1:1
@@ -1646,13 +1649,12 @@ Future<File> processImage(File file, String mode) async {
 
   return outFile;
 }
-int kmRadius100=100;
-int kmRadius500=500;
-int kmRadius1000=1000;
+
+int kmRadius100 = 100;
+int kmRadius500 = 500;
+int kmRadius1000 = 1000;
 ////businesss 4500--->1 product
 ////user login 7222-->
-
-
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1660,8 +1662,7 @@ double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   final dLon = _deg2rad(lon2 - lon1);
 
   final a = sin(dLat / 2) * sin(dLat / 2) +
-      cos(_deg2rad(lat1)) * cos(_deg2rad(lat2)) *
-          sin(dLon / 2) * sin(dLon / 2);
+      cos(_deg2rad(lat1)) * cos(_deg2rad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
 
   final c = 2 * atan2(sqrt(a), sqrt(1 - a));
   final distance = R * c;
@@ -1676,19 +1677,28 @@ double _deg2rad(double deg) {
 List<String> isTempList = [];
 
 void trackPostView(String postID) {
-  // call API asynchronously without blocking UI
-  Future.microtask(() async {
-    try {
-      if (!isTempList.contains(postID)) {
-        isTempList.add(postID);
-        PostRepo().postByViewCountIDApi(id: postID);
-
-        logs("API CALL $postID");
+  if (kReleaseMode) {
+    // call API asynchronously without blocking UI
+    Future.microtask(() async {
+      try {
+        if (!isTempList.contains(postID)) {
+          isTempList.add(postID);
+          PostRepo().postByViewCountIDApi(id: postID);
+        }
+      } catch (e) {
+        print("Failed to track view: $e");
       }
-      // await ApiSer
-      // vice.trackView(post.id);
-    } catch (e) {
-      print("Failed to track view: $e");
-    }
-  });
+    });
+  }
+}
+
+canGoogleMapOpen({required double latitude,required double longitude }) async {
+  final Uri googleMapUrl = Uri.parse(
+      "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}");
+
+  if (await canLaunchUrl(googleMapUrl)) {
+  await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
+  } else {
+  throw "Could not open Google Maps";
+  }
 }

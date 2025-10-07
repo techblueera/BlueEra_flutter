@@ -1,21 +1,17 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ProductCardBusiness extends StatefulWidget {
   final GetProductData productData;
@@ -42,8 +38,6 @@ class ProductCardBusiness extends StatefulWidget {
 class _ProductCardState extends State<ProductCardBusiness> {
   final chatViewController = Get.find<ChatViewController>();
 
-  var kmAway;
-
   @override
   Widget build(BuildContext context) {
     final product = widget.productData.product;
@@ -51,13 +45,6 @@ class _ProductCardState extends State<ProductCardBusiness> {
       product.sellerClassification?.variants[0].sellingPrice.toString() ?? "0",
       product.sellerClassification?.variants[0].mrp.toString() ?? "0",
     ).toInt();
-    if (widget.isShowKM) {
-      kmAway = calculateDistanceKm(
-          LocationService.lat,
-          LocationService.lng,
-          product.sellerClassification?.businessLocation?.latitude ?? 0.0,
-          product.sellerClassification?.businessLocation?.longitude ?? 0.0);
-    }
 
     final details = product.details;
 
@@ -92,40 +79,21 @@ class _ProductCardState extends State<ProductCardBusiness> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
           children: [
-            AspectRatio(
-              aspectRatio: 1.1, // square-ish image (adjust if needed)
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16)),
-                    child: CustomImageSlideshow(
-                      isLoading: false,
-                      width: double.infinity,
-                      height: double.infinity,
-                      imagePaths: product.details?.media ?? [],
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  // if ((product.details?.media.length ?? 0) > 1)
-                  Positioned(
-                      top: 8,
-                      left: 8,
-                      child: _buildIconBox(
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CustomText(
-                            product.sellerClassification?.variants.length
-                                .toString(),
-                            color: AppColors.white,
-                            fontSize: SizeConfig.medium,
-                          ),
-                        ),
-                      )),
-                ],
+            ClipRRect(
+              borderRadius:
+              BorderRadius.vertical(top: Radius.circular(16)),
+              child: CustomImageSlideshow(
+                isLoading: false,
+                width: double.infinity,
+                height: 170,
+                imagePaths: product.details?.media ?? [],
+                borderRadius: BorderRadius.zero,
               ),
             ),
+
             SizedBox(height: SizeConfig.size5),
 
             // Title & price
@@ -179,7 +147,8 @@ class _ProductCardState extends State<ProductCardBusiness> {
                         child: Container(
                           // alignment: Alignment.center,
                           // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                          padding: EdgeInsets.symmetric(horizontal: 5,vertical: 2),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                           decoration: BoxDecoration(
                               color: Colors.green,
                               borderRadius: BorderRadius.circular(30)),
@@ -199,44 +168,17 @@ class _ProductCardState extends State<ProductCardBusiness> {
               ),
               SizedBox(height: SizeConfig.size5),
             ],
+            if (widget.isShowKM)
+              KmAwayTextWidget(
+                  lat: widget.productData.product.sellerClassification
+                          ?.businessLocation?.latitude
+                          .toString() ??
+                      "",
+                  long: widget.productData.product.sellerClassification
+                          ?.businessLocation?.longitude
+                          ?.toString() ??
+                      ""),
 
-            if (widget.isShowKM && kmAway > 0)
-              InkWell(
-                onTap: () async {
-                  final Uri googleMapUrl = Uri.parse(
-                      "https://www.google.com/maps/search/?api=1&query=${widget.productData.product.sellerClassification?.businessLocation?.latitude},${widget.productData.product.sellerClassification?.businessLocation?.longitude}");
-
-                  if (await canLaunchUrl(googleMapUrl)) {
-                    await launchUrl(googleMapUrl,
-                        mode: LaunchMode.externalApplication);
-                  } else {
-                    throw "Could not open Google Maps";
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.location_new,
-                        imgColor: AppColors.primaryColor,
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size5,
-                      ),
-                      CustomText(
-                        "${kmAway.toStringAsFixed(0)} km away from you!",
-                        fontSize: SizeConfig.small,
-                        maxLines: 1,
-                        decoration: TextDecoration.underline,
-                        color: AppColors.primaryColor,
-                        decorationColor: AppColors.primaryColor,
-                        decorationStyle: TextDecorationStyle.solid,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             if (widget.isShowChat)
               InkWell(
                 onTap: () async {

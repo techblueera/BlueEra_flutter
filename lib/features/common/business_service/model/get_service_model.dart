@@ -1,45 +1,52 @@
 import 'dart:convert';
 
 import '../../../business/auth/model/ReleatedStoresList.dart';
-GetServiceModel getServiceModelFromJson(String str) => GetServiceModel.fromJson(json.decode(str));
-String getServiceModelToJson(GetServiceModel data) => json.encode(data.toJson());
+import '../../map/model/food_service_model_response.dart';
+
+GetServiceModel getServiceModelFromJson(String str) =>
+    GetServiceModel.fromJson(json.decode(str));
+
+String getServiceModelToJson(GetServiceModel data) =>
+    json.encode(data.toJson());
+
 class GetServiceModel {
   GetServiceModel({
-      this.priceRange, 
-      this.keyIngredients, 
-      this.accompaniments, 
-      this.keyMinerals, 
-      this.seoTags, 
-      this.id, 
-      this.userId, 
-      this.type, 
-      this.title, 
-      this.description, 
-      this.photos, 
-      this.timings, 
-      this.facilities, 
-      this.priceType, 
-      this.perUnit, 
-      this.discounts, 
-      this.extraDetails, 
-      this.isActive, 
-      this.isDeleted, 
-      this.category,
-      this.businessName,
-      this.subCategory,
-      this.addOns,
-      this.priceOptions, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v, 
-      this.servingOptions, 
-      this.business,
-      this.variants,});
+    this.priceRange,
+    this.keyIngredients,
+    this.accompaniments,
+    this.keyMinerals,
+    this.seoTags,
+    this.id,
+    this.userId,
+    this.type,
+    this.title,
+    this.description,
+    this.photos,
+    this.timings,
+    this.facilities,
+    this.priceType,
+    this.perUnit,
+    this.discounts,
+    this.extraDetails,
+    this.isActive,
+    this.isDeleted,
+    this.category,
+    this.businessName,
+    this.subCategory,
+    this.addOns,
+    this.priceOptions,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.servingOptions,
+    this.business,
+    this.variants,
+  });
 
   GetServiceModel.fromJson(dynamic json) {
-    priceRange = json['priceRange'] != null ? PriceRange.fromJson(json['priceRange']) : null;
-
-
+    priceRange = json['priceRange'] != null
+        ? PriceRange.fromJson(json['priceRange'])
+        : null;
 
     id = json['_id'];
     userId = json['userId'];
@@ -56,13 +63,16 @@ class GetServiceModel {
         timings?.add(Timings.fromJson(v));
       });
     }
-    facilities = json['facilities'] != null ? json['facilities'].cast<String>() : [];
+    facilities =
+        json['facilities'] != null ? json['facilities'].cast<String>() : [];
     seoTags = json['seoTags'] != null ? json['seoTags'].cast<String>() : [];
     photos = json['photos'] != null ? json['photos'].cast<String>() : [];
-    keyMinerals = json['keyMinerals'] != null ? json['keyMinerals'].cast<String>() : [];
+    keyMinerals =
+        json['keyMinerals'] != null ? json['keyMinerals'].cast<String>() : [];
     variants = json['variants'] != null ? json['variants'].cast<String>() : [];
     addOns = json['addOns'] != null ? json['addOns'].cast<String>() : [];
-    priceOptions = json['priceOptions'] != null ? json['priceOptions'].cast<String>() : [];
+    priceOptions =
+        json['priceOptions'] != null ? json['priceOptions'].cast<String>() : [];
     priceType = json['priceType'];
     perUnit = json['perUnit'];
     if (json['discounts'] != null) {
@@ -86,8 +96,8 @@ class GetServiceModel {
     business = json['business'] != null
         ? new BusinessService.fromJson(json['business'])
         : null;
-
   }
+
   PriceRange? priceRange;
   List<String>? keyIngredients;
   List<String>? accompaniments;
@@ -119,9 +129,7 @@ class GetServiceModel {
   List<dynamic>? variants;
   BusinessService? business;
 
-
   Map<String, dynamic> toJson() {
-
     final map = <String, dynamic>{};
     if (priceRange != null) {
       map['priceRange'] = priceRange?.toJson();
@@ -172,20 +180,24 @@ class GetServiceModel {
     }
     return map;
   }
-
 }
 
-ExtraDetails extraDetailsFromJson(String str) => ExtraDetails.fromJson(json.decode(str));
+ExtraDetails extraDetailsFromJson(String str) =>
+    ExtraDetails.fromJson(json.decode(str));
+
 String extraDetailsToJson(ExtraDetails data) => json.encode(data.toJson());
+
 class ExtraDetails {
   ExtraDetails({
-      this.title, 
-      this.details,});
+    this.title,
+    this.details,
+  });
 
   ExtraDetails.fromJson(dynamic json) {
     title = json['title'];
     details = json['details'];
   }
+
   String? title;
   String? details;
 
@@ -195,17 +207,19 @@ class ExtraDetails {
     map['details'] = details;
     return map;
   }
-
 }
 
 Discounts discountsFromJson(String str) => Discounts.fromJson(json.decode(str));
+
 String discountsToJson(Discounts data) => json.encode(data.toJson());
+
 class Discounts {
   Discounts({
-      this.name, 
-      this.description, 
-      this.amountOff,
-      this.type,});
+    this.name,
+    this.description,
+    this.amountOff,
+    this.type,
+  });
 
   Discounts.fromJson(dynamic json) {
     name = json['name'];
@@ -213,6 +227,7 @@ class Discounts {
     type = json['type'];
     amountOff = json['amountOff'];
   }
+
   String? name;
   String? description;
   String? type;
@@ -226,22 +241,25 @@ class Discounts {
     map['amountOff'] = amountOff;
     return map;
   }
-
 }
 
 Timings timingsFromJson(String str) => Timings.fromJson(json.decode(str));
+
 String timingsToJson(Timings data) => json.encode(data.toJson());
+
 class Timings {
   Timings({
-      this.start, 
-      this.end, 
-      this.special,});
+    this.start,
+    this.end,
+    this.special,
+  });
 
   Timings.fromJson(dynamic json) {
     start = json['start'];
     end = json['end'];
     special = json['special'];
   }
+
   String? start;
   String? end;
   bool? special;
@@ -253,20 +271,24 @@ class Timings {
     map['special'] = special;
     return map;
   }
-
 }
 
-PriceRange priceRangeFromJson(String str) => PriceRange.fromJson(json.decode(str));
+PriceRange priceRangeFromJson(String str) =>
+    PriceRange.fromJson(json.decode(str));
+
 String priceRangeToJson(PriceRange data) => json.encode(data.toJson());
+
 class PriceRange {
   PriceRange({
-      this.min, 
-      this.max,});
+    this.min,
+    this.max,
+  });
 
   PriceRange.fromJson(dynamic json) {
     min = json['min'];
     max = json['max'];
   }
+
   int? min;
   int? max;
 
@@ -276,18 +298,19 @@ class PriceRange {
     map['max'] = max;
     return map;
   }
-
 }
 
 class BusinessLocation {
   BusinessLocation({
     this.lat,
-    this.lon,});
+    this.lon,
+  });
 
   BusinessLocation.fromJson(dynamic json) {
     lat = json['lat'];
     lon = json['lon'];
   }
+
   num? lat;
   num? lon;
 
@@ -297,36 +320,39 @@ class BusinessLocation {
     map['lon'] = lon;
     return map;
   }
-
 }
+
 class BusinessService {
   String? id;
   String? userId;
   String? businessName;
   String? typeOfBusiness;
   String? logo;
+  String? address;
   BusinessLocation? businessLocation;
   String? createdAt;
   String? updatedAt;
+  CategoryOfBusiness? categoryOfBusiness;
+  List<OwnerDetails>? ownerDetails;
 
-  BusinessService(
-      {
-
-        this.id,
-        this.userId,
-        this.businessName,
-        this.typeOfBusiness,
-        this.logo,
-
-        this.businessLocation,
-        this.createdAt,
-        this.updatedAt,
-     });
+  BusinessService({
+    this.id,
+    this.userId,
+    this.businessName,
+    this.typeOfBusiness,
+    this.logo,
+    this.businessLocation,
+    this.createdAt,
+    this.updatedAt,
+    this.address,
+    this.categoryOfBusiness,
+    this.ownerDetails,
+  });
 
   BusinessService.fromJson(Map<String, dynamic> json) {
-
     id = json['id'];
     userId = json['user_id'];
+    address = json['address'];
     businessName = json['business_name'];
 
     typeOfBusiness = json['type_of_business'];
@@ -336,15 +362,24 @@ class BusinessService {
         : null;
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    categoryOfBusiness = json['category_of_business'] != null
+        ? CategoryOfBusiness.fromJson(json['category_of_business'])
+        : null;
+    if (json['owner_details'] != null) {
+      ownerDetails = <OwnerDetails>[];
+      json['owner_details'].forEach((v) {
+        ownerDetails!.add(new OwnerDetails.fromJson(v));
+      });
+    }
+
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
 
-
-
     data['id'] = this.id;
     data['user_id'] = this.userId;
+    data['address'] = this.address;
     data['business_name'] = this.businessName;
 
     data['type_of_business'] = this.typeOfBusiness;
@@ -355,6 +390,14 @@ class BusinessService {
     }
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
+    if (categoryOfBusiness != null) {
+      data['category_of_business'] = categoryOfBusiness!.toJson();
+    }
+
+    if (this.ownerDetails != null) {
+      data['owner_details'] =
+          this.ownerDetails!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }

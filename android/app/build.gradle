@@ -65,8 +65,8 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 90
-        versionName "13.40.35"
+        versionCode 91
+        versionName "13.40.36"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey,
                 admobAppId: admobId

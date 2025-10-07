@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -77,7 +77,7 @@ class AddMoreDetailsController extends GetxController {
           title: titleController.text.trim(),
           details: detailController.text.trim(),
         );
-        Get.find<AddProductViaAiController>().addDetail(detailItem);
+        Get.find<ProductController>().addDetail(detailItem);
       }else if(fromScreen == RouteConstant.addServicesScreen){
         final detailItem = DetailItem(
           title: titleController.text.trim(),

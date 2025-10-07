@@ -22,17 +22,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     if (message.data['missed_call'] == "true") {
       Get.back();
     } else {
-      Get.to(IncomingCallScrenn(
-        roomID: message.data['room_id'],
-        callerImage: message.data['sender_profile_image'],
-        senderName: message.data['senderName'],
-        conversation_id: message.data['conversation_id'],
-        message_id: message.data['message_id'],
-        caller_id: message.data['senderId'],
-        forVideoCall: false,
-        receiverImage: message.data['receiver_profile_image'],
-        isGroupCall: message.data['is_group'],
-      ));
+      // Get.to(IncomingCallScrenn(
+      //   roomID: message.data['room_id'],
+      //   callerImage: message.data['sender_profile_image'],
+      //   senderName: message.data['senderName'],
+      //   conversation_id: message.data['conversation_id'],
+      //   message_id: message.data['message_id'],
+      //   caller_id: message.data['senderId'],
+      //   forVideoCall: false,
+      //   receiverImage: message.data['receiver_profile_image'],
+      //   isGroupCall: message.data['is_group'],
+      // ));
     }
   }else {
     await _showBackgroundNotification(message);
@@ -104,17 +104,17 @@ class FirebaseNotificationService {
         if (message.data['missed_call'] == "true") {
           Get.back();
         } else {
-          Get.to(IncomingCallScrenn(
-            roomID: message.data['room_id'],
-            callerImage: message.data['profile_image'],
-            senderName: message.data['name'],
-            conversation_id: message.data['conversation_id'],
-            message_id: message.data['message_id'],
-            caller_id: message.data['id'],
-            forVideoCall: false,
-            receiverImage: message.data['profile_image'],
-            isGroupCall: message.data['is_group'],
-          ));
+          // Get.to(IncomingCallScrenn(
+          //   roomID: message.data['room_id'],
+          //   callerImage: message.data['profile_image'],
+          //   senderName: message.data['name'],
+          //   conversation_id: message.data['conversation_id'],
+          //   message_id: message.data['message_id'],
+          //   caller_id: message.data['id'],
+          //   forVideoCall: false,
+          //   receiverImage: message.data['profile_image'],
+          //   isGroupCall: message.data['is_group'],
+          // ));
         }
       }else{
         _showLocalNotification(message);

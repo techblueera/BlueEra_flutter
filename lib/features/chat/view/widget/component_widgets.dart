@@ -785,7 +785,7 @@ AppBar getChatTitleAppBar(
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
-  final callController = Get.find<CallController>();
+  // final callController = Get.find<CallController>();
 
   logs("profileImage ${profileImage}");
   return AppBar(
@@ -884,27 +884,27 @@ AppBar getChatTitleAppBar(
             const SizedBox(width: 8),
             InkWell(
                 onTap: () {
-                  Map<String,dynamic> data={
-                    if(conversationId!=null)
-                      "conversation_id": "${conversationId}",
-                    if(conversationId==null)
-                      "other_user_id": "${userId}",
-                    "call_type": "audio_call"
-                  };
-                  callController.callToUser(data);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AudioCallScreen(
-                                isCaller: true,
-                                conversationId: conversationId,
-                                userId: userId,
-                                callerName: name ?? '',
-                            conversation_id: conversationId??'',
-                            receiverImage: '',
-                            receiverUserName: name ?? '',
-                              )));
-                  // launchDialPad(contactNo ?? '');
+                  // Map<String,dynamic> data={
+                  //   if(conversationId!=null)
+                  //     "conversation_id": "${conversationId}",
+                  //   if(conversationId==null)
+                  //     "other_user_id": "${userId}",
+                  //   "call_type": "audio_call"
+                  // };
+                  // callController.callToUser(data);
+                  // Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         builder: (context) => AudioCallScreen(
+                  //               isCaller: true,
+                  //               conversationId: conversationId,
+                  //               userId: userId,
+                  //               callerName: name ?? '',
+                  //           conversation_id: conversationId??'',
+                  //           receiverImage: '',
+                  //           receiverUserName: name ?? '',
+                  //             )));
+                  launchDialPad(contactNo ?? '');
                 },
                 child: SvgPicture.asset(AppIconAssets.chat_call)),
             const SizedBox(width: 12),

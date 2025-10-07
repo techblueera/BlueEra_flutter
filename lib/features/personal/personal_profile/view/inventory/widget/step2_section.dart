@@ -1,11 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -18,7 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Step2Section extends StatefulWidget {
-  final AddProductViaAiController controller;
+  final ProductController controller;
   const Step2Section({super.key, required this.controller});
 
   @override
@@ -255,7 +256,7 @@ class _Step2SectionState extends State<Step2Section> {
   }
 
   Widget _buildProductFeaturesSection(
-      AddProductViaAiController controller) {
+      ProductController controller) {
     // min- 20
     return CustomFormCard(
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
@@ -283,7 +284,7 @@ class _Step2SectionState extends State<Step2Section> {
                         hintText: 'E.g. Vorem ipsum dolor sit amet,',
                         textEditController: controller.featureControllers[i],
                         maxLine: 2,
-                        validator: (value)=> controller.validateFeatures(value, i),
+                        validator: (value)=> ValidationMethod().validateFeatures(value, i),
                         maxLength: 140,
                         isCounterVisible: true,
                       ),

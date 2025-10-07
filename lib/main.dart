@@ -31,6 +31,7 @@ import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/firebase_notification_service.dart';
+import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 firebaseInitializeApp()
 async {
   if (Platform.isAndroid) {
@@ -43,7 +44,9 @@ async {
 }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await firebaseInitializeApp();
+
   Get.put(AuthController());
   ///GET LOGIN USER DATA...
   await getUserLoginStatus();
@@ -84,6 +87,13 @@ Future<void> main() async {
   await OnesignalService().initialize();
 
   cameras = await availableCameras();
+  await Hive.initFlutter();
+
+  // Open boxes for language and localization
+  await Hive.openBox('languageBox');
+  await Hive.openBox('localizationBox');
+
+  Get.put(LanguageListController());
   runApp(MyApp());
 }
 

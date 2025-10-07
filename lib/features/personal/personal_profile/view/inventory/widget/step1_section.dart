@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class Step1Section extends StatefulWidget {
-  final AddProductViaAiController controller;
+  final ProductController controller;
 
   const Step1Section({super.key, required this.controller});
 
@@ -317,7 +317,7 @@ class _Step1SectionState extends State<Step1Section> {
   }
 
 
-  Widget _buildTagsSection(AddProductViaAiController controller) {
+  Widget _buildTagsSection(ProductController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -359,7 +359,7 @@ class _Step1SectionState extends State<Step1Section> {
                   ),
                 ),
               ),
-              GetBuilder<AddProductViaAiController>(
+              GetBuilder<ProductController>(
                 id: "addIcon",
                 builder: (_) {
                   return AnimatedSwitcher(

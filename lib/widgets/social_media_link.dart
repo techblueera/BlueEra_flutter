@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -101,11 +102,11 @@ class _SocialLinkInputState extends State<SocialLinkInput> {
                               ? AppColors.blue3F
                               : Colors.transparent,
                         ),
-                        child: SvgPicture.asset(
-                          entry.value,
+                        child: LocalAssets(
+                          imagePath: entry.value,
                           width: 24,
                           height: 24,
-                          color: Colors.white,
+                          imgColor: Colors.white,
                         ),
                       ),
                     );
@@ -133,11 +134,11 @@ class _SocialLinkInputState extends State<SocialLinkInput> {
                     prefixIcon: selectedIcon != null
                         ? Padding(
                             padding: const EdgeInsets.all(10.0),
-                            child: SvgPicture.asset(
-                              iconAssets[selectedIcon]!,
+                            child: LocalAssets(
+                              imagePath: iconAssets[selectedIcon]!,
                               width: 20,
                               height: 20,
-                              color: AppColors.white,
+                              imgColor: AppColors.white,
                             ),
                           )
                         : null,
@@ -190,11 +191,11 @@ class _SocialLinkInputState extends State<SocialLinkInput> {
                           padding: const EdgeInsets.symmetric(vertical: 6.0),
                           child: Row(
                             children: [
-                              SvgPicture.asset(
-                                iconAssets[item['platform']]!,
+                              LocalAssets(
+                                imagePath: iconAssets[item['platform']]!,
                                 width: 20,
                                 height: 20,
-                                color: AppColors.white,
+                                imgColor: AppColors.white,
                               ),
                               const SizedBox(width: 8),
                               Expanded(

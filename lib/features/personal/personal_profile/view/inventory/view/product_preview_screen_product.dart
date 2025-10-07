@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_product_via_ai_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -38,8 +38,8 @@ class _ProductPreviewScreenProductState
     extends State<ProductPreviewScreenProduct> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final AddProductViaAiController controller =
-      Get.put(AddProductViaAiController());
+  final ProductController controller =
+      Get.put(ProductController());
   int _currentIndex = 0;
 
   @override
@@ -113,7 +113,7 @@ class _ProductPreviewScreenProductState
 
   @override
   void dispose() {
-    Get.delete<AddProductViaAiController>();
+    Get.delete<ProductController>();
     super.dispose();
   }
 

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 
 class ServiceAiRepo extends BaseService {
   Future<ResponseModel> aiServiceGenerateRepo(
@@ -20,7 +21,7 @@ class ServiceAiRepo extends BaseService {
   Future<ResponseModel> getServiceRepo(
      ) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${businessServices}?all=true&type=service",
+      "${businessServices}?all=true&type=service&radius=${kmRadius1000}",
       showProgress: true,
       onError: (error) {},
       onSuccess: (data) {},

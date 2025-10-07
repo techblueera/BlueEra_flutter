@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
@@ -14,7 +15,6 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../food/model/get_food_details_model.dart';
 import '../../food/repo/food_ai_repo.dart';
-
 
 class StoreScreenController extends GetxController {
   Rx<ApiResponse> getAllStoreResponse = ApiResponse.initial('Initial').obs;
@@ -30,41 +30,48 @@ class StoreScreenController extends GetxController {
   RxList<GetFoodDetailsModel> foodList = <GetFoodDetailsModel>[].obs;
 
   Future<void> fetchStoresAndProducts() async {
-    // try {
-      isLoading.value = true;
+    try {
+    isLoading.value = true;
 
-      // Run both APIs in parallel
-      await LocationService.fetchLocation();
+    // Run both APIs in parallel
+    await LocationService.fetchLocation();
 
-      await Future.wait([
-        getAllStoreNearBy(),
-        getAllServiceNearBy(),
-        getAllStoreProductNearBy(),
-        getAllFoodService(),
-      ]);
+    await Future.wait([
+      getAllStoreNearBy(),
+      getAllServiceNearBy(),
+      getAllStoreProductNearBy(),
+      getAllFoodService(),
+    ]);
 
+    isLoading.value = false;
+    } catch (e) {
       isLoading.value = false;
-    // } catch (e) {
-    //   isLoading.value = false;
-    //   print("Error: $e");
-    //   getAllStoreResponse.value = ApiResponse.error('error');
-    //   getAllStoreProductResponse.value = ApiResponse.error('error');
-    // }
+      print("Error: $e");
+      getAllStoreResponse.value = ApiResponse.error('error');
+      getAllStoreProductResponse.value = ApiResponse.error('error');
+    }
   }
+
   Future<void> getAllFoodService() async {
     // try {
-    Map<String, dynamic> params = {"all": true, "type": "food"};
+    Map<String, dynamic> params = {
+      "all": true,
+      "type": "food",
+      "radius": kmRadius1000
+    };
     ResponseModel responseModel =
-    await FoodAiRepo().getFoodService(queryParam: params);
+        await FoodAiRepo().getFoodService(queryParam: params);
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
       if (data is List) {
         // if API returns a raw array
-        foodList.value = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+        foodList.value =
+            data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
       } else if (data is Map && data['data'] is List) {
         // if API returns { "data": [...] }
-        foodList.value =
-            (data['data'] as List).map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+        foodList.value = (data['data'] as List)
+            .map((e) => GetFoodDetailsModel.fromJson(e))
+            .toList();
       } else {
         print("⚠️ Unexpected API response: $data");
       }
@@ -139,16 +146,18 @@ class StoreScreenController extends GetxController {
       getAllStoreProductResponse.value = ApiResponse.error('error');
     }
   }
-///GET ALL SERVICE....
+
+  ///GET ALL SERVICE....
   Future<void> getAllServiceNearBy() async {
     try {
       serviceDataList.clear();
       final response =
           await ServiceAiRepo().getServiceRepo(); // Make sure repo uses params
       if (response.isSuccess) {
-        List<dynamic> jsonData = json.decode(jsonEncode(response.response?.data));
-        serviceDataList.value  =
-        jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
+        List<dynamic> jsonData =
+            json.decode(jsonEncode(response.response?.data));
+        serviceDataList.value =
+            jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
 
         getAllStoreServiceResponse.value = ApiResponse.complete(response);
       } else {

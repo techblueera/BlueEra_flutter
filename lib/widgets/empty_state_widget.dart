@@ -35,7 +35,7 @@ class EmptyStateWidget extends StatelessWidget {
           SizedBox(height: SizeConfig.size20),
           CustomText(
             message,
-            fontSize: fontSize ?? SizeConfig.extraLarge,
+            fontSize: fontSize ?? SizeConfig.large,
             color: textColor ?? AppColors.grey9A,
             textAlign: TextAlign.center,
           ),

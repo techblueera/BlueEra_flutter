@@ -1,9 +1,7 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -65,7 +63,7 @@ class _OwnerDetailsBottomSheetState extends State<OwnerDetailsBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
+    // final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return AnimatedPadding(
