@@ -135,7 +135,7 @@ class MessagePostController extends GetxController {
 
   // Aspect ratio (default Square 1:1)
 
-  Future<void> pickImage(BuildContext context) async {
+  Future<void> pickImageFrom(BuildContext context) async {
     if (imagesList.length >= 5) {
       commonSnackBar(message: "Limit Reached You can select max 5 images");
       return;
@@ -143,7 +143,7 @@ class MessagePostController extends GetxController {
     final picker = ImagePicker();
     // final pickedFile = await picker.pickImage(source: ImageSource.gallery,);
 
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
       context,
       cropAspectRatio:  CropAspectRatio(width:300, height: 300),
@@ -151,7 +151,7 @@ class MessagePostController extends GetxController {
     // XFile image=XFile(pickedFile?.path??"");
     if (croppedPath?.isNotEmpty??false) {
       imagesList.add(MessagePostImageModel(
-          id: 0, imageFile: image, imgCropMode: AppConstants.Landscape));
+          id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
     }
   }
 }

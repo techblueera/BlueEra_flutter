@@ -76,7 +76,7 @@ class PhotoUploadWidget extends StatelessWidget {
               SizedBox(height: SizeConfig.size10),
               InkWell(
                 onTap:(){
-                  msgController.pickImage(context);
+                  msgController.pickImageFrom(context);
                 },
                 child: Container(
                   width: SizeConfig.screenWidth,

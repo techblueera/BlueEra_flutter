@@ -456,6 +456,7 @@ abstract class BaseService {
   final String businessServices = 'services-service/services';
   final String callUser = 'chat-service/call/user';
   final String aiServiceGenerateContent = 'ai-service/api/ai-service/generate-content';
+  final String postRepost = 'post-service/post/repost';
 
 
 }

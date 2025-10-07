@@ -60,38 +60,38 @@ class ApiBaseHelper {
             numberOfReq++;
             if (showProgressDialog && numberOfReq > 0)
               ProgressDialog.showProgressDialog(true, apiPath: options.path);
-            // Increment the request count and show the loader
+            // // Increment the request count and show the loader
             final isFormData = options.data is FormData;
-            final method = options.method.toUpperCase();
-            final url = options.uri.toString();
+            // final method = options.method.toUpperCase();
+            // final url = options.uri.toString();
 
-            if(kDebugMode){
-              // ====== 🌟 Beautified Request Log ======
-              log("\x1B[36m==================== API REQUEST [$method] ====================\x1B[0m");
-              log("🔹 URL: $url");
-              log("🔹 Headers: ${jsonEncode(options.headers)}");
-
+            // if(kDebugMode){
+            //   // ====== 🌟 Beautified Request Log ======
+            //   log("\x1B[36m==================== API REQUEST [$method] ====================\x1B[0m");
+            //   log("🔹 URL: $url");
+            //   log("🔹 Headers: ${jsonEncode(options.headers)}");
+            //
               if (options.queryParameters.isNotEmpty) {
                 log("🔹 Query Params: ${jsonEncode(options.queryParameters)}");
               }
-
-              if (isFormData) {
-                final formData = options.data as FormData;
-                log("🔹 FormData Fields:");
-                for (final field in formData.fields) {
-                  log("    ${field.key}: ${field.value}");
-                }
-                log("🔹 FormData Files:");
-                for (final file in formData.files) {
-                  log("    ${file.key}: ${file.value.filename}");
-                }
-              } else if (options.data != null) {
-                log("🔹 Body: ${const JsonEncoder.withIndent('  ').convert(options.data)}");
-              } else {
-                log("🔹 Body: null");
-              }
-
-            }
+            //
+            //   if (isFormData) {
+            //     final formData = options.data as FormData;
+            //     log("🔹 FormData Fields:");
+            //     for (final field in formData.fields) {
+            //       log("    ${field.key}: ${field.value}");
+            //     }
+            //     log("🔹 FormData Files:");
+            //     for (final file in formData.files) {
+            //       log("    ${file.key}: ${file.value.filename}");
+            //     }
+            //   } else if (options.data != null) {
+            //     log("🔹 Body: ${const JsonEncoder.withIndent('  ').convert(options.data)}");
+            //   } else {
+            //     log("🔹 Body: null");
+            //   }
+            //
+            // }
 
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
@@ -117,36 +117,36 @@ class ApiBaseHelper {
             }
 
 
-            final url = response.requestOptions.uri.toString();
-            final statusCode = response.statusCode ?? 0;
-
-            if(kDebugMode){
-              // ====== 🌟 Beautified Response Log ======
-              log("\x1B[32m==================== API RESPONSE [$statusCode] ====================\x1B[0m");
-              log("🔹 URL: $url");
-              log("🔹 Status Message: ${response.statusMessage}");
-              log("🔹 Type: ${response.data.runtimeType}");
-              try {
-                log("🔹 Response: ${const JsonEncoder.withIndent('  ').convert(response.data)}");
-              } catch (_) {
-                log("🔹 Response: ${response.data.toString()}");
-              }
-              log("\x1B[32m===============================================================\x1B[0m");
-
-            }
-
-            // showProgressDialog = true;
-            // Decrement the request count and hide the loader if no pending requests
-            // if (response.statusCode! >= 100 && response.statusCode! <= 199) {
-            //   Logger.printLog(
-            //       tag: 'WARNING CODE ${response.statusCode} : ',
-            //       printLog: response.data.toString(),
-            //       logIcon: Logger.warning);
-            // } else {
-            //   log('SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
-            //   // logs(
-            //   //     'SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
+            // final url = response.requestOptions.uri.toString();
+            // final statusCode = response.statusCode ?? 0;
+            //
+            // if(kDebugMode){
+            //   // ====== 🌟 Beautified Response Log ======
+            //   log("\x1B[32m==================== API RESPONSE [$statusCode] ====================\x1B[0m");
+            //   log("🔹 URL: $url");
+            //   log("🔹 Status Message: ${response.statusMessage}");
+            //   log("🔹 Type: ${response.data.runtimeType}");
+            //   try {
+            //     log("🔹 Response: ${const JsonEncoder.withIndent('  ').convert(response.data)}");
+            //   } catch (_) {
+            //     log("🔹 Response: ${response.data.toString()}");
+            //   }
+            //   log("\x1B[32m===============================================================\x1B[0m");
+            //
             // }
+
+            showProgressDialog = true;
+            // Decrement the request count and hide the loader if no pending requests
+            if (response.statusCode! >= 100 && response.statusCode! <= 199) {
+              Logger.printLog(
+                  tag: 'WARNING CODE ${response.statusCode} : ',
+                  printLog: response.data.toString(),
+                  logIcon: Logger.warning);
+            } else {
+              logs('SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
+              // logs(
+              //     'SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
+            }
 
             /// change after upgrade
             return handler.next(response);

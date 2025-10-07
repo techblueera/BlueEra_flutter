@@ -630,12 +630,14 @@ class Stats {
   int? likes;
   int? shares;
   int? comments;
+  int? repost_count;
 
   Stats({
     this.views,
     this.likes,
     this.shares,
     this.comments,
+    this.repost_count,
   });
 
   factory Stats.fromJson(Map<String, dynamic> json) {
@@ -644,6 +646,7 @@ class Stats {
       likes: json['likes'],
       shares: json['shares'],
       comments: json['comments'],
+      repost_count: json['repost_count'],
     );
   }
 
@@ -653,6 +656,7 @@ class Stats {
       'likes': likes,
       'shares': shares,
       'comments': comments,
+      'repost_count': repost_count,
     };
   }
 
@@ -661,12 +665,14 @@ class Stats {
     int? likes,
     int? shares,
     int? comments,
+    int? repost_count,
   }) {
     return Stats(
       views: views ?? this.views,
       likes: likes ?? this.likes,
       shares: shares ?? this.shares,
       comments: comments ?? this.comments,
+      repost_count: repost_count ?? this.repost_count,
     );
   }
 }

@@ -124,10 +124,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                             data: formatNumberLikePost(
                                 widget.post?.likesCount ?? 0)),
                       ),
-                      ViewFeedActionWidget(
-                          iconPath: AppIconAssets.repost_new,
-                          data: formatNumberLikePost(
-                              widget.post?.repostCount ?? 0)),
+
                     ],
                   ),
                 ),

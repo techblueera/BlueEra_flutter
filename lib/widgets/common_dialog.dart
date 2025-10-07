@@ -6,12 +6,13 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-commonConformationDialog(
-    {required BuildContext context,
-    required String text,
-    required VoidCallback confirmCallback,
-    required VoidCallback cancelCallback,
-    bool barrierDismissible = true}) {
+commonConformationDialog({
+  required BuildContext context,
+  required String text,
+  required VoidCallback confirmCallback,
+  required VoidCallback cancelCallback,
+  bool barrierDismissible = true,
+}) {
   showDialog(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -88,7 +89,8 @@ commonConformationDialog(
 
 showCommonDialog(
     {required BuildContext context,
-    required String text, String? header,
+    required String text,
+    String? header,
     required VoidCallback confirmCallback,
     required VoidCallback cancelCallback,
     required String confirmText,
@@ -112,7 +114,7 @@ showCommonDialog(
                   alignment: Alignment.center,
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
                   child: CustomText(
-                      header?? AppLocalizations.of(context)!.confirm,
+                    header ?? AppLocalizations.of(context)!.confirm,
                     color: Colors.white,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.bold,
@@ -131,7 +133,7 @@ showCommonDialog(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
                   child: Row(
                     children: [
-                      if (confirmText.isNotEmpty)...[
+                      if (confirmText.isNotEmpty) ...[
                         Expanded(
                           child: CustomBtn(
                             bgColor: AppColors.white,
@@ -147,8 +149,6 @@ showCommonDialog(
                           width: SizeConfig.size10,
                         ),
                       ],
-
-
                       Expanded(
                         child: PositiveCustomBtn(
                           onTap: () {

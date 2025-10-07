@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/dummy_model/media_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -9,6 +8,7 @@ import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -623,6 +623,7 @@ ShortFeedItem getVideoData(Post video) {
               comments: video.commentsCount,
               likes: video.likesCount,
               shares: video.sharesCount,
+              repost_count: video.repostCount,
               views: video.viewsCount)),
       interactions: Interactions(
           isBookmarked: false, isFollowing: false, isLiked: false));

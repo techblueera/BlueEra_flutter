@@ -18,13 +18,11 @@ import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../common/reel/models/channel_model.dart';
-import '../model/AllSubCategoryDetailsModel.dart';
 import '../model/GetParticularReviewListModel.dart';
 import '../model/getAllProductDetailsModel.dart';
 import '../model/getBusinessVerifyViewModel.dart';
 import '../model/viewBusinessProfileModel.dart';
 import '../model/visitBusinessDetailedRatingModel.dart';
-import '../model/visitBusinessRatingSumModel.dart';
 import '../repo/business_profile_repo.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 
@@ -62,24 +60,15 @@ Future<double?> getDistanceInKm(double targetLat, double targetLng) async {
 class ViewBusinessDetailsController extends GetxController {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
   ApiResponse viewBusinessResponseNew = ApiResponse.initial('Initial');
-  ApiResponse subCategoryResponse = ApiResponse.initial('Initial');
-  ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
-  ApiResponse businessVerifyResponse = ApiResponse.initial('Initial');
-  ApiResponse businessGetAllProductResponse = ApiResponse.initial('Initial');
-  ApiResponse getParticularRatingResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> fetchVisitBusinessProductResponse =
-      ApiResponse.initial('Initial').obs;
+
 
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
       GetBusinessVerifyViewModel().obs;
-  RxList<SubCategoryData> subCategoriesList = <SubCategoryData>[].obs;
 
-  // Rx<File?> selectedVideo = Rx<File?>(null);
   ViewBusinessProfileModel? visitedBusinessProfileDetails;
-  Rx<VisitBusinessRatingSumModel> visitBusinessRatingSumModel =
-      VisitBusinessRatingSumModel().obs;
+
   Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel =
       VisitBusinessDetailedRatingModel().obs;
   Rx<BusinessCategory> selectedTypeOfBusiness =
@@ -100,10 +89,7 @@ class ViewBusinessDetailsController extends GetxController {
 
   Rx<SubCategories?> selectedSubCategoryOfBusinessNew =
       Rx<SubCategories?>(null);
-  Rx<SubCategoryData?> selectedSubCategoryOfBusiness_ =
-      Rx<SubCategoryData?>(null);
 
-  // Rx<SubCategoryData>? selectedSubCategoryOfBusiness = SubCategoryData(name: "Select sub category").obs;
   RxBool isListingDescriptionEdit = true.obs;
   RxString businessDescription = "".obs;
   SortBy selectedFilter = SortBy.Latest;
@@ -298,40 +284,16 @@ class ViewBusinessDetailsController extends GetxController {
         if (dataList.isNotEmpty) {
           businessSubCategoriesList.addAll(dataList.first.subCategories ?? []);
         }
-
-        // await getSubCategory();
-        businessCategoryResponse = ApiResponse.complete(responseModel);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      businessCategoryResponse = ApiResponse.error('error');
     }finally{
       isCategoriesLoading.value = false;
     }
   }
 
-  Future<void> getSubCategory() async {
-    isSubCategoriesLoading.value = true;
-    try {
-      ResponseModel responseModel =
-          await BusinessProfileRepo().getSubBusinessCat();
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        subCategoryResponse = ApiResponse.complete(responseModel);
-        subCategoriesList.value =
-            AllSubCategoryDetailsModel.fromJson(data).data ?? [];
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      subCategoryResponse = ApiResponse.error('error');
-    }finally{
-      isSubCategoriesLoading.value = false;
-    }
-  }
 
   Future<void> postVerifyBusinessDocs(Map<String, dynamic> params) async {
     try {
@@ -339,14 +301,12 @@ class ViewBusinessDetailsController extends GetxController {
           await BusinessProfileRepo().uploadVerifyBusinessDocs(params);
 
       if (responseModel.isSuccess) {
-        businessVerifyResponse = ApiResponse.complete(responseModel);
         getBusinessVerification();
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      businessVerifyResponse = ApiResponse.error('error');
     }
   }
 
@@ -355,14 +315,12 @@ class ViewBusinessDetailsController extends GetxController {
       ResponseModel responseModel =
           await BusinessProfileRepo().uploadVerificationOwnerDocs(params);
       if (responseModel.isSuccess) {
-        businessVerifyResponse = ApiResponse.complete(responseModel);
         getBusinessVerification();
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      businessVerifyResponse = ApiResponse.error('error');
     }
   }
 
@@ -373,7 +331,6 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
-        businessVerifyResponse = ApiResponse.complete(responseModel);
         GetBusinessVerifyViewModel value =
             GetBusinessVerifyViewModel.fromJson(data['data']);
         viewBusinessVerifyStatus?.value = value;
@@ -382,7 +339,6 @@ class ViewBusinessDetailsController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      businessVerifyResponse = ApiResponse.error('error');
     }
   }
 
@@ -482,24 +438,6 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
-  Future<void> getBusinessRatingsSummary(String userId) async {
-    try {
-      ResponseModel responseModel =
-          await BusinessProfileRepo().getBusinessRatingsSummary(userId);
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-
-        visitBusinessRatingSumModel.value =
-            VisitBusinessRatingSumModel.fromJson(data);
-        update();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      viewBusinessResponse = ApiResponse.error('error');
-    }
-  }
 
   Future<void> getBusinessDetailedRatings(String userId) async {
     try {
@@ -526,14 +464,12 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         getAllProductDetails?.value = GetAllProductDetailsModel.fromJson(data);
-        businessGetAllProductResponse = ApiResponse.complete(responseModel);
         update();
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      businessGetAllProductResponse = ApiResponse.error('error');
     }
   }
 
@@ -546,14 +482,12 @@ class ViewBusinessDetailsController extends GetxController {
         final data = responseModel.response?.data;
         getParticularReviewListModel?.value =
             GetParticularReviewListModel.fromJson(data);
-        getParticularRatingResponse = ApiResponse.complete(responseModel);
         update();
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      getParticularRatingResponse = ApiResponse.error('error');
     }
   }
 
@@ -659,10 +593,8 @@ class ViewBusinessDetailsController extends GetxController {
       final getOwnProductModel = GetProductModel.fromJson(responseModel.response!.data);
 
       products.addAll(getOwnProductModel.data);
-      fetchVisitBusinessProductResponse.value =
-          ApiResponse.complete(responseModel);
+
     } catch (e) {
-      fetchVisitBusinessProductResponse.value = ApiResponse.error("error");
 
       errorMessage.value = e.toString();
     } finally {}

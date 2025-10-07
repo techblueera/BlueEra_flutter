@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -40,6 +41,7 @@ class ShortPlayerItem extends StatefulWidget {
   final VideoPlayerController? preloadedController;
   final Future<void>? initializeFuture;
   final String? coverUrl;
+
   /* -------------------------------- */
 
   const ShortPlayerItem({
@@ -84,11 +86,10 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   @override
   void initState() {
     super.initState();
-    _controllerTag = 'short_controller_${widget.videoItem.video?.id ?? DateTime.now().millisecondsSinceEpoch}';
-    fullScreenShortController = Get.put(
-        FullScreenShortController(),
-        tag: _controllerTag
-    );
+    _controllerTag =
+        'short_controller_${widget.videoItem.video?.id ?? DateTime.now().millisecondsSinceEpoch}';
+    fullScreenShortController =
+        Get.put(FullScreenShortController(), tag: _controllerTag);
     fullScreenShortController.videoItem = widget.videoItem;
 
     getAndSetData();
@@ -112,7 +113,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       }
     });
   }
-
 
   @override
   void didChangeDependencies() {
@@ -146,25 +146,24 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
     if (widget.preloadedController == null && _controller != null) {
       // We created this controller, so we must dispose it
-      print('🔇 SHORT_PLAYER_ITEM: Disposing self-created controller ${_controller.hashCode}');
+      print(
+          '🔇 SHORT_PLAYER_ITEM: Disposing self-created controller ${_controller.hashCode}');
       _controller!.pause();
       _controller!.setVolume(0.0);
       _controller!.dispose();
     } else if (_controller != null) {
       // We received a preloaded controller, just pause it
-      print('🔇 SHORT_PLAYER_ITEM: Pausing preloaded controller ${_controller.hashCode}');
+      print(
+          '🔇 SHORT_PLAYER_ITEM: Pausing preloaded controller ${_controller.hashCode}');
       _controller!.pause();
     }
     Get.delete<FullScreenShortController>(tag: _controllerTag);
     super.dispose();
   }
 
-
   /* ------------- NEW: build – no spinner, only cover ------------- */
   Widget _buildVideoPlayer() {
-    if (_useCover ||
-        _controller == null ||
-        !_controller!.value.isInitialized) {
+    if (_useCover || _controller == null || !_controller!.value.isInitialized) {
       return AspectRatio(
         aspectRatio: _controller?.value.aspectRatio ?? 9 / 16,
         child: CachedNetworkImage(
@@ -205,6 +204,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     //   ),
     // );
   }
+
   /* ------------------------------------------------------------------ */
 
   void _onVideoTap() {
@@ -229,11 +229,11 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     if (_controller != null || _isDisposed) return;
     try {
       String? url;
-      if(GetPlatform.isAndroid){
-        url = fullScreenShortController.videoItem?.video?.transcodedUrls
-            ?.master ??
+      if (GetPlatform.isAndroid) {
+        url = fullScreenShortController
+                .videoItem?.video?.transcodedUrls?.master ??
             fullScreenShortController.videoItem?.video?.videoUrl;
-      }else{
+      } else {
         url = fullScreenShortController.videoItem?.video?.videoUrl;
       }
 
@@ -242,17 +242,18 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         return;
       }
       _controller = VideoPlayerController.networkUrl(
-          Uri.parse(url),
+        Uri.parse(url),
         videoPlayerOptions: VideoPlayerOptions(
           mixWithOthers: true,
           allowBackgroundPlayback: false,
         ),
-        httpHeaders: isHlsUrl(url) ? {
-          'User-Agent': 'Flutter Video Player',
-          // 'Accept': '*/*',
-          // 'Connection': 'keep-alive',
-        } : {},
-
+        httpHeaders: isHlsUrl(url)
+            ? {
+                'User-Agent': 'Flutter Video Player',
+                // 'Accept': '*/*',
+                // 'Connection': 'keep-alive',
+              }
+            : {},
       );
       await _controller!.initialize();
       if (!_isDisposed) {
@@ -281,8 +282,8 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       name = widget.videoItem.author?.name ?? '';
       designation = widget.videoItem.author?.username ?? '';
     }
-    isShortSavedInDb =
-        HiveServices().isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
+    isShortSavedInDb = HiveServices()
+        .isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
     fullScreenShortController.isLiked.value =
         fullScreenShortController.videoItem?.interactions?.isLiked ?? false;
     fullScreenShortController.likes.value =
@@ -383,31 +384,30 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       child: Column(
         children: [
           Obx(() => Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  if (isGuestUser()) {
-                    createProfileScreen();
-                  } else {
-                    _onLikeDislikePressed();
-                  }
-                },
-                child: fullScreenShortController.isLiked.isTrue
-                    ? LocalAssets(imagePath: AppIconAssets.reel_like_fill)
-                    : LocalAssets(
-                    imagePath: AppIconAssets.reel_like,
-                    imgColor: AppColors.white),
-              ),
-              SizedBox(height: SizeConfig.size5),
-              CustomText(
-                formatNumberLikePost(
-                    fullScreenShortController.likes.value),
-                fontSize: SizeConfig.medium15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.white,
-              ),
-            ],
-          )),
+                children: [
+                  InkWell(
+                    onTap: () {
+                      if (isGuestUser()) {
+                        createProfileScreen();
+                      } else {
+                        _onLikeDislikePressed();
+                      }
+                    },
+                    child: fullScreenShortController.isLiked.isTrue
+                        ? LocalAssets(imagePath: AppIconAssets.reel_like_fill)
+                        : LocalAssets(
+                            imagePath: AppIconAssets.reel_like,
+                            imgColor: AppColors.white),
+                  ),
+                  SizedBox(height: SizeConfig.size5),
+                  CustomText(
+                    formatNumberLikePost(fullScreenShortController.likes.value),
+                    fontSize: SizeConfig.medium15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                ],
+              )),
           SizedBox(height: SizeConfig.size15),
           InkWell(
             onTap: () {
@@ -423,20 +423,19 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
           ),
           SizedBox(height: SizeConfig.size5),
           Obx(() => CustomText(
-            formatNumberLikePost(
-                fullScreenShortController.comments.value),
-            fontSize: SizeConfig.medium15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-          )),
+                formatNumberLikePost(fullScreenShortController.comments.value),
+                fontSize: SizeConfig.medium15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.white,
+              )),
           SizedBox(height: SizeConfig.size15),
           InkWell(
             onTap: () => _shareVideoSimple(),
             child: LocalAssets(
-                imagePath: AppIconAssets.reel_share,
-                imgColor: AppColors.white),
+                imagePath: AppIconAssets.reel_share, imgColor: AppColors.white),
           ),
           SizedBox(height: SizeConfig.size3),
+
           InkWell(
             onTap: () => _shareVideoSimple(),
             child: CustomText(
@@ -448,16 +447,16 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               color: AppColors.white,
             ),
           ),
+
           SizedBox(height: SizeConfig.size15),
           InkWell(
             onTap: () async {
               isShortSavedInDb = await Get.find<ShortsController>()
                   .saveVideosToLocalDB(
-                  videoFeedItem: fullScreenShortController.videoItem!);
+                      videoFeedItem: fullScreenShortController.videoItem!);
               setState(() {});
               Get.find<ShortsController>().updateVideoSavedState(
-                videoId:
-                fullScreenShortController.videoItem?.video?.id ?? '0',
+                videoId: fullScreenShortController.videoItem?.video?.id ?? '0',
                 isSaved: isShortSavedInDb,
               );
             },
@@ -475,8 +474,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             color: AppColors.white,
           ),
           if (fullScreenShortController.videoItem?.channel?.id != null)
-            if (fullScreenShortController.videoItem?.channel?.id !=
-                channelId)
+            if (fullScreenShortController.videoItem?.channel?.id != channelId)
               IconButton(
                 onPressed: () {
                   if (isGuestUser()) {
@@ -494,8 +492,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                   shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts)
-          else if (fullScreenShortController
-              .videoItem?.author?.accountType ==
+          else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.individual)
             if (fullScreenShortController.videoItem?.author?.id != userId)
               IconButton(
@@ -515,27 +512,26 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                   shortFeedItem: widget.videoItem,
                   popUpMenuColor: AppColors.black,
                   shorts: widget.shorts)
-          else if (fullScreenShortController
-                .videoItem?.author?.accountType ==
-                AppConstants.business)
-              if (fullScreenShortController.videoItem?.author?.id != userId)
-                IconButton(
-                  onPressed: () {
-                    if (isGuestUser()) {
-                      createProfileScreen();
-                    } else {
-                      widget.onTapOption();
-                    }
-                  },
-                  icon: LocalAssets(
-                      imagePath: AppIconAssets.blockIcon,
-                      imgColor: AppColors.white),
-                )
-              else
-                ReelShortPopUpMenu(
-                    shortFeedItem: widget.videoItem,
-                    popUpMenuColor: AppColors.black,
-                    shorts: widget.shorts),
+          else if (fullScreenShortController.videoItem?.author?.accountType ==
+              AppConstants.business)
+            if (fullScreenShortController.videoItem?.author?.id != userId)
+              IconButton(
+                onPressed: () {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+                  } else {
+                    widget.onTapOption();
+                  }
+                },
+                icon: LocalAssets(
+                    imagePath: AppIconAssets.blockIcon,
+                    imgColor: AppColors.white),
+              )
+            else
+              ReelShortPopUpMenu(
+                  shortFeedItem: widget.videoItem,
+                  popUpMenuColor: AppColors.black,
+                  shorts: widget.shorts),
         ],
       ),
     );
@@ -562,15 +558,15 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             )
           ],
           if (fullScreenShortController
-              .videoItem?.video?.description?.isNotEmpty ??
+                  .videoItem?.video?.description?.isNotEmpty ??
               false) ...[
             Container(
               child: Padding(
                 padding: EdgeInsets.only(right: SizeConfig.size40),
                 child: ExpandableText(
                   text:
-                  fullScreenShortController.videoItem?.video?.description ??
-                      '',
+                      fullScreenShortController.videoItem?.video?.description ??
+                          '',
                   style: TextStyle(
                       color: AppColors.white,
                       fontWeight: FontWeight.w500,
@@ -580,9 +576,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             ),
           ],
           if ((fullScreenShortController.videoItem?.channel?.id?.isNotEmpty ??
-              false) &&
+                  false) &&
               (fullScreenShortController
-                  .videoItem?.video?.acceptBookingsOrEnquiries ??
+                      .videoItem?.video?.acceptBookingsOrEnquiries ??
                   false)) ...[
             SizedBox(height: SizeConfig.size10),
             Row(
@@ -606,9 +602,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                         RouteHelper.sentEnquiresRoute(),
                         arguments: {
                           ApiKeys.channelId:
-                          fullScreenShortController.videoItem?.channel?.id,
+                              fullScreenShortController.videoItem?.channel?.id,
                           ApiKeys.videoId:
-                          fullScreenShortController.videoItem?.videoId,
+                              fullScreenShortController.videoItem?.videoId,
                         },
                       );
                     }
@@ -640,9 +636,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                         RouteHelper.getAppointmentBookingScreenRoute(),
                         arguments: {
                           ApiKeys.channelId:
-                          fullScreenShortController.videoItem?.channel?.id,
+                              fullScreenShortController.videoItem?.channel?.id,
                           ApiKeys.videoId:
-                          fullScreenShortController.videoItem?.videoId,
+                              fullScreenShortController.videoItem?.videoId,
                         },
                       );
                     }
@@ -658,7 +654,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               ],
             )
           ],
-
         ],
       ),
     );
@@ -741,42 +736,42 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     );
   }
 
-  Widget _buildBackButton(){
+  Widget _buildBackButton() {
     return Positioned(
-     left: 20.0,
-     top: 20.0,
-      child: IconButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            Get.back();
-          },
-          icon: LocalAssets(
-            imagePath: AppIconAssets.back_arrow,
-            height: SizeConfig.paddingL,
-            width: SizeConfig.paddingL,
-            imgColor: AppColors.white,
-          ))
-      // child: Container(
-      //   // padding: EdgeInsets.all(6.0),
-      //   decoration: BoxDecoration(
-      //     color: AppColors.black.withValues(alpha: 0.6),
-      //     boxShadow: [AppShadows.textFieldShadow],
-      //     shape: BoxShape.circle
-      //   ),
-      //   alignment: Alignment.center,
-      //   child: IconButton(
-      //       padding: EdgeInsets.zero,
-      //       onPressed: () {
-      //             Get.back();
-      //           },
-      //       icon: LocalAssets(
-      //         imagePath: AppIconAssets.back_arrow,
-      //         height: SizeConfig.paddingL,
-      //         width: SizeConfig.paddingL,
-      //         imgColor: AppColors.white,
-      //       )),
-      // ),
-    );
+        left: 20.0,
+        top: 20.0,
+        child: IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: () {
+              Get.back();
+            },
+            icon: LocalAssets(
+              imagePath: AppIconAssets.back_arrow,
+              height: SizeConfig.paddingL,
+              width: SizeConfig.paddingL,
+              imgColor: AppColors.white,
+            ))
+        // child: Container(
+        //   // padding: EdgeInsets.all(6.0),
+        //   decoration: BoxDecoration(
+        //     color: AppColors.black.withValues(alpha: 0.6),
+        //     boxShadow: [AppShadows.textFieldShadow],
+        //     shape: BoxShape.circle
+        //   ),
+        //   alignment: Alignment.center,
+        //   child: IconButton(
+        //       padding: EdgeInsets.zero,
+        //       onPressed: () {
+        //             Get.back();
+        //           },
+        //       icon: LocalAssets(
+        //         imagePath: AppIconAssets.back_arrow,
+        //         height: SizeConfig.paddingL,
+        //         width: SizeConfig.paddingL,
+        //         imgColor: AppColors.white,
+        //       )),
+        // ),
+        );
   }
 
   void _navigateToProfile() {
@@ -786,28 +781,32 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         RouteHelper.getChannelScreenRoute(),
         arguments: {
           ApiKeys.argAccountType:
-          fullScreenShortController.videoItem?.author?.accountType,
+              fullScreenShortController.videoItem?.author?.accountType,
           ApiKeys.channelId: fullScreenShortController.videoItem?.channel?.id,
           ApiKeys.authorId: fullScreenShortController.videoItem?.author?.id
         },
       );
     } else {
       if (fullScreenShortController.videoItem?.author?.accountType
-          ?.toUpperCase() ==
+              ?.toUpperCase() ==
           AppConstants.individual) {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
           navigatePushTo(context, PersonalProfileSetupScreen());
         } else {
           Get.to(() => NewVisitProfileScreen(
-            authorId: fullScreenShortController.videoItem?.author?.id ?? '', screenFromName: AppConstants.feedScreen,));
+                authorId: fullScreenShortController.videoItem?.author?.id ?? '',
+                screenFromName: AppConstants.feedScreen,
+              ));
         }
       } else {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
           navigatePushTo(context, BusinessOwnProfileScreen());
         } else {
           Get.to(() => VisitBusinessProfileNew(
-            businessId:
-            fullScreenShortController.videoItem?.author?.id ?? '', screenName:  AppConstants.feedScreen,));
+                businessId:
+                    fullScreenShortController.videoItem?.author?.id ?? '',
+                screenName: AppConstants.feedScreen,
+              ));
         }
       }
     }
@@ -850,7 +849,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       builder: (context) => CommentBottomSheet(
         id: fullScreenShortController.videoItem?.video?.id ?? '0',
         totalComments:
-        fullScreenShortController.videoItem?.video?.stats?.comments ?? 0,
+            fullScreenShortController.videoItem?.video?.stats?.comments ?? 0,
         commentType: CommentType.video,
         onNewCommentCount: (int newCommentCount) {
           fullScreenShortController.comments.value = newCommentCount;
@@ -886,14 +885,12 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         text: message,
         subject: title,
       ));
-
     } catch (e) {
       print("Video share failed: $e");
     } finally {
       _isShortSharing = false; // Reset flag
     }
   }
-
 }
 
 // import 'dart:async';

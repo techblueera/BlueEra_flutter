@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/response/get_countRating_response_modal.dart';
-import 'package:BlueEra/core/api/model/response/get_ratting_summary_response_modal.dart';
 import 'package:BlueEra/core/api/model/user_profile_res.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -23,10 +21,6 @@ class VisitProfileController extends GetxController {
   Rx<ApiResponse> getUserChannelDetailsResponse =
       ApiResponse.initial('Initial').obs;
   var userData = Rxn<UserProfileRes>();
-  Rx<GetCountRattingResponse?> getCountRattingResponse =
-      Rxn<GetCountRattingResponse>();
-  Rx<GetRattingSummaryResponse?> getRattingSummaryResponse =
-      Rxn<GetRattingSummaryResponse>();
 
   @override
   void onInit() {
@@ -84,32 +78,10 @@ class VisitProfileController extends GetxController {
     }
   }
 
-  // getCountRating Api
-  Future<void> getCountRatingByUser({required String userId}) async {
-    try {
-      ResponseModel response =
-          await UserRepo().getCountRatingUserById(userId: userId);
-      if (response.isSuccess) {
-        getCountRattingResponse.value =
-            GetCountRattingResponse.fromJson(response.data);
-        update();
-      }
-    } catch (e) {}
-  }
+
 
   //  ratting Summary Api
 
-  Future<void> getRatingSummary({required String userId}) async {
-    try {
-      ResponseModel response =
-          await UserRepo().getRattingSummaryById(userId: userId);
-      if (response.isSuccess) {
-        getRattingSummaryResponse.value =
-            GetRattingSummaryResponse.fromJson(response.data);
-        update();
-      }
-    } catch (e) {}
-  }
 
 
 

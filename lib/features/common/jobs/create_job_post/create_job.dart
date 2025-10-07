@@ -400,15 +400,18 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               },
                             );
                           },
-                          child: CommonTextField(
-                            textEditController:
-                                createJobPostController.addressEditController,
-                            hintText: "E.g., Rajiv Chowk, Delhi",
-                            isValidate: false,
-                            title: "Company Address",
+                          child: IgnorePointer(
+                            ignoring: true,
+                            child: CommonTextField(
+                              textEditController:
+                                  createJobPostController.addressEditController,
+                              hintText: "E.g., Rajiv Chowk, Delhi",
+                              isValidate: false,
+                              title: "Company Address",
 
-                            readOnly: true,
-                            // Make it read-only since we'll use the search screen
+                              readOnly: true,
+                              // Make it read-only since we'll use the search screen
+                            ),
                           ),
                         ),
 

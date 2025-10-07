@@ -1,17 +1,21 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
+import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
@@ -127,7 +131,7 @@ class PostAuthorHeader extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   onSelected: (value) async {
-                    onTapFunction(valueData: value);
+                    onTapFunction(valueData: value, contextBuild: context);
                   },
                   icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
                   itemBuilder: (context) => popupMenuVisitProfileActionItems(
@@ -164,7 +168,7 @@ class PostAuthorHeader extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   onSelected: (value) async {
-                    onTapFunction(valueData: value);
+                    onTapFunction(valueData: value, contextBuild: context);
                   },
                   icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
                   itemBuilder: (context) => popupMenuVisitProfileActionItems(),
@@ -178,7 +182,8 @@ class PostAuthorHeader extends StatelessWidget {
     );
   }
 
-  void onTapFunction({required String valueData}) {
+  void onTapFunction(
+      {required String valueData, required BuildContext contextBuild}) {
     String value = valueData.toUpperCase();
     if (value == "SAVE") {
       Get.find<FeedController>().savePostToLocalDB(
@@ -186,20 +191,27 @@ class PostAuthorHeader extends StatelessWidget {
         type: postType,
       );
     }
-    if (value == "Block User".toUpperCase()) {
+    if (value == "BLOCK USER") {
       if (isGuestUser()) {
         createProfileScreen();
       } else {
         blockUserPopUp();
       }
     }
-    if (value == "Report Post".toUpperCase()) {
+    if (value == "REPORT POST") {
       if (isGuestUser()) {
         createProfileScreen();
       } else {
         postReportPopUp();
       }
     }
+    // if (value == "REPOST") {
+    //   if (isGuestUser()) {
+    //     createProfileScreen();
+    //   } else {
+    //     rePostYourFeed(contextBuild: contextBuild, originalPostID: post?.id);
+    //   }
+    // }
   }
 
   void blockReportUserPopUp() {
@@ -307,20 +319,7 @@ class PostAuthorHeader extends StatelessWidget {
         );
       },
     );
-    // openPostReportDialog(
-    //     context: Get.context!,
-    //     userId: authorId,
-    //     contentId: post?.id ?? '',
-    //     reportType: 'POST',
-    //     reportCallback: (params) async {
-    //       if (isGuestUser()) {
-    //         createProfileScreen();
-    //
-    //         return;
-    //       }
-    //       Get.find<FeedController>().postReport(
-    //           postId: post?.id ?? '', type: postType, params: params);
-    //     }
-    //     );
   }
 }
+
+
