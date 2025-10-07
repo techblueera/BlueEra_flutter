@@ -16,10 +16,14 @@ import 'package:BlueEra/features/common/reel/view/channel/follower_following_scr
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/set_availability_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clock_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/info_card_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/link_tile_widget.dart';
@@ -29,6 +33,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/update_pr
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
+import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -65,6 +70,12 @@ class _PersonalProfileSetupNewScreenState
   Get.isRegistered<PersonalCreateProfileController>()
       ? Get.find<PersonalCreateProfileController>()
       : Get.put(PersonalCreateProfileController());
+
+
+  final myDocumentsController =
+  Get.isRegistered<MyDocumentsController>()
+      ? Get.find<MyDocumentsController>()
+      : Get.put(MyDocumentsController());
 
   final introVideoController = Get.put(IntroductionVideoController());
   final youtubeController = TextEditingController();
@@ -1180,7 +1191,38 @@ class _PersonalProfileSetupNewScreenState
   Widget _buildEarnWithBlueEraWidget(){
     return CustomFormCard(
         padding: EdgeInsets.all(SizeConfig.size16),
-        child: SizedBox()
+        child: Column(
+            children: [
+              Row(
+                children: [
+                  _buildCircleIcon(AppIconAssets.earnWithBlueEra),
+                  SizedBox(width: SizeConfig.size6),
+                  _buildTitleWidget('Earn with BlueEra'),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size16),
+              HorizontalVideoPlayer(),
+              SizedBox(height: SizeConfig.size16),
+              Align(
+               alignment: Alignment.bottomRight,
+                child: CustomBtn(
+                  width: SizeConfig.size160,
+                  title: 'Let\'s Start Earing Now',
+                  onTap: (){
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => ConsultBottomSheet(),
+                    );
+                  },
+                  bgColor: AppColors.primaryColor,
+                  textColor: AppColors.white,
+                  height: SizeConfig.size30,
+                  radius: 10.0,
+                ),
+              ),
+         ]
+        )
     );
   }
 
@@ -1227,50 +1269,44 @@ class _PersonalProfileSetupNewScreenState
               children: [
                 Expanded(
                   child: _buildContainerOverlay(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          CustomText(
-                              'My Wallet:',
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          CustomText(
-                              ' ₹ 522',
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryColor,
-                          ),
-                        ],
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          'My Wallet:',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        CustomText(
+                            ' ₹ 522',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryColor,
+                        ),
+                      ],
                     )
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
                   child: _buildContainerOverlay(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              'Total Earning:',
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                            CustomText(
-                              ' ₹ 522',
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ],
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            'Total Earning:',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          CustomText(
+                            ' ₹ 522',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ],
                       )
                   ),
                 )
@@ -1346,39 +1382,81 @@ class _PersonalProfileSetupNewScreenState
                 ),
                 SizedBox(width: SizeConfig.size6),
 
-                InkWell(
-                  onTap: (){
-                    // Get.toNamed(
-                    //   RouteHelper.getChannelScreenRoute(),
-                    //   arguments: {
-                    //     ApiKeys.argAccountType: accountTypeGlobal,
-                    //     ApiKeys.channelId: channelId,
-                    //     ApiKeys.authorId:
-                    //     (accountTypeGlobal == AppConstants.individual)
-                    //         ? userId
-                    //         : businessId
-                    //   },
-                    // );
-                  },
-                  child: PositiveCustomBtn(
-                    onTap: ()  {
+                PositiveCustomBtn(
+                  onTap: ()  {
+                    Get.toNamed(RouteHelper.getaddDocumentScreenRoute());
 
-                    },
-                    title: 'Add Document',
-                    textColor: AppColors.primaryColor,
-                    iconPath: AppIconAssets.add,
-                    iconColor: AppColors.primaryColor,
-                    width: SizeConfig.size120,
-                    height: SizeConfig.size30,
-                    bgColor: Colors.transparent,
-                    borderColor: AppColors.primaryColor,
-                    radius: 6.0,
-                  ),
+                  },
+                  title: 'Add Document',
+                  textColor: AppColors.primaryColor,
+                  iconPath: AppIconAssets.add,
+                  iconColor: AppColors.primaryColor,
+                  width: SizeConfig.size120,
+                  height: SizeConfig.size30,
+                  bgColor: Colors.transparent,
+                  borderColor: AppColors.primaryColor,
+                  radius: 6.0,
                 ),
               ],
             ),
 
             SizedBox(height: SizeConfig.size16),
+
+            Container(
+              margin: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.whiteE0),
+                boxShadow: [AppShadows.textFieldShadow]
+              ),
+              child: (myDocumentsController.documents.isEmpty) ?
+              ListTile(
+                dense: true,
+                leading: Icon(
+                  Icons.folder_open,
+                  color: AppColors.primaryColor,
+                ),
+                title: CustomText(
+                  'No documents found',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.mainTextColor,
+                ),
+                subtitle:  CustomText(
+                  'Add your first document',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor,
+                 ),
+              )
+                  : ExpansionTile(
+                dense: true,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                title: CustomText(
+                  'My Documents',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                ),
+                childrenPadding: EdgeInsets.only(
+                    bottom: SizeConfig.size8
+                ),
+                children: [
+                  for (int i = 0; i < myDocumentsController.documents.length; i++) ...[
+                    _buildDocumentCard(
+                      myDocumentsController.documents[i],
+                      myDocumentsController,
+                    ),
+                    if (i != myDocumentsController.documents.length - 1)
+                      CommonHorizontalDivider(
+                        color: AppColors.greyE5,       // <-- your colour
+                      ),
+                 ]
+               ]
+              ),
+            )
           ],
         )
     );
@@ -1393,30 +1471,35 @@ class _PersonalProfileSetupNewScreenState
               children: [
                 _buildCircleIcon(AppIconAssets.bookingEnquiries),
                 SizedBox(width: SizeConfig.size6),
-                _buildTitleWidget('Booking & Enquiries'),
+                _buildTitleWidget('Your Availability & Bookings'),
               ],
             ),
 
             SizedBox(height: SizeConfig.size16),
 
             _buildContainerOverlay(
-                child: Row(
-                  children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.mailIcon,
-                    ),
-                    SizedBox(
-                        width: SizeConfig.size10
-                    ),
-                    CustomText(
-                      'Bookings',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    Spacer(),
-                    Icon(Icons.chevron_right)
-                  ],
+                child: InkWell(
+                  onTap: ()=> Get.to(
+                        ()=> SetAvailabilityScreen(id: channelId)
+                  ),
+                  child: Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.mailIcon,
+                      ),
+                      SizedBox(
+                          width: SizeConfig.size10
+                      ),
+                      CustomText(
+                        'Bookings',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      Spacer(),
+                      Icon(Icons.chevron_right)
+                    ],
+                  ),
                 )
             )
           ],
@@ -1469,8 +1552,108 @@ class _PersonalProfileSetupNewScreenState
       child: child,
     );
   }
+  
+  Widget _buildDocumentCard(
+      Document document, MyDocumentsController controller) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          vertical: SizeConfig.size12,
+          horizontal: SizeConfig.size15
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(SizeConfig.size8),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: AppColors.whiteFE,
+                width: 1,
+              ),
+              boxShadow: [AppShadows.textFieldShadow]
+            ),
+            child: Icon(
+              Icons.description_outlined,
+              color: AppColors.primaryColor,
+              size: 24,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size16),
 
+          // Document Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  document.name,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size4),
+                CustomText(
+                  document.size,
+                  fontSize: SizeConfig.extraSmall,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: SizeConfig.size12),
 
+          // Action Buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Delete Button
+              GestureDetector(
+                onTap: () => controller.deleteDocument(document),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red),
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 16,
+                  ),
+                ),
+              ),
+              SizedBox(width: SizeConfig.size8),
+
+              // Edit Button
+              GestureDetector(
+                onTap: () => controller.editDocument(document),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primaryColor),
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: LocalAssets(
+                    imagePath: AppIconAssets.pen_line,
+                    imgColor: AppColors.primaryColor,
+                    height: 16,
+                    width: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
 }
 

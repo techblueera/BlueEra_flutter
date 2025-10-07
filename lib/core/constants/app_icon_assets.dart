@@ -374,5 +374,13 @@ class AppIconAssets {
   static String food_service = "${iconPath}food_service.svg";
   static String other_type = "${iconPath}other_type.svg";
   static String place_holder_image = "${AppConstants.baseImageAssetsPath}place_holder_image.jpeg";
-
+  static String localGoodsIcon = "${iconPath}local_goods_icon.svg";
+  static String contentCreationIcon = "${iconPath}content_creation_icon.svg";
+  static String selfEmploymentIcon = "${iconPath}self_employment_icon.svg";
+  static String foodBowlIcon = "${iconPath}food_bowl_icon.svg";
+  static String homeServiceIcon = "${iconPath}home_service_icon.svg";
+  static String homeRentalIcon = "${iconPath}home_rental_icon.svg";
+  static String deliveryBoyIcon = "${iconPath}delivery_boy_icon.svg";
+  static String jobSearchIcon = "${iconPath}job_search_icon.svg";
+  static String teachingIcon = "${iconPath}teaching_icon.svg";
 }
