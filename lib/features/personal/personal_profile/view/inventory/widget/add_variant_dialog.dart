@@ -41,6 +41,19 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
     if (isColor) {
       localSelectedColors.addAll(widget.controller.selectedColors);
     }
+    detailController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  void _addValue() {
+    final text = detailController.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      newValues.add(text);
+      detailController.clear(); // clear input
+    });
+    FocusScope.of(context).unfocus(); // hide keyboard
   }
 
   @override
@@ -158,26 +171,31 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                     : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Input field
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: Colors.white,
                         boxShadow: [AppShadows.textFieldShadow],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.greyE5, width: 1),
+                        border: Border.all(color: Colors.grey.shade300, width: 1),
                       ),
                       child: Row(
                         children: [
                           Image.asset("assets/icons/tag_icon.png"),
-                          SizedBox(width: 12),
+                          SizedBox(width: SizeConfig.size12),
                           Expanded(
                             child: TextField(
                               controller: detailController,
                               decoration: InputDecoration(
-                                hintText: "Add ${titleController.text}",
-                                hintStyle: TextStyle(color: AppColors.grey9B, fontSize: 14),
+                                hintText: "Enter value",
+                                hintStyle: TextStyle(
+                                  color: AppColors.grey9B,
+                                  fontSize: 14,
+                                ),
                                 border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
                                 isDense: true,
                               ),
                             ),
@@ -186,24 +204,14 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                             duration: const Duration(milliseconds: 200),
                             transitionBuilder: (child, anim) =>
                                 ScaleTransition(scale: anim, child: child),
-                            child: inputText.isNotEmpty
+                            child: detailController.text.isNotEmpty
                                 ? InkWell(
-                              key: ValueKey("add_${titleController.text}"),
-                              onTap: () {
-                                final val = inputText.trim();
-                                if (val.isNotEmpty && !newValues.contains(val)) {
-                                  setState(() {
-                                    newValues.add(val);
-                                    inputText = '';
-                                    detailController.clear();
-                                  });
-                                }
-                              },
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.addBlueIcon,
-                              ),
+                              key: const ValueKey("add_icon"),
+                              onTap: _addValue,
+                              child: const Icon(Icons.add_circle,
+                                  color: Colors.blue, size: 26),
                             )
-                                : SizedBox.shrink(key: ValueKey("empty_${titleController.text}")),
+                                : const SizedBox.shrink(key: ValueKey("empty")),
                           ),
                         ],
                       ),
@@ -211,17 +219,20 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
 
                     const SizedBox(height: 12),
 
-                    // Chips display for only newly added values
+                    // Chips display
                     Wrap(
                       spacing: 8,
-                      runSpacing: 2,
+                      runSpacing: 4,
                       children: newValues.map((val) {
                         return Chip(
                           label: Text(val),
-                          backgroundColor: AppColors.lightBlue,
-                          labelStyle: TextStyle(fontSize: 14, color: Colors.black87),
-                          deleteIcon: const Icon(Icons.close, size: 20, color: AppColors.mainTextColor),
-                          onDeleted: () => setState(() => newValues.remove(val)),
+                          backgroundColor: Colors.blue.shade50,
+                          labelStyle: const TextStyle(fontSize: 14, color: Colors.black87),
+                          deleteIcon:
+                          const Icon(Icons.close, size: 20, color: Colors.black54),
+                          onDeleted: () {
+                            setState(() => newValues.remove(val));
+                          },
                         );
                       }).toList(),
                     ),
@@ -289,7 +300,7 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                       }
 
                     } else {
-                      if (details.isEmpty) return;
+                      if (newValues.isEmpty) return;
 
                       if (widget.controller.dynamicAttributes.containsKey(title)) {
                         Get.snackbar(

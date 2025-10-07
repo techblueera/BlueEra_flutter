@@ -52,7 +52,7 @@ Future<void> main() async {
   ///GET LOGIN USER DATA...
   await getUserLoginStatus();
   await getUserLoginData();
-  await getChannelId();
+  await getChannelData();
   unFocus();
   Get.put(NavigationHelperController());
   Get.put(GlobalMessageService());

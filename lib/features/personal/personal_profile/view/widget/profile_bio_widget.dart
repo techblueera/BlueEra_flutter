@@ -3,7 +3,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class ProfileBioWidget extends StatelessWidget {
-
   final String? bioText;
 
   const ProfileBioWidget({super.key,required this.bioText});

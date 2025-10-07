@@ -19,6 +19,8 @@ String reel_profile_id_global = '';
 String userProfileGlobal = '';
 // String userProfile_global = '';
 String channelId = '';
+String channelName = '';
+String channelOwner = '';
 
 String businessNameGlobal = '';
 String businessOwnerNameGlobal = '';
@@ -55,6 +57,8 @@ class SharedPreferenceUtils {
   static const businessOwnerName = 'business_owner_name';
   static const userNameAtKey = 'userNameAt';
   static const disableGreetingCardKey = 'disableGreetingCardKey';
+  static const channelName = 'channelName';
+  static const channelOwner = 'channelOwner';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -264,10 +268,16 @@ getGuestUserLoginData() async {
 
 }
 
-/// GET CHANNEL ID...
-getChannelId() async {
+/// GET CHANNEL DATA...
+getChannelData() async {
   channelId = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.channel_Id) ??
+      "";
+  channelName = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.channelName) ??
+      "";
+  channelOwner = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.channelOwner) ??
       "";
 }
 

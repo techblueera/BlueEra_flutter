@@ -42,7 +42,20 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     super.initState();
 
     if (channelId.isEmpty) {
-      getChannelDetails().then((value) => channelId = value ?? '');
+      getChannelDetails().then((channelModel) {
+        String channelId = channelModel?.data.id??'';
+        String channelName = channelModel?.data.name??'';
+        String channelOwner = channelModel?.data.ownership.claimedBy??'';
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channel_Id, channelId
+        );
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channelName, channelName
+        );
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channelOwner, channelOwner
+        );
+     });
     }
     chatViewController.connectSocket();
     // groupChatViewController.connectSocket();
@@ -51,18 +64,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   ///GET CHANNEL DETAILS...
-  Future<String?> getChannelDetails() async {
+  Future<ChannelModel?> getChannelDetails() async {
     try {
       ResponseModel response =
           await ChannelRepo().getChannelDetails(channelOrUserId: userId);
 
       if (response.statusCode == 200) {
-        ChannelModel channelModel =
-            ChannelModel.fromJson(response.response?.data);
-        String channelId = channelModel.data.id;
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channel_Id, channelId);
-        return channelId;
+
+        return ChannelModel.fromJson(response.response?.data);
+
       } else {
         return null;
       }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -14,17 +15,17 @@ import 'package:flutter/material.dart';
 class CommonProfileImage extends StatefulWidget {
   String? imagePath;
   String? dialogTitle;
-  final double size;
   final Function(String) onImageUpdate;
   final bool isOwnProfile;
+  final bool showProfileBorder;
 
   CommonProfileImage({
     Key? key,
     required this.imagePath,
     required this.dialogTitle,
     required this.onImageUpdate,
-    this.size = 100,
-    this.isOwnProfile = true
+    this.isOwnProfile = true,
+    this.showProfileBorder = true
   }) : super(key: key);
 
   @override
@@ -45,7 +46,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
             // padding: EdgeInsets.all(SizeConfig.size2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primaryColor, width: 1.6),
+              border: (widget.showProfileBorder) ? Border.all(color: AppColors.primaryColor, width: 1.6) : null,
             ),
             child: CircleAvatar(
               radius: 40,
@@ -79,6 +80,8 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
               ),
               child: LocalAssets(
                 imagePath: AppIconAssets.profile_pen_tool,
+                height: SizeConfig.size26,
+                width: SizeConfig.size26,
                 imgColor: Colors.white,
               ),
             ),
