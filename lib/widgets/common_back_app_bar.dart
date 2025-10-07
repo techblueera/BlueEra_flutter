@@ -213,8 +213,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       if (isGuestUser()) {
                         createProfileScreen();
                       } else if (isIndividualUser()) {
-                        // navigatePushTo(context, PersonalProfileSetupNewScreen());
-                        navigatePushTo(context, PersonalProfileSetupScreen());
+                        navigatePushTo(context, PersonalProfileSetupNewScreen());
+                        // navigatePushTo(context, PersonalProfileSetupScreen());
                       } else if (isBusinessUser()) {
                         navigatePushTo(context, BusinessOwnProfileScreen());
                       }
