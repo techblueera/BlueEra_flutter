@@ -108,4 +108,8 @@ static const Color chipTextColor = Color(0xFF303030);
   static const Color orange27 = Color(0xFFAD4627);
   static const Color whiteFade = Color(0xffFEFEFE);
   static const Color darkOrange = Color(0xffFF5E00);
+  static const Color blackFade = Color(0xff3A3A3A);
+  static const Color darkBrown = Color(0xff5A1900);
+  static const Color redBorder = Color(0xffE64900);
+  static const Color greyOut = Color(0xff686868);
 }

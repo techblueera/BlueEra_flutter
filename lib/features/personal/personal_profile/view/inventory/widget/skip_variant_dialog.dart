@@ -144,6 +144,7 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                     if (formKey.currentState!.validate()) {
                       widget.controller.addProductsInListing(
                           productListing: ProductListing(
+                              id: "",
                               image: widget.controller.step2Images,
                               name: widget.controller.productNameController.text.trim(),
                               price: productPriceController.text.trim(),

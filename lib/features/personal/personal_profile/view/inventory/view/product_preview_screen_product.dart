@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -87,7 +88,7 @@ class _ProductPreviewScreenProductState
         controller.listedProducts.value = widget
                 .productData?.product.sellerClassification?.variants
                 .map((variant) {
-              return ProductListing(
+              return ProductListing(id: variant.id,
                 image: variant.mediaRelatedToVariant.isNotEmpty
                     ? variant.mediaRelatedToVariant
                     : [],
@@ -1313,7 +1314,40 @@ class _ProductPreviewScreenProductState
                   };
                   chatViewController.newVisitContactApiResponse?.value;
                   await chatViewController.checkChatConnection(detas);
+                  List<Map<String, String>> urlList =
+                  product.image.map((e) => {"url": e}).toList();
+                  Map<String, dynamic> data = {
+                    "product_id":"${product.id}",
+
+                    "price": "${product.price}",
+                    "discount": "${product.discount}",
+                    if ((chatViewController.newVisitContactApiResponse
+                        ?.value?.data?.conversationId ==
+                        '' ||
+                        chatViewController.newVisitContactApiResponse
+                            ?.value?.data?.conversationId ==
+                            null))
+                      ApiKeys.other_user_id: (chatViewController
+                          .newVisitContactApiResponse
+                          ?.value
+                          ?.data
+                          ?.otherUserId ??
+                          '')
+                    else
+                      ApiKeys.conversation_id: (chatViewController
+                          .newVisitContactApiResponse
+                          ?.value
+                          ?.data
+                          ?.conversationId ??
+                          ''),
+                    "message":
+                    "${product.name}.${product.mrp}.${jsonEncode(product.selectedVariants)}",
+                    "message_type": "product",
+                    "url": urlList,
+                  };
                   chatViewController.openAnyOneChatFunction(
+                    shareProductParams: data,
+                    isWithProductSend: true,
                     profileImage: widget.productData?.product.business_logo,
                     otherUserId: (chatViewController.newVisitContactApiResponse
                                     ?.value?.data?.conversationId ??
@@ -1347,6 +1381,7 @@ class _ProductPreviewScreenProductState
                   );
                 },
                 child: Container(
+
                   // width: Get.width,
                   padding: EdgeInsets.symmetric(
                       horizontal: SizeConfig.size15,

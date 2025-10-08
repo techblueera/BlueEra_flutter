@@ -438,7 +438,7 @@ class _ProductScreenState extends State<ProductScreen> {
               }
             }).where((attr) => attr.isNotEmpty).join(', ');
 
-        return ProductListing(
+        return ProductListing(id: variant.id,
           image: variant.mediaRelatedToVariant,
           name: variantName,
           selectedVariants: variant.attributes,
