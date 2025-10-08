@@ -4,6 +4,8 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
@@ -12,6 +14,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/get_own_product_model.dart';
@@ -28,8 +31,6 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   late final InventoryController inventoryController;
-
-
 
   @override
   void initState() {
@@ -119,6 +120,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   product,
                   widget.controller,
                   width: itemWidth,
+                  index: index
                 );
               },
             );
@@ -161,6 +163,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   product,
                   widget.controller,
                   width: itemWidth,
+                  index: index
                 );
               },
             );
@@ -204,6 +207,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   product,
                   widget.controller,
                   width: itemWidth,
+                  index: index
                 );
               },
             );
@@ -219,6 +223,7 @@ class _ProductScreenState extends State<ProductScreen> {
       OwnProductData product,
       InventoryController controller, {
         required double width,
+        required int index,
       }) {
     final variants = product.product.sellerClassification?.variants ?? [];
 
@@ -310,7 +315,24 @@ class _ProductScreenState extends State<ProductScreen> {
                       top: 8,
                       left: 8,
                       child:  _buildIconBox(
-                          Icon(Icons.share, color: AppColors.white, size: 16)
+                          Icon(Icons.share, color: AppColors.white, size: 16),
+                          onTap: () {
+                            VisitingCardHelper.buildAndShareProductCard(
+                              context,
+                              product,
+                              index: index
+                          );
+                          //   Get.to(()=> DiwaliOfferSecondCardScreen(
+                          //     cardKey: GlobalKey(),
+                          //     ownProductData: product,
+                          //     index: index,
+                          //   ));
+                          //   Get.to(()=> DiwaliOfferCardScreen(
+                          //     cardKey: GlobalKey(),
+                          //     ownProductData: product,
+                          //     index: index,
+                          //   ));
+                          }
                       ),
                     ),
 
@@ -402,17 +424,20 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  Widget _buildIconBox(Widget child) {
-    return Container(
-      height: 25,
-      width: 25,
-      decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow]
+  Widget _buildIconBox(Widget child, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 25,
+        width: 25,
+        decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            shape: BoxShape.circle,
+            boxShadow: [AppShadows.textFieldShadow]
+        ),
+        alignment: Alignment.center,
+        child: child,
       ),
-      alignment: Alignment.center,
-      child: child,
     );
   }
 

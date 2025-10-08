@@ -341,9 +341,9 @@ class _PersonalProfileSetupNewScreenState
       
           _buildEarnWithBlueEraWidget(),
       
-          SizedBox(height: SizeConfig.size10),
-      
-          _buildPaymentAccountWidget(),
+          // SizedBox(height: SizeConfig.size10),
+          //
+          // _buildPaymentAccountWidget(),
       
           SizedBox(height: SizeConfig.size10),
       

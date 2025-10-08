@@ -10,10 +10,8 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controller/inventory_controller.dart';
 import 'foodandgrocery/food_and_grocery_screen.dart';
-
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});

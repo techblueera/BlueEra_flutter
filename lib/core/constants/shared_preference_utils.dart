@@ -25,6 +25,7 @@ String channelOwner = '';
 String businessNameGlobal = '';
 String businessOwnerNameGlobal = '';
 String userNameAtGlobal = '';
+String businessOwnerAddressGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -59,6 +60,7 @@ class SharedPreferenceUtils {
   static const disableGreetingCardKey = 'disableGreetingCardKey';
   static const channelName = 'channelName';
   static const channelOwner = 'channelOwner';
+  static const businessOwnerAddress = 'businessOwnerAddress';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -102,6 +104,7 @@ class SharedPreferenceUtils {
     required String businessId,
     required String loginBusinessUserId,
     required String userNameAt,
+    required String businessAddress,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userBusinessId, businessId);
@@ -110,6 +113,7 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessOwnerName, businessOwnerName);
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.loginUserId, loginBusinessUserId);
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessOwnerAddress, businessAddress);
   }
 
   /// Store the refresh token securely
@@ -234,6 +238,10 @@ getUserLoginData() async {
 
   businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessOwnerName) ??
+      "";
+
+  businessOwnerAddressGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessOwnerAddress) ??
       "";
 
   userNameAtGlobal = await SharedPreferenceUtils.getSecureValue(

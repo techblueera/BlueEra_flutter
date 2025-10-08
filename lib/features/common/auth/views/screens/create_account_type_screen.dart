@@ -242,13 +242,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     radius: SizeConfig.size8,
                   ),
                   SizedBox(height: kToolbarHeight),
-                  PositiveCustomBtn(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>DiwaliOfferSecondCardScreen()));
-                    },
-                    title: "Diwali Card",
-                    radius: SizeConfig.size8,
-                  ),
+                  // PositiveCustomBtn(
+                  //   onTap: (){
+                  //     Navigator.push(context, MaterialPageRoute(builder: (context)=>DiwaliOfferSecondCardScreen()));
+                  //   },
+                  //   title: "Diwali Card",
+                  //   radius: SizeConfig.size8,
+                  // ),
 
                 ],
               ),
