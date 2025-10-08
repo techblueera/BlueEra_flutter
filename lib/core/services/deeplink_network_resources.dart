@@ -70,9 +70,9 @@ class DeepLinkNetworkResources {
       final videoType = videoFeedItem.video?.type;
 
       switch (videoType) {
-        case 'long':
-          Get.to(() => DeeplinkVideoScreen(videoItem: videoFeedItem));
-          break;
+        // case 'long':
+        //   Get.to(() => DeeplinkVideoScreen(videoItem: videoFeedItem));
+        //   break;
         case 'short':
           Get.to(() => ShareShortPlayerItem(
             videoItem: videoFeedItem,

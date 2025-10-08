@@ -663,14 +663,14 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => PhotoPostReviewScreen(postVia: postVia),
         );
-      case RouteConstant.videoPlayerScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
-        final videoType = args[ApiKeys.videoType] as VideoType;
-        return MaterialPageRoute(
-          builder: (_) =>
-              VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
-        );
+      // case RouteConstant.videoPlayerScreen:
+      //   final args = settings.arguments as Map<String, dynamic>;
+      //   final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
+      //   final videoType = args[ApiKeys.videoType] as VideoType;
+      //   return MaterialPageRoute(
+      //     builder: (_) =>
+      //         VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
+      //   );
       case RouteConstant.journeyPlanningScreen:
         return MaterialPageRoute(
           builder: (_) => JourneyPlanningScreen(),
