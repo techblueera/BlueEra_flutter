@@ -16,6 +16,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
@@ -731,17 +732,28 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
   return entries;
 }
 
+// List<String> isShowOther = ["product", "service", "both"];
+List<String> isShowProduct = ["product", "service", "both"];
+List<String> isShowService = ["product", "service", "both", "food"];
+List<String> isShowFood = ["food"];
+
+String? businessType() {
+  final controller = Get.find<ViewBusinessDetailsController>();
+  return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
+}
+
 List<PopupMenuEntry<String>> popupMenuInventoryItems() {
   final items = <Map<String, dynamic>>[
-    // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-    {"id": "ADD PRODUCT", 'title': 'Add product'},
-    {"id": "ADD SERVICE", 'title': 'Add Service'},
-    {"id": "ADD FOOD", 'title': 'Add Food'},
+    if (isShowProduct.contains(businessType()))
+      {"id": "ADD PRODUCT", 'title': 'Add Product'},
+    if (isShowService.contains(businessType()))
+      {"id": "ADD SERVICE", 'title': 'Add Service'},
+    if (isShowFood.contains(businessType()))
+      {"id": "ADD FOOD", 'title': 'Add Food'},
     // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
-
   for (int i = 0; i < items.length; i++) {
     entries.add(
       PopupMenuItem<String>(
@@ -1693,13 +1705,13 @@ void trackPostView(String postID) {
   }
 }
 
-canGoogleMapOpen({required double latitude,required double longitude }) async {
+canGoogleMapOpen({required double latitude, required double longitude}) async {
   final Uri googleMapUrl = Uri.parse(
       "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}");
 
   if (await canLaunchUrl(googleMapUrl)) {
-  await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
+    await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
   } else {
-  throw "Could not open Google Maps";
+    throw "Could not open Google Maps";
   }
 }

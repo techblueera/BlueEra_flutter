@@ -1,14 +1,26 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../core/api/apiService/api_response.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
@@ -18,11 +30,7 @@ class BusinessProfileScreen extends StatefulWidget {
   final int? selectedIndex;
   final SortBy? sortBy;
 
-  BusinessProfileScreen({
-    super.key,
-    this.selectedIndex,
-    this.sortBy
-  });
+  BusinessProfileScreen({super.key, this.selectedIndex, this.sortBy});
 
   @override
   State<BusinessProfileScreen> createState() => _BusinessProfileScreenState();
@@ -46,14 +54,17 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   @override
   void initState() {
     selectedFilter = widget.sortBy ?? SortBy.Latest;
-    viewBusinessDetailsController.selectedIndex.value = widget.selectedIndex ?? 0;
+    viewBusinessDetailsController.selectedIndex.value =
+        widget.selectedIndex ?? 0;
     setFilters();
     super.initState();
   }
 
-  void setFilters(){
+  void setFilters() {
     filters = SortBy.values.toList();
   }
+
+  final controllerInventory = Get.put(InventoryController());
 
   @override
   Widget build(BuildContext context) {
@@ -74,13 +85,10 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 },
                 labelBuilder: (label) => label,
               ),
-
-
-              if(viewBusinessDetailsController.selectedIndex.value == 2 ||
-                  viewBusinessDetailsController.selectedIndex.value == 3 )...[
+              if (viewBusinessDetailsController.selectedIndex.value == 2 ||
+                  viewBusinessDetailsController.selectedIndex.value == 3) ...[
                 _filterButtons(),
               ],
-
               SizedBox(
                 height: SizeConfig.size20,
               ),
@@ -109,14 +117,13 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case 'Profile':
         return BusinessProfileWidget();
       case 'My Posts':
-         return FeedScreen(
-          key: ValueKey('feedScreen_my_posts'),
-          postFilterType: PostType.myPosts,
-          id: businessId,
-          isInParentScroll: true
-        );
+        return FeedScreen(
+            key: ValueKey('feedScreen_my_posts'),
+            postFilterType: PostType.myPosts,
+            id: businessId,
+            isInParentScroll: true);
       case 'Shorts':
-         return ShortsChannelSection(
+        return ShortsChannelSection(
           isOwnShorts: true,
           channelId: '',
           authorId: userId,
@@ -125,12 +132,12 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
           postVia: PostVia.profile,
         );
       case "Videos":
-      return VideoChannelSection(
-            isOwnVideos: true,
-            channelId: '',
-            authorId: userId,
-            postVia: PostVia.profile,
-            sortBy: selectedFilter,
+        return VideoChannelSection(
+          isOwnVideos: true,
+          channelId: '',
+          authorId: userId,
+          postVia: PostVia.profile,
+          sortBy: selectedFilter,
         );
       default:
         return const Center(child: CustomText('Coming soon'));
@@ -139,7 +146,10 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
   Widget _filterButtons() {
     return SingleChildScrollView(
-      padding: EdgeInsets.only(left: SizeConfig.large, right: SizeConfig.large, top: SizeConfig.size20),
+        padding: EdgeInsets.only(
+            left: SizeConfig.large,
+            right: SizeConfig.large,
+            top: SizeConfig.size20),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
@@ -161,7 +171,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                         filter.label, // use .label for display text
                         decoration: TextDecoration.underline,
                         color: isSelected ? Colors.blue : Colors.black54,
-                        decorationColor: isSelected ? Colors.blue : Colors.black54,
+                        decorationColor:
+                            isSelected ? Colors.blue : Colors.black54,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -170,7 +181,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               ),
             )
           ],
-        )
-    );
+        ));
   }
+
+
 }

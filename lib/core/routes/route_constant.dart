@@ -1,5 +1,6 @@
 class RouteConstant {
   static const String inital = "/";
+  static const String PermissionScreen = "/PermissionScreen";
   static const String SplashScreen = "/SplashScreen";
   static const String AudioCallScreen = "/AudioCallScreen";
   static const String MobileNumberScreen = "/MobileNumberScreen";

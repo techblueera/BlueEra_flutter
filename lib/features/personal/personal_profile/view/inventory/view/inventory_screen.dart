@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart' hide businessType;
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
@@ -14,7 +15,6 @@ import 'package:get/get.dart';
 import '../controller/inventory_controller.dart';
 import 'foodandgrocery/food_and_grocery_screen.dart';
 
-
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
 
@@ -22,7 +22,8 @@ class InventoryScreen extends StatefulWidget {
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProviderStateMixin {
+class _InventoryScreenState extends State<InventoryScreen>
+    with SingleTickerProviderStateMixin {
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
   late TabController _tabController;
@@ -30,7 +31,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   @override
   void initState() {
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     controller.callApi(forceRefresh: true);
     super.initState();
   }
@@ -46,64 +47,67 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight+50),
+        preferredSize: Size.fromHeight(kToolbarHeight + 50),
         child: CommonBackAppBar(
-            controller: searchController,
-            searchHintText: 'Search ${_tabController.index == 0
-                        ? 'Product' : _tabController.index == 1
-                        ? 'Service'
-                        : 'Food & Grocery'}...',
-            onClearCallback: () => searchController.clear(),
-            isSearch: true,
-            isProductPopUpMenu: true,
-            bottomWidget: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.blue,
-              indicatorWeight: 2,
-              labelStyle: TextStyle(fontWeight: FontWeight.w600),
-              tabs: [
+          controller: searchController,
+          searchHintText:
+              'Search ...',
+              // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
+          onClearCallback: () => searchController.clear(),
+          isSearch: true,
+          isProductPopUpMenu: true,
+          bottomWidget: TabBar(
+            controller: _tabController,
+            labelColor: AppColors.primaryColor,
+            unselectedLabelColor: Colors.grey[600],
+            indicatorColor: Colors.blue,
+            indicatorWeight: 2,
+            labelStyle: TextStyle(fontWeight: FontWeight.w600),
+            tabs: [
+              if ((isShowProduct.contains(businessType())))
                 Tab(text: 'My Products'),
+              if ((isShowService.contains(businessType())))
                 Tab(text: 'My Services'),
+              if ((isShowFood.contains(businessType())))
                 Tab(text: 'Food & Grocery'),
             ],
           ),
         ),
       ),
-      floatingActionButton: Builder(
-          builder: (context) {
-            return FloatingActionButton(
-              onPressed: () =>
-                  showPopUpMenu(context, controller),
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: AnimatedRotation(
-                turns: controller.isMenuOpen.value ? 0.25  : 0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                child: Obx(()=> Icon(
+      floatingActionButton: Builder(builder: (context) {
+        return FloatingActionButton(
+          onPressed: () => showPopUpMenu(context, controller),
+          backgroundColor: AppColors.primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: AnimatedRotation(
+            turns: controller.isMenuOpen.value ? 0.25 : 0,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            child: Obx(() => Icon(
                   controller.isMenuOpen.value ? Icons.close : Icons.add,
-                  key: ValueKey(controller.isMenuOpen.value), // important for AnimatedSwitcher
+                  key: ValueKey(controller.isMenuOpen.value),
+                  // important for AnimatedSwitcher
                   size: SizeConfig.size36,
                 )),
-              ),
-            );
-          }
-      ),
+          ),
+        );
+      }),
       body: TabBarView(
         controller: _tabController,
         children: [
-          ProductScreen(controller: controller),
-          Center(child: Text('My Services', style: TextStyle(fontSize: 18))),
-          FoodAndGroceryScreen(),
+          if ((isShowProduct.contains(businessType())))
+            ProductScreen(controller: controller),
+          if ((isShowService.contains(businessType())))
+            Center(child: Text('My Services', style: TextStyle(fontSize: 18))),
+          if ((isShowFood.contains(businessType())))
+            FoodAndGroceryScreen(),
+
         ],
       ),
     );
@@ -120,8 +124,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   //   }
   // }
 
-
-  Widget _buildCategoryCard(CategoryInventoryModel category, InventoryController controller) {
+  Widget _buildCategoryCard(
+      CategoryInventoryModel category, InventoryController controller) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -167,7 +171,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                             return Container(
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE8F4FD),
-                                borderRadius: BorderRadius.circular(SizeConfig.size8),
+                                borderRadius:
+                                    BorderRadius.circular(SizeConfig.size8),
                               ),
                               child: const Icon(
                                 Icons.folder,
@@ -183,7 +188,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                         bottom: 8,
                         right: 4,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColors.black.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(6),
@@ -227,8 +233,10 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                           offset: const Offset(-6, 36),
                           color: AppColors.white,
                           elevation: 8,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          onSelected: (value) => controller.handleCategoryOption(value, category.id),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          onSelected: (value) => controller
+                              .handleCategoryOption(value, category.id),
                           onCanceled: () {
                             // Prevent focus when popup is closed
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -240,7 +248,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                             color: AppColors.grey9B,
                             size: 20,
                           ),
-                          itemBuilder: (context) => popupInventoryCategoryItems(),
+                          itemBuilder: (context) =>
+                              popupInventoryCategoryItems(),
                         ),
                       ],
                     ),
@@ -267,13 +276,15 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     );
   }
 
-  void showPopUpMenu(BuildContext context, InventoryController controller) async {
+  void showPopUpMenu(
+      BuildContext context, InventoryController controller) async {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
-    Overlay.of(context).context.findRenderObject() as RenderBox;
+        Overlay.of(context).context.findRenderObject() as RenderBox;
 
     // FAB position & size
-    final Offset fabPosition = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final Offset fabPosition =
+        button.localToGlobal(Offset.zero, ancestor: overlay);
     final Size fabSize = button.size;
 
     // Menu height (approximate based on items * itemHeight)
@@ -282,8 +293,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     const double menuHeight = itemHeight * itemCount;
 
     final RelativeRect position = RelativeRect.fromLTRB(
-      fabPosition.dx,                               // align with FAB left
-      fabPosition.dy - menuHeight - 24,              // just above FAB
+      fabPosition.dx, // align with FAB left
+      fabPosition.dy - menuHeight - 24, // just above FAB
       overlay.size.width - fabPosition.dx - fabSize.width,
       overlay.size.height - fabPosition.dy,
     );
@@ -303,14 +314,12 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
       if (result.toUpperCase() == "ADD PRODUCT") {
         await Get.toNamed(RouteHelper.getAddProductScreenRoute());
         controller.callApi(forceRefresh: true);
-      }else if(result.toUpperCase() == "ADD SERVICE"){
+      } else if (result.toUpperCase() == "ADD SERVICE") {
         Get.toNamed(RouteHelper.getAddServicesScreenRoute());
-      }else if(result.toUpperCase() =="ADD FOOD"){
-        Get.to(()=> FoodUploadScreen());
+      } else if (result.toUpperCase() == "ADD FOOD") {
+        Get.to(() => FoodUploadScreen());
         // Get.to(()=> FoodPage());
       }
     }
   }
-
-
 }
