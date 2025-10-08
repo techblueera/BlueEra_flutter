@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+import '../../../home/view/diwali_card.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   @override
@@ -237,6 +238,15 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   PositiveCustomBtn(
                     onTap: _onGetStartedPressed,
                     title: langController.tr('submit'),
+                    radius: SizeConfig.size8,
+                  ),
+                  SizedBox(height: kToolbarHeight),
+
+                  PositiveCustomBtn(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => DiwaliOfferCardScreen(),));
+                    },
+                    title: langController.tr('test'),
                     radius: SizeConfig.size8,
                   ),
                   SizedBox(height: kToolbarHeight),

@@ -111,6 +111,7 @@ flutter:
     - assets/svg/
     - assets/jsons/
     - assets/icons/
+    - assets/diwali_card/
 
   fonts:
     - family: OpenSans
