@@ -43,7 +43,6 @@ void initState() {
  
 
     return Scaffold(
-      backgroundColor: AppColors.white,
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
