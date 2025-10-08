@@ -720,8 +720,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'अस्वीकार करें और उपयोगकर्ता को अवरुद्ध करें';
 
   @override
-  String
-  get partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra =>
+  String get partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra =>
       'आंशिक रूप से अवरुद्ध उपयोगकर्ता आपकी प्रोफ़ाइल और पोस्ट देख सकता है, लेकिन आपसे जुड़ नहीं सकता या आपको संदेश नहीं भेज सकता';
 
   @override
@@ -1460,8 +1459,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get invalidForm => 'अमान्य फॉर्म';
 
   @override
-  String
-  get pleaseScrollDownAndReviewAllFieldsToEnsureTheyAreFilledOutCorrectlyAndAreNotLeftEmpty =>
+  String get pleaseScrollDownAndReviewAllFieldsToEnsureTheyAreFilledOutCorrectlyAndAreNotLeftEmpty =>
       'कृपया नीचे स्क्रॉल करें और सभी फ़ील्ड्स की समीक्षा करें कि वे सही ढंग से भरे गए हैं और खाली नहीं छोड़े गए हैं।';
 
   @override
@@ -1626,8 +1624,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'आपकी प्रोफ़ाइल सफलतापूर्वक पूरी हो गई है!';
 
   @override
-  String
-  get nowItsTimeToFinalizeYourBusinessListingAndShowcaseYourServicesToTheWorld =>
+  String get nowItsTimeToFinalizeYourBusinessListingAndShowcaseYourServicesToTheWorld =>
       'अब, यह आपके व्यावसायिक लिस्टिंग को अंतिम रूप देने और अपनी सेवाओं को दुनिया के सामने प्रदर्शित करने का समय है';
 
   @override
@@ -2756,8 +2753,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'सत्यापित करने के लिए संगठन चुनें।';
 
   @override
-  String
-  get sendAVerificationRequestToYourCompanyToConfirmYourEmploymentOnceApprovedByTheRecruiterYouWillReceiveAVerifiedBadge =>
+  String get sendAVerificationRequestToYourCompanyToConfirmYourEmploymentOnceApprovedByTheRecruiterYouWillReceiveAVerifiedBadge =>
       'आपके रोजगार की पुष्टि के लिए आपकी कंपनी को सत्यापन अनुरोध भेजें। भर्तीकर्ता द्वारा अनुमोदित होने पर, आपको एक सत्यापित बैज प्राप्त होगा।';
 
   @override

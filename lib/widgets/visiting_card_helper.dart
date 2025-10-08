@@ -114,7 +114,7 @@ class VisitingCardHelper {
       await file.writeAsBytes(pngBytes);
 
       final String message;
-      if (shareProfile) {
+      if (shareProfile && !shareProfileForStore) {
         final link = profileDeepLink(userId: userId);
         message = "See my profile on BlueEra:\n$link\n";
       }else if(shareProfileForStore){
