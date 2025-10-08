@@ -1,9 +1,9 @@
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/custom_checkbox.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
@@ -11,17 +11,31 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/visiting_hour_selector.dart';
 import 'controller/booking_controller.dart';
 
-
-class SetAvailabilityScreen extends StatelessWidget {
+class SetAvailabilityScreen extends StatefulWidget {
   final String? id;
-  SetAvailabilityScreen({super.key, required this.id});
+  final AvailabilityModel? availabilityBookingData;
 
+  SetAvailabilityScreen({super.key, required this.id, this.availabilityBookingData});
+
+  @override
+  State<SetAvailabilityScreen> createState() => _SetAvailabilityScreenState();
+}
+
+class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
   final controller = Get.put(BookingTabController());
 
   @override
-  Widget build(BuildContext context) {
- controller.initAvailabilityForEdit(channelId: id ?? '');
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if(widget.availabilityBookingData!=null){
+        controller.setAvailabilityData(widget.availabilityBookingData);
+      }
+    });
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
           title: 'Set your Availability',
@@ -115,8 +129,7 @@ class SetAvailabilityScreen extends StatelessWidget {
                                 radius: SizeConfig.size10,
                                 bgColor: Colors.blue,
                                 onTap: () {
-                                 print("channelIdto:$id");
-                                  controller.addVideoBookingAvailability(id: id??'');
+                                  controller.addBookingAvailability(id: widget.id??'');
                                 },
                                 title: "Save",
                                 textColor: AppColors.white,
@@ -150,7 +163,6 @@ class SetAvailabilityScreen extends StatelessWidget {
       ],
     ));
   }
-
 
   Widget buildSlotDurationSection() {
     return Row(
@@ -206,7 +218,4 @@ class SetAvailabilityScreen extends StatelessWidget {
       ],
     );
   }
-
-
-
 }

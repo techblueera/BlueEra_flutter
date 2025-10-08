@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -44,9 +46,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
     if (channelId.isEmpty) {
       getChannelDetails().then((channelModel) {
-        String channelId = channelModel?.data.id??'';
-        String channelName = channelModel?.data.name??'';
-        String channelOwner = channelModel?.data.ownership.claimedBy??'';
+        channelId = channelModel?.data.id??'';
+        channelName = channelModel?.data.name??'';
+        channelOwner = channelModel?.data.ownership.claimedBy??'';
         SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.channel_Id, channelId
         );

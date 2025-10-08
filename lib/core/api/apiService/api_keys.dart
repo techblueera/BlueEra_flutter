@@ -388,4 +388,5 @@ class ApiKeys {
   static const toDate = "toDate";
   static const variantId = "variantId";
   static const updateFields = "updateFields";
+  static const availabilityBookingData = "availabilityBookingData";
 }

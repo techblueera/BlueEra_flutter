@@ -47,7 +47,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
     _timeOfDay = generate24HoursAmPm();
     
     // Fetch calendar data when screen loads
-    bookingController.getAvailabilityData(channelId:widget.channelId);
+    bookingController.getAvailabilityData(channelId: widget.channelId);
   }
   @override
   Widget build(BuildContext context) {
@@ -362,7 +362,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                   };
                   print("giugg ${widget.videoId}");
                   print("sgf ${widget.channelId}");
-                bookingController.addBooingAppointment(params: params);
+                  bookingController.addBooingAppointment(params: params);
 
                 } : null,
                 title: "Book Appointment",

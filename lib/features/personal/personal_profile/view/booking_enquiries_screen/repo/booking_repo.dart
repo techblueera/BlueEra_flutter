@@ -3,7 +3,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 import '../../../../../../core/api/apiService/base_service.dart';
 
-
 final String getUserByIdUrl = "user-service/user/getUserById";
 
 class BookingRepo extends BaseService{

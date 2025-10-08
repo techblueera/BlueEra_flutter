@@ -95,7 +95,7 @@ class IntroductionVideoController extends GetxController {
   Future<void> initializeVideoPlayerFromNetwork(String url) async {
     disposeVideoController();
 
-    final controller = VideoPlayerController.network(url);
+    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
     videoPlayerController.value = controller;
 
     await controller.initialize();

@@ -4,6 +4,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/routes/route_helper.dart';
@@ -56,13 +57,10 @@ class BookingsScreen extends StatelessWidget {
                       }
                       else if(options[index] == "Set & Edit Availability"){
                         print("channelId:$channelId");
-                        Get.to(
-                          ()=> 
-                          SetAvailabilityScreen(id: channelId,),
-                         
-
+                        Get.toNamed(
+                            RouteHelper.getAvailabilityScreenRoute(),
+                            arguments: {ApiKeys.channelId: channelId}
                         );
-
                       }
                     },
                     child: Padding(

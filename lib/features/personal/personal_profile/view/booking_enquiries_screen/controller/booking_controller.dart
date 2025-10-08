@@ -32,7 +32,8 @@ enum BookingType {
 }
 
 class BookingTabController extends GetxController {
-  ApiResponse addAvailabilityResponse = ApiResponse.initial('Initial');
+  ApiResponse getAvailabilityResponse = ApiResponse.initial('Initial');
+  ApiResponse addUpdateAvailabilityResponse = ApiResponse.initial('Initial');
   var isLoading = false.obs;
   final formKey = GlobalKey<FormState>();
   TextEditingController locationController = TextEditingController();
@@ -56,7 +57,6 @@ class BookingTabController extends GetxController {
   var charges = ''.obs;
   var isLoadingCalendar = false.obs;
   var availabilityDetails = Rxn<AvailabilityModel>();
-  bool _editAvailabilityInitialized = false;
   bool _userChangedBookingType = false;
 
   @override
@@ -66,8 +66,6 @@ class BookingTabController extends GetxController {
     getMyEnquiry();
   
   }
-
-
 
   Future<void> addBooingAppointment({required Map<String, dynamic> params}) async {
     try {
@@ -91,6 +89,7 @@ class BookingTabController extends GetxController {
       isLoading.value = false;
     }
   }
+
    Future<void> addEnquiry({required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().postEnquiry(bodyRequest: params);
@@ -140,7 +139,7 @@ class BookingTabController extends GetxController {
 
   String get selectedTab2 => filters2[selectedIndex2.value];
 
-  Future<void> addVideoBookingAvailability({required String id}) async {
+  Future<void> addBookingAvailability({required String id}) async {
    
     if (formKey.currentState?.validate() ?? false) {
 
@@ -181,19 +180,106 @@ class BookingTabController extends GetxController {
       };
 
       try {
-        ResponseModel? response = await BookingEnquiriesRepo().addVideoBookingAvailability(channelId: id, params: params);
+        ResponseModel? response = await BookingEnquiriesRepo().addUpdateBookingAvailability(
+            channelId: id,
+            params: params
+        );
 
         if (response.isSuccess) {
-          addAvailabilityResponse = ApiResponse.complete(response);
+          addUpdateAvailabilityResponse = ApiResponse.complete(response);
           Get.back(result: true);
           commonSnackBar(message: "Availability added");
         } else {
-          addAvailabilityResponse = ApiResponse.error('error');
+          addUpdateAvailabilityResponse = ApiResponse.error('error');
           commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
-        addAvailabilityResponse = ApiResponse.error('error');
+        addUpdateAvailabilityResponse = ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    }
+  }
+
+  Future<AvailabilityModel?> getBookingAvailability({required String channelId}) async {
+
+    try {
+      final availabilityRes = await BookingRepo().getAvailability(
+        channelId: channelId,
+        params: {},
+      );
+
+      logs('datass:$availabilityRes');
+      logs('initAvailabilityForEdit status: ${availabilityRes.statusCode}, success: ${availabilityRes.isSuccess}');
+      logs('initAvailabilityForEdit raw data: ${availabilityRes.response?.data}');
+
+      if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
+        getAvailabilityResponse = ApiResponse.complete(availabilityRes);
+        final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
+        availabilityDetails.value = availability.data;
+        // availabilityDetails.value = data;
+        return availabilityDetails.value;
+        // setAvailabilityData(availabilityDetails.value);
+      } else {
+        getAvailabilityResponse = ApiResponse.error('error');
+        clearValues();
+        return null;
+      }
+    } catch (e) {
+      getAvailabilityResponse = ApiResponse.error('error');
+      logs('initAvailabilityForEdit error: $e');
+      clearValues();
+      return null;
+    }
+  }
+
+  void setAvailabilityData(AvailabilityModel? availabilityData){
+    // Prefill booking type only if user hasn't changed it yet
+    if (availabilityData?.bookingType != null && !_userChangedBookingType) {
+      final bt = availabilityData?.bookingType!.toLowerCase();
+      if (bt == 'online') {
+        selectedType.value = BookingType.online;
+      } else if (bt == 'offline') {
+        selectedType.value = BookingType.offline;
+      } else {
+        selectedType.value = BookingType.both;
+      }
+    }
+
+    // Prefill location, fee, duration
+    locationController.text = availabilityData?.location ?? '';
+    feeController.text = availabilityData?.fee?.toString() ?? '';
+    if ((availabilityData?.durationInMinutes ?? '').isNotEmpty) {
+      final candidate = '${availabilityData?.durationInMinutes} Min';
+      const allowed = ['15 Min', '30 Min', '60 Min'];
+      selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
+    }
+
+    // Prefill visiting hours
+    final v = Get.isRegistered<VisitingHoursSelectorController>()
+        ? Get.find<VisitingHoursSelectorController>()
+        : Get.put(VisitingHoursSelectorController());
+
+    // Reset all to closed first
+    for (final day in v.visitingHours.keys) {
+      v.visitingHours[day] = false;
+    }
+
+    final schedule = availabilityData?.schedule ?? [];
+    for (final sch in schedule) {
+      final apiDay = (sch.day ?? '').toLowerCase();
+      final uiDay = mapApiDayToUiDay(apiDay);
+      if (uiDay == null) continue;
+
+      final isOpen = sch.isOpen ?? false;
+      v.visitingHours[uiDay] = isOpen;
+
+      // Pick first slot
+      final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
+      if (firstSlot != null) {
+        final start = parseTimeOfDay(firstSlot.startTime);
+        final end = parseTimeOfDay(firstSlot.endTime);
+        if (start != null) v.startTimes[uiDay] = start;
+        if (end != null) v.endTimes[uiDay] = end;
       }
     }
   }
@@ -214,6 +300,7 @@ class BookingTabController extends GetxController {
       isLoading.value = false;
     }
   }
+
   Future<void> getMyEnquiry() async {
     try {
       isLoading.value = true;
@@ -463,7 +550,8 @@ class BookingTabController extends GetxController {
       isLoadingCalendar.value = false;
     }
   }
- Future<void>getavailablitydata({required String channelId})async{
+
+ Future<void> getavailablitydata({required String channelId})async{
        try {
         final availabilityRes = await BookingRepo().getAvailability(
           channelId: channelId,
@@ -488,89 +576,8 @@ class BookingTabController extends GetxController {
         print("Error fetching availability details: $e");
       }
  }
-Future<void> initAvailabilityForEdit({required String channelId}) async {
-  if (_editAvailabilityInitialized) return;
-  _editAvailabilityInitialized = true;
-print("channelId:$channelId");
-  try {
-    final availabilityRes = await BookingRepo().getAvailability(
-      channelId: channelId,
-      params: {},
-    );
-    
-logs('datass:$availabilityRes');
-    logs('initAvailabilityForEdit status: ${availabilityRes.statusCode}, success: ${availabilityRes.isSuccess}');
-    logs('initAvailabilityForEdit raw data: ${availabilityRes.response?.data}');
 
-    if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
-      try {
-        final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
-        final data = availability.data;
-        availabilityDetails.value = data;
-
-        // Prefill booking type only if user hasn't changed it yet
-        if (data?.bookingType != null && !_userChangedBookingType) {
-          final bt = data!.bookingType!.toLowerCase();
-          if (bt == 'online') {
-            selectedType.value = BookingType.online;
-          } else if (bt == 'offline') {
-            selectedType.value = BookingType.offline;
-          } else {
-            selectedType.value = BookingType.both;
-          }
-        }
-
-        // Prefill location, fee, duration
-        locationController.text = data?.location ?? '';
-        feeController.text = data?.fee?.toString() ?? '';
-        if ((data?.durationInMinutes ?? '').isNotEmpty) {
-          final candidate = '${data!.durationInMinutes} Min';
-          const allowed = ['15 Min', '30 Min', '60 Min'];
-          selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
-        }
-
-        // Prefill visiting hours
-        final v = Get.isRegistered<VisitingHoursSelectorController>()
-            ? Get.find<VisitingHoursSelectorController>()
-            : Get.put(VisitingHoursSelectorController());
-
-        // Reset all to closed first
-        for (final day in v.visitingHours.keys) {
-          v.visitingHours[day] = false;
-        }
-
-        final schedule = data?.schedule ?? [];
-        for (final sch in schedule) {
-          final apiDay = (sch.day ?? '').toLowerCase();
-          final uiDay = _mapApiDayToUiDay(apiDay);
-          if (uiDay == null) continue;
-
-          final isOpen = sch.isOpen ?? false;
-          v.visitingHours[uiDay] = isOpen;
-
-          // Pick first slot
-          final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
-          if (firstSlot != null) {
-            final start = _parseTimeOfDay(firstSlot.startTime);
-            final end = _parseTimeOfDay(firstSlot.endTime);
-            if (start != null) v.startTimes[uiDay] = start;
-            if (end != null) v.endTimes[uiDay] = end;
-          }
-        }
-      } catch (e) {
-        logs('initAvailabilityForEdit parse error: $e');
-        clearValues();
-      }
-    } else {
-      clearValues();
-    }
-  } catch (e) {
-    logs('initAvailabilityForEdit error: $e');
-    clearValues();
-  }
-}
-
-  String? _mapApiDayToUiDay(String apiDayLower) {
+  String? mapApiDayToUiDay(String apiDayLower) {
     switch (apiDayLower) {
       case 'monday':
       case 'mon':
@@ -601,7 +608,7 @@ logs('datass:$availabilityRes');
     }
   }
 
-  TimeOfDay? _parseTimeOfDay(String? raw) {
+  TimeOfDay? parseTimeOfDay(String? raw) {
     if (raw == null) return null;
     try {
       String value = raw.trim();

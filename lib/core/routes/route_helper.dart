@@ -55,6 +55,7 @@ import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
@@ -744,9 +745,13 @@ class RouteHelper {
         );
       case RouteConstant.SetAvailabilityScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String id = args[ApiKeys.id] as String;
+        final String channelId = args[ApiKeys.channelId] as String;
+        final AvailabilityModel? availabilityBookingData = args[ApiKeys.availabilityBookingData] as AvailabilityModel?;
         return MaterialPageRoute(
-          builder: (_) => SetAvailabilityScreen(id: id),
+          builder: (_) => SetAvailabilityScreen(
+              id: channelId,
+              availabilityBookingData: availabilityBookingData
+          ),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.AppointmentBookingScreen:

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -12,11 +14,13 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/set_availability_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
@@ -28,9 +32,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/info_card
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/link_tile_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_bio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
+import 'package:BlueEra/features/subscription/view/subscription_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -41,10 +45,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-
 import '../../../../widgets/common_back_app_bar.dart';
-import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
 class PersonalProfileSetupNewScreen extends StatefulWidget {
@@ -76,6 +77,11 @@ class _PersonalProfileSetupNewScreenState
   Get.isRegistered<MyDocumentsController>()
       ? Get.find<MyDocumentsController>()
       : Get.put(MyDocumentsController());
+
+  final bookingTabController =
+  Get.isRegistered<BookingTabController>()
+      ? Get.find<BookingTabController>()
+      : Get.put(BookingTabController());
 
   final introVideoController = Get.put(IntroductionVideoController());
   final youtubeController = TextEditingController();
@@ -120,8 +126,22 @@ class _PersonalProfileSetupNewScreenState
   Future<void> _loadInitialData() async {
     await viewProfileController.viewPersonalProfile();
     await viewProfileController.UserFollowersAndPostsCount(userId);
-
+    // viewProfileController.isChannelCreated.value = channelId.isNotEmpty;
+    log('channelId--> $channelId');
+    if(channelId.isNotEmpty){
+      getAvailabilityBookingData();
+    }
     _updateTextControllers();
+  }
+
+  void getAvailabilityBookingData(){
+    bookingTabController.getBookingAvailability(channelId: channelId)
+        .then((response) {
+      if(response!=null) {
+        viewProfileController.availabilityDetails.value = response;
+      }
+    }
+    );
   }
 
   void _initializeTabController() {
@@ -224,41 +244,36 @@ class _PersonalProfileSetupNewScreenState
           }
 
           return SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size8
-              ),
-              child: DefaultTabController(
-                length: postTab.length,
-                child: NestedScrollView(
-                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                    SliverToBoxAdapter(
-                      child: _buildHeaderSection(),
-                    ),
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _CustomTabBarDelegate(
-                        _buildTabButtons(),
-                        hasFilters: filters != null
-                      ),
-                    ),
-                  ],
-                  body: TabBarView(
-                    controller: _tabController,
-                    children: postTab.map((tab) {
-                      final index = postTab.indexOf(tab);
-                      return Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size10
-                        ),
-                        child: _buildTabContent(index),
-                      );
-                    }).toList(),
-
+            child: DefaultTabController(
+              length: postTab.length,
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverToBoxAdapter(
+                    child: _buildHeaderSection(),
                   ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _CustomTabBarDelegate(
+                      _buildTabButtons(),
+                      hasFilters: filters != null
+                    ),
+                  ),
+                ],
+                body: TabBarView(
+                  controller: _tabController,
+                  children: postTab.map((tab) {
+                    final index = postTab.indexOf(tab);
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size10
+                      ),
+                      child: _buildTabContent(index),
+                    );
+                  }).toList(),
 
                 ),
-              ),  // child: Column(
+
+              ),
             ),
           );
         } else {
@@ -319,7 +334,7 @@ class _PersonalProfileSetupNewScreenState
       child: Column(
         children: [
           SizedBox(height: SizeConfig.size10),
-      
+
           _buildChannelWidget(),
       
           SizedBox(height: SizeConfig.size10),
@@ -333,15 +348,17 @@ class _PersonalProfileSetupNewScreenState
           SizedBox(height: SizeConfig.size10),
       
           _buildMyDocumentWidget(),
-      
+
+          if(channelId.isNotEmpty)
+            ...[
+              SizedBox(height: SizeConfig.size10),
+              _buildBookingAndaAvailabilityWidget()
+            ],
           SizedBox(height: SizeConfig.size10),
-      
-          _buildBookingAndaAvailabilityWidget(),
-      
+
           // Add the IntroductionVideoWidget here
-          // IntroductionVideoWidget(),
-          // SizedBox(height: SizeConfig.size18),
-      
+          IntroductionVideoWidget(),
+
           SizedBox(height: SizeConfig.size10),
       
           // Links Section - Show add links form or link preview card based on data
@@ -359,12 +376,12 @@ class _PersonalProfileSetupNewScreenState
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText("Add Links"),
+                    CustomText("Add Web Links"),
                     SizedBox(height: SizeConfig.size16),
                     Padding(
                       padding: EdgeInsets.only(bottom: SizeConfig.size14),
@@ -576,19 +593,9 @@ class _PersonalProfileSetupNewScreenState
   }
 
   Widget _buildMyProfileWidget() {
-    final List<_ProfileFieldStatus> fields = [
-      _ProfileFieldStatus('Profile video', false),
-      _ProfileFieldStatus('Bio', true),
-      _ProfileFieldStatus('Designation', true),
-      _ProfileFieldStatus('Phone number', true),
-      _ProfileFieldStatus('Set availability', false),
-      _ProfileFieldStatus('Organization', true),
-      _ProfileFieldStatus('Email (Unverified)', false),
-    ];
-
     return CustomFormCard(
-      margin: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-      padding: EdgeInsets.all(SizeConfig.size12),
+      margin: EdgeInsets.only(top: SizeConfig.size10),
+      padding: EdgeInsets.all(SizeConfig.size15),
       borderRadius: BorderRadius.circular(10),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -618,10 +625,10 @@ class _PersonalProfileSetupNewScreenState
                       width: SizeConfig.size60,
                       height: SizeConfig.size60,
                       child: CustomPaint(
-                        painter: CircleProgressPainter(0.85),
+                        painter: CircleProgressPainter(viewProfileController.myProfileCompletionPercent.value),
                         child: Center(
                           child: CustomText(
-                            "${(0.85 * 100).toInt()}%",
+                            "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.small,
                             color: AppColors.mainTextColor,
@@ -645,51 +652,54 @@ class _PersonalProfileSetupNewScreenState
               // Right section - 2-column checklist
               Expanded(
                 flex: 3,
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: SizeConfig.size12,
-                      runSpacing: SizeConfig.size8,
-                      children: fields.map((item) {
-                        return SizedBox(
-                          width: itemWidth,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                item.isCompleted ? Icons.check_circle : Icons.error,
-                                color: item.isCompleted ? Colors.blue : Colors.red,
-                                size: 16,
-                              ),
-                              SizedBox(width: 2),
-                              Expanded(
-                                child: CustomText(
-                                  item.title,
-                                  fontSize: SizeConfig.small,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w600,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: SizeConfig.size12,
+                        runSpacing: SizeConfig.size8,
+                        children: viewProfileController.fields.map((item) {
+                          return SizedBox(
+                            width: itemWidth,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  item.isCompleted ? Icons.check_circle : Icons.error,
+                                  color: item.isCompleted ? Colors.blue : Colors.red,
+                                  size: 16,
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                                SizedBox(width: 2),
+                                Expanded(
+                                  child: CustomText(
+                                    item.title,
+                                    fontSize: SizeConfig.small,
+                                    color: AppColors.mainTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
 
-                    SizedBox(
-                      height: SizeConfig.size12
-                    ),
+                      SizedBox(
+                        height: SizeConfig.size12
+                      ),
 
-                    CustomText(
-                      "2 actions pending",
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.yellow00,
-                    ),
-                  ],
+                      CustomText(
+                        "2 actions pending",
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.yellow00,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -701,8 +711,11 @@ class _PersonalProfileSetupNewScreenState
 
   Widget _buildHeaderSection() {
     return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size15
+      padding: EdgeInsets.only(
+          left: SizeConfig.size15,
+          right: SizeConfig.size15,
+          top: SizeConfig.size15,
+          bottom: SizeConfig.size10,
         ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -857,7 +870,7 @@ class _PersonalProfileSetupNewScreenState
                                 padding: const EdgeInsets.only(right: 8.0),
                                 child: Row(
                                   mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                                  MainAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
                                     StatBlock(
@@ -866,7 +879,7 @@ class _PersonalProfileSetupNewScreenState
                                           .toString(),
                                       label: "Posts",
                                     ),
-                                    SizedBox(width: 4),
+                                    SizedBox(width: SizeConfig.size25),
                                     StatBlock(
                                       count: viewProfileController
                                           .followersCount.value
@@ -879,7 +892,7 @@ class _PersonalProfileSetupNewScreenState
                                         ));
                                       },
                                     ),
-                                    SizedBox(width: 4),
+                                    SizedBox(width: SizeConfig.size25),
                                     StatBlock(
                                       count: viewProfileController
                                           .followingCount.value
@@ -1007,23 +1020,24 @@ class _PersonalProfileSetupNewScreenState
                                   fontWeight: FontWeight.w600,
                                 ),
                                 const SizedBox(width: 10),
-                                SizedBox(
+                                Obx(()=> SizedBox(
                                   width: SizeConfig.size25,
                                   height: SizeConfig.size25,
                                   child: CustomPaint(
                                     painter: CircleProgressPainter(
-                                        0.42,
+                                        viewProfileController.myProfileCompletionPercent.value,
                                         isMyProfile: viewProfileController.isMyProfileShow.value
                                     ),
                                     child: Center(
                                       child: CustomText(
-                                        "${(0.42 * 100).toInt()}%",
+                                        "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
                                         fontWeight: FontWeight.w600,
                                         fontSize: SizeConfig.extraSmall,
                                         color: viewProfileController.isMyProfileShow.isTrue ? AppColors.white : AppColors.mainTextColor,
                                       ),
                                     ),
                                   ),
+                                 )
                                 ),
                               ],
                             ),
@@ -1064,12 +1078,12 @@ class _PersonalProfileSetupNewScreenState
                   },
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    foregroundColor: isSelected ? Colors.black87 : Colors.black54,
-                    backgroundColor: isSelected ? Colors.blue.shade100 : Colors.white,
+                    foregroundColor: isSelected ? AppColors.white : AppColors.secondaryTextColor,
+                    backgroundColor: isSelected ? AppColors.primaryColor : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(SizeConfig.size10),
                       side: BorderSide(
-                          color: isSelected ? Colors.blue.shade100 : Colors.grey
+                          color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
                       ),
                     ),
                     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size2),
@@ -1089,9 +1103,59 @@ class _PersonalProfileSetupNewScreenState
     );
   }
 
+
+  Widget _buildCircleIcon(String iconImage){
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size6),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primaryColor.withValues(alpha: 0.1),
+        border: Border.all(
+            color: AppColors.primaryColor,
+            width: 0.5
+        ),
+      ),
+      child: LocalAssets(
+        width: SizeConfig.size22,
+        height: SizeConfig.size22,
+        imagePath: iconImage,
+        imgColor: AppColors.primaryColor,
+      ),
+    );
+  }
+
+  Widget _buildTitleWidget(String text){
+    return CustomText(
+      text,
+      fontSize: SizeConfig.medium,
+      fontWeight: FontWeight.w600,
+      color: AppColors.secondaryTextColor,
+    );
+  }
+
+  Widget _buildContainerOverlay({required Widget child}){
+    return Container(
+      width: SizeConfig.screenWidth,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.greyE5, width: 1),
+          boxShadow: [AppShadows.textFieldShadow]
+      ),
+      child: child,
+    );
+  }
+
   Widget _buildChannelWidget(){
     return CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size16),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size16,
+            vertical: SizeConfig.size10,
+        ),
         child: channelId.isNotEmpty
             ? Column(
           children: [
@@ -1140,14 +1204,14 @@ class _PersonalProfileSetupNewScreenState
                 children: [
                   CustomText(
                     channelName,
-                    fontSize: SizeConfig.small,
+                    fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
                     color: AppColors.primaryColor,
                   ),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
                     '@$channelOwner',
-                    fontSize: SizeConfig.extraSmall,
+                    fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -1157,40 +1221,37 @@ class _PersonalProfileSetupNewScreenState
 
           ],
         )
-            : Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                _buildCircleIcon(AppIconAssets.channelNew),
-                SizedBox(width: SizeConfig.size6),
-                _buildTitleWidget('My Channel'),
-              ],
-            ),
-            SizedBox(width: SizeConfig.size6),
-
-            InkWell(
+            : InkWell(
               onTap: (){
                 Navigator.pushNamed(
                   context,
                   RouteHelper.getManageChannelScreenRoute(),
                 );
               },
-              child: CustomText(
+              child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+              _buildCircleIcon(AppIconAssets.channelNew),
+              SizedBox(width: SizeConfig.size6),
+              _buildTitleWidget('My Channel'),
+
+              Spacer(),
+
+              CustomText(
                 'Create',
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryColor,
-              ),
-            )
-          ],
-        ),
+              )
+                        ],
+                      ),
+            ),
     );
   }
 
   Widget _buildEarnWithBlueEraWidget(){
     return CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size16),
+        // padding: EdgeInsets.all(SizeConfig.size16),
         child: Column(
             children: [
               Row(
@@ -1217,7 +1278,7 @@ class _PersonalProfileSetupNewScreenState
                   },
                   bgColor: AppColors.primaryColor,
                   textColor: AppColors.white,
-                  height: SizeConfig.size30,
+                  height: SizeConfig.size34,
                   radius: 10.0,
                 ),
               ),
@@ -1336,28 +1397,31 @@ class _PersonalProfileSetupNewScreenState
 
             SizedBox(height: SizeConfig.size10),
             _buildContainerOverlay(
-                child: Row(
-                  children: [
-                    LocalAssets(
-                      imagePath: AppIconAssets.mailIcon,
-                    ),
-                    SizedBox(
-                        width: SizeConfig.size10
-                    ),
-                    CustomText(
-                      'Manage Subscription',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    Spacer(),
-                    CustomText(
-                      'Free Plan',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ],
+                child: InkWell(
+                 onTap: ()=>  Get.to(() => SubscriptionScreen()),
+                  child: Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.mailIcon,
+                      ),
+                      SizedBox(
+                          width: SizeConfig.size10
+                      ),
+                      CustomText(
+                        'Manage Subscription',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      Spacer(),
+                      CustomText(
+                        'Free Plan',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
                 )
             )
 
@@ -1472,16 +1536,214 @@ class _PersonalProfileSetupNewScreenState
                 _buildCircleIcon(AppIconAssets.bookingEnquiries),
                 SizedBox(width: SizeConfig.size6),
                 _buildTitleWidget('Your Availability & Bookings'),
+
+                if(viewProfileController.availabilityDetails.value != null)
+                ...[
+                  Spacer(),
+                  InkWell(
+                    onTap: () async {
+                      bool isDataUpdate = await Get.toNamed(
+                        RouteHelper.getAvailabilityScreenRoute(),
+                        arguments: {
+                          ApiKeys.channelId: channelId,
+                          ApiKeys.availabilityBookingData: viewProfileController.availabilityDetails.value,
+                        }
+                    );
+                      log('isDataUpdate-- $isDataUpdate');
+                      if(isDataUpdate){
+                        getAvailabilityBookingData();
+                      }
+                    },
+                    child: LocalAssets(
+                      height: 18,
+                      imagePath: AppIconAssets.pen_line,
+                    ),
+                  )
+                ]
+
               ],
             ),
 
             SizedBox(height: SizeConfig.size16),
 
             _buildContainerOverlay(
-                child: InkWell(
-                  onTap: ()=> Get.to(
-                        ()=> SetAvailabilityScreen(id: channelId)
-                  ),
+                child: viewProfileController.availabilityDetails.value != null
+                    ? Obx(
+                      () {
+                        AvailabilityModel data = viewProfileController.availabilityDetails.value!;
+                        final selectedType;
+                        final bt = data.bookingType?.toLowerCase();
+                        if (bt == 'online') {
+                          selectedType = BookingType.online;
+                        } else if (bt == 'offline') {
+                          selectedType = BookingType.offline;
+                        } else {
+                          selectedType = BookingType.both;
+                        }
+                        final location = data.location ?? '';
+                        final fee = data.fee?.toString() ?? '';
+                        final selectedTimeSlot;
+                        if (data.durationInMinutes?.isNotEmpty??false) {
+                          final candidate = '${data.durationInMinutes} Min';
+                          const allowed = ['15 Min', '30 Min', '60 Min'];
+                          selectedTimeSlot = allowed.contains(candidate) ? candidate : '30 Min';
+                        }else{
+                          selectedTimeSlot = '30 Min';
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        CustomText(
+                          'Booking Type',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(height: SizeConfig.size12),
+
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: SizeConfig.size12,
+                                vertical: SizeConfig.size10,
+                              ),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.whiteE5),
+                                  boxShadow: [AppShadows.textFieldShadow]
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.event_available, color: Colors.blue, size: 20),
+                                  SizedBox(width: SizeConfig.size8),
+                                  CustomText(
+                                    bt,
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+
+                        SizedBox(height: SizeConfig.size16),
+
+                        // Location
+                         selectedType != BookingType.online
+                            ? Column(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              'Location',
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.mainTextColor,
+                            ),
+                            SizedBox(height: SizeConfig.size8),
+                            Container(
+                              width: SizeConfig.screenWidth,
+                        padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size12,
+                        vertical: SizeConfig.size10,
+                        ),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.whiteE0),
+                                  boxShadow: [AppShadows.textFieldShadow]
+                              ),
+                              child: CustomText(
+                                location,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ),
+                            SizedBox(height: SizeConfig.size16),
+                          ],
+                        )
+                            : const SizedBox.shrink(),
+
+
+                            CustomText(
+                              'Fee',
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.mainTextColor,
+                            ),
+                            SizedBox(height: SizeConfig.size8),
+                            Container(
+                              width: SizeConfig.screenWidth,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: SizeConfig.size12,
+                                vertical: SizeConfig.size10,
+                              ),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.whiteE0),
+                                  boxShadow: [AppShadows.textFieldShadow]
+                              ),
+                              child: CustomText(
+                                fee,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ),
+
+                           SizedBox(height: SizeConfig.size16),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      'Duration per appointment',
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                  ],
+                                ),
+
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: CustomText(
+                                    selectedTimeSlot,
+                                    fontSize: SizeConfig.size16,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: SizeConfig.size16),
+
+                          _buildSelectedDays(data)
+                          ],
+                        );
+                      }
+                    )
+                    : InkWell(
+                  onTap: ()  {
+                    Get.toNamed(
+                        RouteHelper.getAvailabilityScreenRoute(),
+                        arguments: {ApiKeys.channelId: channelId}
+                  );
+                  },
                   child: Row(
                     children: [
                       LocalAssets(
@@ -1507,52 +1769,6 @@ class _PersonalProfileSetupNewScreenState
     );
   }
 
-  Widget _buildCircleIcon(String iconImage){
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size6),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.primaryColor.withValues(alpha: 0.1),
-        border: Border.all(
-          color: AppColors.primaryColor,
-          width: 0.5
-        ),
-      ),
-      child: LocalAssets(
-          width: SizeConfig.size22,
-          height: SizeConfig.size22,
-          imagePath: iconImage,
-          imgColor: AppColors.primaryColor,
-      ),
-    );
-  }
-
-  Widget _buildTitleWidget(String text){
-    return CustomText(
-        text,
-        fontSize: SizeConfig.medium,
-        fontWeight: FontWeight.w600,
-        color: AppColors.secondaryTextColor,
-    );
-  }
-
-  Widget _buildContainerOverlay({required Widget child}){
-    return Container(
-      width: SizeConfig.screenWidth,
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size16,
-        vertical: SizeConfig.size10,
-      ),
-      decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.greyE5, width: 1),
-          boxShadow: [AppShadows.textFieldShadow]
-      ),
-      child: child,
-    );
-  }
-  
   Widget _buildDocumentCard(
       Document document, MyDocumentsController controller) {
     return Container(
@@ -1616,7 +1832,7 @@ class _PersonalProfileSetupNewScreenState
                   height: 32,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.red),
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -1636,7 +1852,7 @@ class _PersonalProfileSetupNewScreenState
                   height: 32,
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.primaryColor),
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
@@ -1653,6 +1869,101 @@ class _PersonalProfileSetupNewScreenState
         ],
       ),
     );
+  }
+
+  Widget _buildSelectedDays(AvailabilityModel data) {
+    final v = Get.isRegistered<VisitingHoursSelectorController>()
+        ? Get.find<VisitingHoursSelectorController>()
+        : Get.put(VisitingHoursSelectorController());
+
+    final Map<String, bool> visitingHours = {
+      'Monday': false,
+      'Tuesday': false,
+      'Wednesday': false,
+      'Thursday': false,
+      'Friday': false,
+      'Saturday': false,
+      'Sunday': false,
+    };
+
+    final Map<String, TimeOfDay> startTimes = {};
+    final Map<String, TimeOfDay> endTimes = {};
+
+    final schedule = data.schedule ?? [];
+    for (final sch in schedule) {
+      final apiDay = (sch.day ?? '').toLowerCase();
+      final uiDay = bookingTabController.mapApiDayToUiDay(apiDay);
+      if (uiDay == null) continue;
+
+      visitingHours[uiDay] = sch.isOpen ?? false;
+
+      final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
+      if (firstSlot != null) {
+        final start = bookingTabController.parseTimeOfDay(firstSlot.startTime);
+        final end = bookingTabController.parseTimeOfDay(firstSlot.endTime);
+        if (start != null) startTimes[uiDay] = start;
+        if (end != null) endTimes[uiDay] = end;
+      }
+    }
+
+      final openDays = visitingHours.entries
+          .where((entry) => entry.value)
+          .map((entry) => entry.key)
+          .toList();
+
+      if (openDays.isEmpty) {
+        return CustomText(
+          "No visiting days selected",
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w600,
+          color: AppColors.secondaryTextColor,
+        );
+      }
+
+      return Container(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5, width: 1.2),
+          boxShadow: [AppShadows.textFieldShadow],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: openDays.map((day) {
+            final start = v.formatTime(v.startTimes[day]!);
+            final end = v.formatTime(v.endTimes[day]!);
+
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
+              child: Row(
+                children: [
+                  CustomText(
+                    day,
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  Spacer(),
+                  CustomText(
+                    "Open",
+                    fontSize: SizeConfig.large,
+                    color: AppColors.green7F,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  CustomText(
+                    "$start - $end",
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.grey9A,
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      );
+
   }
 
 }
@@ -1683,8 +1994,3 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_CustomTabBarDelegate oldDelegate) => true;
 }
 
-class _ProfileFieldStatus {
-  final String title;
-  final bool isCompleted;
-  _ProfileFieldStatus(this.title, this.isCompleted);
-}

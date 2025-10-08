@@ -35,7 +35,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
           onBackTap: () {
             if (accountController.index == '0') {
