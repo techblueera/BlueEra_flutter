@@ -10,9 +10,13 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 
 class SelectProfilePictureDialog {
   static final Map<int, CroppableImageData?> _data = {};
@@ -67,6 +71,7 @@ class SelectProfilePictureDialog {
         CropAspectRatio? cropAspectRatio,
       }) async {
     final appLocalizations = AppLocalizations.of(context);
+   final langController = Get.find<LanguageListController>();
 
     return showDialog(
       context: context,
@@ -105,7 +110,7 @@ class SelectProfilePictureDialog {
                             child: OptionButton(
                               iconPath: AppIconAssets.gallery_sky,
                               label:
-                              appLocalizations?.selectFromGallery ?? "",
+                              langController.tr('selectFromGallery'),
                               onTap: () async {
                                 final path = await pickFromGallery(context,
                                     cropAspectRatio: cropAspectRatio);
