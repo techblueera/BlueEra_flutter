@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
@@ -14,11 +16,14 @@ import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/custom_carousel_slider.dart';
+import '../../../../widgets/common_box_shadow.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../common/business_service/model/get_service_model.dart';
 import '../../../common/business_service/widget/service_card.dart';
 import '../../../common/food/model/get_food_details_model.dart';
 import '../../../common/food/view/widget/food_product_card.dart';
+import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import 'audio_type_message_ui.dart';
@@ -204,9 +209,6 @@ class _MessageCardState extends State<MessageCard>
         if(message.isNotEmpty){
           messageWidget = ServiceCardBusiness(
             isFromChatCard: true,
-
-            //service.business?.categoryOfBusiness?.name
-            //service.business?.businessName
             serviceData: GetServiceModel(
               business: BusinessService(
                 businessName:message.last ,
@@ -230,7 +232,27 @@ class _MessageCardState extends State<MessageCard>
         }else{
           messageWidget=SizedBox();
         }
+      case "product":
+        List<String> url=[];
 
+        url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
+        List<String> message=widget.message.message?.split('.')??[];
+        if(message.isNotEmpty){
+          messageWidget = ProductCard(ProductListing(
+              image: url,
+              name: message.first,
+              id: widget.message.metadata?.productId??'',
+            discount:widget.message.metadata?.discount ,
+            mrp: message[1],
+            price: widget.message.metadata?.price,
+            selectedVariants: (message.last.contains("{"))?jsonDecode(message.last):{},
+          ),
+
+              width: 172
+          );
+        }else{
+          messageWidget=SizedBox();
+        }
       default:
         messageWidget = _buildReceivedMessage(
           widget.message,
@@ -307,7 +329,249 @@ class _MessageCardState extends State<MessageCard>
       ],
     );
   }
+  Widget _buildIconBox(Widget child) {
+    return Container(
+      height: 25,
+      width: 25,
+      decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.5),
+          shape: BoxShape.circle,
+          boxShadow: [AppShadows.textFieldShadow]),
+      alignment: Alignment.center,
+      child: child,
+    );
+  }
+  void showSelectedVariantsDialog(
+      BuildContext context, Map<String, dynamic>? selectedVariants) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.only(
+                top: 8.0, left: 16.0, right: 16.0, bottom: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                Row(
+                  children: [
+                    Expanded(
+                      child: const Text(
+                        "Selected Variants",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size5),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                  ],
+                ),
 
+                // Variants list
+                if (selectedVariants != null && selectedVariants.isNotEmpty)
+                  buildVariantsList(selectedVariants)
+                else
+                  const Text(
+                    "No variants selected",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  Widget buildVariantsList(Map<String, dynamic> selectedVariants) {
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: selectedVariants.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.blue, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildVariantRow(entry.key, entry.value)),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+  Widget _buildVariantRow(String key, dynamic value) {
+    // Handle color variant specially
+    if (key == 'color' && value is Map<String, dynamic>) {
+      final color = SelectedColor.fromJson(value);
+
+      return Row(
+        children: [
+          CustomText(
+            "$key : ",
+            fontSize: SizeConfig.large,
+          ),
+          CustomText(
+            color.name,
+            fontSize: SizeConfig.medium,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w500,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 6),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color.color,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.greyE5, width: 2.0),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Default text-only variant
+    return Row(
+      children: [
+        CustomText(
+          "$key : ",
+          fontSize: SizeConfig.large,
+        ),
+        CustomText(
+          "$value",
+          fontSize: SizeConfig.medium,
+          color: AppColors.primaryColor,
+          fontWeight: FontWeight.w500,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+  Widget ProductCard(
+      ProductListing product, {
+        required double width,
+      }) {
+    return GestureDetector(
+      onTap: () {
+
+      },
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          color: AppColors.whiteFE,
+          boxShadow:  [AppShadows.cardShadow],
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: Colors.transparent,
+              width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            AspectRatio(
+              aspectRatio: 1.2, // square-ish image (adjust if needed)
+              child: Stack(
+                children: [
+                  CustomImageSlideshow(
+                    isLoading: false,
+                    width: double.infinity,
+                    height: double.infinity,
+                    imagePaths: product.image,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _buildIconBox(InkWell(
+                        onTap: () => showSelectedVariantsDialog(
+                            context, product.selectedVariants),
+                        child: Icon(Icons.remove_red_eye_outlined,
+                            color: Colors.white, size: 16))),
+                  ),
+                ],
+              ),
+            ),
+
+            // Product Details
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Product Name
+                  CustomText(
+                    product.name,
+                    fontWeight: FontWeight.w600,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Price Row
+                  Row(
+                    children: [
+                      CustomText(
+                        '₹${product.price}',
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.mainTextColor,
+                      ),
+                      const SizedBox(width: 8),
+                      CustomText(
+                        ' ₹${product.mrp}',
+                        fontSize: SizeConfig.small11,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w400,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                      CustomText(
+                        ' ${product.discount}% off',
+                        fontSize: SizeConfig.small11,
+                        color: Colors.green[600],
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Status
+                  CustomText(
+                    'Active Products',
+                    fontWeight: FontWeight.w600,
+                    fontSize: SizeConfig.small11,
+                    color: AppColors.primaryColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   Widget _buildReceivedMessage(
       Messages message, String text, String time, bool isReceive) {
 
@@ -671,6 +935,7 @@ class _MessageCardState extends State<MessageCard>
       ),
     );
   }
+
 
   String formatChatHistoryTime(String isoDateString) {
     try {

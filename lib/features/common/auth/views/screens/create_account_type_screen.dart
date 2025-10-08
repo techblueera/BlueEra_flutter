@@ -18,6 +18,12 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+import '../../../home/widgets/diwali_card.dart';
+import '../../../home/widgets/diwali_second_card.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   @override
@@ -27,30 +33,40 @@ class CreateAccountScreen extends StatefulWidget {
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
   int? _selectedIndex;
   String? _imagePath;
+  late LanguageListController langController;
+  @override
+  void initState() {
+    super.initState();
+    langController = Get.find<LanguageListController>();
+
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final appLocalizations = AppLocalizations.of(context)!;
     final List<AccountOption> accountOptions = getCreateAccountType();
+
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        // onWillPop(context);
+
         if (!isGuestUser()) {
           commonConformationDialog(
-              context: context,
-              text: "Are you sure you want to exit the app?",
-              confirmCallback: () async {
-                await SharedPreferenceUtils.clearPreference();
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                    RouteHelper.getMobileNumberLoginRoute(),
-                    (Route<dynamic> route) => false);
-              },
-              cancelCallback: () {
-                Navigator.of(context).pop(); // Close the dialog
-              });
+            context: context,
+            text: "Are you sure you want to exit the app?", // not in JSON yet
+            confirmCallback: () async {
+              await SharedPreferenceUtils.clearPreference();
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                RouteHelper.getMobileNumberLoginRoute(),
+                    (Route<dynamic> route) => false,
+              );
+            },
+            cancelCallback: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          );
         } else {
           Navigator.of(context).pop(); // Close the dialog
         }
@@ -62,17 +78,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           onBackTap: () {
             if (!isGuestUser()) {
               commonConformationDialog(
-                  context: context,
-                  text: "Are you sure you want to exit the app?",
-                  confirmCallback: () async {
-                    await SharedPreferenceUtils.clearPreference();
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        RouteHelper.getMobileNumberLoginRoute(),
-                        (Route<dynamic> route) => false);
-                  },
-                  cancelCallback: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                  });
+                context: context,
+                text: "Are you sure you want to exit the app?", // not in JSON yet
+                confirmCallback: () async {
+                  await SharedPreferenceUtils.clearPreference();
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    RouteHelper.getMobileNumberLoginRoute(),
+                        (Route<dynamic> route) => false,
+                  );
+                },
+                cancelCallback: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              );
             } else {
               Navigator.of(context).pop(); // Close the dialog
             }
@@ -82,7 +100,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           child: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size30, vertical: SizeConfig.size10),
+                horizontal: SizeConfig.size30,
+                vertical: SizeConfig.size10,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -91,14 +111,15 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       children: [
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          appLocalizations.chooseAccountType,
+                          langController.tr('chooseAccountType'),
                           color: Colors.black,
+                          textAlign: TextAlign.center,
                           fontSize: SizeConfig.extraLarge22,
                           fontWeight: FontWeight.bold,
                         ),
                         SizedBox(height: SizeConfig.paddingXSmall),
                         CustomText(
-                          appLocalizations.chooseShopSellHire,
+                          "Choose whether you want to shop, sell, or hire", // not in JSON yet
                           textAlign: TextAlign.center,
                           fontSize: SizeConfig.small,
                         ),
@@ -110,20 +131,24 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: AppColors.primaryColor, width: 1.6),
+                                color: AppColors.primaryColor,
+                                width: 1.6,
+                              ),
                             ),
                             child: CircleAvatar(
                               radius: 40,
                               backgroundColor: AppColors.whiteF3,
                               child: _imagePath?.isNotEmpty == true
                                   ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(40),
-                                      child: Image(
-                                          image: FileImage(File(_imagePath!))
-                                            ..evict()),
-                                    )
+                                borderRadius: BorderRadius.circular(40),
+                                child: Image(
+                                  image: FileImage(File(_imagePath!))
+                                    ..evict(),
+                                ),
+                              )
                                   : LocalAssets(
-                                      imagePath: AppIconAssets.user_out_line),
+                                imagePath: AppIconAssets.user_out_line,
+                              ),
                             ),
                           ),
                         ),
@@ -131,12 +156,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         InkWell(
                           onTap: () => _selectImage(context),
                           child: CustomText(
-                            appLocalizations.uploadYourPhotoOrLogo,
+                            langController.tr('uploadYourPhotoLogo'),
                             color: AppColors.primaryColor,
+                            textAlign: TextAlign.center,
+
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        // SizedBox(height: SizeConfig.size22),
                       ],
                     ),
                   ),
@@ -151,10 +177,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           setState(() => _selectedIndex = index);
                         },
                         child: Container(
-                          margin:
-                              EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                          margin: EdgeInsets.symmetric(
+                            vertical: SizeConfig.size12,
+                          ),
                           padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.medium),
+                            horizontal: SizeConfig.medium,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -171,8 +199,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 height: SizeConfig.size90,
                                 width: SizeConfig.size100,
                                 child: LocalAssets(
-                                    imagePath: option.iconPath,
-                                    boxFix: BoxFit.fitHeight),
+                                  imagePath: option.iconPath,
+                                  boxFix: BoxFit.fitHeight,
+                                ),
                               ),
                               SizedBox(width: SizeConfig.size15),
                               Expanded(
@@ -182,38 +211,45 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   children: [
                                     SizedBox(height: SizeConfig.paddingS),
                                     CustomText(
-                                      option.title,
+                                      langController.tr(option.title),
                                       color: AppColors.navy,
                                       fontWeight: FontWeight.bold,
                                       fontSize: SizeConfig.large,
                                     ),
-                                    CustomText(option.subtitle,
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.bold),
                                     CustomText(
-                                      option.description,
+                                      langController.tr(option.subtitle),
+                                      color: AppColors.primaryColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    CustomText(
+                                      langController.tr(option.description),
                                       fontSize: SizeConfig.small,
                                       color: AppColors.black28,
                                     ),
                                     SizedBox(height: SizeConfig.paddingXL),
                                   ],
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
                       );
                     },
                   ),
-                  // SizedBox(height: SizeConfig.size10),
                   PositiveCustomBtn(
                     onTap: _onGetStartedPressed,
-                    title: appLocalizations.submit,
+                    title: langController.tr('submit'),
                     radius: SizeConfig.size8,
                   ),
-                  SizedBox(
-                    height: kToolbarHeight,
-                  )
+                  SizedBox(height: kToolbarHeight),
+                  PositiveCustomBtn(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>DiwaliOfferSecondCardScreen()));
+                    },
+                    title: "Diwali Card",
+                    radius: SizeConfig.size8,
+                  ),
+
                 ],
               ),
             ),

@@ -24,6 +24,8 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+
 class PersonalAccountScreen extends StatefulWidget {
   PersonalAccountScreen({super.key});
 
@@ -42,6 +44,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
   ProfessionTypeData? selectedProfessionObj;
   String? _selectedSelfEmployment;
   SubcategoriesFiledName? _selectedSelfEmploymentObj;
+  late LanguageListController langController;
 
   final _contentCraterTextController = TextEditingController();
   final _skillWorkerSpecificationTextController = TextEditingController();
@@ -65,6 +68,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
   @override
   void initState() {
     super.initState();
+    langController = Get.find<LanguageListController>();
     apiCalling();
   }
 
@@ -129,7 +133,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
               children: [
                 // SizedBox(height: SizeConfig.size10),
                 CustomText(
-                  appLocalizations?.yourDetails,
+                 langController.tr('your Details'),
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.bold,
                   color: AppColors.black,
@@ -143,7 +147,8 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                     RegularExpressionUtils.alphabetSpacePattern,
-                    title: appLocalizations?.yourName,
+                    title: langController.tr('yourName'),
+
                     titleColor: Colors.black,
                     hintText: AppConstants.name,
                     autovalidateMode: _autoValidate,
@@ -159,7 +164,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
 
                 ///DOB selection
                 CustomText(
-                  appLocalizations?.dateOfBirth,
+                  langController.tr('dateOfBirth'),
                   fontSize: SizeConfig.medium,
                 ),
                 SizedBox(
@@ -191,7 +196,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                 ),
                 // Gender
                 CustomText(
-                  appLocalizations?.selectGender,
+                  langController.tr('selectGender'),
                   fontSize: SizeConfig.medium,
                 ),
                 SizedBox(
@@ -220,7 +225,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
 
                 ///selectYourProfession
                 CustomText(
-                  appLocalizations?.selectYourProfession,
+                  langController.tr('selectYourProfession'),
                   fontSize: SizeConfig.medium,
                 ),
                 SizedBox(
@@ -642,7 +647,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                     RegularExpressionUtils.alphabetSpacePattern,
-                    title: appLocalizations?.designation,
+                    title:  langController.tr('designation'),
                     hintText: "Enter your designation",
                     isValidate: false,
                   ),

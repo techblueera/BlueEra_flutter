@@ -63,7 +63,7 @@ android {
 
     defaultConfig {
         applicationId "ai.bluecs.app"
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 36
         versionCode 92
         versionName "13.40.37"
@@ -98,6 +98,7 @@ android {
 }
 
 dependencies {
+
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
     implementation platform('com.google.firebase:firebase-bom:31.0.2')
