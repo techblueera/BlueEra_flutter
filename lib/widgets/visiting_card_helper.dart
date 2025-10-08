@@ -84,7 +84,7 @@ class VisitingCardHelper {
     await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      await VisitingCardHelper().shareVisitingCard(cardKey, shareProfile: false);
+      await VisitingCardHelper().shareVisitingCard(cardKey, shareProfileForStore: true);
     } finally {
       overlay.remove();
     }
@@ -93,7 +93,7 @@ class VisitingCardHelper {
 
   bool _isSharing = false;
 
-  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true}) async {
+  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, shareProfileForStore = false}) async {
     print('sharing');
     if (_isSharing) return;
 
@@ -117,6 +117,9 @@ class VisitingCardHelper {
       if (shareProfile) {
         final link = profileDeepLink(userId: userId);
         message = "See my profile on BlueEra:\n$link\n";
+      }else if(shareProfileForStore){
+        final link = profileDeepLink(userId: userId);
+        message = "Link to visit my store:\n$link\n";
       } else {
         message = """
 Download our app now:
