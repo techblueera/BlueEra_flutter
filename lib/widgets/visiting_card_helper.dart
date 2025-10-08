@@ -119,7 +119,7 @@ class VisitingCardHelper {
         message = "See my profile on BlueEra:\n$link\n";
       }else if(shareProfileForStore){
         final link = profileDeepLink(userId: userId);
-        message = "Link to visit my store:\n$link\n";
+        message = "Link to visit my store at BlueEra app:\n$link\n";
       } else {
         message = """
 Download our app now:
