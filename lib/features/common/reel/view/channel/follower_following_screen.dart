@@ -212,6 +212,11 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
             ),
             GestureDetector(
               onTap: () async {
+                if (isGuestUser()) {
+                  createProfileScreen();
+
+                  return;
+                }
                 if (isValidation(user)) {
                   final chatViewController = Get.find<ChatViewController>();
                   Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};

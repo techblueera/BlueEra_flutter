@@ -157,6 +157,11 @@ class BusinessProfileHeader extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(8)),
                                   child: InkWell(
                                       onTap: () async {
+                                        if (isGuestUser()) {
+                                          createProfileScreen();
+
+                                          return;
+                                        }
                                         chatViewController
                                             .openAnyOneChatFunction(
                                           profileImage: businessProfileDetails.logo,

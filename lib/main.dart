@@ -68,7 +68,7 @@ Future<void> main() async {
   ]);
 
   // Initialize workmanager for background tasks
-  await WorkmanagerUploadService.initialize();
+  // await WorkmanagerUploadService.initialize();
 
   /// Hive Database
   await Hive.initFlutter();
