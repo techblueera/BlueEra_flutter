@@ -38,8 +38,7 @@ class _ProductPreviewScreenProductState
     extends State<ProductPreviewScreenProduct> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
-  final ProductController controller =
-      Get.put(ProductController());
+  final ProductController controller = Get.put(ProductController());
   int _currentIndex = 0;
 
   @override
@@ -187,14 +186,13 @@ class _ProductPreviewScreenProductState
                                   return !isNetworkImage(
                                           controller.step2Images[index])
                                       ? Image.file(
-                                          File(controller
-                                              .step2Images[index]),
+                                          File(controller.step2Images[index]),
                                           fit: BoxFit.contain,
                                           width: double.infinity,
                                         )
                                       : CachedNetworkImage(
-                                          imageUrl: controller
-                                              .step2Images[index],
+                                          imageUrl:
+                                              controller.step2Images[index],
                                           fit: BoxFit.contain,
                                           width: double.infinity,
                                           placeholder: (context, url) =>
@@ -271,142 +269,69 @@ class _ProductPreviewScreenProductState
                   ],
                 ),
                 if (widget.isShowBusinessInfo ?? false)
-                  CustomFormCard(
-                    margin: EdgeInsets.only(
-                        left: SizeConfig.size15,
-                        right: SizeConfig.size15,
-                        top: SizeConfig.size15),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.grey,
-                          backgroundImage:
-                              widget.productData?.product.business_logo != null
-                                  ? NetworkImage(widget
-                                          .productData?.product.business_logo ??
-                                      "")
-                                  : null,
-                          child:
-                              widget.productData?.product.business_logo == null
-                                  ? CustomText(
-                                      getInitials(widget
-                                          .productData?.product.business_name),
-                                      fontSize: SizeConfig.size18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(left: SizeConfig.size10),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                    widget.productData?.product.business_name
-                                            ?.capitalizeFirst ??
-                                        "NA",
-                                    fontSize: SizeConfig.large18,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.mainTextColor,
-                                    maxLines: 2,
-                                  ),
-                                  // SizedBox(
-                                  //   height: SizeConfig.size5,
-                                  // ),
-                                  CustomText(
-                                    widget.productData?.product.category ??
-                                        "NA",
-                                    fontSize: SizeConfig.large,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.mainTextColor,
-                                    maxLines: 1,
-                                  ),
-                                ]),
+                  if (widget.productData?.product != null &&
+                      widget.productData?.product.business_name != null &&
+                      widget.productData?.product.user_id != null)
+                    CustomFormCard(
+                      margin: EdgeInsets.only(
+                          left: SizeConfig.size15,
+                          right: SizeConfig.size15,
+                          top: SizeConfig.size15),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.grey,
+                            backgroundImage: widget
+                                        .productData?.product.business_logo !=
+                                    null
+                                ? NetworkImage(
+                                    widget.productData?.product.business_logo ??
+                                        "")
+                                : null,
+                            child: widget.productData?.product.business_logo ==
+                                    null
+                                ? CustomText(
+                                    getInitials(widget
+                                        .productData?.product.business_name),
+                                    fontSize: SizeConfig.size18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  )
+                                : null,
                           ),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            final chatViewController =
-                                Get.find<ChatViewController>();
-                            Map<String, dynamic> detas = {
-                              ApiKeys.user_id:
-                                  widget.productData?.product.user_id
-                            };
-                            chatViewController
-                                .newVisitContactApiResponse?.value;
-                            await chatViewController.checkChatConnection(detas);
-                            logs(
-                                "widget.productData?.product.business_logo ${widget.productData?.product.business_logo}");
-                            chatViewController.openAnyOneChatFunction(
-                              profileImage:
-                                  widget.productData?.product.business_logo,
-                              otherUserId: (chatViewController
-                                              .newVisitContactApiResponse
-                                              ?.value
-                                              ?.data
-                                              ?.conversationId ??
-                                          '') ==
-                                      ""
-                                  ? chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.otherUserId ??
-                                      ''
-                                  : null,
-                              businessId: widget.productData?.product
-                                  .sellerClassification?.businessId,
-                              type: "business",
-                              isInitialMessage: (chatViewController
-                                              .newVisitContactApiResponse
-                                              ?.value
-                                              ?.data
-                                              ?.conversationId ??
-                                          '') ==
-                                      ""
-                                  ? true
-                                  : false,
-                              userId: widget.productData?.product.user_id,
-                              conversationId: (chatViewController
-                                      .newVisitContactApiResponse
-                                      ?.value
-                                      ?.data
-                                      ?.conversationId ??
-                                  ''),
-                              contactName:
-                                  widget.productData?.product.business_name,
-                              contactNo: widget.productData?.product.mobile_no,
-                            );
-                          },
-                          child: Container(
-                            // width: Get.width,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size15,
-                                vertical: SizeConfig.size5),
-                            margin: EdgeInsets.only(
-                                top: SizeConfig.size5,
-                                left: SizeConfig.size10,
-                                // right: SizeConfig.size5,
-                                bottom: SizeConfig.size8),
-                            child: CustomText(
-                              "Chat",
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.white,
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(left: SizeConfig.size10),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      widget.productData?.product.business_name
+                                              ?.capitalizeFirst ??
+                                          "NA",
+                                      fontSize: SizeConfig.large18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.mainTextColor,
+                                      maxLines: 2,
+                                    ),
+                                    // SizedBox(
+                                    //   height: SizeConfig.size5,
+                                    // ),
+                                    CustomText(
+                                      widget.productData?.product.category ??
+                                          "NA",
+                                      fontSize: SizeConfig.large,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.mainTextColor,
+                                      maxLines: 1,
+                                    ),
+                                  ]),
                             ),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(5),
-                                border:
-                                    Border.all(color: AppColors.primaryColor)),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                 if (widget.productData != null)
                   if (controller.listedProducts.isNotEmpty)
                     _buildListedProducts(),
@@ -1373,6 +1298,74 @@ class _ProductPreviewScreenProductState
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
+                ),
+              ),
+              InkWell(
+                onTap: () async {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+
+                    return;
+                  }
+                  final chatViewController = Get.find<ChatViewController>();
+                  Map<String, dynamic> detas = {
+                    ApiKeys.user_id: widget.productData?.product.user_id
+                  };
+                  chatViewController.newVisitContactApiResponse?.value;
+                  await chatViewController.checkChatConnection(detas);
+                  chatViewController.openAnyOneChatFunction(
+                    profileImage: widget.productData?.product.business_logo,
+                    otherUserId: (chatViewController.newVisitContactApiResponse
+                                    ?.value?.data?.conversationId ??
+                                '') ==
+                            ""
+                        ? chatViewController.newVisitContactApiResponse?.value
+                                ?.data?.otherUserId ??
+                            ''
+                        : null,
+                    businessId: widget
+                        .productData?.product.sellerClassification?.businessId,
+                    type: "business",
+                    isInitialMessage: (chatViewController
+                                    .newVisitContactApiResponse
+                                    ?.value
+                                    ?.data
+                                    ?.conversationId ??
+                                '') ==
+                            ""
+                        ? true
+                        : false,
+                    userId: widget.productData?.product.user_id,
+                    conversationId: (chatViewController
+                            .newVisitContactApiResponse
+                            ?.value
+                            ?.data
+                            ?.conversationId ??
+                        ''),
+                    contactName: widget.productData?.product.business_name,
+                    contactNo: widget.productData?.product.mobile_no,
+                  );
+                },
+                child: Container(
+                  // width: Get.width,
+                  padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size15,
+                      vertical: SizeConfig.size5),
+                  margin: EdgeInsets.only(
+                      top: SizeConfig.size5,
+                      left: SizeConfig.size15,
+                      right: SizeConfig.size15,
+                      bottom: SizeConfig.size8),
+                  child: CustomText(
+                    "Chat",
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: AppColors.primaryColor)),
                 ),
               ),
             ],

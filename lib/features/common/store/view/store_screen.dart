@@ -350,7 +350,6 @@ class _StoreScreenState extends State<StoreScreen> {
   }
 
   Widget _buildFoodServiceSection({String? categoryName, String? tagName}) {
-    final chatViewController = Get.find<ChatViewController>();
     if (controller.foodList.isNotEmpty)
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,

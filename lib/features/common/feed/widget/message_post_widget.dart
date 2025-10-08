@@ -272,6 +272,11 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                         if (widget.post?.type?.toLowerCase() == "message_post")
                           InkWell(
                             onTap: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+
+                                return;
+                              }
                               showDialog(
                                 context: context,
                                 barrierDismissible: true,

@@ -38,3 +38,26 @@
 -dontwarn com.dexterous.flutterlocalnotifications.**
 
 
+#
+## Keep Parcelize classes and metadata
+#-keep class kotlinx.parcelize.** { *; }
+#
+## Keep all Giphy SDK models (they use Parcelize)
+#-keep class com.giphy.sdk.** { *; }
+#
+#
+## --- Jitsi Meet SDK ---
+#-keep class org.jitsi.meet.** { *; }
+#-dontwarn org.jitsi.meet.**
+#
+## React Native (Jitsi SDK uses it internally)
+#-keep class com.facebook.react.** { *; }
+#-dontwarn com.facebook.react.**
+#
+## WebRTC
+#-keep class org.webrtc.** { *; }
+#-dontwarn org.webrtc.**
+
+
+
+

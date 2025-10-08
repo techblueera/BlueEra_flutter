@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -182,6 +183,11 @@ class _ProductCardState extends State<ProductCardBusiness> {
             if (widget.isShowChat)
               InkWell(
                 onTap: () async {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+
+                    return;
+                  }
                   final chatViewController = Get.find<ChatViewController>();
                   Map<String, dynamic> detas = {
                     ApiKeys.user_id: widget.businessData?.userId
