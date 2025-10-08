@@ -19,6 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
+import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
+
 class MobileNumberScreen extends StatefulWidget {
   MobileNumberScreen({super.key});
 
@@ -30,17 +32,20 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   final _authController = Get.put(AuthController());
+  late LanguageListController langController;
 
   @override
   void initState() {
     _getPhoneNumber();
+    langController = Get.find<LanguageListController>();
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
     final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
@@ -55,25 +60,30 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Spacer(flex: 1),
+                  const Spacer(flex: 1),
+
                   LocalAssets(
                     imagePath: AppIconAssets.blueEraIcon,
                     height: SizeConfig.size70,
                   ),
+
                   LocalAssets(
                     imagePath: AppIconAssets.login_bg,
                     height: SizeConfig.screenHeight / 2.2,
                   ),
+
                   Align(
                     alignment: Alignment.centerLeft,
                     child: CustomText(
-                      appLocalizations?.logInSignUp,
+                      langController.tr('signUpText'),
                       fontWeight: FontWeight.bold,
                       fontSize: SizeConfig.large,
                     ),
                   ),
+
                   SizedBox(height: SizeConfig.size6),
                   SizedBox(height: SizeConfig.size10),
+
                   Row(
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -81,7 +91,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       Container(
                         height: SizeConfig.size45,
                         width: SizeConfig.size57,
-                        child: CustomText("+91", fontSize: SizeConfig.large),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -89,29 +98,31 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                             width: 1,
                           ),
                           color: AppColors.white,
-                          // White background
                           borderRadius: BorderRadius.circular(12),
-                          // Rounded corners
                           boxShadow: [AppShadows.textFieldShadow],
                         ),
+                        child: CustomText("+91", fontSize: SizeConfig.large),
                       ),
                       SizedBox(width: SizeConfig.size10),
                       Expanded(
                         child: CommonTextField(
                           textEditController:
-                              _authController.mobileNumberEditController,
+                          _authController.mobileNumberEditController,
                           inputLength: 10,
                           maxLength: 10,
                           keyBoardType: TextInputType.number,
                           regularExpression:
-                              RegularExpressionUtils.digitsPattern,
+                          RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
-                          hintText: appLocalizations?.enterMobileNo,
-                          onTapOutsideTrue: false,
+                          hintText: langController.tr('mobileNumText'),
+                          hintStyle: TextStyle(
+                            fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
+                          ),                          onTapOutsideTrue: false,
                           autovalidateMode: _autoValidate,
                           validator: (value) {
                             if (value?.length != 10) {
-                              return 'Mobile number must be 10 digits';
+                              return langController.tr('pleaseEnterValidMobile') ??
+                                  'Mobile number must be 10 digits';
                             }
                             return null;
                           },
@@ -119,6 +130,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       ),
                     ],
                   ),
+
                   SizedBox(height: SizeConfig.size6),
                   SizedBox(height: SizeConfig.size10),
                   Center(
@@ -174,22 +186,81 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       ),
                     ),
                   ),
+                  // Center(
+                  //   child: RichText(
+                  //     textAlign: TextAlign.center,
+                  //     text: TextSpan(
+                  //       style: const TextStyle(
+                  //         fontSize: 12,
+                  //         color: Colors.black87,
+                  //       ),
+                  //       children: [
+                  //         TextSpan(
+                  //           text: langController.tr('agreeToTermsText') ??
+                  //               'By continuing you agree to ',
+                  //           style: const TextStyle(
+                  //             fontFamily: AppConstants.OpenSans,
+                  //           ),
+                  //         ),
+                  //         TextSpan(
+                  //           text: langController.tr('termsAndConditions') ??
+                  //               'Terms & Conditions',
+                  //           style: const TextStyle(
+                  //             color: AppColors.primaryColor,
+                  //             fontFamily: AppConstants.OpenSans,
+                  //           ),
+                  //           recognizer: TapGestureRecognizer()
+                  //             ..onTap = () {
+                  //               Get.to(CommonWebView(
+                  //                 urlLink: tncLink,
+                  //                 urlTitle: 'Terms & Conditions',
+                  //               ));
+                  //             },
+                  //         ),
+                  //         TextSpan(
+                  //           text: langController.tr('andText') ?? ' and\n',
+                  //         ),
+                  //         TextSpan(
+                  //           text: langController.tr('privacyPolicy') ??
+                  //               'Privacy Policy.',
+                  //           style: const TextStyle(
+                  //             color: AppColors.primaryColor,
+                  //             fontFamily: AppConstants.OpenSans,
+                  //           ),
+                  //           recognizer: TapGestureRecognizer()
+                  //             ..onTap = () {
+                  //               Get.to(CommonWebView(
+                  //                 urlLink: privacyLink,
+                  //                 urlTitle: 'Privacy Policy',
+                  //               ));
+                  //             },
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+
                   SizedBox(height: SizeConfig.size20),
+
                   CustomBtn(
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
-                    title: appLocalizations?.requestOTP,
+                    title: langController.tr('getOtp'),
                     onTap: () => _onNextButtonPressed(context),
                   ),
+
                   SizedBox(height: SizeConfig.size22),
+
+                  // Example (if you later add Guest login)
                   // CustomText(
-                  //   "Login as Guest",
+                  //   langController.tr('loginAsGuest') ?? "Login as Guest",
                   //   color: Colors.blue,
                   //   fontWeight: FontWeight.w500,
                   //   decoration: TextDecoration.underline,
                   //   decorationColor: AppColors.primaryColor,
                   // ),
-                  Spacer(flex: 1),
+
+                  const Spacer(flex: 1),
                 ],
               ),
             ),

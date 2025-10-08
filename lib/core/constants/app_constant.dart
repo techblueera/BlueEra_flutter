@@ -450,14 +450,16 @@ List<OnboardingData> getOnboardingPages() => [
 List<AccountOption> getCreateAccountType() => [
       AccountOption(
         id: AppConstants.individual,
-        title: loc.accountType1Title,
+        title:'individualAccount',
         subtitle: loc.accountType1SubTitle,
         description: loc.accountType1Description,
         iconPath: AppIconAssets.personal_account,
       ),
       AccountOption(
         id: AppConstants.business,
-        title: "Shop / Services / Business Listing",
+        title: "businessListing",
+
+        //title: "Shop / Services / Business Listing",
         subtitle: loc.accountType2SubTitle,
         description: loc.accountType2Description,
         iconPath: AppIconAssets.business_account,
