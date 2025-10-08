@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -1300,74 +1301,80 @@ class _ProductPreviewScreenProductState
                   ],
                 ),
               ),
-              InkWell(
-                onTap: () async {
-                  if (isGuestUser()) {
-                    createProfileScreen();
+              // CustomText("${widget.productData?.product.user_id}"),
+              // CustomText("${userId}"),
+              if (widget.productData?.product.user_id != businessId)
+                InkWell(
+                  onTap: () async {
+                    if (isGuestUser()) {
+                      createProfileScreen();
 
-                    return;
-                  }
-                  final chatViewController = Get.find<ChatViewController>();
-                  Map<String, dynamic> detas = {
-                    ApiKeys.user_id: widget.productData?.product.user_id
-                  };
-                  chatViewController.newVisitContactApiResponse?.value;
-                  await chatViewController.checkChatConnection(detas);
-                  chatViewController.openAnyOneChatFunction(
-                    profileImage: widget.productData?.product.business_logo,
-                    otherUserId: (chatViewController.newVisitContactApiResponse
-                                    ?.value?.data?.conversationId ??
-                                '') ==
-                            ""
-                        ? chatViewController.newVisitContactApiResponse?.value
-                                ?.data?.otherUserId ??
-                            ''
-                        : null,
-                    businessId: widget
-                        .productData?.product.sellerClassification?.businessId,
-                    type: "business",
-                    isInitialMessage: (chatViewController
-                                    .newVisitContactApiResponse
-                                    ?.value
-                                    ?.data
-                                    ?.conversationId ??
-                                '') ==
-                            ""
-                        ? true
-                        : false,
-                    userId: widget.productData?.product.user_id,
-                    conversationId: (chatViewController
-                            .newVisitContactApiResponse
-                            ?.value
-                            ?.data
-                            ?.conversationId ??
-                        ''),
-                    contactName: widget.productData?.product.business_name,
-                    contactNo: widget.productData?.product.mobile_no,
-                  );
-                },
-                child: Container(
-                  // width: Get.width,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size15,
-                      vertical: SizeConfig.size5),
-                  margin: EdgeInsets.only(
-                      top: SizeConfig.size5,
-                      left: SizeConfig.size15,
-                      right: SizeConfig.size15,
-                      bottom: SizeConfig.size8),
-                  child: CustomText(
-                    "Chat",
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
+                      return;
+                    }
+                    final chatViewController = Get.find<ChatViewController>();
+                    Map<String, dynamic> detas = {
+                      ApiKeys.user_id: widget.productData?.product.user_id
+                    };
+                    chatViewController.newVisitContactApiResponse?.value;
+                    await chatViewController.checkChatConnection(detas);
+                    chatViewController.openAnyOneChatFunction(
+                      profileImage: widget.productData?.product.business_logo,
+                      otherUserId: (chatViewController
+                                      .newVisitContactApiResponse
+                                      ?.value
+                                      ?.data
+                                      ?.conversationId ??
+                                  '') ==
+                              ""
+                          ? chatViewController.newVisitContactApiResponse?.value
+                                  ?.data?.otherUserId ??
+                              ''
+                          : null,
+                      businessId: widget.productData?.product
+                          .sellerClassification?.businessId,
+                      type: "business",
+                      isInitialMessage: (chatViewController
+                                      .newVisitContactApiResponse
+                                      ?.value
+                                      ?.data
+                                      ?.conversationId ??
+                                  '') ==
+                              ""
+                          ? true
+                          : false,
+                      userId: widget.productData?.product.user_id,
+                      conversationId: (chatViewController
+                              .newVisitContactApiResponse
+                              ?.value
+                              ?.data
+                              ?.conversationId ??
+                          ''),
+                      contactName: widget.productData?.product.business_name,
+                      contactNo: widget.productData?.product.mobile_no,
+                    );
+                  },
+                  child: Container(
+                    // width: Get.width,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size15,
+                        vertical: SizeConfig.size5),
+                    margin: EdgeInsets.only(
+                        top: SizeConfig.size5,
+                        left: SizeConfig.size15,
+                        right: SizeConfig.size15,
+                        bottom: SizeConfig.size8),
+                    child: CustomText(
+                      "Chat",
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: AppColors.primaryColor)),
                   ),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: AppColors.primaryColor)),
                 ),
-              ),
             ],
           ),
         ),

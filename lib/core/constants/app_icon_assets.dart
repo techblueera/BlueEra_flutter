@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 class AppIconAssets {
   static const iconPath = AppConstants.baseSvgAssetsPath;
   static String edit_pen_icon = "${iconPath}create_manual_product.svg";
-  static String appIcon = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
+  // static String appIcon = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
   // static String appIcon = "${AppConstants.baseIconAssetsPath}app_icon.svg";
   static String back_arrow = "${iconPath}back_arrow.svg";
   static String business_account = "${iconPath}business_account.svg";
@@ -368,7 +368,7 @@ class AppIconAssets {
   static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
   static String colorTemplateIcon = "${iconPath}color_template_icon.svg";
   static String upload_video_service = "${iconPath}upload_video_service.svg";
-  static String blue_era_app_logo = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
+  // static String blue_era_app_logo = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
   static String product_sale = "${iconPath}product_sale.svg";
   static String service_provider = "${iconPath}service_provider.svg";
   static String food_service = "${iconPath}food_service.svg";

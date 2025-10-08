@@ -75,7 +75,7 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget _buildOwnProductCard(){
     switch(widget.controller.selectedProductIndex.value){
       case 0:
-        return _buildAllProductCard();
+        return buildAllProductCard();
         case 1:
         return _buildLiveProductCard();
         case 2:
@@ -86,7 +86,7 @@ class _ProductScreenState extends State<ProductScreen> {
     }
   }
 
-  Widget _buildAllProductCard(){
+  Widget buildAllProductCard(){
     return (widget.controller.isLoading.value) ?
     const Center(
       child: CircularProgressIndicator(
@@ -302,14 +302,14 @@ class _ProductScreenState extends State<ProductScreen> {
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: _buildIconBox(
+                      child: buildIconBox(
                           Icon(Icons.more_vert, color: Colors.white, size: 16)
                       ),
                     ),
                     Positioned(
                       top: 8,
                       left: 8,
-                      child:  _buildIconBox(
+                      child:    buildIconBox(
                           Icon(Icons.share, color: AppColors.white, size: 16)
                       ),
                     ),
@@ -402,19 +402,6 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  Widget _buildIconBox(Widget child) {
-    return Container(
-      height: 25,
-      width: 25,
-      decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow]
-      ),
-      alignment: Alignment.center,
-      child: child,
-    );
-  }
 
   ProductPreviewArgs mapProductDataToPreviewArgs(OwnProductData productData) {
     final product = productData.product;
@@ -472,4 +459,17 @@ class _ProductScreenState extends State<ProductScreen> {
 
 }
 
+Widget buildIconBox(Widget child) {
+  return Container(
+    height: 25,
+    width: 25,
+    decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        shape: BoxShape.circle,
+        boxShadow: [AppShadows.textFieldShadow]
+    ),
+    alignment: Alignment.center,
+    child: child,
+  );
+}
 

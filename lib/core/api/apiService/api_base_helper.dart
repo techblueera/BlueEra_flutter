@@ -62,36 +62,36 @@ class ApiBaseHelper {
               ProgressDialog.showProgressDialog(true, apiPath: options.path);
             // // Increment the request count and show the loader
             final isFormData = options.data is FormData;
-            // final method = options.method.toUpperCase();
-            // final url = options.uri.toString();
+            final method = options.method.toUpperCase();
+            final url = options.uri.toString();
 
-            // if(kDebugMode){
-            //   // ====== 🌟 Beautified Request Log ======
-            //   log("\x1B[36m==================== API REQUEST [$method] ====================\x1B[0m");
-            //   log("🔹 URL: $url");
-            //   log("🔹 Headers: ${jsonEncode(options.headers)}");
-            //
+            if(kDebugMode){
+              // ====== 🌟 Beautified Request Log ======
+              log("\x1B[36m==================== API REQUEST [$method] ====================\x1B[0m");
+              log("🔹 URL: $url");
+              log("🔹 Headers: ${jsonEncode(options.headers)}");
+
               if (options.queryParameters.isNotEmpty) {
                 log("🔹 Query Params: ${jsonEncode(options.queryParameters)}");
               }
-            //
-            //   if (isFormData) {
-            //     final formData = options.data as FormData;
-            //     log("🔹 FormData Fields:");
-            //     for (final field in formData.fields) {
-            //       log("    ${field.key}: ${field.value}");
-            //     }
-            //     log("🔹 FormData Files:");
-            //     for (final file in formData.files) {
-            //       log("    ${file.key}: ${file.value.filename}");
-            //     }
-            //   } else if (options.data != null) {
-            //     log("🔹 Body: ${const JsonEncoder.withIndent('  ').convert(options.data)}");
-            //   } else {
-            //     log("🔹 Body: null");
-            //   }
-            //
-            // }
+
+              if (isFormData) {
+                final formData = options.data as FormData;
+                log("🔹 FormData Fields:");
+                for (final field in formData.fields) {
+                  log("    ${field.key}: ${field.value}");
+                }
+                log("🔹 FormData Files:");
+                for (final file in formData.files) {
+                  log("    ${file.key}: ${file.value.filename}");
+                }
+              } else if (options.data != null) {
+                log("🔹 Body: ${const JsonEncoder.withIndent('  ').convert(options.data)}");
+              } else {
+                log("🔹 Body: null");
+              }
+
+            }
 
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
