@@ -75,7 +75,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: CustomText(
-                      langController.tr('signUpText'),
+                      langController.tr('Login / signUp'),
                       fontWeight: FontWeight.bold,
                       fontSize: SizeConfig.large,
                     ),
@@ -114,7 +114,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           regularExpression:
                           RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
-                          hintText: langController.tr('mobileNumText'),
+                          hintText: langController.tr('Enter your mobile number'),
                           hintStyle: TextStyle(
                             fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
                           ),                          onTapOutsideTrue: false,
@@ -245,7 +245,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   CustomBtn(
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
-                    title: langController.tr('getOtp'),
+                    title: langController.tr('GetOtp'),
                     onTap: () => _onNextButtonPressed(context),
                   ),
 
