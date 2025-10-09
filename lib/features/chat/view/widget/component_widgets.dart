@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -145,283 +147,303 @@ Widget ChatListTile(
     }
     onSelect();
   }
-  return ((chat?.sender?.name==null||chat?.sender?.name == "null")&(chat?.sender?.contactNo==null))?SizedBox():InkWell(
-    onTap: () {
-      if (isForwardUI == true) {
-        selectChatListCard();
-      } else {
-        chatViewController.openAnyOneChatFunction(
-          businessId: chat?.sender?.businessId,
-          type: type,
-          isInitialMessage: false,
-          userId: userId,
-          conversationId: chat?.conversationId ?? '',
-          profileImage: chat?.sender?.profileImage,
-          contactName: chat?.sender?.name,
-          contactNo: chat?.sender?.contactNo,
-        );
-      }
-    },
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return Dialog(
-                    insetPadding: const EdgeInsets.all(40),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 300,
-                        maxHeight: 300,
-                      ),
-                      child: Stack(
-                        children: [
-                          // Image Viewer
-                          Center(
-                            child: InteractiveViewer(
-                              panEnabled: true,
-                              minScale: 1.0,
-                              maxScale: 5.0,
-                              child: (chat?.sender?.profileImage?.isNotEmpty ==
-                                          true &&
-                                      chat?.sender?.profileImage
-                                              ?.contains('http') ==
-                                          true)
-                                  ? CachedNetworkImage(
-                                      imageUrl:
-                                          chat?.sender?.profileImage ?? "",
-                                      placeholder: (context, url) =>
-                                          const Padding(
-                                        padding: EdgeInsets.all(20),
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          const Icon(Icons.error, size: 40),
-                                      fit: BoxFit.contain,
-                                    )
-                                  : (chat?.sender?.profileImage?.isNotEmpty ==
-                                          true)
-                                      ? Image.file(
-                                          File(chat!.sender!.profileImage!),
-                                          fit: BoxFit.contain,
-                                        )
-                                      : CircleAvatar(
-                                          radius: 40,
-                                          backgroundColor: Colors.grey.shade400,
-                                          child: Text(
-                                            (chat?.sender?.name?.isNotEmpty ==
-                                                    true)
-                                                ? chat!.sender!.name![0]
-                                                    .toUpperCase()
-                                                : "?",
-                                            style: const TextStyle(
-                                              fontSize: 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                            ),
-                          ),
 
-                          // Title Bar
-                          Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
+  return ((chat?.sender?.name == null || chat?.sender?.name == "null") &
+          (chat?.sender?.contactNo == null))
+      ? SizedBox()
+      : InkWell(
+          onTap: () {
+            if (isForwardUI == true) {
+              selectChatListCard();
+            } else {
+              chatViewController.openAnyOneChatFunction(
+                businessId: chat?.sender?.businessId,
+                type: type,
+                isInitialMessage: false,
+                userId: userId,
+                conversationId: chat?.conversationId ?? '',
+                profileImage: chat?.sender?.profileImage,
+                contactName: chat?.sender?.name,
+                contactNo: chat?.sender?.contactNo,
+              );
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InkWell(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          insetPadding: const EdgeInsets.all(40),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: 300,
+                              maxHeight: 300,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            child: Stack(
                               children: [
-                                Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16),
-                                    child: SizedBox(
-                                      width: 160,
-                                      child: CustomText(
-                                        "${(chat?.sender?.name == "null") ? chat?.sender?.contactNo : chat?.sender?.name ?? chat?.sender?.contactNo}",
-                                        maxLines: 1,
-                                        color: Colors.white,
-                                        overflow: TextOverflow.ellipsis,
-                                        // 👈 ensures "..."
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
+                                // Image Viewer
+                                Center(
+                                  child: InteractiveViewer(
+                                    panEnabled: true,
+                                    minScale: 1.0,
+                                    maxScale: 5.0,
+                                    child: (chat?.sender?.profileImage
+                                                    ?.isNotEmpty ==
+                                                true &&
+                                            chat?.sender?.profileImage
+                                                    ?.contains('http') ==
+                                                true)
+                                        ? CachedNetworkImage(
+                                            imageUrl:
+                                                chat?.sender?.profileImage ??
+                                                    "",
+                                            placeholder: (context, url) =>
+                                                const Padding(
+                                              padding: EdgeInsets.all(20),
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error,
+                                                        size: 40),
+                                            fit: BoxFit.contain,
+                                          )
+                                        : (chat?.sender?.profileImage
+                                                    ?.isNotEmpty ==
+                                                true)
+                                            ? Image.file(
+                                                File(chat!
+                                                    .sender!.profileImage!),
+                                                fit: BoxFit.contain,
+                                              )
+                                            : CircleAvatar(
+                                                radius: 40,
+                                                backgroundColor:
+                                                    Colors.grey.shade400,
+                                                child: Text(
+                                                  (chat?.sender?.name
+                                                              ?.isNotEmpty ==
+                                                          true)
+                                                      ? chat!.sender!.name![0]
+                                                          .toUpperCase()
+                                                      : "?",
+                                                  style: const TextStyle(
+                                                    fontSize: 32,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
                                   ),
-                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+
+                                // Title Bar
+                                Container(
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: SizedBox(
+                                            width: 160,
+                                            child: CustomText(
+                                              "${(chat?.sender?.name == "null") ? chat?.sender?.contactNo : chat?.sender?.name ?? chat?.sender?.contactNo}",
+                                              maxLines: 1,
+                                              color: Colors.white,
+                                              overflow: TextOverflow.ellipsis,
+                                              // 👈 ensures "..."
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                        ),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
+                        );
+                      },
+                    );
+                  },
+                  child: CircleAvatar(
+                    backgroundColor: theme.colorScheme.primary,
+                    radius: 22,
+                    backgroundImage: (chat?.sender?.profileImage != null)
+                        ? ((chat?.sender!.profileImage!.contains('http') ??
+                                false)
+                            ? NetworkImage(chat?.sender?.profileImage ?? "")
+                            : FileImage(File(chat?.sender?.profileImage ?? ''))
+                                as ImageProvider)
+                        : null,
+                    child: ((chat?.sender?.profileImage != null &&
+                            (chat?.sender?.profileImage?.isNotEmpty ?? false)))
+                        ? null
+                        : Center(
+                            child: CustomText(
+                            "${chat?.sender?.name?.split('')[0]}",
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                          )),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomText(
+                        "${(chat?.sender?.name == null || chat?.sender?.name == "null") ? "${chat?.sender?.contactNo}" : chat?.sender?.name ?? chat?.sender?.contactNo}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis, // 👈 ensures "..."
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      SizedBox(height: 2),
+                      SizedBox(
+                        width: 260,
+                        child: (chat?.lastMessageType == "document" ||
+                                chat?.lastMessageType == "contact" ||
+                                chat?.lastMessageType == "audio" ||
+                                chat?.lastMessageType == "location" ||
+                                chat?.lastMessageType == "image" ||
+                                chat?.lastMessageType == "video")
+                            ? Row(
+                                children: [
+                                  Icon(
+                                    chat?.lastMessageType == "document"
+                                        ? Icons.picture_as_pdf
+                                        : chat?.lastMessageType == "contact"
+                                            ? Icons.person
+                                            : chat?.lastMessageType == "audio"
+                                                ? Icons.audiotrack
+                                                : chat?.lastMessageType ==
+                                                        "video"
+                                                    ? Icons.video_chat
+                                                    : chat?.lastMessageType ==
+                                                            "location"
+                                                        ? Icons.location_history
+                                                        : Icons.camera_alt,
+                                    color: AppColors.grey9A,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  CustomText(
+                                    chat?.lastMessageType == "document"
+                                        ? "Document"
+                                        : chat?.lastMessageType == "contact"
+                                            ? "Contact"
+                                            : chat?.lastMessageType == "audio"
+                                                ? "Audio"
+                                                : chat?.lastMessageType ==
+                                                        "video"
+                                                    ? "Video"
+                                                    : chat?.lastMessageType ==
+                                                            "location"
+                                                        ? "Location"
+                                                        : "Image",
+                                    fontSize: 14,
+                                    color: AppColors.grey9A,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                ],
+                              )
+                            : chat?.lastMessage == null
+                                ? CustomText(
+                                    "${chat?.sender!.designation}",
+                                    fontSize: 14,
+                                    color: AppColors.grey9A,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                : CustomText(
+                                    maxLines: 1,
+                                    "${chat?.lastMessage}",
+                                    fontSize: 14,
+                                    color: AppColors.grey9A,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 10),
+                (isForwardUI == true)
+                    ? SizedBox()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CustomText(
+                            "${formatTimeFromUtc(chat?.updatedAt ?? '')}",
+                            fontSize: 11,
+                            color: AppColors.grey9A,
+                          ),
+                          SizedBox(height: 6),
+                          (index == 0 || index == 1 || index == 2)
+                              ? (chat?.unreadCount == 0)
+                                  ? SizedBox()
+                                  : CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: Colors.lightBlue,
+                                      child: CustomText(
+                                        "${chat?.unreadCount}",
+                                        color: AppColors.white,
+                                        fontSize: 12,
+                                      ),
+                                    )
+                              : SizedBox(),
                         ],
                       ),
+                if (isForwardUI == true)
+                  Theme(
+                    data: theme.copyWith(
+                      checkboxTheme: CheckboxThemeData(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                          side: BorderSide(
+                              color:
+                                  Colors.black), // Border color when unchecked
+                        ),
+                        side: BorderSide(
+                            color:
+                                Colors.black), // Ensure it's applied globally
+                      ),
                     ),
-                  );
-                },
-              );
-            },
-            child: CircleAvatar(
-              backgroundColor: theme.colorScheme.primary,
-              radius: 22,
-              backgroundImage: (chat?.sender?.profileImage != null)
-                  ? ((chat?.sender!.profileImage!.contains('http') ?? false)
-                      ? NetworkImage(chat?.sender?.profileImage ?? "")
-                      : FileImage(File(chat?.sender?.profileImage ?? ''))
-                          as ImageProvider)
-                  : null,
-              child: ((chat?.sender?.profileImage != null &&
-                      (chat?.sender?.profileImage?.isNotEmpty ?? false)))
-                  ? null
-                  : Center(
-                      child: CustomText(
-                      "${chat?.sender?.name?.split('')[0]}",
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                    )),
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomText(
-                  "${(chat?.sender?.name==null||chat?.sender?.name == "null") ? "${chat?.sender?.contactNo}" : chat?.sender?.name ?? chat?.sender?.contactNo}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis, // 👈 ensures "..."
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                SizedBox(height: 2),
-                SizedBox(
-                  width: 260,
-                  child: (chat?.lastMessageType == "document" ||
-                          chat?.lastMessageType == "contact" ||
-                          chat?.lastMessageType == "audio" ||
-                          chat?.lastMessageType == "location" ||
-                          chat?.lastMessageType == "image" ||
-                          chat?.lastMessageType == "video")
-                      ? Row(
-                          children: [
-                            Icon(
-                              chat?.lastMessageType == "document"
-                                  ? Icons.picture_as_pdf
-                                  : chat?.lastMessageType == "contact"
-                                      ? Icons.person
-                                      : chat?.lastMessageType == "audio"
-                                          ? Icons.audiotrack
-                                          : chat?.lastMessageType == "video"
-                                              ? Icons.video_chat
-                                              : chat?.lastMessageType ==
-                                                      "location"
-                                                  ? Icons.location_history
-                                                  : Icons.camera_alt,
-                              color: AppColors.grey9A,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 4),
-                            CustomText(
-                              chat?.lastMessageType == "document"
-                                  ? "Document"
-                                  : chat?.lastMessageType == "contact"
-                                      ? "Contact"
-                                      : chat?.lastMessageType == "audio"
-                                          ? "Audio"
-                                          : chat?.lastMessageType == "video"
-                                              ? "Video"
-                                              : chat?.lastMessageType ==
-                                                      "location"
-                                                  ? "Location"
-                                                  : "Image",
-                              fontSize: 14,
-                              color: AppColors.grey9A,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          ],
-                        )
-                      : chat?.lastMessage == null
-                          ? CustomText(
-                              "${chat?.sender?.designation==null?chat?.sender?.contactNo:chat?.sender?.designation}",
-                              fontSize: 14,
-                              color: AppColors.grey9A,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          : CustomText(
-                              maxLines: 1,
-                              "${chat?.lastMessage}",
-                              fontSize: 14,
-                              color: AppColors.grey9A,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                ),
+                    child: Checkbox(
+                      activeColor: Colors.blue, // fill color when selected
+                      checkColor: Colors.white, // tick color
+                      value: isSelected,
+                      onChanged: (_) {
+                        selectChatListCard();
+                      },
+                    ),
+                  ),
               ],
             ),
           ),
-          SizedBox(width: 10),
-          (isForwardUI == true)
-              ? SizedBox()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    CustomText(
-                      "${formatTimeFromUtc(chat?.updatedAt ?? '')}",
-                      fontSize: 11,
-                      color: AppColors.grey9A,
-                    ),
-                    SizedBox(height: 6),
-                    (index == 0 || index == 1 || index == 2)
-                        ? (chat?.unreadCount == 0)
-                            ? SizedBox()
-                            : CircleAvatar(
-                                radius: 12,
-                                backgroundColor: Colors.lightBlue,
-                                child: CustomText(
-                                  "${chat?.unreadCount}",
-                                  color: AppColors.white,
-                                  fontSize: 12,
-                                ),
-                              )
-                        : SizedBox(),
-                  ],
-                ),
-          if (isForwardUI == true)
-            Theme(
-              data: theme.copyWith(
-                checkboxTheme: CheckboxThemeData(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    side: BorderSide(
-                        color: Colors.black), // Border color when unchecked
-                  ),
-                  side: BorderSide(
-                      color: Colors.black), // Ensure it's applied globally
-                ),
-              ),
-              child: Checkbox(
-                activeColor: Colors.blue, // fill color when selected
-                checkColor: Colors.white, // tick color
-                value: isSelected,
-                onChanged: (_) {
-                  selectChatListCard();
-                },
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
+        );
 }
 
 String formatTimeFromUtc(String utcString) {
@@ -782,6 +804,7 @@ AppBar getChatTitleAppBar(
   required String? name,
   required String? contactNo,
   String? profileImage,
+  String? businessId,
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
@@ -928,7 +951,6 @@ PreferredSize getChatOptionsAppBar(
 }) {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
-
   return PreferredSize(
     preferredSize: Size.fromHeight(kToolbarHeight),
     child: AppBar(
@@ -1104,98 +1126,6 @@ PreferredSize getChatOptionsAppBar(
 
         const SizedBox(width: 8),
       ],
-    ),
-  );
-}
-
-AppBar getAiChatTitleAppBar(
-  BuildContext context, {
-  required String? userId,
-  required String? type,
-  required String? name,
-  required String? contactNo,
-  String? profileImage,
-}) {
-  final theme = Theme.of(context);
-  final chatViewController = Get.find<ChatViewController>();
-  return AppBar(
-    elevation: 0,
-    backgroundColor: Colors.white,
-    leadingWidth: 38,
-    leading: InkWell(
-      onTap: () {
-        Navigator.pop(context);
-        chatViewController.emitEvent(
-            "ChatList", {ApiKeys.type: "personal"}, true);
-      },
-      child: Padding(
-        padding: const EdgeInsets.only(left: 18.0),
-        // Reduce touch padding if needed
-        child: Icon(Icons.arrow_back_ios, color: Colors.black),
-      ),
-    ),
-    titleSpacing: 0,
-    title: InkWell(
-      onTap: () {
-        _navigateToProfile(authorId: userId ?? '', type: type ?? "");
-      },
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: theme.colorScheme.primary,
-            radius: 18,
-            backgroundImage: profileImage != null
-                ? ((profileImage.contains('http'))
-                    ? NetworkImage(profileImage)
-                    : FileImage(File(profileImage)) as ImageProvider)
-                : null,
-            child: (profileImage != null)
-                ? null
-                : (name != null)
-                    ? Center(
-                        child: CustomText(
-                        "M",
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                      ))
-                    : Center(
-                        child: Icon(
-                          Icons.person,
-                          color: theme.colorScheme.surface,
-                        ),
-                      ),
-          ),
-          SizedBox(width: 6), // Slightly smaller spacing
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 160,
-                child: CustomText(
-                  'My Friend BlueEra AI',
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Row(
-                children: [
-                  CustomText(
-                    'Online',
-                    color: AppColors.grayText,
-                    fontSize: 12,
-                  ),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
     ),
   );
 }

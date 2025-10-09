@@ -236,6 +236,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                     if (formKey.currentState!.validate()) {
                       widget.controller.addProductsInListing(
                           productListing: ProductListing(
+                              id: "",
                               image: productImages.isNotEmpty ? productImages : widget.controller.step2Images,
                               name: productFullName,
                               selectedVariants: widget.controller.selectedVariantValues,

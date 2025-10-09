@@ -337,14 +337,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.4"
-  chewie:
-    dependency: "direct main"
-    description:
-      name: chewie
-      sha256: "44bcfc5f0dfd1de290c87c9d86a61308b3282a70b63435d5557cfd60f54a69ca"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.13.0"
   cli_completion:
     dependency: transitive
     description:
@@ -1413,14 +1405,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  nested:
-    dependency: transitive
-    description:
-      name: nested
-      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   nm:
     dependency: transitive
     description:
@@ -1749,14 +1733,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.5"
-  provider:
-    dependency: transitive
-    description:
-      name: provider
-      sha256: "4e82183fa20e5ca25703ead7e05de9e4cceed1fbd1eadc1ac3cb6f565a09f272"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.5+1"
   pub_semver:
     dependency: transitive
     description:
@@ -2266,14 +2242,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
-  video_compress:
-    dependency: "direct main"
-    description:
-      name: video_compress
-      sha256: "31bc5cdb9a02ba666456e5e1907393c28e6e0e972980d7d8d619a7beda0d4f20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.4"
   video_player:
     dependency: "direct main"
     description:
@@ -2286,10 +2254,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_android
-      sha256: "59e5a457ddcc1688f39e9aef0efb62aa845cf0cbbac47e44ac9730dc079a2385"
+      sha256: "6cfe0b1e102522eda1e139b82bf00602181c5844fd2885340f595fb213d74842"
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.13"
+    version: "2.8.14"
   video_player_avfoundation:
     dependency: transitive
     description:
@@ -2338,22 +2306,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "15.0.0"
-  wakelock_plus:
-    dependency: transitive
-    description:
-      name: wakelock_plus
-      sha256: "61713aa82b7f85c21c9f4cd0a148abd75f38a74ec645fcb1e446f882c82fd09b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.3"
-  wakelock_plus_platform_interface:
-    dependency: transitive
-    description:
-      name: wakelock_plus_platform_interface
-      sha256: "036deb14cd62f558ca3b73006d52ce049fabcdcb2eddfe0bf0fe4e8a943b5cf2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.0"
   watcher:
     dependency: transitive
     description:

@@ -16,7 +16,8 @@ class FoodDetailsViewScreen extends StatelessWidget {
   final GetFoodDetailsModel data;
   final String productPriceFormat;
 
-  const FoodDetailsViewScreen({super.key, required this.data, required this.productPriceFormat});
+  const FoodDetailsViewScreen(
+      {super.key, required this.data, required this.productPriceFormat});
 
   @override
   Widget build(BuildContext context) {
@@ -48,146 +49,163 @@ class FoodDetailsViewScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: SizeConfig.size16),
-              CustomFormCard(
-                margin: EdgeInsets.zero,
-
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.grey,
-                      backgroundImage: item.business?.logo != null
-                          ? NetworkImage(item.business?.logo ?? "")
-                          : null,
-                      child: item.business?.logo == null
-                          ? CustomText(
-                              getInitials(item.business?.businessName),
-                              fontSize: SizeConfig.size18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size10),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                item.business?.businessName?.capitalizeFirst ??
-                                    "NA",
-                                fontSize: SizeConfig.large18,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.mainTextColor,
-                                maxLines: 2,
-                              ),
-                              CustomText(
-                                item.business?.categoryOfBusiness?.name ?? "NA",
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.mainTextColor,
-                                maxLines: 1,
-                              ),
-                            ]),
+              if (item.business != null &&
+                  item.business?.businessName != null &&
+                  business?.userId != null)
+                CustomFormCard(
+                  margin: EdgeInsets.zero,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.grey,
+                        backgroundImage: item.business?.logo != null
+                            ? NetworkImage(item.business?.logo ?? "")
+                            : null,
+                        child: item.business?.logo == null
+                            ? CustomText(
+                                getInitials(item.business?.businessName),
+                                fontSize: SizeConfig.size18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              )
+                            : null,
                       ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        final chatViewController =
-                            Get.find<ChatViewController>();
-                        Map<String, dynamic> detas = {
-                          ApiKeys.user_id: business?.userId
-                        };
-                        chatViewController.newVisitContactApiResponse?.value;
-                        await chatViewController.checkChatConnection(detas);
-                        List<Map<String, String>> urlList = photos.map((e) => {"url": e}).toList();
-                        Map<String,dynamic> data={
-                          "food_id": "${item.id}",
-                          // "product_id": "string",
-                          // "service_id": "string",
-                          "price": "${productPriceFormat}",
-                          "discount": "20%",
-                            if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: SizeConfig.size10),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  item.business?.businessName
+                                          ?.capitalizeFirst ??
+                                      "NA",
+                                  fontSize: SizeConfig.large18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.mainTextColor,
+                                  maxLines: 2,
+                                ),
+                                CustomText(
+                                  item.business?.categoryOfBusiness?.name ??
+                                      "NA",
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.mainTextColor,
+                                  maxLines: 1,
+                                ),
+                              ]),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+
+                            return;
+                          }
+                          final chatViewController =
+                              Get.find<ChatViewController>();
+                          Map<String, dynamic> detas = {
+                            ApiKeys.user_id: business?.userId
+                          };
+                          chatViewController.newVisitContactApiResponse?.value;
+                          await chatViewController.checkChatConnection(detas);
+                          List<Map<String, String>> urlList =
+                              photos.map((e) => {"url": e}).toList();
+                          Map<String, dynamic> data = {
+                            "food_id": "${item.id}",
+                            // "product_id": "string",
+                            // "service_id": "string",
+                            "price": "${productPriceFormat}",
+                            "discount": "20%",
+                            if ((chatViewController.newVisitContactApiResponse
+                                        ?.value?.data?.conversationId ==
+                                    '' ||
+                                chatViewController.newVisitContactApiResponse
+                                        ?.value?.data?.conversationId ==
+                                    null))
                               ApiKeys.other_user_id: (chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.otherUserId ??
+                                      .newVisitContactApiResponse
+                                      ?.value
+                                      ?.data
+                                      ?.otherUserId ??
                                   '')
                             else
-                              ApiKeys.conversation_id:(chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.conversationId ??
+                              ApiKeys.conversation_id: (chatViewController
+                                      .newVisitContactApiResponse
+                                      ?.value
+                                      ?.data
+                                      ?.conversationId ??
                                   ''),
-                          "message": "${item.title}.${item.vegType}.${item.subCategory}.${item.nutritionalSummaryPer100g?.caloriesKcal}",
-                          "message_type": "food",
-                          "url": urlList,
-                        };
-                        chatViewController.openAnyOneChatFunction(
-                          shareProductParams:data ,
-                          isWithProductSend: true,
-                          profileImage: business?.logo,
-                          otherUserId: (chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.conversationId ??
-                                      '') ==
-                                  ""
-                              ? chatViewController.newVisitContactApiResponse
-                                      ?.value?.data?.otherUserId ??
-                                  ''
-                              : null,
-                          businessId: business?.id,
-                          type: "business",
-                          isInitialMessage: (chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.conversationId ??
-                                      '') ==
-                                  ""
-                              ? true
-                              : false,
-                          userId: business?.userId,
-                          conversationId: (chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.conversationId ??
-                              ''),
-                          contactName: business?.businessName,
-                          contactNo: "",
-                        );
-                      },
-                      child: Container(
-                        // width: Get.width,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size15,
-                            vertical: SizeConfig.size5),
-                        margin: EdgeInsets.only(
-                            top: SizeConfig.size5,
-                            left: SizeConfig.size10,
-                            // right: SizeConfig.size5,
-                            bottom: SizeConfig.size8),
-                        child: CustomText(
-                          "Chat",
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.white,
+                            "message":
+                                "${item.title}.${item.vegType}.${item.subCategory}.${item.nutritionalSummaryPer100g?.caloriesKcal}",
+                            "message_type": "food",
+                            "url": urlList,
+                          };
+                          chatViewController.openAnyOneChatFunction(
+                            shareProductParams: data,
+                            isWithProductSend: true,
+                            profileImage: business?.logo,
+                            otherUserId: (chatViewController
+                                            .newVisitContactApiResponse
+                                            ?.value
+                                            ?.data
+                                            ?.conversationId ??
+                                        '') ==
+                                    ""
+                                ? chatViewController.newVisitContactApiResponse
+                                        ?.value?.data?.otherUserId ??
+                                    ''
+                                : null,
+                            businessId: business?.id,
+                            type: "business",
+                            isInitialMessage: (chatViewController
+                                            .newVisitContactApiResponse
+                                            ?.value
+                                            ?.data
+                                            ?.conversationId ??
+                                        '') ==
+                                    ""
+                                ? true
+                                : false,
+                            userId: business?.userId,
+                            conversationId: (chatViewController
+                                    .newVisitContactApiResponse
+                                    ?.value
+                                    ?.data
+                                    ?.conversationId ??
+                                ''),
+                            contactName: business?.businessName,
+                            contactNo: "",
+                          );
+                        },
+                        child: Container(
+                          // width: Get.width,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size15,
+                              vertical: SizeConfig.size5),
+                          margin: EdgeInsets.only(
+                              top: SizeConfig.size5,
+                              left: SizeConfig.size10,
+                              // right: SizeConfig.size5,
+                              bottom: SizeConfig.size8),
+                          child: CustomText(
+                            "Chat",
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(5),
+                              border:
+                                  Border.all(color: AppColors.primaryColor)),
                         ),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(color: AppColors.primaryColor)),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
               // ---- TITLE ----
               Container(
@@ -219,8 +237,11 @@ class FoodDetailsViewScreen extends StatelessWidget {
                       children: [
                         if (item.vegType != null)
                           Chip(
-                            label: CustomText(item.vegType?.toUpperCase(),
-                                fontWeight: FontWeight.w500,color: Colors.white,),
+                            label: CustomText(
+                              item.vegType?.toUpperCase(),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
                             backgroundColor: item.vegType == "veg"
                                 ? Colors.green
                                 : Colors.red,
@@ -274,10 +295,10 @@ class FoodDetailsViewScreen extends StatelessWidget {
                                 margin: EdgeInsets.only(top: SizeConfig.size10),
                                 // padding: EdgeInsets.all(SizeConfig.size15),
                                 decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(13),
-                                    border: Border.all(color:AppColors.whiteE5,width: 0.5 ),
-
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(13),
+                                  border: Border.all(
+                                      color: AppColors.whiteE5, width: 0.5),
                                 ),
 
                                 child: ListTile(
@@ -369,14 +390,12 @@ class FoodDetailsViewScreen extends StatelessWidget {
               if (business != null) ...[
                 // ---- BUSINESS INFO ----
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     canGoogleMapOpen(
                         latitude:
-                        business.businessLocation?.lat?.toDouble() ??
-                            0.0,
+                            business.businessLocation?.lat?.toDouble() ?? 0.0,
                         longitude:
-                        business.businessLocation?.lon?.toDouble() ??
-                            0.0);
+                            business.businessLocation?.lon?.toDouble() ?? 0.0);
                   },
                   child: Container(
                     width: Get.width,
@@ -387,7 +406,8 @@ class FoodDetailsViewScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(13),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.secondaryTextColor.withOpacity(0.1),
+                            color:
+                                AppColors.secondaryTextColor.withOpacity(0.1),
                             spreadRadius: 0.5,
                             blurRadius: 1,
                             offset: Offset(0, 1),
@@ -402,11 +422,16 @@ class FoodDetailsViewScreen extends StatelessWidget {
                             CustomText("Business Location",
                                 fontSize: SizeConfig.size18,
                                 fontWeight: FontWeight.bold),
-                            Icon(Icons.directions,color: AppColors.primaryColor,),
-
+                            Icon(
+                              Icons.directions,
+                              color: AppColors.primaryColor,
+                            ),
                           ],
                         ),
-                        Divider(color: AppColors.secondaryTextColor,thickness: 0.5,),
+                        Divider(
+                          color: AppColors.secondaryTextColor,
+                          thickness: 0.5,
+                        ),
                         SizedBox(height: SizeConfig.size8),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

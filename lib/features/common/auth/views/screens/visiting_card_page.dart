@@ -30,7 +30,6 @@ class VisitingCard extends StatelessWidget {
               return Container(
                 width: cardWidth,
                 margin: const EdgeInsets.all(2),
-                // 👇 height removed, wraps content
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -47,7 +46,7 @@ class VisitingCard extends StatelessWidget {
                 ),
                 padding: EdgeInsets.all(baseFont * 0.6),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // 👈 makes card height fit content
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     /// Top Row (Profile + Name + Right Box)
                     Row(

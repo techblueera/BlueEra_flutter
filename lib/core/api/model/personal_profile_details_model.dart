@@ -78,9 +78,9 @@ class User {
       this.introVideo,
       this.objective,
       this.skills,
-    this.projects,
-    this.art,
-    this.experiences,
+      this.projects,
+      this.art,
+      this.experiences,
       this.location,});
 
   User.fromJson(dynamic json) {

@@ -121,14 +121,15 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
               userId: widget.userId,
               type: widget.type,
               name: widget.name,
-              contactNo: widget.contactNo
+              contactNo: widget.contactNo,
           )
               : getChatTitleAppBar(
               context,
-              userId: widget.userId,
+              userId: widget.businessId,
+              // userId: widget.userId,
               type: widget.type,
               name: widget.name,
-              contactNo: widget.contactNo,
+              contactNo: widget.contactNo,businessId: widget.businessId,
             profileImage: widget.profileImage, conversationId: widget.conversationId,
           ),
 

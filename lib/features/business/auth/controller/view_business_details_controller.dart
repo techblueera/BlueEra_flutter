@@ -114,13 +114,13 @@ class ViewBusinessDetailsController extends GetxController {
   final controllerVisit = Get.put(VisitProfileController());
   final isLoading = false.obs;
 
-  loadInitData({required String businessID}) async {
+  loadInitData({required String visitBusinessId}) async {
     try {
       isLoading.value = true;
 
       await Future.wait([
-        viewBusinessProfileById(businessID),
-        fetchProducts(businessID: businessID),
+        viewBusinessProfileById(visitBusinessId),
+        fetchProducts(visitBusinessId: visitBusinessId),
         // getBusinessRatingsSummary(businessID),
         // getBusinessDetailedRatings(businessID)
       ]);
@@ -219,7 +219,10 @@ class ViewBusinessDetailsController extends GetxController {
                 businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
             businessId: businessProfileDetails!.data!.id!,
             loginBusinessUserId: businessProfileDetails!.data!.userId!,
-            userNameAt: "");
+            userNameAt: "",
+            businessAddress:
+             businessProfileDetails?.data?.address ?? '',
+        );
 
         await getUserLoginData();
 
@@ -584,12 +587,12 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Fetch products from API
   final RxList<GetProductData> products = <GetProductData>[].obs;
-  Future<void> fetchProducts({required String businessID}) async {
+  Future<void> fetchProducts({required String visitBusinessId}) async {
     try {
       products.clear();
       errorMessage.value = '';
       final responseModel =
-          await BusinessProfileRepo().getProducts(businessId: businessID);
+          await BusinessProfileRepo().getProducts(businessId: visitBusinessId);
       final getOwnProductModel = GetProductModel.fromJson(responseModel.response!.data);
 
       products.addAll(getOwnProductModel.data);

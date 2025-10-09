@@ -50,6 +50,7 @@ class AddProductViaAiRequest {
 class ProductListing {
   final List<String> image;
   final String name;
+  final String id;
   // final Map<String, String>? selectedVariants;
   final Map<String, dynamic>? selectedVariants;
   final String? price;
@@ -59,6 +60,7 @@ class ProductListing {
   ProductListing({
     required this.image,
     required this.name,
+    required this.id,
     this.selectedVariants,
     this.price,
     this.mrp,
@@ -751,7 +753,8 @@ class ProductController extends GetxController{
         ? Map<String, dynamic>.from(productListing.selectedVariants!)
         : null;
 
-    final newProductListing = ProductListing(
+    final newProductListing = ProductListing(id: productListing.id,
+
       image: List<String>.from(productListing.image),
       name: productListing.name,
       selectedVariants: copiedVariants,

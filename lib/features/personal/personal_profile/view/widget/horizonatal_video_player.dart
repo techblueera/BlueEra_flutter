@@ -15,9 +15,12 @@ class HorizontalVideoPlayer extends StatefulWidget {
 class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
   final PageController _pageController = PageController(viewportFraction: 0.9);
 
+  // final List<String> videoUrls = [
+  //   'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+  //   'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+  // ];
   final List<String> videoUrls = [
-    'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-    'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+    'assets/video/earn_with_blue_era_video.mp4'
   ];
 
   VideoPlayerController? _controller;
@@ -42,7 +45,8 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
       _controller = null;
     }
 
-    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    final controller = VideoPlayerController.asset(url);
+    // final controller = VideoPlayerController.networkUrl(Uri.parse(url));
     await controller.initialize();
     controller.setLooping(true);
 
@@ -94,8 +98,9 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
   Widget build(BuildContext context) {
     final controller = _controller;
 
-    return SizedBox(
-      height: SizeConfig.size200,
+    return Container(
+      height: SizeConfig.size220,
+      width: SizeConfig.screenWidth,
       child: PageView.builder(
         controller: _pageController,
         scrollDirection: Axis.horizontal,
@@ -107,17 +112,17 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
         itemBuilder: (context, index) {
           final isCurrent = index == _currentPage;
           return Padding(
-            padding: EdgeInsets.only(right: 10.0),
+            // padding: EdgeInsets.only(right: 10.0),
+            padding: EdgeInsets.only(right: 0.0),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Stack(
+              borderRadius: BorderRadius.circular(10),
+              child:  Stack(
                 alignment: Alignment.center,
                 children: [
                   if (isCurrent && controller != null && controller.value.isInitialized)
                     SizedBox(
-                      height: SizeConfig.size200,
-                      width: SizeConfig.screenWidth,
-                      // aspectRatio: controller.value.aspectRatio,
+                      width: controller.value.size.width,
+                      height: controller.value.size.height,
                       child: VideoPlayer(controller),
                     )
                   else
@@ -144,20 +149,21 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
                                 ? Icons.pause
                                 : Icons.play_arrow,
                             color: Colors.white,
-                            size: 40,
+                            size: 36,
                           ),
                         ),
                       ),
                     ),
 
-                    // Previous Video
+                  // Previous Video
+
+                  if(videoUrls.length > 1)
                     Positioned(
                       left: 8,
-                      top: 0,
-                      bottom: 0,
                       child: GestureDetector(
                         onTap: _onPreviousVideo,
                         child: ClipRRect(
+                          borderRadius: BorderRadius.circular(30.0),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                             child: Container(
@@ -177,31 +183,30 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
                       ),
                     ),
 
-                  Positioned(
-                    right: 8,
-                    top: 0,
-                    bottom: 0,
-                    child: GestureDetector(
-                      onTap: _onNextVideo,
-                      child: ClipRRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.black.withValues(alpha: 0.55),
-                              shape: BoxShape.circle,
-                            ),
-                            padding: const EdgeInsets.all(6),
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: AppColors.white,
-                              size: 20,
+                  if(videoUrls.length > 1)
+                    Positioned(
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: _onNextVideo,
+                        child: ClipRRect(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.black.withValues(alpha: 0.55),
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: Icon(
+                                Icons.chevron_right,
+                                color: AppColors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

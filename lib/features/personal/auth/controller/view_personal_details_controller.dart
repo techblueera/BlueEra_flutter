@@ -11,16 +11,23 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../repo/personal_profile_repo.dart';
 
+class _ProfileFieldStatus {
+  final String title;
+  final bool isCompleted;
+  _ProfileFieldStatus(this.title, this.isCompleted);
+}
+
 class ViewPersonalDetailsController extends GetxController {
+
   @override
   void onInit() {
-
     // getAllPostApi();
     // TODO: implement onInit
     super.onInit();
@@ -57,6 +64,12 @@ class ViewPersonalDetailsController extends GetxController {
   // RxList<Projects>? projectsList=<Projects>[].obs;
   RxString overView = ''.obs;
   RxBool isMyProfileShow = false.obs;
+  RxBool isChannelCreated = false.obs;
+
+  Rxn<AvailabilityModel> availabilityDetails = Rxn<AvailabilityModel>();
+
+  List<_ProfileFieldStatus> fields = [];
+  RxDouble myProfileCompletionPercent = 0.0.obs;
 
   Future<void> viewPersonalProfile() async {
     final personalController= Get.put(PersonalCreateProfileController());
@@ -76,6 +89,25 @@ class ViewPersonalDetailsController extends GetxController {
       final data = responseModel.response?.data;
       personalProfileDetails.value =
           PersonalProfileDetailsModel.fromJson(data);
+
+      ///SET MY PROFILE DATA
+      final user = personalProfileDetails.value.user;
+      if (user != null) {
+        fields = [
+          _ProfileFieldStatus('Profile video', user.introVideo?.isNotEmpty??false),
+          _ProfileFieldStatus('Bio', user.bio?.isNotEmpty??false),
+          _ProfileFieldStatus('Designation', user.designation?.isNotEmpty??false),
+          _ProfileFieldStatus('Phone number', user.contactNo?.isNotEmpty??false),
+          _ProfileFieldStatus('Organization', user.currentOrganisation?.isNotEmpty??false),
+          _ProfileFieldStatus('Email (Unverified)', false),
+        ];
+
+        final int totalFields = fields.length;
+        final int completedFields = fields.where((e) => e.isCompleted).length;
+        final double percent = totalFields > 0 ? completedFields / totalFields : 0.0;
+
+        myProfileCompletionPercent.value = percent;
+      }
 
       ///SET SOCIAL DATA LINK...
       setSocialLink(data);

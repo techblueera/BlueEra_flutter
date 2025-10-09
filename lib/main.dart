@@ -68,7 +68,7 @@ Future<void> main() async {
   ]);
 
   // Initialize workmanager for background tasks
-  await WorkmanagerUploadService.initialize();
+  // await WorkmanagerUploadService.initialize();
 
   /// Hive Database
   await Hive.initFlutter();
@@ -213,7 +213,8 @@ class _MyAppState extends State<MyApp> {
       // key: NavigatorService.navigatorKey,
       title: AppStrings.appName,
       theme: AppThemes.light,
-      initialRoute: RouteHelper.getSplashScreenRoute(),
+      initialRoute: RouteHelper.getPermissionScreenRoute(),
+      // initialRoute: RouteHelper.getSplashScreenRoute(),
       onGenerateRoute: RouteHelper.generateRoute,
       navigatorObservers: [RouteHelper.routeObserver],
       debugShowCheckedModeBanner: false,

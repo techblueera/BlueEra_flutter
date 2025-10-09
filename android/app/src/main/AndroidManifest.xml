@@ -1,17 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="ai.bluecs.app">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!--<uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />-->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-<!--    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission
@@ -32,25 +31,12 @@
 
     <application
         android:networkSecurityConfig="@xml/network_security_config"
-        android:allowBackup="false"
+        android:allowBackup="true"
         android:enableOnBackInvokedCallback="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_adaptive_fore"
         android:label="BlueEra"
+        tools:replace="android:label"
         android:largeHeap="true">
-
-      <!--  android:requestLegacyExternalStorage="true">-->
-
-<!--        &lt;!&ndash; ✅ Add WorkManager services/receivers here &ndash;&gt;-->
-<!--        <receiver-->
-<!--            android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"-->
-<!--            android:enabled="@bool/enable_system_alarm_service_default"-->
-<!--            android:exported="false" />-->
-
-<!--        <receiver-->
-<!--            android:name="androidx.work.impl.background.systemjob.SystemJobService"-->
-<!--            android:enabled="@bool/enable_system_job_service_default"-->
-<!--            android:exported="true"-->
-<!--            android:permission="android.permission.BIND_JOB_SERVICE" />-->
 
         <!-- ✅ OneSignal Service -->
         <service
@@ -69,7 +55,7 @@
 
         <meta-data
             android:name="com.onesignal.NotificationLargeIcon"
-            android:resource="@mipmap/ic_launcher" />
+            android:resource="@mipmap/ic_launcher_adaptive_fore" />
 
         <!-- Google Maps API Key -->
         <meta-data
@@ -92,61 +78,10 @@
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
 
-            <!-- Deep link intent-filters -->
-<!--            <intent-filter android:autoVerify="true">-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
-<!--                <data-->
-<!--                    android:scheme="https"-->
-<!--                    android:host="blueera.ai" />-->
-<!--                <data android:scheme="https" />-->
-<!--            </intent-filter>-->
 
             <meta-data
                 android:name="flutter_deeplinking_enabled"
                 android:value="false" />
-<!--            https://api.blueera.ai/api/post-service/app/post/-->
-<!--            <intent-filter android:autoVerify="true">-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
-<!--                <data-->
-<!--                    android:scheme="https"-->
-<!--                    android:host="blueera.ai"-->
-<!--                    android:pathPrefix="/api/post-service/app/post/" />-->
-<!--            </intent-filter>-->
-
-            <!-- Friendly landing path with backend fallback to app/store -->
-<!--            <intent-filter android:autoVerify="true">-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
-<!--                <data-->
-<!--                    android:scheme="https"-->
-<!--                    android:host="blueera.ai"-->
-<!--                    android:pathPrefix="/app/post/" />-->
-<!--            </intent-filter>-->
-
-<!--            <intent-filter android:autoVerify="true">-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
-<!--                <data-->
-<!--                    android:scheme="https"-->
-<!--                    android:host="prodapi.blueera.ai"-->
-<!--                    android:pathPrefix="/app/BlueEraReferLink" />-->
-<!--            </intent-filter>-->
-
-<!--            <intent-filter android:autoVerify="true">-->
-<!--                <action android:name="android.intent.action.VIEW" />-->
-<!--                <category android:name="android.intent.category.DEFAULT" />-->
-<!--                <category android:name="android.intent.category.BROWSABLE" />-->
-<!--                <data-->
-<!--                    android:scheme="https"-->
-<!--                    android:host="blueera.ai"-->
-<!--                    android:pathPrefix="/" />-->
-<!--            </intent-filter>-->
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

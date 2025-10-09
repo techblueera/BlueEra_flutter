@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,9 +43,57 @@ class VisitingCardHelper {
     }
   }
 
+  /// Builds the card off-screen, captures it, then shares the PNG.
+  static Future<void> buildAndShareProductCard(
+      BuildContext context,
+      OwnProductData ownProductData,
+      {required int index}
+      ) async {
+    GlobalKey cardKey = GlobalKey();
+
+    final bool showFirstDiwaliOfferCard = Random().nextBool();
+    print('showFirstDiwaliOfferCard-- $showFirstDiwaliOfferCard');
+
+    final Widget selectedCard = showFirstDiwaliOfferCard
+        ? DiwaliOfferCardScreen(
+      cardKey: cardKey,
+      ownProductData: ownProductData,
+      index: index,
+    )
+        : DiwaliOfferSecondCardScreen(
+      cardKey: cardKey,
+      ownProductData: ownProductData,
+      index: index,
+    );
+
+
+    // 1. Create an overlay that is **not** visible
+    final overlay = OverlayEntry(
+      builder: (_) => Transform.translate(
+        offset: const Offset(0, -9999), // move completely off-screen
+        child: selectedCard,
+      ),
+    );
+
+    Overlay.of(context).insert(overlay);
+
+    // Wait until the frame is actually painted
+    await WidgetsBinding.instance.endOfFrame;
+
+    // One extra pump to be safe on slow devices
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    try {
+      await VisitingCardHelper().shareVisitingCard(cardKey, shareProfileForStore: true);
+    } finally {
+      overlay.remove();
+    }
+  }
+
+
   bool _isSharing = false;
 
-  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true}) async {
+  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, shareProfileForStore = false}) async {
     print('sharing');
     if (_isSharing) return;
 
@@ -63,9 +114,12 @@ class VisitingCardHelper {
       await file.writeAsBytes(pngBytes);
 
       final String message;
-      if (shareProfile) {
+      if (shareProfile && !shareProfileForStore) {
         final link = profileDeepLink(userId: userId);
         message = "See my profile on BlueEra:\n$link\n";
+      }else if(shareProfileForStore){
+        final link = profileDeepLink(userId: userId);
+        message = "Link to visit my store at BlueEra app:\n$link\n";
       } else {
         message = """
 Download our app now:

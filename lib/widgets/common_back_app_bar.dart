@@ -11,6 +11,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_settings_screen.dart';
@@ -482,10 +483,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: IconButton(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
                 onPressed: () async {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ProfileSettingsScreen()));
+                  // Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         builder: (context) => ProfileSettingsScreen()));
+
+                  Get.to(()=> ProfileSettingsNewScreen());
 
                   /* await showCommonDialog(
                           context: context,

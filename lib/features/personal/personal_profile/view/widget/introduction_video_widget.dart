@@ -46,14 +46,14 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
         padding: EdgeInsets.all(SizeConfig.size16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(10),
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Colors.black12,
+          //     blurRadius: 6,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

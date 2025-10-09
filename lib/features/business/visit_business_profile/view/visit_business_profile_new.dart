@@ -68,7 +68,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
       setState(() {}); // Ensure your VisitPersonalProfileTabs updates
     });
     visitProfileController = Get.put(VisitProfileController());
-    controller.loadInitData(businessID: widget.businessId);
+    controller.loadInitData(visitBusinessId: widget.businessId);
     // controller.getAllProductsApi({ApiKeys.limit: 0});
   }
 

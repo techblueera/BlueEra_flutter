@@ -17,7 +17,6 @@ class HomeFeedRepo extends BaseService {
   }
 ///REPOST MESSAGE/POLL POST.....
   Future<ResponseModel> postRepostRepo({required String postID}) async {
-logs("REQ POST VIDEO ${{ApiKeys.originalPostId: postID}}");
     final response = await ApiBaseHelper().postHTTP(
       postRepost,
       params: {ApiKeys.originalPostId: postID},

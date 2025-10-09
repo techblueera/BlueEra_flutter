@@ -39,9 +39,9 @@ class StoreRepo extends BaseService {
     String? url;
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
       url =
-          "$homePageProduct?${ApiKeys.latitude}=$lat&${ApiKeys.longitude}=$long&${ApiKeys.maxDistance}=$kmRadius100";
+          "$homePageProduct?${ApiKeys.latitude}=$lat&${ApiKeys.longitude}=$long&${ApiKeys.maxDistance}=$kmRadius1000";
     } else {
-      url = "$homePageProduct?${ApiKeys.maxDistance}=$kmRadius100";
+      url = "$homePageProduct?${ApiKeys.maxDistance}=$kmRadius1000";
     }
     final response = await ApiBaseHelper().getHTTP(
       url,

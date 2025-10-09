@@ -55,6 +55,7 @@ import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
@@ -78,6 +79,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_trans
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_screen.dart';
 import 'package:BlueEra/features/personal/resume/create_resume_screen.dart';
 import 'package:BlueEra/features/personal/resume/sections/resume_templates_screen.dart';
+import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import '../../features/chat/contacts/view/contact_list_page.dart';
@@ -112,6 +114,7 @@ class RouteHelper {
   static String getHomeScreenRoute() => RouteConstant.HomeScreen;
 
   static String getSplashScreenRoute() => RouteConstant.SplashScreen;
+  static String getPermissionScreenRoute() => RouteConstant.PermissionScreen;
 
   static String getAudioCallScreenRoute() => RouteConstant.AudioCallScreen;
 
@@ -318,6 +321,11 @@ class RouteHelper {
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case RouteConstant.PermissionScreen:
+        return MaterialPageRoute(
+          builder: (_) => PermissionGate(),
+          settings: RouteSettings(name: RouteHelper.getPermissionScreenRoute()),
+        );
       case RouteConstant.SplashScreen:
         return MaterialPageRoute(
           builder: (_) => SplashScreen(),
@@ -663,14 +671,14 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => PhotoPostReviewScreen(postVia: postVia),
         );
-      case RouteConstant.videoPlayerScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
-        final videoType = args[ApiKeys.videoType] as VideoType;
-        return MaterialPageRoute(
-          builder: (_) =>
-              VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
-        );
+      // case RouteConstant.videoPlayerScreen:
+      //   final args = settings.arguments as Map<String, dynamic>;
+      //   final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
+      //   final videoType = args[ApiKeys.videoType] as VideoType;
+      //   return MaterialPageRoute(
+      //     builder: (_) =>
+      //         VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
+      //   );
       case RouteConstant.journeyPlanningScreen:
         return MaterialPageRoute(
           builder: (_) => JourneyPlanningScreen(),
@@ -744,9 +752,13 @@ class RouteHelper {
         );
       case RouteConstant.SetAvailabilityScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String id = args[ApiKeys.id] as String;
+        final String channelId = args[ApiKeys.channelId] as String;
+        final AvailabilityModel? availabilityBookingData = args[ApiKeys.availabilityBookingData] as AvailabilityModel?;
         return MaterialPageRoute(
-          builder: (_) => SetAvailabilityScreen(id: id),
+          builder: (_) => SetAvailabilityScreen(
+              id: channelId,
+              availabilityBookingData: availabilityBookingData
+          ),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.AppointmentBookingScreen:

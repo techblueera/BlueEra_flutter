@@ -20,7 +20,6 @@ import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -278,15 +277,18 @@ class _StoreScreenState extends State<StoreScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: SizeConfig.size15),
+          // SizedBox(height: SizeConfig.size15),
           Obx(() {
             return SizedBox(
-              height: 285,
+              height: 310,
               child: controller.storeProductDataList.isNotEmpty
                   ? ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding:
-                          EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+                          EdgeInsets.symmetric(
+                              horizontal: SizeConfig.paddingM,
+                              vertical: SizeConfig.paddingM
+                          ),
                       itemCount: controller.storeProductDataList.length,
                       itemBuilder: (context, index) {
                         return ProductCardBusiness(
@@ -298,10 +300,16 @@ class _StoreScreenState extends State<StoreScreen> {
                         );
                       },
                     )
-                  : Center(child: CustomText("No $tagName found yet")),
+                  : Center(child: Padding(
+                    padding:  EdgeInsets.symmetric(
+                        horizontal: SizeConfig.paddingM,
+                        vertical: SizeConfig.paddingM
+                    ),
+                    child: CustomText("No $tagName found yet"),
+                  )),
             );
           }),
-          SizedBox(height: SizeConfig.size20),
+          // SizedBox(height: SizeConfig.size20),
         ],
       );
     return SizedBox.shrink();
@@ -350,7 +358,6 @@ class _StoreScreenState extends State<StoreScreen> {
   }
 
   Widget _buildFoodServiceSection({String? categoryName, String? tagName}) {
-    final chatViewController = Get.find<ChatViewController>();
     if (controller.foodList.isNotEmpty)
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -10,7 +10,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
- import 'package:BlueEra/features/business/visiting_card/view/widget/business_details_bottom_sheet.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_details_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/owner_details_bottom_sheet.dart';
@@ -26,7 +26,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
-import 'package:croppy/croppy.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -59,467 +58,474 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     final theme = Theme.of(context);
     return Column(
       children: [
-
         CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          child: Column(
-            children: [
-              ///COMPANY PROFILE VIEW ....
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(
-                    width: 8,
-                  ),
-
-                  ///UPLOAD PROFILE....
-                  CommonProfileImage(
-                    imagePath: viewBusinessDetailsController.imagePath?.value ?? "",
-                    onImageUpdate: (image) async {
-                      viewBusinessDetailsController.imagePath?.value = image;
-                      dioObj.MultipartFile? imageByPart;
-                      // if (viewBusinessDetailsController.isImageUpdated.value) {
-                      if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ??
-                          false) {
-                        String fileName = viewBusinessDetailsController
-                            .imagePath?.value
-                            .split('/')
-                            .last ??
-                            "";
-                        imageByPart = await dioObj.MultipartFile.fromFile(
-                            viewBusinessDetailsController.imagePath?.value ?? "",
-                            filename: fileName);
-                      }
-                      // }
-                      dynamic reqData = {
-                        ApiKeys.businessId: businessId,
-                        ApiKeys.logo_image: imageByPart,
-                      };
-
-                      await Get.find<ViewBusinessDetailsController>()
-                          .updateBusinessDetails(reqData);
-                    },
-                    dialogTitle: 'Upload Business Logo',
-                  ),
-                  SizedBox(width: SizeConfig.size10),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                          top: SizeConfig.size10, left: SizeConfig.size8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: CustomText(
-                                  "${details?.businessName ?? ''}",
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 24,
-                                  color: AppColors.mainTextColor,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: SizeConfig.size8,
-                              ),
-
-                              InkWell(
-                                  onTap: () {
-                                    // navigatePushTo(
-                                    //     context,
-                                    //     BusinessDetailsEditPageOne(
-                                    //         prevBusinessDetails: details
-                                    //     ));
-
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (context) => BusinessDetailsBottomSheet(
-                                        prevBusinessDetails: details,
-                                      ),
-                                    );
-
-                                  },
-                                  child: LocalAssets(
-                                    height: 18,
-                                    imagePath: AppIconAssets.pen_line,
-                                    imgColor: AppColors.primaryColor,
-                                  ))
-
-                            ],
-                          ),
-                          CustomText(
-                            (details?.categoryDetails?.name?.isNotEmpty ?? false)
-                                ? details?.categoryDetails?.name ?? 'Other'
-                                : (details?.subCategoryDetails?.name?.isNotEmpty ??
-                                false)
-                                ? details?.subCategoryDetails?.name ?? ''
-                                : (details?.natureOfBusiness ?? 'OTHERS'),
-                            fontWeight: FontWeight.w400,
-                            fontSize: SizeConfig.large,
-                            color: AppColors.mainTextColor,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          if(details?.ownerDetails?.isNotEmpty??false)
-                            Padding(
-                              padding: EdgeInsets.only(top: SizeConfig.size8),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    CustomText(
-                                      details?.ownerDetails?[0].name,
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.mainTextColor,
-                                    ),
-                                    SizedBox(width: SizeConfig.size4),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: SizeConfig.size8,
-                                        vertical: SizeConfig.size2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                          color: AppColors.appBackgroundColor,
-                                          borderRadius: BorderRadius.circular(100.0),
-                                          border: Border.all(
-                                              color: AppColors.secondaryTextColor,
-                                              width: 0.5
-                                          )
-                                      ),
-                                      child: CustomText(
-                                        'Owner',
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: SizeConfig.extraSmall,
-                                        color: AppColors.secondaryTextColor,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: SizeConfig.size8,
-                                    ),
-                                    InkWell(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            backgroundColor: Colors.transparent,
-                                            builder: (context) => OwnerDetailsBottomSheet(
-                                              prevBusinessDetails: details, // Pass existing params
-                                              isFromCreateUser: false,
-                                            ),
-                                          );
-
-                                        },
-                                        child: LocalAssets(
-                                          height: 18,
-                                          imagePath: AppIconAssets.pen_line,
-                                          imgColor: AppColors.primaryColor,
-                                        ))
-                                  ],
-                                ),
-                              ),
-                            )
-
-
-                          //   (details?.address == null || details?.address == '')
-                          //     ? SizedBox()
-                          //     : const SizedBox(
-                          //   height: 4,
-                          // ),
-
-                          // Row(
-                          //   children: [
-                          //     (details?.address == null || details?.address == '')
-                          //         ? SizedBox()
-                          //         : SvgPicture.asset(
-                          //             height: 28,
-                          //             width: 28,
-                          //             "assets/svg/profile_location.svg",
-                          //           ),
-                          //     const SizedBox(
-                          //       width: 4,
-                          //     ),
-                          //     Expanded(
-                          //       child: CustomText(
-                          //         "${details?.address ?? ''}",
-                          //         fontSize: SizeConfig.size14,
-                          //         maxLines: 2,
-                          //         overflow: TextOverflow.ellipsis,
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
-                          // (details?.address == null || details?.address == '')
-                          //     ? SizedBox()
-                          //     : SizedBox(
-                          //         height: SizeConfig.size10,
-                          //       ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: SizeConfig.size10,
-              ),
-
-              (details?.businessIsVerified ?? false)
-                  ? Container(
-                padding: EdgeInsets.only(
-                    top: SizeConfig.size10, left: SizeConfig.size10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.inversePrimary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check,
-                        color: theme.colorScheme.onTertiary,
-                      ),
-                      const SizedBox(
-                        width: 4,
-                      ),
-                      CustomText(
-                        "Your business is verified.",
-                        color: theme.colorScheme.onTertiary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: SizeConfig.medium,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ],
-                  ),
-                ),
-              )
-                  : Container(
-                padding: EdgeInsets.only(
-                    top: SizeConfig.size10, left: SizeConfig.size10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.tertiary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        height: 18,
-                        width: 18,
-                        "assets/svg/ac_verify_icon.svg",
-                      ),
-                      const SizedBox(
-                        width: 4,
-                      ),
-                      Expanded(
-                        child: CustomText(
-                          "Your business is not verified ",
-                          color: theme.colorScheme.onTertiary,
-                          fontWeight: FontWeight.w500,
-                          fontSize: SizeConfig.medium,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 1,
-                      ),
-                      Flexible(
-                        child: InkWell(
-                          onTap: () {
-                            // Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) =>
-                            //             BusinessVerificationScrn()));
-                            Get.to(() => VisitBusinessProfileNew(
-                              businessId: businessId, screenName:  AppConstants.feedScreen,));
-                          },
-                          child: CustomText(
-                            fontWeight: FontWeight.w900,
-                            "Verify Now",
-                            color: theme.colorScheme.onTertiary,
-                            fontStyle: FontStyle.italic,
-                            fontSize: SizeConfig.medium,
-                            decoration: TextDecoration.underline,
-                            decorationColor: theme.colorScheme.onTertiary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: SizeConfig.size18,
-              ),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                8), // Set your desired radius here
-                          ),
-                          side: BorderSide(color: theme.colorScheme.primary),
-                          backgroundColor: theme.colorScheme.primary),
-                      onPressed: null,
-                      // onPressed: _captureAndShareCard,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: SizeConfig.paddingXSmall,
-                            ),
-                            CustomText(
-                              "Your Orders",
-                              color: theme.colorScheme.surface,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: SizeConfig.size12,
-                  ),
-                  Expanded(
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                8), // Set your desired radius here
-                          ),
-                          side: BorderSide(
-                            color: theme.colorScheme.primary,
-                          )),
-                      onPressed: () {
-                        _showVisitingCardDialog(context);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: CustomText(
-                          AppLocalizations.of(context)!.visitingCard,
-                          color: theme.colorScheme.primary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 16,
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Container(
-                // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size10,
-                  horizontal: SizeConfig.size10,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  border: Border.all(
-                    color: AppColors.whiteE5, // #E5E5E5 border
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(SizeConfig.size10),
-                  boxShadow: [AppShadows.textFieldShadow],
-                  // color: Colors.white, // optional background
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Column(
+              children: [
+                ///COMPANY PROFILE VIEW ....
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          buildInfo("Rating",
-                              "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
-                          SizedBox(
-                            height: SizeConfig.size12,
-                          ),
-                          buildInfo(
-                              "Views", "${formatIndianNumber(details?.total_views ?? 0)}"),
-                        ],
-                      ),
-                    ),
-                    // SizedBox(
-                    //   width: 100,
-                    // ),
-                    Expanded(
-                      child: SizedBox(
-                        height: SizeConfig.size50,
-                        child: VerticalDivider(
-                          color: AppColors.coloGreyText,
-                          width: 12,
-                          thickness: 1.2,
-                        ),
-                      ),
-                    ),
-                    // SizedBox(
-                    //   width: SizeConfig.size24,
-                    // ),
-                    Flexible(
-                      flex: 2,
 
-                      child: Container(
-                        // color: Colors.red,
-                        width: Get.width,
-                        alignment: Alignment.center,
+
+                    ///UPLOAD PROFILE....
+                    CommonProfileImage(
+                      imagePath:
+                          viewBusinessDetailsController.imagePath?.value ?? "",
+                      onImageUpdate: (image) async {
+                        viewBusinessDetailsController.imagePath?.value = image;
+                        dioObj.MultipartFile? imageByPart;
+                        // if (viewBusinessDetailsController.isImageUpdated.value) {
+                        if (viewBusinessDetailsController
+                                .imagePath?.value.isNotEmpty ??
+                            false) {
+                          String fileName = viewBusinessDetailsController
+                                  .imagePath?.value
+                                  .split('/')
+                                  .last ??
+                              "";
+                          imageByPart = await dioObj.MultipartFile.fromFile(
+                              viewBusinessDetailsController.imagePath?.value ??
+                                  "",
+                              filename: fileName);
+                        }
+                        // }
+                        dynamic reqData = {
+                          ApiKeys.businessId: businessId,
+                          ApiKeys.logo_image: imageByPart,
+                        };
+
+                        await Get.find<ViewBusinessDetailsController>()
+                            .updateBusinessDetails(reqData);
+                      },
+                      dialogTitle: 'Upload Business Logo',
+                    ),
+                    SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            top: SizeConfig.size10, left: SizeConfig.size8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding:  EdgeInsets.symmetric(),
-                              child: buildInfo("Inquiries",formatIndianNumber(0) ),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: CustomText(
+                                    "${details?.businessName ?? ''}",
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: SizeConfig.size20,
+                                    color: AppColors.mainTextColor,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: SizeConfig.size8,
+                                ),
+                                InkWell(
+                                    onTap: () {
+                                      // navigatePushTo(
+                                      //     context,
+                                      //     BusinessDetailsEditPageOne(
+                                      //         prevBusinessDetails: details
+                                      //     ));
+
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (context) =>
+                                            BusinessDetailsBottomSheet(
+                                          prevBusinessDetails: details,
+                                        ),
+                                      );
+                                    },
+                                    child: LocalAssets(
+                                      height: 18,
+                                      imagePath: AppIconAssets.pen_line,
+                                      imgColor: AppColors.primaryColor,
+                                    ))
+                              ],
                             ),
-                            SizedBox(
-                              height: SizeConfig.size12,
+                            CustomText(
+                              (details?.categoryDetails?.name?.isNotEmpty ??
+                                      false)
+                                  ? details?.categoryDetails?.name ?? 'Other'
+                                  : (details?.subCategoryDetails?.name
+                                              ?.isNotEmpty ??
+                                          false)
+                                      ? details?.subCategoryDetails?.name ?? ''
+                                      : (details?.natureOfBusiness ?? 'OTHERS'),
+                              fontWeight: FontWeight.w400,
+                              fontSize: SizeConfig.large,
+                              color: AppColors.mainTextColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            InkWell(
-                                onTap: () {
-                                  Get.to(() => FollowersFollowingPage(
-                                    tabIndex: 1,
-                                    userID: details?.id ?? "",
-                                  ));
-                                },
-                                child: buildInfo("Followers",
-                                    "${formatIndianNumber(details?.total_followers ?? 0)}")),
+
+                            if (details?.ownerDetails?.isNotEmpty ?? false)
+                              Padding(
+                                padding: EdgeInsets.only(top: SizeConfig.size8),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      CustomText(
+                                        details?.ownerDetails?[0].name,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.mainTextColor,
+                                      ),
+                                      SizedBox(width: SizeConfig.size4),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size8,
+                                          vertical: SizeConfig.size2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                            color: AppColors.appBackgroundColor,
+                                            borderRadius:
+                                                BorderRadius.circular(100.0),
+                                            border: Border.all(
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                                width: 0.5)),
+                                        child: CustomText(
+                                          'Owner',
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: SizeConfig.extraSmall,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: SizeConfig.size8,
+                                      ),
+                                      InkWell(
+                                          onTap: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              isScrollControlled: true,
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              builder: (context) =>
+                                                  OwnerDetailsBottomSheet(
+                                                prevBusinessDetails: details,
+                                                // Pass existing params
+                                                isFromCreateUser: false,
+                                              ),
+                                            );
+                                          },
+                                          child: LocalAssets(
+                                            height: 18,
+                                            imagePath: AppIconAssets.pen_line,
+                                            imgColor: AppColors.primaryColor,
+                                          ))
+                                    ],
+                                  ),
+                                ),
+                              )
+
+                            //   (details?.address == null || details?.address == '')
+                            //     ? SizedBox()
+                            //     : const SizedBox(
+                            //   height: 4,
+                            // ),
+
+                            // Row(
+                            //   children: [
+                            //     (details?.address == null || details?.address == '')
+                            //         ? SizedBox()
+                            //         : SvgPicture.asset(
+                            //             height: 28,
+                            //             width: 28,
+                            //             "assets/svg/profile_location.svg",
+                            //           ),
+                            //     const SizedBox(
+                            //       width: 4,
+                            //     ),
+                            //     Expanded(
+                            //       child: CustomText(
+                            //         "${details?.address ?? ''}",
+                            //         fontSize: SizeConfig.size14,
+                            //         maxLines: 2,
+                            //         overflow: TextOverflow.ellipsis,
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
+                            // (details?.address == null || details?.address == '')
+                            //     ? SizedBox()
+                            //     : SizedBox(
+                            //         height: SizeConfig.size10,
+                            //       ),
                           ],
                         ),
                       ),
                     ),
-                    // SizedBox(
-                    //   width: SizeConfig.size20,
-                    // ),
+                  ],
+                ),
+                SizedBox(
+                  height: SizeConfig.size10,
+                ),
+
+                (details?.businessIsVerified ?? false)
+                    ? Container(
+                  width: Get.width,
+                        padding: EdgeInsets.only(
+                            top: SizeConfig.size10, left: SizeConfig.size10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.inversePrimary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.check,
+                                color: theme.colorScheme.onTertiary,
+                              ),
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              CustomText(
+                                "Your business is verified.",
+                                color: theme.colorScheme.onTertiary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: SizeConfig.medium,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : Padding(
+
+                        padding: EdgeInsets.only(
+                            top: SizeConfig.size10, left: SizeConfig.size10),
+                        child: Container(
+                          width: Get.width,
+
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.tertiary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            // crossAxisAlignment: CrossAxisAlignment.center,
+                            // mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SvgPicture.asset(
+                                height: 18,
+                                width: 18,
+                                "assets/svg/ac_verify_icon.svg",
+                              ),
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              Expanded(
+                                child: CustomText(
+                                  "Your business is not verified ",
+                                  color: theme.colorScheme.onTertiary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: SizeConfig.medium,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              SizedBox(
+                                width: 1,
+                              ),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () {
+                                    // Navigator.push(
+                                    //     context,
+                                    //     MaterialPageRoute(
+                                    //         builder: (context) =>
+                                    //             BusinessVerificationScrn()));
+                                    Get.to(() => VisitBusinessProfileNew(
+                                          businessId: businessId,
+                                          screenName: AppConstants.feedScreen,
+                                        ));
+                                  },
+                                  child: CustomText(
+                                    fontWeight: FontWeight.w900,
+                                    "Verify Now",
+                                    color: theme.colorScheme.onTertiary,
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: SizeConfig.medium,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor:
+                                        theme.colorScheme.onTertiary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                SizedBox(
+                  height: SizeConfig.size18,
+                ),
+
+                Row(
+                  children: [
                     Expanded(
-                      child: SizedBox(
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  8), // Set your desired radius here
+                            ),
+                            side: BorderSide(color: theme.colorScheme.primary),
+                            backgroundColor: theme.colorScheme.primary),
+                        onPressed: null,
+                        // onPressed: _captureAndShareCard,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: SizeConfig.paddingXSmall,
+                              ),
+                              CustomText(
+                                "Your Orders",
+                                color: theme.colorScheme.surface,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: SizeConfig.size12,
+                    ),
+                    Expanded(
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  8), // Set your desired radius here
+                            ),
+                            side: BorderSide(
+                              color: theme.colorScheme.primary,
+                            )),
+                        onPressed: () {
+                          _showVisitingCardDialog(context);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: CustomText(
+                            AppLocalizations.of(context)!.visitingCard,
+                            color: theme.colorScheme.primary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 16,
+                ),
+                SizedBox(height: SizeConfig.size12),
+                Container(
+                  // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size10,
+                    horizontal: SizeConfig.size10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    border: Border.all(
+                      color: AppColors.whiteE5, // #E5E5E5 border
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(SizeConfig.size10),
+                    boxShadow: [AppShadows.textFieldShadow],
+                    // color: Colors.white, // optional background
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            buildInfo("Rating",
+                                "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+                            SizedBox(
+                              height: SizeConfig.size12,
+                            ),
+                            buildInfo("Views",
+                                "${formatIndianNumber(details?.total_views ?? 0)}"),
+                          ],
+                        ),
+                      ),
+                      // SizedBox(
+                      //   width: 100,
+                      // ),
+                      Expanded(
+                        child: SizedBox(
+                          height: SizeConfig.size50,
+                          child: VerticalDivider(
+                            color: AppColors.coloGreyText,
+                            width: 12,
+                            thickness: 1.2,
+                          ),
+                        ),
+                      ),
+                      // SizedBox(
+                      //   width: SizeConfig.size24,
+                      // ),
+                      Flexible(
+                        flex: 2,
+                        child: Container(
+                          // color: Colors.red,
+                          width: Get.width,
+                          alignment: Alignment.center,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              buildInfo(
+                                  "Inquiries", formatIndianNumber(0)),
+                              SizedBox(
+                                height: SizeConfig.size12,
+                              ),
+                              InkWell(
+                                  onTap: () {
+                                    Get.to(() => FollowersFollowingPage(
+                                          tabIndex: 1,
+                                          userID: details?.id ?? "",
+                                        ));
+                                  },
+                                  child: buildInfo("Followers",
+                                      "${formatIndianNumber(details?.total_followers ?? 0)}")),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // SizedBox(
+                      //   width: SizeConfig.size20,
+                      // ),
+                      SizedBox(
                         height: SizeConfig.size50,
                         child: VerticalDivider(
                           color: AppColors.coloGreyText,
@@ -527,14 +533,10 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           thickness: 1.2,
                         ),
                       ),
-                    ),
-                    // SizedBox(
-                    //   width: SizeConfig.size20,
-                    // ),
-                    Expanded(
-                      flex: 2,
-
-                      child: Column(
+                      SizedBox(
+                        width: SizeConfig.size15,
+                      ),
+                      Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -555,20 +557,18 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           ),
                           SizedBox(height: SizeConfig.size10),
                         ],
-                      ),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: SizeConfig.size12),
-            ],
-          )
-        ),
+                SizedBox(height: SizeConfig.size12),
+              ],
+            )),
 
         SizedBox(
           height: SizeConfig.size10,
         ),
-        
+
         ///ABOUT YOUR BUSINESS...
         Obx(() {
           return CustomFormCard(
@@ -590,8 +590,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     (controller.isListingDescriptionEdit.value)
                         ? InkWell(
                             onTap: () {
-                              listingDescriptionController.text =
-                                  controller.businessDescription.value.toString();
+                              listingDescriptionController.text = controller
+                                  .businessDescription.value
+                                  .toString();
                               setState(() {
                                 controller.isListingDescriptionEdit.value =
                                     !controller.isListingDescriptionEdit.value;
@@ -600,9 +601,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             child: LocalAssets(
                               height: 16,
                               imagePath: AppIconAssets.pen_line,
-                            )
-            
-                       )
+                            ))
                         : Row(
                             children: [
                               CustomBtn(
@@ -610,7 +609,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                   width: 56,
                                   onTap: () {
                                     setState(() {
-                                      controller.isListingDescriptionEdit.value =
+                                      controller
+                                              .isListingDescriptionEdit.value =
                                           !controller
                                               .isListingDescriptionEdit.value;
                                     });
@@ -627,8 +627,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     if (listingDescriptionController
                                         .text.isNotEmpty) {
                                       setState(() {
-                                        controller
-                                                .isListingDescriptionEdit.value =
+                                        controller.isListingDescriptionEdit
+                                                .value =
                                             !controller
                                                 .isListingDescriptionEdit.value;
                                       });
@@ -665,12 +665,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ? Container(
                         decoration: BoxDecoration(
                             color: AppColors.white,
-                            border: Border.all(
-                              color: AppColors.whiteE5
-                            ),
+                            border: Border.all(color: AppColors.whiteE5),
                             borderRadius: BorderRadius.circular(10),
-                            boxShadow: [AppShadows.textFieldShadow]
-                        ),
+                            boxShadow: [AppShadows.textFieldShadow]),
                         width: double.infinity,
                         margin: EdgeInsets.only(top: 16),
                         padding:
@@ -728,21 +725,27 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 height: SizeConfig.size10,
               ),
               InkWell(
-                onTap: ()=>
-                    Get.toNamed(RouteHelper.getInventoryScreenRoute()),
+                onTap: () {
+                  // details?.livePhotos
+                  // controller.imgLocalL3.length
+                  if ((details?.livePhotos?.length == 3) ||
+                      controller.imgLocalL3.length == 3) {
+                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                  } else {
+                    commonSnackBar(
+                        message: "Upload 3 store picture at least...");
+                  }
+                },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   decoration: BoxDecoration(
                       boxShadow: [AppShadows.textFieldShadow],
                       color: AppColors.white,
-                      border: Border.all(
-                          color: AppColors.whiteE5
-                      ),
+                      border: Border.all(color: AppColors.primaryColor,width: 2),
                       borderRadius: BorderRadius.circular(10)),
                   padding: EdgeInsets.symmetric(
                       horizontal: SizeConfig.size10,
-                      vertical: SizeConfig.size10
-                  ),
+                      vertical: SizeConfig.size10),
                   child: Row(
                     children: [
                       Expanded(
@@ -752,7 +755,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           children: [
                             CustomText(
                               appLocalizations?.addYourProductServices,
-                              fontSize: SizeConfig.small,
+                              // fontSize: SizeConfig.small,
                               fontWeight: FontWeight.bold,
                               color: AppColors.mainTextColor,
                             ),
@@ -761,7 +764,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             ),
                             CustomText(
                               appLocalizations?.startSellingNow,
-                              fontSize: SizeConfig.small,
+                              // fontSize: SizeConfig.small,
                               fontWeight: FontWeight.bold,
                               color: AppColors.secondaryTextColor,
                             ),
@@ -804,32 +807,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.secondaryTextColor,
                     ),
-                    // (controller.imgUploadL2.isNotEmpty) ?
-                    // Row(
-                    //   children: [
-                    //     CustomBtn(
-                    //         height: 24,
-                    //         width: 56,
-                    //         onTap: () {
-                    //           setState(() {
-                    //             controller.imgUploadL2.clear();
-                    //           });
-                    //         }, title: "Cancel"),
-                    //     const SizedBox(
-                    //       width: 8,
-                    //     ),
-                    //     CustomBtn(
-                    //         height: 24,
-                    //         width: 56,
-                    //         bgColor: theme.colorScheme.primary,
-                    //         onTap: () {
-                    //         },
-                    //         title: "Save"),
-                    //   ],
-                    // ) :
-                    // InkWell(
-                    //     onTap: () {},
-                    //     child: SvgPicture.asset(AppIconAssets.profile_pen_tool))
                   ],
                 ),
                 Row(
@@ -843,7 +820,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ),
                   ],
                 ),
-
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
@@ -854,67 +830,62 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       ///API
                       (details?.livePhotos?.isNotEmpty ?? false)
                           ? Row(
-                        children: List<Widget>.generate(
-                            (details?.livePhotos?.length ?? 0), (apiIndex) {
-                          return _APIbuildImageContainer(
-                              details?.livePhotos?[apiIndex],
-                              apiIndex,
-                              false,
-                              apiIndex,
-                              theme,
-                              controller);
-                        }),
-                      )
+                              children: List<Widget>.generate(
+                                  (details?.livePhotos?.length ?? 0),
+                                  (apiIndex) {
+                                return _APIbuildImageContainer(
+                                    details?.livePhotos?[apiIndex],
+                                    apiIndex,
+                                    false,
+                                    apiIndex,
+                                    theme,
+                                    controller);
+                              }),
+                            )
                           : SizedBox(),
 
-                      // // ///UPLOADED
-                      // Row(
-                      //   children:
-                      //   List.generate(controller.imgUploadL2.length, (uploadIndex) {
-                      //     return _buildImageContainer(
-                      //         controller.imgUploadL2[uploadIndex], uploadIndex, false,controller);
-                      //   }),
-                      // ),
-                      //
                       ///LOCAL
                       Row(
-                        children: List<Widget>.generate(controller.imgLocalL3.length,
-                                (localIndex) {
-                              return _buildImageContainer(controller.imgLocalL3[localIndex],
-                                  localIndex, false, controller);
-                            }),
+                        children: List<Widget>.generate(
+                            controller.imgLocalL3.length, (localIndex) {
+                          return _buildImageContainer(
+                              controller.imgLocalL3[localIndex],
+                              localIndex,
+                              false,
+                              controller);
+                        }),
                       ),
 
                       ///EMPTY.....
                       (3 -
-                          (details?.livePhotos?.length ?? 0) -
-                          // controller.imgUploadL2.length -
-                          controller.imgLocalL3.length) +
-                          controller.imgDeleteL3.length >
-                          0
+                                      (details?.livePhotos?.length ?? 0) -
+                                      // controller.imgUploadL2.length -
+                                      controller.imgLocalL3.length) +
+                                  controller.imgDeleteL3.length >
+                              0
                           ? Row(
-                        children: List<Widget>.generate(
-                            (3 -
-                                (details?.livePhotos?.length ?? 0) -
-                                // controller.imgUploadL2.length -
-                                controller.imgLocalL3.length), (index) {
-                          return _buildImageContainer("", 0, false, controller);
-                        }),
-                      )
+                              children: List<Widget>.generate(
+                                  (3 -
+                                      (details?.livePhotos?.length ?? 0) -
+                                      // controller.imgUploadL2.length -
+                                      controller.imgLocalL3.length), (index) {
+                                return _buildImageContainer(
+                                    "", 0, false, controller);
+                              }),
+                            )
                           : SizedBox(),
                     ],
                   ),
                 ),
               ],
-            )
-        ),
+            )),
         SizedBox(
           height: SizeConfig.size10,
         ),
 
         /// business Location
         if ((details?.businessLocation?.lat != null &&
-            details?.businessLocation?.lat != 0) &&
+                details?.businessLocation?.lat != 0) &&
             (details?.businessLocation?.lon != null &&
                 details?.businessLocation?.lon != 0)) ...[
           // Row(
@@ -954,7 +925,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                         ))
                   ],
                 ),
-
                 Align(
                   alignment: Alignment.centerLeft,
                   child: CustomText(
@@ -970,7 +940,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 ),
                 BusinessLocationWidget(
                   latitude: (details?.businessLocation?.lat?.toDouble() ?? 0.0),
-                  longitude: (details?.businessLocation?.lon?.toDouble() ?? 0.0),
+                  longitude:
+                      (details?.businessLocation?.lon?.toDouble() ?? 0.0),
                   businessName: details?.businessName ?? "",
                   isTitleShow: false,
                   locationText: details?.address ?? "",
@@ -979,7 +950,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               ],
             ),
           )
-
         ],
 
         SizedBox(
@@ -1124,7 +1094,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         );
       },
     );
-
   }
 
   Widget _buildImageContainer(String? imagePath, int index,
@@ -1135,27 +1104,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           onTap: () async {
             if (imagePath == "") {
               final imgStr = await SelectProfilePictureDialog.pickFromCamera(
-                  context,
-                  cropAspectRatio: CropAspectRatio(width: 9, height: 16));
+                context,
+              );
               if (imgStr != null) {
                 saveBusinessImages(imgStr, controller.imgDeleteL3, controller);
               }
-
-              // _pickImage(index); // Pick an image if the slot is empty
-              // uploadFromGallery ? _pickImage(index) :
-              //
-              // String? imgStr = await SelectProfilePictureDialog.showLogoDialog(
-              //     context, "Upload store live image",
-              //     isOnlyCamera: true, isGallery: true, isCircleCrop: false);
-              // if (imgStr != null && imgStr.isNotEmpty) {
-              //   setState(() {
-              // viewBusinessDetailsController.imgUploadL2.add(imgStr);
-              // saveBusinessImages(
-              //     imgStr, controller.imgDeleteL3, controller);
-              //
-              //     // Send updated list to the parent widget
-              //   });
-              // }
             } else {
               navigatePushTo(
                 context,
@@ -1175,9 +1128,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 right: SizeConfig.size6, bottom: 8, left: 4, top: 4),
             decoration: BoxDecoration(
               color: AppColors.white,
-              border: Border.all(
-                color: AppColors.whiteE5
-              ),
+              border: Border.all(color: AppColors.whiteE5),
               boxShadow: [AppShadows.textFieldShadow],
               borderRadius: BorderRadius.circular(10),
               image: imagePath != null
@@ -1191,7 +1142,21 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
             ),
             child: imagePath == ""
                 ? Center(
-                    child: SvgPicture.asset(AppIconAssets.profile_camera_pic),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        LocalAssets(
+                            imagePath: AppIconAssets.profile_camera_pic),
+                        SizedBox(height: SizeConfig.size5,),
+                        CustomText(
+                          "Add Live \nStore Photo",
+                          textAlign: TextAlign.center,
+                          fontSize: SizeConfig.extraSmall,
+                          decoration: TextDecoration.underline,
+                        )
+                      ],
+                    ),
                   )
                 : null,
           ),
@@ -1280,9 +1245,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
             right: 18,
             child: Container(
               decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(50)
-              ),
+                  color: Colors.white, borderRadius: BorderRadius.circular(50)),
               child: GestureDetector(
                 onTap: () {
                   Map<String, dynamic> data = {ApiKeys.image_url: imagePath};
@@ -1310,17 +1273,16 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         return AlertDialog(
           insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
           shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
           backgroundColor: AppColors.white,
           contentPadding: EdgeInsets.zero,
           content: Container(
             margin: EdgeInsets.only(
-              left: SizeConfig.size16,
-              right: SizeConfig.size16,
-              bottom: SizeConfig.size16,
-              top: SizeConfig.size8
-            ),
-                // vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
+                left: SizeConfig.size16,
+                right: SizeConfig.size16,
+                bottom: SizeConfig.size16,
+                top: SizeConfig.size8),
+            // vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -1328,20 +1290,16 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 Align(
                     alignment: Alignment.topRight,
                     child: InkWell(
-                       onTap: ()=> Get.back(),
+                      onTap: () => Get.back(),
                       child: Icon(
                         Icons.close,
                         color: AppColors.secondaryTextColor,
                       ),
-                    )
-                ),
-
+                    )),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    LocalAssets(
-                        imagePath: AppIconAssets.warningIcon
-                    ),
+                    LocalAssets(imagePath: AppIconAssets.warningIcon),
                     SizedBox(width: SizeConfig.size5),
                     CustomText(
                       "Update Location?",
@@ -1366,7 +1324,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     Expanded(
                       child: CustomBtn(
                         height: SizeConfig.size45,
-                        onTap: ()=> Get.back(),
+                        onTap: () => Get.back(),
                         title: "Cancel",
                         textColor: AppColors.secondaryTextColor,
                         bgColor: AppColors.white,
@@ -1381,12 +1339,12 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                         onTap: () {
                           Get.back();
                           showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (context) =>  BusinessLocationBottomSheet(
-                                  prevBusinessDetails: details),
-                            );
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => BusinessLocationBottomSheet(
+                                prevBusinessDetails: details),
+                          );
                         },
                         title: "Confirm",
                         isValidate: true,
@@ -1403,9 +1361,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
       },
     );
   }
-
 }
-
 
 class VisitingCardPreview extends StatelessWidget {
   final GlobalKey cardKey = GlobalKey();
@@ -1666,5 +1622,4 @@ class VisitingCardPreview extends StatelessWidget {
       ],
     );
   }
-
 }

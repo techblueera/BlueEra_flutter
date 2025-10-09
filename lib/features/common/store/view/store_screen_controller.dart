@@ -134,6 +134,7 @@ class StoreScreenController extends GetxController {
             GetProductModel.fromJson(response.response!.data);
 
         storeProductDataList.value = getOwnProductModel.data;
+        log('storeProductDataList length-- ${storeProductDataList.length}');
         getAllStoreProductResponse.value = ApiResponse.complete(response);
       } else {
         getAllStoreProductResponse.value = ApiResponse.error('error');
@@ -141,7 +142,7 @@ class StoreScreenController extends GetxController {
         print("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      print("stack: $e");
 
       getAllStoreProductResponse.value = ApiResponse.error('error');
     }

@@ -5,12 +5,10 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 class BookingEnquiriesRepo extends BaseService{
 
   /// Get Video Booking Availability...
-  Future<ResponseModel> getVideoBookingAvailability({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      products,
-      params: params,
+  Future<ResponseModel> getBookingAvailability({required String channelId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      bookingAvailability(channelId),
       showProgress: false,
-      isMultipart: true,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -18,10 +16,9 @@ class BookingEnquiriesRepo extends BaseService{
   }
 
   /// Add Video Booking Availability...
-  Future<ResponseModel> addVideoBookingAvailability({required String channelId, required Map<String, dynamic> params}) async {
-    String availability = bookingAvailability(channelId);
+  Future<ResponseModel> addUpdateBookingAvailability({required String channelId, required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().putHTTP(
-      availability,
+      bookingAvailability(channelId),
       params: params,
       showProgress: false,
       onError: (error) {},
@@ -30,16 +27,5 @@ class BookingEnquiriesRepo extends BaseService{
     return response;
   }
 
-  /// Update Video Booking Availability ...
-  Future<ResponseModel> updateVideoBookingAvailability({required String channelId}) async {
-    String availability = bookingAvailability(channelId);
-    final response = await ApiBaseHelper().putHTTP(
-      availability,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
 
 }
