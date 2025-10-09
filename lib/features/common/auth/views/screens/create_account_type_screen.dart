@@ -24,6 +24,7 @@ import 'package:get/get_core/src/get_main.dart';
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../home/widgets/diwali_card.dart';
 import '../../../home/widgets/diwali_second_card.dart';
+import '../../../home/widgets/diwali_third_card.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   @override
@@ -242,9 +243,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     radius: SizeConfig.size8,
                   ),
                   SizedBox(height: kToolbarHeight),
+                  //
                   // PositiveCustomBtn(
                   //   onTap: (){
-                  //     Navigator.push(context, MaterialPageRoute(builder: (context)=>DiwaliOfferSecondCardScreen()));
+                  //     Navigator.push(context, MaterialPageRoute(builder: (context)=>DiwaliOfferThirdCard()));
                   //   },
                   //   title: "Diwali Card",
                   //   radius: SizeConfig.size8,

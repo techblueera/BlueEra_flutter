@@ -112,4 +112,6 @@ static const Color chipTextColor = Color(0xFF303030);
   static const Color darkBrown = Color(0xff5A1900);
   static const Color redBorder = Color(0xffE64900);
   static const Color greyOut = Color(0xff686868);
+  static const Color orangeOut = Color(0xffFE7B2E);
+  static const Color purpleOut = Color(0xffC7017C);
 }
