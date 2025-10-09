@@ -6,8 +6,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_card.dart';
 import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_third_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -51,11 +51,11 @@ class VisitingCardHelper {
       ) async {
     GlobalKey cardKey = GlobalKey();
 
-    final bool showFirstDiwaliOfferCard = Random().nextBool();
-    print('showFirstDiwaliOfferCard-- $showFirstDiwaliOfferCard');
+    final bool showThirdDiwaliOfferCard = Random().nextBool();
+    print('showFirstDiwaliOfferCard-- $showThirdDiwaliOfferCard');
 
-    final Widget selectedCard = showFirstDiwaliOfferCard
-        ? DiwaliOfferCardScreen(
+    final Widget selectedCard = showThirdDiwaliOfferCard
+        ? DiwaliOfferThirdCard(
       cardKey: cardKey,
       ownProductData: ownProductData,
       index: index,

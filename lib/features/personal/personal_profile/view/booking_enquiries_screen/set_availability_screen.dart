@@ -578,7 +578,6 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
         fontWeight: FontWeight.w400,
         titleColor: AppColors.mainTextColor,
         textEditController: controller.instructionController,
-        onChange: _onSearchChanged,
         maxLength: 300,
         maxLine: 4,
         isCounterVisible: true,

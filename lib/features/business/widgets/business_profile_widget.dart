@@ -35,7 +35,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:lottie/lottie.dart';
+// import 'package:lottie/lottie.dart';
 import '../../../core/constants/shared_preference_utils.dart';
 import 'package:dio/dio.dart' as dioObj;
 import '../visit_business_profile/view/visit_business_profile_new.dart';

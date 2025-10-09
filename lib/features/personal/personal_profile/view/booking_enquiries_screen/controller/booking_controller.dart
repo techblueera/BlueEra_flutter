@@ -159,6 +159,7 @@ class BookingTabController extends GetxController {
    
     if (formKey.currentState?.validate() ?? false) {
 
+      log('currentAddress--> ${currentAddress.value}');
       if(selectedType.value != BookingType.online){
         if(currentAddress.isEmpty){
           Get.snackbar(
@@ -256,6 +257,9 @@ class BookingTabController extends GetxController {
     try {
       final availabilityRes = await BookingRepo().getUserAvailability(
         id: id,
+        queryParams: {
+          ApiKeys.type: 'user'
+        }
       );
 
       logs('datass:$availabilityRes');
@@ -273,9 +277,9 @@ class BookingTabController extends GetxController {
         clearValues();
         return null;
       }
-    } catch (e) {
+    } catch (e, s) {
       getAvailabilityResponse = ApiResponse.error('error');
-      logs('initAvailabilityForEdit error: $e');
+      logs('stack trace error: $s');
       clearValues();
       return null;
     }
@@ -295,9 +299,9 @@ class BookingTabController extends GetxController {
     }
 
     // Prefill location, fee, duration
-    locationController.text = availabilityData?.location ?? '';
+    locationController.text = availabilityData?.location?.address ?? '';
     feeController.text = availabilityData?.fee?.toString() ?? '';
-    if ((availabilityData?.durationInMinutes ?? '').isNotEmpty) {
+    if ((availabilityData?.durationInMinutes ?? '0').toString().isNotEmpty) {
       final candidate = '${availabilityData?.durationInMinutes} Min';
       const allowed = ['15 Min', '30 Min', '60 Min'];
       selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
@@ -583,6 +587,9 @@ class BookingTabController extends GetxController {
       try {
         final availabilityRes = await BookingRepo().getUserAvailability(
           id: channelId,
+            queryParams: {
+              ApiKeys.type: 'channel'
+            }
         );
         if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
           try {
@@ -612,6 +619,9 @@ class BookingTabController extends GetxController {
        try {
         final availabilityRes = await BookingRepo().getUserAvailability(
           id: channelId,
+          queryParams: {
+              ApiKeys.type: 'channel'
+          }
         );
         if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
           try {
@@ -755,7 +765,7 @@ class BookingTabController extends GetxController {
       return [];
     }
 
-    final int slotMinutes = int.tryParse(details.durationInMinutes ?? '') ?? 60;
+    final int slotMinutes = details.durationInMinutes ?? 60;
     final List<String> slots = [];
 
     for (final sch in scheduleForDay) {

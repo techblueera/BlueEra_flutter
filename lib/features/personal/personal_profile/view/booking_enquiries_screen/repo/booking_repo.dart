@@ -162,9 +162,10 @@ Future<ResponseModel> getBookingByIds({String? bookingId}) async {
     return response;
   }
 
-  Future<ResponseModel> getUserAvailability({required String id}) async {
+  Future<ResponseModel> getUserAvailability({required String id, required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      setUserAvailability(id),
+      setAvailability(id),
+      params: queryParams,
       onError: (error) {},
       onSuccess: (res) {},
     );

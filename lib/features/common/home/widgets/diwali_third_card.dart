@@ -1,14 +1,18 @@
 import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class DiwaliOfferThirdCard extends StatelessWidget {
-
-  const DiwaliOfferThirdCard({super.key});
+  final GlobalKey cardKey;
+  final OwnProductData ownProductData;
+  final int index;
+  const DiwaliOfferThirdCard({super.key, required this.cardKey, required this.ownProductData, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +34,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Center(
           child: RepaintBoundary(
-
+            key: cardKey,
             child: Stack(
               clipBehavior: Clip.none, // Allows the '50% Off' badge to overflow
               alignment: Alignment.topCenter,
@@ -51,7 +55,9 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           image: DecorationImage(
                               fit: BoxFit.cover,
-                              image: AssetImage("assets/diwali_card/mobile.png")
+                              image: NetworkImage(
+                                  ownProductData.product.details?.media[index]??''
+                              )
                           ),
                           borderRadius: BorderRadius.circular(15 * scaleFactor),
                           // boxShadow: [
@@ -72,7 +78,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              "iPhone 16 128 GB: 5G Mobile Phone with Ca...",
+                              ownProductData.product.details?.name,
                               // style: TextStyle(
                               color: AppColors.darkBrown,
                               fontWeight: FontWeight.w600,
@@ -82,7 +88,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                             ),
                             SizedBox(height: 2 * scaleFactor),
                             CustomText(
-                              "Torem ipsum dolor sit amet, consec adipiscing elit. Nunc vulputat....",
+                              ownProductData.product.details?.description,
                               // style: TextStyle(
                               color: AppColors.grayText,
                               fontWeight: FontWeight.w400,
@@ -107,7 +113,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                                   child: Column(
                                     children: [
                                       CustomText(
-                                        "MRP : 10000",
+                                        "MRP : ${ownProductData.product.sellerClassification?.variants[0].mrp.toString() ?? "0"} ",
                                         // style: TextStyle(
                                         color: AppColors.blackFade,
                                         fontSize: 12 * scaleFactor,
@@ -144,7 +150,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                                             ),
                                             SizedBox(width: 8 * scaleFactor),
                                             CustomText(
-                                             "20000",
+                                              ownProductData.product.sellerClassification?.variants[0].sellingPrice.toString() ?? "0",
                                               // style: TextStyle(
                                               color: AppColors.white,
                                               fontWeight: FontWeight.w600,
@@ -212,7 +218,10 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 2,),
                             Text(
-                              '20%OFF',
+                              '${calculateDiscount(
+                            ownProductData.product.sellerClassification?.variants[0].sellingPrice.toString() ?? "0",
+                            ownProductData.product.sellerClassification?.variants[0].mrp.toString() ?? "0",
+                            ).toStringAsFixed(2)}%OFF',
                               style: TextStyle(
                                 fontFamily: "Vector",
                                 color: AppColors.darkBrown, // AppColors.darkOrange
@@ -342,7 +351,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CustomText(
-                                "Pervez Mobile Shop",
+                                businessNameGlobal,
                                 // style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -351,7 +360,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                               ),
                               SizedBox(height: 2 * scaleFactor),
                               CustomText(
-                                "Ramesh Kumar (Owner)",
+                                "$businessOwnerNameGlobal (Owner)",
                                 // style: TextStyle(
                                 color: AppColors.grayText,
                                 fontSize: 12 * scaleFactor,
@@ -417,7 +426,7 @@ class DiwaliOfferThirdCard extends StatelessWidget {
                         const Icon(Icons.location_on, color: AppColors.darkBrown, size: 16),
                         SizedBox(width: 5 * scaleFactor),
                         Text(
-                          "Durgapur, West Bengal - Industrial Area",
+                          businessOwnerAddressGlobal,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: AppColors.darkBrown,

@@ -52,7 +52,8 @@ class DiwaliOfferSecondCardScreen extends StatelessWidget {
                         image: DecorationImage(
                             fit: BoxFit.cover,
                             image: NetworkImage(
-                                ownProductData.product.details?.media[index]??'')
+                                ownProductData.product.details?.media[index]??''
+                            )
                         ),
                         borderRadius: BorderRadius.circular(15 * scaleFactor),
                         // boxShadow: [

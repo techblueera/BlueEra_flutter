@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/home/widgets/diwali_card.dart';
 import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_third_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
@@ -319,15 +320,15 @@ class _ProductScreenState extends State<ProductScreen> {
                           Icon(Icons.share, color: AppColors.white, size: 16),
                           onTap: () {
 
-                              Get.to(()=> ShareProductScreen(
-                                productId: product.product.details?.id??'',
-                              ));
+                              // Get.to(()=> ShareProductScreen(
+                              //   productId: product.product.details?.id??'',
+                              // ));
 
-                          //   VisitingCardHelper.buildAndShareProductCard(
-                          //     context,
-                          //     product,
-                          //     index: index
-                          // );
+                            VisitingCardHelper.buildAndShareProductCard(
+                              context,
+                              product,
+                              index: index
+                          );
 
                           //   Get.to(()=> DiwaliOfferSecondCardScreen(
                           //     cardKey: GlobalKey(),
@@ -339,6 +340,11 @@ class _ProductScreenState extends State<ProductScreen> {
                           //     ownProductData: product,
                           //     index: index,
                           //   ));
+                          //     Get.to(()=> DiwaliOfferThirdCard(
+                          //       cardKey: GlobalKey(),
+                          //       ownProductData: product,
+                          //       index: index,
+                          //     ));
 
                           }
                       ),

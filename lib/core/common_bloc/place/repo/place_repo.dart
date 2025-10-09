@@ -26,7 +26,7 @@ class PlaceRepo{
       params: {
         "input": query,
         "key": googleMapKey,
-        "types": "geocode|establishment|regions", // You can customize this
+        "types": "geocode|establishment", // You can customize this
         "language": "en",
         "components": "country:in" // only India
       },

@@ -1546,7 +1546,7 @@ class _PersonalProfileSetupNewScreenState
                       bool isDataUpdate = await Get.toNamed(
                         RouteHelper.getAvailabilityScreenRoute(),
                         arguments: {
-                          ApiKeys.channelId: channelId,
+                          ApiKeys.channelId: userId,
                           ApiKeys.availabilityBookingData: viewProfileController.availabilityDetails.value,
                         }
                     );
@@ -1581,10 +1581,10 @@ class _PersonalProfileSetupNewScreenState
                         } else {
                           selectedType = BookingType.both;
                         }
-                        final location = data.location ?? '';
+                        final location = data.location?.address ?? '';
                         final fee = data.fee?.toString() ?? '';
                         final selectedTimeSlot;
-                        if (data.durationInMinutes?.isNotEmpty??false) {
+                        if (data.durationInMinutes?.toString().isNotEmpty??false) {
                           final candidate = '${data.durationInMinutes} Min';
                           const allowed = ['15 Min', '30 Min', '60 Min'];
                           selectedTimeSlot = allowed.contains(candidate) ? candidate : '30 Min';
@@ -1742,7 +1742,7 @@ class _PersonalProfileSetupNewScreenState
                   onTap: ()  {
                     Get.toNamed(
                         RouteHelper.getAvailabilityScreenRoute(),
-                        arguments: {ApiKeys.channelId: channelId}
+                        arguments: {ApiKeys.channelId: userId}
                   );
                   },
                   child: Row(

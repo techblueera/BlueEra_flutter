@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/single_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -828,6 +829,7 @@ class ProductController extends GetxController{
   }
 
   RxBool isSingleProductLoading = false.obs;
+  Rxn<SingleProductData> singleProductData = Rxn<SingleProductData>();
 
   Future<void> fetchSingleProductDataApi({required String productId}) async {
     try {
@@ -836,21 +838,8 @@ class ProductController extends GetxController{
       final response = await ProductRepo().fetchSingleProductApi(productId: productId);
       if (response.isSuccess) {
         singleProductDetailsResponse.value = ApiResponse.complete(response);
-        // final getOwnProductModel = GetOwnProductModel.fromJson(response.response!.data);
-        // List<OwnProductData> products = getOwnProductModel.data;
-        //
-        // if(isDraftProduct!=null){
-        //   if(isDraftProduct){
-        //     draftProducts.clear();
-        //     draftProducts.assignAll(products);
-        //   }else{
-        //     liveProducts.clear();
-        //     liveProducts.assignAll(products);
-        //   }
-        // }else{
-        //   allProducts.clear();
-        //   allProducts.assignAll(products);
-        // }
+        final singleProductModel = SingleProductModel.fromJson(response.response!.data);
+        singleProductData.value = singleProductModel.data;
       } else {
         print("API failed with status: ${response.statusCode}");
         singleProductDetailsResponse.value = ApiResponse.error('error');
