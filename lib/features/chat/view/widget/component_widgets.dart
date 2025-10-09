@@ -353,7 +353,7 @@ Widget ChatListTile(
                         )
                       : chat?.lastMessage == null
                           ? CustomText(
-                              "${chat?.sender!.designation}",
+                              "${chat?.sender?.designation==null?chat?.sender?.contactNo:chat?.sender?.designation}",
                               fontSize: 14,
                               color: AppColors.grey9A,
                               overflow: TextOverflow.ellipsis,

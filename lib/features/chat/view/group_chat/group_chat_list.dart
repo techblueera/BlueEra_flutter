@@ -15,14 +15,14 @@ import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/get_Group_List_Model.dart';
 import '../widget/component_widgets.dart';
 import 'group_chat_screen.dart';
-class GroupChatList extends StatefulWidget {
-  const GroupChatList({super.key});
+class GroupChatListTabPage extends StatefulWidget {
+  const GroupChatListTabPage({super.key});
 
   @override
-  State<GroupChatList> createState() => _GroupChatListState();
+  State<GroupChatListTabPage> createState() => _GroupChatListTabPageState();
 }
 
-class _GroupChatListState extends State<GroupChatList> {
+class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
   final chatViewController = Get.find<GroupChatViewController>();
 
   @override

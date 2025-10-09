@@ -123,7 +123,6 @@ class ServiceDetailsScreen extends StatelessWidget {
                                 ?.data
                                 ?.conversationId ??
                                 ''),
-
                           "message": "${service.title}.${service.business?.categoryOfBusiness?.name ?? "N/A"}.${service.business?.businessName ?? "N/A"}",
                           "message_type": "service",
                           "url": urlList,

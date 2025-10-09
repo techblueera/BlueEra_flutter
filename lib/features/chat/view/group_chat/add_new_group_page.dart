@@ -38,11 +38,11 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
   void initState() {
     super.initState();
   
-    chatViewController.loadGroupConnections().then((_) {
-      _populateSelectedChatList();
-    });
-    
- 
+    // chatViewController.loadGroupConnections().then((_) {
+    //   _populateSelectedChatList();
+    // });
+
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _populateSelectedChatList();
     });
@@ -52,7 +52,6 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
     setState(() {
       isLoadingMembers = true;
     });
-    
     // Clear existing selected chat list and user IDs
     chatViewController.selectedChatList.clear();
     chatViewController.selectedUserIds.clear();
@@ -126,15 +125,8 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
         }
       }
     }
-    
-   
-    print("Selected User IDs: ${widget.selectedUserIds}");
-    print("Selected Chat List Length: ${chatViewController.selectedChatList.length}");
-    print("Contacts Data Available: ${updatedDetails != null}");
-    if (updatedDetails != null) {
-      print("Existing Not Connected Count: ${updatedDetails.existingNotConnected?.length ?? 0}");
-      print("Group Connections Count: ${chatViewController.groupConnections.length}");
-    }
+
+
     
     // Set loading to false and trigger UI rebuild
     if (mounted) {
@@ -334,7 +326,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
               ApiKeys.public_group: publicGroup,
             };
           }
-          log("sdkjklsdjcnksdc ${data}");
+
           bool value=await chatViewController.createGroupApi(data);
           
           if(value==true){

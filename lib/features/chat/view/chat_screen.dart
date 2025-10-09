@@ -25,7 +25,9 @@ import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import '../auth/controller/group_chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
+import '../contacts/view/contact_list_page.dart';
 import 'business_chat/business_chat_list.dart';
+import 'group_chat/group_chat_list.dart';
 
 class ChatMainScreen extends StatefulWidget {
   const ChatMainScreen(
@@ -58,8 +60,9 @@ class _ChatMainScreenState extends State<ChatMainScreen>
     } else {
       chatViewController.socketConnected.value = false;
     }
+
     chatViewController.chatMainTabController = TabController(
-      length: 3,
+      length: 4,
       vsync: this,
       initialIndex: chatViewController.selectedChatTabIndex.value,
     );
@@ -75,12 +78,11 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
         }
-        /* else if (index == 1) {
+         else if (index == 2) {
           groupChatViewController
               .emitEvent("ChatList", {ApiKeys.type: "group"});
-        } */
+        }
         else if (index == 1) {
-
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
         }
       }
@@ -201,13 +203,19 @@ class _ChatMainScreenState extends State<ChatMainScreen>
           : SafeArea(
               child: Padding(
                   padding:
+
                       const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
                   child: FloatingActionButton(
                     child: Icon(Icons.add),
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
                     onPressed: () {
-                      Get.toNamed(RouteHelper.getChatContactsRoute());
+                      if(chatViewController.chatMainTabController.index==2){
+                        Get.to(ContactsPage(from: "group",));
+                      }else{
+                        Get.toNamed(RouteHelper.getChatContactsRoute());
+                      }
+                      //
                     },
                   )),
             ),
@@ -355,8 +363,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                       TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   tabs: [
                     Tab(text: "Personal"),
-                    // Tab(text: "Group"),
                     Tab(text: "Business"),
+                    Tab(text: "Group"),
                     Tab(text: "Orders"),
                   ],
                 ),
@@ -368,11 +376,12 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                         PersonalChatsList(
                             isForwardUI: widget.isForwardUI,
                             isNewGroupUI: widget.isNewGroupUI),
-                        // GroupChatList(),
                         BusinessChatsList(
                           isForwardUI: widget.isForwardUI,
                           isNewGroupUI: widget.isNewGroupUI,
                         ),
+                        GroupChatListTabPage(),
+
                         Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
