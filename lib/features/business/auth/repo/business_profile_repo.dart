@@ -1,92 +1,92 @@
-
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class BusinessProfileRepo extends BaseService {
   Future<ResponseModel> viewParticularBusinessProfile() async {
-    final response =
-    await ApiBaseHelper().getHTTP(
-        viewBusinessProfile,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(viewBusinessProfile,
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
 
     return response;
   }
 
   Future<ResponseModel> updateBusinessProfileDetails(
       Map<String, dynamic> params) async {
-    final response =
-    await ApiBaseHelper().putHTTP(
+    final response = await ApiBaseHelper().putHTTP(
         params: params,
         isMultipart: true,
-        updateBusinessProfile, onError: (error) {}, onSuccess: (data) {});
+        updateBusinessProfile,
+        onError: (error) {},
+        onSuccess: (data) {});
 
     return response;
   }
 
   Future<ResponseModel> getSubBusinessCat() async {
-    final response =
-    await ApiBaseHelper().getHTTP(
-        subcategories, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper()
+        .getHTTP(subcategories, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
   Future<ResponseModel> uploadVerifyBusinessDocs(
       Map<String, dynamic> params) async {
-    final response =
-    await ApiBaseHelper().postHTTP(
+    final response = await ApiBaseHelper().postHTTP(
         isMultipart: true,
         params: params,
-        postVerifyBusinessDocs, onError: (error) {}, onSuccess: (data) {});
+        postVerifyBusinessDocs,
+        onError: (error) {},
+        onSuccess: (data) {});
 
     return response;
   }
 
   Future<ResponseModel> uploadVerificationOwnerDocs(
       Map<String, dynamic> params) async {
-    final response =
-    await ApiBaseHelper().postHTTP(
+    final response = await ApiBaseHelper().postHTTP(
         isMultipart: true,
         params: params,
-        postVerificationOwnerDocs, onError: (error) {}, onSuccess: (data) {});
+        postVerificationOwnerDocs,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
   Future<ResponseModel> getBusinessVerificationStatus() async {
-    final response =
-    await ApiBaseHelper().getHTTP(
-        verifyBusinessStatus, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(verifyBusinessStatus,
+        onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
   Future<ResponseModel> uploadBusinessDescription(
       Map<String, dynamic> params) async {
-    final response =
-    await ApiBaseHelper().putHTTP(
+    final response = await ApiBaseHelper().putHTTP(
         params: params,
-        updateBusinessDescription, onError: (error) {}, onSuccess: (data) {});
+        updateBusinessDescription,
+        onError: (error) {},
+        onSuccess: (data) {});
 
     return response;
   }
 
   Future<ResponseModel> deleteLiveStoreImage(
       Map<String, dynamic> params) async {
-    final response =
-    await ApiBaseHelper().deleteHTTP(
+    final response = await ApiBaseHelper().deleteHTTP(
         params: params,
-        removeBusinessLivePhotos, onError: (error) {}, onSuccess: (data) {});
+        removeBusinessLivePhotos,
+        onError: (error) {},
+        onSuccess: (data) {});
 
     return response;
   }
 
   Future<ResponseModel> uploadLiveStoreImages(
       Map<String, dynamic> params) async {
-    final response =
-    await ApiBaseHelper().postHTTP(
+    final response = await ApiBaseHelper().postHTTP(
         isMultipart: true,
         params: params,
-        businessLivePhotos, onError: (error) {}, onSuccess: (data) {});
+        businessLivePhotos,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
@@ -105,13 +105,15 @@ class BusinessProfileRepo extends BaseService {
       "$bussinessProfileById/$userId/rating-summary",
     );
   }
+
   Future<ResponseModel> getBusinessDetailedRating(String userId) async {
     return await ApiBaseHelper().getHTTP(
       "$businessRating/$userId/ratings/count",
     );
   }
 
-  Future<ResponseModel> submitRatingToBusiness(String businessId, Map<String, dynamic> params) async {
+  Future<ResponseModel> submitRatingToBusiness(
+      String businessId, Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
       "$postBusinessRating/$businessId",
       params: params,
@@ -121,7 +123,8 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> submitRatingToPersonal(String userId, Map<String, dynamic> params) async {
+  Future<ResponseModel> submitRatingToPersonal(
+      String userId, Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
       userGetRattingSummary(userId),
       params: params,
@@ -131,7 +134,8 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> submitRatingToBusinessAccount(String userId, Map<String, dynamic> params) async {
+  Future<ResponseModel> submitRatingToBusinessAccount(
+      String userId, Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
       businessGetRattingSummary(userId),
       params: params,
@@ -140,6 +144,7 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
+
   Future<ResponseModel> getAllProductsApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
       "$getAllProducts",
@@ -149,7 +154,9 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
-  Future<ResponseModel> getParticularRatingApi(Map<String, dynamic> params) async {
+
+  Future<ResponseModel> getParticularRatingApi(
+      Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
       "$getParticularRating",
       params: params,
@@ -169,7 +176,6 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
-
   // Get products API call
   Future<ResponseModel> getProducts({
     required String businessId,
@@ -185,9 +191,17 @@ class BusinessProfileRepo extends BaseService {
       onSuccess: (data) {},
     );
     return response;
-
   }
 
-
-
+  // Get products API call
+  Future<ResponseModel> aiGenerateDescriptionRepo(
+      {required Map<String, dynamic> bodyParam}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "$aiGenerateBusinessDescription",
+      params: bodyParam,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

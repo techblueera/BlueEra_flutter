@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/view/message_post_details_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
@@ -28,13 +29,17 @@ class FeedCard extends StatefulWidget {
   final SortBy? sortBy;
   final double? horizontalPadding;
   final double? bottomPadding;
+  final bool? isFromDetailsScreen;
 
   const FeedCard(
       {super.key,
       required this.post,
       required this.index,
       required this.postFilteredType,
-      this.sortBy, this.horizontalPadding, this.bottomPadding});
+      this.sortBy,
+      this.horizontalPadding,
+      this.bottomPadding,
+      this.isFromDetailsScreen = false});
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -65,30 +70,49 @@ class _FeedCardState extends State<FeedCard> {
     if (!_shouldShowProfileNavigation()) return;
     if (authorId == userId) {
       if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
-        Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
+        Get.to(() => NewVisitProfileScreen(
+              authorId: authorId,
+              screenFromName: AppConstants.feedScreen,
+            ));
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
-        Get.to(() =>
-            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? "", screenName:  AppConstants.feedScreen,));
+        Get.to(() => VisitBusinessProfileNew(
+              businessId: _post?.user?.business_id ?? "",
+              screenName: AppConstants.feedScreen,
+            ));
       }
     } else {
       if (_post?.user?.accountType?.toUpperCase() == AppConstants.individual) {
-        Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
+        Get.to(() => NewVisitProfileScreen(
+              authorId: authorId,
+              screenFromName: AppConstants.feedScreen,
+            ));
       } else if (_post?.user?.accountType?.toUpperCase() ==
           AppConstants.business) {
-        Get.to(() =>
-            VisitBusinessProfileNew(businessId: _post?.user?.business_id ?? "", screenName:  AppConstants.feedScreen,));
+        Get.to(() => VisitBusinessProfileNew(
+              businessId: _post?.user?.business_id ?? "",
+              screenName: AppConstants.feedScreen,
+            ));
       }
     }
   }
+
   final feedController = Get.isRegistered<FeedController>()
       ? Get.find<FeedController>()
       : Get.put(FeedController());
+
   @override
   Widget build(BuildContext context) {
     return buildPostWidget();
   }
-
+  // onTap: (widget.isFromDetailsScreen ?? false)
+  // ? null
+  //     : () {
+  // Get.to(MessagePostDetailsScreen(
+  // post: _post,
+  // postType: widget.postFilteredType,
+  // ));
+  // },
   Widget buildPostWidget() {
     FeedType? feedType = FeedType.fromValue(_post?.type?.toUpperCase());
     switch (feedType) {
@@ -98,47 +122,50 @@ class _FeedCardState extends State<FeedCard> {
           bottomPadding: widget.bottomPadding,
           post: _post,
           authorSection: () => PostAuthorHeader(
-              post: _post,
-              authorId: _post?.user?.id ?? '0',
-              postType: widget.postFilteredType,
-              onTapAvatar: _shouldShowProfileNavigation()
-                  ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
-                  : null,
-             ),
-          commentView:()=> _onCommentPressed(),
-          buildActions: () => PostActionsBar(
             post: _post,
-            isLiked: _post?.isLiked ?? false,
-            totalLikes: _post?.likesCount ?? 0,
-            totalComment: _post?.commentsCount ?? 0,
-            totalRepost: _post?.repostCount ?? 0,
-            isPostAlreadySaved: _post?.isPostSavedLocal ?? false,
-            onLikeDislikePressed: () {
-              _onLikeDislikePressed();
-            },
-            onCommentButtonPressed: () {
-              _onCommentPressed();
-            },
-            onSavedUnSavedButtonPressed: () {
-              _onSavedUnSavedButtonPressed();
-            },
-            onShareButtonPressed: () async {
-              onShareButtonPressed(_post);
-            },
+            authorId: _post?.user?.id ?? '0',
+            postType: widget.postFilteredType,
+            onTapAvatar: _shouldShowProfileNavigation()
+                ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
+                : null,
           ),
+          commentView: () => _onCommentPressed(),
+          buildActions:/* (widget.isFromDetailsScreen ?? false)
+              ? SizedBox.shrink
+              :*/ () => PostActionsBar(
+                    post: _post,
+                    isLiked: _post?.isLiked ?? false,
+                    totalLikes: _post?.likesCount ?? 0,
+                    totalComment: _post?.commentsCount ?? 0,
+                    totalRepost: _post?.repostCount ?? 0,
+                    isPostAlreadySaved: _post?.isPostSavedLocal ?? false,
+                    onLikeDislikePressed: () {
+                      _onLikeDislikePressed();
+                    },
+                    onCommentButtonPressed: () {
+                      _onCommentPressed();
+                    },
+                    onSavedUnSavedButtonPressed: () {
+                      _onSavedUnSavedButtonPressed();
+                    },
+                    onShareButtonPressed: () async {
+                      onShareButtonPressed(_post);
+                    },
+                  ),
         );
 
       case FeedType.qaPost:
         return QaPostWidget(
           post: _post,
-bottomPadding: widget.bottomPadding,
+          bottomPadding: widget.bottomPadding,
           postId: _post?.id ?? "0",
-          poll: Poll(options: _post?.poll?.options??[],question: _post?.poll?.question),
+          poll: Poll(
+              options: _post?.poll?.options ?? [],
+              question: _post?.poll?.question),
           authorId: _post?.id,
           natureOfPost: _post?.natureOfPost,
           message: _post?.subTitle ?? "",
-          commentView:()=> _onCommentPressed(),
-
+          commentView: () => _onCommentPressed(),
           postedAgo: timeAgo(
               _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           totalViews: _post?.viewsCount.toString() ?? "0",
@@ -244,11 +271,8 @@ bottomPadding: widget.bottomPadding,
     feedController.savePostToLocalDB(
         postId: _post?.id ?? '0',
         type: widget.postFilteredType,
-        sortBy: widget.sortBy
-    );
+        sortBy: widget.sortBy);
   }
-
-
 }
 
 bool _isSharing = false;
@@ -271,9 +295,7 @@ Future<void> onShareButtonPressed(Post? _post) async {
     final combinedText = shareUrl;
 
     await SharePlus.instance.share(ShareParams(
-        text: combinedText,
-        subject: _post.title,
-        previewThumbnail: xFile));
+        text: combinedText, subject: _post.title, previewThumbnail: xFile));
 
     if (xFile != null) {
       final file = File(xFile.path);

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
+import 'package:BlueEra/features/common/comment/view/send_comment_field.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -31,6 +32,7 @@ class CommentBottomSheet extends StatefulWidget {
   final CommentType
       commentType; // New parameter to distinguish between post and video
   final Function(int) onNewCommentCount;
+  final bool isFromFeedDetailsScreen;
 
   const CommentBottomSheet(
       {super.key,
@@ -38,7 +40,8 @@ class CommentBottomSheet extends StatefulWidget {
       required this.totalComments,
       this.commentType =
           CommentType.post, // Default to post for backward compatibility
-      required this.onNewCommentCount});
+      required this.onNewCommentCount,
+      this.isFromFeedDetailsScreen = false});
 
   @override
   State<CommentBottomSheet> createState() => _CommentBottomSheetState();
@@ -77,211 +80,186 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-
-    return CommonDraggableBottomSheet(
-      initialChildSize: 0.95,
-      minChildSize: 0.95,
-      maxChildSize: 0.95,
-      backgroundColor: AppColors.white,
-      builder: (ScrollController scrollController) {
-        return SafeArea(
-          child: AnimatedPadding(
-            duration: const Duration(milliseconds: 50),
-            padding: EdgeInsets.only(
-                bottom: bottomInset), // Push up when keyboard appears
-            curve: Curves.easeOut,
-            child: Obx(() => commentController.isLoading.value
-                ? CommentShimmerUi()
-                : Column(
-                    children: [
-                      /// Header
-                      Padding(
-                        padding: EdgeInsets.only(
-                            right: SizeConfig.size10,
-                            top: SizeConfig.size5,
-                            bottom: SizeConfig.size5),
-                        child: Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                                onPressed: () {
-                                  Get.back();
-                                },
-                                icon: Icon(Icons.close,
-                                    size: SizeConfig.size24))),
-                      ),
-
-                      Obx(() {
-                        return Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size20),
+    if (widget.isFromFeedDetailsScreen) {
+      return CommentListingWidget();
+    } else {
+      return CommonDraggableBottomSheet(
+        initialChildSize: 0.95,
+        minChildSize: 0.95,
+        maxChildSize: 0.95,
+        backgroundColor: AppColors.white,
+        builder: (ScrollController scrollController) {
+          return SafeArea(
+            child: AnimatedPadding(
+              duration: const Duration(milliseconds: 50),
+              padding: EdgeInsets.only(
+                  bottom: bottomInset), // Push up when keyboard appears
+              curve: Curves.easeOut,
+              child: Obx(() => commentController.isLoading.value
+                  ? CommentShimmerUi()
+                  : Column(
+                      children: [
+                        /// Header
+                        Padding(
+                          padding: EdgeInsets.only(
+                              right: SizeConfig.size10,
+                              top: SizeConfig.size5,
+                              bottom: SizeConfig.size5),
                           child: Align(
-                            alignment: Alignment.center,
-                            child: CustomText(
-                              "${commentController.totalCommentCount.value} Comments",
-                              fontSize: SizeConfig.large,
-                              color: AppColors.black,
-                              fontWeight: FontWeight.w600,
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                  onPressed: () {
+                                    Get.back();
+                                  },
+                                  icon: Icon(Icons.close,
+                                      size: SizeConfig.size24))),
+                        ),
+
+                        Obx(() {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: SizeConfig.size20),
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: CustomText(
+                                "${commentController.totalCommentCount.value} Comments",
+                                fontSize: SizeConfig.large,
+                                color: AppColors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
+                          );
+                        }),
+
+                        SizedBox(height: SizeConfig.size15),
+
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size8),
+                          child: CommonHorizontalDivider(
+                            color: AppColors.greyB3,
+                            height: 0.4,
                           ),
-                        );
-                      }),
+                        ),
 
-                      SizedBox(height: SizeConfig.size15),
+                        SizedBox(height: SizeConfig.size15),
 
+                        /// Comment List
+                        Expanded(child: CommentListingWidget()),
+
+                        /// Input Field
+                        _buildSendCommentField(),
+                        // SendCommentField(
+                        //   commentType: CommentType.video,
+                        //   onCommentAdded: () {
+                        //     print("Comment sent successfully!");
+                        //   },
+                        // )
+
+                      ],
+                    )),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  Widget CommentListingWidget() {
+    return commentController.comments.isNotEmpty
+        ? ListView.builder(
+            itemCount: commentController.comments.length,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            itemBuilder: (context, index) {
+              final comment = commentController.comments[index];
+              return Padding(
+                padding: EdgeInsets.only(bottom: SizeConfig.size20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCommentTile(comment: comment),
+                    if (comment.replies != null && comment.replies!.isNotEmpty)
                       Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-                        child: CommonHorizontalDivider(
-                          color: AppColors.greyB3,
-                          height: 0.4,
+                        padding: const EdgeInsets.only(left: 48.0),
+                        child: GetBuilder<CommentController>(
+                          id: 'replies-${comment.sId}',
+                          // optional ID if you want to update only specific comment
+                          builder: (commentController) {
+                            final visibleCount = commentController
+                                    .visibleRepliesCountMap[comment.sId] ??
+                                0;
+                            final totalReplies = comment.replies!.length;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (visibleCount == 0)
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.only(top: SizeConfig.size5),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        commentController.toggleReplies(
+                                            comment.sId!, totalReplies);
+                                      },
+                                      child: CustomText(
+                                        "View ${comment.repliesCount} replies",
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.secondaryTextColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ...comment.replies!
+                                          .take(visibleCount)
+                                          .map((reply) => _buildCommentTile(
+                                              comment: comment,
+                                              reply: reply,
+                                              isReplyTemplate: true))
+                                          .toList(),
+                                      GestureDetector(
+                                        onTap: () {
+                                          commentController.toggleReplies(
+                                              comment.sId!, totalReplies);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4.0),
+                                          child: CustomText(
+                                            visibleCount < totalReplies
+                                                ? "View more replies"
+                                                : "Hide replies",
+                                            fontSize: SizeConfig.medium,
+                                            color: AppColors.secondaryTextColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ),
-
-                      SizedBox(height: SizeConfig.size15),
-
-                      /// Comment List
-                      Expanded(
-                        child: commentController.comments.isNotEmpty
-                            ? ListView.builder(
-                                itemCount: commentController.comments.length,
-                                keyboardDismissBehavior:
-                                    ScrollViewKeyboardDismissBehavior.onDrag,
-                                itemBuilder: (context, index) {
-                                  final comment =
-                                      commentController.comments[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                        bottom: SizeConfig.size20),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        _buildCommentTile(comment: comment),
-                                        if (comment.replies != null &&
-                                            comment.replies!.isNotEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 48.0),
-                                            child:
-                                                GetBuilder<CommentController>(
-                                              id: 'replies-${comment.sId}',
-                                              // optional ID if you want to update only specific comment
-                                              builder: (commentController) {
-                                                final visibleCount =
-                                                    commentController
-                                                                .visibleRepliesCountMap[
-                                                            comment.sId] ??
-                                                        0;
-                                                final totalReplies =
-                                                    comment.replies!.length;
-
-                                                return Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    if (visibleCount == 0)
-                                                      Padding(
-                                                        padding:
-                                                            EdgeInsets.only(
-                                                                top: SizeConfig
-                                                                    .size5),
-                                                        child: GestureDetector(
-                                                          onTap: () {
-                                                            commentController
-                                                                .toggleReplies(
-                                                                    comment
-                                                                        .sId!,
-                                                                    totalReplies);
-                                                          },
-                                                          child: CustomText(
-                                                            "View ${comment.repliesCount} replies",
-                                                            fontSize: SizeConfig
-                                                                .medium,
-                                                            color: AppColors
-                                                                .secondaryTextColor,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      )
-                                                    else
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          ...comment.replies!
-                                                              .take(
-                                                                  visibleCount)
-                                                              .map((reply) =>
-                                                                  _buildCommentTile(
-                                                                      comment:
-                                                                          comment,
-                                                                      reply:
-                                                                          reply,
-                                                                      isReplyTemplate:
-                                                                          true))
-                                                              .toList(),
-                                                          GestureDetector(
-                                                            onTap: () {
-                                                              commentController
-                                                                  .toggleReplies(
-                                                                      comment
-                                                                          .sId!,
-                                                                      totalReplies);
-                                                            },
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      vertical:
-                                                                          4.0),
-                                                              child: CustomText(
-                                                                visibleCount <
-                                                                        totalReplies
-                                                                    ? "View more replies"
-                                                                    : "Hide replies",
-                                                                fontSize:
-                                                                    SizeConfig
-                                                                        .medium,
-                                                                color: AppColors
-                                                                    .secondaryTextColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                  ],
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              )
-                            : Center(
-                                child: CustomText(
-                                  'No comment yet.',
-                                  fontSize: SizeConfig.extraLarge22,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                      ),
-
-                      /// Input Field
-                      _buildSendCommentField(),
-                    ],
-                  )),
-          ),
-        );
-      },
-    );
+                  ],
+                ),
+              );
+            },
+          )
+        : Center(
+            child: CustomText(
+              'No comment yet.',
+              fontSize: SizeConfig.extraLarge22,
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w700,
+            ),
+          );
   }
 
   Widget _buildCommentTile(
@@ -316,6 +294,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               .likesCount ??
           0;
     }
+
     ///EMpty DATA
     String profilePic = !isReplyTemplate
         ? comment.createdBy?.profilePic ?? ''
@@ -330,29 +309,28 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     bool isLiked =
         !isReplyTemplate ? comment.isLiked ?? false : reply?.isLiked ?? false;
 
-
     return InkWell(
       onLongPress: () async {
-        logs("userId==== ${userId}===== ${comment.createdBy?.sId}");
-        if ((userId == comment.createdBy?.sId)||(userId==reply?.createdBy?.sId))
+        if ((userId == comment.createdBy?.sId) ||
+            (userId == reply?.createdBy?.sId))
           await showCommonDialog(
               context: context,
               text: "Are you sure you want to delete this comment?",
               confirmCallback: () async {
                 Get.back();
                 await commentController.commentPostDeleteController(
-                    commentId: commentId,postID: widget.id, commentPostType: widget.commentType);
+                    commentId: commentId,
+                    postID: widget.id,
+                    commentPostType: widget.commentType);
                 Get.back();
-
               },
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
               confirmText: AppLocalizations.of(context)!.yes,
               cancelText: AppLocalizations.of(context)!.no);
-
       },
-      onTap: (){
+      onTap: () {
         onProfileTap(
           context,
           userId: userId,
@@ -550,8 +528,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                             focusNode: commentController.replyFocusNode,
                             controller: commentController.sendMessageController,
                             style: TextStyle(color: Colors.black),
-                            onChanged: (value){
-                              commentController.sendMessageController.text = value;
+                            onChanged: (value) {
+                              commentController.sendMessageController.text =
+                                  value;
                               setState(() {});
                             },
                             decoration: InputDecoration(
@@ -575,52 +554,53 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
-                (commentController.sendMessageController.text.isNotEmpty) ?
-                InkWell(
-                  onTap: () {
-                    if (commentController.isSendCommentLoading.isTrue) return;
+                (commentController.sendMessageController.text.isNotEmpty)
+                    ? InkWell(
+                        onTap: () {
+                          if (commentController.isSendCommentLoading.isTrue)
+                            return;
 
-                    if (commentController
-                        .sendMessageController.value.text.isNotEmpty) {
-                      // Use appropriate add comment method based on comment type
-                      if (widget.commentType == CommentType.video) {
-                        addVideoCommentToPost();
-                      } else {
-                        addCommentToPost();
-                      }
-                    }
-                    Navigator.of(context).pop(); // Close the dialog
-
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                        color:AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(18)),
-                    child: commentController.isSendCommentLoading.isTrue
-                        ? SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                        : LocalAssets(
-                        height: 21,
-                        width: 21,
-                        imagePath: AppIconAssets.send_message_chat),
-                  ),
-                ) : Container(
-                  padding: EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                      color: AppColors.greyB3,
-                      borderRadius: BorderRadius.circular(18)),
-                  child: LocalAssets(
-                      height: 21,
-                      width: 21,
-                      imagePath: AppIconAssets.send_message_chat),
-                )
+                          if (commentController
+                              .sendMessageController.value.text.isNotEmpty) {
+                            // Use appropriate add comment method based on comment type
+                            if (widget.commentType == CommentType.video) {
+                              addVideoCommentToPost();
+                            } else {
+                              addCommentToPost();
+                            }
+                          }
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(18)),
+                          child: commentController.isSendCommentLoading.isTrue
+                              ? SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : LocalAssets(
+                                  height: 21,
+                                  width: 21,
+                                  imagePath: AppIconAssets.send_message_chat),
+                        ),
+                      )
+                    : Container(
+                        padding: EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                            color: AppColors.greyB3,
+                            borderRadius: BorderRadius.circular(18)),
+                        child: LocalAssets(
+                            height: 21,
+                            width: 21,
+                            imagePath: AppIconAssets.send_message_chat),
+                      )
               ],
             ),
           ],
@@ -650,7 +630,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       };
       if (commentController.parentCommentId != null)
         params[ApiKeys.parentId] = commentController.parentCommentId;
-        commentController.addVideoComment(params: params, videoId: widget.id);
+      commentController.addVideoComment(params: params, videoId: widget.id);
     }
   }
 
@@ -671,12 +651,12 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     }
   }
 
-  void onProfileTap(BuildContext context, {
+  void onProfileTap(
+    BuildContext context, {
     required String userId,
     required CreatedBy? commentUser,
     CreatedBy? replyUser,
   }) {
-
     // Decide whose profile was clicked → reply user takes priority
     final targetUser = replyUser ?? commentUser;
 
@@ -688,7 +668,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       if (isSelf) {
         navigatePushTo(context, PersonalProfileSetupScreen());
       } else {
-        Get.to(() => NewVisitProfileScreen(authorId: targetUser.sId ?? '', screenFromName: AppConstants.feedScreen,));
+        Get.to(() => NewVisitProfileScreen(
+              authorId: targetUser.sId ?? '',
+              screenFromName: AppConstants.feedScreen,
+            ));
       }
     } else if (accountType == AppConstants.business) {
       if (isSelf) {
@@ -696,12 +679,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       } else {
         print('targetUser.sId--> ${targetUser.sId}');
 
-       Get.to(() => VisitBusinessProfileNew(
-          businessId: targetUser.sId ?? '', screenName:  AppConstants.feedScreen,
-        ));
+        Get.to(() => VisitBusinessProfileNew(
+              businessId: targetUser.sId ?? '',
+              screenName: AppConstants.feedScreen,
+            ));
       }
     }
   }
-
-
 }

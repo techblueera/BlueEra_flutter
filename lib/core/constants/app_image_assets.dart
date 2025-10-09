@@ -4,7 +4,6 @@ class AppImageAssets {
   static const imgPath = AppConstants.baseImageAssetsPath;
   static const String appLogo = '${imgPath}appName.png';
   static const String noImageFound = '${imgPath}noImageFound.png';
-  static const String bannerImage = '${imgPath}banner.png';
   static const String hiringImage = '${imgPath}hiring_image.jpg';
   static const String profileImage = '${imgPath}profile_image.jpg';
   static const String businessVerification = '${imgPath}business_verification.svg';

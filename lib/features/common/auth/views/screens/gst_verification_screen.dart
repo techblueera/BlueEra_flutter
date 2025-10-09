@@ -17,8 +17,6 @@ class GstNumberScreen extends StatefulWidget {
 
 class _GstNumberScreenState extends State<GstNumberScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  // AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   final authController = Get.find<AuthController>();
 
   final TextEditingController _gstController = TextEditingController();
