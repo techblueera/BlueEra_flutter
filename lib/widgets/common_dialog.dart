@@ -149,14 +149,15 @@ showCommonDialog(
                           width: SizeConfig.size10,
                         ),
                       ],
-                      Expanded(
-                        child: PositiveCustomBtn(
-                          onTap: () {
-                            cancelCallback();
-                          },
-                          title: cancelText,
-                        ),
-                      )
+                      if (cancelText.isNotEmpty)
+                        Expanded(
+                          child: PositiveCustomBtn(
+                            onTap: () {
+                              cancelCallback();
+                            },
+                            title: cancelText,
+                          ),
+                        )
                     ],
                   ),
                 ),

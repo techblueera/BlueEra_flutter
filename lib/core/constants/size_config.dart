@@ -36,12 +36,14 @@ class SizeConfig {
   static double get extraSmall => isTablet ? 14.0 : 10.0;
   static double get small11 => isTablet ? 15.0 : 11.0;
   static double get small => isTablet ? 16.0 : 12.0;
-  static double get medium => isTablet ? 18.0 : (langController.selectedCode=="ta")?14: 18.0;
+  static double get medium => isTablet ? 18.0 :14.0;
+  // static double get medium => isTablet ? 18.0 : (langController.selectedCode=="ta")?14: 18.0;
   static double get medium15 => isTablet ? 17.0 : 15.0;
   static double get large => isTablet ? 22.0 : 16.0;
   static double get large18 => isTablet ? 20.0 : 18.0;
   static double get extraLarge => isTablet ? 26.0 : 20.0;
-  static double get extraLarge22 => isTablet ? 28.0 : (langController.selectedCode=="ta")?24:28.0;
+  static double get extraLarge22 => isTablet ? 28.0 : 24.0;
+  // static double get extraLarge22 => isTablet ? 28.0 : (langController.selectedCode=="ta")?24:28.0;
   static double get title => isTablet ? 30.0 : 24.0;
   static double get heading => isTablet ? 36.0 : 28.0;
 

@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/video_status_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
@@ -97,7 +98,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isCreateOwnProduct = false,
       this.bottomWidget,
       this.isFollowRefreshWidget,
-      this.isFollowRefresh=false,
+      this.isFollowRefresh = false,
       this.isProductPopUpMenu});
 
   // final AppBar? appBar;
@@ -214,7 +215,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       if (isGuestUser()) {
                         createProfileScreen();
                       } else if (isIndividualUser()) {
-                        navigatePushTo(context, PersonalProfileSetupNewScreen());
+                        navigatePushTo(
+                            context, PersonalProfileSetupNewScreen());
                         // navigatePushTo(context, PersonalProfileSetupScreen());
                       } else if (isBusinessUser()) {
                         navigatePushTo(context, BusinessOwnProfileScreen());
@@ -356,24 +358,25 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
                 onSelected: (value) async {
-                  logs("accountTypeGlobal=== ${accountTypeGlobal}");
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else if (value == PostCreationMenu.videos ||
                       value == PostCreationMenu.photos ||
                       value == PostCreationMenu.message ||
                       value == PostCreationMenu.poll) {
-                    postVia(context, value);
+                    if (value == PostCreationMenu.videos) {
+                      final videoStatusController =
+                          Get.put(VideoStatusController());
+
+                      await videoStatusController.getVideoStatus(
+                          context, value);
+                    } else {
+                      postVia(context, value);
+                    }
                   } else if (value == PostCreationMenu.place) {
                     Navigator.pushNamed(
                       context,
                       RouteHelper.getAddPlaceStepOneScreenRoute(),
-                      // arguments: {
-                      //   ApiKeys.onPlaceSelected: (double? lat, double? lng, String? address) {
-                      //     // handle the callback
-                      //   },
-                      //   ApiKeys.isFromAddPlace: true
-                      // },
                     );
                   } else if (value == PostCreationMenu.jobPost) {
                     Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
@@ -488,7 +491,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   //     MaterialPageRoute(
                   //         builder: (context) => ProfileSettingsScreen()));
 
-                  Get.to(()=> ProfileSettingsNewScreen());
+                  Get.to(() => ProfileSettingsNewScreen());
 
                   /* await showCommonDialog(
                           context: context,
@@ -593,8 +596,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   borderColor: AppColors.primaryColor,
                   textColor: AppColors.primaryColor,
                   iconColor: AppColors.primaryColor,
-                  isPrefix: true
-              ),
+                  isPrefix: true),
             ),
           ),
 

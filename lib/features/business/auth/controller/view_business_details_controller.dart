@@ -92,6 +92,7 @@ class ViewBusinessDetailsController extends GetxController {
 
   RxBool isListingDescriptionEdit = true.obs;
   RxString businessDescription = "".obs;
+  RxString tempDescription = ''.obs;
   SortBy selectedFilter = SortBy.Latest;
 
   // Added variables to store location data
@@ -203,6 +204,7 @@ class ViewBusinessDetailsController extends GetxController {
 
         businessDescription.value =
             businessProfileDetails?.data?.businessDescription ?? "";
+        tempDescription.value = businessDescription.value;
         controllerVisit.isFollow.value =
             businessProfileDetails?.data?.is_following ?? false;
         if (selectedBusinessType?.value.name.toLowerCase() == "both") {

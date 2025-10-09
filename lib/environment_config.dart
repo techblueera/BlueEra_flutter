@@ -29,8 +29,6 @@ String googleGeoCode =
     "https://maps.googleapis.com/maps/api/geocode/json";
 String googleCountryCode = "&language=en&components=country:IN";
 
-// String privacyLink = "https://doc-hosting.flycricket.io/blueera-privacy-policy/63a9d073-d49c-46a4-a5e3-e7c3647a0756/privacy";
-// String tncLink = "https://doc-hosting.flycricket.io/blueera-terms-of-use/adab0d47-85cd-4d63-9494-4c23d34ecbbf/terms";
 
 String privacyLink =
     "https://www.freeprivacypolicy.com/live/f1d1be8d-4563-43e0-9275-c439f46390ad";

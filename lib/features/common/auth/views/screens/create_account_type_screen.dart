@@ -22,8 +22,6 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
-import '../../../home/widgets/diwali_card.dart';
-import '../../../home/widgets/diwali_second_card.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   @override

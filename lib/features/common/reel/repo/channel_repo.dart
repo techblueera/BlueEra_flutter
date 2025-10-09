@@ -363,4 +363,16 @@ print("url=== ${url}");
     );
     return response;
   }
+
+
+  ///GET VIDEO STATUS...
+  Future<ResponseModel> getVideoStatus() async {
+    final response = await ApiBaseHelper().getHTTP(
+      videoUploadStatus,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

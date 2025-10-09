@@ -70,6 +70,7 @@ class AppConstants {
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
 
   static const int inputCharterLimit = 150;
+  static const int inputCharterLimit400 = 400;
   static const int inputCharterLimit250 = 250;
   static const int inputCharterLimit200 = 200;
   static const int inputCharterLimit50 = 50;
@@ -604,7 +605,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   };
 
   const titleMap = {
-    PostCreationMenu.message: 'Message',
+    PostCreationMenu.message: 'Lekha',
     PostCreationMenu.poll: 'Poll',
     PostCreationMenu.photos: 'Photos',
     PostCreationMenu.videos: 'Videos',
