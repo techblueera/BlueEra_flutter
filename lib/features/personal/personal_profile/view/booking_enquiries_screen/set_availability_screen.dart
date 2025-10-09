@@ -1,6 +1,12 @@
+import 'dart:async';
+
+import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/custom_checkbox.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,130 +29,476 @@ class SetAvailabilityScreen extends StatefulWidget {
 
 class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
   final controller = Get.put(BookingTabController());
+  final ScrollController _scrollController = ScrollController();
+  final LayerLink _layerLink = LayerLink();
+  final GlobalKey _textFieldKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
+  Timer? _debounce;
+  final locationController = Get.isRegistered<LocationController>()
+      ? Get.find<LocationController>()
+      : Get.put(LocationController());
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if(widget.availabilityBookingData!=null){
-        controller.setAvailabilityData(widget.availabilityBookingData);
-      }
-    });
     super.initState();
+    ever(controller.predictions, (_) => _updateOverlay());
+    ever(controller.isSearchPlaceLoading, (_) => _updateOverlay());
+    ever(controller.errorMessage, (_) => _updateOverlay());
+  }
+
+  void _updateOverlay() {
+    if (controller.locationController.text.isNotEmpty ||
+        controller.isSearchPlaceLoading.value ||
+        controller.predictions.isNotEmpty ||
+        controller.errorMessage.isNotEmpty) {
+      _showOverlay();
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  void _showOverlay() {
+    final renderBox = _textFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final size = renderBox.size;
+    final offset = renderBox.localToGlobal(Offset.zero);
+
+    if (_overlayEntry == null) {
+      _overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          left: offset.dx,
+          top: offset.dy + size.height + 10,
+          width: size.width,
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: Offset(0, size.height + 10),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 300),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.white,
+                ),
+                child: Obx(() {
+                  if (controller.isSearchPlaceLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (controller.errorMessage.isNotEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16),
+                      child:
+                      CustomText(
+                        controller.errorMessage.value,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red,
+                      ),
+                    );
+                  } else if (controller.predictions.isEmpty &&
+                      controller.locationController.text.isNotEmpty) {
+                    return Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CustomText(
+                        "No results found",
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                      ),
+                    );
+                  } else if (controller.predictions.isNotEmpty) {
+                    return Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      trackVisibility: true,
+                      thickness: 4,
+                      radius: const Radius.circular(4),
+                      child: SizedBox(
+                        height: 300,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          itemCount: controller.predictions.length,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index) {
+                            final prediction = controller.predictions[index];
+                            return ListTile(
+                              leading: const Icon(
+                                  Icons.location_on_outlined,
+                                color: AppColors.mainTextColor,
+                              ),
+                              title: CustomText(
+                                  prediction.description ?? '',
+                                  fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.mainTextColor,
+                              ),
+                              onTap: () {
+                                controller.locationController.text = prediction.description ?? '';
+                                controller.currentAddress.value = controller.locationController.text;
+                                controller.latitude = prediction.lat ?? 0.0;
+                                controller.longitude = prediction.lng ?? 0.0;
+                                controller.predictions.clear();
+                                _removeOverlay();
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                }),
+              ),
+            ),
+          ),
+        ),
+      );
+      Overlay.of(context).insert(_overlayEntry!);
+    } else {
+      _overlayEntry!.markNeedsBuild();
+    }
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _onSearchChanged(String query) {
+    controller.locationController.text = query;
+    controller.currentAddress.value = controller.locationController.text;
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      controller.fetchPredictions(query);
+    });
+  }
+
+  Future<void> updateAddressFromLocation() async {
+    final locationData = await locationController.checkPermissionAndSetData();
+    if (locationData != null) {
+      controller.currentAddress.value = locationData.fullAddress;
+      controller.latitude = double.parse(locationData.lat);
+      controller.longitude = double.parse(locationData.long);
+    }
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _scrollController.dispose();
+    _removeOverlay();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CommonBackAppBar(
-          title: 'Set your Availability',
-        ),
-        body:  SingleChildScrollView(
-          child: SafeArea(
-            child: Padding(
-              padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
-              child:
-              Form(
-                key: controller.formKey,
-                child: Column(
+      backgroundColor: AppColors.whiteF3,
+      appBar: CommonBackAppBar(
+        title: 'Set your Availability',
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size15),
+        child: CustomFormCard(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size15,
+            vertical: SizeConfig.size20,
+          ),
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Booking Type',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size12),
+                Row(
+                  children: [
+                    buildBookingOption(BookingType.online.title, BookingType.online),
+                    SizedBox(width: SizeConfig.size16),
+                    buildBookingOption(BookingType.offline.title, BookingType.offline),
+                    SizedBox(width: SizeConfig.size16),
+                    buildBookingOption(BookingType.both.title, BookingType.both),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size20),
+          
+                Obx(() => controller.selectedType.value != BookingType.online
+                    ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(padding:  EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
-                      child:Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText('Booking Type',
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.mainTextColor
-                          ),
-
-                          SizedBox(height: SizeConfig.size12),
-                          Row(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                          'Location',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
+                        ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              buildBookingOption(BookingType.online.title, BookingType.online),
-                              SizedBox(width: SizeConfig.size16),
-                              buildBookingOption(BookingType.offline.title, BookingType.offline),
-                              SizedBox(width: SizeConfig.size16),
-                              buildBookingOption(BookingType.both.title, BookingType.both),
+                              InkWell(
+                                onTap: () {
+                                  controller.selectedLocationMode.value = LocationMode.current;
+                                  updateAddressFromLocation();
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Radio<LocationMode>(
+                                      value: LocationMode.current,
+                                      groupValue: controller.selectedLocationMode.value,
+                                      onChanged: (val) {
+                                        controller.currentAddress.value = '';
+                                        if (val != null) {
+                                          controller.selectedLocationMode.value = val;
+                                        }
+                                      },
+                                      visualDensity: VisualDensity.compact,
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    CustomText(
+                                      "Current Location",
+                                      fontSize: SizeConfig.small,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              InkWell(
+                                onTap: () {
+                                  controller.selectedLocationMode.value = LocationMode.search;
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Radio<LocationMode>(
+                                      value: LocationMode.search,
+                                      groupValue: controller.selectedLocationMode.value,
+                                      onChanged: (val) {
+                                        controller.currentAddress.value = '';
+                                        if (val != null) controller.selectedLocationMode.value = val;
+                                      },
+                                      visualDensity: VisualDensity.compact,
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    CustomText(
+                                      "Search Location",
+                                      fontSize: SizeConfig.small,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
-
-                          SizedBox(height: SizeConfig.size20),
-
-                          Obx(() => controller.selectedType.value != BookingType.online
-                              ? Column(
-                                  children: [
-                                    CommonTextField(
-                                        textEditController: controller.locationController,
-                                        title: 'Add Location',
-                                        hintText: "Enter booking location here..."
-                                    ),
-                                    SizedBox(height: SizeConfig.size20),
-                                  ],
-                                )
-                              : SizedBox.shrink()),
-                          CommonTextField(
-                              textEditController: controller.feeController,
-                              title: 'Duration & Fee per Appointment (₹)',
-                              hintText: "E.g: 500 INR Per hour or 500 Fee",
-                              keyBoardType: TextInputType.number,
-                          ),
-
-                          SizedBox(height: SizeConfig.size20),
-
-                          buildSlotDurationSection(),
-                        ],
-                      ),),
-
-                    SizedBox(height: SizeConfig.size10),
-
-                    VisitingHoursSelector(),
-
-                    SizedBox(height: SizeConfig.size24),
-                    Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
-                        child:
-                        Row(
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    Obx(() {
+                      if (controller.selectedLocationMode.value == LocationMode.current) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: CustomBtn(
-                                height: SizeConfig.size45,
-                                radius: SizeConfig.size6,
-                                bgColor: AppColors.white,
-                                borderColor: AppColors.skyBlueDF,
-                                onTap: () {
-                                  controller.clearValues();
-                                },
-                                title: "Clear",
-                                textColor: AppColors.skyBlueDF,
+                            Container(
+                              width: SizeConfig.screenWidth,
+                              padding: EdgeInsets.all(SizeConfig.size12),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.greyE5, width: 1.2),
+                                boxShadow: [AppShadows.textFieldShadow],
+                              ),
+                              child: CustomText(
+                                controller.currentAddress.value.isNotEmpty
+                                    ? controller.currentAddress.value
+                                    : "Please fetch current location...",
+                                fontSize: SizeConfig.large,
+                                color: controller.currentAddress.value.isNotEmpty ? AppColors.mainTextColor : AppColors.grey9A,
                               ),
                             ),
-                            SizedBox(width: SizeConfig.size12),
-                            Expanded(
-                              child: CustomBtn(
-                                height: SizeConfig.size45,
-                                radius: SizeConfig.size10,
-                                bgColor: Colors.blue,
-                                onTap: () {
-                                  controller.addBookingAvailability(id: widget.id??'');
-                                },
-                                title: "Save",
-                                textColor: AppColors.white,
+                            SizedBox(height: SizeConfig.size8),
+                            InkWell(
+                              onTap: () =>  updateAddressFromLocation(),
+                              child: CustomText(
+                                'Tap to fetch current business location',
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.primaryColor,
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.primaryColor,
                               ),
                             ),
                           ],
-                        )),
+                        );
+                      } else {
+                        return CompositedTransformTarget(
+                            link: _layerLink,
+                            child: CommonTextField(
+                                key: _textFieldKey,
+                                autoFocus: true,
+                                pIcon: Icon(Icons.search),
+                                hintText: 'Search Location..',
+                                textEditController: controller.locationController,
+                                onChange: _onSearchChanged,
+                                sIcon: controller.currentAddress.isNotEmpty
+                                    ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    controller.locationController.clear();
+                                    controller.currentAddress.value = '';
+                                    controller.predictions.clear();
+                                    _removeOverlay();
+                                  },
+                                ) : null
+                            )
+                        );
+                      }
+                    }),
+          
                   ],
+                )
+                    : const SizedBox.shrink()),
+          
+                // CustomText(
+                //   'Add Location',
+                //   fontSize: SizeConfig.medium,
+                //   fontWeight: FontWeight.w400,
+                //   color: AppColors.mainTextColor,
+                // ),
+                // SizedBox(
+                //   height: SizeConfig.size8,
+                // ),
+                // Container(
+                //   padding: EdgeInsets.all(SizeConfig.size12),
+                //   decoration: BoxDecoration(
+                //     color: AppColors.white,
+                //     borderRadius: BorderRadius.circular(10),
+                //     border: Border.all(color: AppColors.greyE5, width: 1.2),
+                //     boxShadow: [AppShadows.textFieldShadow],
+                //   ),
+                //   child: Row(
+                //     crossAxisAlignment: CrossAxisAlignment.center,
+                //     children: [
+                //       Icon(
+                //           Icons.my_location,
+                //           size: 20,
+                //           color: AppColors.primaryColor
+                //       ),
+                //       const SizedBox(width: 8),
+                //       Expanded(
+                //         child: CustomText(
+                //           controller.currentAddress.value.isNotEmpty
+                //               ? controller.currentAddress.value
+                //               : "Fetching current location...",
+                //           fontSize: SizeConfig.small,
+                //           fontWeight: FontWeight.w700,
+                //           color: AppColors.mainTextColor,
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+                // TextButton(
+                //   onPressed: () =>  updateAddressFromLocation(),
+                //   child: CustomText(
+                //     'Tap to fetch current business location',
+                //     fontSize: SizeConfig.small,
+                //     fontWeight: FontWeight.w600,
+                //     color: AppColors.primaryColor,
+                //     decoration: TextDecoration.underline,
+                //     decorationColor: AppColors.primaryColor,
+                //   ),
+                // ),
+                // SizedBox(
+                //   height: SizeConfig.size8,
+                // ),
+
+                SizedBox(height: SizeConfig.size20),
+                CommonTextField(
+                  textEditController: controller.landmarkController,
+                  title: 'Land Mark',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  titleColor: AppColors.mainTextColor,
+                  hintText: "E.g: Gomti Nagar, Durgabari...",
+                  keyBoardType: TextInputType.text,
                 ),
-              ),
+                SizedBox(height: SizeConfig.size20),
+          
+                CommonTextField(
+                  textEditController: controller.feeController,
+                  title: 'Duration & Fee per Appointment (₹)',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  titleColor: AppColors.mainTextColor,
+                  hintText: "E.g: 500 INR Per hour or 500 Fee",
+                  keyBoardType: TextInputType.number,
+                ),
+                SizedBox(height: SizeConfig.size20),
+
+                _buildInstructionSection(),
+                SizedBox(height: SizeConfig.size20),
+
+                buildSlotDurationSection(),
+                SizedBox(height: SizeConfig.size15),
+
+                VisitingHoursSelector(),
+                SizedBox(height: SizeConfig.size20),
+
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CustomBtn(
+                          height: SizeConfig.size45,
+                          radius: SizeConfig.size6,
+                          bgColor: AppColors.white,
+                          borderColor: AppColors.skyBlueDF,
+                          onTap: controller.clearValues,
+                          title: "Clear",
+                          textColor: AppColors.skyBlueDF,
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size12),
+                      Expanded(
+                        child: CustomBtn(
+                          height: SizeConfig.size45,
+                          radius: SizeConfig.size10,
+                          bgColor: Colors.blue,
+                          onTap: () => controller.addBookingAvailability(id: widget.id ?? ''),
+                          title: "Save",
+                          textColor: AppColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget buildBookingOption(String label, BookingType type) {
-    return Obx(()=> Row(
+    return Obx(() => Row(
       children: [
         CircularCheckbox(
           isChecked: controller.selectedType.value == type,
@@ -154,12 +506,11 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
         ),
         SizedBox(width: SizeConfig.size10),
         CustomText(
-            label,
-            fontSize: SizeConfig.large,
-            fontWeight: FontWeight.w400,
-            color: AppColors.mainTextColor
+          label,
+          fontSize: SizeConfig.large,
+          fontWeight: FontWeight.w400,
+          color: AppColors.mainTextColor,
         ),
-
       ],
     ));
   }
@@ -169,38 +520,33 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Left Texts
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:  [
+          children: [
             CustomText(
-                'Set your Availability',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor
+              'Set your Availability',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
             ),
-
             SizedBox(height: SizeConfig.size8),
-
             CustomText(
-                'Choose your slot duration',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w400,
-                color: AppColors.mainTextColor
+              'Choose your slot duration',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w400,
+              color: AppColors.mainTextColor,
             ),
-
           ],
         ),
-
-        // Right Dropdown
-       Container(
-          padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size3),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size3),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [AppShadows.textFieldShadow]
           ),
-          child: Obx(()=> DropdownButtonHideUnderline(
+          child: Obx(() => DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: controller.selectedTimeSlot.value,
               items: ['15 Min', '30 Min', '60 Min']
@@ -210,12 +556,33 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                 controller.selectedTimeSlot.value = val!;
               },
               isDense: true,
-              style: TextStyle(fontSize: SizeConfig.size16, fontWeight: FontWeight.w400, color: AppColors.secondaryTextColor),
+              style: TextStyle(
+                  fontSize: SizeConfig.size16,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor
+              ),
               icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.secondaryTextColor),
             ),
           )),
         ),
       ],
+    );
+  }
+
+  Widget _buildInstructionSection() {
+    return CommonTextField(
+        autoFocus: true,
+        title: 'Add Instructions',
+        hintText: 'Provide your availability so clients can schedule bookings easily.',
+        fontSize: SizeConfig.small,
+        fontWeight: FontWeight.w400,
+        titleColor: AppColors.mainTextColor,
+        textEditController: controller.instructionController,
+        onChange: _onSearchChanged,
+        maxLength: 300,
+        maxLine: 4,
+        isCounterVisible: true,
+        validator: ValidationMethod().instructionValidation
     );
   }
 }

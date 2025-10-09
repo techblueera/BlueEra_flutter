@@ -389,4 +389,6 @@ class ApiKeys {
   static const variantId = "variantId";
   static const updateFields = "updateFields";
   static const availabilityBookingData = "availabilityBookingData";
+  static const instructions = "instructions";
+  static const landmark = "landmark";
 }

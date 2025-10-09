@@ -1,7 +1,5 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -13,7 +11,7 @@ class HorizontalVideoPlayer extends StatefulWidget {
 }
 
 class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
-  final PageController _pageController = PageController(viewportFraction: 0.9);
+  final PageController _pageController = PageController(viewportFraction: 1.0);
 
   // final List<String> videoUrls = [
   //   'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
@@ -98,118 +96,118 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
   Widget build(BuildContext context) {
     final controller = _controller;
 
-    return Container(
-      height: SizeConfig.size220,
-      width: SizeConfig.screenWidth,
+    return AspectRatio(
+      aspectRatio: 16/9,
+      // width: SizeConfig.screenWidth,
+      // color: Colors.red,
       child: PageView.builder(
         controller: _pageController,
         scrollDirection: Axis.horizontal,
         itemCount: videoUrls.length,
+
         onPageChanged: (index) async {
           _currentPage = index;
           await _initializeController(videoUrls[index]);
         },
         itemBuilder: (context, index) {
           final isCurrent = index == _currentPage;
-          return Padding(
-            // padding: EdgeInsets.only(right: 10.0),
-            padding: EdgeInsets.only(right: 0.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child:  Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (isCurrent && controller != null && controller.value.isInitialized)
-                    SizedBox(
-                      width: controller.value.size.width,
-                      height: controller.value.size.height,
-                      child: VideoPlayer(controller),
-                    )
-                  else
-                    Container(
-                      color: Colors.black12,
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              if (isCurrent && controller != null && controller.value.isInitialized)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: AspectRatio(
+                    aspectRatio: 16/9,
+                    // width: controller.value.size.width,
+                    // height: controller.value.size.height,
+                    child: VideoPlayer(controller),
+                  ),
+                )
+              else
+                Container(
+                  color: Colors.black12,
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
 
-                  // Play/Pause overlay button
-                  if (isCurrent)
-                    GestureDetector(
-                      onTap: _onPlayPause,
-                      child: AnimatedOpacity(
-                        opacity: (controller?.value.isPlaying ?? false) ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 200),
+              // Play/Pause overlay button
+              if (isCurrent)
+                GestureDetector(
+                  onTap: _onPlayPause,
+                  behavior: HitTestBehavior.opaque,
+                  child: AnimatedOpacity(
+                    opacity: (controller?.value.isPlaying ?? false) ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.black45,
+                        shape: BoxShape.circle,
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(
+                        (controller?.value.isPlaying ?? false)
+                            ? Icons.pause
+                            : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 36,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Previous Video
+
+              if(videoUrls.length > 1)
+                Positioned(
+                  left: 8,
+                  child: GestureDetector(
+                    onTap: _onPreviousVideo,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30.0),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                         child: Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.black45,
+                          decoration: BoxDecoration(
+                            color: AppColors.black.withValues(alpha: 0.55),
                             shape: BoxShape.circle,
                           ),
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(6),
                           child: Icon(
-                            (controller?.value.isPlaying ?? false)
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            color: Colors.white,
-                            size: 36,
+                            Icons.chevron_left,
+                            color: AppColors.white,
+                            size: 20,
                           ),
                         ),
                       ),
                     ),
+                  ),
+                ),
 
-                  // Previous Video
-
-                  if(videoUrls.length > 1)
-                    Positioned(
-                      left: 8,
-                      child: GestureDetector(
-                        onTap: _onPreviousVideo,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.black.withValues(alpha: 0.55),
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.chevron_left,
-                                color: AppColors.white,
-                                size: 20,
-                              ),
-                            ),
+              if(videoUrls.length > 1)
+                Positioned(
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: _onNextVideo,
+                    child: ClipRRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.black.withValues(alpha: 0.55),
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.chevron_right,
+                            color: AppColors.white,
+                            size: 20,
                           ),
                         ),
                       ),
                     ),
-
-                  if(videoUrls.length > 1)
-                    Positioned(
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: _onNextVideo,
-                        child: ClipRRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.black.withValues(alpha: 0.55),
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.chevron_right,
-                                color: AppColors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+                  ),
+                ),
+            ],
           );
         },
       ),

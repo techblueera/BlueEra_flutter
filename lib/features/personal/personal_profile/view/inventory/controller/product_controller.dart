@@ -114,6 +114,7 @@ class ProductController extends GetxController{
   Rx<ApiResponse> createProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addProductToInventoryResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> addUpdateProductVariantApiResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> singleProductDetailsResponse = ApiResponse.initial('Initial').obs;
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   // final RxList<String> imageLocalPaths = <String>[].obs;
@@ -823,6 +824,42 @@ class ProductController extends GetxController{
       return false;
     } finally {
       isAddUpdateProductVariantLoading.value = false;
+    }
+  }
+
+  RxBool isSingleProductLoading = false.obs;
+
+  Future<void> fetchSingleProductDataApi({required String productId}) async {
+    try {
+      isSingleProductLoading.value = true;
+
+      final response = await ProductRepo().fetchSingleProductApi(productId: productId);
+      if (response.isSuccess) {
+        singleProductDetailsResponse.value = ApiResponse.complete(response);
+        // final getOwnProductModel = GetOwnProductModel.fromJson(response.response!.data);
+        // List<OwnProductData> products = getOwnProductModel.data;
+        //
+        // if(isDraftProduct!=null){
+        //   if(isDraftProduct){
+        //     draftProducts.clear();
+        //     draftProducts.assignAll(products);
+        //   }else{
+        //     liveProducts.clear();
+        //     liveProducts.assignAll(products);
+        //   }
+        // }else{
+        //   allProducts.clear();
+        //   allProducts.assignAll(products);
+        // }
+      } else {
+        print("API failed with status: ${response.statusCode}");
+        singleProductDetailsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      print("stack trace: $s");
+    } finally {
+      isSingleProductLoading.value = false;
+      singleProductDetailsResponse.value = ApiResponse.error('error');
     }
   }
 

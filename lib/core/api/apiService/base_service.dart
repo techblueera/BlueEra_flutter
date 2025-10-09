@@ -297,8 +297,10 @@ abstract class BaseService {
   final String getAllResumes = "job-service/resumes";
   final String jobApplication = "job-service/applications";
 
-  String setAvailability(String channelId) =>
-      "booking-enquiry-service/availability/$channelId";
+  String setAvailability(String id) =>
+      "booking-enquiry-service/availability/$id";
+  String setUserAvailability(String id) =>
+      "booking-enquiry-service/availability/user/$id";
  String getcalender(String channelId) =>
      "booking-enquiry-service/availability/calendar/$channelId";
 //  String getReceivedBooking (String channelId,String videoId)=>"booking-enquiry-service/bookings/$channelId/$videoId";
@@ -449,6 +451,7 @@ abstract class BaseService {
   final String getListOfSearchProduct = 'product-service/product/getListOfSearchProduct';
   final String cloneProductInventory = 'inventory-service/products/cloneProductInventory';
   String addUpdateProductVariant(String productId)=> 'product-service/api/product/$productId';
+  String getProductById(String productId)=> 'product-service/api/product/get-product-by-id/$productId';
 
   final String homeFeed = 'userfeed-service/feed';
   final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';

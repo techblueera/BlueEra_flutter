@@ -150,16 +150,7 @@ Future<ResponseModel> getBookingByIds({String? bookingId}) async {
     return response;
   }
 
-  Future<ResponseModel> getAvailability({required String channelId, required Map<String, dynamic> params,}) async {
-    final response = await ApiBaseHelper().getHTTP(
-      setAvailability(channelId),
-      params: params,
-      onError: (error) {},
-      onSuccess: (res) {},
-    );
-    print('logsdata:$response');
-    return response;
-  }
+
 
   Future<ResponseModel> getavailableCalender({required String channelId, required Map<String, dynamic> params,}) async {
     final response = await ApiBaseHelper().getHTTP(
@@ -167,6 +158,27 @@ Future<ResponseModel> getBookingByIds({String? bookingId}) async {
       params: params,
       onError: (error) {},
       onSuccess: (res) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> getUserAvailability({required String id}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      setUserAvailability(id),
+      onError: (error) {},
+      onSuccess: (res) {},
+    );
+    return response;
+  }
+
+  /// Set Booking Availability...
+  Future<ResponseModel> addUpdateBookingAvailability({required String id, required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      setUserAvailability(id),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
     );
     return response;
   }

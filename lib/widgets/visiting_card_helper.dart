@@ -84,7 +84,7 @@ class VisitingCardHelper {
     await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      await VisitingCardHelper().shareVisitingCard(cardKey, shareProfileForStore: true);
+      await VisitingCardHelper().shareVisitingCard(cardKey, productId: ownProductData.product.details?.id);
     } finally {
       overlay.remove();
     }
@@ -93,7 +93,7 @@ class VisitingCardHelper {
 
   bool _isSharing = false;
 
-  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, shareProfileForStore = false}) async {
+  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, String? productId}) async {
     print('sharing');
     if (_isSharing) return;
 
@@ -114,13 +114,13 @@ class VisitingCardHelper {
       await file.writeAsBytes(pngBytes);
 
       final String message;
-      if (shareProfile && !shareProfileForStore) {
+      if(productId!=null){
+        final link = productDeepLink(productId: productId);
+        message = "Link to visit my store at BlueEra app:\n$link\n";
+      }else if(shareProfile){
         final link = profileDeepLink(userId: userId);
         message = "See my profile on BlueEra:\n$link\n";
-      }else if(shareProfileForStore){
-        final link = profileDeepLink(userId: userId);
-        message = "Link to visit my store at BlueEra app:\n$link\n";
-      } else {
+      }else{
         message = """
 Download our app now:
 👉 Play Store: ${AppConstants.androidPlayStoreUrl}
@@ -128,7 +128,6 @@ Download our app now:
 """;
       }
 
-      // ✅ Share with image + text
       await SharePlus.instance.share(ShareParams(
         files: [XFile(file.path)],
         text: message,

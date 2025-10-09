@@ -27,11 +27,11 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:BlueEra/core/services/workmanager_upload_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/firebase_notification_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
+import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
 firebaseInitializeApp()
 async {
   if (Platform.isAndroid) {
@@ -144,7 +144,7 @@ class _MyAppState extends State<MyApp> {
     try {
       final segments = uri.pathSegments; // e.g., [app, post, 123]
       if (segments.length >= 3 && segments[0] == 'app') {
-        final type = segments[1]; // post | video | short | job
+        final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
         switch (type) {
           case 'post':
@@ -170,6 +170,12 @@ class _MyAppState extends State<MyApp> {
             // there profile Visiting_profile_screen.dart and Header_widget.dart both has sharing funtionaity.
             
             logs('Deep link -> profile userId: $id');
+          case 'product':
+            logs('Deep link -> job id: $id');
+            Get.to(() => ShareProductScreen(
+              productId: id
+             )
+            );
             break;
           default:
             logs('Unknown deep link type: $type');

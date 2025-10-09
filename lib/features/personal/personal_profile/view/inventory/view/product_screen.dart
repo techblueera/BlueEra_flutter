@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -317,11 +318,17 @@ class _ProductScreenState extends State<ProductScreen> {
                       child:  _buildIconBox(
                           Icon(Icons.share, color: AppColors.white, size: 16),
                           onTap: () {
-                            VisitingCardHelper.buildAndShareProductCard(
-                              context,
-                              product,
-                              index: index
-                          );
+
+                              Get.to(()=> ShareProductScreen(
+                                productId: product.product.details?.id??'',
+                              ));
+
+                          //   VisitingCardHelper.buildAndShareProductCard(
+                          //     context,
+                          //     product,
+                          //     index: index
+                          // );
+
                           //   Get.to(()=> DiwaliOfferSecondCardScreen(
                           //     cardKey: GlobalKey(),
                           //     ownProductData: product,
@@ -332,6 +339,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           //     ownProductData: product,
                           //     index: index,
                           //   ));
+
                           }
                       ),
                     ),

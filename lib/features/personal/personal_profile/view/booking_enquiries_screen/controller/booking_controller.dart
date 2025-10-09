@@ -3,6 +3,9 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/api/model/place_prediction.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -22,6 +25,9 @@ import '../model/mybooking_model.dart';
 import '../model/availability_model.dart';
 import '../model/calendar_model.dart';
 import '../repo/booking_repo.dart';
+
+enum LocationMode { current, search }
+
 enum BookingType {
   online,
   offline,
@@ -37,7 +43,9 @@ class BookingTabController extends GetxController {
   var isLoading = false.obs;
   final formKey = GlobalKey<FormState>();
   TextEditingController locationController = TextEditingController();
+  TextEditingController landmarkController = TextEditingController();
   TextEditingController feeController = TextEditingController();
+  TextEditingController instructionController = TextEditingController();
   RxInt selectedIndex = 0.obs;
   RxInt selectedIndex2 = 0.obs;
   var selectedType = BookingType.offline.obs;
@@ -59,12 +67,20 @@ class BookingTabController extends GetxController {
   var availabilityDetails = Rxn<AvailabilityModel>();
   bool _userChangedBookingType = false;
 
+  Rx<LocationMode> selectedLocationMode = LocationMode.current.obs;
+  RxString currentAddress = ''.obs;
+  double latitude = 0.0;
+  double longitude = 0.0;
+
+  final isSearchPlaceLoading = false.obs;
+  final errorMessage = ''.obs;
+  final predictions = <PlacePrediction>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     getMyBookingList();
     getMyEnquiry();
-  
   }
 
   Future<void> addBooingAppointment({required Map<String, dynamic> params}) async {
@@ -119,8 +135,8 @@ class BookingTabController extends GetxController {
     selectedType.value = type;
   }
   final List<String> filters = ['All', 'Open', 'Booked', 'Rescheduled', 'Rejected'];
-
   final List<String> filters2 = ['All', 'Open', 'Accepted', 'Rejected'];
+
   RxList<Enquiry> enquiries = <Enquiry>[
     Enquiry(title: "Videography Tutorial", date: "07-Feb-2025", message: "Hi, is this still available?", status: "Open"),
     Enquiry(title: "Videography Tutorial", date: "07-Feb-2025", message: "Hi, is this still available?", status: "Closed"),
@@ -142,6 +158,35 @@ class BookingTabController extends GetxController {
   Future<void> addBookingAvailability({required String id}) async {
    
     if (formKey.currentState?.validate() ?? false) {
+
+      if(selectedType.value != BookingType.online){
+        if(currentAddress.isEmpty){
+          Get.snackbar(
+              "Location required",
+              "Please add your business location",
+              snackPosition: SnackPosition.TOP
+          );
+          return;
+        }
+
+        // if(selectedLocationMode.value == LocationMode.current && currentAddress.isEmpty){
+        //   Get.snackbar(
+        //       "Location required",
+        //       "Please fetch your current location",
+        //       snackPosition: SnackPosition.TOP
+        //   );
+        //   return;
+        // }
+        // else if(selectedLocationMode.value == LocationMode.search && locationController.text.isEmpty){
+        //   Get.snackbar(
+        //       "Location required",
+        //       "Please add your business location",
+        //       snackPosition: SnackPosition.TOP
+        //   );
+        //   return;
+        // }
+
+      }
 
       final visitingHoursSelectorController = Get.find<VisitingHoursSelectorController>();
 
@@ -173,15 +218,21 @@ class BookingTabController extends GetxController {
 
       Map<String, dynamic> params = {
         ApiKeys.bookingType: selectedType.value.title,
-        ApiKeys.location: locationController.text,
+        ApiKeys.location: {
+          ApiKeys.landmark: landmarkController.text,
+          ApiKeys.latitude: latitude,
+          ApiKeys.longitude: longitude,
+          ApiKeys.address: currentAddress.value,
+        },
+        ApiKeys.instructions: instructionController.text,
         ApiKeys.fee: feeController.text,
         ApiKeys.durationInMinutes: selectedTimeSlot.value.replaceAll(' Min', ''),
         if(visitingHoursData.isNotEmpty) ApiKeys.schedule: visitingHoursData,
       };
 
       try {
-        ResponseModel? response = await BookingEnquiriesRepo().addUpdateBookingAvailability(
-            channelId: id,
+        ResponseModel? response = await BookingRepo().addUpdateBookingAvailability(
+            id: id,
             params: params
         );
 
@@ -200,12 +251,11 @@ class BookingTabController extends GetxController {
     }
   }
 
-  Future<AvailabilityModel?> getBookingAvailability({required String channelId}) async {
+  Future<AvailabilityModel?> getBookingAvailability({required String id}) async {
 
     try {
-      final availabilityRes = await BookingRepo().getAvailability(
-        channelId: channelId,
-        params: {},
+      final availabilityRes = await BookingRepo().getUserAvailability(
+        id: id,
       );
 
       logs('datass:$availabilityRes');
@@ -216,7 +266,6 @@ class BookingTabController extends GetxController {
         getAvailabilityResponse = ApiResponse.complete(availabilityRes);
         final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
         availabilityDetails.value = availability.data;
-        // availabilityDetails.value = data;
         return availabilityDetails.value;
         // setAvailabilityData(availabilityDetails.value);
       } else {
@@ -318,6 +367,7 @@ class BookingTabController extends GetxController {
       isLoading.value = false;
     }
   }
+
   Future<void> bookingUpdate({required String bookingId,  required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().bookingStatusUpdate(
@@ -338,6 +388,7 @@ class BookingTabController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
   Future<void> enquirybookingUpdate({required String bookingId,  required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().bookingStatusUpdate(
@@ -358,6 +409,7 @@ class BookingTabController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
   Future<void> getReceivedBookingList({String?channelId,String?videoId}) async {
     try {
       isLoading.value = true;
@@ -378,7 +430,8 @@ class BookingTabController extends GetxController {
       isLoading.value = false;
     }
   }
-    Future<void> getReceivedEnquiryList({String?channelId,String?videoId}) async {
+
+  Future<void> getReceivedEnquiryList({String?channelId,String?videoId}) async {
     try {
       isLoading.value = true;
       final response = await BookingRepo().getReceivedInquiries(channelId: channelId);
@@ -396,7 +449,7 @@ class BookingTabController extends GetxController {
     }
   }
 
-   Future<void> getReceivedvideoBookingList({String?channelId,String?videoId}) async {
+  Future<void> getReceivedvideoBookingList({String?channelId,String?videoId}) async {
     try {
       isLoading.value = true;
 
@@ -429,7 +482,8 @@ class BookingTabController extends GetxController {
       isLoading.value = false;
     }
   }
-   Future<void> getReceivedvideoEnquiryList({String?channelId,String?videoId}) async {
+
+  Future<void> getReceivedvideoEnquiryList({String?channelId,String?videoId}) async {
     try {
       isLoading.value = true;
 
@@ -466,11 +520,16 @@ class BookingTabController extends GetxController {
   void clearValues() {
     selectedType.value = BookingType.offline;
     selectedTimeSlot.value = '30 Min';
-    locationController.text = '';
-    feeController.text = '';
+    locationController.clear();
+    feeController.clear();
     _userChangedBookingType = false;
+    landmarkController.clear();
+    instructionController.clear();
+    selectedLocationMode = LocationMode.current.obs;
+    currentAddress.value = '';
+    errorMessage.value = '';
+    predictions.clear();
 
- 
     if (Get.isRegistered<VisitingHoursSelectorController>()) {
       final v = Get.find<VisitingHoursSelectorController>();
       for (final day in v.visitingHours.keys) {
@@ -481,7 +540,6 @@ class BookingTabController extends GetxController {
     }
   }
 
-  
   Future<void> getAvailabilityData({required String channelId}) async {
     try {
       isLoadingCalendar.value = true;
@@ -523,9 +581,8 @@ class BookingTabController extends GetxController {
 
       // Fetch availability details to ensure fee/charges and schedule are populated
       try {
-        final availabilityRes = await BookingRepo().getAvailability(
-          channelId: channelId,
-          params: {},
+        final availabilityRes = await BookingRepo().getUserAvailability(
+          id: channelId,
         );
         if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
           try {
@@ -553,9 +610,8 @@ class BookingTabController extends GetxController {
 
  Future<void> getavailablitydata({required String channelId})async{
        try {
-        final availabilityRes = await BookingRepo().getAvailability(
-          channelId: channelId,
-          params: {},
+        final availabilityRes = await BookingRepo().getUserAvailability(
+          id: channelId,
         );
         if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
           try {
@@ -759,4 +815,34 @@ class BookingTabController extends GetxController {
            calendarData.value!.data != null && 
            calendarData.value!.data!.isNotEmpty;
   }
+
+  // Fetch predictions from your API
+  Future<void> fetchPredictions(String query) async {
+    if (query.trim().isEmpty) {
+      predictions.clear();
+      return;
+    }
+
+    isSearchPlaceLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final responseModel = await PlaceRepo().autoCompleteSearch(query: query);
+
+      if (responseModel.statusCode == 200) {
+        final data = responseModel.response?.data;
+        final predictionsJson = data?['predictions'] as List? ?? [];
+        predictions.assignAll(PlacePrediction.fromList(predictionsJson));
+        log('total prediction-- ${predictions.length}');
+      } else {
+        errorMessage.value =
+            responseModel.data['error_message'] ?? 'Something went wrong';
+      }
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isSearchPlaceLoading.value = false;
+    }
+  }
+
+
 }
