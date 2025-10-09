@@ -5,6 +5,16 @@ import 'package:geolocator/geolocator.dart';
 
 class PlaceRepo{
 
+  // "geocode" → Returns only addresses. Good for street addresses, not POIs or establishments.
+  //
+  // "address" → Similar to geocode.
+  //
+  // "establishment" → Returns businesses, shops, etc.
+  //
+  // "regions" → Cities, neighborhoods, political regions.
+  //
+  // "cities" → Only cities.
+
   ///Auto complete Search....
   Future<ResponseModel> autoCompleteSearch({
     required String query,
@@ -16,8 +26,9 @@ class PlaceRepo{
       params: {
         "input": query,
         "key": googleMapKey,
-        "types": "geocode", // You can customize this
-        "language": "en"
+        "types": "geocode|establishment|regions", // You can customize this
+        "language": "en",
+        "components": "country:in" // only India
       },
       onError: (error) {},
       onSuccess: (data) {},

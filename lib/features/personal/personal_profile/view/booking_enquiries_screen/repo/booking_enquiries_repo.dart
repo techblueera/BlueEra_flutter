@@ -15,10 +15,10 @@ class BookingEnquiriesRepo extends BaseService{
     return response;
   }
 
-  /// Add Video Booking Availability...
-  Future<ResponseModel> addUpdateBookingAvailability({required String channelId, required Map<String, dynamic> params}) async {
+  /// Booking Availability...
+  Future<ResponseModel> addUpdateBookingAvailability({required String id, required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().putHTTP(
-      bookingAvailability(channelId),
+      setAvailability(id),
       params: params,
       showProgress: false,
       onError: (error) {},

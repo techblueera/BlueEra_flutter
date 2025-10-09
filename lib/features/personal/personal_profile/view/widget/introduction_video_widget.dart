@@ -62,7 +62,9 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
             /// Title
             CustomText(
               'Upload Introduction Video',
-              fontSize: SizeConfig.large,
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
             ),
             SizedBox(height: SizeConfig.size12),
 

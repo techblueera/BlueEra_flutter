@@ -40,7 +40,7 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
-  ///Get Own Products...
+  ///Fetch InventoryBasedSearchProduct...
   Future<ResponseModel> fetchInventoryBasedSearchProductApi({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       getInventoryBasedSearchProduct,
@@ -52,7 +52,7 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
-  ///Get Own Products...
+  ///Clone Product Variant...
   Future<ResponseModel> cloneProductVariantApi({required List<Map<String, dynamic>> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       cloneProductInventory,
@@ -63,4 +63,6 @@ class InventoryRepo extends BaseService {
     );
     return response;
   }
+
+
 }

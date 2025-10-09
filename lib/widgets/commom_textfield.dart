@@ -64,6 +64,7 @@ class CommonTextField extends StatelessWidget {
   final VoidCallback? onClearTap;
   final String? prefixText;
   final TextInputAction? textInputAction;
+  final bool autoFocus;
 
 
   const CommonTextField({
@@ -113,7 +114,9 @@ class CommonTextField extends StatelessWidget {
     this.showClearIcon = false,
     this.onClearTap,
     this.autovalidateMode,
-    this.prefixText, this.textInputAction,
+    this.prefixText,
+    this.textInputAction,
+    this.autoFocus = false,
   });
 
   /// PLEASE IMPORT GET X PACKAGE
@@ -152,6 +155,7 @@ class CommonTextField extends StatelessWidget {
           child: TextFormField(
             autovalidateMode:
                 autovalidateMode ?? AutovalidateMode.onUserInteraction,
+            autofocus: autoFocus,
             style: TextStyle(color: Colors.black, fontSize: SizeConfig.large),
             controller: textEditController,
             maxLength: maxLength ?? AppConstants.inputCharterLimit,
@@ -220,7 +224,14 @@ class CommonTextField extends StatelessWidget {
                       horizontal: SizeConfig.paddingM,
                       vertical: SizeConfig.paddingXSL),
               hintText: hintText,
-              prefixIcon: pIcon,
+              prefixIcon: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: pIcon,
+              ),
+              prefixIconConstraints: BoxConstraints(
+                  maxWidth: 40,
+                  maxHeight: 20
+              ),
               // counterText: '',
               suffixIcon: showClearIcon
                   ? InkWell(

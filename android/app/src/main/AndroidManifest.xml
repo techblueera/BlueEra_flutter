@@ -99,7 +99,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- Add optional android:host to distinguish your app
                      from others in case of conflicting scheme name -->
-                <data android:scheme="https" android:host="blueera.ai" />
+                <data
+                    android:scheme="https"
+                    android:host="blueera.ai" />
                 <!-- <data android:scheme="sample" /> -->
             </intent-filter>
 
@@ -113,15 +115,15 @@
                     android:pathPrefix="/app/video/" />
             </intent-filter>
 
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="blueera.ai"
-                    android:pathPrefix="/app/short/" />
-            </intent-filter>
+<!--            <intent-filter android:autoVerify="true">-->
+<!--                <action android:name="android.intent.action.VIEW" />-->
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--                <category android:name="android.intent.category.BROWSABLE" />-->
+<!--                <data-->
+<!--                    android:scheme="https"-->
+<!--                    android:host="blueera.ai"-->
+<!--                    android:pathPrefix="/app/short/" />-->
+<!--            </intent-filter>-->
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -141,6 +143,16 @@
                     android:scheme="https"
                     android:host="blueera.ai"
                     android:pathPrefix="/app/profile/" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="blueera.ai"
+                    android:pathPrefix="/app/product/" />
             </intent-filter>
 
             <!-- Launcher -->

@@ -128,14 +128,14 @@ class _PersonalProfileSetupNewScreenState
     await viewProfileController.UserFollowersAndPostsCount(userId);
     // viewProfileController.isChannelCreated.value = channelId.isNotEmpty;
     log('channelId--> $channelId');
-    if(channelId.isNotEmpty){
+    // if(channelId.isNotEmpty){
       getAvailabilityBookingData();
-    }
+    // }
     _updateTextControllers();
   }
 
   void getAvailabilityBookingData(){
-    bookingTabController.getBookingAvailability(channelId: channelId)
+    bookingTabController.getBookingAvailability(id: userId)
         .then((response) {
       if(response!=null) {
         viewProfileController.availabilityDetails.value = response;
@@ -338,25 +338,23 @@ class _PersonalProfileSetupNewScreenState
           _buildChannelWidget(),
       
           SizedBox(height: SizeConfig.size10),
-      
           _buildEarnWithBlueEraWidget(),
       
-          // SizedBox(height: SizeConfig.size10),
-          //
-          // _buildPaymentAccountWidget(),
+          SizedBox(height: SizeConfig.size10),
+          _buildBookingAndaAvailabilityWidget(),
+
+          SizedBox(height: SizeConfig.size10),
+          _buildPaymentAccountWidget(),
       
           SizedBox(height: SizeConfig.size10),
-      
           _buildMyDocumentWidget(),
 
-          if(channelId.isNotEmpty)
-            ...[
-              SizedBox(height: SizeConfig.size10),
-              _buildBookingAndaAvailabilityWidget()
-            ],
           SizedBox(height: SizeConfig.size10),
+          _buildBookingAndaAvailabilityWidget(),
 
           // Add the IntroductionVideoWidget here
+
+          SizedBox(height: SizeConfig.size10),
           IntroductionVideoWidget(),
 
           SizedBox(height: SizeConfig.size10),
@@ -381,7 +379,7 @@ class _PersonalProfileSetupNewScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText("Add Web Links"),
+                    _buildTitleWidget('Add Web Links'),
                     SizedBox(height: SizeConfig.size16),
                     Padding(
                       padding: EdgeInsets.only(bottom: SizeConfig.size14),
@@ -1402,16 +1400,18 @@ class _PersonalProfileSetupNewScreenState
                   child: Row(
                     children: [
                       LocalAssets(
-                        imagePath: AppIconAssets.mailIcon,
+                        imagePath: AppIconAssets.subscription,
+                        width: SizeConfig.size18,
+                        height: SizeConfig.size18,
                       ),
                       SizedBox(
                           width: SizeConfig.size10
                       ),
                       CustomText(
                         'Manage Subscription',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
                       ),
                       Spacer(),
                       CustomText(
@@ -1453,9 +1453,10 @@ class _PersonalProfileSetupNewScreenState
                   },
                   title: 'Add Document',
                   textColor: AppColors.primaryColor,
+                  fontSize: SizeConfig.small,
                   iconPath: AppIconAssets.add,
                   iconColor: AppColors.primaryColor,
-                  width: SizeConfig.size120,
+                  width: SizeConfig.size110,
                   height: SizeConfig.size30,
                   bgColor: Colors.transparent,
                   borderColor: AppColors.primaryColor,
@@ -1535,7 +1536,7 @@ class _PersonalProfileSetupNewScreenState
               children: [
                 _buildCircleIcon(AppIconAssets.bookingEnquiries),
                 SizedBox(width: SizeConfig.size6),
-                _buildTitleWidget('Your Availability & Bookings'),
+                _buildTitleWidget('Availability & Bookings'),
 
                 if(viewProfileController.availabilityDetails.value != null)
                 ...[

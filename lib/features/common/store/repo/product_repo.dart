@@ -121,4 +121,15 @@ class ProductRepo extends BaseService{
     return response;
   }
 
+  ///Get Own Products...
+  Future<ResponseModel> fetchSingleProductApi({required String productId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getProductById(productId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
