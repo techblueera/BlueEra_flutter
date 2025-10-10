@@ -17,7 +17,7 @@ import '../../../../widgets/common_divider.dart';
 import '../../../../widgets/common_icon_row.dart';
 import '../../../../widgets/local_assets.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/getMediaMsgCommentsModel.dart';
 import '../chat_screen.dart';
@@ -40,7 +40,7 @@ class GroupVideoCommentsPage extends StatefulWidget {
 class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
   late VideoPlayerController _controller;
   final TextEditingController messageTypeController = TextEditingController();
-  final chatViewController = Get.find<GroupChatViewController>();
+  final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
   bool? like;
   int? like_count;

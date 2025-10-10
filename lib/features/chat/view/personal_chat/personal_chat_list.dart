@@ -8,7 +8,6 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
 
@@ -24,7 +23,6 @@ class PersonalChatsList extends StatefulWidget {
 
 class _PersonalChatsListState extends State<PersonalChatsList> {
   final chatViewController = Get.find<ChatViewController>();
-  final groupChatViewController = Get.find<GroupChatViewController>();
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +48,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                     itemBuilder: (context, index) {
                       return ChatListTile(
                           isFromGroupSelect: widget.isNewGroupUI,
-                          groupChatViewController:
-                              (widget.isNewGroupUI != null &&
-                                      widget.isNewGroupUI == true)
-                                  ? groupChatViewController
-                                  : null,
+
                           onSelect: () {
                             setState(() {});
                           },

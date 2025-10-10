@@ -11,7 +11,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/get_Group_List_Model.dart';
 import '../widget/component_widgets.dart';
 import 'group_chat_screen.dart';
@@ -23,29 +23,28 @@ class GroupChatListTabPage extends StatefulWidget {
 }
 
 class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
-  final chatViewController = Get.find<GroupChatViewController>();
+  final groupChatViewController = Get.find<ChatViewController>();
 
-  @override
-  void initState() {
-    super.initState();
-    // Ensure group list is fetched when screen opens
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      chatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // Ensure group list is fetched when screen opens
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     groupChatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
-         print("Datass:${chatViewController.getGroupChatListModel?.value.chatList}");
-      if (chatViewController.groupChatListResponse.value.status == Status.COMPLETE) {
+      if (groupChatViewController.groupChatListResponse.value.status == Status.COMPLETE) {
      
-        GroupChatListModel? data = chatViewController.getGroupChatListModel?.value;
+        GroupChatListModel? data = groupChatViewController.getGroupChatListModel?.value;
 
         return RefreshIndicator(
           onRefresh: () async{
-            chatViewController.emitEvent("ChatList", {
+            groupChatViewController.emitEvent("ChatList", {
               ApiKeys.type:"group"
             });
           },
@@ -58,7 +57,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                   final chat=data?.chatList?[index];
                   return  InkWell(
                     onTap: () async{
-                      chatViewController.emitEvent("messageReceived", {
+                      groupChatViewController.emitEvent("messageReceived", {
                         ApiKeys.conversation_id: chat?.conversationId,
                         ApiKeys.page: 1,
                         ApiKeys.per_page_message: 30,
@@ -69,6 +68,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                         profileImage: chat?.groupProfileImage,
                         name: chat?.groupName,
                       )));
+
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -180,11 +180,12 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                               ),
                               SizedBox(height: 2),
                               SizedBox(
-                                width: 150,
+                                width: 260,
                                 child: (chat?.lastMessageType == "document" ||
                                     chat?.lastMessageType == "contact" ||
                                     chat?.lastMessageType == "audio" ||
-                                    chat?.lastMessageType == "location" ||chat?.lastMessageType == "image" ||
+                                    chat?.lastMessageType == "location" ||
+                                    chat?.lastMessageType == "image" ||
                                     chat?.lastMessageType == "video")
                                     ? Row(
                                   children: [
@@ -195,11 +196,13 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                           ? Icons.person
                                           : chat?.lastMessageType == "audio"
                                           ? Icons.audiotrack
-                                          : chat?.lastMessageType == "video"
+                                          : chat?.lastMessageType ==
+                                          "video"
                                           ? Icons.video_chat
-                                          : chat?.lastMessageType == "location"?
-                                      Icons.location_history
-                                          :Icons.camera_alt,
+                                          : chat?.lastMessageType ==
+                                          "location"
+                                          ? Icons.location_history
+                                          : Icons.camera_alt,
                                       color: AppColors.grey9A,
                                       size: 16,
                                     ),
@@ -211,19 +214,30 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                           ? "Contact"
                                           : chat?.lastMessageType == "audio"
                                           ? "Audio"
-                                          : chat?.lastMessageType == "video"
+                                          : chat?.lastMessageType ==
+                                          "video"
                                           ? "Video"
-                                          : chat?.lastMessageType == "location"?
-                                      "Location"
-                                          :"Image",
+                                          : chat?.lastMessageType ==
+                                          "location"
+                                          ? "Location"
+                                          : "Image",
                                       fontSize: 14,
                                       color: AppColors.grey9A,
                                       overflow: TextOverflow.ellipsis,
                                     )
                                   ],
                                 )
+                                    : chat?.lastMessage == null
+                                    ? CustomText(
+                                  // "${(chat?.sender?.designation==null)?chat?.sender?.contactNo:chat?.sender?.designation}",
+                                  "Start Conversation",
+                                  fontSize: 14,
+                                  color: AppColors.grey9A,
+                                  overflow: TextOverflow.ellipsis,
+                                )
                                     : CustomText(
-                                  "${chat?.lastMessage==''?"No message yet":chat?.lastMessage}",
+                                  maxLines: 1,
+                                  "${chat?.lastMessage}",
                                   fontSize: 14,
                                   color: AppColors.grey9A,
                                   overflow: TextOverflow.ellipsis,
@@ -267,7 +281,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
           ),
         );
 
-      } else if(chatViewController.personalChatListResponse.value.status == Status.INITIAL){
+      } else if(groupChatViewController.personalChatListResponse.value.status == Status.INITIAL){
         return SizedBox();
       }else{
         return Container(

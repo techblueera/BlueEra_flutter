@@ -1,5 +1,7 @@
 
 
+import 'GetChatListModel.dart';
+
 class GroupChatListModel {
   final bool? success;
   final String? type;
@@ -45,7 +47,7 @@ class GroupChatList {
   final String? updatedAt;
   final int? unreadCount;
   final bool? publicGroup;
-  final dynamic sender;
+  final Sender? sender;
 
   GroupChatList({
     this.conversationId,
@@ -73,7 +75,7 @@ class GroupChatList {
       updatedAt: json['updated_at'] as String?,
       unreadCount: json['unread_count'] as int?,
       publicGroup: json['public_group'] as bool?,
-      sender:  json['sender']
+        sender:  json['sender'] != null ? Sender.fromJson(json['sender']) : null
     );
   }
 

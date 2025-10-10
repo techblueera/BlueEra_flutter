@@ -15,7 +15,7 @@ import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../chat_screen.dart';
 import '../widget/group_chat_input_box.dart';
@@ -42,7 +42,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final Color sentMessageColor = Color(0xFF255DF6);
   final Color receivedMessageColor = Color(0xFFECECEC);
   final Color backgroundColor = Color(0xFFF5F5F5);
-  final chatViewController = Get.find<GroupChatViewController>();
+  final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
   final TextEditingController editingController=TextEditingController();
 
@@ -354,7 +354,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ],
           ),
           body: Obx(() {
-
+            
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
               List<Messages> messages = chatViewController

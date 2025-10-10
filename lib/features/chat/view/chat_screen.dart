@@ -23,7 +23,6 @@ import '../../../widgets/common_search_bar.dart';
 import '../../../widgets/custom_text_cm.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
-import '../auth/controller/group_chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
 import '../contacts/view/contact_list_page.dart';
 import 'business_chat/business_chat_list.dart';
@@ -49,7 +48,7 @@ class ChatMainScreen extends StatefulWidget {
 class _ChatMainScreenState extends State<ChatMainScreen>
     with SingleTickerProviderStateMixin {
   final chatViewController = Get.find<ChatViewController>();
-  final groupChatViewController = Get.find<GroupChatViewController>();
+  // final groupChatViewController = Get.find<GroupChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
 
   @override
@@ -75,11 +74,11 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                   .round()) {
         final index = chatViewController.chatMainTabController.index;
         chatViewController.onSelectChatTab(index);
+
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
-        }
-         else if (index == 2) {
-          groupChatViewController
+        } else if (index == 2) {
+          chatViewController
               .emitEvent("ChatList", {ApiKeys.type: "group"});
         }
         else if (index == 1) {

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -41,6 +42,7 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
   }
   Widget buildImageMessage(Messages message, String time, bool isReceive,
       ThemeData theme, String userId, String conversation) {
+
     if (message.sendLoadingFile != null &&
         message.sendLoadingFile!.isNotEmpty) {
       return _buildUploadingSingleMedia(
@@ -250,95 +252,111 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
           // );
         }
       },
-      child: Container(
-        width: 256,
-        decoration: BoxDecoration(
-          color: (isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Align(
-          alignment:
-          isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              (isReceiveMsg)?Padding(
-                padding: const EdgeInsets.only(left: 8.0,top: 3),
-                child: CustomText(
-
-                  "${widget.message.sender?.name}",
-                  fontWeight: FontWeight.w900,
-                  color: Colors.grey.shade700,
-                  fontSize: 12.3,
-                ),
-              ):SizedBox(),
-              (isReceiveMsg)?SizedBox(
-                height: 4,
-              ):SizedBox(),
-              Stack(
+      child: Row(
+        mainAxisAlignment: (!isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          (!isReceiveMsg)?SizedBox():Container(
+            margin: EdgeInsets.only(right: 6),
+            height: 26,
+            width: 26,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(26),
+                color: chatThemeController.getDarkColorForSender(message.senderId ?? "unknown",0.1)
+            ),
+            child: Center(child: CustomText("${message.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(message.senderId ?? "unknown"),)),
+          ),
+          Container(
+            width:  SizeConfig.screenWidth*0.72,
+            decoration: BoxDecoration(
+              color: (isReceiveMsg) ?chatThemeController.getColorForSender(message.senderId ?? "unknown"): chatThemeController.myMessageBgColor.value ,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
+                bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
+              ),
+            ),
+            child: Align(
+              alignment:
+              isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: isReceiveMsg
-                                ? chatThemeController.receiveMessageBgColor.value
-                                : chatThemeController.myMessageBgColor.value,
-                            width: 2)),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: (path.url!.contains('http'))?
-                      Image.network(path.url ?? '',
-                          height: 250, width: 252, fit: BoxFit.cover):
-                      Image.file(File(path.url ?? ''),
-                          height: 250, width: 252, fit: BoxFit.cover),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 2,
-                    left: !isReceiveMsg ? 2 : null,
-                    right: isReceiveMsg ? 2 : null,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        (message.message != null && message.message != '')
-                            ? Container(
-                          decoration: BoxDecoration(
-                              color: isReceiveMsg
-                                  ? chatThemeController.receiveMessageBgColor.value
-                                  : chatThemeController.myMessageBgColor.value,
-                              borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(10),
-                              )
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          child: CustomText("${message.message}",
-                            fontWeight: FontWeight.w500,
-                            color: isReceiveMsg ? Colors.black87 : Colors.white,
-                            fontSize: 14,
-                          ),
-                        )
-                            : SizedBox(),
-                        GroupReactionInfoWidget(message: message,
+                  (isReceiveMsg)?Padding(
+                    padding: const EdgeInsets.only(left: 8.0,top: 3),
+                    child: CustomText(
 
-                          time: time,
-                          userId: widget.userId.toString(),
-                          conversation: widget.conversationId.toString(),),
-                      ],
+                      "${widget.message.sender?.name}",
+                      fontWeight: FontWeight.w400,
+                      color: chatThemeController.getDarkColorForSender(message.senderId ?? "unknown"),
+                      fontFamily: "Rounded Mplus 1c",
+                      fontSize: 13.3,
                     ),
+                  ):SizedBox(),
+                  (isReceiveMsg)?SizedBox(
+                    height: 4,
+                  ):SizedBox(),
+                  Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: isReceiveMsg
+                                    ? chatThemeController.getColorForSender(message.senderId ?? "unknown")
+                                    : chatThemeController.myMessageBgColor.value,
+                                width: 2)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: (path.url!.contains('http'))?
+                          Image.network(path.url ?? '',
+                              height: SizeConfig.screenHeight*0.33,  width: SizeConfig.screenWidth*0.72, fit: BoxFit.cover):
+                          Image.file(File(path.url ?? ''),
+                              height: 250,  width: SizeConfig.screenWidth*0.7, fit: BoxFit.cover),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 2,
+                        left: !isReceiveMsg ? 2 : null,
+                        right: isReceiveMsg ? 2 : null,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            (message.message != null && message.message != '')
+                                ? Container(
+                              decoration: BoxDecoration(
+                                  color: isReceiveMsg
+                                      ? chatThemeController.receiveMessageBgColor.value
+                                      : chatThemeController.myMessageBgColor.value,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10),
+                                  )
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              child: CustomText("${message.message}",
+                                fontWeight: FontWeight.w500,
+                                color: isReceiveMsg ? Colors.black87 : Colors.white,
+                                fontSize: 14,
+                              ),
+                            )
+                                : SizedBox(),
+                            GroupReactionInfoWidget(message: message,
+
+                              time: time,
+                              userId: widget.userId.toString(),
+                              conversation: widget.conversationId.toString(),),
+                          ],
+                        ),
+                      ),
+
+                    ],
                   ),
-                  Positioned(
-                    bottom: 26,
-                    right: !isReceiveMsg ? 12 : null,
-                    left: isReceiveMsg ? 12 : null,
-                    child: Text(time,
-                        style: TextStyle(color: Colors.white, fontSize: 10)),
-                  )
+
                 ],
               ),
-
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

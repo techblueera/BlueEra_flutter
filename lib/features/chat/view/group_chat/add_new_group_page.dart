@@ -14,7 +14,6 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/regular_expression.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
 
@@ -28,7 +27,6 @@ class AddNewGroupPage extends StatefulWidget {
 
 class _AddNewGroupPageState extends State<AddNewGroupPage> {
   final TextEditingController groupNameController=TextEditingController();
-  final groupChatViewController = Get.find<GroupChatViewController>();
   final chatViewController = Get.find<ChatViewController>();
   final _formKey = GlobalKey<FormState>();
   bool publicGroup=false;

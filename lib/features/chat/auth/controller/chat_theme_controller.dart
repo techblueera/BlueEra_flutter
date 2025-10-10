@@ -15,6 +15,39 @@ class ChatThemeController extends GetxController {
   RxList<String> selectedId = <String>[].obs;
   Rx<Messages?>? selectedFirstMessage = Messages().obs;
 
+  final Map<String, Color> senderColorMap = {}; // senderId → color map
+
+  final List<Color> availableColors = [
+    Color(0xFFFFF2F7),
+    Color(0xFFEFF9FF),
+    Color(0xFFFFF6EE),
+    Color(0xFFF1F9FF),
+    Color(0xFFFFF3F3),
+    Color(0xFFFFFDE7),
+    Color(0xFFEFFFEF),
+    Color(0xFFF9F4FF),
+  ];
+
+  /// Assign or get consistent color for sender
+
+  Color getDarkColorForSender(String senderId, [double amount = 0.50]) {
+    final color = getColorForSender(senderId);
+    final hsl = HSLColor.fromColor(color);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
+  }
+  Color getColorForSender(String senderId) {
+    if (senderColorMap.containsKey(senderId)) {
+      return senderColorMap[senderId]!;
+    }
+
+    // Pick next color from the list or random if needed
+    final color = availableColors[senderColorMap.length % availableColors.length]
+        .withOpacity(1);
+
+    senderColorMap[senderId] = color;
+    return color;
+  }
   void resetSelection() {
     isMessageSelectionActive.value = false;
     selectedId.clear();

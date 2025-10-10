@@ -171,6 +171,7 @@ class ChatViewController extends GetxController {
     // }
 
     chatSocket.listenEvent('ChatList', (data) async {
+
       final parsedData = GetChatListModel.fromJson(data);
       loadChatListWithType(chatListModel: parsedData, data: data);
       getPersonalFilteredChatListModel?.value = parsedData;
@@ -544,6 +545,7 @@ class ChatViewController extends GetxController {
 
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
+
     if (event == "ChatList" && isFromInitial != true) {
       final connectivityResult = await NetworkUtils.isConnected();
       if (connectivityResult) {
@@ -883,6 +885,7 @@ class ChatViewController extends GetxController {
         await ChatViewRepo().createNewGroupApi(params);
 
     if (responseModel.isSuccess) {
+      emitEvent("ChatList", {ApiKeys.type: "group"});
       return true;
     } else {
       commonSnackBar(

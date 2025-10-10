@@ -14,14 +14,7 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> sendGroupMessageToUser(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-        sendGroupMessage,
-        isMultipart: true,
-        showProgress: false,
-        params: params, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
   Future<ResponseModel> sendMessageToUserLargeFile(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         sendDownloadLargeFile,
@@ -30,14 +23,7 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> sendGroupMessageToUserLargeFile(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-        sendDownloadGroupLargeFile,
-        isMultipart: false,
-        showProgress: false,
-        params: params, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
   Future<ResponseModel> syncOfflineMessages(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         sync_offline_messages,
@@ -54,14 +40,7 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> groupForwardMessageApi(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-        groupForwardMessage,
-        isMultipart: false,
-        showProgress: false,
-        params: params, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
   Future<ResponseModel> createNewGroupApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         createGroup,
@@ -91,13 +70,7 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> generateGroupUploadUrlsApi(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().getHTTP(
-        generateGroupUploadUrls,
-        showProgress: false,
-        params: params, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
 
   Future<ResponseModel?> uploadVideoToS3({required Function(double progress) onProgress,required File file, required String fileType, required String preSignedUrl}) async {
     final response = await ApiBaseHelper().uploadVideoToS3(
@@ -125,15 +98,6 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> updateGroupSingleMessage(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().putHTTP(
-        updateGroupMessage,
-        isMultipart: false,
-        showProgress: false,
-        params: params, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
-
 
   Future<ResponseModel> getChatRequestList() async {
     final response = await ApiBaseHelper()
@@ -207,13 +171,6 @@ class ChatViewRepo extends BaseService {
         showProgress: false,onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> deleteGroupSingleMessage(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper()
-        .deleteHTTP(deleteGroupMessage,
-        params: params,
-        showProgress: false,onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
 
   Future<ResponseModel> addToPinMultiMessage(
       Map<String, dynamic> params) async {
@@ -265,10 +222,5 @@ class ChatViewRepo extends BaseService {
         .postHTTP(messageLikeUnlike,params: params,showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> groupLikeUnlikeSingleMessage(
-      Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper()
-        .postHTTP(groupMessageLikeUnlike,params: params,showProgress: false, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
+
 }

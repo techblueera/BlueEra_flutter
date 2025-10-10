@@ -18,7 +18,6 @@ import '../../../../core/services/notifications/one_signal_services.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/auth/controller/group_chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
 import '../../map/view/customize_map_screen.dart';
 import '../auth/controller/bottom_bar_controller.dart';
@@ -38,7 +37,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final chatViewController = Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
   // final callController = Get.put(CallController());
-  final groupChatViewController = Get.put(GroupChatViewController());
+  // final groupChatViewController = Get.put(GroupChatViewController());
 
   @override
   void initState() {

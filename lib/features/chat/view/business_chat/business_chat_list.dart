@@ -8,7 +8,6 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
 class BusinessChatsList extends StatefulWidget {
@@ -21,7 +20,6 @@ class BusinessChatsList extends StatefulWidget {
 
 class _BusinessChatsListState extends State<BusinessChatsList> {
   final chatViewController = Get.find<ChatViewController>();
-  final groupChatViewController = Get.find<GroupChatViewController>();
 
 @override
   void initState() {
@@ -52,7 +50,6 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
               itemBuilder: (context, index) {
                 return ChatListTile(
                     isFromGroupSelect: widget.isNewGroupUI,
-                    groupChatViewController: (widget.isNewGroupUI!=null&&widget.isNewGroupUI==true)?groupChatViewController:null,
                     onSelect: (){
                   setState(() {
 

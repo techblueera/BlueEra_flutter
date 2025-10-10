@@ -20,6 +20,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../chat/auth/controller/chat_view_controller.dart';
+
 class ProfileSettingsNewScreen extends StatelessWidget {
   const ProfileSettingsNewScreen({super.key});
 
@@ -95,6 +97,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                              text:
                              AppLocalizations.of(context)!.areYouSureYouWantToLogout,
                              confirmCallback: () async {
+                               Get.delete<ChatViewController>();
                                await SharedPreferenceUtils.clearPreference();
                                Navigator.of(context).pushNamedAndRemoveUntil(
                                    RouteHelper.getMobileNumberLoginRoute(),

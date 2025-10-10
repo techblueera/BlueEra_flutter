@@ -24,7 +24,7 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import 'component_widgets.dart';
 
@@ -42,7 +42,7 @@ class GroupChatInputBar extends StatefulWidget {
 
 class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBindingObserver {
   bool isKeyboardVisible = false;
-  final chatViewController = Get.find<GroupChatViewController>();
+  final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
   final _scrollController = ScrollController();
 
