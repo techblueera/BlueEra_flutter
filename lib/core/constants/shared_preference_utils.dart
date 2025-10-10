@@ -61,6 +61,7 @@ class SharedPreferenceUtils {
   static const channelName = 'channelName';
   static const channelOwner = 'channelOwner';
   static const businessOwnerAddress = 'businessOwnerAddress';
+  static const availabilityDetails = 'availabilityDetails';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -138,6 +139,12 @@ class SharedPreferenceUtils {
   ///GET STORAGE VALUE...
   static Future getSecureValue(String sharedPreferencesKey) async {
     return _secureStorage.read(key: sharedPreferencesKey);
+  }
+
+  static Future<String?> getBookingAvailabilityDetail() async {
+    return await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.availabilityDetails
+    );
   }
 
   ///CLEAR DATA...
@@ -288,5 +295,8 @@ getChannelData() async {
       SharedPreferenceUtils.channelOwner) ??
       "";
 }
+
+
+
 
 

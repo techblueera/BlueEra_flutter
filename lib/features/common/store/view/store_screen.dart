@@ -79,7 +79,6 @@ class _StoreScreenState extends State<StoreScreen> {
           child: Stack(
             children: [
               /// Main Scrollable Area with Dynamic Padding
-
               AnimatedPadding(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOut,

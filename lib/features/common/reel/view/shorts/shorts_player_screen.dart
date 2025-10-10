@@ -203,10 +203,24 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       if (item == null) continue;
 
       toCreate.add(i);
+
+      final masterUrl = item.video?.transcodedUrls?.master;
+      final fallbackUrl = item.video?.videoUrl;
+
+      // final controller = VideoPlayerController.networkUrl(
+      //   Uri.parse(masterUrl ?? fallbackUrl ?? ''),
+      // videoPlayerOptions: VideoPlayerOptions(
+      //     mixWithOthers: true,
+      //     allowBackgroundPlayback: true
+      // ),
+      // );
+
       final controller = VideoPlayerController.networkUrl(
-        Uri.parse(item.video?.transcodedUrls?.master ??
-            item.video?.videoUrl ??
-            ''),
+        Uri.parse(fallbackUrl ?? ''),
+        videoPlayerOptions: VideoPlayerOptions(
+            mixWithOthers: true,
+            allowBackgroundPlayback: true
+        ),
       );
 
       // Set looping
@@ -231,6 +245,100 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       print('🆕 WARMUP: Created new controllers for indices: $toCreate');
     }
   }
+
+  // void _warmUpRange(int centre) {
+  //   final list = _getCurrentFeedList(shortsFeedController!);
+  //   if (list == null) return;
+  //
+  //   final int len = list.length;
+  //   final int left = (centre - 1).clamp(0, len - 1);
+  //   final int right = (centre + 1).clamp(0, len - 1);
+  //
+  //   /* dispose far away */
+  //   final toRemove = <int>{};
+  //   for (final i in _videoCache.keys) {
+  //     if (i < left || i > right) toRemove.add(i);
+  //   }
+  //
+  //   if (toRemove.isNotEmpty) {
+  //     print('🗑️ WARMUP: Disposing controllers outside range [$left-$right]: $toRemove');
+  //   }
+  //
+  //   for (final i in toRemove) {
+  //     final controller = _videoCache[i]?.controller;
+  //     if (controller != null) {
+  //       final wasPlaying = controller.value.isPlaying;
+  //       print('   - Disposing cache[$i]: was playing: $wasPlaying, controller: ${controller.hashCode}');
+  //       controller.dispose();
+  //     }
+  //     _videoCache.remove(i);
+  //   }
+  //
+  //   /* create missing */
+  //   final toCreate = <int>[];
+  //   for (int i = left; i <= right; i++) {
+  //     if (_videoCache.containsKey(i)) continue;
+  //     if (_videoCache.length >= _maxCachedVideos) continue;
+  //
+  //     final item = list.elementAtOrNull(i);
+  //     if (item == null) continue;
+  //     toCreate.add(i);
+  //
+  //     final masterUrl = item.video?.transcodedUrls?.master;
+  //     final fallbackUrl = item.video?.videoUrl;
+  //
+  //     Future<VideoPlayerController> _initController(String url) async {
+  //       final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+  //       controller.setLooping(true);
+  //       await controller.initialize();
+  //       return controller;
+  //     }
+  //
+  //     Future<VideoPlayerController> _createWithFallback() async {
+  //       try {
+  //         // Try master URL first
+  //         if (masterUrl != null && masterUrl.isNotEmpty) {
+  //           print('🎬 Initializing master URL for index $i...');
+  //           return await _initController(masterUrl);
+  //         } else if (fallbackUrl != null && fallbackUrl.isNotEmpty) {
+  //           print('🎬 Master missing, using fallback for index $i...');
+  //           return await _initController(fallbackUrl);
+  //         } else {
+  //           throw Exception('No valid URL for video at index $i');
+  //         }
+  //       } catch (e) {
+  //         print('⚠️ Failed to initialize master for index $i → $e');
+  //         if (fallbackUrl != null && fallbackUrl.isNotEmpty && fallbackUrl != masterUrl) {
+  //           try {
+  //             print('🔁 Retrying with fallback URL for index $i...');
+  //             return await _initController(fallbackUrl);
+  //           } catch (e2) {
+  //             print('❌ Both master and fallback failed for index $i → $e2');
+  //             rethrow;
+  //           }
+  //         } else {
+  //           rethrow;
+  //         }
+  //       }
+  //     }
+  //
+  //     final initializeFuture = _createWithFallback();
+  //
+  //     _videoCache[i] = _VideoCacheEntry(
+  //       controller: VideoPlayerController.networkUrl(Uri.parse(
+  //         masterUrl ?? fallbackUrl ?? '',
+  //       )),
+  //       initializeFuture: initializeFuture,
+  //       coverUrl: item.video?.coverUrl,
+  //     );
+  //
+  //   }
+  //
+  //   if (toCreate.isNotEmpty) {
+  //     print('🆕 WARMUP: Created new controllers for indices: $toCreate');
+  //   }
+  // }
+
   /* ----------------------------------------------------- */
 
   void _initializeFeedData() {

@@ -51,27 +51,33 @@ class VisitingCardHelper {
       ) async {
     GlobalKey cardKey = GlobalKey();
 
-    final bool showThirdDiwaliOfferCard = Random().nextBool();
-    print('showFirstDiwaliOfferCard-- $showThirdDiwaliOfferCard');
-
-    final Widget selectedCard = showThirdDiwaliOfferCard
-        ? DiwaliOfferThirdCard(
-      cardKey: cardKey,
-      ownProductData: ownProductData,
-      index: index,
-    )
-        : DiwaliOfferSecondCardScreen(
-      cardKey: cardKey,
-      ownProductData: ownProductData,
-      index: index,
-    );
+    // final bool showThirdDiwaliOfferCard = Random().nextBool();
+    // print('showFirstDiwaliOfferCard-- $showThirdDiwaliOfferCard');
+    //
+    // final Widget selectedCard =
+    //  showThirdDiwaliOfferCard
+    //     ? DiwaliOfferThirdCard(
+    //   cardKey: cardKey,
+    //   ownProductData: ownProductData,
+    //   index: index,
+    // )
+    //     :
+    // DiwaliOfferSecondCardScreen(
+    //   cardKey: cardKey,
+    //   ownProductData: ownProductData,
+    //   index: index,
+    // );
 
 
     // 1. Create an overlay that is **not** visible
     final overlay = OverlayEntry(
       builder: (_) => Transform.translate(
         offset: const Offset(0, -9999), // move completely off-screen
-        child: selectedCard,
+        child: DiwaliOfferThirdCard(
+    cardKey: cardKey,
+    ownProductData: ownProductData,
+    index: index,
+    ),
       ),
     );
 

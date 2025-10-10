@@ -201,13 +201,13 @@ abstract class BaseService {
     final String myconnectionsSync = 'chat-service/connections/my';
   final String requestForPersonalChat = 'chat-service/connections/request';
 
-  /// Video-feed service
+  /// Shorts-feed service
   final String feedPersonalized = "videofeed-service/feeds/personalized";
   final String feedTrending = "videofeed-service/feeds/trending";
-  final String feedHome = "videofeed-service/feeds/home";
   final String feedNearBy = "videofeed-service/feeds/nearby";
 
   /// Video-service
+  final String feedHome = "videofeed-service/feeds/home";
   String postLikeUnlike(String id) => "video-service/likes/$id/like";
   String videoView(String id) => "video-service/videos/metadata/$id";
   String videoCategories = "video-service/categories";
@@ -242,7 +242,7 @@ abstract class BaseService {
   String videoComments(String videoId) =>
       "video-service/comments/video/$videoId";
   String videoCommentLike(String commentId) =>
-      "video-service//comments/$commentId/like";
+      "video-service/comments/$commentId/like";
   final String videoAddComment = "video-service/comments";
   String videos(String videoId) =>
       "video-service/videos/$videoId";
@@ -463,6 +463,7 @@ abstract class BaseService {
   final String videoUploadStatus = 'video-service/videos/upload-status';
   final String aiGenerateBusinessDescription = 'ai-service/api/ai-business/generate-description';
   final String appMaintenance = 'ai-service/api/maintenance';
+  String businessServicesByUserId(String userId) => 'services-service/services/user/$userId';
   final String aiGenerateBio = 'ai-service/api/ai-profile/generate-bio';
 
 
