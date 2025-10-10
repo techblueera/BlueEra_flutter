@@ -124,9 +124,16 @@ class SimplePriorityVideoManager extends GetxController {
       // Create new controller
       _controller = VideoPlayerController.networkUrl(
           Uri.parse(videoUrl),
-        videoPlayerOptions: isHls
-            ? VideoPlayerOptions(mixWithOthers: true)
-            : null,
+          videoPlayerOptions: VideoPlayerOptions(
+            mixWithOthers: true,
+            allowBackgroundPlayback: true
+        ),
+        // videoPlayerOptions: isHls
+        //     ? VideoPlayerOptions(
+        //     mixWithOthers: true,
+        //     allowBackgroundPlayback: true
+        // )
+        //     : null,
       );
       await _controller!.initialize();
 

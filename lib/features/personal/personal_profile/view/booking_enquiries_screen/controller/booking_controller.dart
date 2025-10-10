@@ -1,4 +1,5 @@
 
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -8,6 +9,7 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
@@ -252,14 +254,29 @@ class BookingTabController extends GetxController {
     }
   }
 
+
+  Future<AvailabilityModel?> getCachedAvailability() async {
+    try {
+      final savedData = await SharedPreferenceUtils.getBookingAvailabilityDetail();
+      if (savedData == null) return null;
+
+      final decoded = jsonDecode(savedData);
+      final model = AvailabilityModel.fromJson(decoded);
+      return model;
+    } catch (e) {
+      logs('⚠️ Error decoding cached availability: $e');
+      return null;
+    }
+  }
+
   Future<AvailabilityModel?> getBookingAvailability({required String id}) async {
 
     try {
       final availabilityRes = await BookingRepo().getUserAvailability(
-        id: id,
-        queryParams: {
-          ApiKeys.type: 'user'
-        }
+          id: id,
+          queryParams: {
+            ApiKeys.type: 'user'
+          }
       );
 
       logs('datass:$availabilityRes');
@@ -270,8 +287,14 @@ class BookingTabController extends GetxController {
         getAvailabilityResponse = ApiResponse.complete(availabilityRes);
         final availability = AvailabilityResponse.fromJson(availabilityRes.response!.data);
         availabilityDetails.value = availability.data;
+        await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.availabilityDetails,
+          jsonEncode(availability.data?.toJson()),
+        );
+
+        logs('💾 Saved availability to SharedPreferences');
+
         return availabilityDetails.value;
-        // setAvailabilityData(availabilityDetails.value);
       } else {
         getAvailabilityResponse = ApiResponse.error('error');
         clearValues();

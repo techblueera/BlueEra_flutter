@@ -1,4 +1,7 @@
 
+import 'dart:convert';
+
+import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -8,6 +11,9 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
+import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:get/get.dart';
@@ -61,7 +67,9 @@ class ViewBusinessDetailsController extends GetxController {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
   ApiResponse viewBusinessResponseNew = ApiResponse.initial('Initial');
   Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
-
+  Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> businessServiceResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
 
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
@@ -73,6 +81,7 @@ class ViewBusinessDetailsController extends GetxController {
       VisitBusinessDetailedRatingModel().obs;
   Rx<BusinessCategory> selectedTypeOfBusiness =
       BusinessCategory(type: '', title: '', subTitle: '', icon: '').obs;
+
 
   // RxList<String> imgUploadL2 = <String>[].obs;
   RxList<String> imgLocalL3 = <String>[].obs;
@@ -122,6 +131,8 @@ class ViewBusinessDetailsController extends GetxController {
       await Future.wait([
         viewBusinessProfileById(visitBusinessId),
         fetchProducts(visitBusinessId: visitBusinessId),
+        fetchServices(visitBusinessId: visitBusinessId),
+        fetchFoods(visitBusinessId: visitBusinessId),
         // getBusinessRatingsSummary(businessID),
         // getBusinessDetailedRatings(businessID)
       ]);
@@ -130,8 +141,6 @@ class ViewBusinessDetailsController extends GetxController {
       isLoading.value = false;
     } finally {
       isLoading.value = false;
-
-      // TODO
     }
   }
 
@@ -598,9 +607,81 @@ class ViewBusinessDetailsController extends GetxController {
       final getOwnProductModel = GetProductModel.fromJson(responseModel.response!.data);
 
       products.addAll(getOwnProductModel.data);
+      businessProductResponse.value = ApiResponse.complete(responseModel);
+    } catch (e) {
+      businessProductResponse.value = ApiResponse.error('error');
+      errorMessage.value = e.toString();
+    } finally {}
+  }
+
+  // Fetch service from API
+  final RxList<GetServiceModel> services = <GetServiceModel>[].obs;
+  Future<void> fetchServices({required String visitBusinessId}) async {
+    try {
+      services.clear();
+      errorMessage.value = '';
+      final response =
+      await BusinessProfileRepo().getServices(
+          businessId: visitBusinessId,
+          queryParam: {
+            'type': 'service'
+          }
+      );
+      if (response.isSuccess) {
+        businessServiceResponse.value = ApiResponse.complete(response);
+        List<dynamic> jsonData =
+        json.decode(jsonEncode(response.response?.data));
+        services.value =
+            jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
+
+      } else {
+        businessServiceResponse.value = ApiResponse.error('error');
+
+        print("API failed with status: ${response.statusCode}");
+      }
 
     } catch (e) {
+      businessServiceResponse.value = ApiResponse.error('error');
+      errorMessage.value = e.toString();
+    } finally {}
+  }
 
+  // Fetch foods from API
+  final RxList<GetFoodDetailsModel> foods = <GetFoodDetailsModel>[].obs;
+  Future<void> fetchFoods({required String visitBusinessId}) async {
+    try {
+      foods.clear();
+      errorMessage.value = '';
+      final responseModel = await BusinessProfileRepo().getFoods(
+          businessId: visitBusinessId,
+          queryParam: {
+            'type': 'food'
+          }
+      );
+      if (responseModel.isSuccess) {
+        businessFoodResponse.value = ApiResponse.complete(responseModel);
+        final data = responseModel.response?.data;
+        if (data is List) {
+          // if API returns a raw array
+          foods.value =
+              data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+        } else if (data is Map && data['data'] is List) {
+          // if API returns { "data": [...] }
+          foods.value = (data['data'] as List)
+              .map((e) => GetFoodDetailsModel.fromJson(e))
+              .toList();
+        } else {
+          print("⚠️ Unexpected API response: $data");
+        }
+
+        print("✅ Loaded ${foods.length} food items");
+      } else {
+        businessFoodResponse.value = ApiResponse.error('error');
+        print("❌ API failed: ${responseModel.response?.data}");
+      }
+
+    } catch (e) {
+      businessFoodResponse.value = ApiResponse.error('error');
       errorMessage.value = e.toString();
     } finally {}
   }

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -127,20 +128,39 @@ class _PersonalProfileSetupNewScreenState
     await viewProfileController.viewPersonalProfile();
     await viewProfileController.UserFollowersAndPostsCount(userId);
     // viewProfileController.isChannelCreated.value = channelId.isNotEmpty;
-    log('channelId--> $channelId');
-    // if(channelId.isNotEmpty){
-      getAvailabilityBookingData();
-    // }
+    checkAndGetAvailabilityBookingData();
     _updateTextControllers();
   }
 
-  void getAvailabilityBookingData(){
+  Future<void> checkAndGetAvailabilityBookingData() async {
+
+    final cached = await bookingTabController.getCachedAvailability();
+
+    if (cached != null) {
+      logs('✅ Loaded availability from cache');
+      viewProfileController.availabilityDetails.value = cached;
+    } else {
+      // No cache found, fetch from API
+      bookingTabController.getBookingAvailability(id: userId)
+          .then((response) {
+        if(response!=null) {
+          viewProfileController.availabilityDetails.value = response;
+        }
+      }
+      );
+    }
+
+
+  }
+
+  // after update availability we call this method
+  Future<void> getAvailabilityBookingData() async {
     bookingTabController.getBookingAvailability(id: userId)
         .then((response) {
       if(response!=null) {
         viewProfileController.availabilityDetails.value = response;
       }
-    }
+     }
     );
   }
 
@@ -1581,7 +1601,9 @@ class _PersonalProfileSetupNewScreenState
                         } else {
                           selectedType = BookingType.both;
                         }
+                        final landMark = data.location?.landmark ?? '';
                         final location = data.location?.address ?? '';
+                        final instruction = data.instructions ?? '';
                         final fee = data.fee?.toString() ?? '';
                         final selectedTimeSlot;
                         if (data.durationInMinutes?.toString().isNotEmpty??false) {
@@ -1595,6 +1617,8 @@ class _PersonalProfileSetupNewScreenState
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+
+                        /// Booking Type
                         CustomText(
                           'Booking Type',
                           fontSize: SizeConfig.small,
@@ -1631,11 +1655,41 @@ class _PersonalProfileSetupNewScreenState
 
                         SizedBox(height: SizeConfig.size16),
 
-                        // Location
+                        /// Location
                          selectedType != BookingType.online
                             ? Column(
                            crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // landmark
+                            CustomText(
+                              'Landmark',
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.mainTextColor,
+                            ),
+                            SizedBox(height: SizeConfig.size8),
+                            Container(
+                              width: SizeConfig.screenWidth,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: SizeConfig.size12,
+                                vertical: SizeConfig.size10,
+                              ),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.whiteE0),
+                                  boxShadow: [AppShadows.textFieldShadow]
+                              ),
+                              child: CustomText(
+                                landMark,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ),
+                            SizedBox(height: SizeConfig.size16),
+
+                            // address
                             CustomText(
                               'Location',
                               fontSize: SizeConfig.small,
@@ -1667,7 +1721,7 @@ class _PersonalProfileSetupNewScreenState
                         )
                             : const SizedBox.shrink(),
 
-
+                            /// Booking Fee
                             CustomText(
                               'Fee',
                               fontSize: SizeConfig.small,
@@ -1697,6 +1751,36 @@ class _PersonalProfileSetupNewScreenState
 
                            SizedBox(height: SizeConfig.size16),
 
+                            /// Instructions
+                            CustomText(
+                              'Instructions',
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.mainTextColor,
+                            ),
+                            SizedBox(height: SizeConfig.size8),
+                            Container(
+                              width: SizeConfig.screenWidth,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: SizeConfig.size12,
+                                vertical: SizeConfig.size10,
+                              ),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.whiteE0),
+                                  boxShadow: [AppShadows.textFieldShadow]
+                              ),
+                              child: CustomText(
+                                instruction,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ),
+                            SizedBox(height: SizeConfig.size16),
+
+                            /// Booking appointment duration
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1733,6 +1817,7 @@ class _PersonalProfileSetupNewScreenState
 
                             SizedBox(height: SizeConfig.size16),
 
+                          /// Booking days and timings
                           _buildSelectedDays(data)
                           ],
                         );

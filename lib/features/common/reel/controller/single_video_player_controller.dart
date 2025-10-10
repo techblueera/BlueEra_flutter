@@ -80,13 +80,14 @@ class SingleVideoPlayerController extends GetxController {
     super.onClose();
   }
 
-  /// Initialize a new video
+  /// Initialize a new video with fallback logic
   Future<void> initializeVideo(
       ShortFeedItem videoItem, {
         bool autoPlay = false,
         bool showAd = true,
         Function? onAdShow,
         Function? onAdClosed,
+        int retryLevel = 0, // 0 = first try (master), 1 = retry (videoUrl)
       }) async {
     if (_isClosed) return;
 
@@ -96,19 +97,24 @@ class SingleVideoPlayerController extends GetxController {
       isVideoCompleted.value = false;
       errorMessage.value = '';
 
-     String? videoUrl;
-      if(GetPlatform.isAndroid){
-        videoUrl =
-            videoItem.video?.transcodedUrls?.master ?? videoItem.video?.videoUrl;
-      }else{
-         videoUrl = videoItem.video?.videoUrl;
+      // Determine URL based on platform and retry level
+      String? videoUrl;
+
+      if (GetPlatform.isAndroid) {
+        if (retryLevel == 0) {
+          videoUrl = videoItem.video?.transcodedUrls?.master ?? videoItem.video?.videoUrl;
+        } else {
+          videoUrl = videoItem.video?.videoUrl;
+        }
+      } else {
+        videoUrl = videoItem.video?.videoUrl;
       }
 
       if (videoUrl == null || videoUrl.isEmpty) {
         throw Exception('Video URL is empty or null');
       }
 
-      log('Initializing video: $videoUrl');
+      log('🎬 Initializing video (retryLevel=$retryLevel): $videoUrl');
 
       // Dispose old controllers
       await _videoPlayerController?.pause();
@@ -116,18 +122,13 @@ class SingleVideoPlayerController extends GetxController {
       await _videoPlayerController?.dispose();
       _chewieController?.dispose();
 
-      // Create new controllers
+      // Create new controller
       _videoPlayerController = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
-        // videoPlayerOptions: VideoPlayerOptions(
-        //   mixWithOthers: true,
-        //   allowBackgroundPlayback: false,
-        // ),
-        // httpHeaders: isHlsUrl(videoUrl) ? {
-        //   'Accept': '*/*',
-        //   'User-Agent': 'Flutter Video Player',
-        //   'Connection': 'keep-alive',
-        // } : {},
+        videoPlayerOptions: VideoPlayerOptions(
+          mixWithOthers: true,
+          allowBackgroundPlayback: false,
+        ),
       );
 
       await _videoPlayerController!.initialize();
@@ -161,32 +162,38 @@ class SingleVideoPlayerController extends GetxController {
       isVideoInitialized.value = true;
       isVideoLoading.value = false;
 
-      // 🔹 Enable screen awake
+      // Keep screen awake
       await ScreenService.keepOn();
 
-      // // Handle ads or autoplay
-      // if (Platform.isAndroid && showAd) {
-      //   await _handleInterstitialAd(
-      //     onAdShow: onAdShow,
-      //     onAdClosed: () {
-      //       if (!_isClosed && _videoPlayerController != null) play();
-      //       onAdClosed?.call();
-      //     },
-      //   );
-      // } else
-      if (autoPlay) {
-        play();
+      // Handle autoplay
+      if (autoPlay) play();
+
+      log('✅ Video initialized successfully (retryLevel=$retryLevel)');
+    } catch (e) {
+      log('❌ Error initializing video (retryLevel=$retryLevel): $e');
+
+      if (retryLevel == 0) {
+        // Retry once with videoUrl if master failed
+        log('🔁 Retrying with fallback videoUrl...');
+        await initializeVideo(
+          videoItem,
+          autoPlay: autoPlay,
+          showAd: showAd,
+          onAdShow: onAdShow,
+          onAdClosed: onAdClosed,
+          retryLevel: 1,
+        );
+        return;
       }
 
-      log('Video initialized successfully');
-    } catch (e) {
-      log('Error initializing video: $e');
+      // Second failure → mark error
       isVideoError.value = true;
       errorMessage.value = e.toString();
       isVideoLoading.value = false;
       isVideoInitialized.value = false;
     }
   }
+
 
   /// Fixed video player listener
   void _videoPlayerListener() {

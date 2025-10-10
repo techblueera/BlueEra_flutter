@@ -254,15 +254,3 @@ class _ProductCardState extends State<ProductCardBusiness> {
   }
 }
 
-Widget _buildIconBox(Widget child) {
-  return Container(
-    height: 25,
-    width: 25,
-    decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.5),
-        shape: BoxShape.circle,
-        boxShadow: [AppShadows.textFieldShadow]),
-    alignment: Alignment.center,
-    child: child,
-  );
-}

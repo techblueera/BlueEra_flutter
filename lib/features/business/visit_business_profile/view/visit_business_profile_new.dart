@@ -8,6 +8,8 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
+import 'package:BlueEra/features/common/product_listing/view/standalone_food_screen.dart';
+import 'package:BlueEra/features/common/product_listing/view/standalone_service_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
@@ -49,13 +51,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   final chatViewController = Get.find<ChatViewController>();
 
   late VisitProfileController visitProfileController;
-  final List<String> tabs = [
-    'Overview',
-    'Posts',
-    'Shorts',
-    'Video',
-    'Products',
-  ];
+  List<String> tabs = [];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
 
@@ -63,7 +59,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   void initState() {
     super.initState();
     setFilters();
-    _tabController = TabController(length: tabs.length, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Ensure your VisitPersonalProfileTabs updates
     });
@@ -94,6 +90,17 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
           }
           if ((controller.viewBusinessResponseNew.status == Status.COMPLETE)) {
             final businessData = controller.visitedBusinessProfileDetails?.data;
+
+            final List<String> tabs = [
+              'Overview',
+              'Posts',
+              'Shorts',
+              'Video',
+              if(isShowProduct.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Products',
+              if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Service',
+              if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Foods'
+            ];
+
             return DefaultTabController(
               length: tabs.length,
               child: NestedScrollView(
@@ -258,7 +265,22 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       ],
                     ),
 
+                    if(isShowProduct.contains(businessData?.typeOfBusiness?.toLowerCase()))
                     StandaloneProductScreen(
+                      businessId: businessData?.id ?? "",
+                      isGrid: true,
+                      businessData: businessData,
+                    ),
+
+                    if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase()))
+                    StandaloneServiceScreen(
+                      businessId: businessData?.id ?? "",
+                      isGrid: true,
+                      businessData: businessData,
+                    ),
+
+                    if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase()))
+                    StandaloneFoodScreen(
                       businessId: businessData?.id ?? "",
                       isGrid: true,
                       businessData: businessData,

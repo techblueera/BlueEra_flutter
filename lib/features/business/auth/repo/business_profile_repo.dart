@@ -204,4 +204,35 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
+
+  // Get service API call
+  Future<ResponseModel> getServices({
+    required String businessId,
+    Map<String, dynamic>? queryParam
+  }) async {
+
+    final response = await ApiBaseHelper().getHTTP(
+      businessServicesByUserId(businessId),
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> getFoods({
+    required String businessId,
+    Map<String, dynamic>? queryParam
+  }) async {
+
+    final response = await ApiBaseHelper().getHTTP(
+      businessServicesByUserId(businessId),
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

@@ -232,6 +232,7 @@ class FoodUploadController extends GetxController {
     }
     return body;
   }
+
   Future<void> addFoodServices(Map<String,dynamic> foodData) async {
     try {
       Map<String,dynamic> data=await buildRequestBody(foodData);
@@ -263,6 +264,7 @@ class FoodUploadController extends GetxController {
       commonSnackBar(message: 'Something went wrong.');
     }
   }
+
   Future<void> uploadAllImages(List<LocalImage> images) async {
     if (images.isEmpty) return;
 
@@ -295,6 +297,7 @@ class FoodUploadController extends GetxController {
       commonSnackBar(message: 'Something went wrong during image upload.');
     }
   }
+
   Future<void> uploadFileToS3({
     required File file,
     required String fileType,
