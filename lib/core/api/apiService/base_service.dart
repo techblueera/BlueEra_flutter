@@ -162,30 +162,24 @@ abstract class BaseService {
   /// CREATE RESUME END
   /// ADD POST
   final String sendMessage = 'chat-service/chat/send-message';
-  final String sendGroupMessage = 'group-chat-service/chat/send-message';
   final String updateMessage = 'chat-service/chat/update-message';
-  final String updateGroupMessage = 'group-chat-service/chat/update-message';
   final String generateUploadUrls = 'chat-service/s3/generate-upload-urls';
-  final String generateGroupUploadUrls = 'group-chat-service/s3/generate-upload-urls';
   final String generateDownloadUrls = 'chat-service/s3/generate-download-url';
   final String sendDownloadLargeFile =
       'chat-service/chat/send-message-large-file';
   final String sync_offline_messages =
       'chat-service/chat/sync-offline-messages';
 
-  final String sendDownloadGroupLargeFile = 'group-chat-service/chat/send-message-large-file';
-
   final String forwardMessage = 'chat-service/chat/forward-messages';
-  final String groupForwardMessage = 'group-chat-service/chat/forward-messages';
-  final String createGroup = 'group-chat-service/group/create';
-  final String getGroupMembersChat = 'group-chat-service/group/members';
-  final String addGroupMember = "group-chat-service/group/add-members";
+  final String createGroup = 'chat-service/group/create';
+  final String getGroupMembersChat = 'chat-service/group/members';
+  final String addGroupMember = "chat-service/group/add-members";
   final String checkChatConnection = 'chat-service/connections/check-connection';
-  final String getGroupMembers = 'group-chat-service/chat/get-group-members';
+  final String getGroupMembers = 'chat-service/chat/get-group-members';
   final String deleteChatList = 'chat-service/chat/delete-chatlist';
   final String clearAllChat = 'chat-service/chat/clear-all-chat';
   final String deleteMessage = 'chat-service/chat/delete-messages';
-  final String deleteGroupMessage = 'group-chat-service/chat/delete-messages';
+  final String deleteGroupMessage = 'chat-service/chat/delete-messages';
   final String addToPinMessage = 'chat-service/chat/add-to-pin-message';
   final String getPinMessageList = 'chat-service/chat/pin-message-list';
   final String addToStarMessage = 'chat-service/chat/add-to-star-message';
@@ -193,12 +187,11 @@ abstract class BaseService {
   final String getOneToOneMedia = 'chat-service/chat/get-one-to-one-media';
   final String addToArchive = 'chat-service/chat/add-to-archive';
   final String messageLikeUnlike = 'chat-service/chat/message-like-unlike';
-  final String groupMessageLikeUnlike = 'group-chat-service/chat/message-like-unlike';
   final String getChatRequest = 'chat-service/connections/requests';
   final String getLatestChat = 'chat-service/chat/latest-chat';
   final String reactChatRequest = 'chat-service/connections/respond';
   final String connectionsSync = 'chat-service/connections/sync';
-    final String myconnectionsSync = 'chat-service/connections/my';
+  final String myconnectionsSync = 'chat-service/connections/my';
   final String requestForPersonalChat = 'chat-service/connections/request';
 
   /// Shorts-feed service

@@ -71,8 +71,8 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
         }
       },
       child: Container(
-        margin: EdgeInsets.only(right: 20),
-        width: MediaQuery.of(context).size.width * 0.45,
+        margin: EdgeInsets.only(right:widget.isFromChatCard? 0:20),
+        width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
         height: 310,
         // responsive width
         decoration: BoxDecoration(
@@ -105,7 +105,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
 
             // Title & price
             Container(
-              height: SizeConfig.size40,
+              height: SizeConfig.size50,
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(

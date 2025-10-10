@@ -5,9 +5,10 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../chat_screen.dart';
 import 'component_widgets.dart';
@@ -24,16 +25,15 @@ class GroupReactionInfoWidget extends StatefulWidget {
 
 class _GroupReactionInfoWidgetState extends State<GroupReactionInfoWidget> {
   final chatThemeController = Get.find<ChatThemeController>();
-  final chatViewController = Get.find<GroupChatViewController>();
+  final chatViewController = Get.find<ChatViewController>();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 252,
+      width: SizeConfig.screenWidth*0.71,
       padding: EdgeInsets.only(left: 8,right: 8, top: 8,bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-
         borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10),bottomRight: Radius.circular(10)),
       ),
 

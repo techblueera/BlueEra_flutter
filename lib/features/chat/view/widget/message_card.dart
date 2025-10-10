@@ -248,7 +248,7 @@ class _MessageCardState extends State<MessageCard>
             selectedVariants: (message.last.contains("{"))?jsonDecode(message.last):{},
           ),
 
-              width: 172
+              width: SizeConfig.screenWidth*0.68
           );
         }else{
           messageWidget=SizedBox();
@@ -281,6 +281,7 @@ class _MessageCardState extends State<MessageCard>
                       .clamp(0, 60); // slide limit
                 });
               },
+
               onHorizontalDragEnd: (details) {
                 if (details.primaryVelocity! > 0) {
                   chatViewController.setReplyMessage(widget.message);
@@ -520,11 +521,10 @@ class _MessageCardState extends State<MessageCard>
                   // Product Name
                   CustomText(
                     product.name,
+                    fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.mainTextColor,
-                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 4),
 

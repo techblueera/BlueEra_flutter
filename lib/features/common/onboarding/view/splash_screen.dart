@@ -31,7 +31,14 @@
     }
 
     Future<void> askLocationPermission() async {
-
+     //  await SharedPreferenceUtils.setSecureValue(
+     //      SharedPreferenceUtils.authToken, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOnsiX2lkIjoiNjg5ZGViN2FhYzhiZWIxMDUzN2UzMTA3IiwiYWNjb3VudF90eXBlIjoiSU5ESVZJRFVBTCIsImNvbnRhY3Rfbm8iOiI3Nzk4ODcxNDY0IiwiYnVzaW5lc3NfaWQiOm51bGx9LCJpYXQiOjE3NTc0MTM3OTQsImV4cCI6MTc3Mjk2NTc5NH0.QzildWHvDot-O_HI0TnEhrEW8qMYZ9_yWApTezS6Tz0");
+     // await SharedPreferenceUtils.setSecureValue(
+     //      SharedPreferenceUtils.accountType,"personal");
+     //
+     //
+     // await SharedPreferenceUtils.setSecureValue(
+     //      SharedPreferenceUtils.isUserLogin,"true");
     }
 
     void _openNextScreen() async {

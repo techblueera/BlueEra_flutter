@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,6 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-
     chatThemeController.isMessageSelectionActive;
     return GestureDetector(
       onLongPress: (){
@@ -44,147 +44,167 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
           chatThemeController.selectMoreMessage(widget.messages);
         }
       },
-
       child:Container(
         width: double.infinity,
         color: Colors.transparent,
         child: Container(
-          width: 254,
+          width: SizeConfig.screenWidth*0.8,
+
           margin: EdgeInsets.only(left: (widget.isReceiveMsg)?0:50,right:  (widget.isReceiveMsg)?50:0),
-          child: Align(
-            alignment: (widget.isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
-            child: IntrinsicWidth(
-              // stepWidth: 200,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 11, vertical:(widget.isReceiveMsg)? 5:8),
+          child: Row(
+             mainAxisAlignment: (!widget.isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              (!widget.isReceiveMsg)?SizedBox():Container(
+                margin: EdgeInsets.only(right: 6),
+                height: 26,
+                width: 26,
                 decoration: BoxDecoration(
-                  color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular((widget.isReceiveMsg) ? 12 : 0),
-                    bottomLeft: Radius.circular((widget.isReceiveMsg) ? 0 : 12),
-                  ),
+                  borderRadius: BorderRadius.circular(26),
+                  color: chatThemeController.getDarkColorForSender(widget.messages.senderId ?? "unknown",0.1)
                 ),
-                child: Column(mainAxisSize: MainAxisSize.min,
-
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    (widget.isReceiveMsg)?Container(
-                      child:Row(
-                        children: [
-                          CustomText(
-                            "${widget.messages.sender?.name}",
-                            fontWeight: FontWeight.w900,
-                            color: Colors.grey.shade700,
-                            fontSize: 12.3,
-                          ),
-                        ],
+                child: Center(child: CustomText("${widget.messages.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(widget.messages.senderId ?? "unknown"),)),
+              ),
+              Align(
+                alignment: (widget.isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
+                child: IntrinsicWidth(
+                  // stepWidth: 200,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 11, vertical:(widget.isReceiveMsg)? 5:8),
+                    decoration: BoxDecoration(
+                      color:(widget.isReceiveMsg)
+                          ? chatThemeController.getColorForSender(widget.messages.senderId ?? "unknown")
+                          : chatThemeController.myMessageBgColor.value,
+                      // color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular((widget.isReceiveMsg) ? 12 : 0),
+                        bottomLeft: Radius.circular((widget.isReceiveMsg) ? 0 : 12),
                       ),
-                    ):SizedBox(),
-                    (widget.isReceiveMsg)?SizedBox(
-                      height: 2,
-                    ):SizedBox(),
-                    (widget.messages.replyId!=null&&widget.messages.replyId!=''&&widget.messages.replyId!='null')?Container(
-                      height: 46,
-                      margin: EdgeInsets.only(bottom: 4),
+                    ),
+                    child: Column(mainAxisSize: MainAxisSize.min,
 
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(0),
-                          topRight: Radius.circular(8),
-                          bottomRight: Radius.circular(8),
-                        ),
-                        color: AppColors.greyA5.withOpacity(0.4),
-                      ),
-                      padding: EdgeInsets.only(right: 8),
-                      child: Center(child:
-                      Row(
-                        children: [
-                          Container(
-                            height: 40,
-                            width: 3,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 8,),
-
-                          InkWell(
-                            onTap: (){
-                              chatViewController.scrollController.jumpTo(100);
-                            },
-                            child: SizedBox(
-                              width: 200,
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  CustomText("${(widget.messages.replyParentMessage?.myMessage??false)?"You":widget.messages.replyParentMessage?.sender?.name}",
-                                    fontWeight: FontWeight.w600,
-                                    color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
-                                    fontSize: 15,
-                                  ),
-                                  replyMessageTypeIconWithLabel(widget.messages),
-
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )),
-                    ):SizedBox(),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: (widget.message.length <= 100)
-                                      ? widget.message
-                                      : widget.message.substring(0, 100),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: widget.isReceiveMsg ? Colors.black : Colors.white,
-                                    fontSize: 15,
+                        (widget.isReceiveMsg)?Container(
+                          child:Row(
+                            children: [
+                              CustomText(
+                                "${widget.messages.sender?.name}",
+                                fontWeight: FontWeight.w400,
+                                color: chatThemeController.getDarkColorForSender(widget.messages.senderId ?? "unknown"),
+                                fontFamily: "Rounded Mplus 1c",
+                                fontSize: 13.3,
+                              ),
+                            ],
+                          ),
+                        ):SizedBox(),
+                        (widget.isReceiveMsg)?SizedBox(
+                          height: 2,
+                        ):SizedBox(),
+                        (widget.messages.replyId!=null&&widget.messages.replyId!=''&&widget.messages.replyId!='null')?Container(
+                          height: 46,
+                          margin: EdgeInsets.only(bottom: 4),
+
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(0),
+                              topRight: Radius.circular(8),
+                              bottomRight: Radius.circular(8),
+                            ),
+                            color: AppColors.greyA5.withOpacity(0.4),
+                          ),
+                          padding: EdgeInsets.only(right: 8),
+                          child: Center(child:
+                          Row(
+                            children: [
+                              Container(
+                                height: 40,
+                                width: 3,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8,),
+
+                              InkWell(
+                                onTap: (){
+                                  chatViewController.scrollController.jumpTo(100);
+                                },
+                                child: SizedBox(
+                                  width: 200,
+                                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      CustomText("${(widget.messages.replyParentMessage?.myMessage??false)?"You":widget.messages.replyParentMessage?.sender?.name}",
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                      replyMessageTypeIconWithLabel(widget.messages),
+
+                                    ],
                                   ),
                                 ),
-                                if (widget.message.length > 100)
-                                  TextSpan(
-                                    text: '... Read more',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.grey9A,
-                                      fontSize: 16,
+                              ),
+                            ],
+                          )),
+                        ):SizedBox(),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: (widget.message.length <= 100)
+                                          ? widget.message
+                                          : widget.message.substring(0, 100),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: widget.isReceiveMsg ? Colors.black : Colors.white,
+                                        fontSize: 15,
+                                      ),
                                     ),
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        FocusScope.of(context).unfocus();
-                                        _showFullMessageDialog(
-                                          context: context,
-                                          message: widget.message,
-                                          time: widget.time,
-                                          isReceiveMsg: widget.isReceiveMsg,
-                                        );
-                                      },
-                                  ),
-                              ],
+                                    if (widget.message.length > 100)
+                                      TextSpan(
+                                        text: '... Read more',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.grey9A,
+                                          fontSize: 16,
+                                        ),
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () {
+                                            FocusScope.of(context).unfocus();
+                                            _showFullMessageDialog(
+                                              context: context,
+                                              message: widget.message,
+                                              time: widget.time,
+                                              isReceiveMsg: widget.isReceiveMsg,
+                                            );
+                                          },
+                                      ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8,),
+                            Align(
+                                alignment: Alignment.bottomRight,
+                                child: timeAndReadInfoWidget(message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.white : Colors.black54,)
+                            )
+                          ],
                         ),
-                        const SizedBox(width: 8,),
-                        Align(
-                            alignment: Alignment.bottomRight,
-                            child: timeAndReadInfoWidget(message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.white : Colors.black54,)
-                        )
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),

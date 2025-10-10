@@ -66,8 +66,8 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
 
       },
       child: Container(
-        margin: EdgeInsets.only(right: 20),
-        width: MediaQuery.of(context).size.width * 0.45,
+        margin: EdgeInsets.only(right: widget.isFromChatCard? 0:20),
+        width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
         // responsive width
         decoration: BoxDecoration(
           color: Colors.white,

@@ -14,7 +14,6 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/regular_expression.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
 
@@ -28,7 +27,6 @@ class AddNewGroupPage extends StatefulWidget {
 
 class _AddNewGroupPageState extends State<AddNewGroupPage> {
   final TextEditingController groupNameController=TextEditingController();
-  final groupChatViewController = Get.find<GroupChatViewController>();
   final chatViewController = Get.find<ChatViewController>();
   final _formKey = GlobalKey<FormState>();
   bool publicGroup=false;
@@ -38,11 +36,11 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
   void initState() {
     super.initState();
   
-    chatViewController.loadGroupConnections().then((_) {
-      _populateSelectedChatList();
-    });
-    
- 
+    // chatViewController.loadGroupConnections().then((_) {
+    //   _populateSelectedChatList();
+    // });
+
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _populateSelectedChatList();
     });
@@ -52,7 +50,6 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
     setState(() {
       isLoadingMembers = true;
     });
-    
     // Clear existing selected chat list and user IDs
     chatViewController.selectedChatList.clear();
     chatViewController.selectedUserIds.clear();
@@ -126,15 +123,8 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
         }
       }
     }
-    
-   
-    print("Selected User IDs: ${widget.selectedUserIds}");
-    print("Selected Chat List Length: ${chatViewController.selectedChatList.length}");
-    print("Contacts Data Available: ${updatedDetails != null}");
-    if (updatedDetails != null) {
-      print("Existing Not Connected Count: ${updatedDetails.existingNotConnected?.length ?? 0}");
-      print("Group Connections Count: ${chatViewController.groupConnections.length}");
-    }
+
+
     
     // Set loading to false and trigger UI rebuild
     if (mounted) {
@@ -334,7 +324,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
               ApiKeys.public_group: publicGroup,
             };
           }
-          log("sdkjklsdjcnksdc ${data}");
+
           bool value=await chatViewController.createGroupApi(data);
           
           if(value==true){

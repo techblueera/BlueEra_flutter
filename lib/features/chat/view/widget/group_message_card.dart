@@ -9,9 +9,10 @@ import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'group_chat_message_bubble.dart';
@@ -43,7 +44,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
-  final chatViewController = Get.find<GroupChatViewController>();
+  final chatViewController = Get.find<ChatViewController>();
 
   final chatThemeController = Get.find<ChatThemeController>();
   @override
@@ -93,7 +94,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
         widget.message.createdAt ?? '');
 
     Widget messageWidget;
-
+    isReceive=true;
     switch (widget.message.messageType) {
       case "location":
         messageWidget = _buildMapMessage(
@@ -300,148 +301,165 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
           chatThemeController.selectMoreMessage(messages);
         }
       },
-      child: Container(
-        height: isReceiveMsg?264:244,
-        width: 257,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: isReceiveMsg
-                ? chatThemeController.receiveMessageBgColor.value
-                : chatThemeController.myMessageBgColor.value),
-        padding: EdgeInsets.all(2),
-        child: Align(
-          alignment: isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-          child: ClipRRect(
-            // Optional: Rounded corners
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: isReceiveMsg
-                      ? chatThemeController.receiveMessageBgColor.value
-                      : chatThemeController.myMessageBgColor.value),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                // mainAxisSize: MainAxisSize.min,
-                children: [
-                  (isReceiveMsg)? const SizedBox(height: 1,):SizedBox(),
-                  (isReceiveMsg)?Container(
-                    margin: EdgeInsets.only(left: 8),
-                    child:CustomText(
-                      "${messages?.sender?.name}",
-                      fontWeight: FontWeight.w900,
-                      color: Colors.grey.shade700,
-                      fontSize: 12.3,
-                    ),
-                  ):SizedBox(),
-                  (isReceiveMsg)?SizedBox(
-                    height: 4,
-                  ):SizedBox(),
-                  SizedBox(
-                    height:isReceiveMsg? 212:218,
-                    width: 252,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: (message != null) ? 150 : 218,
-                          width: 254,
-                          child: MapplsMap(
-                            onStyleLoadedCallback: () async {
-                              if (_currentPosition.latitude != 0.0 && _currentPosition.longitude != 0.0) {
-                                await mapController?.addSymbol(
-                                   SymbolOptions(
-                                  geometry: _currentPosition,
-                                  iconSize: 1.2,
-                                  // iconImage: "marker-15"
+      child: Row(
+        mainAxisAlignment: (!isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          (!isReceiveMsg)?SizedBox():Container(
+            margin: EdgeInsets.only(right: 6),
+            height: 26,
+            width: 26,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(26),
+                color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown",0.1)
+            ),
+            child: Center(child: CustomText("${widget.message.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown"),)),
+          ),
+          Container(
+            height: isReceiveMsg?273:258,
+            width:  SizeConfig.screenWidth*0.72,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: isReceiveMsg
+                    ? chatThemeController.getColorForSender(widget.message.senderId ?? "unknown")
+                    : chatThemeController.myMessageBgColor.value),
+            padding: EdgeInsets.all(2),
+            child: Align(
+              alignment: isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+              child: ClipRRect(
+                // Optional: Rounded corners
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: isReceiveMsg
+                          ? chatThemeController.getColorForSender(widget.message.senderId ?? "unknown")
+                          : chatThemeController.myMessageBgColor.value),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    // mainAxisSize: MainAxisSize.min,
+                    children: [
+                      (isReceiveMsg)? const SizedBox(height: 1,):SizedBox(),
+                      (isReceiveMsg)?Container(
+                        margin: EdgeInsets.only(left: 8),
+                        child:CustomText(
+                          "${messages?.sender?.name}",
+                          fontWeight: FontWeight.w400,
+                          color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown"),
+                          fontFamily: "Rounded Mplus 1c",
+                          fontSize: 13.3,
+                        ),
+                      ):SizedBox(),
+                      (isReceiveMsg)?SizedBox(
+                        height: 4,
+                      ):SizedBox(),
+                      SizedBox(
+                        height:isReceiveMsg? 225:218,
+                        width:  SizeConfig.screenWidth*0.72,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: (message != null) ? 154 : 218,
+                              width:  SizeConfig.screenWidth*0.72,
+                              child: MapplsMap(
+                                onStyleLoadedCallback: () async {
+                                  if (_currentPosition.latitude != 0.0 && _currentPosition.longitude != 0.0) {
+                                    await mapController?.addSymbol(
+                                       SymbolOptions(
+                                      geometry: _currentPosition,
+                                      iconSize: 1.2,
+                                      // iconImage: "marker-15"
+                                    ),
+                                  );
+                                  setState(() {});
+                                }
+                                },
+                                onMapCreated: (MapplsMapController controller) async {
+                                  mapController = controller;
+
+                                },
+                                initialCameraPosition: CameraPosition(
+                                  target: _currentPosition,
+                                  zoom: 15.0,
                                 ),
-                              );
-                              setState(() {});
-                            }
-                            },
-                            onMapCreated: (MapplsMapController controller) async {
-                              mapController = controller;
-
-                            },
-                            initialCameraPosition: CameraPosition(
-                              target: _currentPosition,
-                              zoom: 15.0,
+                                myLocationEnabled: false,
+                                compassEnabled: false,
+                                rotateGesturesEnabled: true,
+                                tiltGesturesEnabled: true,
+                                zoomGesturesEnabled: true,
+                                scrollGesturesEnabled: true,
+                              ),
                             ),
-                            myLocationEnabled: false,
-                            compassEnabled: false,
-                            rotateGesturesEnabled: true,
-                            tiltGesturesEnabled: true,
-                            zoomGesturesEnabled: true,
-                            scrollGesturesEnabled: true,
-                          ),
+
+                            // SizedBox(
+                            //   height: (message != null) ? 150 : 218,
+                            //   width: 254,
+                            //   child: GoogleMap(
+                            //     initialCameraPosition: CameraPosition(
+                            //       target: _currentPosition,
+                            //       zoom: 15,
+                            //     ),
+                            //     markers: {_currentMarker},
+                            //     // myLocationEnabled: true,
+                            //     zoomControlsEnabled: false,
+                            //     myLocationButtonEnabled: false,
+                            //     mapType: MapType.terrain,
+                            //     onMapCreated: (controller) {
+                            //       controller.setMapStyle(
+                            //           mapLightCode); // If you're using a style
+                            //     },
+                            //   ),
+                            // ),
+
+
+                            if (message != null)
+                              const SizedBox(
+                                height: 8,
+                              ),
+                            if (message != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: CustomText(
+                                  "${message.split('\n')[0]}",
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                  (isReceiveMsg) ? Colors.black87 : Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            if (message != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: CustomText(
+                                  "${message.split('\n')[1]}",
+                                  fontWeight: FontWeight.w400,
+                                  color:
+                                  (isReceiveMsg) ? Colors.black87 : Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            if (message != null)
+                              const SizedBox(
+                                height: 10,
+                              ),
+                          ],
                         ),
-
-                        // SizedBox(
-                        //   height: (message != null) ? 150 : 218,
-                        //   width: 254,
-                        //   child: GoogleMap(
-                        //     initialCameraPosition: CameraPosition(
-                        //       target: _currentPosition,
-                        //       zoom: 15,
-                        //     ),
-                        //     markers: {_currentMarker},
-                        //     // myLocationEnabled: true,
-                        //     zoomControlsEnabled: false,
-                        //     myLocationButtonEnabled: false,
-                        //     mapType: MapType.terrain,
-                        //     onMapCreated: (controller) {
-                        //       controller.setMapStyle(
-                        //           mapLightCode); // If you're using a style
-                        //     },
-                        //   ),
-                        // ),
-
-
-                        if (message != null)
-                          const SizedBox(
-                            height: 8,
-                          ),
-                        if (message != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: CustomText(
-                              "${message.split('\n')[0]}",
-                              fontWeight: FontWeight.w600,
-                              color:
-                              (isReceiveMsg) ? Colors.black87 : Colors.white,
-                              fontSize: 16,
+                      ),
+                      Positioned(
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 12.0,right: 10,top: 4),
+                              child:  timeAndReadInfoWidget(message: messages!,isMyMessage: messages.myMessage??false,time: time,timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,indicateColor:messages.messageRead==1?Colors.blue:Colors.grey),
                             ),
-                          ),
-                        if (message != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: CustomText(
-                              "${message.split('\n')[1]}",
-                              fontWeight: FontWeight.w400,
-                              color:
-                              (isReceiveMsg) ? Colors.black87 : Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        if (message != null)
-                          const SizedBox(
-                            height: 10,
-                          ),
-                      ],
-                    ),
+                          )),
+                    ],
                   ),
-                  Positioned(
-                      child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 12.0,right: 10,top: 4),
-                          child:  timeAndReadInfoWidget(message: messages!,isMyMessage: messages.myMessage??false,time: time,timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,indicateColor:messages.messageRead==1?Colors.blue:Colors.grey),
-                        ),
-                      )),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -461,127 +479,144 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
 
         }
       },
-      child: Align(
-        alignment: (isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
-        child: IntrinsicWidth(
-          child: Container(
-            width: 256,
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: isReceiveMsg
-                  ? Colors.white
-                  : chatThemeController.myMessageBgColor.value,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
-                bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                (isReceiveMsg)?CustomText(
-
-                  "${message?.sender?.name}",
-                  fontWeight: FontWeight.w900,
-                  color: Colors.grey.shade700,
-                  fontSize: 12.3,
-                ):SizedBox(),
-                (isReceiveMsg)?SizedBox(
-                  height: 4,
-                ):SizedBox(),
-                Row(
+      child: Row(
+          mainAxisAlignment: (!isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        (!isReceiveMsg)?SizedBox():Container(
+          margin: EdgeInsets.only(right: 6),
+          height: 26,
+          width: 26,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(26),
+              color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown",0.1)
+          ),
+          child: Center(child: CustomText("${widget.message.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown"),)),
+        ),
+          Align(
+            alignment: (isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
+            child: IntrinsicWidth(
+              child: Container(
+                width: 256,
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isReceiveMsg
+                      ?chatThemeController.getColorForSender(widget.message.senderId ?? "unknown")
+                      : chatThemeController.myMessageBgColor.value,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular((isReceiveMsg) ? 12 : 0),
+                    bottomLeft: Radius.circular((isReceiveMsg) ? 0 : 12),
+                  ),
+                ),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      backgroundColor: theme.colorScheme.surface.withOpacity(0.8),
-                      radius: 18,
-                      child: Center(
-                        child: Icon(
-                          Icons.person,
-                          color: theme.colorScheme.inverseSurface,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    (isReceiveMsg)?CustomText(
+
+                      "${message?.sender?.name}",
+                      fontWeight: FontWeight.w400,
+                      color: chatThemeController.getDarkColorForSender(widget.message.senderId ?? "unknown"),
+                      fontFamily: "Rounded Mplus 1c",
+                      fontSize: 13.3,
+                    ):SizedBox(),
+                    (isReceiveMsg)?SizedBox(
+                      height: 4,
+                    ):SizedBox(),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        SizedBox(
-                          width: 180,
-                          child: CustomText(
-                            name,
-                            fontWeight: FontWeight.w500,
-                            color: (isReceiveMsg) ? Colors.black87 : Colors.white,
-                            fontSize: 16,
+                        CircleAvatar(
+                          backgroundColor: theme.colorScheme.surface.withOpacity(0.8),
+                          radius: 18,
+                          child: Center(
+                            child: Icon(
+                              Icons.person,
+                              color: theme.colorScheme.inverseSurface,
+                            ),
                           ),
                         ),
                         const SizedBox(
-                          width: 8,
+                          width: 12,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 180,
+                              child: CustomText(
+                                name,
+                                fontWeight: FontWeight.w500,
+                                color: (isReceiveMsg) ? Colors.black87 : Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: CustomText(
+                                number,
+                                color:
+                                (!isReceiveMsg) ? Colors.white : Colors.black54,
+                                fontSize: 12,
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                    (isReceiveMsg)
+                        ? const SizedBox(
+                      height: 10,
+                    )
+                        : SizedBox(),
+                    (isReceiveMsg)
+                        ? InkWell(
+                      onTap: () async {
+                        saveContactWithEditor(name, number);
+                      },
+                      child: Container(
+                        height: 32,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: (isReceiveMsg)
+                                ? theme.colorScheme.secondary
+                                : theme.colorScheme.secondary.withOpacity(0.6)),
+                        child: Center(
+                          child: CustomText(
+                            "Save",
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                        : SizedBox(),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(
+                          height: 10,
                         ),
                         Align(
                           alignment: Alignment.bottomRight,
-                          child: CustomText(
-                            number,
-                            color:
-                            (!isReceiveMsg) ? Colors.white : Colors.black54,
-                            fontSize: 12,
-                          ),
+                          child:  timeAndReadInfoWidget(message: message!,isMyMessage: message.myMessage??false,time: time,timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,indicateColor:message.messageRead==1?Colors.blue:Colors.grey),
                         )
                       ],
-                    )
+                    ),
                   ],
                 ),
-                (isReceiveMsg)
-                    ? const SizedBox(
-                  height: 10,
-                )
-                    : SizedBox(),
-                (isReceiveMsg)
-                    ? InkWell(
-                  onTap: () async {
-                    saveContactWithEditor(name, number);
-                  },
-                  child: Container(
-                    height: 32,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: (isReceiveMsg)
-                            ? theme.colorScheme.secondary
-                            : theme.colorScheme.secondary.withOpacity(0.6)),
-                    child: Center(
-                      child: CustomText(
-                        "Save",
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                )
-                    : SizedBox(),
-                const SizedBox(
-                  height: 8,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child:  timeAndReadInfoWidget(message: message!,isMyMessage: message.myMessage??false,time: time,timeColor: (!isReceiveMsg) ? Colors.white : Colors.black54,indicateColor:message.messageRead==1?Colors.blue:Colors.grey),
-                    )
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

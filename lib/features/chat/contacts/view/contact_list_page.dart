@@ -41,7 +41,7 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.from == "Group") {
+    if (widget.from == "group") {
       chatViewController.loadGroupConnections();
     } else {
       _loadContactsFromStorage();
@@ -179,7 +179,7 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bool isGroupMode = widget.from == "Group";
+    final bool isGroupMode = widget.from == "group";
 
     return WillPopScope(
       onWillPop: () async {
@@ -226,6 +226,7 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
             Expanded(
               child: Obx(() {
+                print("sdlkcsdlkmcsdlc ${chatViewController.viewContactsListResponse.value.status}");
                 if (chatViewController.viewContactsListResponse.value.status ==
                     Status.COMPLETE) {
                   final details =
@@ -244,7 +245,8 @@ class _ContactsPageState extends State<ContactsPage> {
 
                   if (isGroupMode) {
                     final groupList = chatViewController.groupConnections;
-                    return ListView.builder(physics: NeverScrollableScrollPhysics(),
+                    return ListView.builder(
+                      physics: NeverScrollableScrollPhysics(),
                       itemCount: groupList.length,
                       itemBuilder: (context, index) {
                         final item = groupList[index];
@@ -335,7 +337,7 @@ class _ContactsPageState extends State<ContactsPage> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: CustomBtn(
-              bgColor: theme.colorScheme.primary,
+              bgColor: _selectedUserIds.isEmpty?theme.colorScheme.primary.withOpacity(0.5):theme.colorScheme.primary,
               width: double.infinity,
               height: 48,
               onTap: _selectedUserIds.isEmpty
@@ -352,7 +354,7 @@ class _ContactsPageState extends State<ContactsPage> {
               },
               title: _selectedUserIds.isEmpty
                   ? "Select members"
-                  : "Add Members (${_selectedUserIds.length})",
+                  : "Added Members (${_selectedUserIds.length})",
             ),
           ),
         )
@@ -420,6 +422,8 @@ class _GroupContactTile extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(phone),
       trailing: Checkbox(
+        activeColor: Colors.blue, // fill color when selected
+        checkColor: Colors.white, // tick color
         value: isSelected,
         onChanged: (_) => onSelect(userId),
       ),

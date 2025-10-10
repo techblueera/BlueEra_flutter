@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../auth/controller/group_chat_view_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 
 class GroupChatCustomVideoPlayer extends StatefulWidget {
   final String videoUrl;
@@ -29,7 +29,7 @@ class GroupChatCustomVideoPlayer extends StatefulWidget {
 class _GroupChatCustomVideoPlayerState extends State<GroupChatCustomVideoPlayer> {
   late VideoPlayerController _controller;
   bool _initialized = false;
-  final chatViewController = Get.find<GroupChatViewController>();
+  final chatViewController = Get.find<ChatViewController>();
 
   @override
   void initState() {

@@ -151,54 +151,52 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _groupFeature(
-                                  icon: AppIconAssets.chat_call,
-                                  title: 'Audio'),
-                              _groupFeature(
-                                  icon: AppIconAssets.chat_video_call,
-                                  title: 'Video'),
-                              _groupFeature(
-                                  icon: AppIconAssets.add, title: 'Add'),
+                              // _groupFeature(
+                              //     icon: AppIconAssets.chat_call,
+                              //     title: 'Audio'),
+                              // _groupFeature(
+                              //     icon: AppIconAssets.chat_video_call,
+                              //     title: 'Video'),
                             ],
                           ),
+                          const SizedBox(height: 10),
                         ],
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 20),
                 ListView.builder(
   padding: EdgeInsets.symmetric(vertical: 6),
-  itemCount: members.length + 1, // 👈 extra item for "Add Members"00
+  itemCount: members.length, // 👈 extra item for "Add Members"00
   shrinkWrap: true,
   physics: NeverScrollableScrollPhysics(), // optional (if inside scroll)
   itemBuilder: (context, index) {
-    if (index == 0) {
-    
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.grey.shade300,
-              radius: 22,
-              child: Icon(Icons.person_add, color: Colors.black87),
-            ),
-            SizedBox(width: 12),
-            CustomText(
-              "Add Members",
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.grayText,
-            ),
-          ],
-        ),
-      );
-    }
+    // if (index == 0) {
+    //
+    //   return Padding(
+    //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    //     child: Row(
+    //       children: [
+    //         CircleAvatar(
+    //           backgroundColor: Colors.grey.shade300,
+    //           radius: 22,
+    //           child: Icon(Icons.person_add, color: Colors.black87),
+    //         ),
+    //         SizedBox(width: 12),
+    //         CustomText(
+    //           "Add Members",
+    //           fontSize: 16,
+    //           fontWeight: FontWeight.bold,
+    //           color: AppColors.grayText,
+    //         ),
+    //       ],
+    //     ),
+    //   );
+    // }
 
    
-    final member = members[index - 1];
+    final member = members[index ];
 
     final String displayName = (member.name?.trim().isNotEmpty == true)
         ? member.name!.trim()
@@ -243,7 +241,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
       //  isAdmin
       //     ?
            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(12),
@@ -251,6 +249,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
               ),
               child: const CustomText(
                 'Admin',
+                fontSize: 14,
             
               ),
             )
@@ -283,11 +282,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
         Container(
           padding: EdgeInsets.all(10),
           margin: EdgeInsets.all(10),
-          height: SizeConfig.size80,
           width: SizeConfig.size80,
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: Colors.grey.shade300,
+              color: Colors.grey.shade200,
               border: Border.all(color: Colors.grey.shade400)),
           child: Column(
             children: [
@@ -302,10 +300,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                   Icons.image_not_supported,
                   color: Colors.black54,
                 ),
-              SizedBox(
-                height: SizeConfig.size5,
-              ),
-              CustomText(title ?? '')
+              // SizedBox(
+              //   height: SizeConfig.size5,
+              // ),
+              // CustomText(title ?? '')
             ],
           ),
         )

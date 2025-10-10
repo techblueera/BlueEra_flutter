@@ -22,7 +22,6 @@ import '../../../personal/personal_profile/view/visit_personal_profile/new_visit
 import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/controller/group_chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../call_screen/call_screen.dart';
 import '../chat_screen.dart';
@@ -130,7 +129,6 @@ Widget ChatListTile(
     required bool? isFromGroupSelect,
     required int index,
     required ChatViewController chatViewController,
-    GroupChatViewController? groupChatViewController,
     required ChatList? chat,
     required ThemeData theme}) {
   final userId = chat?.sender?.id ?? '';
@@ -373,7 +371,7 @@ Widget ChatListTile(
                               )
                             : chat?.lastMessage == null
                                 ? CustomText(
-                                    "${chat?.sender!.designation}",
+                                    "${(chat?.sender?.designation==null)?chat?.sender?.contactNo:chat?.sender?.designation}",
                                     fontSize: 14,
                                     color: AppColors.grey9A,
                                     overflow: TextOverflow.ellipsis,
