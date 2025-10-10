@@ -179,4 +179,16 @@ class AuthRepo extends BaseService {
     );
     return response;
   }
+
+  // Get products API call
+  Future<ResponseModel> aiGenerateBioRepo(
+      {required Map<String, dynamic> bodyParam}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "$aiGenerateBio",
+      params: bodyParam,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

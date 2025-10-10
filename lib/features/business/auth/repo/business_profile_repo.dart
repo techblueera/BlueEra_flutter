@@ -204,4 +204,5 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
+
 }

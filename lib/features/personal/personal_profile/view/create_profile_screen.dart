@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/ai_suggestion_field.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -66,7 +69,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   @override
   void initState() {
+    final user =
+        viewPersonalDetailsController.personalProfileDetails.value.user;
+
     super.initState();
+    personalCreateProfileController.selectedGender.value =
+        GenderTypeExtension.fromString((user?.gender?.isNotEmpty ?? false)
+            ? user?.gender ?? "male"
+            : "male");
     calculateEmailAndIsEmailVerified();
   }
 
@@ -244,19 +254,41 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     },
                   ),
                   SizedBox(height: SizeConfig.size18),
-
-                  CommonTextField(
-                    title: 'About Me / Bio',
-                    textEditController: bioController,
-                    hintText: 'Write about yourself',
-                    maxLine: 5,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your bio';
-                      }
-                      return null;
+                  AiSuggestionField(
+                    title: "About Me / Bio",
+                    apiType: "bio",
+                    textController: bioController,
+                    bodyRequest: {
+                      ApiKeys.profession:  viewPersonalDetailsController.personalProfileDetails.value.user?.profession,
+                      ApiKeys.designation: viewPersonalDetailsController.personalProfileDetails.value.user?.designation,
+                      ApiKeys.date_of_birth_Obj: {
+                        ApiKeys.year:
+                            personalCreateProfileController.selectedYear?.value,
+                        ApiKeys.month: personalCreateProfileController
+                            .selectedMonth?.value,
+                        ApiKeys.date:
+                            personalCreateProfileController.selectedDay?.value
+                      },
+                      ApiKeys.gender: personalCreateProfileController
+                          .selectedGender.value?.name
                     },
+
+                    // onSaved: filedValidation,
+                    // call your validation here
+                    // onChange: filedValidation, // when user edits manually
                   ),
+                  // CommonTextField(
+                  //   title: 'About Me / Bio',
+                  //   textEditController: bioController,
+                  //   hintText: 'Write about yourself',
+                  //   maxLine: 5,
+                  //   validator: (value) {
+                  //     if (value == null || value.isEmpty) {
+                  //       return 'Please enter your bio';
+                  //     }
+                  //     return null;
+                  //   },
+                  // ),
 
                   SizedBox(height: SizeConfig.size32),
 
@@ -282,7 +314,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           onTap: () {
                             if (_formKey.currentState!.validate()) {
                               // Save profile data
-                              personalCreateProfileController
+                                 personalCreateProfileController
                                   .updateUserProfileDetails(
                                 params: {
                                   ApiKeys.location:

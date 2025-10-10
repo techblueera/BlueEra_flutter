@@ -24,6 +24,7 @@ import 'package:get/get.dart';
 class CreateMessagePostScreenNew extends StatefulWidget {
   final Post? post;
   final bool isEdit;
+  final bool isRepost=false;
   final PostVia? postVia;
 
   const CreateMessagePostScreenNew(

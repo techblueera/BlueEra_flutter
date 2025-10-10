@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
 import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
+import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new_backup.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -385,7 +386,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                   ],
                                                 ),
                                               ),
-                                              /*   Padding(
+                                            /*  Padding(
                                                 padding: EdgeInsets.only(
                                                     top: SizeConfig.size10,
                                                     bottom: SizeConfig.size10),
@@ -394,66 +395,81 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                       .secondaryTextColor,
                                                 ),
                                               ),
-                                              Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
+                                              InkWell(
+                                                onTap: () {
+                                                  Get.back();
+                                                  Get.to(
+                                                      CreateMessagePostScreenRepost(
+                                                    isEdit: false,
+                                                    post: widget.post,
+                                                  ));
+                                                },
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
                                                     Container(
                                                       width: SizeConfig.size30,
                                                       height: SizeConfig.size30,
-                                                    child: LocalAssets(
-                                                      imagePath: AppIconAssets
-                                                          .pencilIcon,
-                                                      width: SizeConfig.size20,
-                                                      height: SizeConfig.size20,
-                                                      // imgColor: AppColors.secondaryTextColor,
-
+                                                      child: LocalAssets(
+                                                        imagePath: AppIconAssets
+                                                            .pencilIcon,
+                                                        width:
+                                                            SizeConfig.size20,
+                                                        height:
+                                                            SizeConfig.size20,
+                                                        // imgColor: AppColors.secondaryTextColor,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  Flexible(
-                                                    flex: 2,
-
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Padding(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                                  horizontal:
-                                                                      SizeConfig
-                                                                          .size10),
-                                                          child: CustomText(
-                                                            "Add your things",
-                                                            textAlign:
-                                                                TextAlign.left,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize:
-                                                                SizeConfig.size16,
+                                                    Flexible(
+                                                      flex: 2,
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Padding(
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                    horizontal:
+                                                                        SizeConfig
+                                                                            .size10),
+                                                            child: CustomText(
+                                                              "Add your things",
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .left,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize:
+                                                                  SizeConfig
+                                                                      .size16,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        Padding(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                                  horizontal:
-                                                                      SizeConfig
-                                                                          .size10),
-                                                          child: CustomText(
-                                                            "Add a comment ,photo before you share this post",
-                                                            textAlign:
-                                                                TextAlign.left,
-                                                            color: AppColors
-                                                                .secondaryTextColor,
-                                                            fontSize:
-                                                                SizeConfig.size13,
+                                                          Padding(
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                    horizontal:
+                                                                        SizeConfig
+                                                                            .size10),
+                                                            child: CustomText(
+                                                              "Add a comment ,photo before you share this post",
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .left,
+                                                              color: AppColors
+                                                                  .secondaryTextColor,
+                                                              fontSize:
+                                                                  SizeConfig
+                                                                      .size13,
+                                                            ),
                                                           ),
-                                                        ),
-                                                      ],
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),*/
                                               SizedBox(
                                                   height: SizeConfig.size20),

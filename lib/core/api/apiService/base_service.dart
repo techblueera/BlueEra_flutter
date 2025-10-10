@@ -463,6 +463,7 @@ abstract class BaseService {
   final String videoUploadStatus = 'video-service/videos/upload-status';
   final String aiGenerateBusinessDescription = 'ai-service/api/ai-business/generate-description';
   final String appMaintenance = 'ai-service/api/maintenance';
+  final String aiGenerateBio = 'ai-service/api/ai-profile/generate-bio';
 
 
 }

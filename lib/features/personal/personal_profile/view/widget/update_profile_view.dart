@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/ai_suggestion_field.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -39,6 +40,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final designationController = TextEditingController();
   final specializationController = TextEditingController();
   final professionOthersController = TextEditingController();
+
   // final organizationController = TextEditingController();
   final addBio = TextEditingController();
   final sectorTextController = TextEditingController();
@@ -58,7 +60,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
 
-  final personalCreateProfileController = Get.find<PersonalCreateProfileController>();
+  final personalCreateProfileController =
+      Get.find<PersonalCreateProfileController>();
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
   bool isProfileCreateStatus = false;
   final authController = Get.find<AuthController>();
@@ -94,175 +97,180 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   void initState() {
     apiCalling();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      isProfileCreateStatus =
+          viewProfileController.personalProfileDetails.value.isProfileCreated ??
+              false;
+      nameController.text =
+          viewProfileController.personalProfileDetails.value.user?.name ?? "";
+      addBio.text =
+          viewProfileController.personalProfileDetails.value.user?.bio ?? "";
 
-    isProfileCreateStatus =
-        viewProfileController.personalProfileDetails.value.isProfileCreated ??
-            false;
-    nameController.text =
-        viewProfileController.personalProfileDetails.value.user?.name ?? "";
-    addBio.text =
-        viewProfileController.personalProfileDetails.value.user?.bio ?? "";
-
-    designationController.text =
-        viewProfileController.personalProfileDetails.value.user?.designation ??
-            "";
-
-    emailController.text =
-        viewProfileController.personalProfileDetails.value.user?.email ?? "";
-    educationController.text = viewProfileController
-            .personalProfileDetails.value.user?.highestEducation ??
-        "";
-    // organizationController.text = viewProfileController
-    //         .personalProfileDetails.value.user?.currentOrganisation ??
-    //     "";
-    locationController.text =
-        viewProfileController.personalProfileDetails.value.user?.location ?? "";
-    personalCreateProfileController.imagePath?.value =
-        viewProfileController.personalProfileDetails.value.user?.profileImage ??
-            "";
-    personalCreateProfileController.selectedGender.value =
-        GenderTypeExtension.fromString((viewProfileController
-                    .personalProfileDetails.value.user?.gender?.isNotEmpty ??
-                false)
-            ? viewProfileController.personalProfileDetails.value.user?.gender ??
-                "male"
-            : "male");
-
-    personalCreateProfileController.selectedDay?.value = viewProfileController
-            .personalProfileDetails.value.user?.dateOfBirth?.date
-            ?.toInt() ??
-        0;
-    personalCreateProfileController.selectedMonth?.value = viewProfileController
-            .personalProfileDetails.value.user?.dateOfBirth?.month
-            ?.toInt() ??
-        0;
-    personalCreateProfileController.selectedYear?.value = viewProfileController
-            .personalProfileDetails.value.user?.dateOfBirth?.year
-            ?.toInt() ??
-        0;
-    personalCreateProfileController.selectedProfession.value =
-        viewProfileController.personalProfileDetails.value.user?.profession ??
-            "OTHERS";
-    selectedProfession =
-        personalCreateProfileController.selectedProfession.value;
-    if (viewProfileController.personalProfileDetails.value.user?.profession ==
-        OTHERS) {
-      professionOthersController.text = viewProfileController
-              .personalProfileDetails.value.user?.specilization ??
+      designationController.text = viewProfileController
+              .personalProfileDetails.value.user?.designation ??
           "";
-    }
 
-    ///SELF EMPLOYEE
-    if (selectedProfession == SELF_EMPLOYED) {
-      personalCreateProfileController.selectedSubProfession.value =
-          viewProfileController
-                  .personalProfileDetails.value.user?.designation ??
-              "OTHERS";
-
-
-      personalCreateProfileController.selectedSubProfessionObj.value =
-          SubcategoriesFiledName(
-              tagId: viewProfileController
-                  .personalProfileDetails.value.user?.designation,
-              name: viewProfileController
-                  .personalProfileDetails.value.user?.designation);
-
-      specializationController.text = viewProfileController
-              .personalProfileDetails.value.user?.specilization ??
+      emailController.text =
+          viewProfileController.personalProfileDetails.value.user?.email ?? "";
+      educationController.text = viewProfileController
+              .personalProfileDetails.value.user?.highestEducation ??
           "";
-    }
-
-    ///PRIVATE JOB
-    if (selectedProfession == PRIVATE_JOB) {
-      sectorTextController.text =
-          viewProfileController.personalProfileDetails.value.user?.sector ?? "";
-    }
-
-    ///SKILL WORKER..
-    if (selectedProfession == SKILLED_WORKER) {
-      _skillWorkerSpecificationTextController.text = viewProfileController
-              .personalProfileDetails.value.user?.specilization ??
-          "";
-    }
-
-    ///CONTENT CREATER
-    if (selectedProfession == CONTENT_CREATOR) {
-      _contentCraterTextController.text = viewProfileController
-              .personalProfileDetails.value.user?.specilization ??
-          "";
-    }
-
-    ///POLITICIAN
-    if (selectedProfession == POLITICIAN) {
-      politicalPartyController.text = viewProfileController
-              .personalProfileDetails.value.user?.department ??
-          "";
-    }
-
-    ///GOVT PSU
-    if (selectedProfession == GOVTPSU) {
-      departmentNameController.text =
-          viewProfileController.personalProfileDetails.value.user?.department ??
+      // organizationController.text = viewProfileController
+      //         .personalProfileDetails.value.user?.currentOrganisation ??
+      //     "";
+      locationController.text =
+          viewProfileController.personalProfileDetails.value.user?.location ??
               "";
-      subDivision.text = viewProfileController
-              .personalProfileDetails.value.user?.subDivision ??
+      personalCreateProfileController.imagePath?.value = viewProfileController
+              .personalProfileDetails.value.user?.profileImage ??
           "";
-    }
+      personalCreateProfileController.selectedGender
+          .value = GenderTypeExtension.fromString((viewProfileController
+                  .personalProfileDetails.value.user?.gender?.isNotEmpty ??
+              false)
+          ? viewProfileController.personalProfileDetails.value.user?.gender ??
+              "male"
+          : "male");
 
-    ///NGO
-    if (selectedProfession == REG_UNION) {
-      _ngoNameTextController.text =
-          viewProfileController.personalProfileDetails.value.user?.department ??
-              "";
-    }
-
-    ///ARTIST
-    if (selectedProfession == ARTIST) {
-      personalCreateProfileController.selectedSubProfession.value =
+      personalCreateProfileController.selectedDay?.value = viewProfileController
+              .personalProfileDetails.value.user?.dateOfBirth?.date
+              ?.toInt() ??
+          0;
+      personalCreateProfileController.selectedMonth?.value =
           viewProfileController
-                  .personalProfileDetails.value.user?.art?.artName ??
+                  .personalProfileDetails.value.user?.dateOfBirth?.month
+                  ?.toInt() ??
+              0;
+      personalCreateProfileController.selectedYear?.value =
+          viewProfileController
+                  .personalProfileDetails.value.user?.dateOfBirth?.year
+                  ?.toInt() ??
+              0;
+      personalCreateProfileController.selectedProfession.value =
+          viewProfileController.personalProfileDetails.value.user?.profession ??
               "OTHERS";
+      selectedProfession =
+          personalCreateProfileController.selectedProfession.value;
+      if (viewProfileController.personalProfileDetails.value.user?.profession ==
+          OTHERS) {
+        professionOthersController.text = viewProfileController
+                .personalProfileDetails.value.user?.specilization ??
+            "";
+      }
 
+      ///SELF EMPLOYEE
+      if (selectedProfession == SELF_EMPLOYED) {
+        personalCreateProfileController.selectedSubProfession.value =
+            viewProfileController
+                    .personalProfileDetails.value.user?.designation ??
+                "OTHERS";
 
-      personalCreateProfileController.selectedSubProfessionObj.value =
-          SubcategoriesFiledName(
-              tagId: viewProfileController
-                  .personalProfileDetails.value.user?.art?.artName,
-              name: viewProfileController
-                  .personalProfileDetails.value.user?.art?.artName);
+        personalCreateProfileController.selectedSubProfessionObj.value =
+            SubcategoriesFiledName(
+                tagId: viewProfileController
+                    .personalProfileDetails.value.user?.designation,
+                name: viewProfileController
+                    .personalProfileDetails.value.user?.designation);
 
-      _artTypeController.text = viewProfileController
-              .personalProfileDetails.value.user?.art?.artType ??
-          "";
-    }
-    selectedProfession = personalCreateProfileController
-        .selectedProfession.value;
-    personalCreateProfileController
-        .selectedProfessionObj.value =
-        ProfessionTypeData(
-            tagId: selectedProfession,
-            name: selectedProfession?.toLowerCase());
+        specializationController.text = viewProfileController
+                .personalProfileDetails.value.user?.specilization ??
+            "";
+      }
+
+      ///PRIVATE JOB
+      if (selectedProfession == PRIVATE_JOB) {
+        sectorTextController.text =
+            viewProfileController.personalProfileDetails.value.user?.sector ??
+                "";
+      }
+
+      ///SKILL WORKER..
+      if (selectedProfession == SKILLED_WORKER) {
+        _skillWorkerSpecificationTextController.text = viewProfileController
+                .personalProfileDetails.value.user?.specilization ??
+            "";
+      }
+
+      ///CONTENT CREATER
+      if (selectedProfession == CONTENT_CREATOR) {
+        _contentCraterTextController.text = viewProfileController
+                .personalProfileDetails.value.user?.specilization ??
+            "";
+      }
+
+      ///POLITICIAN
+      if (selectedProfession == POLITICIAN) {
+        politicalPartyController.text = viewProfileController
+                .personalProfileDetails.value.user?.department ??
+            "";
+      }
+
+      ///GOVT PSU
+      if (selectedProfession == GOVTPSU) {
+        departmentNameController.text = viewProfileController
+                .personalProfileDetails.value.user?.department ??
+            "";
+        subDivision.text = viewProfileController
+                .personalProfileDetails.value.user?.subDivision ??
+            "";
+      }
+
+      ///NGO
+      if (selectedProfession == REG_UNION) {
+        _ngoNameTextController.text = viewProfileController
+                .personalProfileDetails.value.user?.department ??
+            "";
+      }
+
+      ///ARTIST
+      if (selectedProfession == ARTIST) {
+        personalCreateProfileController.selectedSubProfession.value =
+            viewProfileController
+                    .personalProfileDetails.value.user?.art?.artName ??
+                "OTHERS";
+
+        personalCreateProfileController.selectedSubProfessionObj.value =
+            SubcategoriesFiledName(
+                tagId: viewProfileController
+                    .personalProfileDetails.value.user?.art?.artName,
+                name: viewProfileController
+                    .personalProfileDetails.value.user?.art?.artName);
+
+        _artTypeController.text = viewProfileController
+                .personalProfileDetails.value.user?.art?.artType ??
+            "";
+      }
+      selectedProfession =
+          personalCreateProfileController.selectedProfession.value;
+      personalCreateProfileController.selectedProfessionObj.value =
+          ProfessionTypeData(
+              tagId: selectedProfession,
+              name: selectedProfession?.toLowerCase());
     });
-tempImgPath=personalCreateProfileController
-    .imagePath?.value;
+    tempImgPath = personalCreateProfileController.imagePath?.value;
     super.initState();
   }
 
   String? selectedProfession;
-String? tempImgPath;
+  String? tempImgPath;
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: ()async {
+      onWillPop: () async {
         Get.back();
-        personalCreateProfileController.imagePath?.value=tempImgPath??"";
+        personalCreateProfileController.imagePath?.value = tempImgPath ?? "";
         return false;
       },
       child: Scaffold(
-        appBar: CommonBackAppBar(isLeading: true, title: "Update Profile",onBackTap: (){
-          Get.back();
-          personalCreateProfileController.imagePath?.value=tempImgPath??"";
-        },),
+        appBar: CommonBackAppBar(
+          isLeading: true,
+          title: "Update Profile",
+          onBackTap: () {
+            Get.back();
+            personalCreateProfileController.imagePath?.value =
+                tempImgPath ?? "";
+          },
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -278,8 +286,6 @@ String? tempImgPath;
                         horizontal: SizeConfig.size18,
                         vertical: SizeConfig.size10),
                     child: Obx(() {
-
-
                       return Column(
                         children: [
                           SizedBox(height: SizeConfig.size10),
@@ -291,8 +297,8 @@ String? tempImgPath;
                                       .imagePath?.value ??
                                   "",
                               onImageUpdate: (image) {
-                                personalCreateProfileController.imagePath?.value =
-                                    image;
+                                personalCreateProfileController
+                                    .imagePath?.value = image;
                                 personalCreateProfileController
                                     .isImageUpdated.value = true;
                                 filedValidation();
@@ -363,8 +369,8 @@ String? tempImgPath;
                             selectedYear: personalCreateProfileController
                                 .selectedYear?.value,
                             onDayChanged: (value) {
-                              personalCreateProfileController.selectedDay?.value =
-                                  value ?? 0;
+                              personalCreateProfileController
+                                  .selectedDay?.value = value ?? 0;
                             },
                             onMonthChanged: (value) {
                               personalCreateProfileController
@@ -403,20 +409,22 @@ String? tempImgPath;
                               hintText: "E.g., Rajiv Chowk, Delhi",
                               isValidate: false,
                               title: "Location",
-                              onTap: (){
+                              onTap: () {
                                 logs("logMsg 1");
                                 Navigator.pushNamed(
                                   context,
                                   RouteHelper.getSearchLocationScreenRoute(),
                                   arguments: {
-                                    'onPlaceSelected': (double? lat,
-                                        double? lng,
-                                        String? address,
-                                      ) {
+                                    'onPlaceSelected': (
+                                      double? lat,
+                                      double? lng,
+                                      String? address,
+                                    ) {
                                       if (address != null) {
                                         locationController.text = address;
                                         personalCreateProfileController
-                                            .setStartLocation(lat, lng, address);
+                                            .setStartLocation(
+                                                lat, lng, address);
                                       }
                                     },
                                     ApiKeys.fromScreen: ""
@@ -469,14 +477,16 @@ String? tempImgPath;
                           ),
                           SizedBox(height: SizeConfig.paddingXSL),
                           GetBuilder<AuthController>(builder: (authController) {
-                            final dataList = authController.professionTypeDataList
+                            final dataList = authController
+                                .professionTypeDataList
                                 .where((e) =>
-                            e.tagId ==
-                                personalCreateProfileController
-                                    .selectedProfession.value)
+                                    e.tagId ==
+                                    personalCreateProfileController
+                                        .selectedProfession.value)
                                 .toList();
                             if (dataList.isNotEmpty) {
-                              authController.subcategoriesFiledNameList.addAll(dataList.first.subcategoriesFiledName ?? []);
+                              authController.subcategoriesFiledNameList.addAll(
+                                  dataList.first.subcategoriesFiledName ?? []);
                             }
                             return CommonDropdownDialog<ProfessionTypeData>(
                               items: authController.professionTypeDataList,
@@ -484,23 +494,26 @@ String? tempImgPath;
                                   .selectedProfessionObj.value,
                               hintText: AppConstants.selectProfession,
                               title: "Select your Profession",
-                              displayValue: (profession) => profession.name ?? "",
+                              displayValue: (profession) =>
+                                  profession.name ?? "",
                               onChanged: (value) {
                                 personalCreateProfileController
-                                    .selectedSubProfessionObj.value=null;
-                                authController.subcategoriesFiledNameList.clear();
+                                    .selectedSubProfessionObj.value = null;
+                                authController.subcategoriesFiledNameList
+                                    .clear();
 
                                 personalCreateProfileController
                                     .selectedProfession.value = value?.tagId;
                                 personalCreateProfileController
                                     .selectedProfessionObj.value = value;
-                                logs(" profession.name==== ${    personalCreateProfileController
-                                    .selectedProfessionObj.value?.name}");
+                                logs(
+                                    " profession.name==== ${personalCreateProfileController.selectedProfessionObj.value?.name}");
 
-                                authController.subcategoriesFiledNameList.addAll(value?.subcategoriesFiledName??[]);
+                                authController.subcategoriesFiledNameList
+                                    .addAll(
+                                        value?.subcategoriesFiledName ?? []);
                                 clearTextFiled();
-                                setState(
-                                    () {});
+                                setState(() {});
                               },
                               // validator: (value) {
                               //   if (value == null) {
@@ -542,8 +555,10 @@ String? tempImgPath;
                               height: SizeConfig.size10,
                             ),
                             Obx(() {
-                              return CommonDropdownDialog<SubcategoriesFiledName>(
-                                items:  authController.subcategoriesFiledNameList,
+                              return CommonDropdownDialog<
+                                  SubcategoriesFiledName>(
+                                items:
+                                    authController.subcategoriesFiledNameList,
                                 title: "Select Work Type",
                                 selectedValue: personalCreateProfileController
                                     .selectedSubProfessionObj.value,
@@ -554,7 +569,8 @@ String? tempImgPath;
                                   personalCreateProfileController
                                       .selectedSubProfessionObj.value = value;
                                   personalCreateProfileController
-                                      .selectedSubProfession.value = value?.tagId;
+                                      .selectedSubProfession
+                                      .value = value?.tagId;
                                 },
                               );
                             }),
@@ -604,7 +620,6 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Education,Poetry",
-
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -614,7 +629,6 @@ String? tempImgPath;
                           if ((selectedProfession == REG_UNION)) ...[
                             CommonTextField(
                               isValidate: false,
-
                               textEditController: _ngoNameTextController,
                               inputLength: 40,
                               title: "Type Your NGO / Society Name",
@@ -622,7 +636,6 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Auto Union",
-
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -643,12 +656,10 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. TCS LTD",
-
                             ),
                           ],
 
                           if ((selectedProfession == HOMEMAKER)) ...[
-
                             CommonTextField(
                               isValidate: false,
 
@@ -665,13 +676,13 @@ String? tempImgPath;
                               height: SizeConfig.size20,
                             ),
                           ],
-                          if ((selectedProfession == SENIOR_CITIZEN_RETIRED)) ...[
+                          if ((selectedProfession ==
+                              SENIOR_CITIZEN_RETIRED)) ...[
                             SizedBox(
                               height: SizeConfig.size20,
                             ),
                             CommonTextField(
                               isValidate: false,
-
                               textEditController: _SeniorTextController,
                               inputLength: 24,
                               title: "Type Your Expertise",
@@ -679,14 +690,11 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. Banking,Teaching",
-
                             ),
                           ],
                           if ((selectedProfession == STUDENT)) ...[
-
                             CommonTextField(
                               isValidate: false,
-
                               textEditController: _CourseTextController,
                               inputLength: 24,
                               title: "Which class you study?",
@@ -694,7 +702,6 @@ String? tempImgPath;
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               hintText: "Eg. 10th,Diploma,BE,PHD",
-
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -714,8 +721,8 @@ String? tempImgPath;
                               height: SizeConfig.size10,
                             ),
                             CommonDropdownDialog<SubcategoriesFiledName>(
-                              items:  authController.subcategoriesFiledNameList,
-                              title:  "Select Your Art / Skill",
+                              items: authController.subcategoriesFiledNameList,
+                              title: "Select Your Art / Skill",
                               selectedValue: personalCreateProfileController
                                   .selectedSubProfessionObj.value,
                               hintText: AppConstants.selectSelfArtist,
@@ -763,11 +770,9 @@ String? tempImgPath;
                                   RegularExpressionUtils.alphabetSpacePattern,
                               title: "Sector",
                               hintText: "Eg. IT Sector",
-
                             ),
                             SizedBox(height: SizeConfig.size18),
                           ],
-
 
                           if ((selectedProfession == POLITICIAN)) ...[
                             CommonTextField(
@@ -829,17 +834,39 @@ String? tempImgPath;
                             ),
                             SizedBox(height: SizeConfig.size18),
                           ],
-
-                          CommonTextField(
-                            title: "About Me /Bio",
-                            hintText: AppConstants.myBio,
-                            textEditController: addBio,
-                            maxLine: 3,
-                            maxLength: 250,
-                            onChange: (val) {
-                              filedValidation();
+                          AiSuggestionField(
+                            title: "About Me / Bio",
+                            apiType: "bio",
+                            textController: addBio,
+                            bodyRequest: {
+                              ApiKeys.profession: selectedProfession,
+                              ApiKeys.designation: designationController.text,
+                              ApiKeys.date_of_birth_Obj: {
+                                ApiKeys.year: personalCreateProfileController
+                                    .selectedYear?.value,
+                                ApiKeys.month: personalCreateProfileController
+                                    .selectedMonth?.value,
+                                ApiKeys.date: personalCreateProfileController
+                                    .selectedDay?.value
+                              },
+                              ApiKeys.gender: personalCreateProfileController
+                                  .selectedGender.value?.name
                             },
+                            onSaved: filedValidation,
+                            // call your validation here
+                            onChange:
+                                filedValidation, // when user edits manually
                           ),
+                          // CommonTextField(
+                          //   title: "About Me /Bio",
+                          //   hintText: AppConstants.myBio,
+                          //   textEditController: addBio,
+                          //   maxLine: 3,
+                          //   maxLength: 250,
+                          //   onChange: (val) {
+                          //     filedValidation();
+                          //   },
+                          // ),
                           SizedBox(height: SizeConfig.size24),
                         ],
                       );
@@ -874,13 +901,15 @@ String? tempImgPath;
                                                 ?.isEmpty ??
                                             true) {
                                           commonSnackBar(
-                                              message: 'Select your art / skill');
+                                              message:
+                                                  'Select your art / skill');
 
                                           return;
                                         }
                                       }
                                       if (selectedProfession == REG_UNION) {
-                                        if (_ngoNameTextController.text.isEmpty) {
+                                        if (_ngoNameTextController
+                                            .text.isEmpty) {
                                           commonSnackBar(
                                               message:
                                                   'Enter your NGO / Society Name');
@@ -910,7 +939,8 @@ String? tempImgPath;
                                                     ?.name ??
                                                 "";
                                       } else {
-                                        designation = designationController.text;
+                                        designation =
+                                            designationController.text;
                                       }
 
                                       Map<String, dynamic> params = {
@@ -990,13 +1020,15 @@ String? tempImgPath;
                                                 .selectedYear,
 
                                         ///SKILL WORKER..
-                                        if (selectedProfession == SKILLED_WORKER)
+                                        if (selectedProfession ==
+                                            SKILLED_WORKER)
                                           ApiKeys.specilization:
                                               _skillWorkerSpecificationTextController
                                                   .text,
 
                                         ///CONTENT_CREATOR
-                                        if (selectedProfession == CONTENT_CREATOR)
+                                        if (selectedProfession ==
+                                            CONTENT_CREATOR)
                                           ApiKeys.specilization:
                                               _contentCraterTextController.text,
 
@@ -1045,7 +1077,6 @@ String? tempImgPath;
       ),
     );
   }
-
 
   filedValidation() {
     bool isValid = true;

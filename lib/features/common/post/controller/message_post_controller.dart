@@ -116,6 +116,12 @@ class MessagePostController extends GetxController {
     Get.find<TagUserController>().selectedUsers.clear();
   }
 
+  clearRepostData() {
+    descriptionMessage.value.clear();
+    messageText.value = "";
+    postText.value = "";
+  }
+
 
 
   void removePhoto(int index) {
