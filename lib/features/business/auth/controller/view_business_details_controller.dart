@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
@@ -104,6 +105,7 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<GetParticularReviewListModel>? getParticularReviewListModel =
       GetParticularReviewListModel().obs;
   Rx<ChannelModel>? channelModel;
+  Rx<TextEditingController> listingDescriptionController = TextEditingController().obs;
 
   // Method to set start location data
   void setStartLocation(double? lat, double? lng, String address) {

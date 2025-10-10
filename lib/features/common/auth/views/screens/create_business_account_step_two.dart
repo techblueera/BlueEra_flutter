@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -12,19 +15,23 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 
-
 class CreateBusinessAccountStepTwo extends StatefulWidget {
-  const CreateBusinessAccountStepTwo({super.key});
+  const CreateBusinessAccountStepTwo({
+    super.key,
+  });
 
   @override
   State<CreateBusinessAccountStepTwo> createState() =>
@@ -43,13 +50,17 @@ class _CreateBusinessAccountStepTwoState
   final nameTextController = TextEditingController();
   final yourRoleController = TextEditingController();
   final emailTextController = TextEditingController();
-  final businessDescriptionController = TextEditingController();
+
+  // final businessDescriptionController = TextEditingController();
+
   // final landmarkController = TextEditingController();
 
   ContactType? selectedType = ContactType.Mobile;
 
+  final descriptionController = Get.put(BusinessDescriptionController());
+
   final viewBusinessDetailsController =
-      Get.put(ViewBusinessDetailsController());
+      Get.find<ViewBusinessDetailsController>();
   bool isFormValid = false;
   final locationController = Get.put(LocationController());
 
@@ -67,14 +78,14 @@ class _CreateBusinessAccountStepTwoState
     nameTextController.addListener(_validateForm);
     yourRoleController.addListener(_validateForm);
     emailTextController.addListener(_validateForm);
-    businessDescriptionController.addListener(_validateForm);
+    viewBusinessDetailsController.listingDescriptionController.value
+        .addListener(_validateForm);
     picCodeController.addListener(_validateForm);
     // landmarkController.addListener(_validateForm);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       updateAddressFromLocation();
     });
-
   }
 
   Future<void> updateAddressFromLocation() async {
@@ -83,11 +94,12 @@ class _CreateBusinessAccountStepTwoState
       fullBusinessAddressTextController.text = locationData.fullAddress;
       cityController.text = locationData.city;
       picCodeController.text = locationData.pinCode;
-      viewBusinessDetailsController.addressLat?.value=double.parse(locationData.lat);
-      viewBusinessDetailsController.addressLong?.value=double.parse(locationData.long);
+      viewBusinessDetailsController.addressLat?.value =
+          double.parse(locationData.lat);
+      viewBusinessDetailsController.addressLong?.value =
+          double.parse(locationData.long);
     }
   }
-
 
   void _validateForm() {
     setState(() {
@@ -96,7 +108,9 @@ class _CreateBusinessAccountStepTwoState
           fullBusinessAddressTextController.text.trim().isNotEmpty &&
           nameTextController.text.trim().isNotEmpty &&
           yourRoleController.text.trim().isNotEmpty &&
-          businessDescriptionController.text.trim().isNotEmpty &&
+          viewBusinessDetailsController.businessDescription.value
+              .trim()
+              .isNotEmpty &&
           picCodeController.text.trim().isNotEmpty &&
           emailTextController.text.trim().isNotEmpty;
 
@@ -113,7 +127,6 @@ class _CreateBusinessAccountStepTwoState
     });
   }
 
-
   @override
   void dispose() {
     mobileController.dispose();
@@ -125,7 +138,7 @@ class _CreateBusinessAccountStepTwoState
     nameTextController.dispose();
     yourRoleController.dispose();
     emailTextController.dispose();
-    businessDescriptionController.dispose();
+    viewBusinessDetailsController.listingDescriptionController.value.dispose();
     picCodeController.dispose();
     // landmarkController.dispose();
     super.dispose();
@@ -205,7 +218,8 @@ class _CreateBusinessAccountStepTwoState
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
                         title: appLocalizations?.fullBusinessAddress,
-                        regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                        regularExpression:
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: appLocalizations?.fullBusinessAddress,
                         isValidate: false,
                       ),
@@ -271,28 +285,87 @@ class _CreateBusinessAccountStepTwoState
                   SizedBox(
                     height: SizeConfig.size28,
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        "Short Business Description",
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.black,
+                      ),
+                      InkWell(
+                          onTap: () async {
+                            await descriptionController.generateDescriptions(
+                                onSaved: _validateForm,
+                                bodyRequest: {
+                                  ApiKeys.business_name:
+                                      viewBusinessDetailsController
+                                          .businessProfileDetails
+                                          ?.data
+                                          ?.businessName,
+                                  ApiKeys.category:
+                                      viewBusinessDetailsController
+                                          .businessProfileDetails
+                                          ?.data
+                                          ?.categoryDetails
+                                          ?.name,
+                                  ApiKeys.sub_category:
+                                      viewBusinessDetailsController
+                                          .businessProfileDetails
+                                          ?.data
+                                          ?.subCategoryDetails
+                                          ?.name,
+                                  ApiKeys.city: cityController.text,
+                                });
+                            _validateForm();
 
+                            setState(() {});
+                          },
+                          child: LocalAssets(
+                            height: 25,
+                            width: 25,
+                            imgColor: AppColors.primaryColor,
+                            imagePath: AppIconAssets.ai_generative,
+                          )),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.paddingXSL),
                   CommonTextField(
-                    textEditController: businessDescriptionController,
-                    inputLength: AppConstants.inputCharterLimit200,
-                    keyBoardType: TextInputType.text,
-                    regularExpression:
-                        RegularExpressionUtils.alphabetSpacePatternDigitSpace,
-                    title: "Short Business Description",
+                    validator: null,
+                    borderWidth: 0,
+                    borderColor: Colors.transparent,
                     hintText:
                         "Eg., Visit our store for casual and traditional wear...",
-                    isValidate: false,
+                    textEditController: viewBusinessDetailsController
+                        .listingDescriptionController.value,
                     maxLine: 5,
+                    isValidate: false,
+                    maxLength: AppConstants.inputCharterLimit400,
+                    onChange: (val) {
+                      viewBusinessDetailsController.businessDescription.value =
+                          val;
+                      _validateForm();
+                    },
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(
+                        AppConstants.inputCharterLimit400,
+                      ),
+                      NoLeadingSpaceFormatter(),
+                      NoConsecutiveSpacesFormatter(),
+                    ],
                   ),
                   SizedBox(height: SizeConfig.size10),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: CustomText(
-                      "${businessDescriptionController.text.length}/${AppConstants.inputCharterLimit200}",
-                      color: AppColors.grey9B,
-                      fontSize: SizeConfig.small,
-                    ),
-                  ),
+                  Obx(() {
+                    return Align(
+                      alignment: Alignment.bottomRight,
+                      child: CustomText(
+                        "${viewBusinessDetailsController.businessDescription.value.length}/${AppConstants.inputCharterLimit400}",
+                        color: AppColors.grey9B,
+                        fontSize: SizeConfig.small,
+                      ),
+                    );
+                  }),
                   SizedBox(
                     height: SizeConfig.size28,
                   ),
@@ -380,7 +453,8 @@ class _CreateBusinessAccountStepTwoState
                                   }
 
                                   if (selectedType == ContactType.Landline) {
-                                    if (landlineNumberController.length <= 6 && landlineNumberController.length >= 8) {
+                                    if (landlineNumberController.length <= 6 &&
+                                        landlineNumberController.length >= 8) {
                                       commonSnackBar(
                                           message:
                                               "Please enter your valid landline number");
@@ -406,21 +480,20 @@ class _CreateBusinessAccountStepTwoState
                                     ApiKeys.city_state_pincode:
                                         cityController.text,
                                     ApiKeys.address:
-                                    fullBusinessAddressTextController.text,
-                                    // ApiKeys.lat: viewBusinessDetailsController
-                                    //     .addressLat?.value
-                                    //     .toString(),
-                                    // ApiKeys.lon: viewBusinessDetailsController
-                                    //     .addressLong?.value
-                                    //     .toString(),
-                                    "business_location":jsonEncode({
-                                      ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
-                                      ApiKeys.lon: viewBusinessDetailsController.addressLong?.value.toString(),
+                                        fullBusinessAddressTextController.text,
+                                    "business_location": jsonEncode({
+                                      ApiKeys.lat: viewBusinessDetailsController
+                                          .addressLat?.value
+                                          .toString(),
+                                      ApiKeys.lon: viewBusinessDetailsController
+                                          .addressLong?.value
+                                          .toString(),
                                     }),
                                     ApiKeys.pincode: picCodeController.text,
                                     ApiKeys.website_url: websiteController.text,
                                     ApiKeys.business_description:
-                                        businessDescriptionController.text,
+                                        viewBusinessDetailsController
+                                            .businessDescription.value,
                                     ApiKeys.owner_details: jsonEncode([
                                       {
                                         ApiKeys.name: nameTextController.text,
@@ -432,11 +505,12 @@ class _CreateBusinessAccountStepTwoState
                                   };
                                   logs("reqParam === $reqParam");
                                   await viewBusinessDetailsController
-                                         .updateBusinessDetails(reqParam);
-                                     Get.offNamedUntil(
-                                       RouteHelper.getBottomNavigationBarScreenRoute(),
-                                           (route) => false,
-                                     );
+                                      .updateBusinessDetails(reqParam);
+                                  Get.offNamedUntil(
+                                    RouteHelper
+                                        .getBottomNavigationBarScreenRoute(),
+                                    (route) => false,
+                                  );
                                 }
                               : null,
                           title: "Submit",
@@ -473,7 +547,7 @@ class _CreateBusinessAccountStepTwoState
         return Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: GestureDetector(
-            onTap: () =>  updateAddressFromLocation(),
+            onTap: () => updateAddressFromLocation(),
             child: CustomText(
               'GPS location not found (Tap to fetch)',
               fontSize: SizeConfig.small,
@@ -489,6 +563,4 @@ class _CreateBusinessAccountStepTwoState
       return SizedBox();
     });
   }
-
-
 }

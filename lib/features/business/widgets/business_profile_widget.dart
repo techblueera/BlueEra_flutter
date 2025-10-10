@@ -51,10 +51,9 @@ class BusinessProfileWidget extends StatefulWidget {
 
 class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
   BusinessProfileDetails? details;
-  final listingDescriptionController = TextEditingController();
+  // final listingDescriptionController = TextEditingController();
   final controller = Get.find<ViewBusinessDetailsController>();
-  final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+
 
   final businessDescriptionController =
       Get.put(BusinessDescriptionController());
@@ -86,21 +85,21 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ///UPLOAD PROFILE....
                     CommonProfileImage(
                       imagePath:
-                          viewBusinessDetailsController.imagePath?.value ?? "",
+                      controller.imagePath?.value ?? "",
                       onImageUpdate: (image) async {
-                        viewBusinessDetailsController.imagePath?.value = image;
+                        controller.imagePath?.value = image;
                         dioObj.MultipartFile? imageByPart;
                         // if (viewBusinessDetailsController.isImageUpdated.value) {
-                        if (viewBusinessDetailsController
+                        if (controller
                                 .imagePath?.value.isNotEmpty ??
                             false) {
-                          String fileName = viewBusinessDetailsController
+                          String fileName = controller
                                   .imagePath?.value
                                   .split('/')
                                   .last ??
                               "";
                           imageByPart = await dioObj.MultipartFile.fromFile(
-                              viewBusinessDetailsController.imagePath?.value ??
+                              controller.imagePath?.value ??
                                   "",
                               filename: fileName);
                         }
@@ -110,7 +109,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           ApiKeys.logo_image: imageByPart,
                         };
 
-                        await Get.find<ViewBusinessDetailsController>()
+                        await controller
                             .updateBusinessDetails(reqData);
                       },
                       dialogTitle: 'Upload Business Logo',
@@ -604,7 +603,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             children: [
                               InkWell(
                                   onTap: () {
-                                    listingDescriptionController.text =
+                                    controller.listingDescriptionController.value.text =
                                         controller.businessDescription.value
                                             .toString();
                                     businessDescriptionController
@@ -649,7 +648,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                               ),
                               InkWell(
                                   onTap: () {
-                                    listingDescriptionController.text =
+                                    controller.listingDescriptionController.value.text=
                                         controller.businessDescription.value
                                             .toString();
                                     setState(() {
@@ -690,8 +689,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                   width: 56,
                                   bgColor: theme.colorScheme.primary,
                                   onTap: () async {
-                                    if (listingDescriptionController
-                                        .text.isNotEmpty) {
+                                    if (controller.listingDescriptionController.value.text.isNotEmpty) {
                                       businessDescriptionController
                                           .descriptionSuggestions
                                           .clear();
@@ -703,7 +701,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                       });
                                       Map<String, dynamic> params = {
                                         ApiKeys.description:
-                                            "${listingDescriptionController.text}"
+                                            "${controller.listingDescriptionController.value.text}"
                                       };
                                       await controller
                                           .updateBusinessDescription(params);
@@ -750,111 +748,25 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           );
                         }),
                       )
-                    : Container(
-                        margin: EdgeInsets.only(top: 6),
-                        decoration: BoxDecoration(),
-                        child: CommonTextField(
-                          validator: null,
-                          borderWidth: 0,
-                          borderColor: Colors.transparent,
-                          hintText: "Add your business details",
-                          textEditController: listingDescriptionController,
-                          maxLine: 5,
-                          isValidate: false,
-                          maxLength: AppConstants.inputCharterLimit400,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(
-                              AppConstants.inputCharterLimit400,
-                            ),
-                            NoLeadingSpaceFormatter(),
-                            NoConsecutiveSpacesFormatter(),
-                          ],
+                    : CommonTextField(
+                      validator: null,
+                      borderWidth: 0,
+                      borderColor: Colors.transparent,
+
+                      hintText: "Add your business details",
+                      textEditController: controller.listingDescriptionController.value,
+                      maxLine: 5,
+                      isValidate: false,
+                      maxLength: AppConstants.inputCharterLimit400,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(
+                          AppConstants.inputCharterLimit400,
                         ),
-                      ),
-                // 📋 Show generated descriptions
-                Obx(() {
-                  if (businessDescriptionController
-                          .descriptionSuggestions.isEmpty &&
-                      controller.businessDescription == '') {
-                    return const Text(
-                      "No descriptions yet. Generate to see suggestions.",
-                      textAlign: TextAlign.center,
-                    );
-                  }
-                  if (businessDescriptionController
-                      .descriptionSuggestions.isNotEmpty)
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: SizeConfig.size10,
-                        ),
-                        const CustomText("Select a description:",
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                        const SizedBox(height: 10),
-                        ...businessDescriptionController.descriptionSuggestions
-                            .map(
-                          (desc) => GestureDetector(
-                            // onTap: () => businessDescriptionController
-                            //     .selectDescription(desc),
-                            onTap: () {
-                              businessDescriptionController
-                                  .selectedDescription.value = desc;
-                              listingDescriptionController.text = desc;
-                              setState(() {});
-                            },
-                            child: Obx(() {
-                              final isSelected = businessDescriptionController
-                                      .selectedDescription.value ==
-                                  desc;
-                              return Card(
-                                color: isSelected
-                                    ? AppColors.primaryColor
-                                    : Colors.white,
-                                elevation: isSelected ? 4 : 1,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? AppColors.primaryColor
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        isSelected
-                                            ? Icons.check_circle
-                                            : Icons.circle_outlined,
-                                        color: isSelected
-                                            ? AppColors.white
-                                            : Colors.black,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: CustomText(
-                                          desc,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : AppColors.secondaryTextColor,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
+                        NoLeadingSpaceFormatter(),
+                        NoConsecutiveSpacesFormatter(),
                       ],
-                    );
-                  return SizedBox.shrink();
-                }),
+                    ),
+
                 Obx(() {
                   return SizedBox(
                     height: (controller.isListingDescriptionEdit.value)

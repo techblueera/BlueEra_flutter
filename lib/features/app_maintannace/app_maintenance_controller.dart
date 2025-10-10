@@ -31,6 +31,8 @@ class AppMaintenanceController extends GetxController {
       }
     } catch (e) {
       logs("ERROR maintenance ${e}");
+      isLoading.value = false;
+
       message.value = 'Error checking maintenance: $e';
     } finally {
       isLoading.value = false;

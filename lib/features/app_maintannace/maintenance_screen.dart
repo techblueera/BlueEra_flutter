@@ -30,7 +30,7 @@ class MaintenanceScreen extends StatelessWidget {
                             size: 100, color: AppColors.primaryColor),
                         const SizedBox(height: 24),
                         CustomText(
-                          'Under Maintenance',
+                          'We Are Under Maintenance',
                           fontWeight: FontWeight.bold,
                           fontSize: SizeConfig.size22,
                         ),

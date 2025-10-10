@@ -227,7 +227,8 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: AppStrings.appName,
       theme: AppThemes.light,
-      initialRoute: null, // handled by logic below
+      initialRoute: null,
+      // handled by logic below
       onGenerateRoute: RouteHelper.generateRoute,
       navigatorObservers: [RouteHelper.routeObserver],
       supportedLocales: getSupportedLocales(),
@@ -266,56 +267,5 @@ class _MyAppState extends State<MyApp> {
         return const PermissionGate(); // or SplashScreen / whatever your entry route is
       }),
     );
-
-    /* // NavigatorService.setNavigatorKey(navKey);
-    return Obx(() {
-      logs(
-          "appController.isLoading.value==== ${appController.isInMaintenance.value}");
-      if (appController.isLoading.value) {
-        return const GetMaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
-        );
-      }
-
-      if (appController.isInMaintenance.value==true) {
-        return const GetMaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: MaintenanceScreen(),
-        );
-      }
-      if ((appController.isInMaintenance.value == false)) {
-
-        return GetMaterialApp(
-          builder: (context, child) {
-
-            return Stack(
-              children: [
-                child??SizedBox.shrink(),
-                const GlobalMessage(), // ← sits above everything
-              ],
-            );
-          },
-          title: AppStrings.appName,
-          theme: AppThemes.light,
-          initialRoute: RouteHelper.getPermissionScreenRoute(),
-          // initialRoute: RouteHelper.getSplashScreenRoute(),
-          onGenerateRoute: RouteHelper.generateRoute,
-          navigatorObservers: [RouteHelper.routeObserver],
-          debugShowCheckedModeBanner: false,
-          supportedLocales: getSupportedLocales(),
-          localizationsDelegates: [
-            AppLocalizations.delegate,
-            CroppyLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-        );
-      }
-      return GetMaterialApp();
-    });*/
   }
 }
