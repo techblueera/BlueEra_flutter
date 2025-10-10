@@ -12,9 +12,12 @@ import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/notifications/one_signal_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
+import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:app_links/app_links.dart';
 import 'package:camera/camera.dart';
@@ -32,22 +35,35 @@ import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/firebase_notification_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
-firebaseInitializeApp()
-async {
+
+firebaseInitializeApp() async {
   if (Platform.isAndroid) {
-    await Firebase.initializeApp(options: FirebaseOptions(apiKey: androidFirebaseAPIKey, appId: firebaseAppId, messagingSenderId: messagingSenderId, projectId: projectFireBaseId,));
+    await Firebase.initializeApp(
+        options: FirebaseOptions(
+      apiKey: androidFirebaseAPIKey,
+      appId: firebaseAppId,
+      messagingSenderId: messagingSenderId,
+      projectId: projectFireBaseId,
+    ));
   } else if (Platform.isIOS) {
-    await Firebase.initializeApp(options: FirebaseOptions(apiKey:iosFirebaseAPIKey , appId: firebaseAppId, messagingSenderId: messagingSenderId, projectId: projectFireBaseId));
+    await Firebase.initializeApp(
+        options: FirebaseOptions(
+            apiKey: iosFirebaseAPIKey,
+            appId: firebaseAppId,
+            messagingSenderId: messagingSenderId,
+            projectId: projectFireBaseId));
   } else {
     await Firebase.initializeApp();
   }
 }
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await firebaseInitializeApp();
 
   Get.put(AuthController());
+
   ///GET LOGIN USER DATA...
   await getUserLoginStatus();
   await getUserLoginData();
@@ -58,6 +74,7 @@ Future<void> main() async {
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
   FirebaseNotificationService().init();
+
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);
 
@@ -92,6 +109,7 @@ Future<void> main() async {
   // Open boxes for language and localization
   await Hive.openBox('languageBox');
   await Hive.openBox('localizationBox');
+  Get.put(AppMaintenanceController());
 
   Get.put(LanguageListController());
   runApp(MyApp());
@@ -122,6 +140,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initDeepLinks();
   }
+
   void _initDeepLinks() {
     _appLinks = AppLinks();
 
@@ -138,7 +157,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _handleDeepLink(Uri uri) async{
+  void _handleDeepLink(Uri uri) async {
     debugPrint(
         "=====================================Deep link received:========================= $uri");
     try {
@@ -152,7 +171,7 @@ class _MyAppState extends State<MyApp> {
             break;
           case 'video':
             // TODO: Navigate to video detail screen with id
-             await deepLinkNetworkResources.navigateToVideoDetail(id);
+            await deepLinkNetworkResources.navigateToVideoDetail(id);
             logs('Deep link -> video id: $id');
             break;
           // case 'short':
@@ -168,14 +187,11 @@ class _MyAppState extends State<MyApp> {
             //TODO: we have three profile screen first is normal user profile screen and then other are
             // the profile screen of the users whose post are visible on home, they use two different screen to show
             // there profile Visiting_profile_screen.dart and Header_widget.dart both has sharing funtionaity.
-            
+
             logs('Deep link -> profile userId: $id');
           case 'product':
             logs('Deep link -> job id: $id');
-            Get.to(() => ShareProductScreen(
-              productId: id
-             )
-            );
+            Get.to(() => ShareProductScreen(productId: id));
             break;
           default:
             logs('Unknown deep link type: $type');
@@ -192,6 +208,8 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  final appController = Get.find<AppMaintenanceController>();
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -205,25 +223,13 @@ class _MyAppState extends State<MyApp> {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
-    // NavigatorService.setNavigatorKey(navKey);
     return GetMaterialApp(
-      builder: (context, child) {
-        return Stack(
-          children: [
-            child!, // ← your whole app
-            const GlobalMessage(), // ← sits above everything
-          ],
-        );
-      },
-      // home: JobsScreen(onHeaderVisibilityChanged: (bool isVisible) {  },),
-      // key: NavigatorService.navigatorKey,
+      debugShowCheckedModeBanner: false,
       title: AppStrings.appName,
       theme: AppThemes.light,
-      initialRoute: RouteHelper.getPermissionScreenRoute(),
-      // initialRoute: RouteHelper.getSplashScreenRoute(),
+      initialRoute: null, // handled by logic below
       onGenerateRoute: RouteHelper.generateRoute,
       navigatorObservers: [RouteHelper.routeObserver],
-      debugShowCheckedModeBanner: false,
       supportedLocales: getSupportedLocales(),
       localizationsDelegates: [
         AppLocalizations.delegate,
@@ -232,6 +238,84 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // Safe null handling:
+            if (child != null) child,
+            const GlobalMessage(),
+          ],
+        );
+      },
+      home: Obx(() {
+        final c = appController;
+
+        // Still loading (null or loading flag)
+        if (c.isLoading.value || c.isInMaintenance.value == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // App under maintenance
+        if (c.isInMaintenance.value == true) {
+          return const MaintenanceScreen();
+        }
+
+        // Normal operation → Go to your normal entry point
+        return const PermissionGate(); // or SplashScreen / whatever your entry route is
+      }),
     );
+
+    /* // NavigatorService.setNavigatorKey(navKey);
+    return Obx(() {
+      logs(
+          "appController.isLoading.value==== ${appController.isInMaintenance.value}");
+      if (appController.isLoading.value) {
+        return const GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+        );
+      }
+
+      if (appController.isInMaintenance.value==true) {
+        return const GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: MaintenanceScreen(),
+        );
+      }
+      if ((appController.isInMaintenance.value == false)) {
+
+        return GetMaterialApp(
+          builder: (context, child) {
+
+            return Stack(
+              children: [
+                child??SizedBox.shrink(),
+                const GlobalMessage(), // ← sits above everything
+              ],
+            );
+          },
+          title: AppStrings.appName,
+          theme: AppThemes.light,
+          initialRoute: RouteHelper.getPermissionScreenRoute(),
+          // initialRoute: RouteHelper.getSplashScreenRoute(),
+          onGenerateRoute: RouteHelper.generateRoute,
+          navigatorObservers: [RouteHelper.routeObserver],
+          debugShowCheckedModeBanner: false,
+          supportedLocales: getSupportedLocales(),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            CroppyLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+        );
+      }
+      return GetMaterialApp();
+    });*/
   }
 }

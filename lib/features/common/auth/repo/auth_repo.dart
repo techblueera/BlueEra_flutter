@@ -168,4 +168,15 @@ class AuthRepo extends BaseService {
     );
     return response;
   }
+
+  ///App Maintenance...
+  Future<ResponseModel> getAppMaintenanceRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      appMaintenance,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

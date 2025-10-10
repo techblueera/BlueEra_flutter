@@ -78,13 +78,15 @@ class _PostLikeUserListDialogState extends State<PostLikeUserListDialog> {
                   ],
                 ),
                 const Divider(height: 1),
-                ListView.builder(
-                  itemCount: feedController.allLikeUsersList.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return _UserTile(
-                        user: feedController.allLikeUsersList[index]);
-                  },
+                Flexible(
+                  child: ListView.builder(
+                    itemCount: feedController.allLikeUsersList.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return _UserTile(
+                          user: feedController.allLikeUsersList[index]);
+                    },
+                  ),
                 ),
               ],
             ),
@@ -108,7 +110,7 @@ class _UserTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size20, vertical: SizeConfig.size10),
       child: InkWell(
         onTap: () {
           Get.back();

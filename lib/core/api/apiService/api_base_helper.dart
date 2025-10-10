@@ -143,9 +143,8 @@ class ApiBaseHelper {
                   printLog: response.data.toString(),
                   logIcon: Logger.warning);
             } else {
-              logs('SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
-              // logs(
-              //     'SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
+              logs(
+                  'SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
             }
 
             /// change after upgrade
@@ -417,7 +416,7 @@ class ApiBaseHelper {
       }
     } on DioException catch (e) {
       logs("ERROR $e");
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -440,7 +439,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -839,6 +838,7 @@ class DioExceptions implements Exception {
   String? message;
 
   DioExceptions.fromDioError(DioException? dioError) {
+    logs("dioError!.type==== ${dioError!.type}");
     switch (dioError!.type) {
       case DioExceptionType.cancel:
         message = "Request to API server was cancelled";
