@@ -45,7 +45,7 @@ class ChatViewRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
         createGroup,
         isMultipart: true,
-        showProgress: false,
+        // showProgress: false,
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }

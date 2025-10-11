@@ -14,10 +14,12 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
@@ -451,7 +453,7 @@ List<OnboardingData> getOnboardingPages() => [
 List<AccountOption> getCreateAccountType() => [
       AccountOption(
         id: AppConstants.individual,
-        title:'individualAccount',
+        title: 'individualAccount',
         subtitle: loc.accountType1SubTitle,
         description: loc.accountType1Description,
         iconPath: AppIconAssets.personal_account,
@@ -702,6 +704,73 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
                 height: SizeConfig.size20,
                 width: SizeConfig.size20),
             SizedBox(width: SizeConfig.size5),
+            CustomText(
+              items[i]['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
+List<PopupMenuEntry<String>> popupMenuChatCardItems() {
+  final items = <Map<String, dynamic>>[
+    {"id": "CREATE_GROUP", 'title': 'Create Group'},
+    {"id": "THEME", 'title': 'Theme'},
+    {"id": "WALLPAPER", 'title': 'Wallpaper'},
+    {"id": "LOCK_CHAT", 'title': 'Lock Chat'},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        onTap: () {
+          if (items[i]['id'] == "CREATE_GROUP") {
+            Get.to(ContactsPage(
+              from: "group",
+            ));
+          } else if (items[i]['id'] == "THEME") {
+            commonSnackBar(message: "Coming soon....");
+          } else if (items[i]['id'] == "WALLPAPER") {
+            commonSnackBar(message: "Coming soon....");
+          } else if (items[i]['id'] == "LOCK_CHAT") {
+            commonSnackBar(message: "Coming soon....");
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // LocalAssets(
+            //     imagePath: items[i]['icon'],
+            //     height: SizeConfig.size20,
+            //     width: SizeConfig.size20),
+            // SizedBox(width: SizeConfig.size5),
             CustomText(
               items[i]['title'],
               fontSize: SizeConfig.medium,

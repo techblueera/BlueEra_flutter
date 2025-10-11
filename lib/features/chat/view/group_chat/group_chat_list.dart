@@ -50,7 +50,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
           },
           child:Container(
             margin: EdgeInsets.only(bottom: SizeConfig.size70),
-            child: (data?.chatList?.isEmpty??true)?noChatsFound(): ListView.builder(
+            child: (data?.chatList?.isEmpty??true)?noGroupChatsFound(): ListView.builder(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 itemCount: data?.chatList?.length,
                 itemBuilder: (context, index) {
@@ -163,91 +163,93 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                   : Center(child: CustomText("${(chat?.groupName?.split('')[0])!.capitalize}",color: Colors.white,fontWeight: FontWeight.w800,fontSize: 18,)),
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 140,
-                                child: CustomText(
-                                  "${chat?.groupName?.capitalize}",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis, // 👈 ensures "..."
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                          SizedBox(width: SizeConfig.size15,),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 140,
+                                  child: CustomText(
+                                    "${chat?.groupName?.capitalize}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis, // 👈 ensures "..."
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 2),
-                              SizedBox(
-                                width: 260,
-                                child: (chat?.lastMessageType == "document" ||
-                                    chat?.lastMessageType == "contact" ||
-                                    chat?.lastMessageType == "audio" ||
-                                    chat?.lastMessageType == "location" ||
-                                    chat?.lastMessageType == "image" ||
-                                    chat?.lastMessageType == "video")
-                                    ? Row(
-                                  children: [
-                                    Icon(
-                                      chat?.lastMessageType == "document"
-                                          ? Icons.picture_as_pdf
-                                          : chat?.lastMessageType == "contact"
-                                          ? Icons.person
-                                          : chat?.lastMessageType == "audio"
-                                          ? Icons.audiotrack
-                                          : chat?.lastMessageType ==
-                                          "video"
-                                          ? Icons.video_chat
-                                          : chat?.lastMessageType ==
-                                          "location"
-                                          ? Icons.location_history
-                                          : Icons.camera_alt,
-                                      color: AppColors.grey9A,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    CustomText(
-                                      chat?.lastMessageType == "document"
-                                          ? "Document"
-                                          : chat?.lastMessageType == "contact"
-                                          ? "Contact"
-                                          : chat?.lastMessageType == "audio"
-                                          ? "Audio"
-                                          : chat?.lastMessageType ==
-                                          "video"
-                                          ? "Video"
-                                          : chat?.lastMessageType ==
-                                          "location"
-                                          ? "Location"
-                                          : "Image",
-                                      fontSize: 14,
-                                      color: AppColors.grey9A,
-                                      overflow: TextOverflow.ellipsis,
-                                    )
-                                  ],
-                                )
-                                    : chat?.lastMessage == null
-                                    ? CustomText(
-                                  // "${(chat?.sender?.designation==null)?chat?.sender?.contactNo:chat?.sender?.designation}",
-                                  "Start Conversation",
-                                  fontSize: 14,
-                                  color: AppColors.grey9A,
-                                  overflow: TextOverflow.ellipsis,
-                                )
-                                    : CustomText(
-                                  maxLines: 1,
-                                  "${chat?.lastMessage}",
-                                  fontSize: 14,
-                                  color: AppColors.grey9A,
-                                  overflow: TextOverflow.ellipsis,
+                                SizedBox(height: 2),
+                                SizedBox(
+                                  width: 260,
+                                  child: (chat?.lastMessageType == "document" ||
+                                      chat?.lastMessageType == "contact" ||
+                                      chat?.lastMessageType == "audio" ||
+                                      chat?.lastMessageType == "location" ||
+                                      chat?.lastMessageType == "image" ||
+                                      chat?.lastMessageType == "video")
+                                      ? Row(
+                                    children: [
+                                      Icon(
+                                        chat?.lastMessageType == "document"
+                                            ? Icons.picture_as_pdf
+                                            : chat?.lastMessageType == "contact"
+                                            ? Icons.person
+                                            : chat?.lastMessageType == "audio"
+                                            ? Icons.audiotrack
+                                            : chat?.lastMessageType ==
+                                            "video"
+                                            ? Icons.video_chat
+                                            : chat?.lastMessageType ==
+                                            "location"
+                                            ? Icons.location_history
+                                            : Icons.camera_alt,
+                                        color: AppColors.grey9A,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      CustomText(
+                                        chat?.lastMessageType == "document"
+                                            ? "Document"
+                                            : chat?.lastMessageType == "contact"
+                                            ? "Contact"
+                                            : chat?.lastMessageType == "audio"
+                                            ? "Audio"
+                                            : chat?.lastMessageType ==
+                                            "video"
+                                            ? "Video"
+                                            : chat?.lastMessageType ==
+                                            "location"
+                                            ? "Location"
+                                            : "Image",
+                                        fontSize: 14,
+                                        color: AppColors.grey9A,
+                                        overflow: TextOverflow.ellipsis,
+                                      )
+                                    ],
+                                  )
+                                      : chat?.lastMessage == null
+                                      ? CustomText(
+                                    // "${(chat?.sender?.designation==null)?chat?.sender?.contactNo:chat?.sender?.designation}",
+                                    "Start Conversation",
+                                    fontSize: 14,
+                                    color: AppColors.grey9A,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                      : CustomText(
+                                    maxLines: 1,
+                                    "${chat?.lastMessage}",
+                                    fontSize: 14,
+                                    color: AppColors.grey9A,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          Spacer(),
-                          SizedBox(width: 10),
-                         Column(
+                          SizedBox(width: SizeConfig.size15,),
+
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               CustomText(

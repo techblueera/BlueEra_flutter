@@ -73,7 +73,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
       child: Container(
         margin: EdgeInsets.only(right:widget.isFromChatCard? 0:20),
         width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
-        height: 310,
+        // height: 310,
         // responsive width
         decoration: BoxDecoration(
           color: Colors.white,

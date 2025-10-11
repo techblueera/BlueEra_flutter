@@ -9,6 +9,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import 'component_widgets.dart';
+
 class GroupChatMessageBubble extends StatefulWidget {
   final String message;
   final String time;
@@ -28,7 +29,6 @@ class GroupChatMessageBubble extends StatefulWidget {
 }
 
 class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
-
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
 
@@ -36,128 +36,209 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
   Widget build(BuildContext context) {
     chatThemeController.isMessageSelectionActive;
     return GestureDetector(
-      onLongPress: (){
+      onLongPress: () {
         chatThemeController.activateSelection(widget.messages);
       },
-      onTap: (){
-        if(chatThemeController.isMessageSelectionActive.value){
+      onTap: () {
+        if (chatThemeController.isMessageSelectionActive.value) {
           chatThemeController.selectMoreMessage(widget.messages);
         }
       },
-      child:Container(
+      child: Container(
         width: double.infinity,
         color: Colors.transparent,
         child: Container(
-          width: SizeConfig.screenWidth*0.8,
-
-          margin: EdgeInsets.only(left: (widget.isReceiveMsg)?0:50,right:  (widget.isReceiveMsg)?50:0),
+          width: SizeConfig.screenWidth * 0.8,
+          margin: EdgeInsets.only(
+              left: (widget.isReceiveMsg) ? 0 : 50,
+              right: (widget.isReceiveMsg) ? 50 : 0),
           child: Row(
-             mainAxisAlignment: (!widget.isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
+            mainAxisAlignment: (!widget.isReceiveMsg)
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              (!widget.isReceiveMsg)?SizedBox():Container(
-                margin: EdgeInsets.only(right: 6),
-                height: 26,
-                width: 26,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(26),
-                  color: chatThemeController.getDarkColorForSender(widget.messages.senderId ?? "unknown",0.1)
-                ),
-                child: Center(child: CustomText("${widget.messages.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(widget.messages.senderId ?? "unknown"),)),
-              ),
-              Align(
-                alignment: (widget.isReceiveMsg) ? Alignment.centerLeft : Alignment.centerRight,
-                child: IntrinsicWidth(
-                  // stepWidth: 200,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 11, vertical:(widget.isReceiveMsg)? 5:8),
-                    decoration: BoxDecoration(
-                      color:(widget.isReceiveMsg)
-                          ? chatThemeController.getColorForSender(widget.messages.senderId ?? "unknown")
-                          : chatThemeController.myMessageBgColor.value,
-                      // color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular((widget.isReceiveMsg) ? 12 : 0),
-                        bottomLeft: Radius.circular((widget.isReceiveMsg) ? 0 : 12),
-                      ),
+              (!widget.isReceiveMsg)
+                  ? SizedBox()
+                  : Container(
+                      margin: EdgeInsets.only(right: 6),
+                      height: 26,
+                      width: 26,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(26),
+                          color: chatThemeController.getDarkColorForSender(
+                              widget.messages.senderId ?? "unknown", 0.1)),
+                      child: Center(
+                          child: CustomText(
+                        "${widget.messages.sender?.name?.split('')[0]}",
+                        fontSize: 13.2,
+                        color: chatThemeController.getDarkColorForSender(
+                            widget.messages.senderId ?? "unknown"),
+                      )),
                     ),
-                    child: Column(mainAxisSize: MainAxisSize.min,
+              Container(
+                width: 250,
+                // margin: EdgeInsets.only(left: (widget.isReceiveMsg)?0:50,right:  (widget.isReceiveMsg)?50:0),
 
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        (widget.isReceiveMsg)?Container(
-                          child:Row(
-                            children: [
-                              CustomText(
-                                "${widget.messages.sender?.name}",
-                                fontWeight: FontWeight.w400,
-                                color: chatThemeController.getDarkColorForSender(widget.messages.senderId ?? "unknown"),
-                                fontFamily: "Rounded Mplus 1c",
-                                fontSize: 13.3,
-                              ),
-                            ],
-                          ),
-                        ):SizedBox(),
-                        (widget.isReceiveMsg)?SizedBox(
-                          height: 2,
-                        ):SizedBox(),
-                        (widget.messages.replyId!=null&&widget.messages.replyId!=''&&widget.messages.replyId!='null')?Container(
-                          height: 46,
-                          margin: EdgeInsets.only(bottom: 4),
-
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(0),
-                              topRight: Radius.circular(8),
-                              bottomRight: Radius.circular(8),
-                            ),
-                            color: AppColors.greyA5.withOpacity(0.4),
-                          ),
-                          padding: EdgeInsets.only(right: 8),
-                          child: Center(child:
-                          Row(
-                            children: [
-                              Container(
-                                height: 40,
-                                width: 3,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 8,),
-
-                              InkWell(
-                                onTap: (){
-                                  chatViewController.scrollController.jumpTo(100);
-                                },
-                                child: SizedBox(
-                                  width: 200,
-                                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center,
+                child: Align(
+                  alignment: (widget.isReceiveMsg)
+                      ? Alignment.centerLeft
+                      : Alignment.centerRight,
+                  child: IntrinsicWidth(
+                    // stepWidth: 200,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: (widget.isReceiveMsg) ? 5 : 8),
+                      decoration: BoxDecoration(
+                        color: (widget.isReceiveMsg)
+                            ? chatThemeController.getColorForSender(
+                                widget.messages.senderId ?? "unknown")
+                            : chatThemeController.myMessageBgColor.value,
+                        // color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                          bottomRight:
+                              Radius.circular((widget.isReceiveMsg) ? 12 : 0),
+                          bottomLeft:
+                              Radius.circular((widget.isReceiveMsg) ? 0 : 12),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          (widget.isReceiveMsg)
+                              ? Container(
+                                  child: Row(
                                     children: [
-                                      CustomText("${(widget.messages.replyParentMessage?.myMessage??false)?"You":widget.messages.replyParentMessage?.sender?.name}",
-                                        fontWeight: FontWeight.w600,
-                                        color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
-                                        fontSize: 15,
+                                      CustomText(
+                                        "${widget.messages.sender?.name}",
+                                        fontWeight: FontWeight.w400,
+                                        color: chatThemeController
+                                            .getDarkColorForSender(
+                                                widget.messages.senderId ??
+                                                    "unknown"),
+                                        fontFamily: "Rounded Mplus 1c",
+                                        fontSize: 13.3,
                                       ),
-                                      replyMessageTypeIconWithLabel(widget.messages),
-
                                     ],
                                   ),
-                                ),
+                                )
+                              : SizedBox(),
+                          (widget.isReceiveMsg)
+                              ? SizedBox(
+                                  height: 2,
+                                )
+                              : SizedBox(),
+                          (widget.messages.replyId != null &&
+                                  widget.messages.replyId != '' &&
+                                  widget.messages.replyId != 'null')
+                              ? Container(
+                                  height: 46,
+                                  margin: EdgeInsets.only(bottom: 4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(0),
+                                      topRight: Radius.circular(8),
+                                      bottomRight: Radius.circular(8),
+                                    ),
+                                    color: AppColors.greyA5.withOpacity(0.4),
+                                  ),
+                                  padding: EdgeInsets.only(right: 8),
+                                  child: Center(
+                                      child: Row(
+                                    children: [
+                                      Container(
+                                        height: 40,
+                                        width: 3,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 8,
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          chatViewController.scrollController
+                                              .jumpTo(100);
+                                        },
+                                        child: Container(
+                                          width: 200,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              CustomText(
+                                                "${(widget.messages.replyParentMessage?.myMessage ?? false) ? "You" : widget.messages.replyParentMessage?.sender?.name}",
+                                                fontWeight: FontWeight.w600,
+                                                color: widget.isReceiveMsg
+                                                    ? Colors.black87
+                                                    : Colors.white,
+                                                fontSize: 15,
+                                              ),
+                                              replyMessageTypeIconWithLabel(
+                                                  widget.messages),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                                )
+                              : SizedBox(),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: (widget.message.length <= 100)
+                                        ? widget.message
+                                        : widget.message.substring(0, 100),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: widget.isReceiveMsg ? Colors.black : Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  if (widget.message.length > 100)
+                                    TextSpan(
+                                      text: '... Read more',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.grey9A,
+                                        fontSize: 16,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          FocusScope.of(context).unfocus();
+                                          _showFullMessageDialog(
+                                            context: context,
+                                            message: widget.message,
+                                            time: widget.time,
+                                            isReceiveMsg: widget.isReceiveMsg,
+                                          );
+                                        },
+                                    ),
+                                ],
                               ),
-                            ],
-                          )),
-                        ):SizedBox(),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
+                            ),
+                          ),
+
+                          /*  Expanded(
+                            child: Container(
+                              // width: Get.width,
+                              child: Text.rich(
+                                TextSpan(
                                   children: [
                                     TextSpan(
                                       text: (widget.message.length <= 100)
@@ -165,8 +246,11 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                           : widget.message.substring(0, 100),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
-                                        color: widget.isReceiveMsg ? Colors.black : Colors.white,
+                                        color: widget.isReceiveMsg
+                                            ? Colors.black
+                                            : Colors.white,
                                         fontSize: 15,
+
                                       ),
                                     ),
                                     if (widget.message.length > 100)
@@ -190,16 +274,91 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                       ),
                                   ],
                                 ),
+                                softWrap: true, // ✅ allow wrapping
+                                overflow: TextOverflow.visible, // ✅ prevent clipping
                               ),
                             ),
-                            const SizedBox(width: 8,),
-                            Align(
-                                alignment: Alignment.bottomRight,
-                                child: timeAndReadInfoWidget(message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.white : Colors.black54,)
-                            )
-                          ],
-                        ),
-                      ],
+                          ),*/
+                          const SizedBox(width: 8),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: timeAndReadInfoWidget(
+                              message: widget.messages,
+                              isMyMessage: widget.messages.myMessage ?? false,
+                              time: widget.time,
+                              timeColor: (!widget.isReceiveMsg)
+                                  ? Colors.white
+                                  : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      /*Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  width: Get.width,
+                                  // color: Colors.red,
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: (widget.message.length <= 100)
+                                              ? widget.message
+                                              : widget.message.substring(0, 100),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: widget.isReceiveMsg
+                                                ? Colors.black
+                                                : Colors.white,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        if (widget.message.length > 100)
+                                          TextSpan(
+                                            text: '... Read more',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              color: AppColors.grey9A,
+                                              fontSize: 16,
+                                            ),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                                FocusScope.of(context).unfocus();
+                                                _showFullMessageDialog(
+                                                  context: context,
+                                                  message: widget.message,
+                                                  time: widget.time,
+                                                  isReceiveMsg: widget.isReceiveMsg,
+                                                );
+                                              },
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: timeAndReadInfoWidget(
+                                    message: widget.messages,
+                                    isMyMessage:
+                                        widget.messages.myMessage ?? false,
+                                    time: widget.time,
+                                    timeColor: (!widget.isReceiveMsg)
+                                        ? Colors.white
+                                        : Colors.black54,
+                                  ))
+                            ],
+                          ),*/
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -209,8 +368,6 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
         ),
       ),
     );
-
-
   }
 
   void _showFullMessageDialog({
@@ -220,10 +377,9 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
     required bool isReceiveMsg,
   }) {
     Get.dialog(
-
       useSafeArea: true,
       AlertDialog(
-        insetPadding:EdgeInsets.symmetric(horizontal: 18,vertical: 30) ,
+        insetPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 30),
         contentPadding: EdgeInsets.only(bottom: 12),
         backgroundColor: AppColors.appBackgroundColor,
         shape: RoundedRectangleBorder(
@@ -234,25 +390,38 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 14,),
+            const SizedBox(
+              height: 14,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14.0),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CustomText('Message', color: AppColors.black,fontSize: 16,
-                    fontWeight: FontWeight.w600,),
+                  CustomText(
+                    'Message',
+                    color: AppColors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                   CustomText(
                     time,
                     fontWeight: FontWeight.w500,
-                    color:  AppColors.black,
+                    color: AppColors.black,
                     fontSize: 12,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 6,),
-            Divider(color: AppColors.greyB4,),
-            const SizedBox(height: 6,),
+            const SizedBox(
+              height: 6,
+            ),
+            Divider(
+              color: AppColors.greyB4,
+            ),
+            const SizedBox(
+              height: 6,
+            ),
             Flexible(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -279,24 +448,29 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                 ),
               ),
             ),
-
-            const SizedBox(height: 18,),
+            const SizedBox(
+              height: 18,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: InkWell(
-                  onTap: (){
+                  onTap: () {
                     Get.back();
-
                   },
-                  child: CustomText('Close', color: AppColors.primaryColor,fontWeight: FontWeight.w600,fontSize: 14,)),
+                  child: CustomText(
+                    'Close',
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  )),
             ),
-            const SizedBox(height: 4,),
-
+            const SizedBox(
+              height: 4,
+            ),
           ],
         ),
       ),
     );
-
   }
 }
 

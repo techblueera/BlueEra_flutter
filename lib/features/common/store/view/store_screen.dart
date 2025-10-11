@@ -372,7 +372,7 @@ class _StoreScreenState extends State<StoreScreen> {
           SizedBox(height: SizeConfig.size15),
           Obx(() {
             return SizedBox(
-              height: 310,
+              height: 320,
               child: controller.foodList.isNotEmpty
                   ? ListView.builder(
                       scrollDirection: Axis.horizontal,

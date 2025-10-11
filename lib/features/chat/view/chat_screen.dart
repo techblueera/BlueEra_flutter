@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
@@ -48,6 +49,7 @@ class ChatMainScreen extends StatefulWidget {
 class _ChatMainScreenState extends State<ChatMainScreen>
     with SingleTickerProviderStateMixin {
   final chatViewController = Get.find<ChatViewController>();
+
   // final groupChatViewController = Get.find<GroupChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
 
@@ -67,7 +69,6 @@ class _ChatMainScreenState extends State<ChatMainScreen>
     );
 
     chatViewController.chatMainTabController.addListener(() {
-
       if (!chatViewController.chatMainTabController.indexIsChanging &&
           chatViewController.chatMainTabController.index ==
               chatViewController.chatMainTabController.animation?.value
@@ -78,10 +79,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
         } else if (index == 2) {
-          chatViewController
-              .emitEvent("ChatList", {ApiKeys.type: "group"});
-        }
-        else if (index == 1) {
+          chatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
+        } else if (index == 1) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
         }
       }
@@ -105,22 +104,22 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         SharedPreferenceUtils.saved_contacts);
     if (storedData != null) {
       Map<String, dynamic> decoded =
-      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     } else {
       await _refreshContacts();
     }
   }
+
 // This is the isolate function → runs in background
   List<Map<String, String>> formatContactsInIsolate(
       List<Map<String, dynamic>> rawContacts) {
-
     return rawContacts
         .where((c) => (c["phones"] as List).isNotEmpty)
         .map((c) => {
-      ApiKeys.contact_no: (c["phones"] as List).first as String,
-      ApiKeys.name: c["displayName"] as String,
-    })
+              ApiKeys.contact_no: (c["phones"] as List).first as String,
+              ApiKeys.name: c["displayName"] as String,
+            })
         .toList();
   }
 
@@ -128,7 +127,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
       List<Contact> contacts =
-      await FlutterContacts.getContacts(withProperties: true);
+          await FlutterContacts.getContacts(withProperties: true);
 
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
@@ -139,7 +138,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
       }).toList();
 
       // Compute in isolate
-      List<Map<String, String>> formattedContacts = await formatContactsInIsolate(rawContacts);
+      List<Map<String, String>> formattedContacts =
+          await formatContactsInIsolate(rawContacts);
       // await compute(formatContactsInIsolate, rawContacts);
 
       chatViewController.uploadContacts(formattedContacts);
@@ -158,8 +158,6 @@ class _ChatMainScreenState extends State<ChatMainScreen>
   }
 
 // Runs in isolate – must only use JSON-safe data
-
-
 
   void _showPermissionDialog() {
     showDialog(
@@ -197,21 +195,23 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: (_isFromForward())
+      floatingActionButton: (_isFromForward()) ||
+              chatViewController.chatMainTabController.index == 1
           ? SizedBox()
           : SafeArea(
               child: Padding(
                   padding:
-
                       const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
                   child: FloatingActionButton(
                     child: Icon(Icons.add),
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
                     onPressed: () {
-                      if(chatViewController.chatMainTabController.index==2){
-                        Get.to(ContactsPage(from: "group",));
-                      }else{
+                      if (chatViewController.chatMainTabController.index == 2) {
+                        Get.to(ContactsPage(
+                          from: "group",
+                        ));
+                      } else {
                         Get.toNamed(RouteHelper.getChatContactsRoute());
                       }
                       //
@@ -225,7 +225,6 @@ class _ChatMainScreenState extends State<ChatMainScreen>
             Column(
               children: [
                 Padding(
-                  
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                   child: Row(
@@ -237,13 +236,34 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                               },
                               child: Icon(Icons.arrow_back_ios))
                           : Obx(() {
+                            return
+
+                              PopupMenuButton<String>(
+                                padding: EdgeInsets.zero,
+                                offset: const Offset(-6, 36),
+                                color: AppColors.white,
+                                elevation: 8,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                                onSelected: (value) {},
+                                icon: CachedAvatarWidget(
+                                    imageUrl: Get.find<AuthController>()
+                                        .imgPath
+                                        .value,
+                                    size: SizeConfig.size30,
+                                    borderRadius: 5.0,
+                                    showProfileOnFullScreen: false),
+                                itemBuilder: (context) => popupMenuChatCardItems(),
+                              )
+                              ;
                               return InkWell(
-                                onTap: (){
+                                onTap: () {
 
                                 },
                                 child: CachedAvatarWidget(
-                                    imageUrl:
-                                        Get.find<AuthController>().imgPath.value,
+                                    imageUrl: Get.find<AuthController>()
+                                        .imgPath
+                                        .value,
                                     size: SizeConfig.size30,
                                     borderRadius: 5.0,
                                     showProfileOnFullScreen: false),

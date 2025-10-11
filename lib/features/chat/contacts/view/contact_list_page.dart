@@ -37,6 +37,7 @@ class _ContactsPageState extends State<ContactsPage> {
   final Set<String> _selectedUserIds = <String>{};
 
   Timer? _debounce;
+  List<Map<String, dynamic>> _filteredGroupConnections = [];
 
   @override
   void initState() {
@@ -55,8 +56,56 @@ class _ContactsPageState extends State<ContactsPage> {
     _debounce?.cancel();
     super.dispose();
   }
-
   void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final query = _searchController.text.toLowerCase();
+
+      // Check if we’re in group mode
+      final isGroupMode = widget.from == "group";
+
+      if (isGroupMode) {
+        // Filter group connections
+        final groupList = chatViewController.groupConnections;
+
+        setState(() {
+          if (query.isEmpty) {
+            _filteredGroupConnections = List.from(groupList);
+          } else {
+            _filteredGroupConnections = groupList
+                .where((item) {
+              final name = (item['name'] ?? '').toString().toLowerCase();
+              final userId = (item['user_id'] ?? '').toString().toLowerCase();
+              return name.contains(query) || userId.contains(query);
+            })
+                .toList();
+          }
+        });
+      } else {
+        // Normal contact search (your existing logic)
+        final details = chatViewController.contactsListModel?.value.data;
+        if (details != null) {
+          setState(() {
+            _filteredExisting = details.existingNotConnected
+                ?.where((c) =>
+            (c.name?.toLowerCase().contains(query) ?? false) ||
+                (c.contactNo?.toLowerCase().contains(query) ?? false))
+                .toList() ??
+                [];
+
+            _filteredNonExisting = details.nonExistingContacts
+                ?.where((c) =>
+            (c.name?.toLowerCase().contains(query) ?? false) ||
+                (c.contactNo?.toLowerCase().contains(query) ?? false))
+                .toList() ??
+                [];
+          });
+        }
+      }
+    });
+  }
+
+  void _onSearchChanged_() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
       final query = _searchController.text.toLowerCase();
@@ -244,9 +293,22 @@ class _ContactsPageState extends State<ContactsPage> {
                   }
 
                   if (isGroupMode) {
-                    final groupList = chatViewController.groupConnections;
+                    final allGroups = chatViewController.groupConnections;
+                    final groupList = _searchController.text.isEmpty
+                        ? allGroups
+                        : _filteredGroupConnections;
+
+                    if (groupList.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text("No groups found"),
+                        ),
+                      );
+                    }
+
                     return ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: groupList.length,
                       itemBuilder: (context, index) {
                         final item = groupList[index];
@@ -266,6 +328,30 @@ class _ContactsPageState extends State<ContactsPage> {
                         );
                       },
                     );
+
+                    /*   final groupList = chatViewController.groupConnections;
+                    return ListView.builder(
+                      // physics: NeverScrollableScrollPhysics(),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: groupList.length,
+                      itemBuilder: (context, index) {
+                        final item = groupList[index];
+                        return _GroupContactTile(
+                          item: item,
+                          isSelected: _selectedUserIds
+                              .contains(item['platform_id'] ?? item['user_id']),
+                          onSelect: (id) {
+                            setState(() {
+                              if (_selectedUserIds.contains(id)) {
+                                _selectedUserIds.remove(id);
+                              } else {
+                                _selectedUserIds.add(id);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    );*/
                   }
 
                   // Normal contacts (with two sections)

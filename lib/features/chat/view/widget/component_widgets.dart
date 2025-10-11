@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -115,6 +116,45 @@ Widget noChatsFound() {
             child: CustomText(
               "Click Here to Start Conversation",
               color: Colors.blue,
+            )),
+      ],
+    ),
+  );
+}
+Widget noGroupChatsFound() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(
+          AppIconAssets.chat,
+          color: Colors.black,
+          height: 70,
+          width: 70,
+        ),
+        const SizedBox(
+          height: 14,
+        ),
+        CustomText(
+          "No Group Chats Found",
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        const SizedBox(
+          height: 6,
+        ),
+        CustomText("Go to contacts and create new group"),
+        const SizedBox(
+          height: 6,
+        ),
+        InkWell(
+            onTap: () {
+              Get.to(ContactsPage(from: "group",));
+
+            },
+            child: CustomText(
+              "Create your first group",
+              color: AppColors.primaryColor,
             )),
       ],
     ),
