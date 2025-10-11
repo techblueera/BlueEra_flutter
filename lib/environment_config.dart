@@ -38,7 +38,8 @@ String tncLink =
 Future<void> projectKeys({required String environmentType}) async {
   if (environmentType == AppConstants.prod) {
     isProdEnvironment = true;
-    baseUrl = "https://n81bnkglga.execute-api.ap-south-1.amazonaws.com/api/";
+    baseUrl = "https://be.blueera.ai/api/";
+    // baseUrl = "https://n81bnkglga.execute-api.ap-south-1.amazonaws.com/api/";
     // baseUrl = "https://api.blueera.ai/api/";
     razorpayKey = "rzp_live_Z3hqjlIs4IEKya";
     androidRewardedAdUnitId = 'ca-app-pub-4151367085462604/5476692884';
