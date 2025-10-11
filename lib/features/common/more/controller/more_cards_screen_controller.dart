@@ -10,8 +10,9 @@ import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
 
 class MoreCardsScreenController extends GetxController{
-  Rx<ApiResponse> AllCardCategoriesResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> allCardCategoriesResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> cardCategoriesSortedByDateResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> daysRangeAllCardCategoriesResponse = ApiResponse.initial('Initial').obs;
 
   /// Home page scroll variable
   final RxBool isVisible = true.obs;
@@ -24,6 +25,10 @@ class MoreCardsScreenController extends GetxController{
   RxList<String> allCategories = <String>[].obs;
 
   RxList<Cards> dayCards = <Cards>[].obs;
+
+  RxList<AllCards> daysRangeAllCards = <AllCards>[].obs;
+  RxList<AllCards> filteredDaysRangeAllCards = <AllCards>[].obs;
+
 
   Future<void> getCardCategoriesSortedByDate({required String todayDate}) async {
     try {
@@ -62,7 +67,7 @@ class MoreCardsScreenController extends GetxController{
     try {
       ResponseModel responseModel = await UserRepo().getAllCardCategories();
       if (responseModel.isSuccess) {
-        AllCardCategoriesResponse.value = ApiResponse.complete(responseModel);
+        allCardCategoriesResponse.value = ApiResponse.complete(responseModel);
         final cardModelResponse = CardModelResponse.fromJson(responseModel.response?.data);
 
         final List<Cards> cards = [];
@@ -85,56 +90,56 @@ class MoreCardsScreenController extends GetxController{
 
         filteredCards.value = List.from(cards);
       } else {
-        AllCardCategoriesResponse.value = ApiResponse.error('error');
+        allCardCategoriesResponse.value = ApiResponse.error('error');
 
         commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      AllCardCategoriesResponse.value = ApiResponse.error('error');
+      allCardCategoriesResponse.value = ApiResponse.error('error');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Future<void> getAllCards() async {
-  //   isLoading.value = true;
-  //   try {
-  //     Map<String , dynamic> queryParams = {
-  //       ApiKeys.fromDate: DateTime.now().toIso8601String(),
-  //       ApiKeys.toDate: DateTime.now().add(Duration(days: 1)).toIso8601String(),
-  //     };
-  //     ResponseModel responseModel = await UserRepo().getAllCards(queryParams: queryParams);
-  //     if (responseModel.isSuccess) {
-  //       AllCardCategoriesResponse.value = ApiResponse.complete(responseModel);
-  //       final cardResponseModel = CardResponseModel.fromJson(responseModel.response?.data);
-  //
-  //       final List<AllCards> cards = [];
-  //       final List<String> categories = [];
-  //
-  //       if (cardResponseModel.cards != null) {
-  //         for (final card in cardResponseModel.cards!) {
-  //           cards.add(card);
-  //           categories.add(card.categoryName ?? '');
-  //           print('category name -- ${card.categoryName}');
-  //         }
-  //       }
-  //
-  //       allCards.assignAll(cards);
-  //       allCategories.assignAll(categories);
-  //
-  //       filteredCards.value = List.from(cards);
-  //     } else {
-  //       AllCardCategoriesResponse.value = ApiResponse.error('error');
-  //
-  //       commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
-  //     }
-  //   } catch (e, s) {
-  //     log('stack trace - $s');
-  //     AllCardCategoriesResponse.value = ApiResponse.error('error');
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
+  Future<void> getAllCards() async {
+    isLoading.value = true;
+    try {
+      Map<String , dynamic> queryParams = {
+        ApiKeys.fromDate: DateTime.now().toIso8601String(),
+        ApiKeys.toDate: DateTime.now().add(Duration(days: 1)).toIso8601String(),
+      };
+      ResponseModel responseModel = await UserRepo().getAllCards(queryParams: queryParams);
+      if (responseModel.isSuccess) {
+        daysRangeAllCardCategoriesResponse.value = ApiResponse.complete(responseModel);
+        final cardResponseModel = CardResponseModel.fromJson(responseModel.response?.data);
+
+        final List<AllCards> cards = [];
+        final List<String> categories = [];
+
+        if (cardResponseModel.cards != null) {
+          for (final card in cardResponseModel.cards!) {
+            cards.add(card);
+            categories.add(card.categoryName ?? '');
+            print('category name -- ${card.categoryName}');
+          }
+        }
+
+        daysRangeAllCards.assignAll(cards);
+        allCategories.assignAll(categories);
+
+        filteredDaysRangeAllCards.value = List.from(cards);
+      } else {
+        daysRangeAllCardCategoriesResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('stack trace - $s');
+      daysRangeAllCardCategoriesResponse.value = ApiResponse.error('error');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void filterCardsByCategory(String? categoryName) {
     if (categoryName == null || categoryName.isEmpty || categoryName == "All") {

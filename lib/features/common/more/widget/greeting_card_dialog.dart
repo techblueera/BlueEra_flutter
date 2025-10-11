@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/model/card_model.dart';
-import 'package:BlueEra/features/common/more/widget/greeting_card.dart';
+import 'package:BlueEra/features/common/more/widget/home_screen_card.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -79,7 +79,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
 
                             return RepaintBoundary(
                               key: _cardKey[index],
-                              child: GreetingCard(imagePath: cardPhoto),
+                              child: homeScreenCard(imagePath: cardPhoto),
                             );
                           },
                           options: CarouselOptions(

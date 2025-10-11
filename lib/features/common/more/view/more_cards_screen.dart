@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
-import 'package:BlueEra/features/common/more/widget/greeting_card.dart';
+import 'package:BlueEra/features/common/more/widget/home_screen_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -37,8 +37,8 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
   @override
   void initState() {
     super.initState();
-    // moreCardsScreenController.getAllCards();
-    moreCardsScreenController.getAllCardCategories();
+    moreCardsScreenController.getAllCards();
+    // moreCardsScreenController.getAllCardCategories();
   }
 
   /// Build keys & trackers for each card
@@ -60,10 +60,11 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final response = moreCardsScreenController.AllCardCategoriesResponse.value;
+        // final response = moreCardsScreenController.allCardCategoriesResponse.value;
+        final response = moreCardsScreenController.daysRangeAllCardCategoriesResponse.value;
 
         if (response.status == Status.COMPLETE) {
-          final cards = moreCardsScreenController.filteredCards;
+          final cards = moreCardsScreenController.filteredDaysRangeAllCards;
 
           _generateKeys(cards);
 
@@ -158,7 +159,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
                                   },
                                   child: RepaintBoundary(
                                     key: _cardKeys[cardIndex],
-                                    child: GreetingCard(imagePath: imageUrl),
+                                    child: homeScreenCard(imagePath: imageUrl),
                                   ),
                                 ),
                               ),
@@ -198,7 +199,8 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
           return LoadErrorWidget(
             errorMessage: 'Failed to load cards',
             onRetry: () {
-              moreCardsScreenController.getAllCardCategories();
+              moreCardsScreenController.getAllCards();
+              // moreCardsScreenController.getAllCardCategories();
             },
           );
         }

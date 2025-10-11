@@ -41,7 +41,7 @@ class _ProductScreenState extends State<ProductScreen> {
     } else {
       inventoryController = Get.put(InventoryController());
     }
-    inventoryController.loadProducts();
+    inventoryController.fetchProducts();
     super.initState();
   }
 

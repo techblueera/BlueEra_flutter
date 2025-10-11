@@ -33,7 +33,7 @@ class StandaloneFoodScreen extends StatelessWidget {
       }
 
       if (controller.foods.isEmpty) {
-        return const Center(child: CustomText('No products found'));
+        return const Center(child: CustomText('No food service found'));
       }
 
       // Show either grid view or horizontal list based on selection

@@ -41,21 +41,21 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void initState() {
     super.initState();
 
-    if (channelId.isEmpty) {
-      getChannelDetails().then((channelModel) {
-        channelId = channelModel?.data.id??'';
-        channelName = channelModel?.data.name??'';
-        channelOwner = channelModel?.data.ownership.claimedBy??'';
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channel_Id, channelId
-        );
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channelName, channelName
-        );
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channelOwner, channelOwner
-        );
-     });
+    if(isIndividual() && channelId.isEmpty){
+        getChannelDetails().then((channelModel) {
+          channelId = channelModel?.data.id??'';
+          channelName = channelModel?.data.name??'';
+          channelOwner = channelModel?.data.ownership.claimedBy??'';
+          SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.channel_Id, channelId
+          );
+          SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.channelName, channelName
+          );
+          SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.channelOwner, channelOwner
+          );
+        });
     }
     chatViewController.connectSocket();
     // groupChatViewController.connectSocket();

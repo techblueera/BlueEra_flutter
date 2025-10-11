@@ -32,7 +32,7 @@ class StandaloneServiceScreen extends StatelessWidget {
       }
 
       if (controller.products.isEmpty) {
-        return const Center(child: CustomText('No products found'));
+        return const Center(child: CustomText('No service found'));
       }
 
       // Show either grid view or horizontal list based on selection

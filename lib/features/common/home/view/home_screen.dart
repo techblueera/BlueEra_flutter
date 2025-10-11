@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/more/controller/more_cards_screen_contro
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -59,6 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
       Get.put(HomeScreenController());
   final MoreCardsScreenController moreCardsScreenController =
       Get.put(MoreCardsScreenController());
+  final InventoryController inventoryController =
+  Get.put(InventoryController());
 
   @override
   void initState() {
@@ -70,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateHeaderHeight();
+      if(isBusinessUser()) getBusinessUserOwnProduct();
       checkAndShowGreetingDialog(context);
     });
   }
@@ -135,6 +139,10 @@ class _HomeScreenState extends State<HomeScreen> {
         print("API error: $e");
       }
     }
+  }
+
+  getBusinessUserOwnProduct(){
+    inventoryController.fetchProducts();
   }
 
   @override
