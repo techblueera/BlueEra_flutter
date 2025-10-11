@@ -7,10 +7,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-class GreetingCard extends StatelessWidget {
+class homeScreenCard extends StatelessWidget {
   final String imagePath;
 
-  const GreetingCard({
+  const homeScreenCard({
     super.key,
     required this.imagePath
   });

@@ -224,14 +224,14 @@ class CommonTextField extends StatelessWidget {
                       horizontal: SizeConfig.paddingM,
                       vertical: SizeConfig.paddingXSL),
               hintText: hintText,
-              prefixIcon: Padding(
+              prefixIcon: pIcon != null ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: pIcon,
-              ),
-              prefixIconConstraints: BoxConstraints(
+              ) : null,
+              prefixIconConstraints: pIcon != null ? BoxConstraints(
                   maxWidth: 40,
                   maxHeight: 20
-              ),
+              ) : null,
               // counterText: '',
               suffixIcon: showClearIcon
                   ? InkWell(

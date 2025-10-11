@@ -588,7 +588,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.message,
     PostCreationMenu.poll,
     PostCreationMenu.photos,
-    PostCreationMenu.videos,
+    if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos, /// for individual user if user has channel then only video section will shown
     if (isBusiness) PostCreationMenu.jobPost,
     PostCreationMenu.place,
     // PostCreationMenu.travel,

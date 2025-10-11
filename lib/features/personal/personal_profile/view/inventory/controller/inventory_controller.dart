@@ -124,19 +124,19 @@ class InventoryController extends GetxController {
     if (forceRefresh || targetList.isEmpty) {
       switch (selectedProductIndex.value) {
         case 0:
-          loadProducts();
+          fetchProducts();
           break;
         case 1:
-          loadProducts(isDraftProduct: false);
+          fetchProducts(isDraftProduct: false);
           break;
         case 2:
-          loadProducts(isDraftProduct: true);
+          fetchProducts(isDraftProduct: true);
           break;
       }
     }
   }
 
-  Future<void> loadProducts({bool? isDraftProduct}) async {
+  Future<void> fetchProducts({bool? isDraftProduct}) async {
     try {
       isLoading.value = true;
 

@@ -117,9 +117,6 @@ class Cards {
   }
 }
 
-
-
-
 class CardResponseModel {
   bool? success;
   int? totalCards;

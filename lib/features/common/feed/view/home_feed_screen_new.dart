@@ -22,6 +22,8 @@ import 'package:BlueEra/features/common/more/controller/more_cards_screen_contro
 import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_home_screen_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -163,17 +165,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         if (posts.isEmpty) {
           return Column(
             children: [
-              (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
-                  ? Padding(
-                      padding: EdgeInsets.only(
-                          left: SizeConfig.size8,
-                          right: SizeConfig.size8,
-                          top: SizeConfig.size8),
-                      child: GreetingCardDialog(
-                          cards:
-                              Get.find<MoreCardsScreenController>().dayCards),
-                    )
-                  : SizedBox.shrink(), // skip if no card
+              isIndividual() ?
+              _buildSocialCard()
+               : (Get.find<InventoryController>().allProducts.isNotEmpty)
+                 ? _buildProductCard()
+                   : _buildSocialCard(), // skip if no card
 
               Expanded(
                 child: Center(
@@ -591,6 +587,34 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       return const SizedBox();
     });
   }
+
+  Widget _buildProductCard() {
+    return Padding(
+      padding: EdgeInsets.only(
+          left: SizeConfig.size8,
+          right: SizeConfig.size8,
+          top: SizeConfig.size8),
+      child: ProductHomeScreenCard(
+          allProducts: Get.find<InventoryController>().allProducts
+      ),
+    );
+  }
+
+  Widget _buildSocialCard() {
+   return (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
+     ? Padding(
+   padding: EdgeInsets.only(
+       left: SizeConfig.size8,
+       right: SizeConfig.size8,
+       top: SizeConfig.size8),
+   child: GreetingCardDialog(
+       cards:
+       Get.find<MoreCardsScreenController>().dayCards
+   ),
+ )
+     : SizedBox.shrink();
+  }
+
 }
 
 ShortFeedItem getVideoData(Post video) {

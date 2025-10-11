@@ -17,10 +17,39 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
-void postVia(BuildContext context, PostCreationMenu postCreationMenu) {
+Future<void> postVia(BuildContext context, PostCreationMenu postCreationMenu) async {
   log("account type--> $accountTypeGlobal");
-  if (accountTypeGlobal == AppConstants.individual) {
+  if (isIndividual()) {
+    if(postCreationMenu == PostCreationMenu.videos) {
+      postNavigations(
+          context,
+          postCreationMenu,
+          PostVia.channel
+      );
+    } else{
     showPostViaDialog(context, postCreationMenu);
+  }
+
+    // if(postCreationMenu == PostCreationMenu.videos){
+    //   if (channelId.isEmpty) {
+    //     await showCreateChannelDialog(context, () {
+    //       postNavigations(
+    //           context,
+    //           postCreationMenu,
+    //           PostVia.profile
+    //       );
+    //     });
+    //   } else {
+    //     postNavigations(
+    //         context,
+    //         postCreationMenu,
+    //         PostVia.channel
+    //     );
+    //   }
+    // }else{
+    //   showPostViaDialog(context, postCreationMenu);
+    // }
+
   } else {
     /// business user don't need channel
     postNavigations(context, postCreationMenu, PostVia.profile);
@@ -57,45 +86,6 @@ void postNavigations(
   }
 }
 
-/*
-Future<void> resizeVideo(String input, String output, PostVia? type) async {
-  await FFmpegKit.executeAsync(
-    '-i ${input} -c:v mpeg4 -preset ultrafast -crf 28 ${output}',
-    (Session session) async {
-      final returnCode = await session.getReturnCode();
-
-      print("input===== $input");
-      print("outputPath===== $output");
-      print("returnCode===== $returnCode");
-      if (ReturnCode.isSuccess(returnCode)) {
-        await Future.delayed(Duration(seconds: 2));
-
-        print("Compression success!");
-        if (input.isNotEmpty) {
-          Navigator.pushNamed(
-            Get.context!,
-            RouteHelper.getFullVideoPreviewRoute(),
-            arguments: {ApiKeys.videoPath: output, ApiKeys.argPostVia: type},
-          );
-        }
-      } else {
-        print("Compression success! ELSE");
-        await Future.delayed(Duration(seconds: 2));
-        Navigator.pushNamed(
-          Get.context!,
-          RouteHelper.getFullVideoPreviewRoute(),
-          arguments: {ApiKeys.videoPath: input, ApiKeys.argPostVia: type},
-        );
-      }
-    },
-    (Log log) {},
-    (Statistics statistics) {
-      debugPrint('statistics: ${statistics.getSize()}');
-    },
-  );
-}
-*/
-
 Future<String> getOutputPath() async {
   Directory? directory;
   if (Platform.isIOS) {
@@ -108,39 +98,8 @@ Future<String> getOutputPath() async {
       '${directory?.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.mp4';
 }
 
-/*Future<void> resizeVideo(String input, String output) async {
-  // This example scales video to 720p with faster preset
-  // final data = await FFmpegKit.execute(
-  //     '-i $input -vf scale=-2:720 -preset ultrafast -crf 28 $output');
-  await FFmpegKit.executeAsync(
-    '-i ${input} -c:v mpeg4 -preset ultrafast ${output}',
-        (Session session) async {
-      final output = await session.getOutput();
-      final returnCode = await session.getReturnCode();
-      final duration = await session.getDuration();
-
-    },
-        (Log log) {
-
-    },
-        (Statistics statistics) {
-
-      debugPrint('statistics: ${statistics.getSize()}');
-    },
-  );
-}*/
-// Future<String> getOutputPath() async {
-//   final dir = await getTemporaryDirectory();
-//   return '${dir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.mp4';
-// }
-
 Future<void> showVideosPickerDialog(BuildContext context,
     {PostVia? type}) async {
-  // Subscription _subscription;
-  // _subscription =
-  //     VideoCompress.compressProgress$.subscribe((progress) {
-  //       debugPrint('progress: $progress');
-  //     });
   await SelectProfilePictureDialog.showVideoDialog(
     context,
     "Upload Video",
@@ -152,20 +111,6 @@ Future<void> showVideosPickerDialog(BuildContext context,
         arguments: {ApiKeys.argPostVia: type},
       );
     },
-    /* onPickFromGallery: () async {
-      Navigator.pop(Get.context!);
-      final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
-      if (picked != null) {
-        Navigator.pushNamed(
-          Get.context!,
-          RouteHelper.getFullVideoPreviewRoute(),
-          arguments: {
-            ApiKeys.videoPath: picked.path,
-            ApiKeys.argPostVia: type
-          },
-        );
-      }
-    },*/
        onPickFromGallery: () async {
       Navigator.pop(Get.context!);
       final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
@@ -174,37 +119,7 @@ Future<void> showVideosPickerDialog(BuildContext context,
         RouteHelper.getFullVideoPreviewRoute(),
         arguments: {ApiKeys.videoPath: picked?.path, ApiKeys.argPostVia: type},
       );
-      // String inputPath = picked?.path ?? "";
-      //
-      // String outputPath = await getOutputPath();
-      // await resizeVideo(inputPath, outputPath,type);
-
     },
-  /*  onPickFromGallery: () async {
-// Get.to(MyHomePage(title: "DATA CIDE",));
-      *//*      Navigator.pop(Get.context!);
-      final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
-      String inputPath = picked?.path ?? "";
-
-      // String outputPath = await getOutputPath();
-      MediaInfo? mediaInfo = await VideoCompress.compressVideo(
-        inputPath,
-        quality: VideoQuality.LowQuality,
-        deleteOrigin: true, // It's false by default
-      );
-      logs("mediaInfo path ==== ${mediaInfo?.path}");
-      logs("mediaInfo==== ${mediaInfo?.filesize}");
-      if (picked != null) {
-        Navigator.pushNamed(
-          Get.context!,
-          RouteHelper.getFullVideoPreviewRoute(),
-          arguments: {
-            ApiKeys.videoPath: mediaInfo?.path,
-            ApiKeys.argPostVia: type
-          },
-        );
-      }*//*
-    },*/
   );
 }
 
