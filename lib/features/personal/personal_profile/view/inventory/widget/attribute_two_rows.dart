@@ -1,4 +1,6 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class AttributeRows extends StatelessWidget {
@@ -31,9 +33,10 @@ class AttributeRows extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: Colors.grey.shade300),
               ),
-              child: Text(
+              child: CustomText(
                 "$value",
-                style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w500
               ),
             );
           }

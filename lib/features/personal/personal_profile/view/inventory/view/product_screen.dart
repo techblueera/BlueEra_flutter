@@ -4,9 +4,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_card.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_third_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
@@ -121,8 +119,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 return ProductCard(
                   product,
                   widget.controller,
-                  width: itemWidth,
-                  index: index
+                  width: itemWidth
                 );
               },
             );
@@ -164,8 +161,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 return ProductCard(
                   product,
                   widget.controller,
-                  width: itemWidth,
-                  index: index
+                  width: itemWidth
                 );
               },
             );
@@ -208,8 +204,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 return ProductCard(
                   product,
                   widget.controller,
-                  width: itemWidth,
-                  index: index
+                  width: itemWidth
                 );
               },
             );
@@ -225,7 +220,6 @@ class _ProductScreenState extends State<ProductScreen> {
       OwnProductData product,
       InventoryController controller, {
         required double width,
-        required int index,
       }) {
     final variants = product.product.sellerClassification?.variants ?? [];
 
@@ -267,6 +261,8 @@ class _ProductScreenState extends State<ProductScreen> {
       }
     }
 
+    int productPhotoIndex = 0;
+
     return GestureDetector(
       onTap: (){
         ProductPreviewArgs productPreviewArgs = mapProductDataToPreviewArgs(product);
@@ -277,6 +273,7 @@ class _ProductScreenState extends State<ProductScreen> {
             ApiKeys.argProductData: productPreviewArgs,
           },
         );
+
         // ProductPreviewArgs productPreviewArgs = mapOwnProductToPreviewArgs(product);
         // Get.toNamed(
         //   RouteHelper.getProductPreviewScreenRoute(),
@@ -284,6 +281,7 @@ class _ProductScreenState extends State<ProductScreen> {
         //     ApiKeys.argsProductPreview: productPreviewArgs,
         //   },
         // );
+
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -305,6 +303,9 @@ class _ProductScreenState extends State<ProductScreen> {
                       height: double.infinity,
                       imagePaths: product.product.details?.media ?? [],
                       borderRadius: BorderRadius.zero,
+                      onPhotoIndex: (index){
+                        productPhotoIndex = index;
+                      }
                     ),
                     Positioned(
                       top: 8,
@@ -324,27 +325,18 @@ class _ProductScreenState extends State<ProductScreen> {
                               //   productId: product.product.details?.id??'',
                               // ));
 
-                            VisitingCardHelper.buildAndShareProductCard(
-                              context,
-                              product,
-                              index: index
-                          );
+                          //   VisitingCardHelper.buildAndShareProductCard(
+                          //     context,
+                          //     product,
+                          //     index: productPhotoIndex
+                          // );
 
-                          //   Get.to(()=> DiwaliOfferSecondCardScreen(
-                          //     cardKey: GlobalKey(),
-                          //     ownProductData: product,
-                          //     index: index,
-                          //   ));
-                          //   Get.to(()=> DiwaliOfferCardScreen(
-                          //     cardKey: GlobalKey(),
-                          //     ownProductData: product,
-                          //     index: index,
-                          //   ));
-                          //     Get.to(()=> DiwaliOfferThirdCard(
-                          //       cardKey: GlobalKey(),
-                          //       ownProductData: product,
-                          //       index: index,
-                          //     ));
+                              // Get.to(()=> DiwaliOfferCard(
+                              //   cardKey: GlobalKey(),
+                              //   ownProductData: product,
+                              //   index: 0,
+                              //   backgroundAsset: 'assets/diwali_card/diwali_sample_card3.jpeg',
+                              // ));
 
                           }
                       ),
@@ -406,13 +398,15 @@ class _ProductScreenState extends State<ProductScreen> {
                     // Status
                     Row(
                       children: [
-                        CustomText(
-                          product.product.details?.categoryId,
-                          fontWeight: FontWeight.w600,
-                          fontSize: SizeConfig.small11,
-                          color: AppColors.primaryColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Flexible(
+                          child: CustomText(
+                            product.product.details?.category.name,
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.small11,
+                            color: AppColors.primaryColor,
+                            // maxLines: 1,
+                            // overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         const SizedBox(width: 6),
                         FittedBox(
@@ -428,6 +422,36 @@ class _ProductScreenState extends State<ProductScreen> {
                     ),
 
                     AttributeRows(attributeMap: uniqueAttributes),
+
+                    const SizedBox(height: 6),
+
+                    InkWell(
+                      onTap: (){
+                        VisitingCardHelper.buildAndShareProductCard(
+                            context,
+                            product,
+                            index: productPhotoIndex
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                              Icons.share,
+                              color: AppColors.primaryColor,
+                              size: 16
+                          ),
+                          const SizedBox(width: 4),
+                          CustomText(
+                              'Share Product',
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: SizeConfig.small,
+                          ),
+                        ],
+                      ),
+                    )
+
+
                   ],
                 ),
               ),

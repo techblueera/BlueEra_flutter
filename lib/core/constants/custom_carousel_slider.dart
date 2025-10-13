@@ -16,6 +16,7 @@ class CustomImageSlideshow extends StatefulWidget {
   final Color dotInactiveColor;
   final Duration autoPlayInterval;
   final BorderRadius? borderRadius;
+  final Function(int)? onPhotoIndex;
 
   const CustomImageSlideshow({
     Key? key,
@@ -28,6 +29,7 @@ class CustomImageSlideshow extends StatefulWidget {
     this.dotInactiveColor = Colors.grey,
     this.autoPlayInterval = const Duration(seconds: 3),
     this.borderRadius,
+    this.onPhotoIndex
   }) : super(key: key);
 
   @override
@@ -103,6 +105,7 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
             controller: _pageController,
             itemCount: widget.imagePaths.length,
             onPageChanged: (index) {
+              if(widget.onPhotoIndex!=null) widget.onPhotoIndex!(index);
               setState(() {
                 _currentIndex = index;
               });

@@ -6,8 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_second_card.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_third_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -43,41 +42,55 @@ class VisitingCardHelper {
     }
   }
 
+  static bool _isProductSharing = false;
+
   /// Builds the card off-screen, captures it, then shares the PNG.
   static Future<void> buildAndShareProductCard(
       BuildContext context,
       OwnProductData ownProductData,
       {required int index}
       ) async {
+    if (_isProductSharing) return; // Already sharing, ignore new requests
+    _isProductSharing = true;
+
     GlobalKey cardKey = GlobalKey();
 
-    // final bool showThirdDiwaliOfferCard = Random().nextBool();
-    // print('showFirstDiwaliOfferCard-- $showThirdDiwaliOfferCard');
-    //
-    // final Widget selectedCard =
-    //  showThirdDiwaliOfferCard
-    //     ? DiwaliOfferThirdCard(
-    //   cardKey: cardKey,
-    //   ownProductData: ownProductData,
-    //   index: index,
-    // )
-    //     :
-    // DiwaliOfferSecondCardScreen(
-    //   cardKey: cardKey,
-    //   ownProductData: ownProductData,
-    //   index: index,
-    // );
+    final List<String> bgAssets = [
+      'assets/diwali_card/diwali_sample_card1.jpeg',
+      'assets/diwali_card/diwali_sample_card2.jpeg',
+      'assets/diwali_card/diwali_sample_card3.jpeg',
+      'assets/diwali_card/diwali_sample_card4.jpeg',
+      'assets/diwali_card/diwali_sample_card5.jpeg',
+      'assets/diwali_card/diwali_sample_card6.jpeg',
+    ];
 
+    final int randomIndex = Random().nextInt(bgAssets.length);
+    final String bgAsset = bgAssets[randomIndex];
 
-    // 1. Create an overlay that is **not** visible
+    await Future.wait([
+      precacheImage(AssetImage(bgAsset), context),
+      if (ownProductData.product.details?.media[index] != null &&
+          ownProductData.product.details!.media[index].isNotEmpty)
+        precacheImage(
+          NetworkImage(ownProductData.product.details!.media[index]),
+          context,
+        ),
+      // precacheImage(
+      //   NetworkImage(userProfileGlobal),
+      //   context,
+      // ),
+    ]);
+
+    // 1. Create an overlay that is not visible
     final overlay = OverlayEntry(
       builder: (_) => Transform.translate(
         offset: const Offset(0, -9999), // move completely off-screen
-        child: DiwaliOfferThirdCard(
-    cardKey: cardKey,
-    ownProductData: ownProductData,
-    index: index,
-    ),
+        child: DiwaliOfferCard(
+          cardKey: cardKey,
+          ownProductData: ownProductData,
+          backgroundAsset: bgAsset,
+          index: index
+        ),
       ),
     );
 
@@ -87,12 +100,21 @@ class VisitingCardHelper {
     await WidgetsBinding.instance.endOfFrame;
 
     // One extra pump to be safe on slow devices
-    await Future.delayed(const Duration(milliseconds: 50));
+    // await Future.delayed(const Duration(milliseconds: 50));
 
     try {
       await VisitingCardHelper().shareVisitingCard(cardKey, productId: ownProductData.product.details?.id);
     } finally {
       overlay.remove();
+
+      // await NetworkImage(userProfileGlobal).evict();
+      await AssetImage(bgAsset).evict();
+      if (ownProductData.product.details!.media[index].isNotEmpty) {
+        await NetworkImage(ownProductData.product.details!.media[index]).evict();
+      }
+
+      _isProductSharing = false;
+
     }
   }
 

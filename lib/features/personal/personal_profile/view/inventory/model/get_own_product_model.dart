@@ -104,7 +104,7 @@ class ProductDetails {
   final String symbol;
   final String description;
   final String brand;
-  final String categoryId;
+  final Category category;
   final String productWarranty;
   final bool isReturnable;
   final int returningDay;
@@ -126,7 +126,7 @@ class ProductDetails {
     required this.symbol,
     required this.description,
     required this.brand,
-    required this.categoryId,
+    required this.category,
     required this.productWarranty,
     required this.isReturnable,
     required this.returningDay,
@@ -158,7 +158,7 @@ class ProductDetails {
       symbol: json['symbol'] ?? '',
       description: json['description'] ?? '',
       brand: json['brand'] ?? '',
-      categoryId: json['category_id'] ?? '',
+      category: Category.fromJson(json['category'] ?? {}),
       productWarranty: json['product_warranty'] ?? '',
       isReturnable: json['is_returnable'] ?? false,
       returningDay: json['returning_day'] ?? 0,
@@ -184,7 +184,7 @@ class ProductDetails {
       'symbol': symbol,
       'description': description,
       'brand': brand,
-      'category_id': categoryId,
+       'category': category.toJson(),
       'product_warranty': productWarranty,
       'is_returnable': isReturnable,
       'returning_day': returningDay,
@@ -195,6 +195,47 @@ class ProductDetails {
     };
   }
 }
+
+class Category {
+  final List<String> path;
+  final String id;
+  final String name;
+  final String parentId;
+  final String imageUrl;
+  final bool active;
+
+  Category({
+    required this.path,
+    required this.id,
+    required this.name,
+    required this.parentId,
+    required this.imageUrl,
+    required this.active,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      path: List<String>.from(json['path'] ?? []),
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      parentId: json['parent_id'] ?? '',
+      imageUrl: json['image_url'] ?? '',
+      active: json['active'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'path': path,
+      'id': id,
+      'name': name,
+      'parent_id': parentId,
+      'image_url': imageUrl,
+      'active': active,
+    };
+  }
+}
+
 
 class ProductOption {
   final List<String> value;

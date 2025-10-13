@@ -67,6 +67,10 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   final ScrollController _scrollController = ScrollController();
   late ShortsController? shortsController;
 
+  var inventoryController = Get.isRegistered<InventoryController>()
+  ? Get.find<InventoryController>()
+  : Get.put(InventoryController());
+
   @override
   void initState() {
     super.initState();
@@ -167,9 +171,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             children: [
               isIndividual() ?
               _buildSocialCard()
-               : (Get.find<InventoryController>().allProducts.isNotEmpty)
+               : (inventoryController.allProducts.isNotEmpty)
                  ? _buildProductCard()
-                   : _buildSocialCard(), // skip if no card
+                   : _buildSocialCard(),
 
               Expanded(
                 child: Center(
@@ -200,18 +204,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
             if (indexFeed == 0) {
-              if (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                      left: SizeConfig.size8,
-                      right: SizeConfig.size8,
-                      top: SizeConfig.size8),
-                  child: GreetingCardDialog(
-                      cards: Get.find<MoreCardsScreenController>().dayCards),
-                );
-              } else {
-                return const SizedBox.shrink(); // skip if no card
-              }
+              return isIndividual() ?
+               _buildSocialCard()
+                  : (Get.find<InventoryController>().allProducts.isNotEmpty)
+                  ? _buildProductCard()
+                  : _buildSocialCard();
             }
             int index = indexFeed - 1;
             final block = blocks[index];
