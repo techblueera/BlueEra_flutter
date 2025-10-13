@@ -1,5 +1,6 @@
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 
@@ -26,6 +27,7 @@ String businessNameGlobal = '';
 String businessOwnerNameGlobal = '';
 String userNameAtGlobal = '';
 String businessOwnerAddressGlobal = '';
+String businessSubCategoryGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -62,6 +64,7 @@ class SharedPreferenceUtils {
   static const channelOwner = 'channelOwner';
   static const businessOwnerAddress = 'businessOwnerAddress';
   static const availabilityDetails = 'availabilityDetails';
+  static const businessSubCategory = 'businessSubCategory';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -80,11 +83,16 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userProfession, designation);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
+
+    userProfileGlobal = profileImage;
+    precacheImage(
+      NetworkImage(userProfileGlobal),
+      Get.context!,
+    );
   }
 
   static Future<void> guestUserLoggedIn({
     required String loginUserId_,
-
     required String contactNo,
     required String autToken,
     required String getUserName,
@@ -106,6 +114,7 @@ class SharedPreferenceUtils {
     required String loginBusinessUserId,
     required String userNameAt,
     required String businessAddress,
+    required String subCategoryOfBusiness,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userBusinessId, businessId);
@@ -115,6 +124,13 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.loginUserId, loginBusinessUserId);
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
     await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessOwnerAddress, businessAddress);
+    await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.businessSubCategory, subCategoryOfBusiness);
+
+    userProfileGlobal = profileImage;
+    precacheImage(
+      NetworkImage(userProfileGlobal),
+      Get.context!,
+    );
   }
 
   /// Store the refresh token securely
@@ -253,6 +269,10 @@ getUserLoginData() async {
 
   userNameAtGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.userNameAtKey) ??
+      "";
+
+  businessSubCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessSubCategory) ??
       "";
 
 }

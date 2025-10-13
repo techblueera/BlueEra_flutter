@@ -1,21 +1,15 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
-import 'package:BlueEra/features/common/more/model/card_model.dart';
 import 'package:BlueEra/features/common/more/widget/home_screen_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class ProductHomeScreenCard extends StatefulWidget {
   final List<OwnProductData> allProducts;
@@ -55,8 +49,8 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                 children: [
                   InkWell(
                     onTap: () {
-                      Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
-                          arguments: {ApiKeys.isFromHomeScreen: false});
+                      // Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
+                      //     arguments: {ApiKeys.isFromHomeScreen: false});
                     },
                     child: SizedBox(
                       height: SizeConfig.size300,
@@ -73,13 +67,15 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                           height: SizeConfig.size300,
                           enlargeCenterPage: true,
                           enableInfiniteScroll: true,
+                          // autoPlay: false,
                           autoPlay: widget.allProducts.length > 1,
-                          autoPlayInterval: const Duration(seconds: 3),
+                          autoPlayInterval: const Duration(seconds: 5),
                           autoPlayAnimationDuration:
-                          const Duration(milliseconds: 800),
+                          const Duration(milliseconds: 5000),
                           viewportFraction: 1.0,
                           // show one card fully
                           onPageChanged: (i, reason) {
+                            log('currentIndex--> $_currentIndex');
                             setState(() => _currentIndex = i);
                           },
                         ),
@@ -182,7 +178,7 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                         VisitingCardHelper.buildAndShareProductCard(
                           context,
                           currentProduct,
-                          index: _currentIndex,
+                          index: 0,
                         );
                       },
                       child: Container(

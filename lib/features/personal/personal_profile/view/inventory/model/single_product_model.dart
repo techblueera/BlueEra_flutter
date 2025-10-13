@@ -1,293 +1,357 @@
 class SingleProductModel {
-  bool? status;
-  SingleProductData? data;
+  final bool status;
+  final SingleProductData data;
 
-  SingleProductModel({this.status, this.data});
+  SingleProductModel({required this.status, required this.data});
 
-  SingleProductModel.fromJson(Map<String, dynamic> json) {
-    status = json['status'];
-    data = json['data'] != null ? new SingleProductData.fromJson(json['data']) : null;
+  factory SingleProductModel.fromJson(Map<String, dynamic> json) {
+    return SingleProductModel(
+      status: json['status'] ?? false,
+      data: SingleProductData.fromJson(json['data'] ?? {}),
+    );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'status': status,
+    'data': data.toJson(),
+  };
 }
 
 class SingleProductData {
-  ExpiryTime? expiryTime;
-  String? sId;
-  String? name;
-  String? type;
-  String? symbol;
-  String? description;
-  String? brand;
-  // Options? options;
-  List<String>? media;
-  String? categoryId;
-  String? productWarrenty;
-  bool? isReturnable;
-  int? returningDay;
-  bool? isPublished;
-  int? mrpPerUnit;
-  List<String>? guideLine;
-  List<String>? tags;
-  List<AddMoreDetails>? addMoreDetails;
-  List<AddProductFeatures>? addProductFeatures;
-  String? createdByBusiness;
-  bool? addedByAdmin;
-  String? approvalStatus;
-  String? createdAt;
-  String? updatedAt;
-  int? iV;
+  final String id;
+  final String name;
+  final String type;
+  final String symbol;
+  final String description;
+  final String brand;
+  final Options options;
+  final List<String> media;
+  final List<String> videoUrl;
+  final String categoryId;
+  final String productWarrenty;
+  final bool isReturnable;
+  final int returningDay;
+  final bool isPublished;
+  final double mrpPerUnit;
+  final List<String> guideLine;
+  final ExpiryTime expiryTime;
+  final List<String> tags;
+  final List<ProductDetail> addMoreDetails;
+  final List<ProductFeature> addProductFeatures;
+  final String createdByBusiness;
+  final bool addedByAdmin;
+  final String approvalStatus;
+  final String createdAt;
+  final String updatedAt;
+  final int v;
+  final List<Variant> variants;
 
-  SingleProductData(
-      {this.expiryTime,
-        this.sId,
-        this.name,
-        this.type,
-        this.symbol,
-        this.description,
-        this.brand,
-        // this.options,
-        this.media,
-        this.categoryId,
-        this.productWarrenty,
-        this.isReturnable,
-        this.returningDay,
-        this.isPublished,
-        this.mrpPerUnit,
-        this.guideLine,
-        this.tags,
-        this.addMoreDetails,
-        this.addProductFeatures,
-        this.createdByBusiness,
-        this.addedByAdmin,
-        this.approvalStatus,
-        this.createdAt,
-        this.updatedAt,
-        this.iV});
+  SingleProductData({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.symbol,
+    required this.description,
+    required this.brand,
+    required this.options,
+    required this.media,
+    required this.videoUrl,
+    required this.categoryId,
+    required this.productWarrenty,
+    required this.isReturnable,
+    required this.returningDay,
+    required this.isPublished,
+    required this.mrpPerUnit,
+    required this.guideLine,
+    required this.expiryTime,
+    required this.tags,
+    required this.addMoreDetails,
+    required this.addProductFeatures,
+    required this.createdByBusiness,
+    required this.addedByAdmin,
+    required this.approvalStatus,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.v,
+    required this.variants,
+  });
 
-  SingleProductData.fromJson(Map<String, dynamic> json) {
-    expiryTime = json['expiry_time'] != null
-        ? new ExpiryTime.fromJson(json['expiry_time'])
-        : null;
-    sId = json['_id'];
-    name = json['name'];
-    type = json['type'];
-    symbol = json['symbol'];
-    description = json['description'];
-    brand = json['brand'];
-    // options =
-    // json['options'] != null ? new Options.fromJson(json['options']) : null;
-    media = json['media'].cast<String>();
-    categoryId = json['category_id'];
-    productWarrenty = json['productWarrenty'];
-    isReturnable = json['is_returnable'];
-    returningDay = json['returning_day'];
-    isPublished = json['is_published'];
-    mrpPerUnit = json['mrp_per_unit'];
-    guideLine = json['guideLine'].cast<String>();
-    tags = json['tags'].cast<String>();
-    if (json['addMoreDetails'] != null) {
-      addMoreDetails = <AddMoreDetails>[];
-      json['addMoreDetails'].forEach((v) {
-        addMoreDetails!.add(new AddMoreDetails.fromJson(v));
-      });
-    }
-    if (json['addProductFeatures'] != null) {
-      addProductFeatures = <AddProductFeatures>[];
-      json['addProductFeatures'].forEach((v) {
-        addProductFeatures!.add(new AddProductFeatures.fromJson(v));
-      });
-    }
-    createdByBusiness = json['created_by_business'];
-    addedByAdmin = json['addedByAdmin'];
-    approvalStatus = json['approval_status'];
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
-    iV = json['__v'];
+  factory SingleProductData.fromJson(Map<String, dynamic> json) {
+    return SingleProductData(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      type: json['type'] ?? '',
+      symbol: json['symbol'] ?? '',
+      description: json['description'] ?? '',
+      brand: json['brand'] ?? '',
+      options: Options.fromJson(json['options'] ?? {}),
+      media: List<String>.from(json['media'] ?? []),
+      videoUrl: List<String>.from(json['video_url'] ?? []),
+      categoryId: json['category_id'] ?? '',
+      productWarrenty: json['productWarrenty'] ?? '',
+      isReturnable: json['is_returnable'] ?? false,
+      returningDay: json['returning_day'] ?? 0,
+      isPublished: json['is_published'] ?? false,
+      mrpPerUnit: (json['mrp_per_unit'] ?? 0).toDouble(),
+      guideLine: List<String>.from(json['guideLine'] ?? []),
+      expiryTime: ExpiryTime.fromJson(json['expiry_time'] ?? {}),
+      tags: List<String>.from(json['tags'] ?? []),
+      addMoreDetails: (json['addMoreDetails'] as List<dynamic>? ?? [])
+          .map((e) => ProductDetail.fromJson(e))
+          .toList(),
+      addProductFeatures: (json['addProductFeatures'] as List<dynamic>? ?? [])
+          .map((e) => ProductFeature.fromJson(e))
+          .toList(),
+      createdByBusiness: json['created_by_business'] ?? '',
+      addedByAdmin: json['addedByAdmin'] ?? false,
+      approvalStatus: json['approval_status'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
+      v: json['__v'] ?? 0,
+      variants: (json['variants'] as List<dynamic>? ?? [])
+          .map((e) => Variant.fromJson(e))
+          .toList(),
+    );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.expiryTime != null) {
-      data['expiry_time'] = this.expiryTime!.toJson();
-    }
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['type'] = this.type;
-    data['symbol'] = this.symbol;
-    data['description'] = this.description;
-    data['brand'] = this.brand;
-    // if (this.options != null) {
-    //   data['options'] = this.options!.toJson();
-    // }
-    data['media'] = this.media;
-    data['category_id'] = this.categoryId;
-    data['productWarrenty'] = this.productWarrenty;
-    data['is_returnable'] = this.isReturnable;
-    data['returning_day'] = this.returningDay;
-    data['is_published'] = this.isPublished;
-    data['mrp_per_unit'] = this.mrpPerUnit;
-    data['guideLine'] = this.guideLine;
-    data['tags'] = this.tags;
-    if (this.addMoreDetails != null) {
-      data['addMoreDetails'] =
-          this.addMoreDetails!.map((v) => v.toJson()).toList();
-    }
-    if (this.addProductFeatures != null) {
-      data['addProductFeatures'] =
-          this.addProductFeatures!.map((v) => v.toJson()).toList();
-    }
-    data['created_by_business'] = this.createdByBusiness;
-    data['addedByAdmin'] = this.addedByAdmin;
-    data['approval_status'] = this.approvalStatus;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
-    return data;
+  Map<String, dynamic> toJson() => {
+    '_id': id,
+    'name': name,
+    'type': type,
+    'symbol': symbol,
+    'description': description,
+    'brand': brand,
+    'options': options.toJson(),
+    'media': media,
+    'video_url': videoUrl,
+    'category_id': categoryId,
+    'productWarrenty': productWarrenty,
+    'is_returnable': isReturnable,
+    'returning_day': returningDay,
+    'is_published': isPublished,
+    'mrp_per_unit': mrpPerUnit,
+    'guideLine': guideLine,
+    'expiry_time': expiryTime.toJson(),
+    'tags': tags,
+    'addMoreDetails': addMoreDetails.map((e) => e.toJson()).toList(),
+    'addProductFeatures': addProductFeatures.map((e) => e.toJson()).toList(),
+    'created_by_business': createdByBusiness,
+    'addedByAdmin': addedByAdmin,
+    'approval_status': approvalStatus,
+    'createdAt': createdAt,
+    'updatedAt': updatedAt,
+    '__v': v,
+    'variants': variants.map((e) => e.toJson()).toList(),
+  };
+}
+
+class Options {
+  final List<ColorOption> color;
+  final List<SizeOption> size;
+
+  Options({required this.color, required this.size});
+
+  factory Options.fromJson(Map<String, dynamic> json) {
+    return Options(
+      color: (json['color'] as List<dynamic>? ?? [])
+          .map((e) => ColorOption.fromJson(e))
+          .toList(),
+      size: (json['size'] as List<dynamic>? ?? [])
+          .map((e) => SizeOption.fromJson(e))
+          .toList(),
+    );
   }
+
+  Map<String, dynamic> toJson() => {
+    'color': color.map((e) => e.toJson()).toList(),
+    'size': size.map((e) => e.toJson()).toList(),
+  };
+}
+
+class ColorOption {
+  final String colorCode;
+  final String colorName;
+
+  ColorOption({required this.colorCode, required this.colorName});
+
+  factory ColorOption.fromJson(Map<String, dynamic> json) {
+    return ColorOption(
+      colorCode: json['color_code'] ?? '',
+      colorName: json['color_name'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'color_code': colorCode,
+    'color_name': colorName,
+  };
+}
+
+class SizeOption {
+  final String properties;
+
+  SizeOption({required this.properties});
+
+  factory SizeOption.fromJson(Map<String, dynamic> json) {
+    return SizeOption(
+      properties: json['properties'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'properties': properties,
+  };
 }
 
 class ExpiryTime {
-  Null? date;
-  Null? month;
-  Null? year;
-  Null? week;
-  bool? lifetime;
+  final dynamic date;
+  final dynamic month;
+  final dynamic year;
+  final dynamic week;
+  final bool lifetime;
 
-  ExpiryTime({this.date, this.month, this.year, this.week, this.lifetime});
+  ExpiryTime({
+    this.date,
+    this.month,
+    this.year,
+    this.week,
+    required this.lifetime,
+  });
 
-  ExpiryTime.fromJson(Map<String, dynamic> json) {
-    date = json['date'];
-    month = json['month'];
-    year = json['year'];
-    week = json['week'];
-    lifetime = json['lifetime'];
+  factory ExpiryTime.fromJson(Map<String, dynamic> json) {
+    return ExpiryTime(
+      date: json['date'],
+      month: json['month'],
+      year: json['year'],
+      week: json['week'],
+      lifetime: json['lifetime'] ?? false,
+    );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['date'] = this.date;
-    data['month'] = this.month;
-    data['year'] = this.year;
-    data['week'] = this.week;
-    data['lifetime'] = this.lifetime;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'date': date,
+    'month': month,
+    'year': year,
+    'week': week,
+    'lifetime': lifetime,
+  };
 }
 
-// class Options {
-//   List<Color>? color;
-//   List<Pattern>? pattern;
-//
-//   Options({this.color, this.pattern});
-//
-//   Options.fromJson(Map<String, dynamic> json) {
-//     if (json['color'] != null) {
-//       color = <Color>[];
-//       json['color'].forEach((v) {
-//         color!.add(new Color.fromJson(v));
-//       });
-//     }
-//     if (json['pattern'] != null) {
-//       pattern = <Pattern>[];
-//       json['pattern'].forEach((v) {
-//         pattern!.add(new Pattern.fromJson(v));
-//       });
-//     }
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = new Map<String, dynamic>();
-//     if (this.color != null) {
-//       data['color'] = this.color!.map((v) => v.toJson()).toList();
-//     }
-//     if (this.pattern != null) {
-//       data['pattern'] = this.pattern!.map((v) => v.toJson()).toList();
-//     }
-//     return data;
-//   }
-// }
-//
-// class Color {
-//   String? colorCode;
-//   String? colorName;
-//
-//   Color({this.colorCode, this.colorName});
-//
-//   Color.fromJson(Map<String, dynamic> json) {
-//     colorCode = json['color_code'];
-//     colorName = json['color_name'];
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = new Map<String, dynamic>();
-//     data['color_code'] = this.colorCode;
-//     data['color_name'] = this.colorName;
-//     return data;
-//   }
-// }
-//
-// class Pattern {
-//   String? properties;
-//
-//   Pattern({this.properties});
-//
-//   Pattern.fromJson(Map<String, dynamic> json) {
-//     properties = json['properties'];
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = new Map<String, dynamic>();
-//     data['properties'] = this.properties;
-//     return data;
-//   }
-// }
+class ProductDetail {
+  final String title;
+  final String details;
+  final String id;
 
-class AddMoreDetails {
-  String? title;
-  String? details;
-  String? sId;
+  ProductDetail({required this.title, required this.details, required this.id});
 
-  AddMoreDetails({this.title, this.details, this.sId});
-
-  AddMoreDetails.fromJson(Map<String, dynamic> json) {
-    title = json['title'];
-    details = json['details'];
-    sId = json['_id'];
+  factory ProductDetail.fromJson(Map<String, dynamic> json) {
+    return ProductDetail(
+      title: json['title'] ?? '',
+      details: json['details'] ?? '',
+      id: json['_id'] ?? '',
+    );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['title'] = this.title;
-    data['details'] = this.details;
-    data['_id'] = this.sId;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'details': details,
+    '_id': id,
+  };
 }
 
-class AddProductFeatures {
-  String? title;
-  String? sId;
+class ProductFeature {
+  final String title;
+  final String id;
 
-  AddProductFeatures({this.title, this.sId});
+  ProductFeature({required this.title, required this.id});
 
-  AddProductFeatures.fromJson(Map<String, dynamic> json) {
-    title = json['title'];
-    sId = json['_id'];
+  factory ProductFeature.fromJson(Map<String, dynamic> json) {
+    return ProductFeature(
+      title: json['title'] ?? '',
+      id: json['_id'] ?? '',
+    );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['title'] = this.title;
-    data['_id'] = this.sId;
-    return data;
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    '_id': id,
+  };
+}
+
+class Variant {
+  final List<String> mediaRelatedToVariant;
+  final Map<String, dynamic> attributesMap;
+  final Map<String, dynamic> attributesStruct;
+  final String sku;
+  final String hsn;
+  final String batchNumber;
+  final dynamic expiryDate;
+  final dynamic manufacteringDate;
+  final bool stock;
+  final double costPrice;
+  final double sellingPrice;
+  final double mrp;
+  final bool variantIsActive;
+  final String createdAt;
+  final String updatedAt;
+  final String id;
+
+  Variant({
+    required this.mediaRelatedToVariant,
+    required this.attributesMap,
+    required this.attributesStruct,
+    required this.sku,
+    required this.hsn,
+    required this.batchNumber,
+    this.expiryDate,
+    this.manufacteringDate,
+    required this.stock,
+    required this.costPrice,
+    required this.sellingPrice,
+    required this.mrp,
+    required this.variantIsActive,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.id,
+  });
+
+  factory Variant.fromJson(Map<String, dynamic> json) {
+    return Variant(
+      mediaRelatedToVariant: List<String>.from(json['media_related_to_varient'] ?? []),
+      attributesMap: json['attributes_map'] ?? {},
+      attributesStruct: json['attributes_struct'] ?? {},
+      sku: json['sku'] ?? '',
+      hsn: json['hsn'] ?? '',
+      batchNumber: json['batchNumber'] ?? '',
+      expiryDate: json['expiryDate'],
+      manufacteringDate: json['manufacteringDate'],
+      stock: json['stock'] ?? false,
+      costPrice: (json['costPrice'] ?? 0).toDouble(),
+      sellingPrice: (json['sellingPrice'] ?? 0).toDouble(),
+      mrp: (json['mrp'] ?? 0).toDouble(),
+      variantIsActive: json['varientIsActive'] ?? false,
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
+      id: json['id'] ?? '',
+    );
   }
+
+  Map<String, dynamic> toJson() => {
+    'media_related_to_varient': mediaRelatedToVariant,
+    'attributes_map': attributesMap,
+    'attributes_struct': attributesStruct,
+    'sku': sku,
+    'hsn': hsn,
+    'batchNumber': batchNumber,
+    'expiryDate': expiryDate,
+    'manufacteringDate': manufacteringDate,
+    'stock': stock,
+    'costPrice': costPrice,
+    'sellingPrice': sellingPrice,
+    'mrp': mrp,
+    'varientIsActive': variantIsActive,
+    'createdAt': createdAt,
+    'updatedAt': updatedAt,
+    'id': id,
+  };
 }

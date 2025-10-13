@@ -526,6 +526,20 @@ double calculateDiscount(String priceText, String mrpText) {
   final mrp = num.tryParse(mrpText.replaceAll('₹', '').trim()) ?? 0;
 
   if (mrp == 0) return 0;
-  return ((mrp - price) / mrp) * 100;
+
+  final discount = ((mrp - price) / mrp) * 100;
+
+  // Round or format to two decimals
+  final formatted = discount.toStringAsFixed(2);
+
+  // If before decimal is single-digit, add leading zero
+  final parts = formatted.split('.');
+  if (parts[0].length == 1) {
+    // return as double but formatted string parsed back to double
+    return double.parse('0$formatted');
+  }
+
+  return double.parse(formatted);
 }
+
 

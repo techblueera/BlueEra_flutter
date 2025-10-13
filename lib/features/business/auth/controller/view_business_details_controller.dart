@@ -235,6 +235,7 @@ class ViewBusinessDetailsController extends GetxController {
             userNameAt: "",
             businessAddress:
              businessProfileDetails?.data?.address ?? '',
+          subCategoryOfBusiness: businessProfileDetails?.data?.subCategoryDetails?.name ?? '',
         );
 
         await getUserLoginData();

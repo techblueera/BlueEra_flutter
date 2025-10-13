@@ -1,8 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/single_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -25,11 +30,33 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
     super.initState();
   }
 
+  void _openNextScreen() async {
+    final tempLoginType = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.accountType);
+    accountTypeGlobal = tempLoginType.toString();
+
+    dynamic isLoginStatus = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.isUserLogin);
+    if (isLoginStatus == null) isLoginStatus = "false";
+
+    if (isLoginStatus == "false") {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        RouteHelper.getOnboardingSliderScreenRoute(),
+            (Route<dynamic> route) => false,
+      );
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CommonBackAppBar(
+        onBackTap: ()=> Get.back(),
+        // onBackTap: ()=> _openNextScreen(),
+      ),
       body: Obx(()=> controller.isSingleProductLoading.isTrue
-          ? CircularProgressIndicator()
+          ? Center(child: CircularProgressIndicator())
           : ProductCard()
       ),
     );
@@ -39,10 +66,10 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
 
     SingleProductData? singleProductData = controller.singleProductData.value;
 
-    // final variants = product.product.sellerClassification?.variants ?? [];
-    //
-    // final Map<String, List<dynamic>> uniqueAttributes = {};
-    //
+    final variants = singleProductData?.variants ?? [];
+
+    final Map<String, List<dynamic>> uniqueAttributes = {};
+
     // final firstTwoKeys = <String>[];
     // for (var v in variants) {
     //   for (var key in v.attributes.keys) {
@@ -131,75 +158,75 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
                     CustomText(
                       singleProductData?.name,
                       fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.small,
+                      fontSize: SizeConfig.extraLarge,
                       color: AppColors.mainTextColor,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
 
-                    CustomText(
-                      '₹${singleProductData?.mrpPerUnit}',
-                      fontWeight: FontWeight.w700,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.mainTextColor,
+                    // Price Row
+                    if (variants.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          CustomText(
+                            '₹${singleProductData?.variants[0].sellingPrice}',
+                            fontWeight: FontWeight.w700,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                          ),
+                          const SizedBox(width: 8),
+                          CustomText(
+                            '${calculateDiscount(
+                              singleProductData?.variants[0].sellingPrice.toString() ?? "0",
+                              singleProductData?.variants[0].mrp.toString() ?? "0",
+                            ).toStringAsFixed(2)}% Off',
+                            fontSize: SizeConfig.medium,
+                            color: Colors.green[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                          CustomText(
+                            ' ₹${singleProductData?.variants[0].mrp}',
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+
+                    // Status
+                    Row(
+                      children: [
+                        Flexible(
+                          child: CustomText(
+                            singleProductData?.categoryId,
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.primaryColor,
+                            // maxLines: 1,
+                            // overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: CustomText(
+                            "(+${singleProductData?.variants.length.toString()})",
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ],
                     ),
 
-                    // // Price Row
-                    // if (variants.isNotEmpty) ...[
-                    //   Row(
-                    //     children: [
-                    //       CustomText(
-                    //         '₹${singleProductData?.mrpPerUnit}',
-                    //         fontWeight: FontWeight.w700,
-                    //         fontSize: SizeConfig.small,
-                    //         color: AppColors.mainTextColor,
-                    //       ),
-                    //       const SizedBox(width: 8),
-                    //       CustomText(
-                    //         '${calculateDiscount(
-                    //           product.product.sellerClassification?.variants[0].sellingPrice.toString() ?? "0",
-                    //           product.product.sellerClassification?.variants[0].mrp.toString() ?? "0",
-                    //         ).toStringAsFixed(2)}% Off',
-                    //         fontSize: SizeConfig.small11,
-                    //         color: Colors.green[600],
-                    //         fontWeight: FontWeight.w400,
-                    //       ),
-                    //       CustomText(
-                    //         ' ₹${product.product.sellerClassification?.variants[0].mrp}',
-                    //         fontSize: SizeConfig.small11,
-                    //         color: AppColors.secondaryTextColor,
-                    //         fontWeight: FontWeight.w400,
-                    //         decoration: TextDecoration.lineThrough,
-                    //       ),
-                    //     ],
-                    //   ),
-                    //   const SizedBox(height: 6),
-                    // ],
-                    //
-                    // // Status
-                    // Row(
-                    //   children: [
-                    //     CustomText(
-                    //       product.product.details?.categoryId,
-                    //       fontWeight: FontWeight.w600,
-                    //       fontSize: SizeConfig.small11,
-                    //       color: AppColors.primaryColor,
-                    //       maxLines: 1,
-                    //       overflow: TextOverflow.ellipsis,
-                    //     ),
-                    //     const SizedBox(width: 6),
-                    //     FittedBox(
-                    //       fit: BoxFit.scaleDown,
-                    //       child: CustomText(
-                    //         "(+${product.product.sellerClassification?.variants.length.toString()})",
-                    //         fontWeight: FontWeight.w600,
-                    //         fontSize: SizeConfig.small11,
-                    //         color: AppColors.primaryColor,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
+                    AttributeRows(attributeMap: uniqueAttributes),
+
+                    const SizedBox(height: 6),
+
 
                   ],
                 ),
@@ -207,23 +234,6 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildIconBox(Widget child, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 25,
-        width: 25,
-        decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
-            shape: BoxShape.circle,
-            boxShadow: [AppShadows.textFieldShadow]
-        ),
-        alignment: Alignment.center,
-        child: child,
       ),
     );
   }
