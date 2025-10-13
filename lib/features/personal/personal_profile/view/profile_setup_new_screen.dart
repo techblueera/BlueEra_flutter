@@ -283,11 +283,13 @@ class _PersonalProfileSetupNewScreenState
                   controller: _tabController,
                   children: postTab.map((tab) {
                     final index = postTab.indexOf(tab);
-                    return Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size10
+                    return SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size10
+                        ),
+                        child: _buildTabContent(index),
                       ),
-                      child: _buildTabContent(index),
                     );
                   }).toList(),
 
