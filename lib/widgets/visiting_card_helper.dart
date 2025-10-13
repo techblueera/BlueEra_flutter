@@ -75,10 +75,10 @@ class VisitingCardHelper {
           NetworkImage(ownProductData.product.details!.media[index]),
           context,
         ),
-      // precacheImage(
-      //   NetworkImage(userProfileGlobal),
-      //   context,
-      // ),
+      precacheImage(
+        NetworkImage(userProfileGlobal),
+        context,
+      ),
     ]);
 
     // 1. Create an overlay that is not visible
@@ -89,7 +89,7 @@ class VisitingCardHelper {
           cardKey: cardKey,
           ownProductData: ownProductData,
           backgroundAsset: bgAsset,
-          index: index
+          // index: index
         ),
       ),
     );

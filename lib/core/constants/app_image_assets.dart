@@ -25,7 +25,7 @@ class AppImageAssets {
   static const String dummy_burger_king = '${imgPath}dummy_burger_king.png';
   static const String receivedIcon = '${imgPath}camera_stand.png';
   static const String storebackground = "assets/images/store.png";
-  static const String storeNewbackground = "assets/store/store_baground_bg.png";
+
   static const String dummy_resume = "assets/images/dummy_resume.png";
   static const String visitingCardBg = "${imgPath}visiting_card_background.jpg";
   static const String playStore = "${imgPath}play_store.png";
@@ -33,4 +33,5 @@ class AppImageAssets {
 
   static String leftQuotation = "${imgPath}left_quotation.png";
   static String rightQuotation = "${imgPath}right_quotation.png";
+  static const String storeNewBackground = "assets/store/store_baground_bg.png";
 }
