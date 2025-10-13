@@ -21,6 +21,7 @@ import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
+import 'package:flutter/foundation.dart';
 import '../model/contactListModel.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
@@ -50,7 +51,7 @@ class ChatViewController extends GetxController {
       GetChatRequestProfileDetailsModel().obs;
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
-  Rx<GroupChatListModel>? getGroupChatListModel = GroupChatListModel().obs;
+  Rx<GetChatListModel>? getGroupChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getPersonalFilteredChatListModel =
       GetChatListModel().obs;
 
@@ -115,8 +116,8 @@ class ChatViewController extends GetxController {
         ApiResponse.complete(getPersonalChatListModel?.value);
   }
 
-  void loadChatListWithType(
-      {required GetChatListModel chatListModel, Map<String, dynamic>? data}) {
+  void loadChatListWithType({required GetChatListModel chatListModel}) {
+
     if (chatListModel.type == "business") {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
@@ -124,7 +125,7 @@ class ChatViewController extends GetxController {
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
     } else if (chatListModel.type == "group") {
-      getGroupChatListModel?.value = GroupChatListModel.fromJson(data!);
+      getGroupChatListModel?.value = chatListModel;
       groupChatListResponse.value =
           ApiResponse.complete(getGroupChatListModel?.value);
     } else {
@@ -160,20 +161,22 @@ class ChatViewController extends GetxController {
 
   Future<void> connectSocket() async {
     // if (socketConnectedCalled.value == false) {
+
     if (socketConnected.value == false) {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
     }
     openedConversation.value = await localStorageHelper.getConversation();
+    await loadAllChatListFromLocal();
     // final connectivityResult = await NetworkUtils.isConnected();
     // if (connectivityResult) {
     //   await loadChatListFromLocal("personal");
     // }
 
     chatSocket.listenEvent('ChatList', (data) async {
-
+     log("sdkjcnsdkjcnsdc ${data}");
       final parsedData = GetChatListModel.fromJson(data);
-      loadChatListWithType(chatListModel: parsedData, data: data);
+      loadChatListWithType(chatListModel: parsedData);
       getPersonalFilteredChatListModel?.value = parsedData;
       await localStorageHelper.saveChatList(
           parsedData.chatList ?? [], parsedData.type ?? '');
@@ -393,20 +396,18 @@ class ChatViewController extends GetxController {
   Future<bool?> sendProductMessages(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-      await ChatViewRepo().sendMessageToUserLargeFile(params);
+          await ChatViewRepo().sendMessageToUserLargeFile(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
-
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-            getListOfMessageData?.add(message);
-            getListOfMessageResponse.value =
-                ApiResponse.complete(getListOfMessageData);
-            scrollDown();
-            saveSingleMessageToLocal(
-                message.conversationId ?? '', message, params);
-
+          getListOfMessageData?.add(message);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(getListOfMessageData);
+          scrollDown();
+          saveSingleMessageToLocal(
+              message.conversationId ?? '', message, params);
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(
               0,
@@ -431,7 +432,7 @@ class ChatViewController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-     print("Error ==> $e");
+      print("Error ==> $e");
     }
     return null;
   }
@@ -443,16 +444,15 @@ class ChatViewController extends GetxController {
       required String? type,
       String? profileImage,
       bool? isWithProductSend,
-      Map<String,dynamic>? shareProductParams,
+      Map<String, dynamic>? shareProductParams,
       required String? contactName,
       required String? contactNo,
       required bool isInitialMessage,
       String? businessId,
       bool? isFromContactList}) async {
-
     await getLocalConversation(conversationId, userId, otherUserId);
-    if(isWithProductSend==true){
-      sendProductMessages(shareProductParams??{});
+    if (isWithProductSend == true) {
+      sendProductMessages(shareProductParams ?? {});
     }
     if (type == "business") {
       if (isFromContactList != null && isFromContactList) {
@@ -515,50 +515,51 @@ class ChatViewController extends GetxController {
 
   Future<void> getLocalConversation(String conversationId, userId,
       [String? otherUserId]) async {
-    final connectivityResult = await NetworkUtils.isConnected();
+    // final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
-
-    if (connectivityResult) {
-      loadOfflineMessages(conversationId);
-    }
+    // if (connectivityResult) {
+    loadOfflineMessages(conversationId);
+    // }
     // else if (openedConversation.contains(conversationId)) {
     //   loadOfflineMessages(conversationId);
     // }
-    else {
-      emitEvent(
-          "messageReceived",
-          (otherUserId != null)
-              ? {
-                  ApiKeys.other_user_id: otherUserId,
-                  ApiKeys.page: 1,
-                  ApiKeys.is_online_user: userId,
-                  ApiKeys.per_page_message: 30,
-                }
-              : {
-                  ApiKeys.conversation_id: conversationId,
-                  ApiKeys.page: 1,
-                  ApiKeys.is_online_user: userId,
-                  ApiKeys.per_page_message: 30,
-                });
-    }
+    // else {
+    emitEvent(
+        "messageReceived",
+        (otherUserId != null)
+            ? {
+                ApiKeys.other_user_id: otherUserId,
+                ApiKeys.page: 1,
+                ApiKeys.is_online_user: userId,
+                ApiKeys.per_page_message: 30,
+              }
+            : {
+                ApiKeys.conversation_id: conversationId,
+                ApiKeys.page: 1,
+                ApiKeys.is_online_user: userId,
+                ApiKeys.per_page_message: 30,
+              });
+
+    // }
   }
 
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
 
-    if (event == "ChatList" && isFromInitial != true) {
-      final connectivityResult = await NetworkUtils.isConnected();
-      if (connectivityResult) {
-        final localChats =
-            await localStorageHelper.getChatListFromLocal(data[ApiKeys.type]);
-        loadChatListWithType(
-            chatListModel: GetChatListModel(
-          type: data[ApiKeys.type],
-          success: true,
-          chatList: await localChats,
-          archived: [],
-        ));
-        return;
+    if (event == "ChatList") {
+      final type = data[ApiKeys.type];
+
+
+      if (isFromInitial == true) {
+        List<ChatList> localChats =
+        await localStorageHelper.getChatListFromLocal(type);
+          loadChatListWithType(
+              chatListModel: GetChatListModel(
+                type: type,
+                success: true,
+                chatList: localChats,
+                archived: [],
+              ));
       }
     }
 
@@ -569,7 +570,6 @@ class ChatViewController extends GetxController {
 
     if (event == "ChatList") {
       Map<String, dynamic> dataParams = {
-        // ApiKeys.type:(selectedChatTabIndex.value==0)?"personal":(selectedChatTabIndex.value==1)?"group":"business"
         ApiKeys.type: data[ApiKeys.type]
       };
       chatSocket.emitEvent("screenRoom", {ApiKeys.conversation_id: "online"});
@@ -577,6 +577,33 @@ class ChatViewController extends GetxController {
     } else {
       chatSocket.emitEvent(event, data);
     }
+  }
+
+  Future<void> loadAllChatListFromLocal() async {
+
+    loadChatListWithType(
+        chatListModel: GetChatListModel(
+      type: "personal",
+      success: true,
+      chatList: await localStorageHelper.getChatListFromLocal("personal"),
+      archived: [],
+    ));
+
+    loadChatListWithType(
+        chatListModel: GetChatListModel(
+      type: "business",
+      success: true,
+      chatList: await localStorageHelper.getChatListFromLocal("business"),
+      archived: [],
+    ));
+
+    loadChatListWithType(
+        chatListModel: GetChatListModel(
+      type: "group",
+      success: true,
+      chatList: await localStorageHelper.getChatListFromLocal("group"),
+      archived: [],
+    ));
   }
 
   void disposeSocket() {
@@ -878,20 +905,73 @@ class ChatViewController extends GetxController {
     }
   }
 
+
   Future<bool> createGroupApi(
     Map<String, dynamic> params,
-  ) async {
-    ResponseModel responseModel =
-        await ChatViewRepo().createNewGroupApi(params);
+  {
+    bool? isFromFile,
+    Map<String, dynamic>? fileParams,
+    File? fileSended
 
-    if (responseModel.isSuccess) {
-      emitEvent("ChatList", {ApiKeys.type: "group"});
-      return true;
-    } else {
-      commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong);
-      return false;
+  }
+  ) async {
+    if(isFromFile!=null){
+      ResponseModel responseModel =
+      await ChatViewRepo().generateUploadUrlsApi(fileParams!);
+      clearMessageControllerCommon();
+
+      if (!responseModel.isSuccess) {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+
+      final data = responseModel.response?.data;
+      final uploadModel = GenerateUploadUlrModel.fromJson(data);
+      generateUploadUlrModel?.value = uploadModel;
+
+      final files = uploadModel.files;
+
+
+      // Parallel Uploads using Future.wait
+      await Future.wait(List.generate(files!.length, (i) {
+        final file = fileSended;
+        final url = files[i].uploadUrl ?? '';
+        final type = files[i].fileType ?? '';
+        return uploadFileToS3(file: file!, fileType: type, preSignedUrl: url);
+      }));
+      List<String> sharedFile= uploadModel.files?.map((element) {
+        return  element.publicUrl??'';
+      }).toList()??[];
+      params.addAll({
+        ApiKeys.group_profile_image: sharedFile,
+      });
+      ResponseModel responseModelCreas =
+      await ChatViewRepo().createNewGroupApi(params);
+      if (responseModelCreas.isSuccess) {
+        emitEvent("ChatList", {ApiKeys.type: "group"});
+        return true;
+      } else {
+        commonSnackBar(
+            message: responseModelCreas.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    }else{
+      ResponseModel responseModel =
+      await ChatViewRepo().createNewGroupApi(params);
+
+      if (responseModel.isSuccess) {
+        emitEvent("ChatList", {ApiKeys.type: "group"});
+        return true;
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
     }
+
+
+
   }
 
   Future<void> getGroupMembersApi(

@@ -393,5 +393,7 @@ class ApiKeys {
   static const landmark = "landmark";
   static const date_of_birth_Obj = 'date_of_birth';
   static const repostId = 'repostId';
+  static const group_profile_image = 'group_profile_image';
+  static const food_id = 'food_id';
 
 }

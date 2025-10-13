@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
+import '../../auth/model/GetChatListModel.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -39,8 +39,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
     final theme = Theme.of(context);
     return Obx(() {
       if (groupChatViewController.groupChatListResponse.value.status == Status.COMPLETE) {
-     
-        GroupChatListModel? data = groupChatViewController.getGroupChatListModel?.value;
+        GetChatListModel? data = groupChatViewController.getGroupChatListModel?.value;
 
         return RefreshIndicator(
           onRefresh: () async{
@@ -51,10 +50,12 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
           child:Container(
             margin: EdgeInsets.only(bottom: SizeConfig.size70),
             child: (data?.chatList?.isEmpty??true)?noGroupChatsFound(): ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 8),
+
                 itemCount: data?.chatList?.length,
                 itemBuilder: (context, index) {
                   final chat=data?.chatList?[index];
+                  print("sdk;cmlksdcm ${chat?.groupProfileImage}");
+
                   return  InkWell(
                     onTap: () async{
                       groupChatViewController.emitEvent("messageReceived", {
@@ -65,7 +66,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                       Navigator.push(context, MaterialPageRoute(builder: (context)=>GroupChatScreen(
                         type: "group",
                         conversationId: chat?.conversationId,
-                        profileImage: chat?.groupProfileImage,
+                        profileImage: chat?.groupProfileImage?.replaceAll('[', '').replaceAll(']', ''),
                         name: chat?.groupName,
                       )));
 
@@ -95,9 +96,9 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                               panEnabled: true,
                                               minScale: 1.0,
                                               maxScale: 5.0,
-                                              child: (chat?.groupProfileImage?.contains('http') ?? false)
+                                              child: (chat?.groupProfileImage?.replaceAll('[', '').replaceAll(']', '').contains('http') ?? false)
                                                   ? CachedNetworkImage(
-                                                imageUrl: chat?.groupProfileImage ?? "",
+                                                imageUrl: chat?.groupProfileImage?.replaceAll('[', '').replaceAll(']', '') ?? "",
                                                 placeholder: (context, url) => const Padding(
                                                   padding: EdgeInsets.all(20),
                                                   child: CircularProgressIndicator(),
@@ -107,7 +108,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                                 fit: BoxFit.contain,
                                               )
                                                   : Image.file(
-                                                File(chat?.groupProfileImage ?? ''),
+                                                File(chat?.groupProfileImage?.replaceAll('[', '').replaceAll(']', '') ?? ''),
                                                 fit: BoxFit.contain,
                                               ),
                                             ),
@@ -147,21 +148,84 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                                   );
                                 },
                               );
-
-
                             },
+                            // CircleAvatar(
+                            //                     backgroundColor: theme.colorScheme.primary,
+                            //                     radius: 22,
+                            //                     backgroundImage: (chat?.sender?.profileImage != null)
+                            //                         ? ((chat?.sender!.profileImage!.contains('http') ??
+                            //                                 false)
+                            //                             ? NetworkImage(chat?.sender?.profileImage ?? "")
+                            //                             : FileImage(File(chat?.sender?.profileImage ?? ''))
+                            //                                 as ImageProvider)
+                            //                         : null,
+                            //                     child: ((chat?.sender?.profileImage != null &&
+                            //                             (chat?.sender?.profileImage?.isNotEmpty ?? false)))
+                            //                         ? null
+                            //                         : Center(
+                            //                             child: CustomText(
+                            //                             "${chat?.sender?.name?.split('')[0]}",
+                            //                             color: Colors.white,
+                            //                             fontWeight: FontWeight.w800,
+                            //                             fontSize: 18,
+                            //                           )),
+                            //                   ),
                             child: CircleAvatar(
-                              backgroundColor: theme.colorScheme.primary,
-                              radius: 22,
-                              backgroundImage: (chat?.groupProfileImage != null)
-                                  ? ((chat?.groupProfileImage!.contains('http')??false)
-                                  ? NetworkImage(chat?.groupProfileImage??"")
-                                  : FileImage(File(chat?.groupProfileImage??'')) as ImageProvider)
-                                  : null,
-                              child: (chat?.groupProfileImage != null)
-                                  ? null
-                                  : Center(child: CustomText("${(chat?.groupName?.split('')[0])!.capitalize}",color: Colors.white,fontWeight: FontWeight.w800,fontSize: 18,)),
+                    backgroundColor: theme.colorScheme.primary,
+                      radius: 22,
+                      child: (chat?.groupProfileImage == null||chat?.groupProfileImage == "null")? Center(
+                          child: CustomText(
+                            "${chat?.groupName?.split('')[0]}",
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                          )):(chat?.groupProfileImage != null &&
+                          chat!.groupProfileImage!.isNotEmpty)
+                          ? ClipOval(
+                        child: (chat.groupProfileImage!.replaceAll('[', '').replaceAll(']', '').startsWith('http'))
+                            ? CachedNetworkImage(
+                          imageUrl: chat.groupProfileImage!.replaceAll('[', '').replaceAll(']', ''),
+                          fit: BoxFit.cover,
+                          width: 44,
+                          height: 44,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade300,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.grey,
+                              ),
                             ),
+                          ),
+                          errorWidget: (context, url, error) => Center(
+                            child: Text(
+                              chat.sender!.name!.substring(0, 1),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                        )
+                            : Image.file(
+                          File(chat.groupProfileImage!.replaceAll('[', '').replaceAll(']', '')),
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                          : Center(
+                        child: Text(
+                          chat?.sender?.name?.substring(0, 1) ?? '',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ),
                           ),
                           SizedBox(width: SizeConfig.size15,),
                           Expanded(

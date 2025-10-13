@@ -18,6 +18,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../chat_screen.dart';
+import '../widget/component_widgets.dart';
 import '../widget/group_chat_input_box.dart';
 import '../widget/group_message_card.dart';
 
@@ -105,254 +106,24 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       child: Obx(() {
         return Scaffold(
           backgroundColor: backgroundColor,
-          appBar: (chatThemeController.isMessageSelectionActive.value)
-              ? PreferredSize(
-            preferredSize: Size.fromHeight(kToolbarHeight),
-            child: AppBar(
-              elevation: 0,
-              backgroundColor: Colors.white,
-              leadingWidth: 38,
-              leading: InkWell(
-                onTap: () {
-                  chatThemeController.resetSelection();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 18.0),
-                  child: Icon(Icons.arrow_back_ios, color:AppColors.chat_input_icon_color),
-                ),
-              ),
-              titleSpacing: 8,
-              title: CustomText(
-                "${chatThemeController.selectedId.length}",
-                // or make dynamic
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.delete_outline, color: AppColors.chat_input_icon_color),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        title: CustomText("Are you sure you want to delete?", color: Colors.black),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                FocusScope.of(context).unfocus();
-                                Map<String, dynamic> data = {
-                                  ApiKeys.conversation_id: "${widget.conversationId}",
-                                  ApiKeys.delete_from_every_one: false,
-                                  ApiKeys.message_id_list: chatThemeController.selectedId
-                                };
-                                await chatViewController.deleteChatMessage(data,'');
-                                chatThemeController.resetSelection();
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                margin: const EdgeInsets.only(bottom: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Delete for me",
-                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                FocusScope.of(context).unfocus();
-                                Map<String, dynamic> data = {
-                                  ApiKeys.conversation_id: "${widget.conversationId}",
-                                  ApiKeys.delete_from_every_one: true,
-                                  ApiKeys.message_id_list: chatThemeController.selectedId
-                                };
-                                await chatViewController.deleteChatMessage(data, '');
-                                chatThemeController.resetSelection();
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Delete for everyone",
-                                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                (chatThemeController.selectedId.length==1&&chatThemeController.selectedFirstMessage?.value?.messageType=="text")?
-                IconButton(
-                  icon: Icon(Icons.edit, color: AppColors.chat_input_icon_color,size: 22,),
-                  onPressed: (){
-                    editingController.text=chatThemeController.selectedFirstMessage?.value?.message??'';
-                    showMessageEditDialog();
-                  },
-                ):SizedBox(),
-                // IconButton(
-                //   icon:  Icon(Icons.push_pin_outlined,color: AppColors.chat_input_icon_color,size: 22,),
-                //   onPressed: _showPinDialog,
-                // ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6.0),
-                  child: InkWell(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatMainScreen(isForwardUI: true,message: chatThemeController.selectedFirstMessage?.value,forwardId: chatThemeController.selectedFirstMessage?.value?.id??'',)));
-                    },
-                    child: SvgPicture.asset(
-                      AppIconAssets.chat_media_forward, height: 24, width: 24,),
-                  ),
-                ),
-
-
-                /// 🔽 Three Dots Menu (Edit option)
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: AppColors.chat_input_icon_color),
-                  offset: const Offset(20, 60), // 👈 shift menu 40 pixels downward
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      print("Edit selected");
-                      // Handle your edit logic
-                    }
-                  },
-                  itemBuilder: (context) => [
-
-                  ],
-                ),
-
-
-                const SizedBox(width: 8),
-              ],
-
-            ),
-          )
-              : AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            leadingWidth: 38,
-            leading: InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                chatViewController.emitEvent(
-                    "ChatList", {ApiKeys.type: "group"}, true);
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(left: 18.0),
-                // Reduce touch padding if needed
-                child: Icon(Icons.arrow_back_ios, color: Colors.black),
-              ),
-            ),
-            titleSpacing: 0,
-            title: InkWell(
-              onTap: (){
-                _navigateToProfile(authorId: '');
-              },
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: theme.colorScheme.primary,
-                    radius: 18,
-                    backgroundImage: widget.profileImage != null
-                        ?  ((widget.profileImage!.contains('http'))
-                        ? NetworkImage(widget.profileImage??"")
-                        : FileImage(File(widget.profileImage??'')) as ImageProvider)
-                        : null,
-                    child: (widget.profileImage != null)
-                        ? null
-                        :(widget.name!=null)?
-                    Center(child: CustomText("${widget.name?.split('')[0].capitalize}",color: Colors.white,fontWeight: FontWeight.w800,fontSize: 18,))
-                        :Center(
-                      child: Icon(
-                        Icons.person,
-                        color: theme.colorScheme.surface,
-                      ),
-                    )
-                    ,
-                  ),
-                  SizedBox(width: 6), // Slightly smaller spacing
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 160,
-                        child: CustomText(
-                          '${widget.name?.capitalize}',
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              const SizedBox(width: 8),
-              // InkWell(
-              //     onTap: (){
-              //       launchDialPad(widget.contactNo??'');
-              //     },
-              //     child: SvgPicture.asset(AppIconAssets.chat_call)),
-              // const SizedBox(width: 12),
-              // SvgPicture.asset(AppIconAssets.chat_video_call),
-              // const SizedBox(width: 12),
-              PopupMenuButton<String>(
-                icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
-                onSelected: (value) {
-                  if (value == "group_info") {
-
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>ViewGroupMembers(
-                      conversationId: widget.conversationId,
-                      type: widget.type,
-                      name: widget.name,
-                      profileImage: widget.profileImage,
-                    )));
-                  }
-
-                },
-                itemBuilder: (context) => [
-                  // PopupMenuItem(
-                  //   value: "group_members",
-                  //   child: Text("Group Members"),
-                  // ),
-                  PopupMenuItem(
-                    onTap:() {
-                      
-                    } ,
-                    value: "group_info",
-                    child: Text("Group Info"),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
+          appBar: (chatThemeController.isMessageSelectionActive.value &&
+              widget.type != "Admin")
+              ? getChatOptionsAppBar(
+              context,
+              profileImage: widget.profileImage,
+              editingController: editingController,
+              conversationId: widget.conversationId,
+              userId: '',
+              type: widget.type,
+              name: widget.name,
+              contactNo: '')
+              : getChatTitleAppBar(context,
+              userId: '',
+              isGroupAppBar: true,
+              type: widget.type,
+              name: widget.name,
+              profileImage: widget.profileImage,
+              contactNo: '', conversationId: widget.conversationId),
           body: Obx(() {
             
             if (chatViewController.getListOfMessageResponse.value.status ==
