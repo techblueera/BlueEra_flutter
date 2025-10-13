@@ -79,7 +79,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     
     // First check if myMessage field is available and reliable
     if (widget.message.myMessage != null) {
-      isReceive = !(widget.message.myMessage ?? false);
+      isReceive = (widget.message.myMessage ?? false);
       print('GroupMessageCard: Using myMessage field - myMessage: ${widget.message.myMessage}, isReceive: $isReceive');
     } else {
       // Fallback: compare current logged-in user ID with sender ID
@@ -89,7 +89,6 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
       isReceive = currentUserId != senderId;
       print('GroupMessageCard: Using fallback logic - currentUserId: "$currentUserId", senderId: "$senderId", isReceive: $isReceive');
     }
-    
     final time = formatChatTime(
         widget.message.createdAt ?? '');
 
@@ -126,7 +125,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
             GroupVideoAndImageCardWidget(
               message:widget.message,
               time:time,
-              isReceive:isReceive,
+              isReceive:!isReceive,
               theme:theme,
               userId:widget.userId.toString(),
               conversationId:widget.conversationId
@@ -155,7 +154,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
         messageWidget = GroupPdfPreviewCard(
           message: widget.message,
           chatThemeController: chatThemeController,
-          isMyMessage: !isReceive,
+          isMyMessage: isReceive,
           pdfUrl:
           '${(widget.message.url==null)?widget.message.docFileName:widget.message.url?.first.url}',
           fileName:
@@ -168,7 +167,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
               widget.message,
               text,
               time,
-              isReceive,
+              !isReceive,
             );
         break;
     }

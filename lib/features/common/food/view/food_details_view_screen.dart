@@ -114,11 +114,9 @@ class FoodDetailsViewScreen extends StatelessWidget {
                           List<Map<String, String>> urlList =
                               photos.map((e) => {"url": e}).toList();
                           Map<String, dynamic> data = {
-                            "food_id": "${item.id}",
-                            // "product_id": "string",
-                            // "service_id": "string",
+                           ApiKeys.food_id: "${item.id}",
                             "price": "${productPriceFormat}",
-                            "discount": "20%",
+                            "discount": "",
                             if ((chatViewController.newVisitContactApiResponse
                                         ?.value?.data?.conversationId ==
                                     '' ||

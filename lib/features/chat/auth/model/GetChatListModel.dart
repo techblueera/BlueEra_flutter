@@ -59,8 +59,10 @@ class ChatList {
   ChatList({
       this.conversationId, 
       this.isGroup, 
-      this.lastMessage, 
-      this.lastMessageType, 
+      this.lastMessage,
+      this.groupName,
+      this.groupProfileImage,
+      this.lastMessageType,
       this.createdAt, 
       this.updatedAt, 
       this.unreadCount, 
@@ -71,6 +73,8 @@ class ChatList {
     conversationId = json['conversation_id'];
     isGroup = json['is_group'];
     lastMessage = json['last_message'];
+    groupName= json['group_name'].toString();
+    groupProfileImage= json['group_profile_image'].toString();
     lastMessageType = json['last_message_type'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
@@ -84,6 +88,8 @@ class ChatList {
   String? lastMessageType;
   String? createdAt;
   String? updatedAt;
+  String? groupName;
+  String? groupProfileImage;
   num? unreadCount;
   bool? publicGroup;
   Sender? sender;
@@ -95,6 +101,8 @@ class ChatList {
     map['last_message'] = lastMessage;
     map['last_message_type'] = lastMessageType;
     map['created_at'] = createdAt;
+    map['group_name'] = groupName;
+    map['group_profile_image'] = groupProfileImage;
     map['updated_at'] = updatedAt;
     map['unread_count'] = unreadCount;
     map['public_group'] = publicGroup;

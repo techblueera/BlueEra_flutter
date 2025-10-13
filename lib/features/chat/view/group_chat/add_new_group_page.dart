@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/regular_expression.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -320,31 +321,51 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
               String fileName = imagePath.split('/').last;
               fileName.split('.').last.toLowerCase();
 
-              dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
-                imagePath,
-                filename: fileName,
-              );
+              File selectedFiles = File(pickedFile!.path);
+              // List<dio.MultipartFile> mediaParts = [];
+              List<String?> fileNames = [];
+              List<String?> fileTypes = [];
+
+
+
+                Map<String, String?> fileInfo = getFileInfo(selectedFiles);
+                fileNames.add(fileInfo['fileName']);
+                fileTypes.add(fileInfo['mimeType']);
+
+
+              Map<String, dynamic> uploadParams = {
+                ApiKeys.fileName: fileNames,
+                ApiKeys.fileType: fileTypes,
+              };
 
               data = {
                 ApiKeys.group_name: groupNameController.text,
                 ApiKeys.conversation_users: widget.selectedUserIds,
                 ApiKeys.public_group: publicGroup,
-                ApiKeys.files: imageByPart,
+
               };
+
+              bool value = await chatViewController.createGroupApi(data,isFromFile: true,fileParams: uploadParams,fileSended: selectedFiles);
+              if (value == true) {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              }
             } else {
               data = {
                 ApiKeys.group_name: groupNameController.text,
                 ApiKeys.conversation_users: widget.selectedUserIds,
                 ApiKeys.public_group: publicGroup,
               };
+              bool value = await chatViewController.createGroupApi(data);
+              if (value == true) {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              }
             }
 
-            bool value = await chatViewController.createGroupApi(data);
 
-            if (value == true) {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            }
+
+
           }
         },
         backgroundColor: Colors.green,

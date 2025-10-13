@@ -913,24 +913,24 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                 onSend: (List<File> getFile, String? commands) async {
                   Navigator.pop(context);
                   List<File> selectedFiles = getFile;
-                  List<dio.MultipartFile> mediaParts = [];
+                  // List<dio.MultipartFile> mediaParts = [];
                   List<String?> fileNames = [];
                   List<String?> fileTypes = [];
 
                   for (var file in selectedFiles) {
-                    String filePath = file.path;
-                    String fileName = filePath
-                        .split('/')
-                        .last;
+                    // String filePath = file.path;
+                    // String fileName = filePath
+                    //     .split('/')
+                    //     .last;
                     Map<String, String?> fileInfo = getFileInfo(file);
                     fileNames.add(fileInfo['fileName']);
                     fileTypes.add(fileInfo['mimeType']);
 
-                    final multipartFile = await dio.MultipartFile.fromFile(
-                      filePath,
-                      filename: fileName,
-                    );
-                    mediaParts.add(multipartFile);
+                    // final multipartFile = await dio.MultipartFile.fromFile(
+                    //   filePath,
+                    //   filename: fileName,
+                    // );
+                    // mediaParts.add(multipartFile);
                   }
 
                   String firstFileExtension = selectedFiles.first.path
