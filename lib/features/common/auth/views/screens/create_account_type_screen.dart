@@ -25,6 +25,7 @@ import '../../../../personal/personal_profile/controller/languge_list_controller
 import '../../../home/widgets/diwali_card.dart';
 import '../../../home/widgets/diwali_second_card.dart';
 import '../../../home/widgets/diwali_third_card.dart';
+import '../../../store/view/newstore_screen.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   @override
@@ -244,13 +245,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   SizedBox(height: kToolbarHeight),
                   //
-                  // PositiveCustomBtn(
-                  //   onTap: (){
-                  //     Navigator.push(context, MaterialPageRoute(builder: (context)=>DiwaliOfferThirdCard()));
-                  //   },
-                  //   title: "Diwali Card",
-                  //   radius: SizeConfig.size8,
-                  // ),
+                  PositiveCustomBtn(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>ShopFeedScreen()));
+                    },
+                    title: "store Card",
+                    radius: SizeConfig.size8,
+                  ),
 
                 ],
               ),

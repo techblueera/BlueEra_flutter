@@ -114,6 +114,7 @@ flutter:
     - assets/icons/
     - assets/diwali_card/
     - assets/video/
+    - assets/store/
 
   fonts:
     - family: OpenSans

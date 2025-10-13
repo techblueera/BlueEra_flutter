@@ -26,6 +26,7 @@ class AppImageAssets {
   static const String dummy_burger_king = '${imgPath}dummy_burger_king.png';
   static const String receivedIcon = '${imgPath}camera_stand.png';
   static const String storebackground = "assets/images/store.png";
+  static const String storeNewbackground = "assets/store/store_baground_bg.png";
   static const String dummy_resume = "assets/images/dummy_resume.png";
   static const String visitingCardBg = "${imgPath}visiting_card_background.jpg";
   static const String playStore = "${imgPath}play_store.png";
