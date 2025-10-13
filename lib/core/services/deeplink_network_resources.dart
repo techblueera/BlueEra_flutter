@@ -1,6 +1,9 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
@@ -23,12 +26,15 @@ class DeepLinkNetworkResources {
       if (response.isSuccess) {
         final responseData = response.response?.data;
         if (responseData != null) {
-          logs('DEEPLINK_DEBUG: Response data found, extracting video from nested structure');
+          logs(
+              'DEEPLINK_DEBUG: Response data found, extracting video from nested structure');
 
           // The API returns: { data: { videos: [VideoFeedItem] } }
           // We need to extract the first video from the videos array
           final videosData = responseData['data'];
-          if (videosData != null && videosData['videos'] != null && videosData['videos'].isNotEmpty) {
+          if (videosData != null &&
+              videosData['videos'] != null &&
+              videosData['videos'].isNotEmpty) {
             final videoData = videosData['videos'][0];
             // logs('DEEPLINK_DEBUG: Extracted video data from nested structure');
 
@@ -47,8 +53,10 @@ class DeepLinkNetworkResources {
           logs('DEEPLINK_DEBUG: Video data is null in successful response');
         }
       } else {
-        logs('DEEPLINK_DEBUG: API call failed with message: ${response.message}');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        logs(
+            'DEEPLINK_DEBUG: API call failed with message: ${response.message}');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       logs('DEEPLINK_DEBUG: Error fetching video by ID: $e');
@@ -68,17 +76,25 @@ class DeepLinkNetworkResources {
       }
 
       final videoType = videoFeedItem.video?.type;
-
+logs("videoType====== ${videoType}");
       switch (videoType) {
         case 'long':
-          Get.to(() => DeeplinkVideoScreen(videoItem: videoFeedItem));
+          Get.toNamed(
+            RouteHelper.getVideoPlayerScreenRoute(),
+            arguments: {
+              ApiKeys.videoItem: videoFeedItem,
+              ApiKeys.videoType: VideoType.videoFeed,
+            },
+          );
+
+          // Get.toNamed(() => DeeplinkVideoScreen(videoItem: videoFeedItem));
           break;
         case 'short':
           Get.to(() => ShareShortPlayerItem(
-            videoItem: videoFeedItem,
-            autoPlay: true,
-            onTapOption: () {},
-          ));
+                videoItem: videoFeedItem,
+                autoPlay: true,
+                onTapOption: () {},
+              ));
           break;
         default:
           logs('DEEPLINK_DEBUG: Unknown video type: $videoType');

@@ -41,7 +41,7 @@ class MessagePostController extends GetxController {
   String? postId;
 
   ///ADD MESSAGE POST...
-  Future<void> addMsgPostController({
+  Future<void> editMsgPostController({
     required Map<String, dynamic>? bodyReq,
   }) async {
     try {
@@ -87,6 +87,35 @@ class MessagePostController extends GetxController {
       );
       final data = responseModel.response?.data;
       clearData();
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: data['message'] ?? AppStrings.success);
+        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+            true;
+        Get.until((route) =>
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
+        addPostMessage.value = ApiResponse.complete(responseModel);
+      } else {
+        commonSnackBar(
+            message: data['message'] ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs("ERROR ${e.toString()}");
+      addPostMessage.value = ApiResponse.error('error');
+    }
+  }
+
+  ///RePost  MESSAGE POST...
+  Future<void> rePostMsgPostControllerNew({
+    required dioObj.FormData bodyReq,
+  }) async {
+    try {
+      ResponseModel responseModel = await PostRepo().addPostNewRepo(
+        formData: bodyReq,
+        isMultiPartPost: true,
+      );
+      final data = responseModel.response?.data;
+      clearRepostData();
       if (responseModel.isSuccess) {
         commonSnackBar(message: data['message'] ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =

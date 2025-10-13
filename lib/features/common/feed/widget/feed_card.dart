@@ -30,6 +30,7 @@ class FeedCard extends StatefulWidget {
   final double? horizontalPadding;
   final double? bottomPadding;
   final bool? isFromDetailsScreen;
+  final bool? isRepost;
 
   const FeedCard(
       {super.key,
@@ -39,7 +40,7 @@ class FeedCard extends StatefulWidget {
       this.sortBy,
       this.horizontalPadding,
       this.bottomPadding,
-      this.isFromDetailsScreen = false});
+      this.isFromDetailsScreen = false, this.isRepost = false});
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -121,18 +122,23 @@ class _FeedCardState extends State<FeedCard> {
           horizontalPadding: widget.horizontalPadding,
           bottomPadding: widget.bottomPadding,
           post: _post,
-          authorSection: () => PostAuthorHeader(
-            post: _post,
-            authorId: _post?.user?.id ?? '0',
-            postType: widget.postFilteredType,
-            onTapAvatar: _shouldShowProfileNavigation()
-                ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
-                : null,
+          isRepost: widget.isRepost,
+          authorSection: () => IgnorePointer(
+            ignoring: widget.isRepost==true?true:false,
+            child: PostAuthorHeader(
+              post: _post,
+              isRepost: widget.isRepost,
+              authorId: _post?.user?.id ?? '0',
+              postType: widget.postFilteredType,
+              onTapAvatar: _shouldShowProfileNavigation()
+                  ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
+                  : null,
+            ),
           ),
           commentView: () => _onCommentPressed(),
-          buildActions:/* (widget.isFromDetailsScreen ?? false)
+          buildActions: (widget.isRepost ?? false)
               ? SizedBox.shrink
-              :*/ () => PostActionsBar(
+              : () => PostActionsBar(
                     post: _post,
                     isLiked: _post?.isLiked ?? false,
                     totalLikes: _post?.likesCount ?? 0,

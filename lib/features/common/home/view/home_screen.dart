@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -9,6 +10,7 @@ import 'package:BlueEra/features/common/home/controller/home_screen_controller.d
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
+import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
@@ -18,6 +20,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
+import 'package:share_handler/share_handler.dart';
 
 enum SavedFeedTab {
   posts,
@@ -61,11 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final MoreCardsScreenController moreCardsScreenController =
       Get.put(MoreCardsScreenController());
   final InventoryController inventoryController =
-  Get.put(InventoryController());
+      Get.put(InventoryController());
+
 
   @override
   void initState() {
     super.initState();
+    initPlatformState();
     getPackageData();
     searchController.addListener(() {
       setState(() {});
@@ -73,8 +78,60 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateHeaderHeight();
-      if(isBusinessUser()) getBusinessUserOwnProduct();
+      if (isBusinessUser()) getBusinessUserOwnProduct();
       checkAndShowGreetingDialog(context);
+    });
+  }
+  SharedMedia? sharedMedia;
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initPlatformState() async {
+    final handler = ShareHandlerPlatform.instance;
+
+    // App opened from share intent
+    handler.getInitialSharedMedia().then((SharedMedia? media) {
+      setState(() => sharedMedia = media);
+      if (media?.content?.isNotEmpty ?? false) {
+        _openChatScreen(media!);
+        print("Received text: ${media.content}");
+      }
+      if (media?.attachments?.isNotEmpty ?? false) {
+        _openChatScreen(media!);
+        print("Received attachments: ${media.attachments}");
+      }
+    });
+
+    // App running, receiving new share
+    handler.sharedMediaStream.listen((SharedMedia media) {
+      setState(() => sharedMedia = media);
+      _openChatScreen(media);
+      print("New shared text: ${media.content}");
+    });
+  }
+  void _openChatScreen(SharedMedia media) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isGuestUser()) {
+        createProfileScreen();
+      } else {
+        final _sharedText=media.content;
+        List<SharedAttachment?>? attachments=media.attachments ?? [];
+
+        if (_sharedText != null && _sharedText.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(sharedText: _sharedText),
+            ),
+          );
+        } else if ( (attachments.isNotEmpty)) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(sharedFiles:attachments),
+            ),
+          );
+        }
+      }
     });
   }
 
@@ -141,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  getBusinessUserOwnProduct(){
+  getBusinessUserOwnProduct() {
     inventoryController.fetchProducts();
   }
 
@@ -193,7 +250,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
-
         body: Obx(() => Stack(
               children: [
                 /// Main Scrollable Area with Dynamic Padding
@@ -257,18 +313,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSelectedTabContent() {
     switch (selectedIndex) {
       case 0:
-   // return MixedFeedView(rawData: exampleData);
+        // return MixedFeedView(rawData: exampleData);
         // return HomeFeedScreen();
         // return FeedScreen(
         return HomeFeedScreenNew(
-            key: ValueKey('feedScreen_all'),
-            onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-            postFilterType: PostType.all,
-            query: searchController.text.isEmpty
-                ? null
-                : searchController.text,
-            headerHeight: _headerHeight,
-          isInParentScroll: false,);
+          key: ValueKey('feedScreen_all'),
+          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+          postFilterType: PostType.all,
+          query: searchController.text.isEmpty ? null : searchController.text,
+          headerHeight: _headerHeight,
+          isInParentScroll: false,
+        );
       case 1:
         return VideoFeedScreen(
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,

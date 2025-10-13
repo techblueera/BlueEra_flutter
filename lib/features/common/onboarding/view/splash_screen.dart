@@ -1,4 +1,5 @@
   import 'dart:async';
+import 'dart:io';
 
   import 'package:BlueEra/core/api/apiService/api_keys.dart';
   import 'package:BlueEra/core/constants/app_colors.dart';
@@ -14,6 +15,7 @@
   import 'package:flutter/material.dart';
   import 'package:get/get.dart';
   import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:share_handler/share_handler.dart';
 
   class SplashScreen extends StatefulWidget {
     const SplashScreen({super.key});
@@ -23,12 +25,17 @@
   }
 
   class _SplashScreenState extends State<SplashScreen> {
+
+
     @override
     void initState() {
       super.initState();
+
+
       askLocationPermission();
       _openNextScreen();
     }
+
 
     Future<void> askLocationPermission() async {
      //  await SharedPreferenceUtils.setSecureValue(
@@ -169,4 +176,51 @@
       );
     }
 
+  }
+  class ChatScreen extends StatelessWidget {
+    final String? sharedText;
+    List<SharedAttachment?>? sharedFiles=[];
+    // final List<SharedMediaFile>? sharedFiles;
+
+     ChatScreen({Key? key, this.sharedText, this.sharedFiles})
+        : super(key: key);
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chat Screen')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (sharedText != null)
+                Text("📩 Shared Text:\n$sharedText",
+                    style: const TextStyle(fontSize: 16)),
+              if (sharedFiles != null && sharedFiles!.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: sharedFiles!
+                      .map(
+                        (f) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Image.file(
+                        File(f?.path??""),
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  )
+                      .toList(),
+                ),
+              const SizedBox(height: 20),
+              const Text(
+                "Now you can send this to your contacts 💬",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }

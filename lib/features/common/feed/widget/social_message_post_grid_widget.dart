@@ -224,21 +224,23 @@ class SocialImageGrid extends StatelessWidget {
       {required String urlLink, required int index, double? heightImg}) {
     return InkWell(
       onTap: () => onTapImage(indexOfImage: index),
-      child: CachedNetworkImage(
-        imageUrl: urlLink,
-        fit: BoxFit.cover,
-        width: Get.width,
-        height: heightImg?.toDouble() ?? 300,
-        // color: Colors.white,
-        placeholder: (context, _) => Center(
-          child: LocalAssets(
+      child: Container(
+        color: Colors.black,
+        child: CachedNetworkImage(
+          imageUrl: urlLink,
+          fit: BoxFit.cover,
+          width: Get.width,
+          height: heightImg?.toDouble() ?? 300,
+          placeholder: (context, _) => Center(
+            child: LocalAssets(
+              imagePath: AppIconAssets.place_holder_image,
+              boxFix: BoxFit.cover,
+            ),
+          ),
+          errorWidget: (context, _, __) => LocalAssets(
             imagePath: AppIconAssets.place_holder_image,
             boxFix: BoxFit.cover,
           ),
-        ),
-        errorWidget: (context, _, __) => LocalAssets(
-          imagePath: AppIconAssets.place_holder_image,
-          boxFix: BoxFit.cover,
         ),
       ),
     );
