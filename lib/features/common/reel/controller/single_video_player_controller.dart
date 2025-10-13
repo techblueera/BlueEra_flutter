@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/widgets/intertitial_ad_service.dart';
-import 'package:chewie/chewie.dart';
+// import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -11,7 +11,7 @@ import 'package:video_player/video_player.dart';
 class SingleVideoPlayerController extends GetxController {
   // Video controllers
   VideoPlayerController? _videoPlayerController;
-  ChewieController? _chewieController;
+  // ChewieController? _chewieController;
 
   // Ad service
   final InterstitialAdService _interstitialService = InterstitialAdService();
@@ -39,9 +39,9 @@ class SingleVideoPlayerController extends GetxController {
   // Getters
   InterstitialAdService get interstitialService => _interstitialService;
   VideoPlayerController? get videoPlayerController => _videoPlayerController;
-  ChewieController? get chewieController => _chewieController;
+  // ChewieController? get chewieController => _chewieController;
   ShortFeedItem? get currentVideoItem => _currentVideoItem;
-  bool get hasController => _chewieController != null;
+  // bool get hasController => _chewieController != null;
 
   Timer? _hideControlsTimer;
 
@@ -120,7 +120,7 @@ class SingleVideoPlayerController extends GetxController {
       await _videoPlayerController?.pause();
       _videoPlayerController?.removeListener(_videoPlayerListener);
       await _videoPlayerController?.dispose();
-      _chewieController?.dispose();
+      // _chewieController?.dispose();
 
       // Create new controller
       _videoPlayerController = VideoPlayerController.networkUrl(
@@ -133,7 +133,7 @@ class SingleVideoPlayerController extends GetxController {
 
       await _videoPlayerController!.initialize();
 
-      _chewieController = ChewieController(
+     /* _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController!,
         autoPlay: false,
         looping: false,
@@ -154,7 +154,7 @@ class SingleVideoPlayerController extends GetxController {
             ),
           );
         },
-      );
+      );*/
 
       _currentVideoItem = videoItem;
       _videoPlayerController!.addListener(_videoPlayerListener);
@@ -313,10 +313,10 @@ class SingleVideoPlayerController extends GetxController {
   void disposeVideo() async {
     try {
       final oldVideo = _videoPlayerController;
-      final oldChewie = _chewieController;
+      // final oldChewie = _chewieController;
 
       _videoPlayerController = null;
-      _chewieController = null;
+      // _chewieController = null;
       _currentVideoItem = null;
 
       isVideoInitialized.value = false;
@@ -333,7 +333,7 @@ class SingleVideoPlayerController extends GetxController {
         await oldVideo.pause();
         await oldVideo.dispose();
       }
-      oldChewie?.dispose();
+      // oldChewie?.dispose();
 
       log('Video disposed successfully');
     } catch (e) {

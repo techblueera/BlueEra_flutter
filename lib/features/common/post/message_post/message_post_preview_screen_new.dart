@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
@@ -96,16 +97,31 @@ class _MessagePostPreviewScreenNewState
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-
+        if (msgPostController.isLoading.value) {
+          commonSnackBar(message: "Please wait Request is still processing...");
+          return false;
+        }
         return true;
       },
       child: Scaffold(
-        appBar: CommonBackAppBar(
-          title: 'Post Preview',
-          onBackTap: () {
-            Get.back();
-          },
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: Obx(() {
+            return CommonBackAppBar(
+              title: "Message Repost",
+              isLeading: msgPostController.isLoading.value ? false : true,
+              onBackTap: () {
+                Get.back();
+              },
+            );
+          }),
         ),
+        // appBar: CommonBackAppBar(
+        //   title: 'Post Preview',
+        //   onBackTap: () {
+        //     Get.back();
+        //   },
+        // ),
         body: SafeArea(
           child: Obx(() {
             return Stack(
@@ -346,7 +362,7 @@ class _MessagePostPreviewScreenNewState
                                                       : ""
                                             };
                                             await msgPostController
-                                                .addMsgPostController(
+                                                .editMsgPostController(
                                               bodyReq: reqData,
                                             );
                                           } else {

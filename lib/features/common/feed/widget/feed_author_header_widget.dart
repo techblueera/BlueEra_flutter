@@ -26,6 +26,7 @@ class PostAuthorHeader extends StatelessWidget {
   final VoidCallback? onTapAvatar;
   final VoidCallback? onTapOptions;
   final String? postedAgo;
+  final bool? isRepost;
 
   const PostAuthorHeader({
     super.key,
@@ -35,6 +36,7 @@ class PostAuthorHeader extends StatelessWidget {
     this.onTapAvatar,
     this.onTapOptions,
     this.postedAgo,
+    this.isRepost=false,
   });
 
   @override
@@ -112,29 +114,30 @@ class PostAuthorHeader extends StatelessWidget {
                   postedAgo: postedAgo),
             ),
           ),
-          if (post?.user?.accountType == AppConstants.individual)
-            if (id != userId)
-              Container(
-                height: 20,
-                width: 20,
-                margin: EdgeInsets.only(right: SizeConfig.size15),
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  // offset: const Offset(-6, 36),
-                  color: AppColors.white,
+          if(isRepost==false)...[
+            if (post?.user?.accountType == AppConstants.individual)
+              if (id != userId)
+                Container(
+                  height: 20,
+                  width: 20,
+                  margin: EdgeInsets.only(right: SizeConfig.size15),
+                  child: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    // offset: const Offset(-6, 36),
+                    color: AppColors.white,
 
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  onSelected: (value) async {
-                    onTapFunction(valueData: value, contextBuild: context);
-                  },
-                  icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                  itemBuilder: (context) => popupMenuVisitProfileActionItems(
-                      isSavePost: (post?.isPostSavedLocal ?? false)),
-                ),
-              )
-            /*IconButton(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    onSelected: (value) async {
+                      onTapFunction(valueData: value, contextBuild: context);
+                    },
+                    icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
+                    itemBuilder: (context) => popupMenuVisitProfileActionItems(
+                        isSavePost: (post?.isPostSavedLocal ?? false)),
+                  ),
+                )
+              /*IconButton(
                 onPressed:(){
                   if (isGuestUser()) {
                     createProfileScreen();
@@ -144,35 +147,37 @@ class PostAuthorHeader extends StatelessWidget {
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
               )*/
-            else
-              FeedPopUpMenu(
-                post: post ?? Post(id: ''),
-                postFilteredType: postType,
-              )
-          else if (post?.user?.accountType == AppConstants.business)
-            if (id != businessId)
-              Container(
-                height: 20,
-                width: 20,
-                margin: EdgeInsets.only(right: SizeConfig.size12),
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  // offset: const Offset(-6, 36),
-                  color: AppColors.white,
+              else
+                FeedPopUpMenu(
+                  post: post ?? Post(id: ''),
+                  postFilteredType: postType,
+                )
+            else if (post?.user?.accountType == AppConstants.business)
+              if (id != businessId)
+                Container(
+                  height: 20,
+                  width: 20,
+                  margin: EdgeInsets.only(right: SizeConfig.size12),
+                  child: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    // offset: const Offset(-6, 36),
+                    color: AppColors.white,
 
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  onSelected: (value) async {
-                    onTapFunction(valueData: value, contextBuild: context);
-                  },
-                  icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                  itemBuilder: (context) => popupMenuVisitProfileActionItems(),
-                ),
-              )
-            else
-              FeedPopUpMenu(
-                  post: post ?? Post(id: ''), postFilteredType: postType)
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    onSelected: (value) async {
+                      onTapFunction(valueData: value, contextBuild: context);
+                    },
+                    icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
+                    itemBuilder: (context) => popupMenuVisitProfileActionItems(),
+                  ),
+                )
+              else
+                FeedPopUpMenu(
+                    post: post ?? Post(id: ''), postFilteredType: postType)
+          ],
+
         ],
       ),
     );
