@@ -43,7 +43,7 @@ class ShopFeedScreen extends StatelessWidget {
                 height: dynamicSize(270),
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(AppImageAssets.storeNewbackground),
+                    image: AssetImage(AppImageAssets.storeNewBackground),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -434,7 +434,7 @@ class ShopFeedScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  LocalAssets(imagePath: AppIconAssets.store_watch),
+                  LocalAssets(imagePath: AppIconAssets.storeWatch),
                   SizedBox(width: ds(4)),
                   CustomText("5 days ago",
                     fontSize: ds(8),

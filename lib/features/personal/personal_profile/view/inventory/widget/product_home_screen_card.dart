@@ -1,9 +1,10 @@
 import 'dart:developer';
+import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/more/widget/home_screen_card.dart';
+import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -23,9 +24,33 @@ class ProductHomeScreenCard extends StatefulWidget {
 class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
   final CarouselSliderController _carouselController = CarouselSliderController();
   int _currentIndex = 0;
+  GlobalKey cardKey = GlobalKey();
+
+  final List<String> bgAssets = [
+    'assets/diwali_card/diwali_sample_card1.jpeg',
+    'assets/diwali_card/diwali_sample_card2.jpeg',
+    'assets/diwali_card/diwali_sample_card3.jpeg',
+    'assets/diwali_card/diwali_sample_card4.jpeg',
+    'assets/diwali_card/diwali_sample_card5.jpeg',
+    'assets/diwali_card/diwali_sample_card6.jpeg',
+  ];
+  late final List<GlobalKey> _cardKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _cardKey = List.generate(widget.allProducts.length, (_) => GlobalKey());
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Calculate card size - 1:1 aspect ratio
+    const double maxCardSize = 400.0;
+    final double cardSize = screenWidth > maxCardSize ? maxCardSize : screenWidth * 0.9;
+
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -47,33 +72,38 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
               Stack(
                 alignment: Alignment.center,
                 children: [
+
                   InkWell(
                     onTap: () {
                       // Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
                       //     arguments: {ApiKeys.isFromHomeScreen: false});
                     },
                     child: SizedBox(
-                      height: SizeConfig.size300,
+                      height: cardSize,
                       child: CarouselSlider.builder(
                         carouselController: _carouselController,
                         itemCount: widget.allProducts.length,
                         itemBuilder: (context, index, realIndex) {
                           final product = widget.allProducts[index];
-                          final productPhoto = product.product.details?.media[0] ?? '';
+                          final int randomIndex = Random().nextInt(bgAssets.length);
+                          final String bgAsset = bgAssets[randomIndex];
 
-                          return homeScreenCard(imagePath: productPhoto);
+                          return DiwaliOfferCard(
+                              cardKey: _cardKey[index],
+                              ownProductData: product,
+                              backgroundAsset: bgAsset,
+                          );
                         },
                         options: CarouselOptions(
-                          height: SizeConfig.size300,
+                          height: cardSize,
                           enlargeCenterPage: true,
                           enableInfiniteScroll: true,
-                          // autoPlay: false,
-                          autoPlay: widget.allProducts.length > 1,
-                          autoPlayInterval: const Duration(seconds: 5),
-                          autoPlayAnimationDuration:
-                          const Duration(milliseconds: 5000),
+                          autoPlay: false,
+                          // autoPlay: widget.allProducts.length > 1,
+                          // autoPlayInterval: const Duration(seconds: 5),
+                          // autoPlayAnimationDuration:
+                          // const Duration(milliseconds: 5000),
                           viewportFraction: 1.0,
-                          // show one card fully
                           onPageChanged: (i, reason) {
                             log('currentIndex--> $_currentIndex');
                             setState(() => _currentIndex = i);

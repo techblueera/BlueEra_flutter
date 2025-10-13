@@ -206,7 +206,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             if (indexFeed == 0) {
               return isIndividual() ?
                _buildSocialCard()
-                  : (Get.find<InventoryController>().allProducts.isNotEmpty)
+                  : inventoryController.allProducts.isNotEmpty
                   ? _buildProductCard()
                   : _buildSocialCard();
             }
