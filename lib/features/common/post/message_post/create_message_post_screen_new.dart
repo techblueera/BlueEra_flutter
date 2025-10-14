@@ -77,7 +77,7 @@ class _CreateMessagePostScreenNewState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Message Post',
+        title: 'Lekha Post',
         isLeading: true,
         onBackTap: () {
           msgController.clearData();

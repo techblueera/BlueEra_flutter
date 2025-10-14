@@ -60,21 +60,13 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-    // Generate separate APKs for each architecture
-    splits {
-        abi {
-            enable true
-            reset()
-            include "armeabi-v7a", "arm64-v8a", "x86_64"
-            universalApk false
-        }
-    }
+
     defaultConfig {
         applicationId "ai.bluecs.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 97
-        versionName "13.40.42"
+        versionCode 98
+        versionName "13.40.43"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey,
                 admobAppId: admobId

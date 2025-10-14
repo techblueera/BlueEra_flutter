@@ -108,7 +108,7 @@ class _MessagePostPreviewScreenNewState
           preferredSize: Size.fromHeight(kToolbarHeight),
           child: Obx(() {
             return CommonBackAppBar(
-              title: "Message Repost",
+              title: "Lekha Preview",
               isLeading: msgPostController.isLoading.value ? false : true,
               onBackTap: () {
                 Get.back();
