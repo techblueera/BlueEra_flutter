@@ -1227,3 +1227,49 @@ enum PostCreationMenu {
 }
 
 enum PostVia { profile, channel }
+
+enum StoreType {
+  inventory,
+  service,
+  food,
+  business,
+}
+
+extension StoreTypeExtension on StoreType {
+  String get value {
+    switch (this) {
+      case StoreType.inventory:
+        return 'inventory';
+      case StoreType.service:
+        return 'service';
+      case StoreType.food:
+        return 'food';
+      case StoreType.business:
+        return 'business';
+    }
+  }
+
+  static StoreType fromString(String? type) {
+      switch (type?.toLowerCase()) {
+        case 'inventory':
+          return StoreType.inventory;
+        case 'service':
+          return StoreType.service;
+        case 'food':
+          return StoreType.food;
+        case 'business':
+          return StoreType.business;
+        case 'product':
+          return StoreType.inventory;
+        default:
+          return StoreType.inventory;
+      }
+    }
+
+}
+
+
+
+
+
+

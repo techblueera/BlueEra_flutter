@@ -53,6 +53,7 @@ import 'package:BlueEra/features/common/reel/view/tag_people_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/full_video_preview_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
+import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
@@ -317,6 +318,9 @@ class RouteHelper {
 
   static String getProductPreviewScreenProductRoute() =>
       RouteConstant.productPreviewScreenProduct;
+
+  static String getStoreFeedScreenRoute() =>
+      RouteConstant.storeFeedScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -935,6 +939,18 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => CreateVariantScreen(controller: controller),
             settings: RouteSettings(name: getCreateVariantScreenRoute()));
+
+      case RouteConstant.storeFeedScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final isHeaderVisible = args[ApiKeys.isHeaderVisible] as bool;
+        final onHeaderVisibilityChanged =
+        args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
+        return MaterialPageRoute(
+            builder: (_) => StoreFeedScreen(
+              isHeaderVisible: isHeaderVisible,
+              onHeaderVisibilityChanged: onHeaderVisibilityChanged
+            ),
+            settings: RouteSettings(name: getStoreFeedScreenRoute()));
 
       default:
         return MaterialPageRoute(

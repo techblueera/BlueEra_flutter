@@ -194,7 +194,7 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                 children: [
                   Expanded(
                     child: CustomText(
-                        "Share This Card To Your Friend Or Family",
+                        "Share card to social media,Grow business",
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w400,
                         fontSize: SizeConfig.small,
@@ -213,7 +213,7 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                       },
                       child: Container(
                         margin: EdgeInsets.only(bottom: SizeConfig.size5,right: SizeConfig.size5,top: SizeConfig.size5),
-                        child: LocalAssets(imagePath: AppIconAssets.share_bold),
+                        child: LocalAssets(imagePath: AppIconAssets.share_bold, imgColor: AppColors.primaryColor ),
                       ),
                     ),
                   ),

@@ -45,9 +45,31 @@ class StoreRepo extends BaseService {
     }
     final response = await ApiBaseHelper().getHTTP(
       url,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
   }
+
+  ///GET STORE......
+  Future<ResponseModel> getAllStoresFeed({required String? lat, String? long}) async {
+    Map<String, dynamic> queryParams = {};
+    if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
+      queryParams = {
+        'lat': lat,
+        'lng': long,
+      };
+    }
+    queryParams['radius'] = kmRadius1000;
+
+    final response = await ApiBaseHelper().getHTTP(
+      storesFeed,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

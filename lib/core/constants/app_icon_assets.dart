@@ -357,6 +357,7 @@ class AppIconAssets {
   static String clock_new = "${iconPath}clock_new.svg";
   static String  eye_new= "${iconPath}eye_new.svg";
   static String comment_new = "${iconPath}comment_new.svg";
+  static String userNew = "${iconPath}user_new.svg";
   static String like_new = "${iconPath}like_new.svg";
   static String repost_new = "${iconPath}repost_new.svg";
   static String star_rounded = "${iconPath}star_rounded.svg";

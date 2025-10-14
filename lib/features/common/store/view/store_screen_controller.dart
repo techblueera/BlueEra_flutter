@@ -8,6 +8,7 @@ import 'package:BlueEra/features/common/business_service/model/get_service_model
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -28,6 +29,52 @@ class StoreScreenController extends GetxController {
   RxList<GetServiceModel> serviceDataList = <GetServiceModel>[].obs;
   RxBool isLoading = false.obs;
   RxList<GetFoodDetailsModel> foodList = <GetFoodDetailsModel>[].obs;
+
+  /// All Stores feed data
+  RxList<AllStoresFeedData> allNearByStoresFeed = <AllStoresFeedData>[].obs;
+
+  Future<void> fetchAllStoresFeed() async {
+    try {
+      isLoading.value = true;
+
+      await LocationService.fetchLocation();
+
+      await getAllStoresFeedNearBy();
+
+      isLoading.value = false;
+    } catch (e) {
+      isLoading.value = false;
+      print("Error: $e");
+      getAllStoreResponse.value = ApiResponse.error('error');
+      getAllStoreProductResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  Future<void> getAllStoresFeedNearBy() async {
+    try {
+      final response = await StoreRepo().getAllStoresFeed(
+          lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
+          long: LocationService.lng != 0.0
+              ? "${LocationService.lng}"
+              : ""); // Make sure repo uses params
+      if (response.statusCode == 200) {
+        AllStoresFeedResponseModel allStoresFeedResponseModel = AllStoresFeedResponseModel.fromJson(response.response?.data);
+
+        allNearByStoresFeed.value = allStoresFeedResponseModel.data ?? [];
+
+      } else {
+
+        getAllStoreResponse.value = ApiResponse.error('error');
+
+        print("API failed with status: ${response.statusCode}");
+      }
+    } catch (e, s) {
+      // isLoading.value = false;
+      print("Error: $e");
+      print("stack trace: $s");
+      getAllStoreResponse.value = ApiResponse.error('error');
+    }
+  }
 
   Future<void> fetchStoresAndProducts() async {
     try {
@@ -178,6 +225,15 @@ class StoreScreenController extends GetxController {
   final ScrollController scrollController = ScrollController();
   final RxDouble headerHeight = 0.0.obs;
   final RxBool isHeaderVisible = true.obs;
+  final RxDouble headerOffset = 0.0.obs;
+  RxInt selectedStoreIndex = 0.obs;
+  final List<String> storeTab = [
+    "All",
+    "Product",
+    "Service",
+    "Food",
+    "Store"
+  ];
 
   // Search Management
   final TextEditingController searchController = TextEditingController();
