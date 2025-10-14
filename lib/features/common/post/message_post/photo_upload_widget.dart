@@ -59,8 +59,8 @@ class PhotoListingWidget extends StatelessWidget {
 }
 
 class PhotoUploadWidget extends StatelessWidget {
-  PhotoUploadWidget({super.key});
-
+  PhotoUploadWidget({super.key, this.isFromRepost=false});
+  final bool isFromRepost;
   final msgController = Get.find<MessagePostController>();
 
   @override
@@ -70,9 +70,10 @@ class PhotoUploadWidget extends StatelessWidget {
         return SingleChildScrollView(
           child: Column(
             children: [
+
               Align(
                   alignment: Alignment.centerLeft,
-                  child: CustomText("Upload Photo (at least 1 photo required)")),
+                  child: CustomText(isFromRepost?"Upload Photo":"Upload Photo (at least 1 photo required)")),
               SizedBox(height: SizeConfig.size10),
               InkWell(
                 onTap:(){

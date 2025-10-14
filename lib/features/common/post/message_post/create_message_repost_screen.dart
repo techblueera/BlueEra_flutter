@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart' as dio;
@@ -12,24 +10,16 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
-import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
-import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
 import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
-import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
-import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -238,7 +228,7 @@ class _CreateMessagePostScreenNewState
                         ),
                         SizedBox(height: SizeConfig.size15),
 
-                        PhotoUploadWidget(),
+                        PhotoUploadWidget(isFromRepost: true,),
                         SizedBox(height: SizeConfig.size15),
 
                         ((msgController.imagesList.isNotEmpty))
