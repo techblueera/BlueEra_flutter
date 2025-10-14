@@ -303,7 +303,6 @@ class _FeedScreenState extends State<FeedScreen> {
                   : const AlwaysScrollableScrollPhysics(),
               itemCount: _calculateItemCount(posts.length),
               itemBuilder: (context, index) {
-                print("DATA INDEX ${index}");
                 return _buildListItem(index, posts);
               },
             ),

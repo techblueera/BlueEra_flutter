@@ -12,6 +12,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_sc
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class PostAuthorHeader extends StatelessWidget {
     this.onTapAvatar,
     this.onTapOptions,
     this.postedAgo,
-    this.isRepost=false,
+    this.isRepost = false,
   });
 
   @override
@@ -114,8 +115,10 @@ class PostAuthorHeader extends StatelessWidget {
                   postedAgo: postedAgo),
             ),
           ),
-          if(isRepost==false)...[
-            if (post?.user?.accountType == AppConstants.individual)
+          if (isRepost == false) ...[
+            if ((post?.is_reposted ?? false) || post?.is_reposted == null)
+              SizedBox.shrink()
+            else if (post?.user?.accountType == AppConstants.individual)
               if (id != userId)
                 Container(
                   height: 20,
@@ -170,14 +173,14 @@ class PostAuthorHeader extends StatelessWidget {
                       onTapFunction(valueData: value, contextBuild: context);
                     },
                     icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                    itemBuilder: (context) => popupMenuVisitProfileActionItems(),
+                    itemBuilder: (context) =>
+                        popupMenuVisitProfileActionItems(),
                   ),
                 )
               else
                 FeedPopUpMenu(
                     post: post ?? Post(id: ''), postFilteredType: postType)
           ],
-
         ],
       ),
     );
@@ -322,5 +325,3 @@ class PostAuthorHeader extends StatelessWidget {
     );
   }
 }
-
-

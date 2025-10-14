@@ -46,232 +46,6 @@ class PostResponse {
     );
   }
 }
-/*
-class Post {
-  final String id;
-  final String? type;
-  final DateTime? createdAt;
-  final String? referenceLink;
-  final List<String>? media;
-  final String? title;
-  final String? subTitle;
-  final String? natureOfPost;
-  final String? location;
-  final String? question;
-  final List<User>? taggedUsers;
-
-  final String? message;
-  final int? commentsCount;
-  final int? likesCount;
-  final int? repostCount;
-  final int? viewsCount;
-  final int? sharesCount;
-  final int? totalEngagement;
-  final String? quesOptions;
-  // final LocationMetadata? locationMetadata;
-  // final Poll? poll;
-  final List<PollOption>? options;
-
-  final bool? isLiked;
-  final User? user;
-  final bool? isPostSavedLocal;
-  final Song? song;
-  final int? visibilityDuration;
-  final String? videoUrl;
-  final String? thumbnail;
-  final int? duration;
-  final dynamic channel;
-
-  Post({
-    required this.id,
-    this.message,
-    this.question,
-    this.location,
-    this.title,
-    this.subTitle,
-    this.type,
-    this.natureOfPost,
-    this.referenceLink,
-    this.commentsCount,
-    this.likesCount,
-    this.repostCount,
-    this.viewsCount,
-    this.sharesCount,
-    this.totalEngagement,
-    this.createdAt,
-    this.quesOptions,
-    this.taggedUsers,
-    this.media,
-    // this.locationMetadata,
-    this.options,
-    this.isLiked,
-    this.user,
-    this.isPostSavedLocal,
-    this.song,
-    this.visibilityDuration,
-    this.videoUrl,
-    this.thumbnail,
-    this.duration,
-    this.channel,
-  });
-
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
-      id: json['_id'],
-      message: json['description'],
-      title: json['title'],
-      question: json['question'],
-      subTitle: json['sub_title'],
-      type: json['type'],
-      natureOfPost: json['nature_of_post'],
-      referenceLink: json['reference_link'],
-      // commentsCount: json['stats']?['comments'] ?? 0,
-      // likesCount: json['stats']?['likes'] ?? 0,
-      // viewsCount: json['stats']?['views']??0,
-      // sharesCount:  json['stats']?['shares']??0,
-      commentsCount: int.tryParse(json['stats']?['comments']?.toString() ?? '0') ?? 0,
-      likesCount: int.tryParse(json['stats']?['likes']?.toString() ?? '0') ?? 0,
-      viewsCount: int.tryParse(json['stats']?['views']?.toString() ?? '0') ?? 0,
-      sharesCount: int.tryParse(json['stats']?['shares']?.toString() ?? '0') ?? 0,
-
-      totalEngagement: json['totalEngagement'],
-      quesOptions: json['quesOptions'],
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'])
-          : null,
-
-      // quesOptions: json['ques_options'] is List
-      //     ? (json['ques_options'] as List).map((e) => e.toString()).toList()
-      //     : null,
-      taggedUsers:
-      (json['tagged_users_details'] as List<dynamic>?)?.map((e) => User.fromJson(e as Map<String, dynamic>)).toList(),
-      media: (json['media'] as List?)?.map((e) => e.toString()).toList(),
-      // locationMetadata: json['location_metadata'] != null
-      //     ? LocationMetadata.fromJson(json['location_metadata'])
-      //     : null,
-      options: (json['options'] as List?)
-          ?.map((e) => PollOption.fromJson(e))
-          .toList() ??
-          [],
-      // poll: json['poll'] != null ? Poll.fromJson(json['poll']) : null,
-      isLiked: json["is_post_liked"],
-      user: json['author'] != null ? User.fromJson(json['author']) : null,
-      // user: json['user'] != null ? User.fromJson(json['user']) : null,
-      isPostSavedLocal: json['isPostSavedLocal'],
-      song: json['song'] != null ? Song.fromJson(json['song']) : null,
-      visibilityDuration: json['visibility_duration'],
-      videoUrl: json['video_url']?.toString().trim(),
-      thumbnail: json['thumbnail']?.toString().trim(),
-      duration: json['duration'],
-      channel: json['channel'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'description': message,
-      'location': location,
-      'question': question,
-      'title': title,
-      'sub_title': subTitle,
-      'type': type,
-      'nature_of_post': natureOfPost,
-      'reference_link': referenceLink,
-      'comments_count': commentsCount,
-      'likes_count': likesCount,
-      'repost_count': repostCount,
-      'views_count': viewsCount,
-      'shares_count': sharesCount,
-      'totalEngagement': totalEngagement,
-      'created_at': createdAt?.toIso8601String(),
-      'ques_options': quesOptions,
-      'tagged_users_details': taggedUsers?.map((e) => e.toJson()).toList(),
-      'media': media,
-      // 'location_metadata': locationMetadata?.toJson(),
-      // 'poll': poll?.toJson(),
-      'options': options?.map((e) => e.toJson()).toList(),
-
-      "is_post_liked": isLiked,
-      'author': user?.toJson(),
-      // 'user': user?.toJson(),
-      'isPostSavedLocal': isPostSavedLocal,
-      'song': song?.toJson(),
-      'visibility_duration': visibilityDuration,
-      'video_url': videoUrl,
-      'thumbnail': thumbnail,
-      'duration': duration,
-      'channel': channel,
-    };
-  }
-
-  Post copyWith({
-    String? id,
-    String? authorId,
-    String? message,
-    String? location,
-
-    String? title,
-    String? subTitle,
-    String? type,
-    String? natureOfPost,
-    String? referenceLink,
-    int? commentsCount,
-    int? likesCount,
-    int? repostCount,
-    int? viewsCount,
-    int? sharesCount,
-    int? totalEngagement,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    String? quesOptions,
-    String? thumbnail,
-    // List<String>? quesOptions,
-    List<User>? taggedUsers,
-    List<String>? media,
-    // LocationMetadata? locationMetadata,
-    Poll? poll,
-    bool? isLiked,
-    User? user,
-    bool? isPostSavedLocal,
-    Song? song,
-    int? visibilityDuration,
-     String? videoUrl,
-     List<PollOption>? options,
-
-  }) {
-    return Post(
-      id: id ?? this.id,
-      message: message ?? this.message,
-      location: location ?? this.location,
-      title: title ?? this.title,
-      subTitle: subTitle ?? this.subTitle,
-      type: type ?? this.type,
-      natureOfPost: natureOfPost ?? this.natureOfPost,
-      referenceLink: referenceLink ?? this.referenceLink,
-      commentsCount: commentsCount ?? this.commentsCount,
-      likesCount: likesCount ?? this.likesCount,
-      repostCount: repostCount ?? this.repostCount,
-      viewsCount: viewsCount ?? this.viewsCount,
-      sharesCount: sharesCount ?? this.sharesCount,
-      totalEngagement: totalEngagement ?? this.totalEngagement,
-      createdAt: createdAt ?? this.createdAt,
-      thumbnail: thumbnail ?? this.thumbnail,
-      quesOptions: quesOptions ?? this.quesOptions,
-      taggedUsers: taggedUsers ?? this.taggedUsers,
-      media: media ?? this.media,
-      isLiked: isLiked ?? this.isLiked,
-      videoUrl: videoUrl ?? this.videoUrl,
-      user: user ?? this.user,
-      isPostSavedLocal: isPostSavedLocal ?? this.isPostSavedLocal,
-      song: song ?? this.song,
-      options: options ?? this.options,
-      visibilityDuration: visibilityDuration ?? this.visibilityDuration,
-    );
-  }
-}
-*/
-
 class Post {
   final String id;
   final String? message;
@@ -306,10 +80,14 @@ class Post {
   final String? thumbnail;
   final int? duration;
   final Channel? channel;
+  final bool? is_reposted;
+  final Post? children_post;
 
   Post({
     required this.id,
     this.message,
+    this.is_reposted,
+    this.children_post,
     this.location,
     this.latitude,
     this.longitude,
@@ -345,6 +123,7 @@ class Post {
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['_id'],
+      is_reposted: json['is_reposted'],
       message: json['message'],
       // location: json['location'],
       latitude: (json['latitude'] as num?)?.toDouble(),
@@ -391,6 +170,7 @@ class Post {
       thumbnail: json['thumbnail']?.toString().trim(),
       duration: json['duration'],
       channel: json['channel'] != null ? Channel.fromJson(json['channel']) : null,
+      children_post: json['children_post'] != null ? Post.fromJson(json['children_post']) : null,
 
     );
   }
@@ -400,6 +180,7 @@ class Post {
       '_id': id,
       // '_id': id,
       'message': message,
+      'is_reposted': is_reposted,
       'location': location,
       'latitude': latitude,
       'longitude': longitude,
@@ -430,6 +211,7 @@ class Post {
       'thumbnail': thumbnail,
       'duration': duration,
       'channel': channel?.toJson(),
+      'children_post': children_post?.toJson(),
 
     };
   }
@@ -465,10 +247,13 @@ class Post {
     String? thumbnail,
     int? duration,
     Channel? channel,
+    Post? children_post,
+    bool? is_reposted,
   }) {
     return Post(
       id: id ?? this.id,
       message: message ?? this.message,
+      is_reposted: is_reposted ?? this.is_reposted,
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
@@ -494,6 +279,7 @@ class Post {
       isPostSavedLocal: isPostSavedLocal ?? this.isPostSavedLocal,
       song: song ?? this.song,
       channel: channel ?? this.channel,
+      children_post: children_post ?? this.children_post,
       visibilityDuration: visibilityDuration ?? this.visibilityDuration,
     );
   }

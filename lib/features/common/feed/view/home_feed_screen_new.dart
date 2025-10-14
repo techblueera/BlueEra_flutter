@@ -477,6 +477,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                   index: index,
                   postFilteredType: PostType.all,
                   bottomPadding: 0,
+                  isRepost: false,
                 ),
               );
             }
