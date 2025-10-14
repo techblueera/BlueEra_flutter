@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -60,12 +61,13 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              
                 Column(
                   children: [
                     Container(
+                      margin: EdgeInsets.all(10),
                       decoration: BoxDecoration(
                           color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.2),
@@ -165,98 +167,135 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                     ),
                   ],
                 ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 0.5,
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
+                        ),
+                      ]),
+                  child: ListView.builder(
+                    padding: EdgeInsets.symmetric(vertical: 6),
+                    itemCount: members.length, // 👈 extra item for "Add Members"00
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(), // optional (if inside scroll)
+                    itemBuilder: (context, index) {
+                      // if (index == 0) {
+                      //
+                      //   return Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      //     child: Row(
+                      //       children: [
+                      //         CircleAvatar(
+                      //           backgroundColor: Colors.grey.shade300,
+                      //           radius: 22,
+                      //           child: Icon(Icons.person_add, color: Colors.black87),
+                      //         ),
+                      //         SizedBox(width: 12),
+                      //         CustomText(
+                      //           "Add Members",
+                      //           fontSize: 16,
+                      //           fontWeight: FontWeight.bold,
+                      //           color: AppColors.grayText,
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   );
+                      // }
 
-                ListView.builder(
-  padding: EdgeInsets.symmetric(vertical: 6),
-  itemCount: members.length, // 👈 extra item for "Add Members"00
-  shrinkWrap: true,
-  physics: NeverScrollableScrollPhysics(), // optional (if inside scroll)
-  itemBuilder: (context, index) {
-    // if (index == 0) {
-    //
-    //   return Padding(
-    //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    //     child: Row(
-    //       children: [
-    //         CircleAvatar(
-    //           backgroundColor: Colors.grey.shade300,
-    //           radius: 22,
-    //           child: Icon(Icons.person_add, color: Colors.black87),
-    //         ),
-    //         SizedBox(width: 12),
-    //         CustomText(
-    //           "Add Members",
-    //           fontSize: 16,
-    //           fontWeight: FontWeight.bold,
-    //           color: AppColors.grayText,
-    //         ),
-    //       ],
-    //     ),
-    //   );
-    // }
 
-   
-    final member = members[index ];
+                      final member = members[index ];
 
-    final String displayName = (member.name?.trim().isNotEmpty == true)
-        ? member.name!.trim()
-        : (member.username?.trim().isNotEmpty == true
-            ? member.username!.trim()
-            : "-");
-    final String initial = displayName.isNotEmpty
-        ? displayName[0]
-        : '?';
-   
+                      final String displayName = (member.name?.trim().isNotEmpty == true)
+                          ? member.name!.trim()
+                          :  "-";
+                      final String initial = displayName.isNotEmpty
+                          ? displayName[0]
+                          : '?';
+                      final bool isMe = member.id==userId;
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: CircleAvatar(
-        backgroundColor: theme.colorScheme.primary,
-        radius: 22,
-        child: Center(
-          child: CustomText(
-            initial,
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      title: CustomText(
-        displayName,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-      ),
-      subtitle: ((member.designation ?? '').trim().isNotEmpty)
-          ? CustomText(
-              (member.designation ?? '').trim(),
-              fontSize: 14,
-              color: AppColors.grey9A,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      trailing:
-      //  isAdmin
-      //     ?
-           Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade400),
-              ),
-              child: const CustomText(
-                'Admin',
-                fontSize: 14,
-            
-              ),
-            )
-        //  : null,
-    );
-  },
-)
+
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        leading: CircleAvatar(
+                          backgroundColor: theme.colorScheme.primary,
+                          radius: 22,
+                          child: (member.profileImage!=null)? ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: member.profileImage!,
+                              fit: BoxFit.cover,
+                              width: 44,
+                              height: 44,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey.shade300,
+                                child: Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.grey,
+                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Center(
+                                child: Text(
+                  initial,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
+                                ),
+                              ),
+                            ),
+                          ):Center(
+                            child: CustomText(
+                              initial,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                        title: CustomText(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        // subtitle: ((member.designation ?? '').trim().isNotEmpty)
+                        //     ? CustomText(
+                        //         (member.designation ?? '').trim(),
+                        //         fontSize: 14,
+                        //         color: AppColors.grey9A,
+                        //         overflow: TextOverflow.ellipsis,
+                        //       )
+                        //     : null,
+                        trailing:
+
+                        (member.isAdmin??false)?Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade400),
+                                ),
+                                child: const CustomText(
+                  'Admin',
+                  fontSize: 14,
+
+                                ),
+                              )
+                           : null,
+                      );
+                    },
+                  ),
+                )
 
               ],
             ),

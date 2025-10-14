@@ -415,13 +415,10 @@ String formatDuration(Duration duration) {
 }
 
 Map<String, String?> getFileInfo(File file) {
-  // ✅ Original file name with extension
   String fileName = path.basename(file.path); // e.g., "video123.mp4"
 
-  // ✅ File extension
   String extension = path.extension(file.path); // e.g., ".mp4"
 
-  // ✅ MIME type
   String? mimeType = lookupMimeType(file.path); // e.g., "video/mp4"
 
   print("📁 File Name: $fileName");

@@ -10,7 +10,6 @@ import 'package:BlueEra/features/common/home/controller/home_screen_controller.d
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
-import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
@@ -21,6 +20,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
+
+import '../../../chat/contacts/view/be_available_contacts_list.dart';
 
 enum SavedFeedTab {
   posts,
@@ -120,14 +121,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ChatScreen(sharedText: _sharedText),
+              builder: (_) => BeAvailableContactsList(sharedText: _sharedText),
             ),
           );
         } else if ( (attachments.isNotEmpty)) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ChatScreen(sharedFiles:attachments),
+              builder: (_) => BeAvailableContactsList(sharedFiles:attachments),
             ),
           );
         }

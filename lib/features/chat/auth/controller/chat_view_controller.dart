@@ -983,9 +983,9 @@ class ChatViewController extends GetxController {
     if (responseModel.isSuccess) {
       // Ensure data is a List
       List dataList = responseModel.data as List;
-
       List<GroupMembersListModel> members =
           dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
+      log("ksdjjklscjklsdcnskljcnsdc ${responseModel.data}");
       getGroupMembersResponse.value = ApiResponse.complete(members);
       ;
     } else {
@@ -1134,7 +1134,7 @@ class ChatViewController extends GetxController {
     required bool isInitialMessage,
     required String userId,
     required String conversationId,
-    required String? commands,
+    String? commands,
     required String messageType,
     bool? isPendingMessage,
     String? messageId,

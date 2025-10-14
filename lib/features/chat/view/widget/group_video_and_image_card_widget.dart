@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -264,7 +265,7 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
                 borderRadius: BorderRadius.circular(26),
                 color: chatThemeController.getDarkColorForSender(message.senderId ?? "unknown",0.1)
             ),
-            child: Center(child: CustomText("${message.sender?.name?.split('')[0]}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(message.senderId ?? "unknown"),)),
+            child: Center(child: CustomText("${(message.sender?.name=='')?'NA':message.sender?.name?.split('')[0]??''}",fontSize: 13.2,color: chatThemeController.getDarkColorForSender(message.senderId ?? "unknown"),)),
           ),
           Container(
             width:  SizeConfig.screenWidth*0.72,

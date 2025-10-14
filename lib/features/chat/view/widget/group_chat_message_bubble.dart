@@ -70,7 +70,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                               widget.messages.senderId ?? "unknown", 0.1)),
                       child: Center(
                           child: CustomText(
-                        "${widget.messages.sender?.name?.split('')[0]}",
+                        "${(widget.messages.sender?.name=='')?'NA':widget.messages.sender?.name?.split('')[0]}",
                         fontSize: 13.2,
                         color: chatThemeController.getDarkColorForSender(
                             widget.messages.senderId ?? "unknown"),

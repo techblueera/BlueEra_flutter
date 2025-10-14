@@ -76,10 +76,9 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     
     // Fix for received message logic - use current logged-in user ID
     bool isReceive;
-    
     // First check if myMessage field is available and reliable
     if (widget.message.myMessage != null) {
-      isReceive = (widget.message.myMessage ?? false);
+      isReceive = !(widget.message.myMessage ?? false);
       print('GroupMessageCard: Using myMessage field - myMessage: ${widget.message.myMessage}, isReceive: $isReceive');
     } else {
       // Fallback: compare current logged-in user ID with sender ID
@@ -93,7 +92,6 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
         widget.message.createdAt ?? '');
 
     Widget messageWidget;
-    isReceive=true;
     switch (widget.message.messageType) {
       case "location":
         messageWidget = _buildMapMessage(
@@ -125,7 +123,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
             GroupVideoAndImageCardWidget(
               message:widget.message,
               time:time,
-              isReceive:!isReceive,
+              isReceive:isReceive,
               theme:theme,
               userId:widget.userId.toString(),
               conversationId:widget.conversationId
@@ -167,7 +165,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
               widget.message,
               text,
               time,
-              !isReceive,
+              isReceive,
             );
         break;
     }
