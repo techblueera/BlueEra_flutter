@@ -1167,35 +1167,62 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       }
     }
   }
-
+  bool _isSubmitting = false;
 
   Future<void> _onSubmit({required String visibleTo}) async {
+    if (_isSubmitting) return; // Prevent double-tap
+    setState(() => _isSubmitting = true);
+
+
     visibility = visibleTo;
+
     if (_formKey.currentState?.validate() ?? false) {
       if (_commonCoverImage == null) {
         commonSnackBar(message: "Please add cover picture.");
+        setState(() => _isSubmitting = false);
         return;
       }
 
-      // if(_acceptBookings){
-      //   if(_selectedTimeSlot == null){
-      //     commonSnackBar(message: "Please select your booking time slot");
-      //     return;
-      //   }
-      // }
 
-       uploadVideo();
-
-      //uploadVideoNewsync();
-
-      // videoUploadInBackground();
+      await uploadVideo();
 
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;
+        _isSubmitting = false;
       });
     }
+
+    setState(() => _isSubmitting = false);
   }
+
+  // Future<void> _onSubmit({required String visibleTo}) async {
+  //   visibility = visibleTo;
+  //   if (_formKey.currentState?.validate() ?? false) {
+  //     if (_commonCoverImage == null) {
+  //       commonSnackBar(message: "Please add cover picture.");
+  //       return;
+  //     }
+  //
+  //     // if(_acceptBookings){
+  //     //   if(_selectedTimeSlot == null){
+  //     //     commonSnackBar(message: "Please select your booking time slot");
+  //     //     return;
+  //     //   }
+  //     // }
+  //
+  //      uploadVideo();
+  //
+  //     //uploadVideoNewsync();
+  //
+  //     // videoUploadInBackground();
+  //
+  //   } else {
+  //     setState(() {
+  //       _autoValidate = AutovalidateMode.always;
+  //     });
+  //   }
+  // }
 
   // /// Upload video + cover; returns true on success
   // Future<bool> _uploadAssets() async {

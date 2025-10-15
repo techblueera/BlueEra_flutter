@@ -223,6 +223,7 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
               child: ReelShortPopUpMenu(
                 shortFeedItem: shortItem!,
                 shorts: widget.shorts,
+                popUpMenuColor: AppColors.white,
               ),
             ),
 

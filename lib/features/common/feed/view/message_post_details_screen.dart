@@ -32,11 +32,12 @@ class MessagePostDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             FeedCard(
-              post: post,
+              post: (post?.is_reposted ?? false) ? post?.children_post : post,
               index: 0,
               postFilteredType: PostType.otherPosts,
               horizontalPadding: 0,
               isFromDetailsScreen: true,
+              isRepost: false,
             ),
             Expanded(
               child: CommentBottomSheet(

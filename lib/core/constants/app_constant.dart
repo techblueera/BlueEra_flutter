@@ -590,7 +590,9 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.message,
     PostCreationMenu.poll,
     PostCreationMenu.photos,
-    if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos, /// for individual user if user has channel then only video section will shown
+    if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
+
+    /// for individual user if user has channel then only video section will shown
     if (isBusiness) PostCreationMenu.jobPost,
     PostCreationMenu.place,
     // PostCreationMenu.travel,
@@ -927,14 +929,15 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
 }
 
 List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
-    {bool? isSavePost}) {
+    {bool? isSavePost, bool? isShowSaveOption = true}) {
   final items = <Map<String, dynamic>>[
     // {"id": "REPOST", 'icon': AppIconAssets.repost_new, 'title': 'Repost'},
-    {
-      "id": "SAVE",
-      'icon': AppIconAssets.save_new,
-      'title': (isSavePost ?? false) ? "Unsave" : "Save"
-    },
+    if (isShowSaveOption == true)
+      {
+        "id": "SAVE",
+        'icon': AppIconAssets.save_new,
+        'title': (isSavePost ?? false) ? "Unsave" : "Save"
+      },
     // {"id": "FOLLOW", 'icon': AppIconAssets.follow_new, 'title': 'Follow'},
     {
       "id": "REPORT_POST",
@@ -1048,9 +1051,9 @@ List<PopupMenuEntry<String>> popupJobCardItems() {
   return entries;
 }
 
-List<PopupMenuEntry<String>> popupPostMenuItems() {
+List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
   final items = <Map<String, dynamic>>[
-    {'title': 'Edit Post'},
+    if ((is_reposted == null) || (is_reposted == false)) {'title': 'Edit Post'},
     {'title': 'Delete Post'},
   ];
 

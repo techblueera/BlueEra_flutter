@@ -58,6 +58,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   @override
   void initState() {
     super.initState();
+
     setFilters();
     _tabController = TabController(length: 6, vsync: this);
     _tabController.addListener(() {
@@ -75,7 +76,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   }
 
   setFilters() {
-    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
+    selectedFilter =  SortBy.Latest;
+    filters = SortBy.values.toList();
+
   }
 
   @override
@@ -759,7 +762,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   Widget _filterButtons() {
     return SingleChildScrollView(
         padding:
-            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10,left: SizeConfig.size20),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),

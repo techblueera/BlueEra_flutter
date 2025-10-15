@@ -12,6 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/view/message_post_details_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
@@ -43,6 +44,7 @@ class MessagePostWidget extends StatefulWidget {
   final double? horizontalPadding;
   final double? bottomPadding;
   final bool? isRepost;
+  final bool? isShowOnlyDetails;
 
   MessagePostWidget({
     super.key,
@@ -53,6 +55,7 @@ class MessagePostWidget extends StatefulWidget {
     this.horizontalPadding,
     this.bottomPadding,
     this.isRepost = false,
+    this.isShowOnlyDetails = false,
   });
 
   @override
@@ -234,230 +237,239 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                         height: SizeConfig.size5,
                       ),
                     ],
-                    if (widget.post?.is_reposted ?? false) ...[
-                      ((widget.post?.children_post?.media?.isNotEmpty ?? false))
-                          ? Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size15,
-                                vertical: SizeConfig.size8,
+                    if(!(widget.isShowOnlyDetails??true))...[
+                      if (widget.post?.is_reposted ?? false) ...[
+                        // if (widget.isRepost ?? false) ...[
+                        ((widget.post?.children_post?.media?.isNotEmpty ?? false))
+                            ? Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size15,
+                            vertical: SizeConfig.size8,
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              // Get.to(MessagePostDetailsScreen(
+                              //   post: _post,
+                              //   postType: PostType.all
+                              //   ,
+                              // ));
+                              openProfileToClickUser();
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: AppColors.secondaryTextColor
+                                        .withOpacity(0.2)),
+                                color: AppColors.white, // light background
                               ),
-                              child: InkWell(
-                                onTap: () {
-                                  openProfileToClickUser();
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                        color: AppColors.secondaryTextColor
-                                            .withOpacity(0.2)),
-                                    color: AppColors.white, // light background
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.only(
-                                            top: SizeConfig.size10,
-                                            left: SizeConfig.size10),
-                                        child: Row(
-                                          children: [
-                                            CachedAvatarWidget(
-                                                imageUrl: widget
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        top: SizeConfig.size10,
+                                        left: SizeConfig.size10),
+                                    child: Row(
+                                      children: [
+                                        CachedAvatarWidget(
+                                            imageUrl: widget
+                                                .post
+                                                ?.children_post
+                                                ?.user
+                                                ?.profileImage,
+                                            size: 30.0,
+                                            borderRadius: 25),
+                                        SizedBox(
+                                          width: SizeConfig.size10,
+                                        ),
+                                        Expanded(
+                                          child: SizedBox(
+                                            width: Get.width,
+                                            child: Row(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                              children: [
+                                                Flexible(
+                                                  child: CustomText(
+                                                    widget
+                                                        .post
+                                                        ?.children_post
+                                                        ?.user
+                                                        ?.name,
+                                                    fontSize:
+                                                    SizeConfig.large,
+                                                    fontWeight:
+                                                    FontWeight.w600,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow
+                                                        .ellipsis,
+                                                    color: AppColors
+                                                        .secondaryTextColor,
+                                                  ),
+                                                ),
+                                                if (widget
                                                     .post
                                                     ?.children_post
                                                     ?.user
-                                                    ?.profileImage,
-                                                size: 30.0,
-                                                borderRadius: 25),
-                                            SizedBox(
-                                              width: SizeConfig.size10,
-                                            ),
-                                            Expanded(
-                                              child: SizedBox(
-                                                width: Get.width,
-                                                child: Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    Flexible(
+                                                    ?.username !=
+                                                    null &&
+                                                    (widget
+                                                        .post
+                                                        ?.children_post
+                                                        ?.user
+                                                        ?.username
+                                                        ?.isNotEmpty ??
+                                                        false))
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                      EdgeInsets.only(
+                                                          top: 0),
                                                       child: CustomText(
-                                                        widget
-                                                            .post
-                                                            ?.children_post
-                                                            ?.user
-                                                            ?.name,
-                                                        fontSize:
-                                                            SizeConfig.large,
+                                                        " @${widget.post?.children_post?.user?.username}",
+                                                        fontSize: SizeConfig
+                                                            .medium,
                                                         fontWeight:
-                                                            FontWeight.w600,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
+                                                        FontWeight.w600,
+                                                        overflow:
+                                                        TextOverflow
                                                             .ellipsis,
                                                         color: AppColors
-                                                            .secondaryTextColor,
+                                                            .shadowColor,
                                                       ),
                                                     ),
-                                                    if (widget
-                                                                .post
-                                                                ?.children_post
-                                                                ?.user
-                                                                ?.username !=
-                                                            null &&
-                                                        (widget
-                                                                .post
-                                                                ?.children_post
-                                                                ?.user
-                                                                ?.username
-                                                                ?.isNotEmpty ??
-                                                            false))
-                                                      Expanded(
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                                  top: 0),
-                                                          child: CustomText(
-                                                            " @${widget.post?.children_post?.user?.username}",
-                                                            fontSize: SizeConfig
-                                                                .medium,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            color: AppColors
-                                                                .shadowColor,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
+                                                  ),
+                                              ],
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(
-                                        height: SizeConfig.size10,
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: 110,
-                                            height: 110,
-                                            child: Padding(
-                                              padding:
-                                                  EdgeInsets.only(left: 8.0),
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                child: Container(
-                                                  color: Colors.black,
-                                                  child: CachedNetworkImage(
-                                                    imageUrl: widget
-                                                            .post
-                                                            ?.children_post
-                                                            ?.media
-                                                            ?.first ??
-                                                        "",
-                                                    width: 110,
-                                                    height: 110,
-                                                    fit: BoxFit.cover,
-                                                    placeholder:
-                                                        (context, url) =>
-                                                            Container(
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: SizeConfig.size10,
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 110,
+                                        height: 110,
+                                        child: Padding(
+                                          padding:
+                                          EdgeInsets.only(left: 8.0),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                            BorderRadius.circular(12),
+                                            child: Container(
+                                              color: Colors.black,
+                                              child: CachedNetworkImage(
+                                                imageUrl: widget
+                                                    .post
+                                                    ?.children_post
+                                                    ?.media
+                                                    ?.first ??
+                                                    "",
+                                                width: 110,
+                                                height: 110,
+                                                fit: BoxFit.cover,
+                                                placeholder:
+                                                    (context, url) =>
+                                                    Container(
                                                       width: 110,
                                                       height: 110,
                                                       color: Colors.grey[300],
                                                       // child: const Center(child: CircularProgressIndicator(strokeWidth: 1.5)),
                                                     ),
-                                                    errorWidget:
-                                                        (context, url, error) =>
-                                                            Icon(Icons.person,
-                                                                size: 42 / 2),
-                                                  ),
-                                                ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                    Icon(Icons.person,
+                                                        size: 42 / 2),
                                               ),
                                             ),
                                           ),
-
-                                          // RIGHT: Text Section
-                                          Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: SizeConfig.size10,
-                                                  right: SizeConfig.size10),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  if ((widget
-                                                          .post
-                                                          ?.children_post
-                                                          ?.title
-                                                          ?.isNotEmpty ??
-                                                      false))
-                                                    CustomText(
-                                                      widget.post?.children_post
-                                                              ?.title ??
-                                                          "",
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: AppColors
-                                                          .mainTextColor,
-                                                    ),
-                                                  SizedBox(height: 4),
-                                                  CustomText(
-                                                    widget.post?.children_post
-                                                            ?.subTitle ??
-                                                        "",
-                                                    maxLines: 4,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    color: AppColors
-                                                        .secondaryTextColor,
-                                                    fontSize: SizeConfig.size13,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
-                                      SizedBox(
-                                        height: SizeConfig.size10,
+
+                                      // RIGHT: Text Section
+                                      Expanded(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                              left: SizeConfig.size10,
+                                              right: SizeConfig.size10),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              if ((widget
+                                                  .post
+                                                  ?.children_post
+                                                  ?.title
+                                                  ?.isNotEmpty ??
+                                                  false))
+                                                CustomText(
+                                                  widget.post?.children_post
+                                                      ?.title ??
+                                                      "",
+                                                  maxLines: 1,
+                                                  overflow:
+                                                  TextOverflow.ellipsis,
+                                                  fontWeight:
+                                                  FontWeight.bold,
+                                                  color: AppColors
+                                                      .mainTextColor,
+                                                ),
+                                              SizedBox(height: 4),
+                                              CustomText(
+                                                widget.post?.children_post
+                                                    ?.subTitle ??
+                                                    "",
+                                                maxLines: 4,
+                                                overflow:
+                                                TextOverflow.ellipsis,
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                                fontSize: SizeConfig.size13,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                            )
-                          : InkWell(
-                              onTap: () {
-                                openProfileToClickUser();
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: SizeConfig.size15,
-                                ),
-                                child: FeedCard(
-                                    post: widget.post?.children_post,
-                                    index: 0,
-                                    postFilteredType: PostType.otherPosts,
-                                    horizontalPadding: 0,
-                                    isRepost: true),
+                                  SizedBox(
+                                    height: SizeConfig.size10,
+                                  ),
+                                ],
                               ),
                             ),
+                          ),
+                        )
+                            : InkWell(
+                          onTap: () {
+                            openProfileToClickUser();
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: SizeConfig.size15,
+                            ),
+                            child: FeedCard(
+                                post: widget.post?.children_post,
+                                index: 0,
+                                postFilteredType: PostType.otherPosts,
+                                horizontalPadding: 0,
+                                isRepost: true),
+                          ),
+                        ),
+                      ],
+
                     ],
                     if (widget.isRepost == false) ...[
                       SizedBox(

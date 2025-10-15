@@ -122,7 +122,7 @@ print("url=== ${url}");
     // final response = await ApiBaseHelper().workManagerPostHTTP(
       url ?? videoUpload,
       // isMultipart: true,
-      showProgress: false,
+      showProgress: true,
       params: bodyRequest,
       onError: (error) {},
       onSuccess: (data) {},

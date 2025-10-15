@@ -26,6 +26,7 @@ class PostRepo extends BaseService {
         params: bodyReq,
         onError: (error) {},
         onSuccess: (data) {},
+        showProgress: true,
         isMultipart: isMultiPartPost ?? true);
 
     return response;

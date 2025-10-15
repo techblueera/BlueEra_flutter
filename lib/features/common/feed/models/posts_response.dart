@@ -149,19 +149,14 @@ class Post {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'])
           : null,
-      // quesOptions: json['ques_options'] is List
-      //     ? (json['ques_options'] as List).map((e) => e.toString()).toList()
-      //     : null,
+
       taggedUsers: (json['tagged_users_details'] as List<dynamic>?)
           ?.map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
       media: (json['media'] as List?)?.map((e) => e.toString()).toList(),
-      // locationMetadata: json['location_metadata'] != null
-      //     ? LocationMetadata.fromJson(json['location_metadata'])
-      //     : null,
+
       poll: json['poll'] != null ? Poll.fromJson(json['poll']) : null,
       isLiked: json['isLiked'],
-      // user: json['author'] != null ? User.fromJson(json['author']) : null,
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       isPostSavedLocal: json['isPostSavedLocal'],
       song: json['song'] != null ? Song.fromJson(json['song']) : null,
