@@ -685,11 +685,18 @@ class ProductController extends GetxController{
       final responseModel = await ProductRepo().addProductToInventoryApi(params: params);
       if (responseModel.isSuccess) {
         addProductToInventoryResponse.value = ApiResponse.complete(responseModel);
-        Get.until(
-              (route) =>
-          route.settings.name ==
-              RouteHelper.getInventoryScreenRoute(),
-        );
+        bool navigated = false;
+        Get.until((route) {
+          if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
+            navigated = true;
+          }
+          return navigated;
+        });
+
+        if (!navigated) {
+          Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
+          Get.toNamed(RouteHelper.getInventoryScreenRoute());
+        }
       } else {
         commonSnackBar(message: responseModel.message);
         addProductToInventoryResponse.value = ApiResponse.error('error');

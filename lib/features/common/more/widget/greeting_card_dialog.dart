@@ -85,7 +85,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                           options: CarouselOptions(
                             height: SizeConfig.size300,
                             enlargeCenterPage: true,
-                            enableInfiniteScroll: true,
+                            enableInfiniteScroll: false,
                             autoPlay: widget.cards.length > 1,
                             autoPlayInterval: const Duration(seconds: 3),
                             autoPlayAnimationDuration:

@@ -50,7 +50,7 @@ class VisitingCardHelper {
       OwnProductData ownProductData,
       {required int index}
       ) async {
-    if (_isProductSharing) return; // Already sharing, ignore new requests
+    if (_isProductSharing) return;
     _isProductSharing = true;
 
     GlobalKey cardKey = GlobalKey();

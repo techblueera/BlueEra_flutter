@@ -6,6 +6,8 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
+import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -96,19 +98,38 @@ class BusinessStoreCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Container(
-                            margin: EdgeInsets.only(left: ds(4)),
-                            padding: EdgeInsets.symmetric(horizontal: ds(8), vertical: ds(4)),
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(ds(20)),
-                            ),
-                            child: Text(
-                              "Follow",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: ds(11),
-                                fontWeight: FontWeight.w400,
+                          InkWell(
+                            onTap: () async {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                              } else {
+                                // if (controllerVisit.isFollow.value) {
+                                //   await Get.find<StoreScreenController>().unFollowBusinessUser(
+                                //       candidateResumeId:
+                                //       getAllStoreResData?.userId
+                                //   );
+                                // } else {
+                                //   await Get.find<StoreScreenController>().followBusinessUser(
+                                //       candidateResumeId:
+                                //       getAllStoreResData?.userId
+                                //   );
+                                // }
+                              }
+                            },
+                            child: Container(
+                              margin: EdgeInsets.only(left: ds(4)),
+                              padding: EdgeInsets.symmetric(horizontal: ds(8), vertical: ds(4)),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(ds(20)),
+                              ),
+                              child: Text(
+                                "Follow",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: ds(11),
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ),
                           ),
@@ -345,13 +366,28 @@ class BusinessStoreCard extends StatelessWidget {
                     color: AppColors.secondaryTextColor,
                   ),
                   SizedBox(width: ds(10)),
-                  LocalAssets(imagePath: AppIconAssets.userNew),
-                  SizedBox(width: ds(4)),
-                  CustomText(
-                    "5K",
-                    fontSize: SizeConfig.extraSmall,
-                    color: AppColors.secondaryTextColor,
+
+
+                  InkWell(
+                    onTap: (){
+                      Get.to(() => FollowersFollowingPage(
+                        tabIndex: 1,
+                        userID: getAllStoreResData?.id ?? "",
+                      ));
+                    },
+                    child: Row(
+                      children: [
+                        LocalAssets(imagePath: AppIconAssets.userNew),
+                        SizedBox(width: ds(4)),
+                        CustomText(
+                          "5K",
+                          fontSize: SizeConfig.extraSmall,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ],
+                    ),
                   ),
+
                   SizedBox(width: ds(10)),
                   LocalAssets(imagePath: AppIconAssets.comment_new),
                   SizedBox(width: ds(4)),
