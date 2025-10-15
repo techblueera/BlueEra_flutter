@@ -155,6 +155,7 @@ class AppConstants {
   static const String Square = "Square";
   static const String chatScreen = "chatScreen";
   static const String feedScreen = "feedScreen";
+  static const String storeFeedScreen = "storeFeedScreen";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/common/store/view/store_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -105,7 +106,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           builder: (context, isVisible, _) {
             return Stack(
               children: [
-                // 👇 Your dynamic screen based on index
+                // Your dynamic screen based on index
                 Obx(() {
                   return Positioned.fill(
                     child: _getScreen(
@@ -113,7 +114,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                   );
                 }),
 
-                // 👇 Bottom Nav Animation using ValueListenableBuilder
+                // Bottom Nav Animation using ValueListenableBuilder
                 Obx(() {
                   return Positioned(
                     bottom: 0,
@@ -149,7 +150,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 1:
-        return StoreScreen(
+        // return StoreScreen(
+        //   isHeaderVisible: isVisible,
+        //   onHeaderVisibilityChanged: _toggleAppBar,
+        // );
+        return StoreFeedScreen(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );

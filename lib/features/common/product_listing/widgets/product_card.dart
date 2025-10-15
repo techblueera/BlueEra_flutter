@@ -64,9 +64,9 @@ class _ProductCardState extends State<ProductCardBusiness> {
         );
       },
       child: Container(
+        height: 170,
         margin: EdgeInsets.only(right: 20),
         width: MediaQuery.of(context).size.width * 0.45,
-        // responsive width
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
