@@ -116,12 +116,6 @@ class _MessagePostPreviewScreenNewState
             );
           }),
         ),
-        // appBar: CommonBackAppBar(
-        //   title: 'Post Preview',
-        //   onBackTap: () {
-        //     Get.back();
-        //   },
-        // ),
         body: SafeArea(
           child: Obx(() {
             return Stack(
@@ -383,13 +377,7 @@ class _MessagePostPreviewScreenNewState
                                               File processed =
                                               File(
                                                   data.imageFile?.path ?? "");
-                                              /*
-                                              File processed =
-                                                  await processImage(
-                                                File(
-                                                    data.imageFile?.path ?? ""),
-                                                data.imgCropMode ?? "",
-                                              );*/
+
 
                                               String fileName = processed.path
                                                   .split('/')

@@ -54,6 +54,9 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
   @override
   void initState() {
+    selectedFilter =  SortBy.Latest;
+    setFilters();
+
     controller = Get.put(VisitProfileController());
     setFilters();
 
@@ -84,7 +87,9 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
     super.initState();
   }
-
+  void setFilters() {
+    filters = SortBy.values.toList();
+  }
   apiCalling() async {
     await visitController?.getTestimonialController(userID: widget.authorId);
   }
@@ -126,9 +131,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     super.dispose();
   }
 
-  setFilters() {
-    SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,8 +151,6 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           'Shorts',
           'Videos'
         ];
-        final validIndexes =
-            user?.profession == SELF_EMPLOYED ? {3, 4} : {2, 3};
 
         return SingleChildScrollView(
           controller: _scrollController,
@@ -179,7 +180,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                       labelBuilder: (label) => label,
                     ),
                   ),
-                  if (validIndexes.contains(selectedIndex)) ...[
+                  if (selectedIndex == postTab.indexOf('Shorts') ||
+                      selectedIndex == postTab.indexOf('Videos')) ...[
                     _filterButtons(),
                   ],
                   SizedBox(height: SizeConfig.size16),
@@ -196,7 +198,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   Widget _filterButtons() {
     return SingleChildScrollView(
         padding:
-            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10,left: SizeConfig.size20),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),

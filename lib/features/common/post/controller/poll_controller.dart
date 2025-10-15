@@ -13,11 +13,14 @@ class PollController extends GetxController {
   Rx<ApiResponse> postPollResponse = ApiResponse.initial('Initial').obs;
   final questionController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+
   // TextEditingController referenceLinkController = TextEditingController();
   TextEditingController correctAnswerController = TextEditingController();
 
-  final RxList<TextEditingController> optionControllers = <TextEditingController>[].obs;
+  final RxList<TextEditingController> optionControllers =
+      <TextEditingController>[].obs;
   RxList<String> options = <String>[].obs;
+
   // RxBool isAddLink = false.obs;
   RxBool isAddCorrectAnswer = false.obs;
   RxBool isLoading = false.obs;

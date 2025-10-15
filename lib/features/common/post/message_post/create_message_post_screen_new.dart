@@ -209,38 +209,6 @@ class _CreateMessagePostScreenNewState
                     return null;
                   },
                 ),
-
-                /* CommonTextField(
-                  textEditController: msgController.descriptionMessage.value,
-                  hintText:
-                      "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
-                  title: "Your Message",
-                  maxLine: 5,
-                  maxLength: 1000,
-                  isValidate: false,
-                  keyBoardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  onChange: (val) {
-                    // Replace more than one consecutive newlines with a single newline
-                    String newVal = val.replaceAll(RegExp(r'\n{2,}'), '\n');
-
-                    if (newVal != val) {
-                      msgController.descriptionMessage.value.text = newVal;
-                      msgController.descriptionMessage.value.selection =
-                          TextSelection.fromPosition(
-                        TextPosition(offset: newVal.length),
-                      );
-                    }
-
-                    msgController.postText.value = newVal;
-                  },
-                  validator: (val) {
-                    if (val == null || val.trim().length < 50) {
-                      return "Message must be at least 50 characters long";
-                    }
-                    return null;
-                  },
-                ),*/
                 SizedBox(
                   height: SizeConfig.size5,
                 ),
@@ -278,17 +246,7 @@ class _CreateMessagePostScreenNewState
                                 child: CustomText(
                               'Add Your Message Title',
                             )),
-                            // InkWell(
-                            //   onTap: () {
-                            //     msgController.postTitleController.value.clear();
-                            //     msgController.messageTitle.value = "";
-                            //     msgController.isAddTitle.value = false;
-                            //   },
-                            //   child: CustomText(
-                            //     "Remove",
-                            //     color: AppColors.red,
-                            //   ),
-                            // ),
+
                           ],
                         ),
                         SizedBox(

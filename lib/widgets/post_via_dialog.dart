@@ -17,18 +17,15 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<void> postVia(BuildContext context, PostCreationMenu postCreationMenu) async {
+Future<void> postVia(
+    BuildContext context, PostCreationMenu postCreationMenu) async {
   log("account type--> $accountTypeGlobal");
   if (isIndividual()) {
-    if(postCreationMenu == PostCreationMenu.videos) {
-      postNavigations(
-          context,
-          postCreationMenu,
-          PostVia.channel
-      );
-    } else{
-    showPostViaDialog(context, postCreationMenu);
-  }
+    if (postCreationMenu == PostCreationMenu.videos) {
+      postNavigations(context, postCreationMenu, PostVia.channel);
+    } else {
+      showPostViaDialog(context, postCreationMenu);
+    }
 
     // if(postCreationMenu == PostCreationMenu.videos){
     //   if (channelId.isEmpty) {
@@ -49,7 +46,6 @@ Future<void> postVia(BuildContext context, PostCreationMenu postCreationMenu) as
     // }else{
     //   showPostViaDialog(context, postCreationMenu);
     // }
-
   } else {
     /// business user don't need channel
     postNavigations(context, postCreationMenu, PostVia.profile);
@@ -111,7 +107,7 @@ Future<void> showVideosPickerDialog(BuildContext context,
         arguments: {ApiKeys.argPostVia: type},
       );
     },
-       onPickFromGallery: () async {
+    onPickFromGallery: () async {
       Navigator.pop(Get.context!);
       final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
       Navigator.pushNamed(

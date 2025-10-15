@@ -28,7 +28,6 @@ class FeedPopUpMenu extends StatelessWidget {
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       onSelected: (value) async {
-        logs("value==== ${value} post.type ${post.type}");
         if (value == 'Edit Post') {
           if (post.type?.toUpperCase() == AppConstants.MESSAGE_POST) {
             Get.to(MessagePostPreviewScreenNew(
@@ -63,7 +62,7 @@ class FeedPopUpMenu extends StatelessWidget {
         }
       },
       icon: Icon(Icons.more_vert),
-      itemBuilder: (context) => popupPostMenuItems(),
+      itemBuilder: (context) => popupPostMenuItems(post.is_reposted),
     );
   }
 }

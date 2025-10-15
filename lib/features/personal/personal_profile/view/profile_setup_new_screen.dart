@@ -576,7 +576,7 @@ class _PersonalProfileSetupNewScreenState
   Widget _filterButtons() {
     return SingleChildScrollView(
         padding:
-        EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10),
+        EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10,),
         child: Row(
           children: [
             LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
@@ -1083,37 +1083,39 @@ class _PersonalProfileSetupNewScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: SizeConfig.size34,
-          child: ListView.builder(
-            itemCount: postTab.length,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              final isSelected = _tabController?.index == index;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ElevatedButton(
-                  onPressed: () {
-                    _tabController?.animateTo(index);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    foregroundColor: isSelected ? AppColors.white : AppColors.secondaryTextColor,
-                    backgroundColor: isSelected ? AppColors.primaryColor : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(SizeConfig.size10),
-                      side: BorderSide(
-                          color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
+        Flexible(
+          child: SizedBox(
+            height: SizeConfig.size32,
+            child: ListView.builder(
+              itemCount: postTab.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                final isSelected = _tabController?.index == index;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _tabController?.animateTo(index);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      foregroundColor: isSelected ? AppColors.white : AppColors.secondaryTextColor,
+                      backgroundColor: isSelected ? AppColors.primaryColor : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(SizeConfig.size10),
+                        side: BorderSide(
+                            color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                        ),
                       ),
+                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size2),
+                      minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
+                      maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size2),
-                    minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
-                    maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
+                    child: Text('${postTab[index]}'),
                   ),
-                  child: Text('${postTab[index]}'),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
         if (filters != null) ...[

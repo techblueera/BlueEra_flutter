@@ -40,7 +40,8 @@ class FeedCard extends StatefulWidget {
       this.sortBy,
       this.horizontalPadding,
       this.bottomPadding,
-      this.isFromDetailsScreen = false, this.isRepost = false});
+      this.isFromDetailsScreen = false,
+      this.isRepost = false});
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -106,6 +107,7 @@ class _FeedCardState extends State<FeedCard> {
   Widget build(BuildContext context) {
     return buildPostWidget();
   }
+
   // onTap: (widget.isFromDetailsScreen ?? false)
   // ? null
   //     : () {
@@ -123,8 +125,9 @@ class _FeedCardState extends State<FeedCard> {
           bottomPadding: widget.bottomPadding,
           post: _post,
           isRepost: widget.isRepost,
+          isShowOnlyDetails: widget.isFromDetailsScreen,
           authorSection: () => IgnorePointer(
-            ignoring: widget.isRepost==true?true:false,
+            ignoring: widget.isRepost == true ? true : false,
             child: PostAuthorHeader(
               post: _post,
               isRepost: widget.isRepost,

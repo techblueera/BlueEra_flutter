@@ -603,7 +603,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
             else
               ReelShortPopUpMenu(
                   shortFeedItem: fullScreenShortController.videoItem!,
-                  popUpMenuColor: AppColors.black,
+                  popUpMenuColor: AppColors.white,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.individual)
@@ -623,7 +623,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
             else
               ReelShortPopUpMenu(
                   shortFeedItem: fullScreenShortController.videoItem!,
-                  popUpMenuColor: AppColors.black,
+                  popUpMenuColor: AppColors.white,
                   shorts: Shorts.personalized)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
@@ -643,7 +643,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
             else
               ReelShortPopUpMenu(
                   shortFeedItem: fullScreenShortController.videoItem!,
-                  popUpMenuColor: AppColors.black,
+                  popUpMenuColor: AppColors.white,
                   shorts: Shorts.personalized),
         ],
       ),
