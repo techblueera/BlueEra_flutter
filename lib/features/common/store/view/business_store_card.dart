@@ -229,7 +229,7 @@ class BusinessStoreCard extends StatelessWidget {
           ),
 
 
-          if(getAllStoreResData?.livePhotos?.isNotEmpty ?? false)
+          if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false))
           /// Image grid
           Padding(
             padding: EdgeInsets.only(bottom: ds(12)),
@@ -275,7 +275,7 @@ class BusinessStoreCard extends StatelessWidget {
                           width: double.infinity,
                           child:
                           CachedNetworkImage(
-                            imageUrl: getAllStoreResData?.livePhotos?[1] ?? '',
+                            imageUrl: ((getAllStoreResData?.livePhotos?.length??0) > 1) ? getAllStoreResData!.livePhotos![1] : '',
                             height: ds(95),
                             fit: BoxFit.fitWidth,
                             placeholder: (context, url) => LocalAssets(
@@ -296,7 +296,7 @@ class BusinessStoreCard extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: CachedNetworkImage(
-                            imageUrl: getAllStoreResData?.livePhotos?[2] ?? '',
+                            imageUrl: ((getAllStoreResData?.livePhotos?.length??0) > 2) ? getAllStoreResData!.livePhotos![2] : '',
                             height: ds(95),
                             fit: BoxFit.fitWidth,
                             placeholder: (context, url) => LocalAssets(

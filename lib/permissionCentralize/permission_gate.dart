@@ -21,7 +21,7 @@ class _PermissionGateState extends State<PermissionGate> {
   }
 
   Future<void> _checkPermission() async {
-    bool granted = await PermissionService.checkLocationPermission();
+    bool granted = await PermissionService.checkLocationPermissionAndGPS();
     setState(() {
       hasPermission = granted;
     });

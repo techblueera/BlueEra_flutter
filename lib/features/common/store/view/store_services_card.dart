@@ -109,7 +109,7 @@ class StoreServicesCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            'serviceData?.title ?? "N/A"sdlkfjskdnfkjdsnbfkdsbnfkdsbkfbdskfb',
+                            serviceData?.title ?? "N/A",
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w600,
                             overflow: TextOverflow.ellipsis,

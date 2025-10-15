@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
@@ -176,31 +178,39 @@ class StoreProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                     SizedBox(height: SizeConfig.size6),
+                    SizedBox(height: SizeConfig.size4),
 
                     AttributeRows(attributeMap: uniqueAttributes),
 
-                     SizedBox(height: SizeConfig.size12),
+                     SizedBox(height: SizeConfig.size8),
 
                     /// Shop + Location Row
-                    Row(
-                      children: [
-                        CachedAvatarWidget(
-                          imageUrl: product?.business_logo,
-                          size: SizeConfig.size26,
-                          borderRadius: SizeConfig.size13,
-                        ),
-                        const SizedBox(width: 6),
-                        CustomText(
-                          product?.business_name,
-                           fontSize: SizeConfig.small,
-                           fontWeight: FontWeight.w600,
-                           color: AppColors.mainTextColor,
-                           maxLines: 1,
-                           overflow: TextOverflow.ellipsis,
-                        ),
-                        const Spacer(),
-                      ],
+                    InkWell(
+                      onTap: (){
+                        Get.to(() => VisitBusinessProfileNew(
+                          businessId: product?.sellerClassification?.id ?? "",
+                          screenName: AppConstants.storeFeedScreen,
+                        ));
+                      },
+                      child: Row(
+                        children: [
+                          CachedAvatarWidget(
+                            imageUrl: product?.business_logo,
+                            size: SizeConfig.size26,
+                            borderRadius: SizeConfig.size13,
+                          ),
+                          const SizedBox(width: 6),
+                          CustomText(
+                            product?.business_name,
+                             fontSize: SizeConfig.small,
+                             fontWeight: FontWeight.w600,
+                             color: AppColors.mainTextColor,
+                             maxLines: 1,
+                             overflow: TextOverflow.ellipsis,
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
                     ),
 
                     SizedBox(height: SizeConfig.size12),

@@ -18,11 +18,11 @@ class ServiceAiRepo extends BaseService {
   }
 
   ///ADD SERVICES....
-  Future<ResponseModel> getServiceRepo(
-     ) async {
+  Future<ResponseModel> getServiceRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${businessServices}?all=true&type=service&radius=${kmRadius1000}",
-      showProgress: true,
+      businessServices,
+      params: queryParams,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

@@ -34,7 +34,7 @@ class PermissionRequiredScreen extends StatelessWidget {
               child: PositiveCustomBtn(
                   onTap: () async {
                     bool granted =
-                        await PermissionService.checkLocationPermission();
+                        await PermissionService.checkLocationPermissionAndGPS();
                     if (granted && context.mounted) {
                       Navigator.pushReplacementNamed(context,  RouteHelper.getSplashScreenRoute());
                     }
