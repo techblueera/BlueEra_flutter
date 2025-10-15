@@ -17,40 +17,6 @@ class StoreProductCard extends StatelessWidget {
   final bool isShowBusinessInfo;
   const StoreProductCard({Key? key, this.productStore, required this.isShowBusinessInfo}) : super(key: key);
 
-  Widget _buildSizeChip(String size) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        size,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-    );
-  }
-
-  Widget _buildColorDot(Color color, {bool hasMore = false}) {
-    return Container(
-      margin: const EdgeInsets.only(right: 4),
-      width: 14,
-      height: 14,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-      child: hasMore
-          ? Center(
-        child: Text(
-          "+",
-          style: TextStyle(fontSize: 10, color: Colors.white),
-        ),
-      )
-          : null,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final product = productStore;
@@ -117,6 +83,7 @@ class StoreProductCard extends StatelessWidget {
        );
      },
       child: Container(
+        height: SizeConfig.size200,
         decoration: BoxDecoration(
           color: AppColors.whiteFE,
           borderRadius: BorderRadius.circular(10),
@@ -134,7 +101,7 @@ class StoreProductCard extends StatelessWidget {
             /// Product Image
             CustomImageSlideshow(
               isLoading: false,
-              height: 200,
+              height: SizeConfig.size200,
               width: 140,
               imagePaths: details.media,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),

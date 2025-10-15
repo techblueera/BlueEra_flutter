@@ -70,6 +70,7 @@ class StoreServicesCard extends StatelessWidget {
         ));
       },
       child: Container(
+        height: SizeConfig.size200,
         decoration: BoxDecoration(
           color: AppColors.whiteFE,
           borderRadius: BorderRadius.circular(10),
@@ -87,7 +88,7 @@ class StoreServicesCard extends StatelessWidget {
 
             CustomImageSlideshow(
                 isLoading: false,
-                height: 200,
+                height: SizeConfig.size200,
                 width: 140,
                 imagePaths: serviceData?.photos ?? [],
                 borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
@@ -108,7 +109,7 @@ class StoreServicesCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            serviceData?.title ?? "N/A",
+                            'serviceData?.title ?? "N/A"sdlkfjskdnfkjdsnbfkdsbnfkdsbkfbdskfb',
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w600,
                             overflow: TextOverflow.ellipsis,
@@ -124,7 +125,7 @@ class StoreServicesCard extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 8),
+                    SizedBox(height: SizeConfig.size5),
 
                     CustomText(
                       serviceData?.description ?? '',
@@ -134,45 +135,48 @@ class StoreServicesCard extends StatelessWidget {
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w400,
                     ),
-                    SizedBox(height: SizeConfig.size6),
+                    SizedBox(height: SizeConfig.size4),
 
                     // Title & price
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomText(
-                            "Price: ",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor
-                        ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CustomText(
+                              "Price: ",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor
+                          ),
 
-                        CustomText(
-                            "₹${serviceData?.priceRange?.min} - ₹${serviceData?.priceRange?.max}",
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryColor
-                        ),
-                        const SizedBox(width: 6),
-                        CustomText(
-                            (maxDiscount?.amountOff != null)
-                                ? "${maxDiscount?.amountOff.toString()}% Off"
-                                : "0% Off",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.green.shade600
-                        ),
-                        const SizedBox(width: 6),
-                        CustomText(
-                            "₹${serviceData?.priceRange?.max}",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor,
-                            decoration: TextDecoration.lineThrough
-                        ),
-                      ],
+                          CustomText(
+                              "₹${serviceData?.priceRange?.min} - ₹${serviceData?.priceRange?.max}",
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor
+                          ),
+                          const SizedBox(width: 6),
+                          CustomText(
+                              (maxDiscount?.amountOff != null)
+                                  ? "${maxDiscount?.amountOff.toString()}% Off"
+                                  : "0% Off",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.green.shade600
+                          ),
+                          const SizedBox(width: 6),
+                          CustomText(
+                              "₹${serviceData?.priceRange?.max}",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                              decoration: TextDecoration.lineThrough
+                          ),
+                        ],
+                      ),
                     ),
-                    SizedBox(height: SizeConfig.size8),
+                    SizedBox(height: SizeConfig.size3),
 
                     // Open | close
                     Row(
@@ -215,7 +219,7 @@ class StoreServicesCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: SizeConfig.size5),
+                    SizedBox(height: SizeConfig.size4),
 
                     CustomText(
                     serviceData?.business?.categoryOfBusiness?.name ?? "N/A",
@@ -225,7 +229,7 @@ class StoreServicesCard extends StatelessWidget {
                     color: AppColors.secondaryTextColor
                   ),
 
-                    SizedBox(height: SizeConfig.size5),
+                    SizedBox(height: SizeConfig.size3),
                     CustomText(
                       serviceData?.business?.businessName ?? "N/A",
                       fontSize: SizeConfig.small,
@@ -233,7 +237,7 @@ class StoreServicesCard extends StatelessWidget {
                       maxLines: 1,
                       color: AppColors.secondaryTextColor
                     ),
-                    SizedBox(height: SizeConfig.size5),
+                    SizedBox(height: SizeConfig.size3),
 
                     StoreKmAwayTextWidget(
                       lat: serviceData?.business?.businessLocation?.lat?.toDouble() ?? 0.0,
@@ -242,7 +246,6 @@ class StoreServicesCard extends StatelessWidget {
                       isPadding: 4.0,
                     ),
 
-                    SizedBox(height: SizeConfig.size10),
                   ],
                 ),
               ),

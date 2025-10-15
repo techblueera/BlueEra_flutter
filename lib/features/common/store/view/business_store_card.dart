@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BusinessStoreCard extends StatelessWidget {
@@ -65,15 +66,18 @@ class BusinessStoreCard extends StatelessWidget {
                           Expanded(
                             child: Row(
                               children: [
-                                Text(
-                                  getAllStoreResData?.businessName??'',
-                                  style: TextStyle(
-                                    fontSize: ds(15),
-                                    fontWeight: FontWeight.w600,
+                                Flexible(
+                                  child: CustomText(
+                                    getAllStoreResData?.businessName??'',
+                                    fontSize: ds(14),
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.secondaryTextColor,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 Container(
+                                  margin: EdgeInsets.only(left: ds(8)),
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     border: Border.all(color: AppColors.whiteF1),
@@ -81,7 +85,9 @@ class BusinessStoreCard extends StatelessWidget {
                                   ),
                                   child: Center(
                                     child: CustomText(
-                                      "Since 1975",
+                                      getAllStoreResData?.dateOfIncorporation == null
+                                          ? ""
+                                          : "Since ${getAllStoreResData?.dateOfIncorporation?.year ?? ""}",
                                       fontSize: 10,
                                       color: AppColors.secondaryTextColor,
                                     ),
@@ -91,6 +97,7 @@ class BusinessStoreCard extends StatelessWidget {
                             ),
                           ),
                           Container(
+                            margin: EdgeInsets.only(left: ds(4)),
                             padding: EdgeInsets.symmetric(horizontal: ds(8), vertical: ds(4)),
                             decoration: BoxDecoration(
                               color: Colors.blue,
@@ -164,6 +171,7 @@ class BusinessStoreCard extends StatelessWidget {
                             ),
                           ),
 
+                          if(getAllStoreResData?.address?.isNotEmpty??false)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
@@ -365,17 +373,31 @@ class BusinessStoreCard extends StatelessWidget {
                     child: Center(child: Icon(Icons.star_border, size: ds(13))),
                   ),
                   SizedBox(width: ds(6)),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 1, color: AppColors.whiteF1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Center(
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.share_bold,
-                        height: 13,
-                        width: 13,
+                  InkWell(
+                    onTap: () async {
+                      final link = profileDeepLink(
+                          userId:
+                          getAllStoreResData?.userId);
+                      final message =
+                          "See my profile on BlueEra:\n$link\n";
+                      await SharePlus.instance
+                          .share(ShareParams(
+                        text: message,
+                        subject: getAllStoreResData?.businessName,
+                      ));
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 1, color: AppColors.whiteF1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Center(
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.share_bold,
+                          height: 13,
+                          width: 13,
+                        ),
                       ),
                     ),
                   ),
