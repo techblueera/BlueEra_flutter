@@ -1,9 +1,9 @@
 // ignore_for_file: constant_identifier_names
 
 import 'dart:core';
+import 'dart:developer';
 import 'dart:io';
-import 'dart:math';
-
+import 'dart:math' hide log;
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/create_account_model.dart';
 import 'package:BlueEra/core/api/model/onboarding_model.dart';
@@ -872,6 +872,7 @@ String? businessType() {
 }
 
 List<PopupMenuEntry<String>> popupMenuInventoryItems() {
+  log('businessType-- ${businessType()}');
   final items = <Map<String, dynamic>>[
     if (isShowProduct.contains(businessType()))
       {"id": "ADD PRODUCT", 'title': 'Add Product'},

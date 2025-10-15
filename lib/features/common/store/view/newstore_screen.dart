@@ -166,7 +166,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                             ),
                           ),
 
-                          // 🔹 Foreground White Container (with overlap effect)
+                          // Foreground White Container (with overlap effect)
                           Transform.translate(
                             offset: Offset(0, -dynamicSize(20)),
                             // slight overlap for same look
@@ -238,7 +238,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SizedBox(height: SizeConfig.size10),
-                            _buildLocationHeader(),
+                            _buildStoreHeader(),
                           ],
                         ),
                       ),
@@ -250,7 +250,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
     );
   }
 
-  Widget _buildLocationHeader() {
+  Widget _buildStoreHeader() {
     return InkWell(
       onTap: () async {
         // apiCalling();
@@ -303,7 +303,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                    createProfileScreen();
                  } else if (value.toUpperCase() == "ADD PRODUCT") {
                    Get.toNamed(RouteHelper.getAddProductScreenRoute());
-                   // controller.callApi(forceRefresh: true);
                  } else if (value.toUpperCase() == "ADD SERVICE") {
                    Get.toNamed(RouteHelper.getAddServicesScreenRoute());
                  } else if (value.toUpperCase() == "ADD FOOD") {
@@ -392,6 +391,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                               width: itemWidth,
                               child: StoreFoodServiceCard(
                                 foodDetailsData: block[i].foodData ?? GetFoodDetailsModel(),
+                                isShowVerticalUi: true,
                               ),
                             ),
                           );
@@ -562,6 +562,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                     padding: EdgeInsets.only(bottom: ds(10)),
                     child: StoreFoodServiceCard(
                       foodDetailsData: foodItem,
+                      isShowVerticalUi: false
                     ),
                   );
                 },

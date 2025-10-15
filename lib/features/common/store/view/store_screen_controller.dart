@@ -3,11 +3,14 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
@@ -17,13 +20,19 @@ import '../../food/model/get_food_details_model.dart';
 import '../../food/repo/food_ai_repo.dart';
 
 class StoreScreenController extends GetxController {
-  Rx<ApiResponse> getAllStoreFeedResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getAllStoreResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getAllStoreFeedResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getAllStoreResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getAllStoreProductResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getAllStoreServiceResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getAllFoodServiceResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> followResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> unFollowResponse =
       ApiResponse.initial('Initial').obs;
 
 
@@ -417,6 +426,49 @@ class StoreScreenController extends GetxController {
       }
     }
   }
+
+  ///GET ALL SERVICE....
+  Future<void> followBusinessUser(
+      {required String? candidateResumeId}) async {
+    try {
+      followResponse.value = ApiResponse.initial('Initial');
+
+      ///FOR NOW WE SET
+      ResponseModel responseModel =
+      await UserRepo().followUser(followUserId: candidateResumeId);
+      if (responseModel.isSuccess) {
+        followResponse.value = ApiResponse.complete(responseModel);
+      } else {
+        followResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      followResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  ///UNFOLLOW USER...
+  Future<void> unFollowBusinessUser(
+      {required String? candidateResumeId}) async {
+    try {
+      unFollowResponse.value = ApiResponse.initial('Initial');
+
+      ///FOR NOW WE SET
+      ResponseModel responseModel =
+      await UserRepo().unfollowUser(followUserId: candidateResumeId);
+      if (responseModel.isSuccess) {
+        unFollowResponse.value = ApiResponse.complete(responseModel);
+      } else {
+        unFollowResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      unFollowResponse.value = ApiResponse.error('error');
+    }
+  }
+
 
   // Scroll and Header Management
   final GlobalKey headerKey = GlobalKey();

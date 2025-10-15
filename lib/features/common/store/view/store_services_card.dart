@@ -179,45 +179,48 @@ class StoreServicesCard extends StatelessWidget {
                     SizedBox(height: SizeConfig.size3),
 
                     // Open | close
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomText(
-                            "Open: ",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.green39
-                        ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CustomText(
+                              "Open: ",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.green39
+                          ),
 
-                        CustomText(
-                            timingMap["start"]!,
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor
-                        ),
+                          CustomText(
+                              timingMap["start"]!,
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor
+                          ),
 
-                        CustomText(
-                            "  |  ",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor
-                        ),
+                          CustomText(
+                              "  |  ",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor
+                          ),
 
 
-                        CustomText(
-                            "Close: ",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.red
-                        ),
+                          CustomText(
+                              "Close: ",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.red
+                          ),
 
-                        CustomText(
-                            timingMap["end"]!,
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor
-                        ),
-                      ],
+                          CustomText(
+                              timingMap["end"]!,
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(height: SizeConfig.size4),
 
@@ -237,7 +240,7 @@ class StoreServicesCard extends StatelessWidget {
                       maxLines: 1,
                       color: AppColors.secondaryTextColor
                     ),
-                    SizedBox(height: SizeConfig.size3),
+                    SizedBox(height: SizeConfig.size5),
 
                     StoreKmAwayTextWidget(
                       lat: serviceData?.business?.businessLocation?.lat?.toDouble() ?? 0.0,

@@ -142,41 +142,44 @@ class StoreProductCard extends StatelessWidget {
                      SizedBox(height: SizeConfig.size8),
 
                     /// Price Row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomText(
-                          "Price: ",
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor
-                        ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CustomText(
+                            "Price: ",
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.secondaryTextColor
+                          ),
 
-                        CustomText(
-                            '₹${sellerClassification?.variants[0].sellingPrice}',
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryColor
-                        ),
-                        const SizedBox(width: 6),
-                         if (discountProduct > 0) ...[
-                        CustomText(
-                          "${discountProduct}% Off",
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.green.shade600
-                        ),
-                        const SizedBox(width: 6),
+                          CustomText(
+                              '₹${sellerClassification?.variants[0].sellingPrice}',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor
+                          ),
+                          const SizedBox(width: 6),
+                           if (discountProduct > 0) ...[
+                          CustomText(
+                            "${discountProduct}% Off",
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.green.shade600
+                          ),
+                          const SizedBox(width: 6),
 
+                          ],
+                          CustomText(
+                              ' ₹${sellerClassification?.variants[0].mrp}',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.secondaryTextColor,
+                            decoration: TextDecoration.lineThrough
+                          ),
                         ],
-                        CustomText(
-                            ' ₹${sellerClassification?.variants[0].mrp}',
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor,
-                          decoration: TextDecoration.lineThrough
-                        ),
-                      ],
+                      ),
                     ),
                     SizedBox(height: SizeConfig.size4),
 
@@ -200,15 +203,16 @@ class StoreProductCard extends StatelessWidget {
                             borderRadius: SizeConfig.size13,
                           ),
                           const SizedBox(width: 6),
-                          CustomText(
-                            product?.business_name,
-                             fontSize: SizeConfig.small,
-                             fontWeight: FontWeight.w600,
-                             color: AppColors.mainTextColor,
-                             maxLines: 1,
-                             overflow: TextOverflow.ellipsis,
+                          Flexible(
+                            child: CustomText(
+                              product?.business_name,
+                               fontSize: SizeConfig.small,
+                               fontWeight: FontWeight.w600,
+                               color: AppColors.mainTextColor,
+                               maxLines: 1,
+                               overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          const Spacer(),
                         ],
                       ),
                     ),

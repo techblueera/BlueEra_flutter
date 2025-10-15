@@ -24,7 +24,6 @@ class ProductHomeScreenCard extends StatefulWidget {
 class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
   final CarouselSliderController _carouselController = CarouselSliderController();
   int _currentIndex = 0;
-  GlobalKey cardKey = GlobalKey();
 
   final List<String> bgAssets = [
     'assets/diwali_card/diwali_sample_card1.jpeg',
@@ -97,12 +96,11 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                         options: CarouselOptions(
                           height: cardSize,
                           enlargeCenterPage: true,
-                          enableInfiniteScroll: true,
-                          autoPlay: false,
-                          // autoPlay: widget.allProducts.length > 1,
-                          // autoPlayInterval: const Duration(seconds: 5),
-                          // autoPlayAnimationDuration:
-                          // const Duration(milliseconds: 5000),
+                          enableInfiniteScroll: false,
+                          autoPlay: widget.allProducts.length > 1,
+                          autoPlayInterval: const Duration(seconds: 5),
+                          autoPlayAnimationDuration:
+                          const Duration(milliseconds: 5000),
                           viewportFraction: 1.0,
                           onPageChanged: (i, reason) {
                             log('currentIndex--> $_currentIndex');
@@ -194,7 +192,7 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                 children: [
                   Expanded(
                     child: CustomText(
-                        "Share card to social media,Grow business",
+                        "Share card to social media, Grow business",
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w400,
                         fontSize: SizeConfig.small,
@@ -205,10 +203,9 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                     child: InkWell(
                       onTap: () async {
                         final currentProduct = widget.allProducts[_currentIndex];
-                        VisitingCardHelper.buildAndShareProductCard(
-                          context,
-                          currentProduct,
-                          index: 0,
+                        await VisitingCardHelper().shareVisitingCard(
+                            _cardKey[_currentIndex],
+                            productId: currentProduct.product.details?.id
                         );
                       },
                       child: Container(
