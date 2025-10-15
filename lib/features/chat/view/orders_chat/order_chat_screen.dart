@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/widget/payout_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -82,28 +83,10 @@ class OrderChatScreen extends StatelessWidget {
           ),
           Column(
             children: [
-              McDonaldsWidget(),
+              Align(
+                  alignment: Alignment.centerRight,
+                  child: McDonaldsWidget()),
               Spacer(),
-
-              // Expanded(
-              //   child: ListView(
-              //     padding: EdgeInsets.all(10),
-              //     children: [
-              //       _buildReceivedMessage("Holla Jane!", "17:00",false),
-              //       _buildReceivedMessage("A week back I started\nexploring UI/UX using Figma", "17:00",false),
-              //       _buildReceivedMessage("A week back I started\nexploring UI/UX using Figma", "17:00",true),
-              //       _buildDateDivider("Today"),
-              //       _buildImageMessage(
-              //         "assets/images/camera_girl.png",
-              //         "17:00",
-              //         views: 10,
-              //         comments: 10,
-              //         likes: 20,
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              // ChatInputBar(),
             ],
           ),
         ],
@@ -216,85 +199,133 @@ class McDonaldsWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Red Header with logo and text
           Container(
             decoration: const BoxDecoration(
-              color: Color(0xFFD6001C), // McD red
+              color: Colors.grey, // McD red
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             ),
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
             child: Column(
               children: [
-                // Image.asset(
-                //   'assets/mcd_logo.png', // Replace with your asset
-                //   height: 50,
-                // ),
                 SizedBox(
-                  height: 50,
+                  height: 110,
                 ),
+
                 const SizedBox(height: 10),
-                const CustomText(
-                  "McDonald's Logo Meaning",
-
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-
-                ),
-                const SizedBox(height: 4),
-                const CustomText(
-                  'SYMBOL, HISTORY & BRAND REVIEW',
-                    color: Colors.white70,
-                    fontSize: 12,
-                    letterSpacing: 1,
-                ),
+                // const CustomText(
+                //   "McDonald's Logo Meaning",
+                //
+                //     color: Colors.white,
+                //     fontWeight: FontWeight.bold,
+                //     fontSize: 16,
+                //
+                // ),
+                // const SizedBox(height: 4),
+                // const CustomText(
+                //   'SYMBOL, HISTORY & BRAND REVIEW',
+                //     color: Colors.white70,
+                //     fontSize: 12,
+                //     letterSpacing: 1,
+                // ),
               ],
             ),
           ),
 
           // Message content
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(left: 16,right: 6),
             color: Color.fromRGBO(242, 254, 254, 1),
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(color: Colors.black87, fontSize: 14),
-                children: const [
-                  TextSpan(
-                    text: "Hello There,\n\nThanks for checking out our new Pizza Menu – fresh out… ",
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8,),
+                CustomText("Paneer Butter Masala",fontSize: 16,fontWeight: FontWeight.w600,),
+                const SizedBox(height: 12,),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8,),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                      color: Colors.green
+                      ),
+                      child: Center(
+                        child: CustomText("veg",color: Colors.white,),
+                      ),
+                    ),
+                    const SizedBox(width: 6,),
+                    CustomText("Main Course",fontSize: 12,fontWeight: FontWeight.w600,color: AppColors.grayText,),
+
+                  ],
+                ),
+                const SizedBox(height: 10,),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(color: Colors.black87, fontSize: 14),
+                    children: const [
+                      TextSpan(
+                        text: "Dorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio m.....",
+                      ),
+                      TextSpan(
+                        text: "read more",
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ],
                   ),
-                  TextSpan(
-                    text: "read more",
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10,),
+                Row(
+                  children: [
+                    CustomText("Small : ",fontSize: 12,fontWeight: FontWeight.w400,color: AppColors.grayText,),
+                    CustomText("₹299",fontSize: 12,fontWeight: FontWeight.bold,),
+                    Container(
+                      height: 10,
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      width: 1,
+                      color:AppColors.grayText ,
+                    ),
+                    CustomText("Medium : ",fontSize: 12,fontWeight: FontWeight.w400,color: AppColors.grayText,),
+                    CustomText("₹499",fontSize: 12,fontWeight: FontWeight.bold,),
+                    Container(
+                      height: 10,
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      width: 1,
+                      color:AppColors.grayText ,
+                    ),
+                    CustomText("Large : ",fontSize: 12,fontWeight: FontWeight.w400,color: AppColors.grayText,),
+                    CustomText("₹799",fontSize: 12,fontWeight: FontWeight.w900,),
+
+                  ],
+                ),
+                const SizedBox(height: 6,),
+              ],
             ),
           ),
 
 
           // Bottom buttons
           const Divider(height: 1,color: Colors.grey,),
-          Row(
+          Row(mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Expanded(
+              //   child: TextButton.icon(
+              //     onPressed: () {},
+              //     icon: const Icon(Icons.close, color: Colors.red,),
+              //     label:  CustomText(
+              //       'Cancel',
+              //       color: Colors.red,
+              //       fontWeight: FontWeight.w900,
+              //     ),
+              //   ),
+              // ),
+              // const VerticalDivider(width: 1,color: Colors.grey,),
               Expanded(
                 child: TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.close, color: Colors.red,),
-                  label:  CustomText(
-                    'Cancel',
-                    color: Colors.red,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const VerticalDivider(width: 1,color: Colors.grey,),
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                  },
                   icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
                   label:   CustomText(
-                    'Tracking',
+                    'Order Now',
                     color: Colors.blue,
                     fontWeight: FontWeight.w900,
                   ),

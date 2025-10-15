@@ -160,7 +160,8 @@ Widget ChatListTile({required Function onSelect,
   required String type,
   required BuildContext context,
   required bool? isForwardUI,
-  required bool? isFromGroupSelect,
+   bool? isFromGroupSelect,
+   Function()? onTab,
   required int index,
   required ChatViewController chatViewController,
   required ChatList? chat,
@@ -184,7 +185,7 @@ Widget ChatListTile({required Function onSelect,
   (chat?.sender?.contactNo == null))
       ? SizedBox()
       : InkWell(
-    onTap: () {
+    onTap:onTab?? () {
       if (isForwardUI == true) {
         selectChatListCard();
       } else {
@@ -905,7 +906,34 @@ AppBar getChatTitleAppBar(BuildContext context, {
     title: InkWell(
       onTap: (type != "Admin")
           ? () {
-        _navigateToProfile(authorId: userId ?? '', type: type ?? "");
+        if(isGroupAppBar!=null){
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              transitionDuration: const Duration(milliseconds: 400),
+              pageBuilder: (context, animation, secondaryAnimation) => ViewGroupMembers(
+                conversationId: conversationId,
+                type: type,
+                name: name,
+                profileImage: profileImage,
+              ),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return ScaleTransition(
+                  scale: Tween<double>(begin: 0.9, end: 1.0)
+                      .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
+            ),
+          );
+
+        }else{
+          _navigateToProfile(authorId: userId ?? '', type: type ?? "");
+
+        }
       }
           : () {},
       child: Row(
@@ -1021,13 +1049,29 @@ AppBar getChatTitleAppBar(BuildContext context, {
             icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
             onSelected: (value) {
               if (value == "group_info") {
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>
-                    ViewGroupMembers(
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    transitionDuration: const Duration(milliseconds: 400),
+                    pageBuilder: (context, animation, secondaryAnimation) => ViewGroupMembers(
                       conversationId: conversationId,
                       type: type,
                       name: name,
                       profileImage: profileImage,
-                    )));
+                    ),
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      return ScaleTransition(
+                        scale: Tween<double>(begin: 0.9, end: 1.0)
+                            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+                        child: FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                      );
+                    },
+                  ),
+                );
+
               }
             },
             itemBuilder: (context) =>
