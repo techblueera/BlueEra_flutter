@@ -28,6 +28,7 @@ import '../auth/model/GetListOfMessageData.dart';
 import '../contacts/view/contact_list_page.dart';
 import 'business_chat/business_chat_list.dart';
 import 'group_chat/group_chat_list.dart';
+import 'orders_chat/orders_chat_list.dart';
 
 class ChatMainScreen extends StatefulWidget {
   const ChatMainScreen(
@@ -78,10 +79,12 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
-        } else if (index == 2) {
-          chatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
         } else if (index == 1) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
+        }else if (index == 2) {
+          chatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
+        } else if (index == 3) {
+          chatViewController.emitEvent("ChatList", {ApiKeys.type: "order"});
         }
       }
     });
@@ -430,7 +433,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                             ],
                           ),
                         )
-                        // OrdersTabView()
+                        //OrdersTabView()
                       ]),
                 )
               ],

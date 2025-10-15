@@ -37,6 +37,7 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> personalChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> groupChatListResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> orderChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getListOfMessageResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getGroupMembersResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateUploadUrlResponse =
@@ -50,6 +51,7 @@ class ChatViewController extends GetxController {
   Rx<GetChatRequestProfileDetailsModel>? getChatRequestProfileDetailsModel =
       GetChatRequestProfileDetailsModel().obs;
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
+  Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getGroupChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getPersonalFilteredChatListModel =
@@ -128,6 +130,10 @@ class ChatViewController extends GetxController {
       getGroupChatListModel?.value = chatListModel;
       groupChatListResponse.value =
           ApiResponse.complete(getGroupChatListModel?.value);
+    }else if (chatListModel.type == "order") {
+      getOrderChatListModel?.value = chatListModel;
+      orderChatListResponse.value =
+          ApiResponse.complete(getOrderChatListModel?.value);
     } else {
       // when type is not come  from backend this is show success in personal chat
       getPersonalChatListModel?.value = chatListModel;

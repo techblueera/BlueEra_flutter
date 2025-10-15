@@ -734,6 +734,64 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
 
   return entries;
 }
+List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
+  final items = <Map<String, dynamic>>[
+    {"id": "PENDING",  'title': 'Pending'},
+    {"id": "COMPLETED",  'title': 'Completed'},
+    {"id": "CANCELED", 'title': 'Canceled'},
+    {"id": "LATEST", 'title': 'Latest'},
+    {"id": "OLDEST", 'title': 'Oldest'},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        onTap: () {
+          if (items[i]['id'] == "EDIT") {
+            Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+          }
+          if (items[i]['id'] == "SHARE") {}
+          if (items[i]['id'] == "DOWNLOAD") {
+            // Get.toNamed(RouteHelper.getResumeTemplateScreenRoute());
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              items[i]['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.6,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 
 List<PopupMenuEntry<String>> popupMenuChatCardItems() {
   final items = <Map<String, dynamic>>[
