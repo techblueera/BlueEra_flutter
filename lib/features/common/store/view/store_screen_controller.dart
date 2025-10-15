@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
@@ -13,10 +10,8 @@ import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/api/apiService/response_model.dart';
 import '../../food/model/get_food_details_model.dart';
 import '../../food/repo/food_ai_repo.dart';
@@ -161,9 +156,7 @@ class StoreScreenController extends GetxController {
         allStoreFeedHasMore = false;
         getAllStoreFeedResponse.value = ApiResponse.error('error');
       }
-    } catch (e, s) {
-      // print("Error: $e");
-      // print("stack trace: $s");
+    } catch (e) {
       getAllStoreFeedResponse.value = ApiResponse.error('error');
     } finally{
       isAllStoreFeedLoadingMore.value = false;
