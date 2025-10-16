@@ -21,9 +21,9 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  if (foundationObj.kDebugMode) {
+  // if (foundationObj.kDebugMode) {
   log(logMsg);
-  }
+  // }
 }
 
 // https://be-user-bck.s3.ap-south-1.amazonaws.com/user/temp/profile/guest8024173s

@@ -7,6 +7,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/account_setting_
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -69,7 +70,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               return Text("Data");
               // QueriesCard();
             } else if (accountController.index == '4') {
-               Future.microtask(() {
+              Future.microtask(() {
                 accountController.setIndex('0');
                 navigatePushTo(context, ChangeLanguageScreen());
               });
@@ -104,20 +105,21 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                         },
                       ),
                       SizedBox(height: SizeConfig.size20),
-                       Padding(
-              padding: EdgeInsets.only(
-                left: SizeConfig.size16,
-                right: SizeConfig.size16,
-                bottom: SizeConfig.size10,
-              ),
-              child: _buildSettingItem(
-                imagePath: AppIconAssets.notificationOutlineIcon,
-                title: 'All Notification',
-                control: _buildToggleSwitch(
-                  value: accountController.allnotify,
-                  onChanged: accountController.toggleAllNotification,
-                ),
-              ))
+                      Padding(
+                          padding: EdgeInsets.only(
+                            left: SizeConfig.size16,
+                            right: SizeConfig.size16,
+                            bottom: SizeConfig.size10,
+                          ),
+                          child: buildSettingItem(
+                            imagePath: AppIconAssets.notificationOutlineIcon,
+                            title: 'All Notification',
+                            control: buildToggleSwitch(
+                              value: accountController.allnotify,
+                              onChanged:
+                                  accountController.toggleAllNotification,
+                            ),
+                          ))
                     ],
                   ),
                 ),
@@ -197,14 +199,11 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   }
 }
 
-
-
-
 // Reusable Card Widget
-Widget _helpServiceCard(String iconPath, String title, GestureTapCallback? onTap) {
+Widget _helpServiceCard(
+    String iconPath, String title, GestureTapCallback? onTap) {
   Get.put(AccountSettingsController());
   final lang = Get.put(LanguageListController());
-
 
   return InkWell(
     onTap: onTap,
@@ -243,29 +242,29 @@ Widget _helpServiceCard(String iconPath, String title, GestureTapCallback? onTap
                   color: Colors.black87,
                 ),
               ),
-              if(title=="Language")
-               Text(lang.selectedLanguageName.toUpperCase()),
-               if(title=="Verification Status")
-               
-               Container(
-                 margin: EdgeInsets.all(SizeConfig.size5),
-                padding: EdgeInsets.all(SizeConfig.size5),
-                decoration: BoxDecoration(
-                  color: AppColors.green39,
-                  borderRadius: BorderRadius.circular(10)
-
+              if (title == "Language")
+                Text(lang.selectedLanguageName.toUpperCase()),
+              if (title == "Verification Status")
+                Container(
+                  margin: EdgeInsets.all(SizeConfig.size5),
+                  padding: EdgeInsets.all(SizeConfig.size5),
+                  decoration: BoxDecoration(
+                      color: AppColors.green39,
+                      borderRadius: BorderRadius.circular(10)),
+                  child: CustomText(
+                    "Owner Verified",
+                    fontSize: SizeConfig.size10,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black87,
+                  ),
                 ),
-                 child: CustomText("Owner Verified", fontSize: SizeConfig.size10,
+              if (title == "Manage Subscription")
+                CustomText(
+                  "Free Plan",
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
-                  color: Colors.black87,
-                               ),
-               ),
-               if(title=="Manage Subscription")
-               
-               CustomText("Free Plan", fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w400,
-                color: Colors.blue,
-                             ),
+                  color: Colors.blue,
+                ),
             ],
           ),
 
@@ -292,67 +291,82 @@ Widget _helpServiceCard(String iconPath, String title, GestureTapCallback? onTap
   );
 }
 
-Widget _buildSettingItem({
-    required String imagePath, // <-- Replace IconData with image path
-    required String title,
-    required Widget control,
-  }) {
-
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-      child: Row(
-        children: [
-          // Image Container
-          Container(
-            width: 40,
-            height: 40,
-            // decoration: BoxDecoration(
-            //   color: Colors.grey[100],
-            //   borderRadius: BorderRadius.circular(8),
-            // ),
-            child: Padding(
-              padding: EdgeInsets.all(8), // optional padding
-              child: SvgPicture.asset(
-                imagePath,
-                fit: BoxFit.contain,
-              ),
+Widget buildSettingItem({
+  required String imagePath, // <-- Replace IconData with image path
+  required String title,
+  required Widget control,
+}) {
+  return Padding(
+    padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+    child: Row(
+      children: [
+        // Image Container
+        Container(
+          width: 40,
+          height: 40,
+          // decoration: BoxDecoration(
+          //   color: Colors.grey[100],
+          //   borderRadius: BorderRadius.circular(8),
+          // ),
+          child: Padding(
+            padding: EdgeInsets.all(8), // optional padding
+            child: LocalAssets(
+              imagePath:imagePath,
+              boxFix: BoxFit.contain,
             ),
           ),
-          SizedBox(width: SizeConfig.size12),
+        ),
+        SizedBox(width: SizeConfig.size12),
 
-          // Title
-          Expanded(
-            child: CustomText(
-              title,
-                   fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-            ),
+        // Title
+        Expanded(
+          child: CustomText(
+            title,
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
-         
-          SizedBox(width: SizeConfig.size12),
+        ),
 
-          // Control
-          control,
-        ],
-      ),
-    );
-  
+        SizedBox(width: SizeConfig.size12),
 
+        // Control
+        control,
+      ],
+    ),
+  );
 }
-  Widget _buildToggleSwitch({
-    required RxBool value,
-    required VoidCallback onChanged,
-  }) {
-    return Obx(() => Transform.scale(
-      scale: 0.75, // Adjust scale to reduce size
-      child: Switch(
-        value: value.value,
-        onChanged: (val) => onChanged(),
-        activeColor: AppColors.primaryColor,
-        activeTrackColor: AppColors.primaryColor.withOpacity(0.3),
-        inactiveTrackColor: Colors.grey[300],
-        inactiveThumbColor: Colors.grey[400],
-      ),
-    ));
-  }
+
+Widget buildToggleSwitch({
+  required RxBool value,
+  required VoidCallback onChanged,
+}) {
+  return Obx(() => Transform.scale(
+        scale: 0.75, // Adjust scale to reduce size
+        child: Switch(
+          value: value.value,
+          onChanged: (val) => onChanged(),
+          activeColor: AppColors.primaryColor,
+          activeTrackColor: AppColors.primaryColor.withOpacity(0.3),
+          inactiveTrackColor: Colors.grey[300],
+          inactiveThumbColor: Colors.grey[400],
+        ),
+      ));
+}
+
+Widget buildToggleSwitchChip({
+  required RxBool value,
+  required VoidCallback onChanged,
+}) {
+  return Obx(() => Transform.scale(
+        scale: 0.6, // Adjust scale to reduce size
+        child: Switch(
+          value: value.value,
+          onChanged: (val) => onChanged(),
+          activeColor: AppColors.white,
+          activeTrackColor: AppColors.primaryColor,
+          inactiveTrackColor: Colors.grey[300],
+          inactiveThumbColor: Colors.grey[400],
+        ),
+      ));
+}

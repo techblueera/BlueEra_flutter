@@ -211,4 +211,37 @@ class LocationService {
     );
   }
 
+  static Position? _lastPosition;
+
+  static Future<Position?> getCurrentPosition() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return null;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return null;
+    }
+    if (permission == LocationPermission.deniedForever) return null;
+
+    Position current = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    // Check if location has changed
+    if (_lastPosition == null /*||
+        _hasLocationChanged(_lastPosition!, current)*/) {
+      _lastPosition = current;
+      return current;
+    }
+    return null; // same location → no need to update
+  }
+
+  static bool _hasLocationChanged(Position oldPos, Position newPos) {
+    logs("oldPos= ${oldPos.latitude},${oldPos.longitude} NEW === ${newPos.latitude},${newPos.longitude}");
+    const double threshold = 0.0001; // ~10m difference
+    return (oldPos.latitude - newPos.latitude).abs() > threshold ||
+        (oldPos.longitude - newPos.longitude).abs() > threshold;
+  }
+
 }

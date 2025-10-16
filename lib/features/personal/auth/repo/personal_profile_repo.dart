@@ -92,4 +92,24 @@ class PersonalProfileRepo extends BaseService {
       "${user_experience}$experienceID",
     );
   }
+
+  // SET PROVIDER STATUS Patch
+  Future<ResponseModel> setServiceStatusRepo({required Map<String,dynamic> bodyReq}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      mapServiceProviderStatus,
+      params: bodyReq,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  // GET PROVIDER STATUS Patch
+  Future<ResponseModel> getServiceStatusRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${mapServiceProviderStatus}/$userId",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

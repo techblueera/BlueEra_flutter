@@ -61,7 +61,7 @@ class Data {
   String? typeOfBusiness;
   String? logo;
   CategoryOfBusiness? categoryOfBusiness;
-  Null subCategoryOfBusiness;
+  // Null subCategoryOfBusiness;
   String? businessDescription;
   BusinessNumber? businessNumber;
   String? natureOfBusiness;
@@ -75,7 +75,7 @@ class Data {
   String? createdAt;
   String? updatedAt;
   int? avgRating;
-  int? totalRatings;
+  dynamic totalRatings;
   double? distance;
 
   Data(
@@ -88,7 +88,7 @@ class Data {
         this.typeOfBusiness,
         this.logo,
         this.categoryOfBusiness,
-        this.subCategoryOfBusiness,
+        // this.subCategoryOfBusiness,
         this.businessDescription,
         this.businessNumber,
         this.natureOfBusiness,
@@ -124,7 +124,7 @@ class Data {
     categoryOfBusiness = json['category_of_business'] != null
         ? new CategoryOfBusiness.fromJson(json['category_of_business'])
         : null;
-    subCategoryOfBusiness = json['sub_category_of_business'];
+    // subCategoryOfBusiness = json['sub_category_of_business'];
     businessDescription = json['business_description'];
     businessNumber = json['business_number'] != null
         ? new BusinessNumber.fromJson(json['business_number'])
@@ -164,7 +164,7 @@ class Data {
     if (this.categoryOfBusiness != null) {
       data['category_of_business'] = this.categoryOfBusiness!.toJson();
     }
-    data['sub_category_of_business'] = this.subCategoryOfBusiness;
+    // data['sub_category_of_business'] = this.subCategoryOfBusiness;
     data['business_description'] = this.businessDescription;
     if (this.businessNumber != null) {
       data['business_number'] = this.businessNumber!.toJson();
@@ -355,8 +355,8 @@ class Gst {
 }
 
 class BusinessLocation {
-  double? lat;
-  double? lon;
+  dynamic lat;
+  dynamic lon;
 
   BusinessLocation({this.lat, this.lon});
 

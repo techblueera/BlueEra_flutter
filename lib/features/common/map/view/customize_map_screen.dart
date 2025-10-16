@@ -4,6 +4,7 @@ import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -14,7 +15,10 @@ import 'package:BlueEra/features/common/map/widget/custom_service_bottom_sheet.d
 import 'package:BlueEra/features/common/map/widget/home_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/job_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -31,14 +35,17 @@ class CustomizeMapScreen extends StatefulWidget {
   State<CustomizeMapScreen> createState() => _CustomizeMapScreenState();
 }
 
-class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBindingObserver {
+class _CustomizeMapScreenState extends State<CustomizeMapScreen>
+    with WidgetsBindingObserver {
   final TextEditingController address = TextEditingController();
   final PlaceController placeController = Get.put(PlaceController());
-  final MapServiceController mapServiceController = Get.put(MapServiceController());
+  final MapServiceController mapServiceController =
+      Get.put(MapServiceController());
 
   bool isOpenKeyBoard = false;
   late MapplsMapController _mapController;
-  LatLng _currentPosition = const LatLng(20.5937, 78.9629); // Default: India center
+  LatLng _currentPosition =
+      const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
   final List<MapCategory> categories = MapCategory.values.where((category) {
     if (isBusiness()) {
@@ -60,6 +67,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
   String? _currentAddress;
   String? _currentCity;
   bool searchLocationShow = false;
+
   // Set<Marker> _placeMarkers = {};
   // Marker? _currentMarker;
   // BitmapDescriptor? placeMarker;
@@ -76,9 +84,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
     });
-
-
-
   }
 
   @override
@@ -136,20 +141,22 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
     // final permission = await _handleLocationPermission();
     // if (!permission) return;
 
-    final locationData = await LocationService.fetchLocation( isPermissionRequired: false);
+    final locationData =
+        await LocationService.fetchLocation(isPermissionRequired: false);
     if (locationData != null) {
       final position = locationData["position"];
       final address = locationData["address"];
 
       _currentPosition = LatLng(position.latitude, position.longitude);
-      _currentAddress = address.where((e) => e != null && e.isNotEmpty).join(', ');
-      searchController.text = _currentAddress??'';
+      _currentAddress =
+          address.where((e) => e != null && e.isNotEmpty).join(', ');
+      searchController.text = _currentAddress ?? '';
       _currentCity = address[1];
       isCurrentLocationMarkerShown = true;
 
       _updateLocationMarker(
-          lat: _currentPosition.latitude,
-          lng: _currentPosition.longitude,
+        lat: _currentPosition.latitude,
+        lng: _currentPosition.longitude,
       );
     }
   }
@@ -171,7 +178,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
   // }
 
   /// Updates blue dot marker
-  Future<void> _updateLocationMarker({required double lat, required double lng}) async {
+  Future<void> _updateLocationMarker(
+      {required double lat, required double lng}) async {
     _lat = lat;
     _lng = lng;
 
@@ -189,21 +197,20 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
 
     // Calculate distance between selected location and current GPS location
     double distanceInMeters = Geolocator.distanceBetween(
-        _lng,
-        _lng,
-        _currentPosition.latitude,
-        _currentPosition.longitude
-    );
+        _lng, _lng, _currentPosition.latitude, _currentPosition.longitude);
 
     print("lat--> lng--> $lat $lng");
-    print("current lat--> current lng--> ${_currentPosition.latitude} ${_currentPosition.longitude}");
-    print("distance from current location--> ${distanceInMeters.toStringAsFixed(2)} meters");
+    print(
+        "current lat--> current lng--> ${_currentPosition.latitude} ${_currentPosition.longitude}");
+    print(
+        "distance from current location--> ${distanceInMeters.toStringAsFixed(2)} meters");
 
     // If the selected location is within 50 meters of current location,
     // consider it as current location and remove marker
     // This handles GPS precision differences between device GPS and Google Places API
     if (distanceInMeters < 50.0) {
-      print("Selected location is within 50m of current position, removing marker");
+      print(
+          "Selected location is within 50m of current position, removing marker");
       _mapController.removeSymbol(symbol);
     }
 
@@ -212,11 +219,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
   }
 
   /// Loads profile image markers
-  Future<void> _loadPlaceMarkers({required double lat, required double lng}) async {
-    placeController.fetchPlaces(
-        _lat,
-        _lng
-    );
+  Future<void> _loadPlaceMarkers(
+      {required double lat, required double lng}) async {
+    placeController.fetchPlaces(_lat, _lng);
 
     // final placeMarker = await createMarkerUsingTearDropImage(
     //   tearDropAssetPath: AppImageAssets.tearDrop,
@@ -264,7 +269,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
     // });
   }
 
-  List<Map<String, dynamic>> generateNearbyDummyPlaces({required double lat, required double lng, int count = 5}) {
+  List<Map<String, dynamic>> generateNearbyDummyPlaces(
+      {required double lat, required double lng, int count = 5}) {
     final random = Random();
     final dummyTypes = [
       'restaurant',
@@ -307,10 +313,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
 
   /// Moves camera to current location
   void _moveCameraTo(LatLng position) {
-    _mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(position, _zoom),
-        duration: Duration(milliseconds: 300)
-    );
+    _mapController.animateCamera(CameraUpdate.newLatLngZoom(position, _zoom),
+        duration: Duration(milliseconds: 300));
 
     setState(() {});
   }
@@ -319,6 +323,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
   //       if (_currentMarker != null && !isCurrentLocationMarkerShown) _currentMarker!,
   //       ..._placeMarkers,
   //     };
+  final viewProfileController = Get.put(ViewPersonalDetailsController());
 
   @override
   Widget build(BuildContext context) {
@@ -355,7 +360,31 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
             onClearCallback: () {
               searchController.clear();
             },
-            currentCity: _currentCity
+            isGoLive: true,
+            isGoLiveWidget: () {
+              return Container(
+                margin: EdgeInsets.only(left: SizeConfig.size10),
+                height: SizeConfig.size40,
+                decoration: BoxDecoration(
+
+                    border: Border.all(
+                      color: AppColors.primaryColor,
+                    ),
+                    borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: SizeConfig.size10,
+                    ),
+                    CustomText("Go Live",color: AppColors.primaryColor,fontWeight: FontWeight.w600,),
+                    buildToggleSwitchChip(
+                      value: viewProfileController.shopStatusOpenClose,
+                      onChanged: viewProfileController.toggleShopStatus,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           body: SafeArea(
             top: false,
@@ -369,7 +398,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                   ),
                   myLocationEnabled: true,
                   onMapCreated: _onMapCreated,
-                  onStyleLoadedCallback: ()=> _initializeLocationAndMarkers(context),
+                  onStyleLoadedCallback: () =>
+                      _initializeLocationAndMarkers(context),
                   // zoomControlsEnabled: false,
                   // we use our custom zoom controls
                   // mapType: MapType.normal,
@@ -379,7 +409,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                   // myLocationButtonEnabled: false,
                   // ✅ shows default button
                   // style: mapLightCode,
-
                 ),
 
                 // 🧭 Top Controls
@@ -396,7 +425,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                         onTabSelected: (index, value) {
                           setState(() {
                             selectedIndex = index;
-                            mapCategoryType = value.toMapCategory() ?? MapCategory.services;
+                            mapCategoryType =
+                                value.toMapCategory() ?? MapCategory.services;
                           });
                           searchController.clear();
                         },
@@ -404,18 +434,15 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                           return mapCategory.label;
                         },
                         unSelectedBackgroundColor: AppColors.white,
-                        unSelectedBorderColor : AppColors.white,
+                        unSelectedBorderColor: AppColors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.black.withValues(alpha: 0.12),
-                            blurRadius: 6,
-                            offset: Offset(0, 2)
-                          )
+                              color: AppColors.black.withValues(alpha: 0.12),
+                              blurRadius: 6,
+                              offset: Offset(0, 2))
                         ],
                       ),
-
                       SizedBox(height: SizeConfig.size10),
-
                       buildSubCategory(),
                     ],
                   ),
@@ -471,7 +498,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                     backgroundColor: AppColors.white,
                     elevation: 0,
                     onPressed: () {
-                      _initializeLocationAndMarkers(context, );
+                      _initializeLocationAndMarkers(
+                        context,
+                      );
                     },
                     child:
                         Icon(Icons.my_location, color: AppColors.primaryColor),
@@ -494,7 +523,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
                             unFocus();
                             _updateLocationMarker(lat: lat, lng: lng);
                           } else {
-                            _updateLocationMarker(lat: _currentPosition.latitude, lng: _currentPosition.longitude);
+                            _updateLocationMarker(
+                                lat: _currentPosition.latitude,
+                                lng: _currentPosition.longitude);
                           }
                         })
                     : SizedBox(),
@@ -515,39 +546,39 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
           onTabSelected: (index, value) {
             setState(() {
               selectedServiceCategoryIndex = index;
-              serviceCategoryType = value.toServiceCategory() ?? ServiceCategory.homeServices;
+              serviceCategoryType =
+                  value.toServiceCategory() ?? ServiceCategory.homeServices;
             });
           },
           labelBuilder: (ServiceCategory serviceSubCategory) {
             return serviceSubCategory.label;
           },
           unSelectedBackgroundColor: AppColors.white,
-          unSelectedBorderColor : AppColors.white,
+          unSelectedBorderColor: AppColors.white,
           boxShadow: [
             BoxShadow(
                 color: AppColors.black.withValues(alpha: 0.12),
                 blurRadius: 6,
-                offset: Offset(0, 2)
-            )
+                offset: Offset(0, 2))
           ],
         );
 
       case MapCategory.stores:
         return HorizontalTabSelector(
-          tabs: storesCategory,
-          selectedIndex: selectedStoresCategoryIndex,
-          onTabSelected: (index, value) {
-            setState(() {
-              selectedStoresCategoryIndex = index;
-              storesCategoryType = value.toStoresCategory() ?? StoresCategory.clothing;
-            });
-          },
-          labelBuilder: (StoresCategory storesSubCategory) {
-            return storesSubCategory.label;
-          },
-          unSelectedBackgroundColor: AppColors.white,
-          unSelectedBorderColor : AppColors.white
-        );
+            tabs: storesCategory,
+            selectedIndex: selectedStoresCategoryIndex,
+            onTabSelected: (index, value) {
+              setState(() {
+                selectedStoresCategoryIndex = index;
+                storesCategoryType =
+                    value.toStoresCategory() ?? StoresCategory.clothing;
+              });
+            },
+            labelBuilder: (StoresCategory storesSubCategory) {
+              return storesSubCategory.label;
+            },
+            unSelectedBackgroundColor: AppColors.white,
+            unSelectedBorderColor: AppColors.white);
 
       default:
         return const SizedBox(); // or any fallback widget
@@ -556,30 +587,29 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
 
   Widget buildBottomSheet() {
     /// Service Category
-    if(mapCategoryType == MapCategory.services){
+    if (mapCategoryType == MapCategory.services) {
       switch (serviceCategoryType) {
         case ServiceCategory.homeServices:
           return HomeServicesBottomSheet(
-            lat: _lat,
-            lng: _lng,
-            onClose: () {
-              setState(() {
-                selectedServiceCategoryIndex = -1;
-                serviceCategoryType = null;
-              });
-            }
-          );
-        case ServiceCategory.foods:
-          return CustomServiceBottomSheet(
-              serviceType: 'FOODS',
+              lat: _lat,
+              lng: _lng,
               onClose: () {
                 setState(() {
                   selectedServiceCategoryIndex = -1;
                   serviceCategoryType = null;
                 });
-              },
-             lat: _lat,
-             lng: _lng,
+              });
+        case ServiceCategory.foods:
+          return CustomServiceBottomSheet(
+            serviceType: 'FOODS',
+            onClose: () {
+              setState(() {
+                selectedServiceCategoryIndex = -1;
+                serviceCategoryType = null;
+              });
+            },
+            lat: _lat,
+            lng: _lng,
           );
         // case ServiceCategory.stay:
         //   return SizedBox();
@@ -590,17 +620,17 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
     }
 
     /// Stores Category
-    if(mapCategoryType == MapCategory.stores){
+    if (mapCategoryType == MapCategory.stores) {
       switch (storesCategoryType) {
         case StoresCategory.clothing:
           return CustomServiceBottomSheet(
             serviceType: 'CLOTHING',
-              onClose: () {
-                setState(() {
-                  selectedStoresCategoryIndex = -1;
-                  storesCategoryType = null;
-                });
-              },
+            onClose: () {
+              setState(() {
+                selectedStoresCategoryIndex = -1;
+                storesCategoryType = null;
+              });
+            },
             lat: _lat,
             lng: _lng,
           );
@@ -644,8 +674,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen> with WidgetsBin
             });
           },
           lat: '$_lat',
-          lng: '$_lng'
-      );
+          lng: '$_lng');
     }
 
     /// Places Category

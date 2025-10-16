@@ -386,4 +386,6 @@ class AppIconAssets {
   static String teachingIcon = "${iconPath}teaching_icon.svg";
   static String storeWatch = "${iconPath}store_watch.svg";
   static String ai_generative = "${AppConstants.baseIconAssetsPath}ai_generative.png";
+  static String open_close = "${AppConstants.baseIconAssetsPath}open_close.png";
+  static String location_track = "${iconPath}location_track.svg";
 }

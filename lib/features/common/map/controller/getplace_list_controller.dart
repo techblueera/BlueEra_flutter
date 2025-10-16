@@ -10,23 +10,23 @@ class PlaceController extends GetxController {
   var isLoading = false.obs;
 
   Future<void> fetchPlaces(double lat,double lng) async {
-    try {
-      isLoading.value = true;
-      final response = await AddPlaceRepo().fetchPlaceList(lat: lat,lng: lng); // Make sure repo uses params
-      if (response.statusCode == 200) {
-        final List<PlaceList> places = List<PlaceList>.from(
-          (response.response!.data as List).map((e) => PlaceList.fromJson(e)),
-        );
-        allPlaces.value = places;
-        print("allPlaces--> ${allPlaces.length}");
-      } else {
-        print("API failed with status: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error: $e");
-    } finally {
-      isLoading.value = false;
-    }
+    // try {
+    //   isLoading.value = true;
+    //   final response = await AddPlaceRepo().fetchPlaceList(lat: lat,lng: lng); // Make sure repo uses params
+    //   if (response.statusCode == 200) {
+    //     final List<PlaceList> places = List<PlaceList>.from(
+    //       (response.response!.data as List).map((e) => PlaceList.fromJson(e)),
+    //     );
+    //     allPlaces.value = places;
+    //     print("allPlaces--> ${allPlaces.length}");
+    //   } else {
+    //     print("API failed with status: ${response.statusCode}");
+    //   }
+    // } catch (e) {
+    //   print("Error: $e");
+    // } finally {
+    //   isLoading.value = false;
+    // }
   }
 
   Future<void> fetchPlaceDetail({required String? placeId}) async {
