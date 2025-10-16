@@ -1,17 +1,19 @@
-
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/common/map/controller/location_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/common/store/view/store_screen.dart';
+import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/services/notifications/one_signal_services.dart';
@@ -35,33 +37,36 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final chatViewController = Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
+
   // final callController = Get.put(CallController());
   // final groupChatViewController = Get.put(GroupChatViewController());
 
   @override
   void initState() {
     super.initState();
+    if (!isGuestUser()) {
+      // Get.put(LocationServiceProviderController()); // initialize controller
+    }
 
-    if(isIndividual() && channelId.isEmpty){
-        getChannelDetails().then((channelModel) {
-          channelId = channelModel?.data.id??'';
-          channelName = channelModel?.data.name??'';
-          channelOwner = channelModel?.data.ownership.claimedBy??'';
-          SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.channel_Id, channelId
-          );
-          SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.channelName, channelName
-          );
-          SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.channelOwner, channelOwner
-          );
-        });
+
+    if (isIndividual() && channelId.isEmpty) {
+      getChannelDetails().then((channelModel) {
+        channelId = channelModel?.data.id ?? '';
+        channelName = channelModel?.data.name ?? '';
+        channelOwner = channelModel?.data.ownership.claimedBy ?? '';
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channel_Id, channelId);
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channelName, channelName);
+        SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.channelOwner, channelOwner);
+      });
     }
     chatViewController.connectSocket();
     // groupChatViewController.connectSocket();
     Get.put(ChatThemeController());
     getOneSignalUpdate();
+
   }
 
   ///GET CHANNEL DETAILS...
@@ -71,9 +76,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           await ChannelRepo().getChannelDetails(channelOrUserId: userId);
 
       if (response.statusCode == 200) {
-
         return ChannelModel.fromJson(response.response?.data);
-
       } else {
         return null;
       }
@@ -99,6 +102,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       key: _scaffoldKey,
       body: ValueListenableBuilder(

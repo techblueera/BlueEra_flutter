@@ -27,5 +27,16 @@ class MapServiceRepo extends BaseService{
     );
     return response;
   }
+  ///View Channel details...
+  Future<ResponseModel> mapServiceLocationProviderRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      mapServiceLocationProvider,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

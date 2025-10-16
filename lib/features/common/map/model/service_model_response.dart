@@ -163,7 +163,7 @@ class ServiceData {
     referredBy = json['referred_by'];
     deviceToken = json['device_token'];
     lastSeen = json['last_seen'];
-    location = json['location'];
+    location = json['location_'];
     email = json['email'];
     highestEducation = json['highest_education'];
     role = json['role'];
@@ -304,8 +304,8 @@ class SocialLinks {
 }
 
 class UserLocation {
-  double? lat;
-  double? lon;
+  num? lat;
+  num? lon;
 
   UserLocation({this.lat, this.lon});
 

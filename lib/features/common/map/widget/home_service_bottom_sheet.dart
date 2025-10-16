@@ -227,24 +227,24 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
-                  right: 4,
-                  bottom: 5,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.blackD4,
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: CustomText(
-                        'INR 100/-',
-                        fontSize: SizeConfig.extraSmall,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                )
+                // Positioned(
+                //   right: 4,
+                //   bottom: 5,
+                //   child: DecoratedBox(
+                //     decoration: BoxDecoration(
+                //       color: AppColors.blackD4,
+                //       borderRadius: BorderRadius.all(Radius.circular(10)),
+                //     ),
+                //     child: Padding(
+                //       padding: EdgeInsets.symmetric(horizontal: 8),
+                //       child: CustomText(
+                //         'INR 100/-',
+                //         fontSize: SizeConfig.extraSmall,
+                //         color: AppColors.white,
+                //       ),
+                //     ),
+                //   ),
+                // )
               ],
             ),
 

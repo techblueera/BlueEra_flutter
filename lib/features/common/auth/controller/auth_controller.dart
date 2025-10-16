@@ -221,6 +221,7 @@ class AuthController extends GetxController {
           commonSnackBar(message: response.message ?? AppStrings.success);
           final personalController = Get.put(ViewPersonalDetailsController());
           await personalController.viewPersonalProfile();
+
           Get.offNamedUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
             (route) => false,

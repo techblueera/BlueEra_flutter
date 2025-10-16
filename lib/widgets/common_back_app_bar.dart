@@ -93,8 +93,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       // this.isAddProductCategory = false,
       this.isCreateOwnProduct = false,
       this.bottomWidget,
+      this.isGoLiveWidget,
       this.isFollowRefreshWidget,
       this.isFollowRefresh = false,
+      this.isGoLive = false,
       this.isProductPopUpMenu});
 
   // final AppBar? appBar;
@@ -164,7 +166,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottomWidget;
   final bool? isProductPopUpMenu;
   final bool? isFollowRefresh;
+  final bool? isGoLive;
   final Widget Function()? isFollowRefreshWidget;
+  final Widget Function()? isGoLiveWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -266,7 +270,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             hintText: searchHintText),
                       ),
                     ),
-            if (currentCity != null)
+            /* if (currentCity != null)
               Builder(
                 builder: (context) => Row(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -282,6 +286,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       fontSize: SizeConfig.medium,
                     ),
                     SizedBox(width: SizeConfig.size5),
+                  ],
+                ),
+              ),*/
+            if (isGoLive ?? false)
+              Builder(
+                builder: (context) => Row(
+                  children: [
+                    isGoLiveWidget!(),
                   ],
                 ),
               ),
