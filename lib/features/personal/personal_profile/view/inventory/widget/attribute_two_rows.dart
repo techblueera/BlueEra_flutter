@@ -8,11 +8,62 @@ class AttributeRows extends StatelessWidget {
 
   const AttributeRows({Key? key, required this.attributeMap}) : super(key: key);
 
-  Widget _buildRow(String key, List<dynamic> values) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: values.map((value) {
+  void _showAllAttributesDialog(BuildContext context, String key, List<dynamic> values) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: CustomText(key, fontWeight: FontWeight.bold),
+        content: SingleChildScrollView(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: values.map((value) {
+              if (key.toLowerCase() == 'color' && value is Map<String, dynamic>) {
+                return Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: hexToColor(value["color_code"]),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey, width: 1),
+                  ),
+                );
+              } else {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: CustomText(
+                    "$value",
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              }
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRow(BuildContext context, String key, List<dynamic> values) {
+    final displayCount = 4;
+    final mainItems = values.take(displayCount).toList();
+    final remainingCount = values.length - displayCount;
+
+    return Row(
+      children: [
+        ...mainItems.map((value) {
           if (key.toLowerCase() == 'color' && value is Map<String, dynamic>) {
             return Container(
               width: 16,
@@ -36,19 +87,36 @@ class AttributeRows extends StatelessWidget {
               child: CustomText(
                 "$value",
                 color: AppColors.primaryColor,
-                fontWeight: FontWeight.w500
+                fontWeight: FontWeight.w500,
               ),
             );
           }
         }).toList(),
-      ),
+        if (remainingCount > 0)
+          GestureDetector(
+            onTap: () => _showAllAttributesDialog(context, key, values),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.primaryColor, width: 0.5),
+              ),
+              child: CustomText(
+                "+$remainingCount",
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          )
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final keys = attributeMap.keys.toList();
-
     if (keys.isEmpty) return const SizedBox.shrink();
 
     final firstKey = keys[0];
@@ -61,10 +129,10 @@ class AttributeRows extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 6),
-        _buildRow(firstKey, firstValues),
+        _buildRow(context, firstKey, firstValues),
         if (secondKey != null) ...[
           const SizedBox(height: 6),
-          _buildRow(secondKey, secondValues),
+          _buildRow(context, secondKey, secondValues),
         ],
       ],
     );

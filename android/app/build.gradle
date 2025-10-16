@@ -21,12 +21,12 @@ if (keystorePropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '96'
+    flutterVersionCode = '99'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '13.40.41'
+    flutterVersionName = '13.40.44'
 }
 
 def mapApiKey = localProperties.getProperty('MAP_API_KEY')
@@ -65,8 +65,8 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 97
-        versionName "13.40.42"
+        versionCode 100
+        versionName "13.40.45"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey,
                 admobAppId: admobId
@@ -96,8 +96,18 @@ android {
         pickFirst "lib/**/libc++_shared.so"
     }
 }
-
+configurations.all {
+    exclude group: 'androidx.media3', module: 'media3-exoplayer-rtsp'
+}
 dependencies {
+
+//    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
+//    implementation platform('com.google.firebase:firebase-bom:31.0.2')
+//    implementation 'com.google.firebase:firebase-messaging:23.2.1'
+//    implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
+//    implementation 'com.google.android.material:material:1.11.0'
+
 
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"

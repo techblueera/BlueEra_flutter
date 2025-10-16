@@ -490,7 +490,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             else
               ReelShortPopUpMenu(
                   shortFeedItem: widget.videoItem,
-                  popUpMenuColor: AppColors.black,
+                  popUpMenuColor: AppColors.white,
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.individual)
@@ -510,7 +510,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             else
               ReelShortPopUpMenu(
                   shortFeedItem: widget.videoItem,
-                  popUpMenuColor: AppColors.black,
+                  popUpMenuColor: AppColors.white,
                   shorts: widget.shorts)
           else if (fullScreenShortController.videoItem?.author?.accountType ==
               AppConstants.business)
@@ -530,7 +530,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             else
               ReelShortPopUpMenu(
                   shortFeedItem: widget.videoItem,
-                  popUpMenuColor: AppColors.black,
+                  popUpMenuColor: AppColors.white,
                   shorts: widget.shorts),
         ],
       ),

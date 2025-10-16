@@ -11,9 +11,10 @@ import 'package:url_launcher/url_launcher.dart';
 class KmAwayTextWidget extends StatefulWidget {
   final String lat, long;
   final double? isPadding;
+  final bool isUnderlineShow;
 
   KmAwayTextWidget(
-      {super.key, required this.lat, required this.long, this.isPadding});
+      {super.key, required this.lat, required this.long, this.isPadding, this.isUnderlineShow = true});
 
   @override
   State<KmAwayTextWidget> createState() => _KmAwayTextWidgetState();
@@ -37,8 +38,11 @@ class _KmAwayTextWidgetState extends State<KmAwayTextWidget> {
         },
         child: Padding(
           padding: EdgeInsets.symmetric(
-              horizontal: widget.isPadding ?? SizeConfig.size10),
+              horizontal: widget.isPadding ?? SizeConfig.size10,
+              vertical: widget.isPadding ?? 0
+          ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               LocalAssets(
                 imagePath: AppIconAssets.location_new,
@@ -51,10 +55,10 @@ class _KmAwayTextWidgetState extends State<KmAwayTextWidget> {
                 "${kmAway.toStringAsFixed(0)} km away",
                 fontSize: SizeConfig.small,
                 maxLines: 1,
-                decoration: TextDecoration.underline,
                 color: AppColors.primaryColor,
-                decorationColor: AppColors.primaryColor,
-                decorationStyle: TextDecorationStyle.solid,
+                decoration: widget.isUnderlineShow ? TextDecoration.underline : null,
+                decorationColor: widget.isUnderlineShow ? AppColors.primaryColor : null,
+                decorationStyle: widget.isUnderlineShow ? TextDecorationStyle.solid : null,
               ),
             ],
           ),

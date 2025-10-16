@@ -60,17 +60,20 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController searchController = TextEditingController();
   List<SavedFeedTab> filters = SavedFeedTab.values.toList();
   late SavedFeedTab _selectedSavedTab;
-  final HomeScreenController homeScreenController =
+  final  homeScreenController =
       Get.put(HomeScreenController());
-  final MoreCardsScreenController moreCardsScreenController =
+  final  moreCardsScreenController =
       Get.put(MoreCardsScreenController());
-  final InventoryController inventoryController =
+  final  inventoryController =
       Get.put(InventoryController());
 
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: selectedIndex);
+
     initPlatformState();
     getPackageData();
     searchController.addListener(() {
@@ -83,6 +86,15 @@ class _HomeScreenState extends State<HomeScreen> {
       checkAndShowGreetingDialog(context);
     });
   }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    searchController.dispose();
+
+    super.dispose();
+  }
+
   SharedMedia? sharedMedia;
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -109,13 +121,14 @@ class _HomeScreenState extends State<HomeScreen> {
       print("New shared text: ${media.content}");
     });
   }
+
   void _openChatScreen(SharedMedia media) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isGuestUser()) {
         createProfileScreen();
       } else {
-        final _sharedText=media.content;
-        List<SharedAttachment?>? attachments=media.attachments ?? [];
+        final _sharedText = media.content;
+        List<SharedAttachment?>? attachments = media.attachments ?? [];
 
         if (_sharedText != null && _sharedText.isNotEmpty) {
           Navigator.push(
@@ -124,11 +137,11 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (_) => BeAvailableContactsList(sharedText: _sharedText),
             ),
           );
-        } else if ( (attachments.isNotEmpty)) {
+        } else if ((attachments.isNotEmpty)) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => BeAvailableContactsList(sharedFiles:attachments),
+              builder: (_) => BeAvailableContactsList(sharedFiles: attachments),
             ),
           );
         }
@@ -203,12 +216,6 @@ class _HomeScreenState extends State<HomeScreen> {
     inventoryController.fetchProducts();
   }
 
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-
   void _calculateHeaderHeight() {
     final renderBox =
         _headerKey.currentContext?.findRenderObject() as RenderBox?;
@@ -253,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
         extendBodyBehindAppBar: true,
         body: Obx(() => Stack(
               children: [
-                /// Main Scrollable Area with Dynamic Padding
                 AnimatedPadding(
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
@@ -265,10 +271,48 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizeConfig.size30
                           : _headerHeight *
                               (1 - homeScreenController.headerOffset.value))),
-                  child: _buildSelectedTabContent(),
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                    },
+                    children: [
+                      HomeFeedScreenNew(
+                        key: ValueKey('feedScreen_all'),
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                        postFilterType: PostType.all,
+                        query: searchController.text.isEmpty
+                            ? null
+                            : searchController.text,
+                        headerHeight: _headerHeight,
+                        isInParentScroll: false,
+                      ),
+                      VideoFeedScreen(
+                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                          query: searchController.text,
+                          headerHeight: _headerHeight),
+                      ShortsFeedScreen(
+                          query: searchController.text,
+                          headerHeight: _headerHeight
+                          // You can add _toggleAppBarAndBottomNav later if needed
+                          ),
+                      SavedFeedScreen(
+                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                          query: searchController.text,
+                          selectedTab: _selectedSavedTab,
+                          headerHeight: _headerHeight + SizeConfig.size30),
+                      MoreCardsScreen(
+                        isFromHomeScreen: true,
+                        headerHeight: _headerHeight,
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                      ),
+                    ],
+                  ),
                 ),
 
-                /// Sliding Header
+                /// Header stays same
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
@@ -290,7 +334,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             if (mounted) {
                               searchController.clear();
                               setState(() => selectedIndex = index);
-
+                              _pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
                               resetScrollingOnTabChanged();
                             }
                           },
@@ -304,55 +352,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             )),
       ),
     );
   }
 
-  Widget _buildSelectedTabContent() {
-    switch (selectedIndex) {
-      case 0:
-        // return MixedFeedView(rawData: exampleData);
-        // return HomeFeedScreen();
-        // return FeedScreen(
-        return HomeFeedScreenNew(
-          key: ValueKey('feedScreen_all'),
-          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-          postFilterType: PostType.all,
-          query: searchController.text.isEmpty ? null : searchController.text,
-          headerHeight: _headerHeight,
-          isInParentScroll: false,
-        );
-      case 1:
-        return VideoFeedScreen(
-            onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-            query: searchController.text,
-            headerHeight: _headerHeight);
-      case 2:
-        return ShortsFeedScreen(
-            query: searchController.text, headerHeight: _headerHeight
-            // You can add _toggleAppBarAndBottomNav later if needed
-            );
-
-      case 3:
-        return SavedFeedScreen(
-            onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-            query: searchController.text,
-            selectedTab: _selectedSavedTab,
-            headerHeight: _headerHeight + SizeConfig.size30);
-      case 4:
-        return MoreCardsScreen(
-          isFromHomeScreen: true,
-          headerHeight: _headerHeight,
-          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-        );
-
-      default:
-        return SizedBox();
-    }
-  }
 
   Widget _filterButtons() {
     return Row(

@@ -458,6 +458,7 @@ abstract class BaseService {
   final String appMaintenance = 'ai-service/api/maintenance';
   String businessServicesByUserId(String userId) => 'services-service/services/user/$userId';
   final String aiGenerateBio = 'ai-service/api/ai-profile/generate-bio';
+  final String storesFeed = "map-service/api/feed";
 
 
 }

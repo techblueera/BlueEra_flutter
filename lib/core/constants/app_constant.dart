@@ -1,9 +1,9 @@
 // ignore_for_file: constant_identifier_names
 
 import 'dart:core';
+import 'dart:developer';
 import 'dart:io';
-import 'dart:math';
-
+import 'dart:math' hide log;
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/create_account_model.dart';
 import 'package:BlueEra/core/api/model/onboarding_model.dart';
@@ -155,6 +155,7 @@ class AppConstants {
   static const String Square = "Square";
   static const String chatScreen = "chatScreen";
   static const String feedScreen = "feedScreen";
+  static const String storeFeedScreen = "storeFeedScreen";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =
@@ -590,7 +591,9 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.message,
     PostCreationMenu.poll,
     PostCreationMenu.photos,
-    if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos, /// for individual user if user has channel then only video section will shown
+    if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
+
+    /// for individual user if user has channel then only video section will shown
     if (isBusiness) PostCreationMenu.jobPost,
     PostCreationMenu.place,
     // PostCreationMenu.travel,
@@ -871,6 +874,7 @@ String? businessType() {
 }
 
 List<PopupMenuEntry<String>> popupMenuInventoryItems() {
+  log('businessType-- ${businessType()}');
   final items = <Map<String, dynamic>>[
     if (isShowProduct.contains(businessType()))
       {"id": "ADD PRODUCT", 'title': 'Add Product'},
@@ -985,14 +989,15 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
 }
 
 List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
-    {bool? isSavePost}) {
+    {bool? isSavePost, bool? isShowSaveOption = true}) {
   final items = <Map<String, dynamic>>[
     // {"id": "REPOST", 'icon': AppIconAssets.repost_new, 'title': 'Repost'},
-    {
-      "id": "SAVE",
-      'icon': AppIconAssets.save_new,
-      'title': (isSavePost ?? false) ? "Unsave" : "Save"
-    },
+    if (isShowSaveOption == true)
+      {
+        "id": "SAVE",
+        'icon': AppIconAssets.save_new,
+        'title': (isSavePost ?? false) ? "Unsave" : "Save"
+      },
     // {"id": "FOLLOW", 'icon': AppIconAssets.follow_new, 'title': 'Follow'},
     {
       "id": "REPORT_POST",
@@ -1106,9 +1111,9 @@ List<PopupMenuEntry<String>> popupJobCardItems() {
   return entries;
 }
 
-List<PopupMenuEntry<String>> popupPostMenuItems() {
+List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
   final items = <Map<String, dynamic>>[
-    {'title': 'Edit Post'},
+    if ((is_reposted == null) || (is_reposted == false)) {'title': 'Edit Post'},
     {'title': 'Delete Post'},
   ];
 

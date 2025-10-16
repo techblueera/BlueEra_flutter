@@ -108,7 +108,7 @@ class _MessagePostPreviewScreenNewState
           preferredSize: Size.fromHeight(kToolbarHeight),
           child: Obx(() {
             return CommonBackAppBar(
-              title: "Message Repost",
+              title: "Lekha Preview",
               isLeading: msgPostController.isLoading.value ? false : true,
               onBackTap: () {
                 Get.back();
@@ -116,12 +116,6 @@ class _MessagePostPreviewScreenNewState
             );
           }),
         ),
-        // appBar: CommonBackAppBar(
-        //   title: 'Post Preview',
-        //   onBackTap: () {
-        //     Get.back();
-        //   },
-        // ),
         body: SafeArea(
           child: Obx(() {
             return Stack(
@@ -383,13 +377,7 @@ class _MessagePostPreviewScreenNewState
                                               File processed =
                                               File(
                                                   data.imageFile?.path ?? "");
-                                              /*
-                                              File processed =
-                                                  await processImage(
-                                                File(
-                                                    data.imageFile?.path ?? ""),
-                                                data.imgCropMode ?? "",
-                                              );*/
+
 
                                               String fileName = processed.path
                                                   .split('/')

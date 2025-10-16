@@ -1,7 +1,16 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -13,6 +22,7 @@ class ImageViewScreen extends StatefulWidget {
   final List<String> imageUrls;
   final int initialIndex;
   final String appBarTitle;
+  Post? postData;
 
   ImageViewScreen({
     super.key,
@@ -20,6 +30,7 @@ class ImageViewScreen extends StatefulWidget {
     required this.initialIndex,
     required this.appBarTitle,
     this.subTitle = '',
+    this.postData,
   });
 
   @override
@@ -61,18 +72,17 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+
                 widget.imageUrls.isEmpty ||
                         (widget.imageUrls.isNotEmpty &&
                             widget.imageUrls[0] == 'N/A')
                     ? Expanded(
                         child: Center(
-                          child: Text(
+                          child: CustomText(
                             'Not able to download',
-                            style: TextStyle(
                               fontSize: SizeConfig.screenWidth * 0.05,
                               color: AppColors.red,
                               fontWeight: FontWeight.w600,
-                            ),
                           ),
                         ),
                       )
@@ -103,6 +113,8 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                           },
                         ),
                       ),
+
+
               ],
             ),
 
@@ -120,6 +132,52 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                 ),
               ),
             ),
+
+            if (widget.postData?.type?.toLowerCase()=="image_post"&&widget.postData?.user?.id != userId)
+              Positioned(
+                top: SizeConfig.size25,
+                right: SizeConfig.size15,
+                child: SafeArea(
+                  child: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    // offset: const Offset(-6, 36),
+                    color: AppColors.white,
+
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    onSelected: (value) async {
+                      logs("value $value");
+                      if (value.toUpperCase() == "BLOCK USER") {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          blockUserPopUp(
+                              postType: PostType.all,
+                              postData: widget.postData ?? Post(id: ''));
+                        }
+                      }
+                      if (value.toUpperCase() == "REPORT POST") {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          postReportPopUp(
+                              postData: widget.postData ?? Post(id: ''),
+                              postType: PostType.all);
+                        }
+                      }
+                    },
+                    icon: IconButton(
+                        onPressed: null,
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: AppColors.white,
+                        )),
+                    itemBuilder: (context) => popupMenuVisitProfileActionItems(
+                        isShowSaveOption: false),
+                  ),
+                ),
+              ),
 
             // Subtitle at bottom
             if (_showSubtitle)

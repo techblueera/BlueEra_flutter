@@ -74,8 +74,10 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 },
                 labelBuilder: (label) => label,
               ),
-              if (viewBusinessDetailsController.selectedIndex.value == 2 ||
-                  viewBusinessDetailsController.selectedIndex.value == 3) ...[
+              if (viewBusinessDetailsController.selectedIndex.value ==
+                  postTab.indexOf('Shorts') ||
+                  viewBusinessDetailsController.selectedIndex.value ==
+                      postTab.indexOf('Videos')) ...[
                 _filterButtons(),
               ],
               SizedBox(

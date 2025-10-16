@@ -12,6 +12,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_sc
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class PostAuthorHeader extends StatelessWidget {
     this.onTapAvatar,
     this.onTapOptions,
     this.postedAgo,
-    this.isRepost=false,
+    this.isRepost = false,
   });
 
   @override
@@ -114,7 +115,7 @@ class PostAuthorHeader extends StatelessWidget {
                   postedAgo: postedAgo),
             ),
           ),
-          if(isRepost==false)...[
+          if (isRepost == false) ...[
             if (post?.user?.accountType == AppConstants.individual)
               if (id != userId)
                 Container(
@@ -137,16 +138,6 @@ class PostAuthorHeader extends StatelessWidget {
                         isSavePost: (post?.isPostSavedLocal ?? false)),
                   ),
                 )
-              /*IconButton(
-                onPressed:(){
-                  if (isGuestUser()) {
-                    createProfileScreen();
-                  } else {
-                    onTapOptions ?? blockReportUserPopUp();
-                  }
-                },
-                icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
-              )*/
               else
                 FeedPopUpMenu(
                   post: post ?? Post(id: ''),
@@ -170,14 +161,14 @@ class PostAuthorHeader extends StatelessWidget {
                       onTapFunction(valueData: value, contextBuild: context);
                     },
                     icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                    itemBuilder: (context) => popupMenuVisitProfileActionItems(),
+                    itemBuilder: (context) =>
+                        popupMenuVisitProfileActionItems(),
                   ),
                 )
               else
                 FeedPopUpMenu(
                     post: post ?? Post(id: ''), postFilteredType: postType)
           ],
-
         ],
       ),
     );
@@ -196,14 +187,14 @@ class PostAuthorHeader extends StatelessWidget {
       if (isGuestUser()) {
         createProfileScreen();
       } else {
-        blockUserPopUp();
+        blockUserPopUp(postType: postType, postData: post ?? Post(id: ''));
       }
     }
     if (value == "REPORT POST") {
       if (isGuestUser()) {
         createProfileScreen();
       } else {
-        postReportPopUp();
+        postReportPopUp(postData:  post ?? Post(id: ''),postType:postType );
       }
     }
     // if (value == "REPOST") {
@@ -240,87 +231,70 @@ class PostAuthorHeader extends StatelessWidget {
               postId: post?.id ?? '', type: postType, params: params);
         });
   }
-
-  void blockUserPopUp() {
-    showDialog(
-      context: Get.context!,
-      builder: (context) => BlockUserDialog(
-        onConfirm: () {
-          if (isGuestUser()) {
-            createProfileScreen();
-
-            return;
-          }
-          Get.find<FeedController>()
-              .userBlocked(otherUserId: post?.user?.id ?? '', type: postType);
-        },
-        userName: post?.user?.name,
-      ),
-    );
-    // openBlockDialog(
-    //   context: Get.context!,
-    //   userId: authorId,
-    //   contentId: post?.id ?? '',
-    //   reportType: 'POST',
-    //   userBlockVoidCallback: () {
-    //     if (isGuestUser()) {
-    //       createProfileScreen();
-    //
-    //       return;
-    //     }
-    //     Get.find<FeedController>()
-    //         .userBlocked(otherUserId: post?.authorId ?? '', type: postType);
-    //   },
-    // );
-  }
-
-  void postReportPopUp() {
-    Get.back();
-    showDialog(
-      context: Get.context!,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-          backgroundColor: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
-            child: Material(
-              color: AppColors.white,
-              child: ReportDialog(
-                reportType: "POST",
-                reportReasons: {
-                  'Sexual content': false,
-                  'Voilent or repulsive content': false,
-                  'Hateful or abusive content': false,
-                  'Harrasement or bullying': false,
-                  'Harmful or dangerous act': false,
-                  'Suicide, self harm or eating disorder ': false,
-                  'Misinformation': false,
-                  'Child abuse': false,
-                  'Promotes terrorism': false,
-                  'Spam or misleading': false,
-                  'Legal issue': false,
-                },
-                contentId: post?.id ?? '',
-                otherUserId: authorId,
-                reportCallback: (params) async {
-                  if (isGuestUser()) {
-                    createProfileScreen();
-
-                    return;
-                  }
-                  Get.find<FeedController>().postReport(
-                      postId: post?.id ?? '', type: postType, params: params);
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
+void blockUserPopUp({required Post postData, required PostType postType}) {
+  showDialog(
+    context: Get.context!,
+    builder: (context) => BlockUserDialog(
+      onConfirm: () {
+        if (isGuestUser()) {
+          createProfileScreen();
 
+          return;
+        }
+        Get.find<FeedController>()
+            .userBlocked(otherUserId: postData.user?.id ?? '', type: postType);
+      },
+      userName: postData.user?.name,
+    ),
+  );
+}
+
+void postReportPopUp({required Post postData, required PostType postType}) {
+  Get.back();
+  showDialog(
+    context: Get.context!,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+        backgroundColor: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: Material(
+            color: AppColors.white,
+            child: ReportDialog(
+              reportType: "POST",
+              reportReasons: {
+                'Sexual content': false,
+                'Voilent or repulsive content': false,
+                'Hateful or abusive content': false,
+                'Harrasement or bullying': false,
+                'Harmful or dangerous act': false,
+                'Suicide, self harm or eating disorder ': false,
+                'Misinformation': false,
+                'Child abuse': false,
+                'Promotes terrorism': false,
+                'Spam or misleading': false,
+                'Legal issue': false,
+              },
+              contentId: postData.id ?? '',
+              otherUserId: postData.user?.id??"",
+              reportCallback: (params) async {
+                if (isGuestUser()) {
+                  createProfileScreen();
+
+                  return;
+                }
+                Get.find<FeedController>().postReport(
+                    postId: postData.id ?? '', type: postType, params: params);
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}

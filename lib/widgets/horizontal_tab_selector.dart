@@ -72,7 +72,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
               padding: EdgeInsets.only(right: isLast ? 0.0 : SizeConfig.size8),
               child: InkWell(
                 onTap: () => onTabSelected(index, label),
-                borderRadius: BorderRadius.circular(7.0),
+                borderRadius: BorderRadius.circular(10.0),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                       horizontal: horizontalPadding, vertical: verticalPadding),

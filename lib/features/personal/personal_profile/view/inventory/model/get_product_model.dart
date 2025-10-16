@@ -260,7 +260,6 @@ class SellerClassification {
   final String id;
   final String productId;
   final String businessId;
-
   final List<Variant> variants;
   final bool isActive;
   BusinessLocation? businessLocation;

@@ -26,15 +26,14 @@ class PostRepo extends BaseService {
         params: bodyReq,
         onError: (error) {},
         onSuccess: (data) {},
+        showProgress: true,
         isMultipart: isMultiPartPost ?? true);
 
     return response;
   }
 
   Future<ResponseModel> addPostNewRepo(
-      {required FormData? formData,
-      required bool? isMultiPartPost}) async {
-
+      {required FormData? formData, required bool? isMultiPartPost}) async {
     final response = await ApiBaseHelper().postMultiImage(
       addPost,
       params: formData,
@@ -44,6 +43,18 @@ class PostRepo extends BaseService {
       onSendProgress: (sent, total) {
         double progress = sent / total;
       },
+    );
+    return response;
+  }
+
+  Future<ResponseModel> addRePostNewRepo({
+    required Map<String, dynamic>? reqDataData,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      addPost,
+      params: reqDataData,
+      showProgress: true,
+      onSendProgress: (sent, total) {},
     );
     return response;
   }
@@ -62,16 +73,15 @@ class PostRepo extends BaseService {
   }
 
   Future<ResponseModel> createPost(
-    PhotoPost photoPost,
-    List<File> mediaFiles,
-    double? latitude,
-    double? longitude,
-    PostVia? postVia,
-    void Function(double progress) onProgress,
-    String natureOfPost,
-    SongModel? song,
-    String visibilityDuration
-  ) async {
+      PhotoPost photoPost,
+      List<File> mediaFiles,
+      double? latitude,
+      double? longitude,
+      PostVia? postVia,
+      void Function(double progress) onProgress,
+      String natureOfPost,
+      SongModel? song,
+      String visibilityDuration) async {
     try {
       log('natureOfPost-- $natureOfPost');
       FormData formData = FormData();
@@ -116,8 +126,7 @@ class PostRepo extends BaseService {
             GET.Get.find<PhotoPostController>().longitude.toString()));
       }
       if (natureOfPost.isNotEmpty)
-      formData.fields
-          .add(MapEntry(ApiKeys.nature_of_post, natureOfPost));
+        formData.fields.add(MapEntry(ApiKeys.nature_of_post, natureOfPost));
 
       if (song != null) {
         final encodedSong = jsonEncode(song);
@@ -160,12 +169,9 @@ class PostRepo extends BaseService {
   }
 
   Future<ResponseModel> postByViewCountIDApi({required String id}) async {
-
     var response = await ApiBaseHelper().postHTTP(
-      postByID ,
-      params: {
-        ApiKeys.postId:id
-      },
+      postByID,
+      params: {ApiKeys.postId: id},
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -267,6 +273,4 @@ class PostRepo extends BaseService {
     );
     return response;
   }
-
-
 }

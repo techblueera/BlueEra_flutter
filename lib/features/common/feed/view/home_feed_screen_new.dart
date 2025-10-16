@@ -68,8 +68,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   late ShortsController? shortsController;
 
   var inventoryController = Get.isRegistered<InventoryController>()
-  ? Get.find<InventoryController>()
-  : Get.put(InventoryController());
+      ? Get.find<InventoryController>()
+      : Get.put(InventoryController());
 
   @override
   void initState() {
@@ -169,12 +169,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         if (posts.isEmpty) {
           return Column(
             children: [
-              isIndividual() ?
-              _buildSocialCard()
-               : (inventoryController.allProducts.isNotEmpty)
-                 ? _buildProductCard()
-                   : _buildSocialCard(),
-
+              isIndividual()
+                  ? _buildSocialCard()
+                  : (inventoryController.allProducts.isNotEmpty)
+                      ? _buildProductCard()
+                      : _buildSocialCard(),
               Expanded(
                 child: Center(
                   child: Padding(
@@ -204,11 +203,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
             if (indexFeed == 0) {
-              return isIndividual() ?
-               _buildSocialCard()
+              return isIndividual()
+                  ? _buildSocialCard()
                   : inventoryController.allProducts.isNotEmpty
-                  ? _buildProductCard()
-                  : _buildSocialCard();
+                      ? _buildProductCard()
+                      : _buildSocialCard();
             }
             int index = indexFeed - 1;
             final block = blocks[index];
@@ -298,7 +297,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                 appBarTitle:
                                     AppLocalizations.of(context)!.imageViewer,
                                 imageUrls: imgPostData.media ?? [],
-                                initialIndex: postIndex,
+                                initialIndex: postIndex,postData: imgPostData,
                               ),
                             );
                           },
@@ -477,6 +476,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                   index: index,
                   postFilteredType: PostType.all,
                   bottomPadding: 0,
+                  isRepost: false,
                 ),
               );
             }
@@ -592,26 +592,22 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           right: SizeConfig.size8,
           top: SizeConfig.size8),
       child: ProductHomeScreenCard(
-          allProducts: Get.find<InventoryController>().allProducts
-      ),
+          allProducts: Get.find<InventoryController>().allProducts),
     );
   }
 
   Widget _buildSocialCard() {
-   return (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
-     ? Padding(
-   padding: EdgeInsets.only(
-       left: SizeConfig.size8,
-       right: SizeConfig.size8,
-       top: SizeConfig.size8),
-   child: GreetingCardDialog(
-       cards:
-       Get.find<MoreCardsScreenController>().dayCards
-   ),
- )
-     : SizedBox.shrink();
+    return (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
+        ? Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                top: SizeConfig.size8),
+            child: GreetingCardDialog(
+                cards: Get.find<MoreCardsScreenController>().dayCards),
+          )
+        : SizedBox.shrink();
   }
-
 }
 
 ShortFeedItem getVideoData(Post video) {
@@ -649,8 +645,13 @@ ShortFeedItem getVideoData(Post video) {
       interactions: Interactions(
           isBookmarked: false, isFollowing: false, isLiked: false));
 }
+class FeedBlock {
+  final bool isGrid;
+  final List<Post> items;
 
-class PostData {
+  FeedBlock({required this.isGrid, required this.items});
+}
+/*class PostData {
   final int id;
   final String? title;
   final String? message;
@@ -718,11 +719,6 @@ class PostData {
         'total_views': totalViews,
         'is_like': isLike,
       };
-}
+}*/
 
-class FeedBlock {
-  final bool isGrid;
-  final List<Post> items;
 
-  FeedBlock({required this.isGrid, required this.items});
-}
