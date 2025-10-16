@@ -384,6 +384,7 @@ class AppIconAssets {
   static String deliveryBoyIcon = "${iconPath}delivery_boy_icon.svg";
   static String jobSearchIcon = "${iconPath}job_search_icon.svg";
   static String teachingIcon = "${iconPath}teaching_icon.svg";
+  static String homeStayIcon = "${iconPath}home_stay_icon.svg";
   static String storeWatch = "${iconPath}store_watch.svg";
   static String ai_generative = "${AppConstants.baseIconAssetsPath}ai_generative.png";
   static String open_close = "${AppConstants.baseIconAssetsPath}open_close.png";

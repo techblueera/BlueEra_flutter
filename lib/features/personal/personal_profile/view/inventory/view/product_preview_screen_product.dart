@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -26,9 +27,11 @@ import 'package:get/get.dart';
 class ProductPreviewScreenProduct extends StatefulWidget {
   final GetProductData? productData;
   final bool? isShowBusinessInfo;
+  final String? id;
+  final ProductServiceProviderType? providerType;
 
   const ProductPreviewScreenProduct(
-      {super.key, required this.productData, this.isShowBusinessInfo});
+      {super.key, required this.productData, this.isShowBusinessInfo, this.id, this.providerType});
 
   @override
   State<ProductPreviewScreenProduct> createState() =>
@@ -418,6 +421,8 @@ class _ProductPreviewScreenProductState
                                 RouteHelper.getCreateVariantScreenRoute(),
                                 arguments: {
                                   ApiKeys.controller: controller,
+                                  ApiKeys.id: widget.id,
+                                  ApiKeys.providerType: widget.providerType
                                 },
                               );
                             }

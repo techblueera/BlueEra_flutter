@@ -1,7 +1,9 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
@@ -203,8 +205,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                                     horizontalMargin: 0.0,
                                     onTabSelected: (index, value) {
                                       controller.onStoreTabChanged(index);
-                                      controller.selectedStoreIndex.value =
-                                          index;
                                     },
                                     labelBuilder: (label) => label,
                                   ),
@@ -302,9 +302,20 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                  if (isGuestUser()) {
                    createProfileScreen();
                  } else if (value.toUpperCase() == "ADD PRODUCT") {
-                   Get.toNamed(RouteHelper.getAddProductScreenRoute());
+                   Get.toNamed(
+                     RouteHelper.getAddProductScreenRoute(),
+                     arguments: {
+                       ApiKeys.id: businessId,
+                       ApiKeys.providerType: ProductServiceProviderType.business
+                     }
+                   );
                  } else if (value.toUpperCase() == "ADD SERVICE") {
-                   Get.toNamed(RouteHelper.getAddServicesScreenRoute());
+                   Get.toNamed(
+                       RouteHelper.getAddServicesScreenRoute(),
+                       arguments: {
+                         ApiKeys.providerType: 'Business',
+                       }
+                   );
                  } else if (value.toUpperCase() == "ADD FOOD") {
                    Get.to(() => FoodUploadScreen());
                  }

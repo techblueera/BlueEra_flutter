@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
 import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -47,7 +47,7 @@ class VisitingCardHelper {
   /// Builds the card off-screen, captures it, then shares the PNG.
   static Future<void> buildAndShareProductCard(
       BuildContext context,
-      OwnProductData ownProductData,
+      GetProductData ownProductData,
       {required int index}
       ) async {
     if (_isProductSharing) return;

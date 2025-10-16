@@ -1,6 +1,9 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart' hide businessType;
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
@@ -103,7 +106,7 @@ class _InventoryScreenState extends State<InventoryScreen>
         controller: _tabController,
         children: [
           if ((isShowProduct.contains(businessType())))
-            ProductScreen(controller: controller),
+            ProductScreen(),
           if ((isShowService.contains(businessType())))
             ViewServiceList(),
           if ((isShowFood.contains(businessType())))
@@ -313,10 +316,21 @@ class _InventoryScreenState extends State<InventoryScreen>
 
     if (result != null) {
       if (result.toUpperCase() == "ADD PRODUCT") {
-        await Get.toNamed(RouteHelper.getAddProductScreenRoute());
+        await Get.toNamed(
+            RouteHelper.getAddProductScreenRoute(),
+            arguments: {
+              ApiKeys.id: businessId,
+              ApiKeys.providerType: ProductServiceProviderType.business
+            }
+        );
         controller.callApi(forceRefresh: true);
       } else if (result.toUpperCase() == "ADD SERVICE") {
-        Get.toNamed(RouteHelper.getAddServicesScreenRoute());
+        Get.toNamed(
+            RouteHelper.getAddServicesScreenRoute(),
+            arguments: {
+              ApiKeys.providerType: 'Business',
+            }
+        );
       } else if (result.toUpperCase() == "ADD FOOD") {
         Get.to(() => FoodUploadScreen());
         // Get.to(()=> FoodPage());

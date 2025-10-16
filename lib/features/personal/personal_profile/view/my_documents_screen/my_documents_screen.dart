@@ -52,7 +52,7 @@ class MyDocumentsScreen extends StatelessWidget {
         ElevatedButton.icon(
           onPressed: () {
             // Get.to(() => AddDocumentScreen());
-            Get.toNamed(RouteHelper.getaddDocumentScreenRoute());
+            Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
           },
           icon: Icon(
             Icons.add,

@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 class DiwaliOfferCard extends StatelessWidget {
   final GlobalKey cardKey;
-  final OwnProductData ownProductData;
+  final GetProductData ownProductData;
   final String backgroundAsset;
 
   const DiwaliOfferCard({

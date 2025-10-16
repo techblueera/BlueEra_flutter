@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -12,8 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddProductViaAiStep1 extends StatefulWidget {
-
-  AddProductViaAiStep1({super.key});
+  final String id;
+  final ProductServiceProviderType providerType;
+  AddProductViaAiStep1({super.key, required this.id, required this.providerType});
 
   @override
   State<AddProductViaAiStep1> createState() => _AddProductViaAiStep1State();
@@ -154,7 +156,11 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                         title: addProductViaAiController.isLoading.value
                           ? null // hide text
                           : 'Generate',
-                        onTap: ()=> addProductViaAiController.onGenerate(addProductViaAiController),
+                        onTap: ()=> addProductViaAiController.onGenerate(
+                            addProductViaAiController,
+                            widget.id,
+                            widget.providerType
+                        ),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

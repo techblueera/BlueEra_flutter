@@ -240,7 +240,13 @@ class AddServiceController extends GetxController {
     return true;
   }
 
-  Future<void> createServiceApi() async {
+  Future<void> createServiceApi({String? channelId, required String providerType}) async {
+
+    /// Provider Type
+    // Business --> userId
+    // User    ---> userId
+    // Channel ---> channelId
+
     if (!isValidate()) return;
 
     try {
@@ -249,7 +255,8 @@ class AddServiceController extends GetxController {
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'service',
-        "providerType": "Business",
+        ApiKeys.providerType: providerType,
+        ApiKeys.channelId: channelId,
         ApiKeys.title: serviceNameCtrl.text.trim(),
         ApiKeys.description: descriptionCtrl.text.trim(),
         ApiKeys.facilities: facilities,

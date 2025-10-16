@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -19,7 +20,9 @@ import 'package:get/get.dart';
 
 class CreateVariantScreen extends StatefulWidget {
   final ProductController controller;
-  const CreateVariantScreen({super.key, required this.controller});
+  final String id;
+  final ProductServiceProviderType providerType;
+  const CreateVariantScreen({super.key, required this.controller, required this.id, required this.providerType});
 
   @override
   State<CreateVariantScreen> createState() => _CreateVariantScreenState();
@@ -361,8 +364,10 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                      textColor: AppColors.white,
                      onTap: () {
                        widget.controller.addProductToInventory(
+                           id: widget.id,
                            addProductViaAiController: widget.controller,
-                           products: widget.controller.listedProducts
+                           products: widget.controller.listedProducts,
+                           providerType: widget.providerType
                        );
                      },
                      isLoading: widget.controller.isAddProductToInventoryLoading.value

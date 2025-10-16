@@ -91,11 +91,13 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.buildCustomWidget,
       // this.isAddProduct = false,
       // this.isAddProductCategory = false,
-      this.isCreateOwnProduct = false,
       this.bottomWidget,
       this.isGoLiveWidget,
       this.isFollowRefreshWidget,
       this.isFollowRefresh = false,
+      this.isProductPopUpMenu,
+      this.showGoLiveWidget,
+      });
       this.isGoLive = false,
       this.isProductPopUpMenu});
 
@@ -162,12 +164,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   // final bool isAddProduct;
   // final bool isAddProductCategory;
-  final bool isCreateOwnProduct;
   final PreferredSizeWidget? bottomWidget;
   final bool? isProductPopUpMenu;
   final bool? isFollowRefresh;
   final bool? isGoLive;
   final Widget Function()? isFollowRefreshWidget;
+  final Widget? showGoLiveWidget;
   final Widget Function()? isGoLiveWidget;
 
   @override
@@ -749,38 +751,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         //     ),
         //   ),
 
-        if (isCreateOwnProduct)
+        if (showGoLiveWidget!=null)
           Builder(
-            builder: (context) => GestureDetector(
-              onTap: () =>
-                  Get.toNamed(RouteHelper.getAddProductViaAiStep1Route()),
-              child: Container(
-                height: SizeConfig.size30,
-                margin: EdgeInsets.only(right: SizeConfig.size20),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryColor)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.add,
-                      color: AppColors.primaryColor,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      'Create Own',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            builder: (context) => showGoLiveWidget!,
           ),
+
       ],
       bottom: bottomWidget,
     );

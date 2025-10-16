@@ -772,9 +772,10 @@ enum VisitingChannelMenuAction {
 
 enum OwnChannelMenuAction {
   channelEdit,
-  chennelSetting,
+  channelSetting,
   addVideo,
   addProduct,
+  addService,
 }
 
 /// Map Category
@@ -1267,6 +1268,15 @@ extension StoreTypeExtension on StoreType {
     }
 
 }
+
+enum ProductServiceProviderType {
+  user,
+  business,
+  channel;
+
+  String get title => name[0].toUpperCase() + name.substring(1);
+}
+
 
 
 
