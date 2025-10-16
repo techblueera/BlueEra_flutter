@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
-import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -155,7 +154,7 @@ class BusinessStoreCard extends StatelessWidget {
                               ),
                               Text(
                                 ' ${
-                                  ((getAllStoreResData?.totalRatings ?? 0) > 0)
+                                  ((int.parse(getAllStoreResData?.totalRatings ??" 0")) > 0)
                                       ? "(${getAllStoreResData?.totalRatings})"
                                       : "No "
                                 }',
@@ -361,7 +360,7 @@ class BusinessStoreCard extends StatelessWidget {
                   LocalAssets(imagePath: AppIconAssets.eye_new),
                   SizedBox(width: ds(4)),
                   CustomText(
-                    "25K",
+                    getAllStoreResData?.views,
                     fontSize: SizeConfig.extraSmall,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -380,7 +379,7 @@ class BusinessStoreCard extends StatelessWidget {
                         LocalAssets(imagePath: AppIconAssets.userNew),
                         SizedBox(width: ds(4)),
                         CustomText(
-                          "5K",
+                          getAllStoreResData?.followerCount,
                           fontSize: SizeConfig.extraSmall,
                           color: AppColors.secondaryTextColor,
                         ),

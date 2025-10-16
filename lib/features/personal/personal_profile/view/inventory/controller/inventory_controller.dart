@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
@@ -32,9 +32,9 @@ class InventoryController extends GetxController {
   final List<String> productTab = ["All", "Live", 'Draft', 'Out Of Stock'];
   RxInt selectedProductIndex = 0.obs;
 
-  RxList<OwnProductData> allProducts = <OwnProductData>[].obs;
-  RxList<OwnProductData> liveProducts = <OwnProductData>[].obs;
-  RxList<OwnProductData> draftProducts = <OwnProductData>[].obs;
+  RxList<GetProductData> allProducts = <GetProductData>[].obs;
+  RxList<GetProductData> liveProducts = <GetProductData>[].obs;
+  RxList<GetProductData> draftProducts = <GetProductData>[].obs;
 
   // final RxList<ProductItem> selectedProducts = <ProductItem>[].obs;
   final int maxSelectionLimit = 10;
@@ -105,7 +105,7 @@ class InventoryController extends GetxController {
   }
 
   void callApi({bool forceRefresh = false}) {
-    RxList<OwnProductData> targetList;
+    RxList<GetProductData> targetList;
 
     switch (selectedProductIndex.value) {
       case 0:
@@ -151,8 +151,8 @@ class InventoryController extends GetxController {
       final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(params: params);
       if (response.isSuccess) {
         ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
-        final getOwnProductModel = GetOwnProductModel.fromJson(response.response!.data);
-        List<OwnProductData> products = getOwnProductModel.data;
+        final getOwnProductModel = GetProductModel.fromJson(response.response!.data);
+        List<GetProductData> products = getOwnProductModel.data;
 
         if(isDraftProduct!=null){
           if(isDraftProduct){

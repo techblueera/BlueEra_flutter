@@ -35,7 +35,11 @@ class ServiceController extends GetxController {
   Rx<ServiceAiGenerateModel> serviceAiResModel = ServiceAiGenerateModel().obs;
 
   Future<void> generateServiceAiController(
-      {required Map<String, dynamic> serviceDetailsReq}) async {
+      {
+        String? channelId,
+        required String providerType,
+        required Map<String, dynamic> serviceDetailsReq
+      }) async {
     try {
       String fileName = selectedImage.value?.path.split('/').last ?? "";
       dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
@@ -51,7 +55,9 @@ class ServiceController extends GetxController {
         serviceAiResModel.value =
             ServiceAiGenerateModel.fromJson(responseModel.response?.data);
         // commonSnackBar(message: "Service generated successfully");
-        Get.to(AddServicesScreenNew(
+        Get.to(()=> AddServicesScreenNew(
+          channelId: channelId,
+          providerType: providerType,
           service: serviceAiResModel.value,
         ));/*    Get.to(ServiceDetailScreen(
           service: serviceAiResModel.value,

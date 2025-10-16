@@ -23,9 +23,11 @@ import '../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../widgets/local_assets.dart';
 
 class AddServicesScreenNew extends StatefulWidget {
+  final String? channelId;
+  final String providerType;
   final ServiceAiGenerateModel? service;
 
-  const AddServicesScreenNew({Key? key, this.service}) : super(key: key);
+  const AddServicesScreenNew({Key? key, this.channelId, required this.providerType, this.service}) : super(key: key);
 
   @override
   State<AddServicesScreenNew> createState() => _AddServicesScreenState();
@@ -593,7 +595,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       SizedBox(height: SizeConfig.size30),
                       CustomBtn(
                         title: 'Post Service',
-                        onTap: () => addServiceController.createServiceApi(),
+                        onTap: () => addServiceController.createServiceApi(channelId: widget.channelId, providerType: widget.providerType),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

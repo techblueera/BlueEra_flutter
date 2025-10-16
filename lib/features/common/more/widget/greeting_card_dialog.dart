@@ -89,7 +89,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                             autoPlay: widget.cards.length > 1,
                             autoPlayInterval: const Duration(seconds: 3),
                             autoPlayAnimationDuration:
-                                const Duration(milliseconds: 800),
+                                const Duration(milliseconds: 2000),
                             viewportFraction: 1.0,
                             // show one card fully
                             onPageChanged: (i, reason) {

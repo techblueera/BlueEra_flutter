@@ -23,6 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
@@ -72,7 +73,6 @@ class _PersonalProfileSetupNewScreenState
   Get.isRegistered<PersonalCreateProfileController>()
       ? Get.find<PersonalCreateProfileController>()
       : Get.put(PersonalCreateProfileController());
-
 
   final myDocumentsController =
   Get.isRegistered<MyDocumentsController>()
@@ -1292,11 +1292,7 @@ class _PersonalProfileSetupNewScreenState
                   width: SizeConfig.size160,
                   title: 'Let\'s Start Earing Now',
                   onTap: (){
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => ConsultBottomSheet(),
-                    );
+                    Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
                   },
                   bgColor: AppColors.primaryColor,
                   textColor: AppColors.white,
@@ -1472,7 +1468,7 @@ class _PersonalProfileSetupNewScreenState
 
                 PositiveCustomBtn(
                   onTap: ()  {
-                    Get.toNamed(RouteHelper.getaddDocumentScreenRoute());
+                    Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
 
                   },
                   title: 'Add Document',

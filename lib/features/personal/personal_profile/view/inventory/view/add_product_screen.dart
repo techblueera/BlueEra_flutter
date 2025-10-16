@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -20,9 +21,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class AddProductScreen extends StatefulWidget {
-  const AddProductScreen({super.key});
+  final String id;
+  final ProductServiceProviderType providerType;
+  const AddProductScreen({super.key, required this.id, required this.providerType});
 
   @override
   State<AddProductScreen> createState() => _AddProductScreenState();
@@ -45,7 +47,42 @@ class _AddProductScreenState extends State<AddProductScreen> {
           backgroundColor: AppColors.appBackgroundColor,
           appBar: CommonBackAppBar(
               title: "Add Product",
-              isCreateOwnProduct: controller.searchProduct.isNotEmpty
+              buildCustomWidget: (controller.searchProduct.isNotEmpty) ?
+              ()=> GestureDetector(
+                onTap: () =>
+                    Get.toNamed(
+                        RouteHelper.getAddProductViaAiStep1Route(),
+                        arguments: {
+                          ApiKeys.id: widget.id,
+                          ApiKeys.providerType: widget.providerType
+                        }
+                    ),
+                child: Container(
+                  height: SizeConfig.size30,
+                  margin: EdgeInsets.only(right: SizeConfig.size20),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.primaryColor)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.add,
+                        color: AppColors.primaryColor,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        'Create Own',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ) : null,
           ),
           resizeToAvoidBottomInset: true,
           body: SafeArea(
@@ -324,7 +361,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     (controller.searchProduct.isEmpty)
                         ? GestureDetector(
                         onTap: () {
-                          Get.toNamed(RouteHelper.getAddProductViaAiStep1Route());
+                          Get.toNamed(
+                            RouteHelper.getAddProductViaAiStep1Route(),
+                            arguments: {
+                              ApiKeys.id: widget.id,
+                              ApiKeys.providerType: widget.providerType
+                            }
+                          );
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -521,6 +564,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       RouteHelper.getProductPreviewScreenRoute(),
                       arguments: {
                         ApiKeys.argProductData: productPreviewArgs,
+                        ApiKeys.id: widget.id,
+                        ApiKeys.providerType: widget.providerType
                       },
                     );
                   },
@@ -724,6 +769,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     RouteHelper.getProductPreviewScreenRoute(),
                     arguments: {
                       ApiKeys.argProductData: productPreviewArgs,
+                      ApiKeys.id: widget.id,
+                      ApiKeys.providerType: widget.providerType
                     },
                   );
                 },

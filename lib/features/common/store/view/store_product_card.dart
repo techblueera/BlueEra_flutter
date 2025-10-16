@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
@@ -81,6 +82,8 @@ class StoreProductCard extends StatelessWidget {
          arguments: {
            ApiKeys.argProductData: product,
            "isShowBusinessInfo": isShowBusinessInfo,
+           ApiKeys.id: businessId,
+           ApiKeys.providerType: 'Business'
          },
        );
      },
@@ -220,8 +223,8 @@ class StoreProductCard extends StatelessWidget {
                     SizedBox(height: SizeConfig.size12),
 
                     StoreKmAwayTextWidget(
-                      lat: sellerClassification?.businessLocation?.latitude ?? 0.0,
-                      long: sellerClassification?.businessLocation?.longitude ?? 0.0,
+                      lat: sellerClassification?.businessLocation?.latitude?.toDouble() ?? 0.0,
+                      long: sellerClassification?.businessLocation?.longitude?.toDouble() ?? 0.0,
                       isUnderlineShow: false,
                       isPadding: 4.0,
                     ),

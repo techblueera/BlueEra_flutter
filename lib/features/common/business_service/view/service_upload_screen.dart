@@ -19,7 +19,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
-  ServiceUploadScreen({Key? key}) : super(key: key);
+  final String? channelId;
+  final String providerType;
+  ServiceUploadScreen({Key? key, this.channelId, required this.providerType}) : super(key: key);
 
   @override
   State<ServiceUploadScreen> createState() => _ServiceUploadScreenState();
@@ -32,7 +34,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     viewBusinessDetailsController.getAllCategories();
     super.initState();
   }
@@ -258,7 +259,10 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
               ? () async {
             if (isValidate()) {
               await controller
-                  .generateServiceAiController(serviceDetailsReq: {
+                  .generateServiceAiController(
+                  channelId: widget.channelId,
+                  providerType: widget.providerType,
+                  serviceDetailsReq: {
                 ApiKeys.service_name: controller.serviceName.value,
                 ApiKeys.category: viewBusinessDetailsController
                     .selectedCategoryOfBusiness.value?.name,

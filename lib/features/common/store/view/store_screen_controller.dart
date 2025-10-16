@@ -165,7 +165,8 @@ class StoreScreenController extends GetxController {
         allStoreFeedHasMore = false;
         getAllStoreFeedResponse.value = ApiResponse.error('error');
       }
-    } catch (e) {
+    } catch (e, s) {
+      log('stack trace--> $s');
       getAllStoreFeedResponse.value = ApiResponse.error('error');
     } finally{
       isAllStoreFeedLoadingMore.value = false;
