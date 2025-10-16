@@ -1288,11 +1288,7 @@ class _PersonalProfileSetupNewScreenState
           width: SizeConfig.size160,
           title: 'Let\'s Start Earing Now',
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) => ConsultBottomSheet(),
-            );
+            Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           },
           bgColor: AppColors.primaryColor,
           textColor: AppColors.white,

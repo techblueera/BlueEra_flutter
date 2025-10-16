@@ -97,9 +97,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isFollowRefresh = false,
       this.isProductPopUpMenu,
       this.showGoLiveWidget,
-      });
       this.isGoLive = false,
-      this.isProductPopUpMenu});
+      });
 
   // final AppBar? appBar;
   final String? title;
