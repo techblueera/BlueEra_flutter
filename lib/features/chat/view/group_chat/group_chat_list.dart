@@ -54,7 +54,6 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                 itemCount: data?.chatList?.length,
                 itemBuilder: (context, index) {
                   final chat=data?.chatList?[index];
-                  print("sdk;cmlksdcm ${chat?.groupProfileImage}");
 
                   return  InkWell(
                     onTap: () async{

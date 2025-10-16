@@ -37,7 +37,7 @@ class ChatSocketService {
         print("___ Chat Socket connected!");
         _isConnected = true;
         _socket.emit("screenRoom", {ApiKeys.conversation_id: "online"});
-        // _socket.emit("ChatList", {ApiKeys.type: "personal"});
+        _socket.emit("ChatList", {ApiKeys.type: "personal"});
           print("Socket connected!");
 
       });

@@ -404,36 +404,36 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                         ),
                         GroupChatListTabPage(),
 
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                AppIconAssets.chat,
-                                color: Colors.black,
-                                height: 70,
-                                width: 70,
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              CustomText(
-                                "Coming Soon",
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              const SizedBox(
-                                height: 6,
-                              ),
-                              CustomText(
-                                  "Thanks for your patience we will update soon"),
-                              const SizedBox(
-                                height: 6,
-                              ),
-                            ],
-                          ),
-                        )
-                        //OrdersTabView()
+                        // Center(
+                        //   child: Column(
+                        //     mainAxisAlignment: MainAxisAlignment.center,
+                        //     children: [
+                        //       SvgPicture.asset(
+                        //         AppIconAssets.chat,
+                        //         color: Colors.black,
+                        //         height: 70,
+                        //         width: 70,
+                        //       ),
+                        //       const SizedBox(
+                        //         height: 14,
+                        //       ),
+                        //       CustomText(
+                        //         "Coming Soon",
+                        //         fontSize: 16,
+                        //         fontWeight: FontWeight.w600,
+                        //       ),
+                        //       const SizedBox(
+                        //         height: 6,
+                        //       ),
+                        //       CustomText(
+                        //           "Thanks for your patience we will update soon"),
+                        //       const SizedBox(
+                        //         height: 6,
+                        //       ),
+                        //     ],
+                        //   ),
+                        // )
+                        OrdersTabView()
                       ]),
                 )
               ],
