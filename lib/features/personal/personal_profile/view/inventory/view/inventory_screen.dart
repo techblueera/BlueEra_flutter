@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     _searchFocusNode.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +105,7 @@ class _InventoryScreenState extends State<InventoryScreen>
           if ((isShowProduct.contains(businessType())))
             ProductScreen(controller: controller),
           if ((isShowService.contains(businessType())))
-            Center(child: Text('My Services', style: TextStyle(fontSize: 18))),
+            ViewServiceList(),
           if ((isShowFood.contains(businessType())))
             FoodAndGroceryScreen(),
 

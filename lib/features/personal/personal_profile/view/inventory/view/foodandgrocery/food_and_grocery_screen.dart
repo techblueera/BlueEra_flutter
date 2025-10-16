@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';
 import '../../../../../../common/food/controller/food_upload_controller.dart';
 import '../../../../../../common/food/model/get_food_details_model.dart';
@@ -20,9 +21,9 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen> {
   void initState() {
     // TODO: implement initState
     Map<String, dynamic> params = {
-      "all": false,
-      "type": "food",
-      "radius": kmRadius1000
+      ApiKeys.all: false,
+      ApiKeys.type: "food",
+      ApiKeys.radius: kmRadius1000
     };
     controller.getFoodService(params);
     super.initState();

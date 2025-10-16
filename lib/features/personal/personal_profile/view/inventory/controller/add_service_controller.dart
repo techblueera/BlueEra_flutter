@@ -17,6 +17,8 @@ import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../common/food/repo/food_ai_repo.dart';
+
 class LocalImage {
   final String path;
   final String mimeType;
@@ -247,6 +249,7 @@ class AddServiceController extends GetxController {
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'service',
+        "providerType": "Business",
         ApiKeys.title: serviceNameCtrl.text.trim(),
         ApiKeys.description: descriptionCtrl.text.trim(),
         ApiKeys.facilities: facilities,
@@ -369,7 +372,8 @@ class AddServiceController extends GetxController {
     required String fileType,
     required String preSignedUrl,
     required Function(double progress) onProgress,
-  }) async {
+  }) async
+  {
     try {
       ResponseModel? response = await ChannelRepo().uploadVideoToS3(
         onProgress: onProgress,
@@ -390,4 +394,5 @@ class AddServiceController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
 }

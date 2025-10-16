@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
 
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../widgets/uploading_progressing_dialog.dart';
 import '../../../personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
@@ -195,6 +196,7 @@ class FoodUploadController extends GetxController {
 
     final Map<String, dynamic> body = {
       "title": foodNameCtrl.text.trim(),
+      "providerType": "Business",
       "description": descCtrl.text.trim(),
       "type": "food",
       "category":  selectedCategory.value,
@@ -235,14 +237,17 @@ class FoodUploadController extends GetxController {
 
   Future<void> addFoodServices(Map<String,dynamic> foodData) async {
     try {
+
+
       Map<String,dynamic> data=await buildRequestBody(foodData);
       ResponseModel responseModel =
       await FoodAiRepo().addFoodService(queryParam: data);
       if (responseModel.isSuccess) {
         UploadFoodLoadUrlModel data =UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
+
         UploadProgressDialog.update(0.2);
         List<String> preSignedUrlImages = data.uploadUrls?.images ?? [];
-        print("sdkjcslkdcmlksdmclskmcsdjcbn ${preSignedUrlImages.length}");
+
         if (images.length == preSignedUrlImages.length) {
           for (var i = 0; i < images.length; i++) {
             images[i].preSignedUrl = preSignedUrlImages[i];
@@ -253,6 +258,12 @@ class FoodUploadController extends GetxController {
         }
         UploadProgressDialog.close();
         commonSnackBar(message: 'Food Added Successfully');
+        Map<String, dynamic> params = {
+          ApiKeys.all: false,
+          ApiKeys.type: "food",
+          ApiKeys.radius: kmRadius1000
+        };
+       getFoodService(params);
         Get.back();
         Get.back();
       } else {

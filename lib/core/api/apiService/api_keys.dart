@@ -395,5 +395,6 @@ class ApiKeys {
   static const repostId = 'repostId';
   static const group_profile_image = 'group_profile_image';
   static const food_id = 'food_id';
+  static const all = "all";
 
 }
