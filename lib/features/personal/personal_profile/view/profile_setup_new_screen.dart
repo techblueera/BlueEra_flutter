@@ -1447,7 +1447,7 @@ class _PersonalProfileSetupNewScreenState
             SizedBox(width: SizeConfig.size6),
             PositiveCustomBtn(
               onTap: () {
-                Get.toNamed(RouteHelper.getaddDocumentScreenRoute());
+                Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
               },
               title: 'Add Document',
               textColor: AppColors.primaryColor,
