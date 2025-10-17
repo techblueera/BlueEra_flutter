@@ -131,7 +131,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                       : widget.message.substring(0, 100),
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: widget.isReceiveMsg ? Colors.black : Colors.white,
+                                    color: widget.isReceiveMsg ? Colors.black : Colors.black,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -161,7 +161,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                         const SizedBox(width: 8,),
                         Align(
                             alignment: Alignment.bottomRight,
-                            child: timeAndReadInfoWidget(message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.white : Colors.black54,)
+                            child: timeAndReadInfoWidget(indicateColor: Colors.black,message: widget.messages,isMyMessage: widget.messages.myMessage??false,time: widget.time,timeColor: (!widget.isReceiveMsg) ? Colors.black : Colors.black54,)
                         )
                       ],
                     ),

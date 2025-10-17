@@ -29,9 +29,10 @@ class PersonalChatScreen extends StatefulWidget {
   final String? profileImage;
   final String? businessId;
   final String? name;
+  final String? contactNo;
   final String? type;
   final bool isInitialMessage;
-  final String? contactNo;
+
 
   @override
   State<PersonalChatScreen> createState() => _PersonalChatScreenState();

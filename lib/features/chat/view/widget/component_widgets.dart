@@ -34,7 +34,7 @@ Widget timeAndReadInfoWidget({required Messages message,
     crossAxisAlignment: CrossAxisAlignment.center,
     mainAxisSize: MainAxisSize.min,
     children: [
-      CustomText("${time}", color: timeColor ?? AppColors.white, fontSize: 10),
+      CustomText("${time}", color: timeColor ?? AppColors.black, fontSize: 10),
       const SizedBox(
         width: 1.5,
       ),
@@ -987,9 +987,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
                   return Row(
                     children: [
                       CustomText(
-                        '${(type != "Admin") ? chatViewController
+                        '${(type != "Admin") ? (type=="business")?chatViewController
+                            .userOnlineStatus.value=="Online"?"Shop Open":"Shop Closed":chatViewController
                             .userOnlineStatus.value : "BlueCs Limited"}',
                         color: AppColors.grayText,
+
                         fontSize: 12,
                       ),
                       const SizedBox(

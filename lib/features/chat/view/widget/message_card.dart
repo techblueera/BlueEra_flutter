@@ -1,4 +1,15 @@
 import 'dart:convert';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
+import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -9,23 +20,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
-import 'package:get/get.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../../../core/constants/custom_carousel_slider.dart';
+import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
-import '../../../../widgets/custom_text_cm.dart';
 import '../../../common/business_service/model/get_service_model.dart';
 import '../../../common/business_service/widget/service_card.dart';
 import '../../../common/food/model/get_food_details_model.dart';
 import '../../../common/food/view/widget/food_product_card.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/chat_view_controller.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
@@ -177,7 +184,7 @@ class _MessageCardState extends State<MessageCard>
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
       List<String> message=widget.message.message?.split('.')??[];
       if(message.isNotEmpty){
-        messageWidget = FoodCardBusiness(
+        messageWidget = FoodCardMessageCardBusiness(
           isFromChatCard: true,
           serviceData: GetFoodDetailsModel(
               subCategory: message[2],
@@ -472,7 +479,6 @@ class _MessageCardState extends State<MessageCard>
       }) {
     return GestureDetector(
       onTap: () {
-
       },
       child: Container(
         width: width,
@@ -513,65 +519,250 @@ class _MessageCardState extends State<MessageCard>
             ),
 
             // Product Details
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Name
-                  CustomText(
-                    product.name,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 4),
+            Container(
+              color: const Color.fromRGBO(242, 254, 254, 1),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    CustomText(
+                      product.name,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 6),
 
-                  // Price Row
-                  Row(
-                    children: [
-                      CustomText(
-                        '₹${product.price}',
-                        fontWeight: FontWeight.w700,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.mainTextColor,
-                      ),
-                      const SizedBox(width: 8),
-                      CustomText(
-                        ' ₹${product.mrp}',
-                        fontSize: SizeConfig.small11,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                      CustomText(
-                        ' ${product.discount}% off',
-                        fontSize: SizeConfig.small11,
-                        color: Colors.green[600],
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
+                    // Price Row
+                    Row(
+                      children: [
+                        CustomText(
+                          '₹${product.price}',
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                        ),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          ' ₹${product.mrp}',
+                          fontSize: SizeConfig.small11,
+                          color: AppColors.grayText,
+                          fontWeight: FontWeight.w400,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                        CustomText(
+                          ' ${product.discount}% off',
+                          fontSize: SizeConfig.small11,
+                          color: Colors.green[600],
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
 
-                  // Status
-                  CustomText(
-                    'Active Products',
-                    fontWeight: FontWeight.w600,
-                    fontSize: SizeConfig.small11,
-                    color: AppColors.primaryColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
+            ),
+            const Divider(height: 1,color: Colors.grey,),
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      showProductDetailsBottomSheet(context,product);
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                    label:   CustomText(
+                      'Order Now',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+  void showProductDetailsBottomSheet(BuildContext context, ProductListing product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Product details",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Image Carousel
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CustomImageSlideshow(
+                  isLoading: false,
+                  height: 430,
+                  width: double.infinity,
+                  imagePaths: product.image,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topRight: Radius.circular(10),topLeft: Radius.circular(10),),
+                  boxShadow: [
+                    AppShadows.bottomShadow,
+                    AppShadows.topShadow,
+                  ],
+                  color: Colors.white,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Product Name
+                      CustomText(
+                        product.name,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Price Row
+                      Row(
+                        children: [
+                          CustomText(
+                            '₹${product.price}',
+                            fontWeight: FontWeight.w700,
+                            fontSize: SizeConfig.large,
+                            color: AppColors.mainTextColor,
+                          ),
+                          const SizedBox(width: 8),
+                          CustomText(
+                            ' ₹${product.mrp}',
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.grayText,
+                            fontWeight: FontWeight.w400,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                          CustomText(
+                            ' ${product.discount}% off',
+                            fontSize: SizeConfig.medium,
+                            color: Colors.green[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ],
+                      ),
+
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed:(){
+
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor:
+                        // selectedOption == null
+                        //     ? Colors.grey.shade300
+                        //     :
+                        Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: CustomText(
+                        "Cancel",
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12,),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed:(){
+
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor:
+                        // selectedOption == null
+                        //     ? Colors.grey.shade300
+                        //     :
+                        AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: CustomText(
+                        "Next",
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildReceivedMessage(
       Messages message, String text, String time, bool isReceive) {
 
@@ -974,5 +1165,239 @@ class _MessageCardState extends State<MessageCard>
         SnackBar(content: Text('Contact permission denied')),
       );
     }
+  }
+}
+
+class FoodCardMessageCardBusiness extends StatefulWidget {
+  final GetFoodDetailsModel serviceData;
+  final bool isGridView;
+  final bool isShowChat;
+  final bool isShowKM;
+  final bool isFromChatCard;
+  final bool isShowBusinessInfo;
+  final BusinessProfileDetails? businessData;
+
+  const FoodCardMessageCardBusiness({
+    Key? key,
+    required this.serviceData,
+    this.isGridView = false,
+    this.isShowChat = true,
+    this.isShowKM = false,
+    this.isFromChatCard= false,
+    this.isShowBusinessInfo = false,
+    this.businessData,
+  }) : super(key: key);
+
+  @override
+  State<FoodCardMessageCardBusiness> createState() => _FoodCardMessageCardBusinessState();
+}
+
+class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusiness> {
+  final chatViewController = Get.find<ChatViewController>();
+
+  GetFoodDetailsModel? serviceData;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    serviceData = widget.serviceData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final priceOptions = serviceData?.priceOptions;
+
+    String priceText = "N/A";
+    if (priceOptions != null && priceOptions.isNotEmpty) {
+      if (priceOptions.length == 1) {
+        priceText = "${priceOptions.first.price ?? ''}";
+      } else {
+        final prices = priceOptions.map((e) => e.price ?? 0).toList();
+        prices.sort();
+        priceText = "${prices.first} - ₹${prices.last}";
+      }
+    }
+
+    return InkWell(
+      onTap: () {
+        if(widget.isFromChatCard==false){
+          Get.to(FoodDetailsViewScreen(
+            productPriceFormat:(serviceData?.priceType == "single")?"${serviceData?.singlePrice ?? "0"}": "$priceText",
+            data: serviceData ?? GetFoodDetailsModel(),
+          ));
+        }
+      },
+      child: Container(
+        margin: EdgeInsets.only(right:widget.isFromChatCard? 0:20,bottom: 2),
+        width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
+        // height: 310,
+        // responsive width
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          // mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              child: CustomImageSlideshow(
+                isLoading: false,
+                width: double.infinity,
+                height: 170,
+                imagePaths: serviceData?.photos ?? [],
+                borderRadius: BorderRadius.zero,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+
+            // Title & price
+            Container(
+              height: SizeConfig.size50,
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.title ?? "N/A",
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: Row(
+                children: [
+                  (serviceData?.vegType == null)
+                      ? SizedBox()
+                      : Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: (serviceData?.vegType == "veg" ?? false)
+                          ? Colors.green
+                          : Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: CustomText("${serviceData?.vegType ?? "veg"}",
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  (serviceData?.vegType == null)
+                      ? SizedBox()
+                      : const SizedBox(
+                    width: 6,
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.food_bank_outlined,
+                        size: 19,
+                      ),
+                      CustomText(
+                        serviceData?.subCategory ?? "N/A",
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.navy,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                "Energy : ${serviceData?.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+
+            (serviceData?.priceType == "single")
+                ? Padding(
+              padding:
+              EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                "Price : ₹ ${serviceData?.singlePrice ?? "0"}",
+                fontSize: SizeConfig.small,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                color: AppColors.primaryColor,
+              ),
+            )
+                : Padding(
+              padding:
+              EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                "Price : ₹ ${priceText}",
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+                color: AppColors.primaryColor,
+                maxLines: 1,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+
+            KmAwayTextWidget(
+                lat: serviceData?.business?.businessLocation?.lat.toString() ??
+                    "",
+                long:
+                serviceData?.business?.businessLocation?.lon?.toString() ??
+                    ""),
+            const Divider(height: 1,color: Colors.grey,),
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                    label:   CustomText(
+                      'Order Now',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+          ],
+        ),
+      ),
+    );
   }
 }
