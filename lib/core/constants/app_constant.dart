@@ -63,6 +63,8 @@ class AppConstants {
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
+  static const String porterLink = "https://porter.in/two-wheelers/pune?gads=search&utm_source=google&utm_medium=cpc&utm_campaign=20818387432&utm_term=155699175106&utm_content=proter&click_id=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE&gad_source=1&gad_campaignid=20818387432&gbraid=0AAAAAoulZ9ihaB8xOb2NnDAf_6AJckFkq&gclid=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE";
+  static const String rapidoLink = "https://www.rapido.bike/Home";
 
   ///CHANGE NAME : arial to open sans some conflict are there
   // static const String arial = "OpenSans";
@@ -737,10 +739,11 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
 
   return entries;
 }
+
 List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "PENDING",  'title': 'Pending'},
-    {"id": "COMPLETED",  'title': 'Completed'},
+    {"id": "PENDING", 'title': 'Pending'},
+    {"id": "COMPLETED", 'title': 'Completed'},
     {"id": "CANCELED", 'title': 'Canceled'},
     {"id": "LATEST", 'title': 'Latest'},
     {"id": "OLDEST", 'title': 'Oldest'},
@@ -1839,12 +1842,14 @@ void trackPostView(String postID) {
 }
 
 canGoogleMapOpen({required double latitude, required double longitude}) async {
-  final Uri googleMapUrl = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}");
+  if (latitude != 0.0 && longitude != 0.0) {
+    final Uri googleMapUrl = Uri.parse(
+        "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}");
 
-  if (await canLaunchUrl(googleMapUrl)) {
-    await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
-  } else {
-    throw "Could not open Google Maps";
+    if (await canLaunchUrl(googleMapUrl)) {
+      await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
+    } else {
+      throw "Could not open Google Maps";
+    }
   }
 }

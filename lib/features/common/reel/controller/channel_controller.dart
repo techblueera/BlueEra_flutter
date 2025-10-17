@@ -8,6 +8,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/models/channel_stats_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,6 +22,9 @@ class ChannelController extends GetxController{
   ApiResponse ReportChannelResponse = ApiResponse.initial('Initial');
   ApiResponse blockUnBlockChannelResponse = ApiResponse.initial('Initial');
   ApiResponse muteUnMuteChannelResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> ownChannelProductsResponse =
+      ApiResponse.initial('Initial').obs;
+
   Rx<ChannelData?> channelData =  Rx<ChannelData?>(null);
   Rx<ChannelStats?> channelStats =  Rx<ChannelStats?>(null);
   RxBool isLoading = true.obs;
@@ -30,6 +35,14 @@ class ChannelController extends GetxController{
   RxString channelLogo="".obs;
   RxBool isChannelFollow = false.obs;
   bool isMuteChannel = false;
+
+
+  /// Channel Product data
+  RxList<GetProductData> ownProductDataList = <GetProductData>[].obs;
+  RxBool isOwnProductDataLoadingMore = false.obs;
+  RxBool isOwnProductDataFirstLoading = false.obs;
+  int ownProductDataPage = 1;
+  bool ownProductDataHasMore = true;
 
   Future<void> launchSmartUrl(String url) async {
     Uri uri = Uri.parse(url);
@@ -212,6 +225,60 @@ class ChannelController extends GetxController{
     } catch (e) {
       muteUnMuteChannelResponse =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  ///fetchOwnChannelProducts...
+  Future<void> fetchOwnChannelProducts({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isOwnProductDataLoadingMore.value || !ownProductDataHasMore) return;
+      isOwnProductDataLoadingMore.value = true;
+    } else {
+      isOwnProductDataFirstLoading.value = true;
+      ownProductDataPage = 1;
+      ownProductDataHasMore = true;
+      ownProductDataList.clear();
+    }
+
+    try {
+
+      Map<String, dynamic> queryParams = {
+        'DRAFT': false,
+        'ownerId': channelId,
+        'ownerType': ProductServiceProviderType.channel.title,
+      };
+
+
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      if (response.isSuccess) {
+        ownChannelProductsResponse.value = ApiResponse.complete(response);
+        final getProductModel =
+        GetProductModel.fromJson(response.response?.data);
+
+        final List<GetProductData> newData =
+            getProductModel.data;
+
+        if (newData.isNotEmpty) {
+          if (isLoadMore) {
+            ownProductDataList.addAll(newData);
+          } else {
+            ownProductDataList.assignAll(newData);
+          }
+          ownProductDataPage++;
+        }
+      } else {
+        ownProductDataHasMore = false;
+        ownChannelProductsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      print("stack trace: $s");
+      ownChannelProductsResponse.value = ApiResponse.error('error');
+    } finally {
+      if (isLoadMore) {
+        isOwnProductDataLoadingMore.value = false;
+      } else {
+        isOwnProductDataFirstLoading.value = false;
+      }
     }
   }
 

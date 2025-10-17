@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -20,8 +21,9 @@ import '../widget/add_services_screen.dart';
 
 class SubmitFoodProductPage extends StatefulWidget {
   SubmitFoodProductPage(
-      {Key? key, required this.foodData, required this.foodDatas, required this.imagePath, required this.categoryTag, required this.subCategory})
+      {Key? key, required this.providerType, required this.foodData, required this.foodDatas, required this.imagePath, required this.categoryTag, required this.subCategory})
       : super(key: key);
+  ProductServiceProviderType providerType;
   final FoodAiResModel foodDatas;
   final Map<String, dynamic> foodData;
   final String imagePath;
@@ -932,7 +934,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
                         onPressed: () async {
 
-                          controller.addFoodServices(widget.foodData);
+                          controller.addFoodServices(widget.foodData, widget.providerType);
                         },
                         child: const CustomText(
                           "Post Food",

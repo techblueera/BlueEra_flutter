@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/chat/controllar/order_controllar.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
@@ -16,6 +18,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
@@ -60,12 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController searchController = TextEditingController();
   List<SavedFeedTab> filters = SavedFeedTab.values.toList();
   late SavedFeedTab _selectedSavedTab;
-  final  homeScreenController =
-      Get.put(HomeScreenController());
-  final  moreCardsScreenController =
-      Get.put(MoreCardsScreenController());
-  final  inventoryController =
-      Get.put(InventoryController());
+  final homeScreenController = Get.put(HomeScreenController());
+  final moreCardsScreenController = Get.put(MoreCardsScreenController());
+  final inventoryController = Get.put(InventoryController());
 
   late PageController _pageController;
 
@@ -85,6 +85,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (isBusinessUser()) getBusinessUserOwnProduct();
       checkAndShowGreetingDialog(context);
     });
+    if ((accountTypeGlobal.toUpperCase() == AppConstants.individual)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Future.delayed(Duration(seconds: 2));
+        showEnableServiceDialog();
+      });
+    }
   }
 
   @override
@@ -358,7 +364,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   Widget _filterButtons() {
     return Row(

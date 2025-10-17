@@ -31,6 +31,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		359466E02EA0A941009278C2 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -207,6 +217,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				09AFEBAEA52A58F6002926D3 /* [CP] Embed Pods Frameworks */,
 				E5BF30EDF5FF43ADAF1D2857 /* [CP] Copy Pods Resources */,
+				359466E02EA0A941009278C2 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -224,6 +235,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
@@ -509,7 +521,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.22;
+				FLUTTER_BUILD_NAME = 1.2.23;
 				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
@@ -518,7 +530,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.22;
+				MARKETING_VERSION = 1.2.23;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -697,7 +709,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.22;
+				FLUTTER_BUILD_NAME = 1.2.23;
 				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
@@ -706,7 +718,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.22;
+				MARKETING_VERSION = 1.2.23;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -729,7 +741,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.22;
+				FLUTTER_BUILD_NAME = 1.2.23;
 				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
@@ -738,7 +750,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.22;
+				MARKETING_VERSION = 1.2.23;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

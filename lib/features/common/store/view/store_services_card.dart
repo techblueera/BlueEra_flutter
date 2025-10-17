@@ -65,7 +65,7 @@ class StoreServicesCard extends StatelessWidget {
 
     return InkWell(
       onTap: (){
-        Get.to(ServiceDetailsScreen(
+        Get.to(()=> ServiceDetailsScreen(
           service: serviceData ?? GetServiceModel(),
         ));
       },
@@ -131,7 +131,7 @@ class StoreServicesCard extends StatelessWidget {
                       serviceData?.description ?? '',
                       fontSize: SizeConfig.small,
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 3,
+                      maxLines: 2,
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w400,
                     ),

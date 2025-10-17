@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -23,9 +26,11 @@ import '../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../widgets/local_assets.dart';
 
 class AddServicesScreenNew extends StatefulWidget {
+  final String? channelId;
+  final ProductServiceProviderType providerType;
   final ServiceAiGenerateModel? service;
 
-  const AddServicesScreenNew({Key? key, this.service}) : super(key: key);
+  const AddServicesScreenNew({Key? key, this.channelId, required this.providerType, this.service}) : super(key: key);
 
   @override
   State<AddServicesScreenNew> createState() => _AddServicesScreenState();
@@ -63,7 +68,6 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
 
   @override
   Widget build(BuildContext context) {
-    logs("BUILD====");
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
@@ -99,7 +103,69 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                           border: Border.all(
                               color: Colors.lightBlue.shade200, width: 1),
                         ),
-                        child: Column(
+                        child:accountTypeGlobal == AppConstants.individual
+                            ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(" ⚠️ "),
+                                Expanded(
+                                  child: CustomText(
+                                    "Your Profession & Designation given below",
+                                    color: Colors.blue.shade800,
+                                    fontSize: SizeConfig.size16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: SizeConfig.size10,),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  "Profession : ",
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade800,
+                                ),
+                                Flexible(
+                                  child: CustomText(
+                                    "$userProfessionGlobal",
+                                    color: Colors.blue.shade700,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: SizeConfig.size5),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  "Work Type : ",
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade800,
+                                ),
+                                Flexible(
+                                  child: CustomText(
+                                    "$userWorkTypeGlobal ",
+                                    color: Colors.blue.shade700,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: SizeConfig.size5),
+
+                          ],
+                        )
+                            : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
@@ -593,7 +659,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       SizedBox(height: SizeConfig.size30),
                       CustomBtn(
                         title: 'Post Service',
-                        onTap: () => addServiceController.createServiceApi(),
+                        onTap: () => addServiceController.createServiceApi(channelId: widget.channelId, providerType: widget.providerType),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

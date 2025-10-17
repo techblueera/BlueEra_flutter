@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_own_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
@@ -13,7 +13,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class ProductHomeScreenCard extends StatefulWidget {
-  final List<OwnProductData> allProducts;
+  final List<GetProductData> allProducts;
 
   const ProductHomeScreenCard({super.key, required this.allProducts});
 

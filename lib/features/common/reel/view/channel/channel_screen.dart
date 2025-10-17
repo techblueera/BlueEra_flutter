@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -17,11 +16,14 @@ import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
+import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
 import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
-import 'package:BlueEra/features/common/store/channel_product_screen/channel_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -31,6 +33,7 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +49,8 @@ enum ChannelTab {
   drafts,
   saved,
   statistics,
-  product;
+  product,
+  Service;
 
   String get title => name[0].toUpperCase() + name.substring(1);
 }
@@ -409,12 +413,23 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                               onAddVideo: () {
                                 showVideosPickerDialog(context, type: PostVia.channel);
                               },
-                              onAddProduct: () {
+                              onAddProduct: () async {
+                                await Get.toNamed(
+                                    RouteHelper.getAddProductScreenRoute(),
+                                    arguments: {
+                                      ApiKeys.id: channelId,
+                                      ApiKeys.providerType: ProductServiceProviderType.channel
+                                    }
+                                );
+                              },
+                              onAddService: () {
+                                log('on service tap');
                                 Get.toNamed(
-                                  RouteHelper.getAddUpdateProductScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.channelId: widget.channelId,
-                                  },
+                                    RouteHelper.getAddServicesScreenRoute(),
+                                    arguments: {
+                                      ApiKeys.channelId: channelId,
+                                      ApiKeys.providerType: ProductServiceProviderType.channel,
+                                    }
                                 );
                               },
                             ),
@@ -592,7 +607,6 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
   }
 
   Widget _buildTabContent(ChannelTab tab) {
-    logs("isOwnChannel==== ${isOwnChannel}");
     switch (tab) {
       case ChannelTab.shorts:
         return ShortsChannelSection(
@@ -618,11 +632,11 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           postFilterType: _getPostType(),
           isInParentScroll: true,
         );
-      case ChannelTab.product:
-        return ChannelProductScreen(
-          isOwnChannel: isOwnChannel,
-          channelId: widget.channelId,
-        );
+      // case ChannelTab.product:
+      //   return ChannelProductScreen(
+      //     isOwnChannel: isOwnChannel,
+      //     channelId: widget.channelId,
+      //   );
       case ChannelTab.drafts:
         return CommonDraftSection(
           isOwnProfile: isOwnChannel,
@@ -630,10 +644,19 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           authorId: widget.authorId,
         );
       case ChannelTab.saved:
+        return Text('coming soon..');
       case ChannelTab.statistics:
-        return Center(
-          child: CustomText('Coming Soon'),
+        return Text('coming soon...');
+      case ChannelTab.product:
+        return ChannelProductListing(
+          channelController: channelController,
         );
+      case ChannelTab.Service:
+        return ViewServiceList(
+          channelId: channelId,
+          providerType: ProductServiceProviderType.channel,
+        );
+        // return ProductScreen();
     }
   }
 
@@ -715,6 +738,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
     VoidCallback? onChannelSetting,
     VoidCallback? onAddVideo,
     VoidCallback? onAddProduct,
+    VoidCallback? onAddService,
   }) {
     return PopupMenuButton<OwnChannelMenuAction>(
       padding: EdgeInsets.zero,
@@ -726,7 +750,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           case OwnChannelMenuAction.channelEdit:
             if (onChannelEdit != null) onChannelEdit();
             break;
-          case OwnChannelMenuAction.chennelSetting:
+          case OwnChannelMenuAction.channelSetting:
             if (onChannelSetting != null) onChannelSetting();
             break;
           case OwnChannelMenuAction.addVideo:
@@ -734,6 +758,9 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
             break;
           case OwnChannelMenuAction.addProduct:
             if (onAddProduct != null) onAddProduct();
+            break;
+          case OwnChannelMenuAction.addService:
+            if (onAddService != null) onAddService();
             break;
         }
       },
@@ -743,7 +770,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           child: CustomText("Channel Edit"),
         ),
         PopupMenuItem(
-          value: OwnChannelMenuAction.chennelSetting,
+          value: OwnChannelMenuAction.channelSetting,
           child: CustomText("Channel Settings"),
         ),
         PopupMenuItem(
@@ -753,6 +780,10 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
         PopupMenuItem(
           value: OwnChannelMenuAction.addProduct,
           child: CustomText("Add Product"),
+        ),
+        PopupMenuItem(
+          value: OwnChannelMenuAction.addService,
+          child: CustomText("Add Service"),
         ),
       ],
       child: Padding(

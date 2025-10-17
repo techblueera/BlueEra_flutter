@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -24,8 +25,10 @@ import 'package:get/get.dart';
 class AddProductViaAiStep2 extends StatefulWidget {
   final ProductController controller;
   final GenerateAiProductContent generateAiProductContent;
+  final String id;
+  final ProductServiceProviderType providerType;
 
-  AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller});
+  AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller, required this.id, required this.providerType});
 
   @override
   State<AddProductViaAiStep2> createState() => _AddProductViaAiStep2State();
@@ -400,7 +403,11 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                           : 'Post Product',
                     onTap: (){
                       //Get.to(()=> ProductPreviewScreen(controller: controller));
-                       controller.createProductViaAi(controller);
+                       controller.createProductViaAi(
+                           controller,
+                           widget.id,
+                           widget.providerType
+                       );
                     },
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,

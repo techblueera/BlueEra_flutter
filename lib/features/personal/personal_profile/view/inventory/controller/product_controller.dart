@@ -4,8 +4,8 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
@@ -350,7 +350,7 @@ class ProductController extends GetxController{
   bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
   bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
-  void onGenerate(ProductController addProductViaAiController) async {
+  void onGenerate(ProductController addProductViaAiController, String id, ProductServiceProviderType providerType) async {
     if (!_validate()) return;
 
     isLoading.value = true;
@@ -366,16 +366,10 @@ class ProductController extends GetxController{
       images: step1Images.toList(),
     );
 
-    await createProductViaAiApi(request, addProductViaAiController);
+    await createProductViaAiApi(request, addProductViaAiController, id, providerType);
 
     isLoading.value = false;
 
-    Get.toNamed(
-      RouteHelper.getAddProductViaAiStep2Route(),
-      arguments: {
-        ApiKeys.generateAiProductContent: GenerateAiProductContent(),
-      },
-    );
   }
 
   bool _validate() {
@@ -390,7 +384,7 @@ class ProductController extends GetxController{
   }
 
 
-  Future<void> createProductViaAiApi(AddProductViaAiRequest request, ProductController addProductViaAiController) async {
+  Future<void> createProductViaAiApi(AddProductViaAiRequest request, ProductController addProductViaAiController, String id, ProductServiceProviderType providerType) async {
     try {
       Map<String, dynamic> params = {};
 
@@ -433,6 +427,8 @@ class ProductController extends GetxController{
           arguments: {
             ApiKeys.controller: addProductViaAiController,
             ApiKeys.generateAiProductContent: generateAiProductContent,
+            ApiKeys.id: id,
+            ApiKeys.providerType: providerType
           },
         );
       } else {
@@ -527,7 +523,7 @@ class ProductController extends GetxController{
 
   var isCreateProductLoading = false.obs;
 
-  Future<void> createProductViaAi(ProductController addProductViaAiController) async {
+  Future<void> createProductViaAi(ProductController addProductViaAiController, String id, ProductServiceProviderType providerType) async {
     isCreateProductLoading.value = true;
     try {
       Map<String, dynamic> params = {
@@ -538,8 +534,8 @@ class ProductController extends GetxController{
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
         if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),
         if(productExpiryDurationController.text.trim().isNotEmpty) ApiKeys.expiryDuration: productExpiryDurationController.text.trim(),
-        if (tags.isNotEmpty) ApiKeys.tags: tags,
-        // if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
+        // if (tags.isNotEmpty) ApiKeys.tags: tags,
+        if(tags.isNotEmpty) ApiKeys.tags: jsonEncode(tags),
         if(detailsList.isNotEmpty) ApiKeys.addMoreDetails: jsonEncode(detailsList.map((e) => e.toJson()).toList()),
         if(featureControllers.isNotEmpty) ApiKeys.addProductFeatures: jsonEncode(featureControllers
             .where((c) => c.text.trim().isNotEmpty)
@@ -547,7 +543,8 @@ class ProductController extends GetxController{
             .toList()),
         if(linkController.text.trim().isNotEmpty) ApiKeys.linkOrReferealWebsite: linkController.text.trim(),
         if (userGuideLineControllers.isNotEmpty)
-          ApiKeys.guideLine: userGuideLineControllers.map((value) => value.text).toList(),
+        ApiKeys.guideLine: jsonEncode(userGuideLineControllers.map((value) => value.text).toList()),
+        ApiKeys.providerType: providerType.title
       };
 
       final payload = <String, dynamic>{
@@ -564,6 +561,10 @@ class ProductController extends GetxController{
           ),
         };
       params[ApiKeys.options] = jsonEncode(payload);
+
+      if(providerType == ProductServiceProviderType.channel){
+        params[ApiKeys.channelId] = id;
+      }
 
       List<dio.MultipartFile> imageByPart = [];
 
@@ -597,6 +598,8 @@ class ProductController extends GetxController{
           arguments: {
               ApiKeys.isFromProductCreation: true,
               ApiKeys.argProductData: productPreviewArgs,
+              ApiKeys.id: id,
+              ApiKeys.providerType: providerType
           },
 
         );
@@ -642,6 +645,8 @@ class ProductController extends GetxController{
 
   Future<void> addProductToInventory(
       {
+        required String id,
+        required ProductServiceProviderType providerType,
         required ProductController addProductViaAiController,
         required List<ProductListing> products
       }) async {
@@ -650,7 +655,6 @@ class ProductController extends GetxController{
 
       final payload =
         products.map((product) {
-
           return {
             ApiKeys.attributes: product.selectedVariants ?? {},
             // "stock": true,
@@ -658,10 +662,12 @@ class ProductController extends GetxController{
             ApiKeys.mrp: int.tryParse(product.mrp ?? '0') ?? 0,
           };
         }).toList();
-
       Map<String, dynamic> params = {
         ApiKeys.productId: productId,
-        ApiKeys.business_id: businessId,
+        ApiKeys.owner: jsonEncode({
+          ApiKeys.id: id,
+          ApiKeys.type: providerType.title
+        }),
         ApiKeys.variants: jsonEncode(payload)
       };
 
@@ -685,18 +691,25 @@ class ProductController extends GetxController{
       final responseModel = await ProductRepo().addProductToInventoryApi(params: params);
       if (responseModel.isSuccess) {
         addProductToInventoryResponse.value = ApiResponse.complete(responseModel);
-        bool navigated = false;
-        Get.until((route) {
-          if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
-            navigated = true;
-          }
-          return navigated;
-        });
+        if(providerType == ProductServiceProviderType.business){
+          bool navigated = false;
+          Get.until((route) {
+            if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
+              navigated = true;
+            }
+            return navigated;
+          });
 
-        if (!navigated) {
-          Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
-          Get.toNamed(RouteHelper.getInventoryScreenRoute());
+          if (!navigated) {
+            Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
+            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+          }
+        }else if(providerType == ProductServiceProviderType.user){
+          Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
+        }else if(providerType == ProductServiceProviderType.channel){
+          Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
         }
+
       } else {
         commonSnackBar(message: responseModel.message);
         addProductToInventoryResponse.value = ApiResponse.error('error');

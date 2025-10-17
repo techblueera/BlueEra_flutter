@@ -8,7 +8,7 @@ class MapServiceRepo extends BaseService{
   Future<ResponseModel> fetchAllHomeServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       servicesByLatLng,
-      showProgress: false,
+      showProgress: true,
       params: queryParams,
       onError: (error) {},
       onSuccess: (data) {},
@@ -20,6 +20,17 @@ class MapServiceRepo extends BaseService{
   Future<ResponseModel> fetchAllFoodServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       foodServicesByLatLng,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  ///View Channel details...
+  Future<ResponseModel> mapServiceLocationProviderRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      mapServiceLocationProvider,
       showProgress: false,
       params: queryParams,
       onError: (error) {},

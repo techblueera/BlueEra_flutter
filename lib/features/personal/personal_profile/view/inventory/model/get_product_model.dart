@@ -49,7 +49,7 @@ class GetProductData {
 }
 
 class ProductStore {
-  final ProductDetailsStore? details;
+  final ProductDetails? details;
   final SellerClassification? sellerClassification;
   final String? business_name;
   final String? business_logo;
@@ -64,7 +64,7 @@ class ProductStore {
   factory ProductStore.fromJson(Map<String, dynamic> json) {
     return ProductStore(
       details: json['details'] != null
-          ? ProductDetailsStore.fromJson(json['details'])
+          ? ProductDetails.fromJson(json['details'])
           : null,
       sellerClassification: json['sellerCalsification'] != null
           ? SellerClassification.fromJson(json['sellerCalsification'])
@@ -91,7 +91,7 @@ class ProductStore {
   }
 }
 
-class ProductDetailsStore {
+class ProductDetails {
   final List<ProductOption> options;
   final List<String> media;
   final List<String> videoUrl;
@@ -104,7 +104,7 @@ class ProductDetailsStore {
   final String symbol;
   final String description;
   final String brand;
-  final String categoryId;
+  final Category category;
   final String productWarranty;
   final bool isReturnable;
   final int returningDay;
@@ -113,7 +113,7 @@ class ProductDetailsStore {
   final String sku;
   final String hsn;
 
-  ProductDetailsStore({
+  ProductDetails({
     required this.options,
     required this.media,
     required this.videoUrl,
@@ -126,7 +126,7 @@ class ProductDetailsStore {
     required this.symbol,
     required this.description,
     required this.brand,
-    required this.categoryId,
+    required this.category,
     required this.productWarranty,
     required this.isReturnable,
     required this.returningDay,
@@ -136,8 +136,8 @@ class ProductDetailsStore {
     required this.hsn,
   });
 
-  factory ProductDetailsStore.fromJson(Map<String, dynamic> json) {
-    return ProductDetailsStore(
+  factory ProductDetails.fromJson(Map<String, dynamic> json) {
+    return ProductDetails(
       options: (json['options'] as List<dynamic>? ?? [])
           .map((e) => ProductOption.fromJson(e))
           .toList(),
@@ -158,7 +158,7 @@ class ProductDetailsStore {
       symbol: json['symbol'] ?? '',
       description: json['description'] ?? '',
       brand: json['brand'] ?? '',
-      categoryId: json['category_id'] ?? '',
+      category: Category.fromJson(json['category'] ?? {}),
       productWarranty: json['product_warranty'] ?? '',
       isReturnable: json['is_returnable'] ?? false,
       returningDay: json['returning_day'] ?? 0,
@@ -184,7 +184,7 @@ class ProductDetailsStore {
       'symbol': symbol,
       'description': description,
       'brand': brand,
-      'category_id': categoryId,
+       'category': category.toJson(),
       'product_warranty': productWarranty,
       'is_returnable': isReturnable,
       'returning_day': returningDay,
@@ -195,6 +195,47 @@ class ProductDetailsStore {
     };
   }
 }
+
+class Category {
+  final List<String> path;
+  final String id;
+  final String name;
+  final String parentId;
+  final String imageUrl;
+  final bool active;
+
+  Category({
+    required this.path,
+    required this.id,
+    required this.name,
+    required this.parentId,
+    required this.imageUrl,
+    required this.active,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      path: List<String>.from(json['path'] ?? []),
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      parentId: json['parent_id'] ?? '',
+      imageUrl: json['image_url'] ?? '',
+      active: json['active'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'path': path,
+      'id': id,
+      'name': name,
+      'parent_id': parentId,
+      'image_url': imageUrl,
+      'active': active,
+    };
+  }
+}
+
 
 class ProductOption {
   final List<String> value;
@@ -361,12 +402,12 @@ class BusinessLocation {
   });
 
   BusinessLocation.fromJson(dynamic json) {
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = json['latitude'] is num ? json['latitude'] as num : null;
+    longitude = json['longitude'] is num ? json['longitude'] as num : null;
   }
 
-  double? latitude;
-  double? longitude;
+  num? latitude;
+  num? longitude;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -375,3 +416,4 @@ class BusinessLocation {
     return map;
   }
 }
+

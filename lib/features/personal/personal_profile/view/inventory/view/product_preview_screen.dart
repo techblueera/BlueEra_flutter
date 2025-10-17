@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -70,11 +71,19 @@ class DetailPair {
 
 class ProductPreviewScreen extends StatefulWidget {
   // final OwnProductData? productData;
+  final String? id;
+  final ProductServiceProviderType? providerType;
   final ProductPreviewArgs? productPreviewArgs;
   final bool isFromProductCreation;
   final bool isUserCanCreateVariants;
 
-  const ProductPreviewScreen({super.key, required this.productPreviewArgs, required this.isFromProductCreation, required this.isUserCanCreateVariants});
+  const ProductPreviewScreen({
+    super.key,
+    required this.id,
+    required this.providerType,
+    required this.productPreviewArgs,
+    required this.isFromProductCreation,
+    required this.isUserCanCreateVariants});
 
   @override
   State<ProductPreviewScreen> createState() => _ProductPreviewScreenState();
@@ -254,10 +263,25 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       cancelText: 'No',
       confirmCallback: () {
         Navigator.of(context).pop(); // Close dialog first
-        Get.until(
-              (route) =>
-          route.settings.name == RouteHelper.getInventoryScreenRoute(),
-        );
+
+        if(widget.providerType == ProductServiceProviderType.business){
+          bool navigated = false;
+          Get.until((route) {
+            if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
+              navigated = true;
+            }
+            return navigated;
+          });
+
+          if (!navigated) {
+            Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
+            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+          }
+        }else if(widget.providerType == ProductServiceProviderType.user){
+          Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
+        }else if(widget.providerType == ProductServiceProviderType.channel){
+          Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
+        }
       },
       cancelCallback: () {
         Navigator.of(context).pop(); // Just close dialog
@@ -462,6 +486,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                               RouteHelper.getCreateVariantScreenRoute(),
                               arguments: {
                                 ApiKeys.controller: controller,
+                                ApiKeys.id: widget.id,
+                                ApiKeys.providerType: widget.providerType
                               },
                             );
                         },
@@ -1551,7 +1577,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 // import 'package:flutter/material.dart';
 // import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 // import 'package:get/get.dart';
-// import '../model/get_own_product_model.dart';
+// import '../model/get_product_model.dart';
 //
 // class ProductPreviewScreen extends StatefulWidget {
 //   final OwnProductData? productData;

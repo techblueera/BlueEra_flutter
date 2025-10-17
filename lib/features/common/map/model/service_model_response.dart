@@ -94,7 +94,8 @@ class ServiceData {
   num? distance;
   num? rating;
   int? reviewCount;
-
+  ServiceMedia? serviceMedia;
+  PriceData? priceData;
   ServiceData(
       {
         this.id,
@@ -139,7 +140,10 @@ class ServiceData {
         this.objective,
         this.distance,
         this.rating,
-        this.reviewCount});
+        this.reviewCount,
+        this.serviceMedia,
+        this.priceData
+      });
 
   ServiceData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -163,7 +167,7 @@ class ServiceData {
     referredBy = json['referred_by'];
     deviceToken = json['device_token'];
     lastSeen = json['last_seen'];
-    location = json['location'];
+    location = json['location_'];
     email = json['email'];
     highestEducation = json['highest_education'];
     role = json['role'];
@@ -191,6 +195,12 @@ class ServiceData {
     distance = json['distance'];
     rating = json['rating'];
     reviewCount = json['reviewCount'];
+    serviceMedia = json['serviceMedia'] != null
+        ? new ServiceMedia.fromJson(json['serviceMedia'])
+        : null;
+    priceData = json['priceData'] != null
+        ? new PriceData.fromJson(json['priceData'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -244,6 +254,12 @@ class ServiceData {
     data['distance'] = this.distance;
     data['rating'] = this.rating;
     data['reviewCount'] = this.reviewCount;
+    if (this.serviceMedia != null) {
+      data['serviceMedia'] = this.serviceMedia!.toJson();
+    }
+    if (this.priceData != null) {
+      data['priceData'] = this.priceData!.toJson();
+    }
     return data;
   }
 }
@@ -304,8 +320,8 @@ class SocialLinks {
 }
 
 class UserLocation {
-  double? lat;
-  double? lon;
+  num? lat;
+  num? lon;
 
   UserLocation({this.lat, this.lon});
 
@@ -318,6 +334,83 @@ class UserLocation {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['lat'] = this.lat;
     data['lon'] = this.lon;
+    return data;
+  }
+}
+
+class ServiceMedia {
+  List<String>? photos;
+  String? demoVideo;
+
+  ServiceMedia({this.photos, this.demoVideo});
+
+  ServiceMedia.fromJson(Map<String, dynamic> json) {
+    photos = json['photos'].cast<String>();
+    demoVideo = json['demoVideo'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['photos'] = this.photos;
+    data['demoVideo'] = this.demoVideo;
+    return data;
+  }
+}
+
+class PriceData {
+  String? priceType;
+  int? singlePrice;
+  PriceRange? priceRange;
+  String? perUnit;
+  int? minimumBookingAmount;
+
+  PriceData(
+      {this.priceType,
+        this.singlePrice,
+        this.priceRange,
+        this.perUnit,
+        this.minimumBookingAmount});
+
+  PriceData.fromJson(Map<String, dynamic> json) {
+    priceType = json['priceType'];
+    singlePrice = json['singlePrice'];
+
+    priceRange = json['priceRange'] != null
+        ? new PriceRange.fromJson(json['priceRange'])
+        : null;
+    perUnit = json['perUnit'];
+    minimumBookingAmount = json['minimumBookingAmount'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['priceType'] = this.priceType;
+    data['singlePrice'] = this.singlePrice;
+
+    if (this.priceRange != null) {
+      data['priceRange'] = this.priceRange!.toJson();
+    }
+    data['perUnit'] = this.perUnit;
+    data['minimumBookingAmount'] = this.minimumBookingAmount;
+    return data;
+  }
+}
+
+class PriceRange {
+  int? min;
+  int? max;
+
+  PriceRange({this.min, this.max});
+
+  PriceRange.fromJson(Map<String, dynamic> json) {
+    min = json['min'];
+    max = json['max'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['min'] = this.min;
+    data['max'] = this.max;
     return data;
   }
 }

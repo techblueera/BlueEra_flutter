@@ -2,7 +2,11 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -19,7 +23,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
-  ServiceUploadScreen({Key? key}) : super(key: key);
+  final String? channelId;
+  final ProductServiceProviderType providerType;
+
+  ServiceUploadScreen({Key? key, this.channelId, required this.providerType})
+      : super(key: key);
 
   @override
   State<ServiceUploadScreen> createState() => _ServiceUploadScreenState();
@@ -28,7 +36,7 @@ class ServiceUploadScreen extends StatefulWidget {
 class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
   final viewBusinessDetailsController =
-  Get.put(ViewBusinessDetailsController());
+      Get.put(ViewBusinessDetailsController());
 
   @override
   void initState() {
@@ -57,7 +65,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                   children: [
                     SizedBox(height: SizeConfig.size10),
 
-
                     Container(
                       margin: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 8),
@@ -70,79 +77,141 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                         border: Border.all(
                             color: Colors.lightBlue.shade200, width: 1),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(" ⚠️ "),
-                              Expanded(
-                                child: CustomText(
-                                  "Your Category & Subcategory given below",
-                                  color: Colors.blue.shade800,
-                                  fontSize: SizeConfig.size16,
+                      child: accountTypeGlobal == AppConstants.individual
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(" ⚠️ "),
+                                    Expanded(
+                                      child: CustomText(
+                                        "Your Profession & Designation given below",
+                                        color: Colors.blue.shade800,
+                                        fontSize: SizeConfig.size16,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: SizeConfig.size10),
-
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-
-                            children: [
-                              CustomText(
-                                "Category : ",
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade800,
-                              ),
-                              Flexible(
-                                child: CustomText(
-                                  "${viewBusinessDetailsController
-                                      .selectedCategoryOfBusiness.value?.name}",
-                                    color: Colors.blue.shade700,
+                                SizedBox(
+                                  height: SizeConfig.size10,
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      "Profession : ",
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade800,
+                                    ),
+                                    Flexible(
+                                      child: CustomText(
+                                        "$userProfessionGlobal",
+                                        color: Colors.blue.shade700,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size5),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      "Work Type : ",
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade800,
+                                    ),
+                                    Flexible(
+                                      child: CustomText(
+                                        "$userWorkTypeGlobal ",
+                                        color: Colors.blue.shade700,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size5),
+                                CustomText(
+                                  "Kindly add services to your Profession & work type only unless result may effected",
+                                  color: AppColors.red00,
                                   overflow: TextOverflow.ellipsis,
+                                  fontSize: SizeConfig.small,
                                   maxLines: 3,
-
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: SizeConfig.size5),
-
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                "Subcategory : ",
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade800,
-                              ),
-                              Flexible(
-                                child: CustomText(
-                                  "${viewBusinessDetailsController
-                                      .selectedSubCategoryOfBusinessNew.value?.name} ",
-                                  color: Colors.blue.shade700,
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(" ⚠️ "),
+                                    Expanded(
+                                      child: CustomText(
+                                        "Your Category & Subcategory given below",
+                                        color: Colors.blue.shade800,
+                                        fontSize: SizeConfig.size16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size10),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      "Category : ",
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade800,
+                                    ),
+                                    Flexible(
+                                      child: CustomText(
+                                        "${viewBusinessDetailsController.selectedCategoryOfBusiness.value?.name}",
+                                        color: Colors.blue.shade700,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size5),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
+                                      "Subcategory : ",
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade800,
+                                    ),
+                                    Flexible(
+                                      child: CustomText(
+                                        "${viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.name} ",
+                                        color: Colors.blue.shade700,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size5),
+                                CustomText(
+                                  "Kindly add services to your category & subcategory only unless result may effected",
+                                  color: AppColors.red00,
                                   overflow: TextOverflow.ellipsis,
+                                  fontSize: SizeConfig.small,
                                   maxLines: 3,
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: SizeConfig.size5),
-
-                          CustomText(
-                            "Kindly add services to your category & subcategory only unless result may effected",
-                            color: AppColors.red00,
-                            overflow: TextOverflow.ellipsis,
-                            fontSize: SizeConfig.small,
-                            maxLines: 3,
-                          ),
-                        ],
-                      ),
+                              ],
+                            ),
                     ),
 
                     SizedBox(height: SizeConfig.size20),
@@ -165,9 +234,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     CommonTextField(
                       title: 'Short Description / Highlight',
                       textEditController:
-                      controller.serviceShortDescriptionController,
+                          controller.serviceShortDescriptionController,
                       hintText:
-                      'E.g. Restore your car’s shine with our professional wash service — removing dirt, dust, and grime for a spotless, fresh look every time you drive.',
+                          'E.g. Restore your car’s shine with our professional wash service — removing dirt, dust, and grime for a spotless, fresh look every time you drive.',
                       maxLine: 2,
                       isValidate: true,
                       validator: validateServiceDescription,
@@ -200,11 +269,10 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
           fontSize: SizeConfig.large,
         ),
         SizedBox(height: SizeConfig.size10),
-        Obx(() =>
-            GestureDetector(
+        Obx(() => GestureDetector(
               onTap: () async {
                 final String? selected =
-                await SelectProfilePictureDialog.showLogoDialog(
+                    await SelectProfilePictureDialog.showLogoDialog(
                   context,
                   "Select Photo",
                 );
@@ -226,19 +294,19 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 ),
                 child: controller.selectedImage.value != null
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    controller.selectedImage.value!,
-                    fit: BoxFit.cover,
-                  ),
-                )
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          controller.selectedImage.value!,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                     : Padding(
-                  padding: EdgeInsets.all(SizeConfig.size30),
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.chat_input_gallery,
-                    imgColor: AppColors.greyAF,
-                  ),
-                ) /*Icon(
+                        padding: EdgeInsets.all(SizeConfig.size30),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.chat_input_gallery,
+                          imgColor: AppColors.greyAF,
+                        ),
+                      ) /*Icon(
                         Icons.add_photo_alternate,
                         size: 40,
                         color: Colors.grey[500],
@@ -252,36 +320,97 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   Widget _buildGenerateButton() {
     return Obx(() {
-      return CustomBtn(
-          isValidate: isValidate(),
-          onTap: isValidate()
-              ? () async {
-            if (isValidate()) {
-              await controller
-                  .generateServiceAiController(serviceDetailsReq: {
-                ApiKeys.service_name: controller.serviceName.value,
-                ApiKeys.category: viewBusinessDetailsController
-                    .selectedCategoryOfBusiness.value?.name,
-                ApiKeys.sub_category: viewBusinessDetailsController
-                    .selectedSubCategoryOfBusinessNew.value?.name,
-                if (controller.shortDescriptionName.value.isNotEmpty)
-                  ApiKeys.short_description:
-                  controller.shortDescriptionName.value,
-              });
-            }
-          }
-              : null,
-          title: "Generate");
+      if (accountTypeGlobal == AppConstants.individual)
+        return CustomBtn(
+            isValidate: isPersonalServiceValidate(),
+            onTap: isPersonalServiceValidate()
+                ? () async {
+                    if (isPersonalServiceValidate()) {
+                      await controller.generateServiceAiController(
+                        serviceDetailsReq: {
+                          ApiKeys.service_name: controller.serviceName.value,
+                          ApiKeys.category: userProfessionGlobal,
+                          ApiKeys.sub_category: userWorkTypeGlobal,
+                          if (controller.shortDescriptionName.value.isNotEmpty)
+                            ApiKeys.short_description:
+                                controller.shortDescriptionName.value,
+                        },
+                        providerType: widget.providerType,
+                      );
+                    }
+                  }
+                : null,
+            title: "Generate");
+      else
+        // return CustomBtn(
+        //     isValidate: isValidate(),
+        //     onTap: isValidate()
+        //         ? () async {
+        //             if (isValidate()) {
+        //               await controller
+        //                   .generateServiceAiController(serviceDetailsReq: {
+        //                 ApiKeys.service_name: controller.serviceName.value,
+        //                 ApiKeys.category: viewBusinessDetailsController
+        //                     .selectedCategoryOfBusiness.value?.name,
+        //                 ApiKeys.sub_category: viewBusinessDetailsController
+        //                     .selectedSubCategoryOfBusinessNew.value?.name,
+        //                 if (controller.shortDescriptionName.value.isNotEmpty)
+        //                   ApiKeys.short_description:
+        //                       controller.shortDescriptionName.value,
+        //               }, providerType: widget.providerType,);
+        //             }
+        //           }
+        //         : null,
+        //     title: "Generate");
+        return CustomBtn(
+            isValidate: isValidate(),
+            onTap: isValidate()
+                ? () async {
+                    if (isValidate()) {
+                      await controller.generateServiceAiController(
+                          channelId: widget.channelId,
+                          providerType: widget.providerType,
+                          serviceDetailsReq: {
+                            ApiKeys.service_name: controller.serviceName.value,
+                            if (isBusiness())
+                              ApiKeys.category: viewBusinessDetailsController
+                                  .selectedCategoryOfBusiness.value?.name,
+                            if (isBusiness())
+                              ApiKeys.sub_category:
+                                  viewBusinessDetailsController
+                                      .selectedSubCategoryOfBusinessNew
+                                      .value
+                                      ?.name,
+                            if (controller
+                                .shortDescriptionName.value.isNotEmpty)
+                              ApiKeys.short_description:
+                                  controller.shortDescriptionName.value,
+                          });
+                    }
+                  }
+                : null,
+            title: "Generate");
     });
   }
 
   isValidate() {
+    if (isBusiness()) {
+      return (controller.selectedImage.value != null &&
+          controller.serviceName.value.isNotEmpty &&
+          viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
+              null &&
+          viewBusinessDetailsController
+                  .selectedSubCategoryOfBusinessNew.value !=
+              null);
+    } else {
+      return (controller.selectedImage.value != null &&
+          controller.serviceName.value.isNotEmpty);
+    }
+  }
+
+  isPersonalServiceValidate() {
     return (controller.selectedImage.value != null &&
-        controller.serviceName.value.isNotEmpty &&
-        viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
-            null &&
-        viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value !=
-            null);
+        controller.serviceName.value.isNotEmpty);
   }
 
   String? validateServiceDescription(String? value) {

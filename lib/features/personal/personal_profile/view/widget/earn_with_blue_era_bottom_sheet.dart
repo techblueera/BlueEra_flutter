@@ -1,24 +1,40 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ConsultBottomSheet extends StatelessWidget {
   ConsultBottomSheet({Key? key}) : super(key: key);
 
+  // final List<_Service> _services = [
+  //   _Service('Swadesh\nSamaan',  AppIconAssets.localGoodsIcon),
+  //   _Service('Consult by\ncontent creation', AppIconAssets.contentCreationIcon),
+  //   _Service('Self\nEmployment ', AppIconAssets.selfEmploymentIcon),
+  //   _Service('Desi\nKhana', AppIconAssets.foodBowlIcon),
+  //   _Service('Home\nServices', AppIconAssets.homeServiceIcon),
+  //   _Service('Rental\nServices', AppIconAssets.homeRentalIcon),
+  //   _Service('Delivery', AppIconAssets.deliveryBoyIcon),
+  //   _Service('Part-Time\njobs', AppIconAssets.jobSearchIcon),
+  //   _Service('Teaching', AppIconAssets.jobSearchIcon),
+  //   _Service('Teaching', AppIconAssets.jobSearchIcon),
+  // ];
+
   final List<_Service> _services = [
     _Service('Swadesh\nSamaan',  AppIconAssets.localGoodsIcon),
-    _Service('Consult by\ncontent creation', AppIconAssets.contentCreationIcon),
-    _Service('Self\nEmployment ', AppIconAssets.selfEmploymentIcon),
     _Service('Desi\nKhana', AppIconAssets.foodBowlIcon),
     _Service('Home\nServices', AppIconAssets.homeServiceIcon),
     _Service('Rental\nServices', AppIconAssets.homeRentalIcon),
-    _Service('Delivery', AppIconAssets.deliveryBoyIcon),
-    _Service('Part-Time\njobs', AppIconAssets.jobSearchIcon),
-    _Service('Teaching', AppIconAssets.jobSearchIcon),
+    _Service('Home\nStay', AppIconAssets.homeStayIcon),
+    _Service('Content\nconsulting', AppIconAssets.contentCreationIcon),
   ];
 
   @override
@@ -51,16 +67,16 @@ class ConsultBottomSheet extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // 2-column grid
+          // 3-column grid
           Flexible(
             child: GridView.builder(
               shrinkWrap: true,
               physics: const ClampingScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                childAspectRatio: 0.9,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                childAspectRatio: 0.7,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 2,
               ),
               itemCount: _services.length,
               itemBuilder: (_, i) => _ServiceCard(service: _services[i]),
@@ -82,26 +98,95 @@ class _ServiceCard extends StatelessWidget {
   final _Service service;
   const _ServiceCard({Key? key, required this.service}) : super(key: key);
 
+  void _handleServiceTap() async {
+    switch (service.label) {
+      case 'Swadesh\nSamaan':
+        await Get.offNamed(
+          RouteHelper.getAddProductScreenRoute(),
+          arguments: {
+            ApiKeys.id: userId,
+            ApiKeys.providerType: ProductServiceProviderType.user,
+          },
+        );
+        break;
+
+      case 'Desi\nKhana':
+        Get.off(() => FoodUploadScreen(
+          providerType: ProductServiceProviderType.user,
+        ));
+        break;
+
+      case 'Home\nServices':
+        Get.offNamed(
+            RouteHelper.getAddServicesScreenRoute(),
+            arguments: {
+              ApiKeys.providerType: ProductServiceProviderType.user,
+            }
+        );
+        break;
+
+      case 'Rental\nServices':
+      // Different screen or same with other args
+      //   await Get.toNamed(
+      //     RouteHelper.getAddProductScreenRoute(),
+      //     arguments: {
+      //       ApiKeys.id: userId,
+      //       ApiKeys.providerType: ProductServiceProviderType.channel,
+      //     },
+      //   );
+        break;
+
+      case 'Home\nStay':
+        // await Get.toNamed(
+        //   RouteHelper.getAddProductScreenRoute(),
+        //   arguments: {
+        //     ApiKeys.id: userId,
+        //     ApiKeys.providerType: ProductServiceProviderType.business,
+        //   },
+        // );
+        break;
+
+      case 'Content\nconsulting':
+        // await Get.toNamed(
+        //   RouteHelper.getAddProductScreenRoute(),
+        //   arguments: {
+        //     ApiKeys.id: userId,
+        //     ApiKeys.providerType: ProductServiceProviderType.channel,
+        //   },
+        // );
+        break;
+
+      default:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(10),
-      onTap: () => Navigator.pop(context, service.label),
+      onTap: () async {
+        // Navigator.pop(context, service.label);
+        _handleServiceTap();
+      },
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-                padding: EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.greyE5, width: 1),
-                    boxShadow: [AppShadows.textFieldShadow]
-                ),
-                alignment: Alignment.center,
-                child: LocalAssets(imagePath: service.icon)),
+            AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                  padding: EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.greyE5, width: 1),
+                      boxShadow: [AppShadows.textFieldShadow]
+                  ),
+                  alignment: Alignment.center,
+                  child: LocalAssets(imagePath: service.icon)),
+            ),
             const SizedBox(height: 12),
             CustomText(
               service.label,

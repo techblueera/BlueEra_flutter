@@ -277,7 +277,8 @@ abstract class BaseService {
       "map-service/api/stores/$storeId";
   String getPlaceByLat(double lat,double lng) =>
       "map-service/api/places?lat=$lat&lng=$lng&radius=25";
-  final String servicesByLatLng = "map-service/api/services";
+  final String servicesByLatLng = "map-service/api/services/live";
+  // final String servicesByLatLng = "map-service/api/services";
   final String foodServicesByLatLng = "map-service/api/services/food-services";
   String getServiceProfileByUserId(String userId) =>
       "map-service/services/$userId";
@@ -459,6 +460,8 @@ abstract class BaseService {
   String businessServicesByUserId(String userId) => 'services-service/services/user/$userId';
   final String aiGenerateBio = 'ai-service/api/ai-profile/generate-bio';
   final String storesFeed = "map-service/api/feed";
-
+  final String mapServiceProviderStatus = "map-service/api/provider/status";
+  final String mapServiceLocationProvider = "map-service/api/provider/location";
+  final String serviceExistsStatus = "services-service/services/exists";
 
 }

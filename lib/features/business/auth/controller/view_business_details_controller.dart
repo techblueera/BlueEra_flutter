@@ -139,9 +139,7 @@ class ViewBusinessDetailsController extends GetxController {
         // getBusinessRatingsSummary(businessID),
         // getBusinessDetailedRatings(businessID)
       ]);
-      isLoading.value = false;
     } catch (e) {
-      isLoading.value = false;
     } finally {
       isLoading.value = false;
     }
@@ -649,35 +647,7 @@ class ViewBusinessDetailsController extends GetxController {
       errorMessage.value = e.toString();
     } finally {}
   }
-  Future<void> getMyServices(Map<String, dynamic> params) async {
-    // try {
-    ResponseModel responseModel =
-    await FoodAiRepo().getFoodService(queryParam: params);
 
-    if (responseModel.isSuccess) {
-      final data = responseModel.response?.data;
-
-      log("skdjncksjdc ${jsonEncode(data)}");
-      if (data is List) {
-        // if API returns a raw array
-        services.value = data.map((e) => GetServiceModel.fromJson(e)).toList();
-      } else if (data is Map && data['data'] is List) {
-        // if API returns { "data": [...] }
-        services.value =
-            (data['data'] as List).map((e) => GetServiceModel.fromJson(e)).toList();
-      } else {
-        print("⚠️ Unexpected API response: $data");
-      }
-
-
-      // print("✅ Loaded ${foodList.length} food items");
-    } else {
-      print("❌ API failed: ${responseModel.response?.data}");
-    }
-    // } catch (e) {
-    //   logs("ERROR===== $e");
-    // }
-  }
   // Fetch foods from API
   final RxList<GetFoodDetailsModel> foods = <GetFoodDetailsModel>[].obs;
   Future<void> fetchFoods({required String visitBusinessId}) async {
@@ -718,5 +688,34 @@ class ViewBusinessDetailsController extends GetxController {
     } finally {}
   }
 
+  // Future<void> getMyServices(Map<String, dynamic> params) async {
+  //   // try {
+  //   ResponseModel responseModel =
+  //   await FoodAiRepo().getFoodService(queryParam: params);
+  //
+  //   if (responseModel.isSuccess) {
+  //     final data = responseModel.response?.data;
+  //
+  //     log("skdjncksjdc ${jsonEncode(data)}");
+  //     if (data is List) {
+  //       // if API returns a raw array
+  //       services.value = data.map((e) => GetServiceModel.fromJson(e)).toList();
+  //     } else if (data is Map && data['data'] is List) {
+  //       // if API returns { "data": [...] }
+  //       services.value =
+  //           (data['data'] as List).map((e) => GetServiceModel.fromJson(e)).toList();
+  //     } else {
+  //       print("⚠️ Unexpected API response: $data");
+  //     }
+  //
+  //
+  //     // print("✅ Loaded ${foodList.length} food items");
+  //   } else {
+  //     print("❌ API failed: ${responseModel.response?.data}");
+  //   }
+  //   // } catch (e) {
+  //   //   logs("ERROR===== $e");
+  //   // }
+  // }
 
 }

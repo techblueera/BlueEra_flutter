@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen;
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -18,6 +22,15 @@ class ServiceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isSelfService = false;
+    if(service.serviceProvider?.type == ProductServiceProviderType.user.title){
+      isSelfService = service.serviceProvider?.id == userId;
+    }else if(service.serviceProvider?.type == ProductServiceProviderType.business.title){
+      isSelfService = service.serviceProvider?.id == businessId;
+    }
+    else if(service.serviceProvider?.type == ProductServiceProviderType.channel.title){
+      isSelfService = service.serviceProvider?.id == channelId;
+    }
     return Scaffold(
       // backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
@@ -42,153 +55,156 @@ class ServiceDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-              SizedBox(height: SizeConfig.size20),
-              CustomFormCard(
-                margin: EdgeInsets.zero,
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.grey,
-                      backgroundImage: service.business?.logo != null
-                          ? NetworkImage(service.business?.logo ?? "")
-                          : null,
-                      child: service.business?.logo == null
-                          ? CustomText(
-                              getInitials(service.business?.businessName),
-                              fontSize: SizeConfig.size18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size10),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                service.business?.businessName?.capitalizeFirst ??
-                                    "NA",
-                                fontSize: SizeConfig.large18,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.mainTextColor,
-                                maxLines: 2,
-                              ),
-                              CustomText(
-                                service.business?.categoryOfBusiness?.name ??
-                                    "NA",
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.mainTextColor,
-                                maxLines: 1,
-                              ),
-                            ]),
+              if(!isSelfService)
+              ...[
+                SizedBox(height: SizeConfig.size20),
+                CustomFormCard(
+                  margin: EdgeInsets.zero,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.grey,
+                        backgroundImage: service.business?.logo != null
+                            ? NetworkImage(service.business?.logo ?? "")
+                            : null,
+                        child: service.business?.logo == null
+                            ? CustomText(
+                          getInitials(service.business?.businessName),
+                          fontSize: SizeConfig.size18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        )
+                            : null,
                       ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        Discounts? maxDiscount;
-                        if ((service.discounts?.length ?? 0) > 0)
-                          maxDiscount = service.discounts
-                              ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: SizeConfig.size10),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  service.business?.businessName?.capitalizeFirst ??
+                                      "NA",
+                                  fontSize: SizeConfig.large18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.mainTextColor,
+                                  maxLines: 2,
+                                ),
+                                CustomText(
+                                  service.business?.categoryOfBusiness?.name ??
+                                      "NA",
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.mainTextColor,
+                                  maxLines: 1,
+                                ),
+                              ]),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          Discounts? maxDiscount;
+                          if ((service.discounts?.length ?? 0) > 0)
+                            maxDiscount = service.discounts
+                                ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
 
-                        final chatViewController = Get.find<ChatViewController>();
-                        Map<String, dynamic> detas = {
-                          ApiKeys.user_id: service.userId
-                        };
-                        chatViewController.newVisitContactApiResponse?.value;
-                        await chatViewController.checkChatConnection(detas);
-                        List<Map<String, String>> urlList = service.photos?.map((e) => {"url": e}).toList()??[];
-                        Map<String,dynamic> data={
-                          // "food_id": "${item.id}",
-                          // "product_id": "string",
-                          "service_id": "${service.id}",
-                          "price": "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
-                          "discount": "${(maxDiscount?.amountOff != null)
-                              ? "${maxDiscount?.amountOff.toString()}% Off"
-                              : "0% Off"}",
-                          if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
-                            ApiKeys.other_user_id: (chatViewController
+                          final chatViewController = Get.find<ChatViewController>();
+                          Map<String, dynamic> detas = {
+                            ApiKeys.user_id: service.userId
+                          };
+                          chatViewController.newVisitContactApiResponse?.value;
+                          await chatViewController.checkChatConnection(detas);
+                          List<Map<String, String>> urlList = service.photos?.map((e) => {"url": e}).toList()??[];
+                          Map<String,dynamic> data={
+                            // "food_id": "${item.id}",
+                            // "product_id": "string",
+                            "service_id": "${service.id}",
+                            "price": "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                            "discount": "${(maxDiscount?.amountOff != null)
+                                ? "${maxDiscount?.amountOff.toString()}% Off"
+                                : "0% Off"}",
+                            if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
+                              ApiKeys.other_user_id: (chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.otherUserId ??
+                                  '')
+                            else
+                              ApiKeys.conversation_id:(chatViewController
+                                  .newVisitContactApiResponse
+                                  ?.value
+                                  ?.data
+                                  ?.conversationId ??
+                                  ''),
+                            "message": "${service.title}.${service.business?.categoryOfBusiness?.name ?? "N/A"}.${service.business?.businessName ?? "N/A"}",
+                            "message_type": "service",
+                            "url": urlList,
+                          };
+                          chatViewController.openAnyOneChatFunction(
+                            shareProductParams:data,
+                            isWithProductSend: true,
+                            profileImage: service.business?.logo,
+                            otherUserId: (chatViewController
                                 .newVisitContactApiResponse
                                 ?.value
                                 ?.data
-                                ?.otherUserId ??
-                                '')
-                          else
-                            ApiKeys.conversation_id:(chatViewController
+                                ?.conversationId ??
+                                '') ==
+                                ""
+                                ? chatViewController.newVisitContactApiResponse
+                                ?.value?.data?.otherUserId ??
+                                ''
+                                : null,
+                            businessId: service.business?.id,
+                            type: "business",
+                            isInitialMessage: (chatViewController
+                                .newVisitContactApiResponse
+                                ?.value
+                                ?.data
+                                ?.conversationId ??
+                                '') ==
+                                ""
+                                ? true
+                                : false,
+                            userId: service.userId,
+                            conversationId: (chatViewController
                                 .newVisitContactApiResponse
                                 ?.value
                                 ?.data
                                 ?.conversationId ??
                                 ''),
-                          "message": "${service.title}.${service.business?.categoryOfBusiness?.name ?? "N/A"}.${service.business?.businessName ?? "N/A"}",
-                          "message_type": "service",
-                          "url": urlList,
-                        };
-                        chatViewController.openAnyOneChatFunction(
-                          shareProductParams:data,
-                          isWithProductSend: true,
-                          profileImage: service.business?.logo,
-                          otherUserId: (chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.conversationId ??
-                                      '') ==
-                                  ""
-                              ? chatViewController.newVisitContactApiResponse
-                                      ?.value?.data?.otherUserId ??
-                                  ''
-                              : null,
-                          businessId: service.business?.id,
-                          type: "business",
-                          isInitialMessage: (chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.conversationId ??
-                                      '') ==
-                                  ""
-                              ? true
-                              : false,
-                          userId: service.userId,
-                          conversationId: (chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.conversationId ??
-                              ''),
-                          contactName: service.business?.businessName,
-                          contactNo: "",
-                        );
-                      },
-                      child: Container(
-                        // width: Get.width,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size15,
-                            vertical: SizeConfig.size5),
-                        margin: EdgeInsets.only(
-                            top: SizeConfig.size5,
-                            left: SizeConfig.size10,
-                            // right: SizeConfig.size5,
-                            bottom: SizeConfig.size8),
-                        child: CustomText(
-                          "Chat",
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.white,
+                            contactName: service.business?.businessName,
+                            contactNo: "",
+                          );
+                        },
+                        child: Container(
+                          // width: Get.width,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size15,
+                              vertical: SizeConfig.size5),
+                          margin: EdgeInsets.only(
+                              top: SizeConfig.size5,
+                              left: SizeConfig.size10,
+                              // right: SizeConfig.size5,
+                              bottom: SizeConfig.size8),
+                          child: CustomText(
+                            "Chat",
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: AppColors.primaryColor)),
                         ),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(color: AppColors.primaryColor)),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
 
               // --- Title & Price Range ---
               Container(
@@ -200,7 +216,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withOpacity(0.1),
+                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -239,7 +255,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withOpacity(0.1),
+                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -275,7 +291,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -349,7 +365,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -390,7 +406,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),

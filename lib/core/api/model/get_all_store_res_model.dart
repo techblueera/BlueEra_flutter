@@ -26,6 +26,9 @@ class GetAllStoreResModel {
     this.avgRating,
     this.categoryOfBusiness,
     this.totalRatings,
+    this.views,
+    this.followerCount,
+    this.isFollowed,
     this.distance,
   });
 
@@ -58,6 +61,9 @@ class GetAllStoreResModel {
     updatedAt = json['updated_at'];
     avgRating = json['avg_rating'];
     totalRatings = json['total_ratings'];
+    views = json['views'];
+    followerCount = json['follower_count'];
+    isFollowed = json['is_followed'];
     distance = json['distance'];
     categoryOfBusiness = json['category_of_business'] != null
         ? CategoryOfBusiness.fromJson(json['category_of_business'])
@@ -85,7 +91,10 @@ class GetAllStoreResModel {
   String? createdAt;
   String? updatedAt;
   int? avgRating;
-  int? totalRatings;
+  String? totalRatings;
+  String? views;
+  String? followerCount;
+  bool? isFollowed;
   num? distance;
   CategoryOfBusiness? categoryOfBusiness;
 
@@ -121,6 +130,9 @@ class GetAllStoreResModel {
     map['updated_at'] = updatedAt;
     map['avg_rating'] = avgRating;
     map['total_ratings'] = totalRatings;
+    map['views'] = views;
+    map['follower_count'] = followerCount;
+    map['is_followed'] = isFollowed;
     map['distance'] = distance;
     if (categoryOfBusiness != null) {
       map['category_of_business'] = categoryOfBusiness!.toJson();

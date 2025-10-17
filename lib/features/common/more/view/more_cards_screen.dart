@@ -144,7 +144,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
                             children: [
                               // ---- Single Photo ----
                               SizedBox(
-                                height: SizeConfig.size300,
+                                height: SizeConfig.size390,
                                 child: InkWell(
                                   onTap: (){
                                     navigatePushTo(
@@ -159,7 +159,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
                                   },
                                   child: RepaintBoundary(
                                     key: _cardKeys[cardIndex],
-                                    child: homeScreenCard(imagePath: imageUrl),
+                                    child: HomeScreenCard(imagePath: imageUrl),
                                   ),
                                 ),
                               ),
