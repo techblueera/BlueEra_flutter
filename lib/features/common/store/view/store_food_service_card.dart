@@ -31,7 +31,7 @@ class StoreFoodServiceCard extends StatelessWidget {
 
     return InkWell(
       onTap: (){
-        Get.to(FoodDetailsViewScreen(
+        Get.to(()=> FoodDetailsViewScreen(
           productPriceFormat:(foodDetailsData?.priceType == "single")?"${foodDetailsData?.singlePrice ?? "0"}": "$priceText",
           data: foodDetailsData ?? GetFoodDetailsModel(),
         ));

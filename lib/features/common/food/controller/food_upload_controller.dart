@@ -267,8 +267,8 @@ class FoodUploadController extends GetxController {
           ApiKeys.type: "food",
           ApiKeys.radius: kmRadius1000
         };
-       getFoodService(params);
-       Get.close(3);
+       // getFoodService(params);
+       Get.close(2);
         // Get.back();
         // Get.back();
       } else {

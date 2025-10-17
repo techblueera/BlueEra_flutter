@@ -654,7 +654,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
       case ChannelTab.Service:
         return ViewServiceList(
           channelId: channelId,
-          providerType: ProductServiceProviderType.user,
+          providerType: ProductServiceProviderType.channel,
         );
         // return ProductScreen();
     }

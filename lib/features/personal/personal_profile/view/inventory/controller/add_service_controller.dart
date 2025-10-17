@@ -327,7 +327,7 @@ class AddServiceController extends GetxController {
         // ✅ Close dialog once and navigate back
         UploadProgressDialog.close();
         commonSnackBar(message: "Service added successfully");
-        Get.close(3);
+        Get.close(2);
         // Get.back();
         // Get.back();
       } else {

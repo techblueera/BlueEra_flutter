@@ -40,6 +40,7 @@ class GetServiceModel {
     this.v,
     this.servingOptions,
     this.business,
+    this.serviceProvider,
     this.variants,
   });
 
@@ -96,6 +97,9 @@ class GetServiceModel {
     business = json['business'] != null
         ? new BusinessService.fromJson(json['business'])
         : null;
+    serviceProvider = json['serviceProvider'] != null
+        ? new ServiceProvider.fromJson(json['serviceProvider'])
+        : null;
   }
 
   PriceRange? priceRange;
@@ -128,6 +132,7 @@ class GetServiceModel {
   List<dynamic>? servingOptions;
   List<dynamic>? variants;
   BusinessService? business;
+  ServiceProvider? serviceProvider;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -177,6 +182,9 @@ class GetServiceModel {
     }
     if (this.business != null) {
       map['business'] = this.business!.toJson();
+    }
+    if (this.serviceProvider != null) {
+      map['serviceProvider'] = this.serviceProvider!.toJson();
     }
     return map;
   }
@@ -398,6 +406,30 @@ class BusinessService {
       data['owner_details'] =
           this.ownerDetails!.map((v) => v.toJson()).toList();
     }
+    return data;
+  }
+}
+
+class ServiceProvider {
+  String? id;
+  String? type;
+
+  ServiceProvider({
+    this.id,
+    this.type
+  });
+
+  ServiceProvider.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    type = json['type'];
+
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+
+    data['id'] = this.id;
+    data['type'] = this.type;
     return data;
   }
 }

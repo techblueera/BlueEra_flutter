@@ -50,7 +50,7 @@ class _InventoryScreenState extends State<InventoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.whiteF3,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 50),
         child: CommonBackAppBar(

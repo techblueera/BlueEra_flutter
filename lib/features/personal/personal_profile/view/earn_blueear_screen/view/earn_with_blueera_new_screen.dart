@@ -165,9 +165,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
     switch (index) {
       case 0: // Product
-        if (earnWithBlueEraController.ownProductDataList.isEmpty) {
+        // if (earnWithBlueEraController.ownProductDataList.isEmpty) {
           await earnWithBlueEraController.fetchOwnProducts();
-        }
+        // }
         break;
 
       case 1: // Food
@@ -238,40 +238,12 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
 
         case 1:
-          // final foodList = foodUploadController.foodDataList;
-          //
-          // if (foodUploadController.isFoodDataFirstLoading.value) {
-          //   tabContent = const Center(
-          //     child: CircularProgressIndicator(),
-          //   );
-          //   break;
-          // }
-          //
-          // if (foodList.isEmpty) {
-          //   tabContent = const EmptyStateWidget(message: 'No food service found');
-          //   break;
-          // }
-
           tabContent = FoodAndGroceryScreen(
              providerType: ProductServiceProviderType.user,
           );
           break;
 
         case 2:
-          // final serviceList = serviceController.serviceDataList;
-          //
-          // if (serviceController.isServiceDataFirstLoading.value) {
-          //   tabContent = const Center(
-          //     child: CircularProgressIndicator(),
-          //   );
-          //   break;
-          // }
-          //
-          // if (serviceList.isEmpty) {
-          //   tabContent = const EmptyStateWidget(message: 'No home service found');
-          //   break;
-          // }
-
           tabContent = ViewServiceList(
             providerType: ProductServiceProviderType.user,
           );
