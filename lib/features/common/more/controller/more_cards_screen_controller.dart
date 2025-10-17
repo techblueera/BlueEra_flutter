@@ -19,85 +19,46 @@ class MoreCardsScreenController extends GetxController{
   final RxDouble headerOffset = 0.0.obs;
 
   RxBool isLoading = false.obs;
-  RxList<Cards> allCards = <Cards>[].obs;
-  RxList<Cards> filteredCards = <Cards>[].obs;
+
+  // RxList<Cards> allCards = <Cards>[].obs;
+  // RxList<Cards> filteredCards = <Cards>[].obs;
+
   RxString selectedCategory = 'All'.obs;
   RxList<String> allCategories = <String>[].obs;
 
   RxList<Cards> dayCards = <Cards>[].obs;
 
-  RxList<AllCards> daysRangeAllCards = <AllCards>[].obs;
-  RxList<AllCards> filteredDaysRangeAllCards = <AllCards>[].obs;
-
+  RxList<Cards> daysRangeAllCards = <Cards>[].obs;
+  RxList<Cards> filteredDaysRangeAllCards = <Cards>[].obs;
 
   Future<void> getCardCategoriesSortedByDate({required String todayDate}) async {
     try {
-      Map<String , dynamic> params = {
-        ApiKeys.date: DateTime.now().toIso8601String()
+
+      // Map<String , dynamic> params = {
+      //   ApiKeys.date: DateTime.now().toIso8601String()
+      // };
+
+      Map<String , dynamic> queryParams = {
+        ApiKeys.fromDate: DateTime.now().toIso8601String(),
+        ApiKeys.toDate: DateTime.now().add(Duration(days: 7)).toIso8601String(),
       };
-      ResponseModel responseModel = await UserRepo().cardCategoriesSortedByDate(queryParams: params);
+
+       ResponseModel responseModel = await UserRepo().getAllCards(queryParams: queryParams);
+
+      // ResponseModel responseModel = await UserRepo().cardCategoriesSortedByDate(queryParams: params);
       if (responseModel.isSuccess) {
         cardCategoriesSortedByDateResponse.value = ApiResponse.complete(responseModel);
-        final cardModelResponse = CardModelResponse.fromJson(responseModel.response?.data);
-
-        final List<Cards> cards = [];
-
-        if (cardModelResponse.categories != null) {
-          for (final category in cardModelResponse.categories!) {
-            if (category.cards != null) {
-              cards.addAll(category.cards!);
-            }
-          }
-        }
-
-        dayCards.value = cards;
+        final cardResponseModel = CardResponseModel.fromJson(responseModel.response?.data);
+        dayCards.assignAll(cardResponseModel.cards??[]);
 
       } else {
         cardCategoriesSortedByDateResponse.value = ApiResponse.error('error');
 
         commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
+    } catch (e,s) {
+      log('stack trace - $s');
       cardCategoriesSortedByDateResponse.value = ApiResponse.error('error');
-    }
-  }
-
-  Future<void> getAllCardCategories() async {
-    isLoading.value = true;
-    try {
-      ResponseModel responseModel = await UserRepo().getAllCardCategories();
-      if (responseModel.isSuccess) {
-        allCardCategoriesResponse.value = ApiResponse.complete(responseModel);
-        final cardModelResponse = CardModelResponse.fromJson(responseModel.response?.data);
-
-        final List<Cards> cards = [];
-        final List<String> categories = [];
-
-        if (cardModelResponse.categories != null) {
-          for (final category in cardModelResponse.categories!) {
-            if (category.name != null) {
-              print('category name -- ${category.name!}');
-              categories.add(category.name!);
-            }
-            if (category.cards != null) {
-              cards.addAll(category.cards!);
-            }
-          }
-        }
-
-        allCards.value = cards;
-        allCategories.value = categories;
-
-        filteredCards.value = List.from(cards);
-      } else {
-        allCardCategoriesResponse.value = ApiResponse.error('error');
-
-        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      allCardCategoriesResponse.value = ApiResponse.error('error');
-    } finally {
-      isLoading.value = false;
     }
   }
 
@@ -113,7 +74,7 @@ class MoreCardsScreenController extends GetxController{
         daysRangeAllCardCategoriesResponse.value = ApiResponse.complete(responseModel);
         final cardResponseModel = CardResponseModel.fromJson(responseModel.response?.data);
 
-        final List<AllCards> cards = [];
+        final List<Cards> cards = [];
         final List<String> categories = [];
 
         if (cardResponseModel.cards != null) {
@@ -143,9 +104,9 @@ class MoreCardsScreenController extends GetxController{
 
   void filterCardsByCategory(String? categoryName) {
     if (categoryName == null || categoryName.isEmpty || categoryName == "All") {
-      filteredCards.value = List.from(allCards);
+      filteredDaysRangeAllCards.value = List.from(daysRangeAllCards);
     } else {
-      filteredCards.value = allCards.where((card) {
+      filteredDaysRangeAllCards.value = daysRangeAllCards.where((card) {
         return card.categoryName == categoryName;
       }).toList();
     }

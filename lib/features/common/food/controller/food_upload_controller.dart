@@ -74,6 +74,8 @@ class FoodUploadController extends GetxController {
   final Rx<File?> selectedImage = Rx<File?>(null);
   var priceOptions = <PriceOption>[].obs;
 
+  bool shouldRefresh = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -267,8 +269,8 @@ class FoodUploadController extends GetxController {
           ApiKeys.type: "food",
           ApiKeys.radius: kmRadius1000
         };
-       getFoodService(params);
-       Get.close(3);
+       // getFoodService(params);
+       Get.close(2);
         // Get.back();
         // Get.back();
       } else {

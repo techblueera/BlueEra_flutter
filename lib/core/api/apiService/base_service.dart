@@ -464,6 +464,4 @@ abstract class BaseService {
   final String mapServiceLocationProvider = "map-service/api/provider/location";
   final String serviceExistsStatus = "services-service/services/exists";
 
-
-
 }

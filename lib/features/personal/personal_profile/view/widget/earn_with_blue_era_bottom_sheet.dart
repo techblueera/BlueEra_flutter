@@ -101,7 +101,7 @@ class _ServiceCard extends StatelessWidget {
   void _handleServiceTap() async {
     switch (service.label) {
       case 'Swadesh\nSamaan':
-        await Get.toNamed(
+        await Get.offNamed(
           RouteHelper.getAddProductScreenRoute(),
           arguments: {
             ApiKeys.id: userId,
@@ -111,13 +111,13 @@ class _ServiceCard extends StatelessWidget {
         break;
 
       case 'Desi\nKhana':
-        Get.to(() => FoodUploadScreen(
+        Get.off(() => FoodUploadScreen(
           providerType: ProductServiceProviderType.user,
         ));
         break;
 
       case 'Home\nServices':
-        Get.toNamed(
+        Get.offNamed(
             RouteHelper.getAddServicesScreenRoute(),
             arguments: {
               ApiKeys.providerType: ProductServiceProviderType.user,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -35,6 +37,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
   @override
   void initState() {
     super.initState();
+    log('total cards--> ${widget.cards}');
     _cardKey = List.generate(widget.cards.length, (_) => GlobalKey());
   }
 
@@ -68,34 +71,32 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
                         Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
                             arguments: {ApiKeys.isFromHomeScreen: false});
                       },
-                      child: SizedBox(
-                        height: SizeConfig.size300,
-                        child: CarouselSlider.builder(
-                          carouselController: _carouselController,
-                          itemCount: widget.cards.length,
-                          itemBuilder: (context, index, realIndex) {
-                            final card = widget.cards[index];
-                            final cardPhoto = card.photo ?? '';
+                      child: CarouselSlider.builder(
+                        carouselController: _carouselController,
+                        itemCount: widget.cards.length,
+                        itemBuilder: (context, index, realIndex) {
+                          final card = widget.cards[index];
+                          final cardPhoto = card.photo ?? '';
 
-                            return RepaintBoundary(
-                              key: _cardKey[index],
-                              child: homeScreenCard(imagePath: cardPhoto),
-                            );
+                          return RepaintBoundary(
+                            key: _cardKey[index],
+                            child: HomeScreenCard(imagePath: cardPhoto),
+                          );
+                        },
+                        options: CarouselOptions(
+                          height: SizeConfig.size390,
+                          enlargeCenterPage: true,
+                          enableInfiniteScroll: false,
+                          autoPlay: false,
+                          // autoPlay: widget.cards.length > 1,
+                          autoPlayInterval: const Duration(seconds: 3),
+                          autoPlayAnimationDuration:
+                              const Duration(milliseconds: 2000),
+                          viewportFraction: 1.0,
+                          // show one card fully
+                          onPageChanged: (i, reason) {
+                            setState(() => _currentIndex = i);
                           },
-                          options: CarouselOptions(
-                            height: SizeConfig.size300,
-                            enlargeCenterPage: true,
-                            enableInfiniteScroll: false,
-                            autoPlay: widget.cards.length > 1,
-                            autoPlayInterval: const Duration(seconds: 3),
-                            autoPlayAnimationDuration:
-                                const Duration(milliseconds: 2000),
-                            viewportFraction: 1.0,
-                            // show one card fully
-                            onPageChanged: (i, reason) {
-                              setState(() => _currentIndex = i);
-                            },
-                          ),
                         ),
                       ),
                     ),
