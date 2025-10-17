@@ -188,7 +188,7 @@ class StoreScreenController extends GetxController {
     try {
     Map<String, dynamic> params = {
       ApiKeys.page: foodDataPage,
-      "all": true,
+      ApiKeys.all: true,
       "type": "food",
       "radius": kmRadius1000
     };
@@ -377,7 +377,8 @@ class StoreScreenController extends GetxController {
       final response = await ServiceAiRepo().getServiceRepo(
         queryParams: {
           ApiKeys.page: serviceDataPage,
-          "limit": 10, // adjust as per backend
+          ApiKeys.all: true,
+          // "limit": 10,
           "radius": kmRadius1000,
           "type": "service",
         },
@@ -428,7 +429,7 @@ class StoreScreenController extends GetxController {
     }
   }
 
-  ///GET ALL SERVICE....
+  ///FOLLOW BUSINESS USER....
   Future<void> followBusinessUser(
       {required String? candidateResumeId}) async {
     try {
@@ -449,7 +450,7 @@ class StoreScreenController extends GetxController {
     }
   }
 
-  ///UNFOLLOW USER...
+  ///UNFOLLOW BUSINESS USER...
   Future<void> unFollowBusinessUser(
       {required String? candidateResumeId}) async {
     try {

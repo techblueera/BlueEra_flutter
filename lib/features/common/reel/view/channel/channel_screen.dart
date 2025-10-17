@@ -22,6 +22,7 @@ import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_sectio
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -420,20 +421,14 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                                       ApiKeys.providerType: ProductServiceProviderType.channel
                                     }
                                 );
-
-                                // Get.toNamed(
-                                //   RouteHelper.getAddUpdateProductScreenRoute(),
-                                //   arguments: {
-                                //     ApiKeys.channelId: widget.channelId,
-                                //   },
-                                // );
                               },
                               onAddService: () {
+                                log('on service tap');
                                 Get.toNamed(
                                     RouteHelper.getAddServicesScreenRoute(),
                                     arguments: {
-                                      ApiKeys.id: channelId,
-                                      ApiKeys.providerType: 'Channel',
+                                      ApiKeys.channelId: channelId,
+                                      ApiKeys.providerType: ProductServiceProviderType.channel,
                                     }
                                 );
                               },
@@ -657,7 +652,10 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           channelController: channelController,
         );
       case ChannelTab.Service:
-        return Text('No service found');
+        return ViewServiceList(
+          channelId: channelId,
+          providerType: ProductServiceProviderType.user,
+        );
         // return ProductScreen();
     }
   }
@@ -784,7 +782,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           child: CustomText("Add Product"),
         ),
         PopupMenuItem(
-          value: OwnChannelMenuAction.addProduct,
+          value: OwnChannelMenuAction.addService,
           child: CustomText("Add Service"),
         ),
       ],

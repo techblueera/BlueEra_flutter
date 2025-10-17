@@ -1,7 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/food_and_grocery_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -22,17 +25,19 @@ class EarnWithBlueEraNewScreen extends StatefulWidget {
 class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final earnWithBlueEraController = Get.put(EarnWithBlueEraController());
-  late final InventoryController inventoryController;
+  final inventoryController = Get.put(InventoryController());
+  // final foodUploadController = Get.put(FoodUploadController());
+  // final serviceController = Get.put(ServiceController());
 
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     earnWithBlueEraController.fetchOwnProducts();
-    if(Get.isRegistered<InventoryController>()){
-      inventoryController = Get.find<InventoryController>();
-    } else {
-      inventoryController = Get.put(InventoryController());
-    }
+    // if(Get.isRegistered<InventoryController>()){
+    //   inventoryController = Get.find<InventoryController>();
+    // } else {
+    //   inventoryController = Get.put(InventoryController());
+    // }
 
     super.initState();
   }
@@ -166,15 +171,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
         break;
 
       case 1: // Food
-        // if (storeProductDataList.isEmpty) {
-        //   await getAllStoreProductNearBy();
-        // }
         break;
 
       case 2: // Service
-        // if (serviceDataList.isEmpty) {
-        //   await getAllServiceNearBy();
-        // }
         break;
 
       case 3: // rental Service
@@ -211,7 +210,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
           tabContent = Column(
             children: [
               ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
+                // physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: productList.length,
                 itemBuilder: (context, index) {
@@ -222,6 +221,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
                     child: OwnProductCard(
                       product: productData,
                       controller: inventoryController,
+                        isGridShow: false
                     ),
                   );
                 },
@@ -238,98 +238,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
 
         case 1:
-          tabContent = SizedBox();
-          // final productList = controller.storeProductDataList;
+          // final foodList = foodUploadController.foodDataList;
           //
-          // if (controller.isStoreProductDataFirstLoading.value) {
-          //   tabContent = const Center(
-          //     child: CircularProgressIndicator(),
-          //   );
-          //   break;
-          // }
-          //
-          // if (productList.isEmpty) {
-          //   tabContent = const EmptyStateWidget(message: 'No products found');
-          //   break;
-          // }
-          //
-          // tabContent = Column(
-          //   children: [
-          //     ListView.builder(
-          //       physics: const NeverScrollableScrollPhysics(),
-          //       shrinkWrap: true,
-          //       itemCount: productList.length,
-          //       itemBuilder: (context, index) {
-          //         final productData = productList[index];
-          //
-          //         return Padding(
-          //           padding: EdgeInsets.only(bottom: SizeConfig.size10),
-          //           child: StoreProductCard(
-          //             productStore: productData.product,
-          //             isShowBusinessInfo: true,
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //
-          //     if (controller.isStoreProductDataLoadingMore.value)
-          //       const Padding(
-          //         padding: EdgeInsets.symmetric(vertical: 20),
-          //         child: Center(child: CircularProgressIndicator()),
-          //       ),
-          //   ],
-          // );
-          break;
-
-        case 2:
-          tabContent = SizedBox();
-          // final serviceList = controller.serviceDataList;
-          //
-          // if (controller.isServiceDataFirstLoading.value) {
-          //   tabContent = const Center(
-          //     child: CircularProgressIndicator(),
-          //   );
-          //   break;
-          // }
-          //
-          // if (serviceList.isEmpty) {
-          //   tabContent = const EmptyStateWidget(message: 'No services found');
-          //   break;
-          // }
-          //
-          // tabContent = Column(
-          //   children: [
-          //     ListView.builder(
-          //       physics: const NeverScrollableScrollPhysics(),
-          //       shrinkWrap: true,
-          //       itemCount: serviceList.length,
-          //       itemBuilder: (context, index) {
-          //         final serviceData = serviceList[index];
-          //
-          //         return Padding(
-          //           padding: EdgeInsets.only(bottom: ds(10)),
-          //           child: StoreServicesCard(
-          //             serviceData: serviceData,
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //
-          //     if (controller.isServiceDataLoadingMore.value)
-          //       const Padding(
-          //         padding: EdgeInsets.symmetric(vertical: 20),
-          //         child: Center(child: CircularProgressIndicator()),
-          //       ),
-          //   ],
-          // );
-          // break;
-
-
-        case 3:
-          tabContent = SizedBox();
-          // final foodList = controller.foodDataList;
-          //
-          // if (controller.isFoodDataFirstLoading.value) {
+          // if (foodUploadController.isFoodDataFirstLoading.value) {
           //   tabContent = const Center(
           //     child: CircularProgressIndicator(),
           //   );
@@ -337,36 +248,38 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
           // }
           //
           // if (foodList.isEmpty) {
-          //   tabContent = const EmptyStateWidget(message: 'No food items found');
+          //   tabContent = const EmptyStateWidget(message: 'No food service found');
+          //   break;
+          // }
+
+          tabContent = FoodAndGroceryScreen(
+             providerType: ProductServiceProviderType.user,
+          );
+          break;
+
+        case 2:
+          // final serviceList = serviceController.serviceDataList;
+          //
+          // if (serviceController.isServiceDataFirstLoading.value) {
+          //   tabContent = const Center(
+          //     child: CircularProgressIndicator(),
+          //   );
           //   break;
           // }
           //
-          // tabContent = Column(
-          //   children: [
-          //     ListView.builder(
-          //       physics: const NeverScrollableScrollPhysics(),
-          //       shrinkWrap: true,
-          //       itemCount: foodList.length,
-          //       itemBuilder: (context, index) {
-          //         final foodItem = foodList[index];
-          //
-          //         return Padding(
-          //           padding: EdgeInsets.only(bottom: ds(10)),
-          //           child: StoreFoodServiceCard(
-          //               foodDetailsData: foodItem,
-          //               isShowVerticalUi: false
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //
-          //     if (controller.isFoodDataLoadingMore.value)
-          //       const Padding(
-          //         padding: EdgeInsets.symmetric(vertical: 20),
-          //         child: Center(child: CircularProgressIndicator()),
-          //       ),
-          //   ],
-          // );
+          // if (serviceList.isEmpty) {
+          //   tabContent = const EmptyStateWidget(message: 'No home service found');
+          //   break;
+          // }
+
+          tabContent = ViewServiceList(
+            providerType: ProductServiceProviderType.user,
+          );
+          break;
+
+
+        case 3:
+          tabContent = SizedBox();
           break;
 
         default:

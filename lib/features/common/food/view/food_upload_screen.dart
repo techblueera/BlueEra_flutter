@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -15,9 +16,10 @@ import 'package:BlueEra/features/common/food/controller/food_upload_controller.d
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart'; // make sure this import is correct
 
 class FoodUploadScreen extends StatelessWidget {
+  final ProductServiceProviderType providerType;
   final FoodUploadController controller = Get.put(FoodUploadController());
 
-  FoodUploadScreen({Key? key}) : super(key: key);
+  FoodUploadScreen({Key? key, required this.providerType}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +104,7 @@ class FoodUploadScreen extends StatelessWidget {
                     SizedBox(height: SizeConfig.size30),
 
                     // Generate Button
-                    _buildGenerateButton(),
+                    _buildGenerateButton(providerType),
                     SizedBox(height: SizeConfig.size30),
                   ],
                 ),
@@ -220,7 +222,7 @@ class FoodUploadScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGenerateButton() {
+  Widget _buildGenerateButton(ProductServiceProviderType providerType) {
     return Obx(() {
       return CustomBtn(
           isValidate: (controller.selectedImage.value != null &&
@@ -230,7 +232,7 @@ class FoodUploadScreen extends StatelessWidget {
               ? () {
             if (controller.selectedImage.value != null &&
                 controller.foodNameController.text.isNotEmpty) {
-              controller.generateFood();
+              controller.generateFood(providerType);
             }
           }
               : null,

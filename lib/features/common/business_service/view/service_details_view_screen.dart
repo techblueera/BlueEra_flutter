@@ -200,7 +200,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withOpacity(0.1),
+                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -239,7 +239,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withOpacity(0.1),
+                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -275,7 +275,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -349,7 +349,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -390,7 +390,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),

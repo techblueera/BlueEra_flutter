@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,7 +9,9 @@ import '../../../../../../common/food/controller/food_upload_controller.dart';
 import '../../../../../../common/food/model/get_food_details_model.dart';
 
 class FoodAndGroceryScreen extends StatefulWidget {
-  const FoodAndGroceryScreen({super.key});
+  final ProductServiceProviderType providerType;
+
+  const FoodAndGroceryScreen({super.key, required this.providerType});
 
   @override
   State<FoodAndGroceryScreen> createState() => _FoodAndGroceryScreenState();
@@ -16,36 +19,63 @@ class FoodAndGroceryScreen extends StatefulWidget {
 
 class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen> {
   final controller = Get.put(FoodUploadController());
+  final ScrollController scrollController = ScrollController();
+  late Map<String, dynamic> queryParams;
 
   @override
   void initState() {
-    // TODO: implement initState
-    Map<String, dynamic> params = {
+    queryParams = {
       ApiKeys.all: false,
       ApiKeys.type: "food",
-      ApiKeys.radius: kmRadius1000
+      ApiKeys.providerType: widget.providerType.title,
     };
-    controller.getFoodService(params);
+    controller.getFoodService(queryParams);
+    scrollController.addListener(_scrollListener);
     super.initState();
+  }
+
+  void _scrollListener() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
+      controller.getFoodService(queryParams, isLoadMore: true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() {
-        if (controller.foodList.isEmpty) {
-          return const Center(child: Text("No food items found"));
+        if (controller.isFoodDataFirstLoading.value) {
+          const Center(
+            child: CircularProgressIndicator(),
+          );
         }
 
-        return ListView.builder(
-          itemCount: controller.foodList.length,
-          itemBuilder: (context, index) {
-            final food = controller.foodList[index];
-            return FoodItemCard(
-              foodData: food,
-            ); // ✅ dynamic card
-          },
-        );
+        if(controller.foodDataList.isNotEmpty) {
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: controller.foodDataList.length,
+                  itemBuilder: (context, index) {
+                    final food = controller.foodDataList[index];
+                    return FoodItemCard(
+                      foodData: food,
+                    ); // ✅ dynamic card
+                  },
+                ),
+              ),
+
+              if (controller.isFoodDataLoadingMore.value)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          );
+        }else{
+          return Center(child: Text('No food service found', style: TextStyle(fontSize: 18)));
+        }
       }),
     );
   }

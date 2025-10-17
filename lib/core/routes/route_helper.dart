@@ -895,7 +895,7 @@ class RouteHelper {
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String? channelId = args[ApiKeys.channelId] as String?;
-        final String providerType = args[ApiKeys.providerType] as String;
+        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(

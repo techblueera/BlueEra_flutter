@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -20,7 +22,7 @@ import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
   final String? channelId;
-  final String providerType;
+  final ProductServiceProviderType providerType;
   ServiceUploadScreen({Key? key, this.channelId, required this.providerType}) : super(key: key);
 
   @override
@@ -264,13 +266,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                   providerType: widget.providerType,
                   serviceDetailsReq: {
                 ApiKeys.service_name: controller.serviceName.value,
-                ApiKeys.category: viewBusinessDetailsController
-                    .selectedCategoryOfBusiness.value?.name,
-                ApiKeys.sub_category: viewBusinessDetailsController
-                    .selectedSubCategoryOfBusinessNew.value?.name,
-                if (controller.shortDescriptionName.value.isNotEmpty)
-                  ApiKeys.short_description:
-                  controller.shortDescriptionName.value,
+                  if (isBusiness()) ApiKeys.category: viewBusinessDetailsController.selectedCategoryOfBusiness.value?.name,
+                  if (isBusiness()) ApiKeys.sub_category: viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.name,
+                  if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
               });
             }
           }
@@ -280,12 +278,17 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   }
 
   isValidate() {
-    return (controller.selectedImage.value != null &&
-        controller.serviceName.value.isNotEmpty &&
-        viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
-            null &&
-        viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value !=
-            null);
+    if(isBusiness()){
+      return (controller.selectedImage.value != null &&
+          controller.serviceName.value.isNotEmpty &&
+          viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
+              null &&
+          viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value !=
+              null);
+    }else{
+      return (controller.selectedImage.value != null &&
+          controller.serviceName.value.isNotEmpty);
+    }
   }
 
   String? validateServiceDescription(String? value) {

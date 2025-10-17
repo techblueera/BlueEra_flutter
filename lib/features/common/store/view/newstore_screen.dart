@@ -313,11 +313,13 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                    Get.toNamed(
                        RouteHelper.getAddServicesScreenRoute(),
                        arguments: {
-                         ApiKeys.providerType: 'Business',
+                         ApiKeys.providerType: ProductServiceProviderType.business,
                        }
                    );
                  } else if (value.toUpperCase() == "ADD FOOD") {
-                   Get.to(() => FoodUploadScreen());
+                   Get.to(() => FoodUploadScreen(
+                     providerType: ProductServiceProviderType.business
+                   ));
                  }
                },
                icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),

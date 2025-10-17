@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -24,7 +25,7 @@ import '../../../../../../widgets/local_assets.dart';
 
 class AddServicesScreenNew extends StatefulWidget {
   final String? channelId;
-  final String providerType;
+  final ProductServiceProviderType providerType;
   final ServiceAiGenerateModel? service;
 
   const AddServicesScreenNew({Key? key, this.channelId, required this.providerType, this.service}) : super(key: key);

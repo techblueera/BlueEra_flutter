@@ -8,11 +8,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/inventory_controller.dart';
@@ -108,9 +106,13 @@ class _InventoryScreenState extends State<InventoryScreen>
           if ((isShowProduct.contains(businessType())))
             ProductScreen(),
           if ((isShowService.contains(businessType())))
-            ViewServiceList(),
+            ViewServiceList(
+              providerType: ProductServiceProviderType.business,
+            ),
           if ((isShowFood.contains(businessType())))
-            FoodAndGroceryScreen(),
+            FoodAndGroceryScreen(
+              providerType: ProductServiceProviderType.business,
+            ),
 
         ],
       ),
@@ -127,158 +129,6 @@ class _InventoryScreenState extends State<InventoryScreen>
   //       return const SizedBox();
   //   }
   // }
-
-  Widget _buildCategoryCard(
-      CategoryInventoryModel category, InventoryController controller) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          // Get.to(()=>CategoryInventoryScreen(category: category));
-          // Get.to(()=>CatalogWidget());
-        },
-        child: Container(
-          // margin: EdgeInsets.only(bottom: SizeConfig.size8),
-          padding: EdgeInsets.all(SizeConfig.size4),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(SizeConfig.size8),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Category Image with Product Count Overlay
-              Container(
-                width: 120,
-                height: 130,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F4FD),
-                  borderRadius: BorderRadius.circular(SizeConfig.size8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(SizeConfig.size8),
-                  child: Stack(
-                    children: [
-                      // Category Image
-                      Positioned.fill(
-                        child: Image.asset(
-                          category.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F4FD),
-                                borderRadius:
-                                    BorderRadius.circular(SizeConfig.size8),
-                              ),
-                              child: const Icon(
-                                Icons.folder,
-                                color: AppColors.grey9B,
-                                size: 30,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      // Product Count Overlay - Bottom Left
-                      Positioned(
-                        bottom: 8,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: CustomText(
-                            '+${category.productCount} Product',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              SizedBox(width: SizeConfig.size12),
-
-              // Category Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Category Name and Three Dots
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomText(
-                            category.name,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.black,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        // Options Menu
-                        PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          offset: const Offset(-6, 36),
-                          color: AppColors.white,
-                          elevation: 8,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          onSelected: (value) => controller
-                              .handleCategoryOption(value, category.id),
-                          onCanceled: () {
-                            // Prevent focus when popup is closed
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              _searchFocusNode.unfocus();
-                            });
-                          },
-                          icon: const Icon(
-                            Icons.more_vert,
-                            color: AppColors.grey9B,
-                            size: 20,
-                          ),
-                          itemBuilder: (context) =>
-                              popupInventoryCategoryItems(),
-                        ),
-                      ],
-                    ),
-
-                    // SizedBox(height: SizeConfig.size8),
-
-                    // Category Description
-                    CustomText(
-                      category.description,
-                      fontSize: SizeConfig.size12,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.grey9B,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      height: 1.4,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   void showPopUpMenu(
       BuildContext context, InventoryController controller) async {
@@ -328,11 +178,13 @@ class _InventoryScreenState extends State<InventoryScreen>
         Get.toNamed(
             RouteHelper.getAddServicesScreenRoute(),
             arguments: {
-              ApiKeys.providerType: 'Business',
+              ApiKeys.providerType: ProductServiceProviderType.business,
             }
         );
       } else if (result.toUpperCase() == "ADD FOOD") {
-        Get.to(() => FoodUploadScreen());
+        Get.to(() => FoodUploadScreen(
+          providerType: ProductServiceProviderType.business,
+        ));
         // Get.to(()=> FoodPage());
       }
     }

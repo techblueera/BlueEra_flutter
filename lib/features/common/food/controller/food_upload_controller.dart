@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
@@ -11,7 +11,6 @@ import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
-
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../widgets/uploading_progressing_dialog.dart';
@@ -43,6 +42,9 @@ class FoodUploadController extends GetxController {
   final descCtrl = TextEditingController();
   final singlePriceController = TextEditingController();
   ApiResponse uploadFileToS3Response = ApiResponse.initial('Initial');
+  Rx<ApiResponse> getFoodServiceResponse =
+      ApiResponse.initial('Initial').obs;
+
   // Form controllers
   final TextEditingController foodNameController = TextEditingController();
   final TextEditingController cityNameController = TextEditingController();
@@ -60,7 +62,7 @@ class FoodUploadController extends GetxController {
       .obs;
   final RxInt selectedItemNatureIndex = 1
       .obs;
-  RxList<GetFoodDetailsModel> foodList = <GetFoodDetailsModel>[].obs;
+
   RxString selectedCategory = ''.obs;
   RxString selectedSubCategory = ''.obs;
   final RxList<String> imageLocalPaths = <String>[].obs;
@@ -132,7 +134,7 @@ class FoodUploadController extends GetxController {
   // Show image picker dialog
   Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
   // Generate food data
-  Future<void> generateFood() async {
+  Future<void> generateFood(ProductServiceProviderType providerType) async {
     try {
       String fileName = selectedImage.value?.path.split('/').last ?? "";
       dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
@@ -157,10 +159,13 @@ class FoodUploadController extends GetxController {
 
         // FoodDetailScreen
 
-        Get.to(SubmitFoodProductPage(
+        Get.to(()=> SubmitFoodProductPage(
+          providerType: providerType,
           categoryTag:selectedFoodType1.value ,
           subCategory:selectedFoodType2.value ,
-          foodDatas:  foodAiResponseModel.value,foodData:responseModel.response?.data , imagePath:  selectedImage.value?.path ?? "",));
+          foodDatas:  foodAiResponseModel.value, foodData: responseModel.response?.data,
+          imagePath:  selectedImage.value?.path ?? "",
+        ));
         foodAiResponse.value = ApiResponse.complete(foodAiResponseModel);
       } else {
         foodAiResponse.value = ApiResponse.error('Failed to load feed');
@@ -215,8 +220,7 @@ class FoodUploadController extends GetxController {
       if(isSingleProduct.value == false)
         "priceOptions": priceOptionsJson,
       if(isSingleProduct.value && singlePriceController.text.isNotEmpty)
-        "singlePrice": int.parse(singlePriceController.text ?? '0'),
-
+        "singlePrice": int.parse(singlePriceController.text),
     };
 
     for (var imagePath in imageLocalPaths) {
@@ -235,10 +239,10 @@ class FoodUploadController extends GetxController {
     return body;
   }
 
-  Future<void> addFoodServices(Map<String,dynamic> foodData) async {
+  Future<void> addFoodServices(Map<String,dynamic> foodData, ProductServiceProviderType providerType) async {
     try {
 
-
+      foodData[ApiKeys.providerType] = providerType.title;
       Map<String,dynamic> data=await buildRequestBody(foodData);
       ResponseModel responseModel =
       await FoodAiRepo().addFoodService(queryParam: data);
@@ -264,8 +268,9 @@ class FoodUploadController extends GetxController {
           ApiKeys.radius: kmRadius1000
         };
        getFoodService(params);
-        Get.back();
-        Get.back();
+       Get.close(3);
+        // Get.back();
+        // Get.back();
       } else {
         UploadProgressDialog.close();
         commonSnackBar(message: responseModel.message);
@@ -335,52 +340,75 @@ class FoodUploadController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-  Future<void> getFoodService(Map<String, dynamic> params) async {
-    // try {
+
+  /// All Food service data
+  RxList<GetFoodDetailsModel> foodDataList = <GetFoodDetailsModel>[].obs;
+  RxBool isFoodDataLoadingMore = false.obs;
+  RxBool isFoodDataFirstLoading = false.obs;
+  int foodDataPage = 1;
+  bool foodDataHasMore = true;
+
+  /// fetch food services
+  Future<void> getFoodService(Map<String, dynamic> queryParams, {bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isFoodDataLoadingMore.value || !foodDataHasMore) return;
+      isFoodDataLoadingMore.value = true;
+    } else {
+      isFoodDataFirstLoading.value = true;
+      foodDataPage = 1;
+      foodDataHasMore = true;
+      foodDataList.clear();
+    }
+
+     try {
       ResponseModel responseModel =
-      await FoodAiRepo().getFoodService(queryParam: params);
+      await FoodAiRepo().getFoodService(queryParam: queryParams);
 
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
+        getFoodServiceResponse.value = ApiResponse.complete(responseModel);
 
+        final data = responseModel.response?.data;
+        List<GetFoodDetailsModel> newItems = [];
 
         if (data is List) {
-          // if API returns a raw array
-          foodList.value = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+          // API returns raw array
+          newItems = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
         } else if (data is Map && data['data'] is List) {
-          // if API returns { "data": [...] }
-          foodList.value =
-              (data['data'] as List).map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+          // API returns { "data": [...] }
+          newItems = (data['data'] as List)
+              .map((e) => GetFoodDetailsModel.fromJson(e))
+              .toList();
         } else {
-          print("⚠️ Unexpected API response: $data");
+          print("Unexpected API response: $data");
         }
 
-        print("✅ Loaded ${foodList.length} food items");
+        if (newItems.isNotEmpty) {
+          if (isLoadMore) {
+            foodDataList.addAll(newItems);
+          } else {
+            foodDataList.assignAll(newItems);
+          }
+
+          foodDataPage++;
+        } else {
+          foodDataHasMore = false;
+        }
+
+        print("Loaded ${newItems.length} items | Total: ${foodDataList.length}");
       } else {
-        print("❌ API failed: ${responseModel.response?.data}");
+        getFoodServiceResponse.value = ApiResponse.error('error');
       }
-    // } catch (e) {
-    //   logs("ERROR===== $e");
-    // }
+    } catch (e) {
+       getFoodServiceResponse.value = ApiResponse.error('error');
+       logs("ERROR===== $e");
+    } finally{
+       if (isLoadMore) {
+         isFoodDataLoadingMore.value = false;
+       } else {
+         isFoodDataFirstLoading.value = false;
+       }
+     }
   }
-  Future<void> getFoodDetailsFromId(Map<String, dynamic> params,{required String userId}) async {
-    // try {
-      ResponseModel responseModel =
-      await FoodAiRepo().getProductDetailsById(queryParam: params, userId: userId);
-
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        log("sdkjncksjdnc ${jsonEncode(data)}");
-        print("✅ Loaded ${foodList.length} food items");
-      } else {
-        print("❌ API failed: ${responseModel.response?.data}");
-      }
-
-    // } catch (e) {
-    //   logs("ERROR===== $e");
-    // }
-  }
-
 
   @override
   void onClose() {

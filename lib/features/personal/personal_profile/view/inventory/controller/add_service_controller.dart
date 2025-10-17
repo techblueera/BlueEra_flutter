@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -16,8 +17,6 @@ import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../../../../common/food/repo/food_ai_repo.dart';
 
 class LocalImage {
   final String path;
@@ -209,7 +208,7 @@ class AddServiceController extends GetxController {
     if (imageLocalPaths.length < 2 || imageLocalPaths.length > 5) {
       commonSnackBar(
           message: (imageLocalPaths.length < 2)
-              ? 'Please take minimum two product images'
+              ? 'Please take minimum two service images'
               : 'You can\'t add more than five images');
       return false;
     }
@@ -240,7 +239,7 @@ class AddServiceController extends GetxController {
     return true;
   }
 
-  Future<void> createServiceApi({String? channelId, required String providerType}) async {
+  Future<void> createServiceApi({String? channelId, required ProductServiceProviderType providerType}) async {
 
     /// Provider Type
     // Business --> userId
@@ -255,8 +254,7 @@ class AddServiceController extends GetxController {
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'service',
-        ApiKeys.providerType: providerType,
-        ApiKeys.channelId: channelId,
+        ApiKeys.providerType: providerType.title,
         ApiKeys.title: serviceNameCtrl.text.trim(),
         ApiKeys.description: descriptionCtrl.text.trim(),
         ApiKeys.facilities: facilities,
@@ -271,6 +269,9 @@ class AddServiceController extends GetxController {
         // if (detailsList.isNotEmpty)
         //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
       };
+      if(channelId!=null){
+        params[ApiKeys.channelId] = channelId;
+      }
 
       if (isRange.isTrue) {
         params[ApiKeys.priceType] = 'range';
@@ -326,8 +327,9 @@ class AddServiceController extends GetxController {
         // ✅ Close dialog once and navigate back
         UploadProgressDialog.close();
         commonSnackBar(message: "Service added successfully");
-        Get.back();
-        Get.back();
+        Get.close(3);
+        // Get.back();
+        // Get.back();
       } else {
         createServiceResponse.value = ApiResponse.error('error');
         UploadProgressDialog.close();

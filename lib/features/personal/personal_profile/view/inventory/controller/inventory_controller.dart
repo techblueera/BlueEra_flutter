@@ -344,7 +344,6 @@ class InventoryController extends GetxController {
     return payload;
   }
 
-
   void loadCategories() {
     // Simulate API call for categories
     Future.delayed(const Duration(seconds: 1), () {

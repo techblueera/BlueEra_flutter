@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -110,23 +111,18 @@ class _ServiceCard extends StatelessWidget {
         break;
 
       case 'Desi\nKhana':
-        // await Get.toNamed(
-        //   RouteHelper.getAddProductScreenRoute(),
-        //   arguments: {
-        //     ApiKeys.id: userId,
-        //     ApiKeys.providerType: ProductServiceProviderType.channel,
-        //   },
-        // );
+        Get.to(() => FoodUploadScreen(
+          providerType: ProductServiceProviderType.user,
+        ));
         break;
 
       case 'Home\nServices':
-        // await Get.toNamed(
-        //   RouteHelper.getAddProductScreenRoute(),
-        //   arguments: {
-        //     ApiKeys.id: userId,
-        //     ApiKeys.providerType: ProductServiceProviderType.user,
-        //   },
-        // );
+        Get.toNamed(
+            RouteHelper.getAddServicesScreenRoute(),
+            arguments: {
+              ApiKeys.providerType: ProductServiceProviderType.user,
+            }
+        );
         break;
 
       case 'Rental\nServices':

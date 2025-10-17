@@ -54,7 +54,6 @@ class _ChannelProductListingState extends State<ChannelProductListing> {
         children: [
           Expanded(
             child: ListView.builder(
-              // physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: productList.length,
               itemBuilder: (context, index) {
