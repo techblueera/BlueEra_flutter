@@ -24,9 +24,11 @@ class NetWorkOcToAssets extends StatelessWidget {
       progressIndicatorBuilder: (context, progress) {
         return showShimmer(height: height);
       },
-      errorBuilder: (context, error, stacktrace) => LocalAssets(
-        imagePath: AppImageAssets.noImageFound,
-        boxFix: BoxFit.cover,
+      errorBuilder: (context, error, stacktrace) => Center(
+        child: LocalAssets(
+          imagePath: AppImageAssets.noImageFound,
+          boxFix: BoxFit.cover,
+        ),
       ),
     );
   }

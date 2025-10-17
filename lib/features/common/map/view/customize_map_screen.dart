@@ -7,8 +7,10 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/custom_service_bottom_sheet.dart';
@@ -340,6 +342,12 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       child: GestureDetector(
         onTap: () => unFocus(),
         child: Scaffold(
+          // floatingActionButton: Padding(
+          //   padding: const EdgeInsets.only(bottom: 18.0),
+          //   child: FloatingActionButton(onPressed: (){
+          //     Get.to(ServiceUploadScreen());
+          //   }),
+          // ),
           appBar: CommonBackAppBar(
             onBackTap: () {
               // if(searchLocationShow) {
@@ -362,28 +370,40 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
             },
             isGoLive: true,
             isGoLiveWidget: () {
-              return Container(
-                margin: EdgeInsets.only(left: SizeConfig.size10),
-                height: SizeConfig.size40,
-                decoration: BoxDecoration(
-
-                    border: Border.all(
-                      color: AppColors.primaryColor,
-                    ),
-                    borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: SizeConfig.size10,
-                    ),
-                    CustomText("Go Live",color: AppColors.primaryColor,fontWeight: FontWeight.w600,),
-                    buildToggleSwitchChip(
-                      value: viewProfileController.shopStatusOpenClose,
-                      onChanged: viewProfileController.toggleShopStatus,
-                    ),
-                  ],
-                ),
-              );
+              if (accountTypeGlobal == AppConstants.individual) {
+                final statusData = serviceProviderStatusGlobal.toUpperCase();
+                if (statusData == AppConstants.OPEN.toUpperCase()) {
+                  viewProfileController.shopStatusOpenClose.value = true;
+                } else {
+                  viewProfileController.shopStatusOpenClose.value = false;
+                }
+                return Container(
+                  margin: EdgeInsets.only(left: SizeConfig.size10),
+                  height: SizeConfig.size40,
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.primaryColor,
+                      ),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: SizeConfig.size10,
+                      ),
+                      CustomText(
+                        "Go Live",
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      buildToggleSwitchChip(
+                        value: viewProfileController.shopStatusOpenClose,
+                        onChanged: viewProfileController.toggleShopStatus,
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return SizedBox.shrink();
             },
           ),
           body: SafeArea(

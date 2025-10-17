@@ -23,19 +23,6 @@ class MapServiceController extends GetxController{
   var serviceModelResponse = ServiceModelResponse().obs;
   RxList<ServiceData> homeServiceList = <ServiceData>[].obs;
   RxBool isHomeServiceLoading = true.obs;
-
-  // RxList<Post> electricianList = <Post>[].obs;
-  // RxBool isElectricianLoading = true.obs;
-  // RxList<Post> plumberList = <Post>[].obs;
-  // RxBool isPlumberLoading = true.obs;
-  // RxList<Post> gardenerList = <Post>[].obs;
-  // RxBool isGardenerLoading = true.obs;
-  // RxList<Post> painterList = <Post>[].obs;
-  // RxBool isPainterLoading = true.obs;
-  // RxList<Post> maidList = <Post>[].obs;
-  // RxBool isMaidLoading = true.obs;
-
-
   /// Food Service Category
   RxList<FoodServices> foodServicesList = <FoodServices>[].obs;
   RxBool isFoodServiceLoading = true.obs;
@@ -105,9 +92,9 @@ class MapServiceController extends GetxController{
   }) async {
 
     final Map<String, dynamic> queryParams = {
-      ApiKeys.lat: lat,
-      ApiKeys.lng: lng,
-      ApiKeys.radius: 1000.0,
+      ApiKeys.lat: lat.toStringAsFixed(4),
+      ApiKeys.lng: lng.toStringAsFixed(4),
+      ApiKeys.radius: 1000,
     };
 
     ResponseModel response = await MapServiceRepo().fetchAllHomeServices(queryParams: queryParams);

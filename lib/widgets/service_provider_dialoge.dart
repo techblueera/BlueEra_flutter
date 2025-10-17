@@ -17,13 +17,14 @@ void showEnableServiceDialog() async {
           AppConstants.CLOSED.toUpperCase() &&
       (userProfessionGlobal.toUpperCase() == "SELF_EMPLOYED")) {
     Get.defaultDialog(
-      title: "",titleStyle: TextStyle(fontSize: 0),
-      radius: 16,titlePadding: EdgeInsets.zero,
+      title: "",
+      titleStyle: TextStyle(fontSize: 0),
+      radius: 16,
+      titlePadding: EdgeInsets.zero,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(height: SizeConfig.size10),
-
           LocalAssets(imagePath: AppIconAssets.location_track),
           SizedBox(height: SizeConfig.size20),
           CustomText(
@@ -56,19 +57,23 @@ void showEnableServiceDialog() async {
                   width: SizeConfig.size10,
                 ),
                 Expanded(
-                    child: PositiveCustomBtn(onTap: () {
-                      viewProfileController.toggleShopOnlyStatus(isActive: true);
-                    }, title: "Active")),
+                    child: PositiveCustomBtn(
+                        onTap: () async {
+                          viewProfileController.toggleShopOnlyStatus(
+                              isActive: true);
+                          await viewProfileController
+                              .getUserServiceStatusController();
+                        },
+                        title: "Active")),
               ],
             ),
           )
         ],
       ),
     );
-  }
-  else if(serviceProviderStatusGlobal.toString().toUpperCase() ==
-      AppConstants.OPEN.toUpperCase()&&(userProfessionGlobal.toUpperCase() == "SELF_EMPLOYED")){
+  } else if (serviceProviderStatusGlobal.toString().toUpperCase() ==
+          AppConstants.OPEN.toUpperCase() &&
+      (userProfessionGlobal.toUpperCase() == "SELF_EMPLOYED")) {
     await viewProfileController.callLocationAPI();
-
   }
 }

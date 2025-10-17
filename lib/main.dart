@@ -69,6 +69,7 @@ Future<void> main() async {
   await getUserLoginData();
   await getChannelData();
   await getServiceProviderStatusUtils();
+  await getUserServiceCreatedStatusUtils();
 
   unFocus();
   Get.put(NavigationHelperController());

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -68,16 +69,19 @@ class ProfileSummaryCard extends StatelessWidget {
                     ),
                     SizedBox(width: 4),
                     CustomText(
-                      "($reviews reviews) ",
+                      "(${formatNumberLikePost(reviews)} reviews) ",
                       fontSize: SizeConfig.extraSmall,
                       color: AppColors.grey6D,
                     ),
-                    LocalAssets(imagePath: AppIconAssets.distanceLocation),
-                    CustomText(
-                      distance,
-                      fontSize: SizeConfig.extraSmall,
-                      color: AppColors.black30,
-                    ),
+                    if(distance.isNotEmpty)...[
+                      LocalAssets(imagePath: AppIconAssets.distanceLocation),
+                      CustomText(
+                        distance,
+                        fontSize: SizeConfig.extraSmall,
+                        color: AppColors.black30,
+                      ),
+                    ],
+
                   ],
                 ),
               ],

@@ -13,6 +13,7 @@ String accountTypeGlobal = '';
 // String dobDoi = '';
 String userNameGlobal = '';
 String userProfessionGlobal = '';
+String userWorkTypeGlobal = '';
 String userId = '';
 String businessId = '';
 String userMobileGlobal = '';
@@ -32,6 +33,7 @@ String userNameAtGlobal = '';
 String businessOwnerAddressGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
+String userServiceCreatedStatusGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -62,6 +64,7 @@ class SharedPreferenceUtils {
   static const lastVersion = 'last_version';
   static const lastGreetingCallKey = 'last_greeting_call_key';
   static const userProfession = 'user_profession';
+  static const workTypeKey = 'workTypeKey';
   static const businessName = 'business_name';
   static const businessOwnerName = 'business_owner_name';
   static const userNameAtKey = 'userNameAt';
@@ -72,6 +75,7 @@ class SharedPreferenceUtils {
   static const availabilityDetails = 'availabilityDetails';
   static const businessSubCategory = 'businessSubCategory';
   static const serviceProviderStatus = 'serviceProviderStatus';
+  static const userServiceCreatedStatusKey = 'userServiceCreatedStatusKey';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -80,6 +84,7 @@ class SharedPreferenceUtils {
     required String getUserName,
     required String profileImage,
     required String designation,
+    required String workType,
     required String userNameAt,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
@@ -88,6 +93,7 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userName, getUserName);
     await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
     await SharedPreferenceUtils.setSecureValue(userProfession, designation);
+    await SharedPreferenceUtils.setSecureValue(workTypeKey, workType);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
 
@@ -195,8 +201,10 @@ class SharedPreferenceUtils {
       userProfileGlobal = '';
       channelId = '';
       userProfessionGlobal = '';
+      userWorkTypeGlobal = '';
       userNameAtGlobal = '';
       serviceProviderStatusGlobal = '';
+      userServiceCreatedStatusGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       Get.put(LocationServiceProviderController()).stopLocationUpdates();
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
@@ -241,6 +249,11 @@ getServiceProviderStatusUtils() async {
           SharedPreferenceUtils.serviceProviderStatus) ??
       "";
 }
+getUserServiceCreatedStatusUtils() async {
+  userServiceCreatedStatusGlobal = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.userServiceCreatedStatusKey) ??
+      "";
+}
 
 ///GET USER DATA....
 getUserLoginData() async {
@@ -271,6 +284,9 @@ getUserLoginData() async {
 
   userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.userProfession) ??
+      "";
+  userWorkTypeGlobal = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.workTypeKey) ??
       "";
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
   has_reel_profile_status = await SharedPreferenceUtils.getSecureValue(

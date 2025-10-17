@@ -8,7 +8,7 @@ class MapServiceRepo extends BaseService{
   Future<ResponseModel> fetchAllHomeServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       servicesByLatLng,
-      showProgress: false,
+      showProgress: true,
       params: queryParams,
       onError: (error) {},
       onSuccess: (data) {},

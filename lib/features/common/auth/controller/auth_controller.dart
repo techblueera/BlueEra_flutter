@@ -144,7 +144,6 @@ class AuthController extends GetxController {
               final personalController =
                   Get.put(ViewPersonalDetailsController());
               await personalController.viewPersonalProfile();
-
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.authToken, data.token);
 
@@ -561,4 +560,7 @@ class AuthController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
+
+
 }

@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/add_service_response_model.dart';
@@ -139,7 +141,7 @@ class AddServiceController extends GetxController {
       final List<String>? selected =
           await SelectProductImageDialog.showLogoDialog(
         context,
-        'Product Image',
+        accountTypeGlobal==AppConstants.individual?"Service Image":'Product Image',
       );
 
       if (selected != null) {
@@ -209,7 +211,9 @@ class AddServiceController extends GetxController {
     if (imageLocalPaths.length < 2 || imageLocalPaths.length > 5) {
       commonSnackBar(
           message: (imageLocalPaths.length < 2)
-              ? 'Please take minimum two product images'
+              ? accountTypeGlobal == AppConstants.individual
+                  ? 'Please take minimum two services images'
+                  : 'Please take minimum two product images'
               : 'You can\'t add more than five images');
       return false;
     }
@@ -249,7 +253,9 @@ class AddServiceController extends GetxController {
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'service',
-        "providerType": "Business",
+        "providerType": accountTypeGlobal == AppConstants.individual
+            ? "User"
+            : "Business",
         ApiKeys.title: serviceNameCtrl.text.trim(),
         ApiKeys.description: descriptionCtrl.text.trim(),
         ApiKeys.facilities: facilities,
@@ -372,8 +378,7 @@ class AddServiceController extends GetxController {
     required String fileType,
     required String preSignedUrl,
     required Function(double progress) onProgress,
-  }) async
-  {
+  }) async {
     try {
       ResponseModel? response = await ChannelRepo().uploadVideoToS3(
         onProgress: onProgress,
@@ -394,5 +399,4 @@ class AddServiceController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
 }

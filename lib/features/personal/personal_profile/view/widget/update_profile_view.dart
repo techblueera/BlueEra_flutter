@@ -571,6 +571,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   personalCreateProfileController
                                       .selectedSubProfession
                                       .value = value?.tagId;
+                                  filedValidation();
+
                                 },
                               );
                             }),
