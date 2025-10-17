@@ -16,12 +16,12 @@ import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
+import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
 import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -649,9 +649,13 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           authorId: widget.authorId,
         );
       case ChannelTab.saved:
+        return Text('coming soon..');
       case ChannelTab.statistics:
+        return Text('coming soon...');
       case ChannelTab.product:
-        return ChannelProductListWidget();
+        return ChannelProductListing(
+          channelController: channelController,
+        );
       case ChannelTab.Service:
         return Text('No service found');
         // return ProductScreen();
@@ -812,52 +816,6 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
         return AppImageAssets.webIcon;
     }
   }
-
-  Widget ChannelProductListWidget() {
-   InventoryController inventoryController;
-    if(Get.isRegistered<InventoryController>()){
-      inventoryController = Get.find<InventoryController>();
-    } else {
-      inventoryController = Get.put(InventoryController());
-    }
-    final productList = channelController.ownProductDataList;
-
-    if (channelController.isOwnProductDataFirstLoading.value) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (productList.isEmpty) {
-      return const EmptyStateWidget(message: 'No product found');
-    }
-
-    return Column(
-      children: [
-        ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: productList.length,
-          itemBuilder: (context, index) {
-            final productData = productList[index];
-            return Padding(
-              padding: EdgeInsets.only(bottom: SizeConfig.size10),
-              child: OwnProductCard(
-                product: productData,
-                controller: inventoryController,
-              ),
-            );
-          },
-        ),
-        if (channelController.isOwnProductDataLoadingMore.value)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-      ],
-    );
-  }
-
 
   void showReportDialog({
     required BuildContext context,

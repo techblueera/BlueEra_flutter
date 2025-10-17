@@ -664,10 +664,10 @@ class ProductController extends GetxController{
         }).toList();
       Map<String, dynamic> params = {
         ApiKeys.productId: productId,
-        ApiKeys.owner: {
-           ApiKeys.id: id,
-           ApiKeys.type: providerType.title
-        },
+        ApiKeys.owner: jsonEncode({
+          ApiKeys.id: id,
+          ApiKeys.type: providerType.title
+        }),
         ApiKeys.variants: jsonEncode(payload)
       };
 

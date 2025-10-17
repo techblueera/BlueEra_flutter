@@ -54,15 +54,14 @@ class EarnWithBlueEraController extends GetxController{
 
     try {
 
-      Map<String, dynamic> params = {
-        ApiKeys.businessId: userId,
+      Map<String, dynamic> queryParams = {
         'DRAFT': false,
         'ownerId': userId,
         'ownerType': ProductServiceProviderType.user.title,
       };
 
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(params: params);
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
       if (response.isSuccess) {
         ownProductsResponse.value = ApiResponse.complete(response);
         final getProductModel =

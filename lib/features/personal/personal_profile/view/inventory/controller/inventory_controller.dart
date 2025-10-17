@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -140,15 +141,17 @@ class InventoryController extends GetxController {
     try {
       isLoading.value = true;
 
-      Map<String, dynamic> params = {
-        ApiKeys.businessId: businessId,
+      Map<String, dynamic> queryParams = {
+        // ApiKeys.businessId: businessId,
+        'ownerId': businessId,
+        'ownerType': ProductServiceProviderType.business.title,
       };
 
       if(isDraftProduct!=null){
-        params['DRAFT'] = isDraftProduct;
+        queryParams['DRAFT'] = isDraftProduct;
       }
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(params: params);
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
       if (response.isSuccess) {
         ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel = GetProductModel.fromJson(response.response!.data);
