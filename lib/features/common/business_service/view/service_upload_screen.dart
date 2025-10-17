@@ -25,7 +25,9 @@ import 'package:get/get.dart';
 class ServiceUploadScreen extends StatefulWidget {
   final String? channelId;
   final ProductServiceProviderType providerType;
-  ServiceUploadScreen({Key? key, this.channelId, required this.providerType}) : super(key: key);
+
+  ServiceUploadScreen({Key? key, this.channelId, required this.providerType})
+      : super(key: key);
 
   @override
   State<ServiceUploadScreen> createState() => _ServiceUploadScreenState();
@@ -34,7 +36,7 @@ class ServiceUploadScreen extends StatefulWidget {
 class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
   final viewBusinessDetailsController =
-  Get.put(ViewBusinessDetailsController());
+      Get.put(ViewBusinessDetailsController());
 
   @override
   void initState() {
@@ -63,7 +65,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                   children: [
                     SizedBox(height: SizeConfig.size10),
 
-
                     Container(
                       margin: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 8),
@@ -78,8 +79,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                       ),
                       child: accountTypeGlobal == AppConstants.individual
                           ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +94,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: SizeConfig.size10,),
+                                SizedBox(
+                                  height: SizeConfig.size10,
+                                ),
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,9 +234,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     CommonTextField(
                       title: 'Short Description / Highlight',
                       textEditController:
-                      controller.serviceShortDescriptionController,
+                          controller.serviceShortDescriptionController,
                       hintText:
-                      'E.g. Restore your car’s shine with our professional wash service — removing dirt, dust, and grime for a spotless, fresh look every time you drive.',
+                          'E.g. Restore your car’s shine with our professional wash service — removing dirt, dust, and grime for a spotless, fresh look every time you drive.',
                       maxLine: 2,
                       isValidate: true,
                       validator: validateServiceDescription,
@@ -267,11 +269,10 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
           fontSize: SizeConfig.large,
         ),
         SizedBox(height: SizeConfig.size10),
-        Obx(() =>
-            GestureDetector(
+        Obx(() => GestureDetector(
               onTap: () async {
                 final String? selected =
-                await SelectProfilePictureDialog.showLogoDialog(
+                    await SelectProfilePictureDialog.showLogoDialog(
                   context,
                   "Select Photo",
                 );
@@ -293,19 +294,19 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 ),
                 child: controller.selectedImage.value != null
                     ? ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    controller.selectedImage.value!,
-                    fit: BoxFit.cover,
-                  ),
-                )
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          controller.selectedImage.value!,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                     : Padding(
-                  padding: EdgeInsets.all(SizeConfig.size30),
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.chat_input_gallery,
-                    imgColor: AppColors.greyAF,
-                  ),
-                ) /*Icon(
+                        padding: EdgeInsets.all(SizeConfig.size30),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.chat_input_gallery,
+                          imgColor: AppColors.greyAF,
+                        ),
+                      ) /*Icon(
                         Icons.add_photo_alternate,
                         size: 40,
                         color: Colors.grey[500],
@@ -325,71 +326,83 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
             onTap: isPersonalServiceValidate()
                 ? () async {
                     if (isPersonalServiceValidate()) {
-                      await controller
-                          .generateServiceAiController(serviceDetailsReq: {
-                        ApiKeys.service_name: controller.serviceName.value,
-                        ApiKeys.category: userProfessionGlobal,
-                        ApiKeys.sub_category: userWorkTypeGlobal,
-                        if (controller.shortDescriptionName.value.isNotEmpty)
-                          ApiKeys.short_description:
-                              controller.shortDescriptionName.value,
-                      });
+                      await controller.generateServiceAiController(
+                        serviceDetailsReq: {
+                          ApiKeys.service_name: controller.serviceName.value,
+                          ApiKeys.category: userProfessionGlobal,
+                          ApiKeys.sub_category: userWorkTypeGlobal,
+                          if (controller.shortDescriptionName.value.isNotEmpty)
+                            ApiKeys.short_description:
+                                controller.shortDescriptionName.value,
+                        },
+                        providerType: widget.providerType,
+                      );
                     }
                   }
                 : null,
             title: "Generate");
       else
+        // return CustomBtn(
+        //     isValidate: isValidate(),
+        //     onTap: isValidate()
+        //         ? () async {
+        //             if (isValidate()) {
+        //               await controller
+        //                   .generateServiceAiController(serviceDetailsReq: {
+        //                 ApiKeys.service_name: controller.serviceName.value,
+        //                 ApiKeys.category: viewBusinessDetailsController
+        //                     .selectedCategoryOfBusiness.value?.name,
+        //                 ApiKeys.sub_category: viewBusinessDetailsController
+        //                     .selectedSubCategoryOfBusinessNew.value?.name,
+        //                 if (controller.shortDescriptionName.value.isNotEmpty)
+        //                   ApiKeys.short_description:
+        //                       controller.shortDescriptionName.value,
+        //               }, providerType: widget.providerType,);
+        //             }
+        //           }
+        //         : null,
+        //     title: "Generate");
         return CustomBtn(
             isValidate: isValidate(),
             onTap: isValidate()
                 ? () async {
                     if (isValidate()) {
-                      await controller
-                          .generateServiceAiController(serviceDetailsReq: {
-                        ApiKeys.service_name: controller.serviceName.value,
-                        ApiKeys.category: viewBusinessDetailsController
-                            .selectedCategoryOfBusiness.value?.name,
-                        ApiKeys.sub_category: viewBusinessDetailsController
-                            .selectedSubCategoryOfBusinessNew.value?.name,
-                        if (controller.shortDescriptionName.value.isNotEmpty)
-                          ApiKeys.short_description:
-                              controller.shortDescriptionName.value,
-                      });
+                      await controller.generateServiceAiController(
+                          channelId: widget.channelId,
+                          providerType: widget.providerType,
+                          serviceDetailsReq: {
+                            ApiKeys.service_name: controller.serviceName.value,
+                            if (isBusiness())
+                              ApiKeys.category: viewBusinessDetailsController
+                                  .selectedCategoryOfBusiness.value?.name,
+                            if (isBusiness())
+                              ApiKeys.sub_category:
+                                  viewBusinessDetailsController
+                                      .selectedSubCategoryOfBusinessNew
+                                      .value
+                                      ?.name,
+                            if (controller
+                                .shortDescriptionName.value.isNotEmpty)
+                              ApiKeys.short_description:
+                                  controller.shortDescriptionName.value,
+                          });
                     }
                   }
                 : null,
             title: "Generate");
-      return CustomBtn(
-          isValidate: isValidate(),
-          onTap: isValidate()
-              ? () async {
-            if (isValidate()) {
-              await controller
-                  .generateServiceAiController(
-                  channelId: widget.channelId,
-                  providerType: widget.providerType,
-                  serviceDetailsReq: {
-                ApiKeys.service_name: controller.serviceName.value,
-                  if (isBusiness()) ApiKeys.category: viewBusinessDetailsController.selectedCategoryOfBusiness.value?.name,
-                  if (isBusiness()) ApiKeys.sub_category: viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.name,
-                  if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
-              });
-            }
-          }
-              : null,
-          title: "Generate");
     });
   }
 
   isValidate() {
-    if(isBusiness()){
+    if (isBusiness()) {
       return (controller.selectedImage.value != null &&
           controller.serviceName.value.isNotEmpty &&
           viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
               null &&
-          viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value !=
+          viewBusinessDetailsController
+                  .selectedSubCategoryOfBusinessNew.value !=
               null);
-    }else{
+    } else {
       return (controller.selectedImage.value != null &&
           controller.serviceName.value.isNotEmpty);
     }

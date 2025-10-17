@@ -415,7 +415,7 @@ class ViewPersonalDetailsController extends GetxController {
             SharedPreferenceUtils.userServiceCreatedStatusKey, statusData);
         await getUserServiceCreatedStatusUtils();
         if (statusData == "false") {
-          Get.to(ServiceUploadScreen());
+          Get.to(ServiceUploadScreen(providerType: ProductServiceProviderType.user,));
         }
       } else {
         commonSnackBar(
