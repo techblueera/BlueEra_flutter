@@ -803,8 +803,8 @@ extension MapCategoryExtension on String {
 
 /// Service sub category
 enum ServiceCategory {
-  homeServices('Home Services'),
-  foods('Foods');
+  homeServices('Home Services');
+  // foods('Foods');
   // stay('Stay');
 
   final String label;

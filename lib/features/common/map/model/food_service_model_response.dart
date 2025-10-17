@@ -27,16 +27,16 @@ class FoodServiceModelResponse {
 
 class FoodServices {
   String? subCategory;
-  List<Data>? data;
+  List<FoodServicesData>? data;
 
   FoodServices({this.subCategory, this.data});
 
   FoodServices.fromJson(Map<String, dynamic> json) {
     subCategory = json['sub_category'];
     if (json['data'] != null) {
-      data = <Data>[];
+      data = <FoodServicesData>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(new FoodServicesData.fromJson(v));
       });
     }
   }
@@ -51,7 +51,7 @@ class FoodServices {
   }
 }
 
-class Data {
+class FoodServicesData {
   List<OwnerDetails>? ownerDetails;
   List<String>? livePhotos;
   String? id;
@@ -61,7 +61,7 @@ class Data {
   String? typeOfBusiness;
   String? logo;
   CategoryOfBusiness? categoryOfBusiness;
-  // Null subCategoryOfBusiness;
+  CategoryOfBusiness? subCategoryOfBusiness;
   String? businessDescription;
   BusinessNumber? businessNumber;
   String? natureOfBusiness;
@@ -78,7 +78,7 @@ class Data {
   dynamic totalRatings;
   double? distance;
 
-  Data(
+  FoodServicesData(
       {this.ownerDetails,
         this.livePhotos,
         this.id,
@@ -88,7 +88,7 @@ class Data {
         this.typeOfBusiness,
         this.logo,
         this.categoryOfBusiness,
-        // this.subCategoryOfBusiness,
+        this.subCategoryOfBusiness,
         this.businessDescription,
         this.businessNumber,
         this.natureOfBusiness,
@@ -105,7 +105,7 @@ class Data {
         this.totalRatings,
         this.distance});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  FoodServicesData.fromJson(Map<String, dynamic> json) {
     if (json['owner_details'] != null) {
       ownerDetails = <OwnerDetails>[];
       json['owner_details'].forEach((v) {
@@ -123,6 +123,9 @@ class Data {
     logo = json['logo'];
     categoryOfBusiness = json['category_of_business'] != null
         ? new CategoryOfBusiness.fromJson(json['category_of_business'])
+        : null;
+    subCategoryOfBusiness = json['sub_category_of_business'] != null
+        ? new CategoryOfBusiness.fromJson(json['sub_category_of_business'])
         : null;
     // subCategoryOfBusiness = json['sub_category_of_business'];
     businessDescription = json['business_description'];
@@ -163,6 +166,9 @@ class Data {
     data['logo'] = this.logo;
     if (this.categoryOfBusiness != null) {
       data['category_of_business'] = this.categoryOfBusiness!.toJson();
+    }
+    if (this.subCategoryOfBusiness != null) {
+      data['sub_category_of_business'] = this.subCategoryOfBusiness!.toJson();
     }
     // data['sub_category_of_business'] = this.subCategoryOfBusiness;
     data['business_description'] = this.businessDescription;

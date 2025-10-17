@@ -22,6 +22,7 @@ class MapServiceController extends GetxController{
   /// Home Service Category
   var serviceModelResponse = ServiceModelResponse().obs;
   RxList<ServiceData> homeServiceList = <ServiceData>[].obs;
+  RxList<FoodServicesData> foodServiceList = <FoodServicesData>[].obs;
   RxBool isHomeServiceLoading = true.obs;
   /// Food Service Category
   RxList<FoodServices> foodServicesList = <FoodServices>[].obs;
@@ -147,47 +148,31 @@ class MapServiceController extends GetxController{
 
     return result;
   }
+  Map<String, List<FoodServicesData>> groupFoodServicesByProfessionDataList(List<FoodServicesData> services) {
+    final Map<String, List<FoodServicesData>> result = {};
 
-  // Future<void> getFoodServiceDataByProfession(
-  //     {
-  //       required FoodCategory foodCategory,
-  //     }) async {
-  //   switch (foodCategory) {
-  //     case FoodCategory.veg:
-  //       await fetchFoodService(
-  //         foodCategory: foodCategory,
-  //         targetList: vegList,
-  //         isTargetLoading: isVegLoading.value,
-  //       );
-  //       break;
-  //     case FoodCategory.nonVeg:
-  //       await fetchFoodService(
-  //         foodCategory: foodCategory,
-  //         targetList: nonVegList,
-  //         isTargetLoading: isNonVegLoading.value,
-  //       );
-  //       break;
-  //     case FoodCategory.bakery:
-  //       await fetchFoodService(
-  //         foodCategory: foodCategory,
-  //         targetList: bakeryList,
-  //         isTargetLoading: isBakeryLoading.value,
-  //       );
-  //     case FoodCategory.restaurant:
-  //       await fetchFoodService(
-  //         foodCategory: foodCategory,
-  //         targetList: restaurantList,
-  //         isTargetLoading: isRestaurantLoading.value,
-  //       );
-  //       break;
-  //     case FoodCategory.southIndian:
-  //       await fetchFoodService(
-  //         foodCategory: foodCategory,
-  //         targetList: southIndianList,
-  //         isTargetLoading: isSouthIndianLoading.value,
-  //       );
-  //   }
-  // }
+    for (var service in services) {
+      final designation = service.subCategoryOfBusiness?.name;
+
+      if (designation == null || designation == 'OTHER') continue;
+
+        final key = designation ?? "Unknown";
+
+        // If profession already exists, add to existing list without duplicates
+        if (result.containsKey(key)) {
+          if (!result[key]!.contains(service)) {
+            result[key]!.add(service);
+          }
+        } else {
+          result[key] = [service];
+        }
+
+    }
+
+    return result;
+  }
+
+
 
   /// fetch food service
   Future<void> fetchFoodService({
@@ -208,6 +193,12 @@ class MapServiceController extends GetxController{
         foodServiceResponse.value = ApiResponse.complete(response);
         final foodServiceModelResponse = FoodServiceModelResponse.fromJson(response.response?.data);
         foodServicesList.value = foodServiceModelResponse.foodServices??[];
+        foodServiceList.clear();
+        for (var service in foodServiceModelResponse.foodServices ?? []) {
+          if (service.data != null && service.data!.isNotEmpty) {
+            foodServiceList.addAll(service.data!);
+          }
+        }
       } else {
         foodServiceResponse.value = ApiResponse.error('error');
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
@@ -221,8 +212,8 @@ class MapServiceController extends GetxController{
     }
   }
 
-  Map<String, List<Data>> groupFoodServicesByProfession(List<FoodServices> foodServices) {
-    final Map<String, List<Data>> result = {};
+  Map<String, List<FoodServicesData>> groupFoodServicesByProfession(List<FoodServices> foodServices) {
+    final Map<String, List<FoodServicesData>> result = {};
 
     for (var service in foodServices) {
       final key = service.subCategory ?? "Unknown";

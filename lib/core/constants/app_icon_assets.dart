@@ -389,4 +389,7 @@ class AppIconAssets {
   static String ai_generative = "${AppConstants.baseIconAssetsPath}ai_generative.png";
   static String open_close = "${AppConstants.baseIconAssetsPath}open_close.png";
   static String location_track = "${iconPath}location_track.svg";
+  static String porter = "${AppConstants.baseIconAssetsPath}porter.png";
+  static String rapido = "${AppConstants.baseIconAssetsPath}rapido.png";
+
 }
