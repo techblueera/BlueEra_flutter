@@ -993,7 +993,7 @@ class ChatViewController extends GetxController {
       List dataList = responseModel.data as List;
       List<GroupMembersListModel> members =
           dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
-      log("ksdjjklscjklsdcnskljcnsdc ${responseModel.data}");
+
       getGroupMembersResponse.value = ApiResponse.complete(members);
       ;
     } else {

@@ -99,6 +99,25 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
+  Future<ResponseModel> viewBusinessIdForLocation(String userId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$businessIdViewForLocation/$userId",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  Future<ResponseModel> updateMsgOrderStatus(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+      "$updateMessageOrderStatus",
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
   Future<ResponseModel> getBusinessRatingsSummary(String userId) async {
     return await ApiBaseHelper().getHTTP(

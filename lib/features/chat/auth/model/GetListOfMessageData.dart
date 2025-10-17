@@ -270,6 +270,7 @@ class MessageMetadata {
   String? price;
   String? discount;
   bool? missedCall;
+  bool? orderStatus;
   bool? callAccept;
   bool? callDecline;
 
@@ -279,6 +280,7 @@ class MessageMetadata {
     this.serviceId,
     this.price,
     this.discount,
+    this.orderStatus,
     this.missedCall,
     this.callAccept,
     this.callDecline,
@@ -290,6 +292,7 @@ class MessageMetadata {
       productId: json['product_id']?.toString(),
       serviceId: json['service_id']?.toString(),
       price: json['price']?.toString(),
+      orderStatus: json['order_status']??false,
       discount: json['discount']?.toString(),
       missedCall: json['missed_call'] ?? false,
       callAccept: json['call_accept'] ?? false,

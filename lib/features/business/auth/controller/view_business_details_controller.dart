@@ -415,6 +415,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
+
+
         visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
         // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
         final chatViewController = Get.find<ChatViewController>();

@@ -28,11 +28,13 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
 import '../../../common/business_service/model/get_service_model.dart';
+import '../../../common/business_service/view/service_details_view_screen.dart';
 import '../../../common/business_service/widget/service_card.dart';
 import '../../../common/food/model/get_food_details_model.dart';
 import '../../../common/food/view/widget/food_product_card.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
+import '../../controllar/order_controllar.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
@@ -184,7 +186,9 @@ class _MessageCardState extends State<MessageCard>
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
       List<String> message=widget.message.message?.split('.')??[];
       if(message.isNotEmpty){
-        messageWidget = FoodCardMessageCardBusiness(
+        messageWidget = FoodCardMessageCardBusiness(conversationId: widget.conversationId??'',
+          userId: widget.userId??'',
+          message: widget.message,
           isFromChatCard: true,
           serviceData: GetFoodDetailsModel(
               subCategory: message[2],
@@ -214,14 +218,15 @@ class _MessageCardState extends State<MessageCard>
         url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
         List<String> message=widget.message.message?.split('.')??[];
         if(message.isNotEmpty){
-          messageWidget = ServiceCardBusiness(
+          messageWidget = ServiceMessageCardBusiness(
+            userId: widget.userId??'',
+            message: widget.message,
             isFromChatCard: true,
             serviceData: GetServiceModel(
               business: BusinessService(
                 businessName:message.last ,
                 categoryOfBusiness: CategoryOfBusiness(name:message[1])
               ),
-
                 id: widget.message.metadata?.serviceId,
                 discounts: [Discounts(amountOff: num.tryParse(widget.message.metadata?.discount ?? '0'))],
                 userId: widget.userId,
@@ -234,7 +239,7 @@ class _MessageCardState extends State<MessageCard>
             isGridView: false,
             isShowChat: false,
             isShowKM: false,
-            isShowBusinessInfo: true,
+            isShowBusinessInfo: true, conversationId: widget.conversationId??'',
           );
         }else{
           messageWidget=SizedBox();
@@ -566,7 +571,8 @@ class _MessageCardState extends State<MessageCard>
                 ),
               ),
             ),
-            const Divider(height: 1,color: Colors.grey,),
+             const Divider(height: 1,color: Colors.grey,),
+            (widget.message.metadata?.orderStatus??false)?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
@@ -581,10 +587,42 @@ class _MessageCardState extends State<MessageCard>
                 //   ),
                 // ),
                 // const VerticalDivider(width: 1,color: Colors.grey,),
+
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      showProductDetailsBottomSheet(context,product);
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,color: Colors.green,),
+                    label:   CustomText(
+                      'Order Placed',
+                      color: Colors.green,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ):Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+
                       // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
@@ -1172,6 +1210,9 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
   final GetFoodDetailsModel serviceData;
   final bool isGridView;
   final bool isShowChat;
+  final Messages message;
+  final String userId;
+  final String conversationId;
   final bool isShowKM;
   final bool isFromChatCard;
   final bool isShowBusinessInfo;
@@ -1185,7 +1226,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
     this.isShowKM = false,
     this.isFromChatCard= false,
     this.isShowBusinessInfo = false,
-    this.businessData,
+    this.businessData, required this.message, required this.userId, required this.conversationId,
   }) : super(key: key);
 
   @override
@@ -1364,6 +1405,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 serviceData?.business?.businessLocation?.lon?.toString() ??
                     ""),
             const Divider(height: 1,color: Colors.grey,),
+            (widget.message.metadata?.orderStatus??false)?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
@@ -1378,9 +1420,41 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 //   ),
                 // ),
                 // const VerticalDivider(width: 1,color: Colors.grey,),
+
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,color: Colors.green,),
+                    label:   CustomText(
+                      'Order Placed',
+                      color: Colors.green,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ):Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
 
                       // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
                     },
@@ -1395,6 +1469,232 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
               ],
             ),
 
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ServiceMessageCardBusiness extends StatefulWidget {
+  final GetServiceModel serviceData;
+  final bool isGridView;
+  final bool isShowChat;
+  final bool isFromChatCard;
+  final Messages message;
+  final String userId;
+  final String conversationId;
+  final bool isShowKM;
+  final bool isShowBusinessInfo;
+  final BusinessProfileDetails? businessData;
+
+  const ServiceMessageCardBusiness({
+    Key? key,
+    required this.serviceData,
+    this.isGridView = false,
+    this.isShowChat = true,
+    this.isFromChatCard= false,
+    this.isShowKM = false,
+    this.isShowBusinessInfo = false,
+    this.businessData,
+    required this.message, required this.userId, required this.conversationId,
+  }) : super(key: key);
+
+  @override
+  State<ServiceMessageCardBusiness> createState() => _ServiceMessageCardBusinessState();
+}
+
+class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness> {
+  final chatViewController = Get.find<ChatViewController>();
+
+  GetServiceModel? serviceData;
+
+  // var kmAway;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    serviceData = widget.serviceData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Find max discount
+    Discounts? maxDiscount;
+    if ((serviceData?.discounts?.length ?? 0) > 0)
+      maxDiscount = serviceData?.discounts
+          ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+
+    return InkWell(
+      onTap: () {
+        if(widget.isFromChatCard==false){
+          Get.to(ServiceDetailsScreen(
+            service: serviceData ?? GetServiceModel(),
+          ));
+        }
+
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: widget.isFromChatCard? 0:20),
+        width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
+        // responsive width
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              child: CustomImageSlideshow(
+                isLoading: false,
+                width: double.infinity,
+                height: 170,
+                imagePaths: serviceData?.photos ?? [],
+                borderRadius: BorderRadius.zero,
+              ),
+            ),
+
+            SizedBox(height: SizeConfig.size5),
+
+            // Title & price
+            Container(
+              height: SizeConfig.size20,
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.title ?? "N/A",
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+            Container(
+              // height: SizeConfig.size20,
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.business?.categoryOfBusiness?.name ?? "N/A",
+                fontSize: SizeConfig.small,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+
+            SizedBox(height: SizeConfig.size5),
+            Container(
+              // height: SizeConfig.size20,
+              alignment: Alignment.centerLeft,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: CustomText(
+                serviceData?.business?.businessName ?? "N/A",
+                fontSize: SizeConfig.small,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+            Container(
+              // alignment: Alignment.center,
+              margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                  color: Colors.green, borderRadius: BorderRadius.circular(30)),
+              child: CustomText(
+                (maxDiscount?.amountOff != null)
+                    ? "${maxDiscount?.amountOff.toString()}% Off"
+                    : "0% Off",
+                fontSize: SizeConfig.size10,
+                color: Colors.white,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: SizeConfig.size5),
+            KmAwayTextWidget(
+                lat: serviceData?.business?.businessLocation?.lat.toString() ??
+                    "",
+                long:
+                serviceData?.business?.businessLocation?.lon?.toString() ??
+                    ""),
+
+
+            const Divider(height: 1,color: Colors.grey,),
+            (widget.message.metadata?.orderStatus??false)?
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,color: Colors.green,),
+                    label:   CustomText(
+                      'Order Placed',
+                      color: Colors.green,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ):Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                    label:   CustomText(
+                      'Order Now',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

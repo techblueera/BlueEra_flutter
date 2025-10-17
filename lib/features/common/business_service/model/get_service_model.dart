@@ -154,6 +154,7 @@ class GetServiceModel {
     if (timings != null) {
       map['timings'] = timings?.map((v) => v.toJson()).toList();
     }
+
     map['facilities'] = facilities;
     map['priceType'] = priceType;
     map['perUnit'] = perUnit;

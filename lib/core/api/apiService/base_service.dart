@@ -193,6 +193,7 @@ abstract class BaseService {
   final String connectionsSync = 'chat-service/connections/sync';
   final String myconnectionsSync = 'chat-service/connections/my';
   final String requestForPersonalChat = 'chat-service/connections/request';
+  final String updateMessageOrderStatus = 'chat-service/chat/order-status';
 
   /// Shorts-feed service
   final String feedPersonalized = "videofeed-service/feeds/personalized";
@@ -318,6 +319,7 @@ abstract class BaseService {
 
   final String getUserByIdUrl = "user-service/user/getUserById";
   final String bussinessProfileById = "/user-service/business";
+  final String businessIdViewForLocation = "user-service/business/user";
   final String businessRating = "/user-service/business/business";
   final String postBusinessRating = 'user-service/business/rating';
 
