@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -20,27 +21,58 @@ class FoodAndGroceryScreen extends StatefulWidget {
   State<FoodAndGroceryScreen> createState() => _FoodAndGroceryScreenState();
 }
 
-class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen> {
+class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
+    with RouteAware {
   final controller = Get.put(FoodUploadController());
   final ScrollController scrollController = ScrollController();
   late Map<String, dynamic> queryParams;
 
   @override
   void initState() {
+    super.initState();
+
     queryParams = {
       ApiKeys.all: false,
       ApiKeys.type: "food",
       ApiKeys.providerType: widget.providerType.title,
     };
-    controller.getFoodService(queryParams);
+
+    // Only call API if first load or list is empty
+    if (controller.foodDataList.isEmpty) {
+      controller.getFoodService(queryParams);
+    }
+
     scrollController.addListener(_scrollListener);
-    super.initState();
   }
 
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200) {
       controller.getFoodService(queryParams, isLoadMore: true);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      RouteHelper.routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    RouteHelper.routeObserver.unsubscribe(this);
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    if (controller.shouldRefresh) {
+      controller.getFoodService(queryParams);
+      controller.shouldRefresh = false;
     }
   }
 

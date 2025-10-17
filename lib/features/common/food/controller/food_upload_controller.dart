@@ -74,6 +74,8 @@ class FoodUploadController extends GetxController {
   final Rx<File?> selectedImage = Rx<File?>(null);
   var priceOptions = <PriceOption>[].obs;
 
+  bool shouldRefresh = false;
+
   @override
   void onInit() {
     super.onInit();

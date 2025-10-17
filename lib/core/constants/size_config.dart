@@ -106,6 +106,7 @@ class SizeConfig {
   static double get size350 => isTablet ? 400.0 : 350.0;
   static double get size370 => isTablet ? 420.0 : 370.0;
   static double get size380 => isTablet ? 440.0 : 380.0;
+  static double get size390 => isTablet ? 450.0 : 390.0;
   static double get size400 => isTablet ? 410.0 : 400.0;
   static double get size450 => isTablet ? 460.0 : 450.0;
   static double get size130 => isTablet ? 145.0 : 130.0;
