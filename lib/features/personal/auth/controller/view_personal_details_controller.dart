@@ -9,6 +9,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/controller/location_controller.dart';
@@ -17,6 +19,7 @@ import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
@@ -229,11 +232,18 @@ class ViewPersonalDetailsController extends GetxController {
           getUserName: "${personalProfileDetails.value.user?.name}",
           profileImage: "${personalProfileDetails.value.user?.profileImage}",
           designation: "${personalProfileDetails.value.user?.profession}",
+          workType: "${personalProfileDetails.value.user?.designation}",
           userNameAt: "${personalProfileDetails.value.user?.username}",
         );
         await getUserLoginData();
         if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
             "SELF_EMPLOYED") {
+          await getUserServiceCreatedStatusUtils();
+          if (userServiceCreatedStatusGlobal.isEmpty ||
+              userServiceCreatedStatusGlobal == "false") {
+            await getUserServiceStatusController();
+          }
+
           await getServiceProviderStatusUtils();
           if (serviceProviderStatusGlobal.isNotEmpty) {
             if (serviceProviderStatusGlobal.toUpperCase() ==
@@ -389,6 +399,30 @@ class ViewPersonalDetailsController extends GetxController {
     } catch (e) {
       postsResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  ///GET STATUS OF USER SERVICE...
+  Future<void> getUserServiceStatusController() async {
+    try {
+      ResponseModel responseModel =
+          await AuthRepo().getServiceExistsStatusRepo();
+
+      if (responseModel.isSuccess) {
+        final statusData = responseModel.response?.data['exists'].toString();
+
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.userServiceCreatedStatusKey, statusData);
+        await getUserServiceCreatedStatusUtils();
+        if (statusData == "false") {
+          Get.to(ServiceUploadScreen());
+        }
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      update();
     }
   }
 }

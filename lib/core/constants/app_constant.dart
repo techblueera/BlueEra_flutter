@@ -737,10 +737,11 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
 
   return entries;
 }
+
 List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "PENDING",  'title': 'Pending'},
-    {"id": "COMPLETED",  'title': 'Completed'},
+    {"id": "PENDING", 'title': 'Pending'},
+    {"id": "COMPLETED", 'title': 'Completed'},
     {"id": "CANCELED", 'title': 'Canceled'},
     {"id": "LATEST", 'title': 'Latest'},
     {"id": "OLDEST", 'title': 'Oldest'},
@@ -1839,12 +1840,14 @@ void trackPostView(String postID) {
 }
 
 canGoogleMapOpen({required double latitude, required double longitude}) async {
-  final Uri googleMapUrl = Uri.parse(
-      "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}");
+  if (latitude != 0.0 && longitude != 0.0) {
+    final Uri googleMapUrl = Uri.parse(
+        "https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}");
 
-  if (await canLaunchUrl(googleMapUrl)) {
-    await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
-  } else {
-    throw "Could not open Google Maps";
+    if (await canLaunchUrl(googleMapUrl)) {
+      await launchUrl(googleMapUrl, mode: LaunchMode.externalApplication);
+    } else {
+      throw "Could not open Google Maps";
+    }
   }
 }

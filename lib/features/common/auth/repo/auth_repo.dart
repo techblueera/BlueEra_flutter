@@ -42,21 +42,25 @@ class AuthRepo extends BaseService {
         isMultipart: true);
     return response;
   }
+
   ///User register  REPO...
   Future<ResponseModel> updateIndividualAccountUserRepo(
       {Map<String, dynamic>? bodyRequest}) async {
-    final response = await ApiBaseHelper().putHTTP("${updateIndividualAccountUser}$userId",
+    final response = await ApiBaseHelper().putHTTP(
+        "${updateIndividualAccountUser}$userId",
         params: bodyRequest,
         onError: (error) {},
         onSuccess: (data) {},
         isMultipart: true);
     return response;
   }
+
   ///User register  REPO...
   Future<ResponseModel> updateBusinessAccountUserRepo(
       {Map<String, dynamic>? bodyRequest}) async {
     log('userId--> $userId');
-    final response = await ApiBaseHelper().putHTTP("${updateBusinessAccount}$userId",
+    final response = await ApiBaseHelper().putHTTP(
+        "${updateBusinessAccount}$userId",
         params: bodyRequest,
         onError: (error) {},
         onSuccess: (data) {},
@@ -66,12 +70,8 @@ class AuthRepo extends BaseService {
 
   /// Get All Categories REPO...
   Future<ResponseModel> getBusinessCategoriesRepo() async {
-    final response = await ApiBaseHelper().getHTTP(
-        getAllcategories,
-        showProgress: false,
-        onError: (error) {},
-        onSuccess: (data) {}
-    );
+    final response = await ApiBaseHelper().getHTTP(getAllcategories,
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -99,13 +99,12 @@ class AuthRepo extends BaseService {
   /// Get Username REPO...
   Future<ResponseModel> getCheckUsernameRepo(
       {required String? userName}) async {
-    final response = await ApiBaseHelper()
-        .postHTTP("${checkUsername}", params: {
-      "inputUsername": userName
-    }, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().postHTTP("${checkUsername}",
+        params: {"inputUsername": userName},
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
-
 
   /// Delete User account REPO...
   // Future<ResponseModel> deleteUserAccountRepo(
@@ -115,7 +114,8 @@ class AuthRepo extends BaseService {
   // return response;
   // }
 
-  Future<ResponseModel> callForceUpdateApi({required Map<String, dynamic> params}) async {
+  Future<ResponseModel> callForceUpdateApi(
+      {required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       versionControl,
       params: params,
@@ -127,7 +127,8 @@ class AuthRepo extends BaseService {
   }
 
   ///BLOCK USER...
-  Future<ResponseModel> blockUser({required Map<String, dynamic> params}) async {
+  Future<ResponseModel> blockUser(
+      {required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       blocked,
       params: params,
@@ -138,16 +139,16 @@ class AuthRepo extends BaseService {
     return response;
   }
 
-
   /// Get All Categories REPO...
   Future<ResponseModel> getAllProfessionsRepo() async {
-    final response = await ApiBaseHelper()
-        .getHTTP(individualProfessions, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(individualProfessions,
+        onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
   //createGuestAccount...
-  Future<ResponseModel> createGuestAccountRepo({required Map<String, dynamic> params}) async {
+  Future<ResponseModel> createGuestAccountRepo(
+      {required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       createGuestAccount,
       params: params,
@@ -186,6 +187,17 @@ class AuthRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       "$aiGenerateBio",
       params: bodyParam,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  // GET PROVIDER STATUS Patch
+  Future<ResponseModel> getServiceExistsStatusRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${serviceExistsStatus}",
+      params: {ApiKeys.type: "service"},
       onError: (error) {},
       onSuccess: (data) {},
     );

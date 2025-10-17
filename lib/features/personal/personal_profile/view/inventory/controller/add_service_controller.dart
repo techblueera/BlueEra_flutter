@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -17,6 +16,8 @@ import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../../common/food/repo/food_ai_repo.dart';
 
 class LocalImage {
   final String path;
@@ -138,7 +139,7 @@ class AddServiceController extends GetxController {
       final List<String>? selected =
           await SelectProductImageDialog.showLogoDialog(
         context,
-        'Product Image',
+        accountTypeGlobal==AppConstants.individual?"Service Image":'Product Image',
       );
 
       if (selected != null) {
@@ -208,7 +209,9 @@ class AddServiceController extends GetxController {
     if (imageLocalPaths.length < 2 || imageLocalPaths.length > 5) {
       commonSnackBar(
           message: (imageLocalPaths.length < 2)
-              ? 'Please take minimum two service images'
+              ? accountTypeGlobal == AppConstants.individual
+                  ? 'Please take minimum two services images'
+                  : 'Please take minimum two product images'
               : 'You can\'t add more than five images');
       return false;
     }
