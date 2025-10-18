@@ -21,12 +21,12 @@ if (keystorePropertiesFile.exists()) {
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '102'
+    flutterVersionCode = '103'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '13.40.47'
+    flutterVersionName = '13.40.48'
 }
 
 def mapApiKey = localProperties.getProperty('MAP_API_KEY')
@@ -65,8 +65,8 @@ android {
         applicationId "ai.bluecs.app"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 102
-        versionName "13.40.47"
+        versionCode 103
+        versionName "13.40.48"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey,
                 admobAppId: admobId
