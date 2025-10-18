@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/api/apiService/response_model.dart';
@@ -37,8 +39,9 @@ class OrderNowController extends GetxController {
 
       if (responseModel.response?.data['success']) {
         final data = responseModel.response?.data;
-        lat.value=data['data']['business_location']['lat'].toString();
-        long.value=data['data']['business_location']['lon'].toString();
+        logs("data=== ${data}");
+        lat.value=data['data']['address'].toString();
+        // long.value=data['data']['business_location']['lon'].toString();
 
       }else{
 
@@ -112,14 +115,18 @@ class OrderNowDialog {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CustomText("Step 1",
-                            fontSize: 18, fontWeight: FontWeight.w600),
-                        const SizedBox(height: 5),
-                        const CustomText("Copy Store Location Lat & Long",
-                            color: AppColors.secondaryTextColor),
-                        const SizedBox(height: 10),
-                        const CustomText("Lat",
-                            color: AppColors.secondaryTextColor),
+                        Row(
+                          children: [
+                            const CustomText("Step 1 :",
+                                fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.secondaryTextColor,),
+                            Expanded(
+                              child: const CustomText(" Copy Store Address",
+                                  fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.black,),
+                            ),
+                          ],
+                        ),
+
+
                         const SizedBox(height: 4),
                         // Address Box with Copy Button
 
@@ -138,7 +145,9 @@ class OrderNowDialog {
                                       child: CustomText(
                                         controller.lat.value,
                                         fontSize: 16,
+                                        color: AppColors.primaryColor,
                                         overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
                                       ),
                                     ),
                                   ),
@@ -150,7 +159,7 @@ class OrderNowDialog {
                                 ],
                               ),
                             )),
-                        const CustomText("Log",
+                    /*    const CustomText("Log",
                             color: AppColors.secondaryTextColor),
                         const SizedBox(height: 4),
                         Obx(() =>
@@ -180,16 +189,21 @@ class OrderNowDialog {
                                 ],
                               ),
                             )),
-                        const SizedBox(height: 25),
+                        const SizedBox(height: 25),*/
 
-                        // Step 2
-                        const CustomText("Step 2",
-                            fontSize: 18, fontWeight: FontWeight.w600),
                         const SizedBox(height: 5),
-                        const CustomText(
-                          "Now Book Delivery Partner",
-                          color: AppColors.secondaryTextColor,
+                        Row(
+                          children: [
+                            const CustomText("Step 2 :",
+                              fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.secondaryTextColor,),
+                            Expanded(
+                              child: const CustomText(" Now Book Delivery Partner",
+                                fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.black,),
+                            ),
+                          ],
                         ),
+                        // Step 2
+
                         const SizedBox(height: 12),
 
                         // Buttons (Rapido & Porter)
@@ -226,10 +240,13 @@ class OrderNowDialog {
                                     ApiKeys.per_page_message: 30,
                                   });
                                   Get.back();
-                                  Get.to(CommonWebView(
-                                    urlLink: AppConstants.rapidoLink,
-                                    urlTitle: 'Rapido',
-                                  ));
+                                  if (!await launchUrl( Uri.parse(AppConstants.rapidoLink))) {
+                                    // throw Exception('Could not launch $_url');
+                                  }
+                                  // Get.to(CommonWebView(
+                                  //   urlLink: AppConstants.rapidoLink,
+                                  //   urlTitle: 'Rapido',
+                                  // ));
                                 },
                               ),
                             ),
@@ -264,11 +281,13 @@ class OrderNowDialog {
                                     ApiKeys.per_page_message: 30,
                                   });
                                   Get.back();
-
-                                  Get.to(CommonWebView(
-                                    urlLink: AppConstants.porterLink,
-                                    urlTitle: 'Porter',
-                                  ));
+                                  if (!await launchUrl( Uri.parse(AppConstants.porterLink))) {
+                                    // throw Exception('Could not launch $_url');
+                                  }
+                                  // Get.to(CommonWebView(
+                                  //   urlLink: AppConstants.porterLink,
+                                  //   urlTitle: 'Porter',
+                                  // ));
                                 },
                               ),
                             ),
