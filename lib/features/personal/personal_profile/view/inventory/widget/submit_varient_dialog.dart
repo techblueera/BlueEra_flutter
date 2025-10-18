@@ -35,6 +35,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
   // Discount percentage
   RxDouble discountPercent = 0.0.obs;
   late String productFullName;
+  RxBool _showImagePicker = false.obs;
 
   Future<void> pickProductImages(BuildContext context) async {
     try {
@@ -113,77 +114,97 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                   ],
                 ),
 
-                CustomText(
-                  'Upload product Images (Optional)',
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.black28,
-                ),
-                SizedBox(height: SizeConfig.size8),
-                SizedBox(
-                  height: SizeConfig.size80,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 2,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        final hasImage = index < productImages.length;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: GestureDetector(
-                            onTap: () {
-                              pickProductImages(context);
-                            },
-                            child: Container(
-                              width: 80,
-                              decoration: BoxDecoration(
-                                color: AppColors.whiteFE,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppColors.greyE5),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (hasImage)
-                                    Image.file(
-                                      File(productImages[index]),
-                                      fit: BoxFit.cover,
-                                    )
-                                  else
-                                    const Center(
-                                      child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
-                                    ),
-                                  if (hasImage )
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            productImages.removeAt(index);
-                                          });
-                                        },
-                                        child: Container(
-                                          width: 22,
-                                          height: 22,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.black54,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(Icons.close, size: 14, color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        _showImagePicker.value = !_showImagePicker.value;
                       },
-                    )
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomText(
+                            'Upload product Images (Optional)',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryColor,
+                          ),
+                          Obx(() => AnimatedRotation(
+                            turns: _showImagePicker.value ? 0.25 : 0.0, // rotates 90°
+                            duration: const Duration(milliseconds: 200),
+                            child: const Icon(Icons.chevron_right, color: AppColors.primaryColor),
+                          )),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    Obx(() => AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 250),
+                      crossFadeState: _showImagePicker.value
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      firstChild: SizedBox(
+                        height: SizeConfig.size80,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: 2,
+                          itemBuilder: (context, index) {
+                            final hasImage = index < productImages.length;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: GestureDetector(
+                                onTap: () => pickProductImages(context),
+                                child: Container(
+                                  width: 80,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.whiteFE,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: AppColors.greyE5),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      if (hasImage)
+                                        Image.file(File(productImages[index]), fit: BoxFit.cover)
+                                      else
+                                        const Center(
+                                          child: Icon(Icons.photo_outlined,
+                                              color: Colors.grey, size: 28),
+                                        ),
+                                      if (hasImage)
+                                        Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: GestureDetector(
+                                            onTap: () => productImages.removeAt(index),
+                                            child: Container(
+                                              width: 22,
+                                              height: 22,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.black54,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(Icons.close,
+                                                  size: 14, color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      secondChild: const SizedBox.shrink(),
+                    )),
+                  ],
                 ),
+
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
                   contentPadding:

@@ -128,7 +128,7 @@ class ValidationMethod {
 
   String? validateProductDescription(String? value) {
     if (value == null || value.isEmpty) return 'Product description is required';
-    if (value.length <= 20) return 'Product description name must be at least 20 characters';
+    if (value.length <= 15) return 'Product description name must be at least 15 characters';
     return null;
   }
 
