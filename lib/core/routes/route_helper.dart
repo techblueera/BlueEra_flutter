@@ -960,15 +960,15 @@ class RouteHelper {
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.productPreviewScreenProduct:
         final args = settings.arguments as Map<String, dynamic>;
-        final GetProductData? productData =
-            args[ApiKeys.argProductData] as GetProductData?;
+        final ProductStore? productStore =
+            args[ApiKeys.argProductData] as ProductStore?;
         final bool? productDataBool = args["isShowBusinessInfo"] as bool?;
         final String id = args[ApiKeys.id] as String;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreenProduct(
-                  productData: productData,
+                  productStore: productStore,
                   isShowBusinessInfo: productDataBool,
                   id: id,
                   providerType: providerType

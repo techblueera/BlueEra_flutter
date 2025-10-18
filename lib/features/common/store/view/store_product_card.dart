@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -82,8 +83,8 @@ class StoreProductCard extends StatelessWidget {
          arguments: {
            ApiKeys.argProductData: product,
            "isShowBusinessInfo": isShowBusinessInfo,
-           ApiKeys.id: businessId,
-           ApiKeys.providerType: 'Business'
+           ApiKeys.id: product?.businessId ?? "",
+           ApiKeys.providerType: ProductServiceProviderType.business
          },
        );
      },
@@ -194,7 +195,7 @@ class StoreProductCard extends StatelessWidget {
                     InkWell(
                       onTap: (){
                         Get.to(() => VisitBusinessProfileNew(
-                          businessId: product?.sellerClassification?.id ?? "",
+                          businessId: product?.businessId ?? "",
                           screenName: AppConstants.storeFeedScreen,
                         ));
                       },

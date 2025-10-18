@@ -53,10 +53,11 @@ class ProductStore {
   final SellerClassification? sellerClassification;
   final String? business_name;
   final String? business_logo;
+  final String? businessId;
   final String? category;
   final String? user_id;
   final String? mobile_no;
-  ProductStore({this.user_id, this.mobile_no, this.business_name, this.business_logo, this.category,
+  ProductStore({this.user_id, this.mobile_no, this.business_name, this.business_logo, this.businessId, this.category,
     this.details,
     this.sellerClassification,
   });
@@ -71,6 +72,7 @@ class ProductStore {
           : null,
       business_name: json['business_name'] ?? '',
       business_logo: json['business_logo'] ?? '',
+      businessId: json['business_id'] ?? '',
       category: json['category'] ?? '',
       mobile_no: json['mobile_no'] ?? '',
       user_id: json['user_id'] ?? '',
@@ -85,6 +87,7 @@ class ProductStore {
       'business_name': business_name,
       'category': category,
       'business_logo': business_logo,
+      'business_id': businessId,
       'user_id': user_id,
       'mobile_no': mobile_no,
     };
@@ -300,7 +303,6 @@ class ProductFeature {
 class SellerClassification {
   final String id;
   final String productId;
-  final String businessId;
   final List<Variant> variants;
   final bool isActive;
   BusinessLocation? businessLocation;
@@ -308,7 +310,6 @@ class SellerClassification {
   SellerClassification({
     required this.id,
     required this.productId,
-    required this.businessId,
     required this.variants,
     required this.isActive,
     this.businessLocation,
@@ -319,8 +320,6 @@ class SellerClassification {
     return SellerClassification(
       id: json['_id'] ?? '',
       productId: json['product_id'] ?? '',
-      businessId: json['business_id'] ?? '',
-
       variants: (json['variants'] as List<dynamic>? ?? [])
           .map((e) => Variant.fromJson(e))
           .toList(),
@@ -335,8 +334,6 @@ class SellerClassification {
     return {
       '_id': id,
       'product_id': productId,
-      'business_id': businessId,
-
       'variants': variants.map((e) => e.toJson()).toList(),
       'isActive': isActive,
       'business_location': businessLocation?.toJson(),
@@ -402,8 +399,8 @@ class BusinessLocation {
   });
 
   BusinessLocation.fromJson(dynamic json) {
-    latitude = json['latitude'] is num ? json['latitude'] as num : null;
-    longitude = json['longitude'] is num ? json['longitude'] as num : null;
+    latitude = json['lat'] is num ? json['lat'] as num : null;
+    longitude = json['lon'] is num ? json['lon'] as num : null;
   }
 
   num? latitude;
@@ -411,8 +408,8 @@ class BusinessLocation {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['latitude'] = latitude;
-    map['longitude'] = longitude;
+    map['lat'] = latitude;
+    map['lon'] = longitude;
     return map;
   }
 }

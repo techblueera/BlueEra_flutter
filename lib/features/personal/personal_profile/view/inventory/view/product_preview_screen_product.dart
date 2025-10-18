@@ -25,13 +25,13 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ProductPreviewScreenProduct extends StatefulWidget {
-  final GetProductData? productData;
+  final ProductStore? productStore;
   final bool? isShowBusinessInfo;
   final String? id;
   final ProductServiceProviderType? providerType;
 
   const ProductPreviewScreenProduct(
-      {super.key, required this.productData, this.isShowBusinessInfo, this.id, this.providerType});
+      {super.key, required this.productStore, this.isShowBusinessInfo, this.id, this.providerType});
 
   @override
   State<ProductPreviewScreenProduct> createState() =>
@@ -47,16 +47,16 @@ class _ProductPreviewScreenProductState
 
   @override
   void initState() {
-    if (widget.productData != null) {
+    if (widget.productStore != null) {
       controller.step2Images.value =
-          widget.productData?.product.details?.media ?? [];
+          widget.productStore?.details?.media ?? [];
       controller.productNameController.text =
-          widget.productData?.product.details?.name ?? '';
+          widget.productStore?.details?.name ?? '';
       controller.productDescriptionController.text =
-          widget.productData?.product.details?.description ?? '';
-      controller.tags.value = widget.productData?.product.details?.tags ?? [];
+          widget.productStore?.details?.description ?? '';
+      controller.tags.value = widget.productStore?.details?.tags ?? [];
       List<ProductFeature> features =
-          widget.productData?.product.details?.addProductFeatures ?? [];
+          widget.productStore?.details?.addProductFeatures ?? [];
       if (features.isNotEmpty) {
         for (final feature in features) {
           controller.featureControllers
@@ -65,7 +65,7 @@ class _ProductPreviewScreenProductState
       }
       // controller.linkController.text = widget.productData?.product.details?.name??'';
       late List<AddMoreDetail> tempDetailsList =
-          widget.productData?.product.details?.addMoreDetails ?? [];
+          widget.productStore?.details?.addMoreDetails ?? [];
       controller.detailsList.value = tempDetailsList.map((spec) {
         return ProductMoreDetails(
           title: spec.title,
@@ -73,9 +73,9 @@ class _ProductPreviewScreenProductState
         );
       }).toList();
       controller.mrpController.text =
-          widget.productData?.product.details?.name ?? '';
+          widget.productStore?.details?.name ?? '';
       controller.productWarrantyController.text =
-          widget.productData?.product.details?.productWarranty ?? '';
+          widget.productStore?.details?.productWarranty ?? '';
       // controller.productExpiryDurationController.text = widget.productData?.product.details?.produ??'';
       // controller.productExpiryDurationController.text = widget.productData?.product.details?.produ??'';
       // List<String> userGuide = widget.productData.userGuide ?? [];
@@ -86,17 +86,17 @@ class _ProductPreviewScreenProductState
       // }
       controller.listedProducts.clear();
       List<Variant> variants =
-          widget.productData?.product.sellerClassification?.variants ?? [];
+          widget.productStore?.sellerClassification?.variants ?? [];
       if (variants.isNotEmpty) {
         controller.listedProducts.value = widget
-                .productData?.product.sellerClassification?.variants
+                .productStore?.sellerClassification?.variants
                 .map((variant) {
               return ProductListing(id: variant.id,
                 image: variant.mediaRelatedToVariant.isNotEmpty
                     ? variant.mediaRelatedToVariant
                     : [],
                 name:
-                    '${widget.productData?.product.details?.name}  ${variant.attributes.values.map((v) => v.toString()).join()}',
+                    '${widget.productStore?.details?.name}  ${variant.attributes.values.map((v) => v.toString()).join()}',
                 selectedVariants: variant.attributes
                     .map((key, value) => MapEntry(key, value)),
                 price: variant.sellingPrice.toString(),
@@ -152,7 +152,7 @@ class _ProductPreviewScreenProductState
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: (widget.productData != null) ? true : false,
+      canPop: (widget.productStore != null) ? true : false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
@@ -256,7 +256,7 @@ class _ProductPreviewScreenProductState
                       child: IconButton(
                           padding: EdgeInsets.zero,
                           onPressed: () {
-                            if (widget.productData != null) {
+                            if (widget.productStore != null) {
                               Get.back();
                               return;
                             }
@@ -273,9 +273,9 @@ class _ProductPreviewScreenProductState
                   ],
                 ),
                 if (widget.isShowBusinessInfo ?? false)
-                  if (widget.productData?.product != null &&
-                      widget.productData?.product.business_name != null &&
-                      widget.productData?.product.user_id != null)
+                  if (widget.productStore != null &&
+                      widget.productStore?.business_name != null &&
+                      widget.productStore?.user_id != null)
                     CustomFormCard(
                       margin: EdgeInsets.only(
                           left: SizeConfig.size15,
@@ -287,17 +287,17 @@ class _ProductPreviewScreenProductState
                             radius: 30,
                             backgroundColor: Colors.grey,
                             backgroundImage: widget
-                                        .productData?.product.business_logo !=
+                                        .productStore?.business_logo !=
                                     null
                                 ? NetworkImage(
-                                    widget.productData?.product.business_logo ??
+                                    widget.productStore?.business_logo ??
                                         "")
                                 : null,
-                            child: widget.productData?.product.business_logo ==
+                            child: widget.productStore?.business_logo ==
                                     null
                                 ? CustomText(
                                     getInitials(widget
-                                        .productData?.product.business_name),
+                                        .productStore?.business_name),
                                     fontSize: SizeConfig.size18,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -311,7 +311,7 @@ class _ProductPreviewScreenProductState
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      widget.productData?.product.business_name
+                                      widget.productStore?.business_name
                                               ?.capitalizeFirst ??
                                           "NA",
                                       fontSize: SizeConfig.large18,
@@ -323,7 +323,7 @@ class _ProductPreviewScreenProductState
                                     //   height: SizeConfig.size5,
                                     // ),
                                     CustomText(
-                                      widget.productData?.product.category ??
+                                      widget.productStore?.category ??
                                           "NA",
                                       fontSize: SizeConfig.large,
                                       fontWeight: FontWeight.w500,
@@ -336,7 +336,7 @@ class _ProductPreviewScreenProductState
                         ],
                       ),
                     ),
-                if (widget.productData != null)
+                if (widget.productStore != null)
                   if (controller.listedProducts.isNotEmpty)
                     _buildListedProducts(),
                 /*   CustomFormCard(
@@ -405,18 +405,18 @@ class _ProductPreviewScreenProductState
                       _buildExpandableSection(
                           title: 'Pricing & Warranty',
                           content: _buildPricingAndWarrantyContent()),
-                      if (widget.productData == null)
+                      if (widget.productStore == null)
                         _buildExpandableSection(
                             title: 'Variant',
                             content: _buildProductVariantContent()),
                       SizedBox(height: SizeConfig.size20),
-                      if (widget.productData == null)
+                      if (widget.productStore == null)
 
                         /// Submit
                         CustomBtn(
                           title: 'Create Variant  - Start Selling',
                           onTap: () {
-                            if (widget.productData == null) {
+                            if (widget.productStore == null) {
                               Get.toNamed(
                                 RouteHelper.getCreateVariantScreenRoute(),
                                 arguments: {
@@ -1206,7 +1206,7 @@ class _ProductPreviewScreenProductState
           if (isSelected) {
             controller.selectedVariantIndex.value = -1; // unselect
             controller.step2Images.value =
-                widget.productData?.product.details?.media ?? [];
+                widget.productStore?.details?.media ?? [];
           } else {
             controller.selectedVariantIndex.value = index; // select
             controller.step2Images.value = product.image; // variant photo
@@ -1315,7 +1315,7 @@ class _ProductPreviewScreenProductState
                   }
                   final chatViewController = Get.find<ChatViewController>();
                   Map<String, dynamic> detas = {
-                    ApiKeys.user_id: widget.productData?.product.user_id
+                    ApiKeys.user_id: widget.productStore?.user_id
                   };
                   chatViewController.newVisitContactApiResponse?.value;
                   await chatViewController.checkChatConnection(detas);
@@ -1353,7 +1353,7 @@ class _ProductPreviewScreenProductState
                   chatViewController.openAnyOneChatFunction(
                     shareProductParams: data,
                     isWithProductSend: true,
-                    profileImage: widget.productData?.product.business_logo,
+                    profileImage: widget.productStore?.business_logo,
                     otherUserId: (chatViewController.newVisitContactApiResponse
                                     ?.value?.data?.conversationId ??
                                 '') ==
@@ -1363,7 +1363,7 @@ class _ProductPreviewScreenProductState
                             ''
                         : null,
                     businessId: widget
-                        .productData?.product.sellerClassification?.businessId,
+                        .productStore?.businessId,
                     type: "business",
                     isInitialMessage: (chatViewController
                                     .newVisitContactApiResponse
@@ -1374,15 +1374,15 @@ class _ProductPreviewScreenProductState
                             ""
                         ? true
                         : false,
-                    userId: widget.productData?.product.user_id,
+                    userId: widget.productStore?.user_id,
                     conversationId: (chatViewController
                             .newVisitContactApiResponse
                             ?.value
                             ?.data
                             ?.conversationId ??
                         ''),
-                    contactName: widget.productData?.product.business_name,
-                    contactNo: widget.productData?.product.mobile_no,
+                    contactName: widget.productStore?.business_name,
+                    contactNo: widget.productStore?.mobile_no,
                   );
                 },
                 child: Container(
