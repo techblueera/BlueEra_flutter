@@ -355,8 +355,8 @@ class _PersonalProfileSetupNewScreenState
           SizedBox(height: SizeConfig.size10),
           _buildMyDocumentWidget(),
 
-          SizedBox(height: SizeConfig.size10),
-          _buildBookingAndaAvailabilityWidget(),
+          // SizedBox(height: SizeConfig.size10),
+          // _buildBookingAndaAvailabilityWidget(),
 
           // Add the IntroductionVideoWidget here
 
@@ -1286,9 +1286,18 @@ class _PersonalProfileSetupNewScreenState
         alignment: Alignment.bottomRight,
         child: CustomBtn(
           width: SizeConfig.size160,
-          title: 'Let\'s Start Earing Now',
+          title: 'Let\'s Start Earning Now',
           onTap: () {
-            Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+            if (viewProfileController
+                    .personalProfileDetails.value.isProfileCreated ==
+                false) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CreateProfileScreen()));
+            } else {
+              Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+            }
           },
           bgColor: AppColors.primaryColor,
           textColor: AppColors.white,
@@ -1796,8 +1805,17 @@ class _PersonalProfileSetupNewScreenState
                   })
                 : InkWell(
                     onTap: () {
-                      Get.toNamed(RouteHelper.getAvailabilityScreenRoute(),
-                          arguments: {ApiKeys.channelId: userId});
+                      if (viewProfileController
+                              .personalProfileDetails.value.isProfileCreated ==
+                          false) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CreateProfileScreen()));
+                      } else {
+                        Get.toNamed(RouteHelper.getAvailabilityScreenRoute(),
+                            arguments: {ApiKeys.channelId: userId});
+                      }
                     },
                     child: Row(
                       children: [
