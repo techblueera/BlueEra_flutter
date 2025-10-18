@@ -249,7 +249,7 @@ class FoodUploadController extends GetxController {
       ResponseModel responseModel =
       await FoodAiRepo().addFoodService(queryParam: data);
       if (responseModel.isSuccess) {
-        UploadFoodLoadUrlModel data =UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
+        UploadFoodLoadUrlModel data = UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
 
         UploadProgressDialog.update(0.2);
         List<String> preSignedUrlImages = data.uploadUrls?.images ?? [];
@@ -264,12 +264,12 @@ class FoodUploadController extends GetxController {
         }
         UploadProgressDialog.close();
         commonSnackBar(message: 'Food Added Successfully');
-        Map<String, dynamic> params = {
-          ApiKeys.all: false,
-          ApiKeys.type: "food",
-          ApiKeys.radius: kmRadius1000
-        };
-       // getFoodService(params);
+        // Map<String, dynamic> params = {
+        //   ApiKeys.all: false,
+        //   ApiKeys.type: "food",
+        //   ApiKeys.radius: kmRadius1000
+        // };
+        // getFoodService(params);
        Get.close(2);
         // Get.back();
         // Get.back();

@@ -209,12 +209,20 @@ class AddServiceController extends GetxController {
   bool isValidate() {
     if (!formKey.currentState!.validate()) return false;
 
-    if (imageLocalPaths.length < 2 || imageLocalPaths.length > 5) {
+    // if (imageLocalPaths.length < 2 || imageLocalPaths.length > 5) {
+    //   commonSnackBar(
+    //       message: (imageLocalPaths.length < 2)
+    //           ? accountTypeGlobal == AppConstants.individual
+    //               ? 'Please take minimum two services images'
+    //               : 'Please take minimum two services images'
+    //           : 'You can\'t add more than five images');
+    //   return false;
+    // }
+
+    if (imageLocalPaths.length < 1 || imageLocalPaths.length > 5) {
       commonSnackBar(
-          message: (imageLocalPaths.length < 2)
-              ? accountTypeGlobal == AppConstants.individual
-                  ? 'Please take minimum two services images'
-                  : 'Please take minimum two product images'
+          message: (imageLocalPaths.length < 1)
+              ? 'Please take minimum two services images'
               : 'You can\'t add more than five images');
       return false;
     }

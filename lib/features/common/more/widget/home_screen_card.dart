@@ -133,7 +133,7 @@ class HomeScreenCard extends StatelessWidget {
         // Calculate relative offsets based on height
         final double profileTop = cardHeight * 0.302;
         final double profileSize = cardHeight * 0.5;
-        final double nameBottom = cardHeight * 0.07;
+        final double nameBottom = cardHeight * 0.06;
         final double textLeft = cardWidth * 0.20;
 
         return Stack(
@@ -187,12 +187,32 @@ class HomeScreenCard extends StatelessWidget {
               bottom: nameBottom,
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: CustomText(
-                  isIndividual() ? userNameGlobal : businessOwnerNameGlobal,
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.large,
-                  fontFamily: AppConstants.OpenSans,
-                  color: AppColors.white,
+                child: Stack(
+                  children: [
+                    Text(
+                      isIndividual() ? userNameGlobal : businessOwnerNameGlobal,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.extraLarge22,
+                        fontFamily: AppConstants.OpenSans,
+                        fontStyle: FontStyle.italic,
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 2
+                          ..color = AppColors.yellow,
+                      ),
+                    ),
+                    Text(
+                      isIndividual() ? userNameGlobal : businessOwnerNameGlobal,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.extraLarge22,
+                        fontFamily: AppConstants.OpenSans,
+                        color: AppColors.primaryColor,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -200,15 +220,33 @@ class HomeScreenCard extends StatelessWidget {
             /// Profession / Business name
             Positioned(
               left: textLeft,
-              bottom: nameBottom - 22,
+              bottom: nameBottom - 15,
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: CustomText(
-                  isIndividual() ? userProfessionGlobal : businessNameGlobal,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeConfig.small,
-                  fontFamily: AppConstants.OpenSans,
-                  color: AppColors.white,
+                child: Stack(
+                  children: [
+                    Text(
+                      isIndividual() ? userProfessionGlobal : businessNameGlobal,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: SizeConfig.medium,
+                        fontFamily: AppConstants.OpenSans,
+                        fontStyle: FontStyle.italic,
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 1
+                          ..color = AppColors.white,
+                      ),
+                    ),
+                    CustomText(
+                      isIndividual() ? userProfessionGlobal : businessNameGlobal,
+                      fontWeight: FontWeight.w400,
+                      fontSize: SizeConfig.medium,
+                      fontFamily: AppConstants.OpenSans,
+                      color: AppColors.secondaryTextColor,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ],
                 ),
               ),
             ),
