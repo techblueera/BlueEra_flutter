@@ -195,6 +195,7 @@ class HomeScreenCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         fontSize: SizeConfig.extraLarge22,
                         fontFamily: AppConstants.OpenSans,
+                        fontStyle: FontStyle.italic,
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 2
@@ -207,7 +208,8 @@ class HomeScreenCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         fontSize: SizeConfig.extraLarge22,
                         fontFamily: AppConstants.OpenSans,
-                        color: AppColors.primaryColor
+                        color: AppColors.primaryColor,
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
                   ],
@@ -229,6 +231,7 @@ class HomeScreenCard extends StatelessWidget {
                         fontWeight: FontWeight.w400,
                         fontSize: SizeConfig.medium,
                         fontFamily: AppConstants.OpenSans,
+                        fontStyle: FontStyle.italic,
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 1
@@ -241,6 +244,7 @@ class HomeScreenCard extends StatelessWidget {
                       fontSize: SizeConfig.medium,
                       fontFamily: AppConstants.OpenSans,
                       color: AppColors.secondaryTextColor,
+                      fontStyle: FontStyle.italic,
                     ),
                   ],
                 ),
