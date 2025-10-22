@@ -19,7 +19,7 @@ class CommonCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius??10),
         side: BorderSide.none,
       ),
-      margin: EdgeInsets.only(top: cardMargin??10),
+      margin: EdgeInsets.all(cardMargin??10),
       elevation: 0,
       child: Container(
         padding: EdgeInsets.all(padding ?? SizeConfig.size15),

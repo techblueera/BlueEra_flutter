@@ -47,9 +47,9 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       elevation: 0,
-      margin: const EdgeInsets.all(0),
+      margin: const EdgeInsets.all(8),
       // margin: const EdgeInsets.all(12),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),

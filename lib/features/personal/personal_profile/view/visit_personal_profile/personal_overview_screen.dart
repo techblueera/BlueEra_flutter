@@ -170,12 +170,9 @@ class _PersonalOverviewScreenState extends State<PersonalOverviewScreen> {
 
           // ✅ Show only latest post
           if (feedController.otherPosts.isNotEmpty) ...[
-            SizedBox(
-              height: SizeConfig.size10,
-            ),
             CommonCardWidget(
-              borderRadius: 0,
-              cardMargin: 0,
+              borderRadius: 10,
+              cardMargin: 10,
               // padding: SizeConfig.size10,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

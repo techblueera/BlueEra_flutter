@@ -80,7 +80,7 @@ class homeScreenCard extends StatelessWidget {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: CustomText(
-                      isIndividual() ? userNameGlobal : businessOwnerNameGlobal,
+                      isIndividual() ? userNameGlobal=='null'?'': userNameGlobal: businessOwnerNameGlobal=='null'?'':businessOwnerNameGlobal,
                       fontWeight: FontWeight.w700,
                       fontSize: SizeConfig.large,
                       fontFamily: AppConstants.OpenSans,
@@ -91,7 +91,7 @@ class homeScreenCard extends StatelessWidget {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: CustomText(
-                      isIndividual() ? userProfessionGlobal : businessNameGlobal,
+                      isIndividual() ? userProfessionGlobal=="null"?'':userProfessionGlobal : businessNameGlobal=='null'?'':businessNameGlobal,
                       fontWeight: FontWeight.w400,
                       fontSize: SizeConfig.small,
                       fontFamily: AppConstants.OpenSans,

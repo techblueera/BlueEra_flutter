@@ -11,9 +11,24 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/api/apiService/api_response.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constant.dart';
+import '../../../widgets/common_box_shadow.dart';
+import '../../../widgets/common_circular_profile_image.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
+import '../../common/reel/view/channel/follower_following_screen.dart';
 import '../auth/controller/view_business_details_controller.dart';
+import '../auth/model/viewBusinessProfileModel.dart';
+import '../visit_business_profile/view/business_profile_header.dart';
+import 'package:dio/dio.dart' as dio;
+
+
+
+
+
+
 
 class BusinessProfileScreen extends StatefulWidget {
   final int? selectedIndex;
@@ -28,9 +43,10 @@ class BusinessProfileScreen extends StatefulWidget {
 class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
+  BusinessProfileDetails? details;
 
   List<String> postTab = [
-    'Profile',
+    'Overview',
     'My Products',
     'Subscription',
     'My Posts',
@@ -45,6 +61,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     selectedFilter = widget.sortBy ?? SortBy.Latest;
     viewBusinessDetailsController.selectedIndex.value =
         widget.selectedIndex ?? 0;
+    details = viewBusinessDetailsController.businessProfileDetails?.data;
+
     setFilters();
     super.initState();
   }
@@ -61,9 +79,11 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       if (controller.viewBusinessResponse.status == Status.COMPLETE) {
         return Padding(
           padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.large, vertical: SizeConfig.size10),
+              horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
           child: Column(
             children: [
+              BusinessProfileHeader(details: details, controller: viewBusinessDetailsController,),
+              SizedBox(height: SizeConfig.size22,),
               HorizontalTabSelector(
                 tabs: postTab,
                 selectedIndex:
@@ -79,7 +99,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 _filterButtons(),
               ],
               SizedBox(
-                height: SizeConfig.size20,
+                height: SizeConfig.size10,
               ),
               _buildTabContent(
                   controller, viewBusinessDetailsController.selectedIndex.value)
@@ -103,7 +123,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
   Widget _buildTabContent(ViewBusinessDetailsController controller, int index) {
     switch (postTab[index]) {
-      case 'Profile':
+      case 'Overview':
         return BusinessProfileWidget();
       case 'My Posts':
         return FeedScreen(
@@ -175,3 +195,322 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
 
 }
+
+class BusinessProfileHeader extends StatelessWidget {
+  final BusinessProfileDetails? details;
+  final ViewBusinessDetailsController controller;
+  const BusinessProfileHeader({super.key, required this.details, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+     // margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Banner + Profile Image
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Banner Image
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                child: Container(
+                  child: Image.network(
+                    controller.imagePath?.value ?? "",
+                    width: double.infinity,
+                    height: 120,
+                    //height: 160,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+              // Profile image overlapping banner bottom
+              Positioned(
+                left: 20,
+                bottom: -40, // makes it overlap smoothly
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white,
+                    child:  CircleAvatar(
+                      radius: 30,
+                      backgroundImage: NetworkImage(  controller.imagePath?.value ?? "",),
+                    ),
+                  ),
+                  // CommonProfileImage(
+                  //   imagePath: controller.imagePath?.value ?? "",
+                  //   onImageUpdate: (image) async {
+                  //     controller.imagePath?.value = image;
+                  //     dio.MultipartFile? imageByPart;
+                  //
+                  //     if (controller.imagePath?.value.isNotEmpty ?? false) {
+                  //       String fileName =
+                  //           controller.imagePath?.value.split('/').last ?? "";
+                  //       imageByPart = await dio.MultipartFile.fromFile(
+                  //         controller.imagePath?.value ?? "",
+                  //         filename: fileName,
+                  //       );
+                  //     }
+                  //
+                  //     dynamic reqData = {
+                  //       ApiKeys.businessId: businessId,
+                  //       ApiKeys.logo_image: imageByPart,
+                  //     };
+                  //
+                  //     await controller.updateBusinessDetails(reqData);
+                  //   },
+                  //   dialogTitle: 'Upload Business Logo',
+                  // ),
+                ),
+              ),
+
+              // Follow button & menu
+              Positioned(
+                right: 14,
+
+                bottom: -40,
+                child: Row(
+                  children: [
+                    Container(
+                      padding:EdgeInsets.symmetric(horizontal: 13,vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child:const CustomText(
+                        "Follow",
+                        color: AppColors.appBackgroundColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(width: 6),
+                    const Icon(Icons.more_vert,
+                        color: AppColors.mainTextColor,size: 20,),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+
+          const SizedBox(height: 34),
+
+          // Business name and buttons
+          Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 Text(
+                   "${details?.businessName ?? ''}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding:EdgeInsets.symmetric(horizontal: 12,vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color:AppColors.secondaryTextColor, )
+                      ),
+                      child:const CustomText(
+                        "Shop",
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+                    Container(
+                      padding:EdgeInsets.symmetric(horizontal: 12,vertical: 4),
+                      decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color:AppColors.red, )
+                      ),
+                      child:const CustomText(
+                        "Close",
+                        color: AppColors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                  ],
+                ),
+                const SizedBox(height: 16),
+                 Text(
+                  "${details?.businessDescription }",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.black87,
+                  ),
+                ),
+                // TextButton(
+                //   onPressed: () {},
+                //   child: const Text("Read More"),
+                // ),
+                const SizedBox(height: 16),
+
+                Container(
+                  // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size10,
+                    horizontal: SizeConfig.size10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    border: Border.all(
+                      color: AppColors.whiteE5, // #E5E5E5 border
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(SizeConfig.size10),
+                    boxShadow: [AppShadows.textFieldShadow],
+                    // color: Colors.white, // optional background
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            buildInfo("Rating",
+                                "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+                            SizedBox(
+                              height: SizeConfig.size12,
+                            ),
+                            buildInfo("Views",
+                                "${formatIndianNumber(details?.total_views ?? 0)}"),
+                          ],
+                        ),
+                      ),
+                      // SizedBox(
+                      //   width: 100,
+                      // ),
+                      Expanded(
+                        child: SizedBox(
+                          height: SizeConfig.size50,
+                          child: VerticalDivider(
+                            color: AppColors.coloGreyText,
+                            width: 12,
+                            thickness: 1.2,
+                          ),
+                        ),
+                      ),
+                      // SizedBox(
+                      //   width: SizeConfig.size24,
+                      // ),
+                      Flexible(
+                        flex: 2,
+                        child: Container(
+                          // color: Colors.red,
+                          width: Get.width,
+                          alignment: Alignment.center,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              buildInfo("Inquiries", formatIndianNumber(0)),
+                              SizedBox(
+                                height: SizeConfig.size12,
+                              ),
+                              InkWell(
+                                  onTap: () {
+                                    Get.to(() => FollowersFollowingPage(
+                                      tabIndex: 1,
+                                      userID: details?.id ?? "",
+                                    ));
+                                  },
+                                  child: buildInfo("Followers",
+                                      "${formatIndianNumber(details?.total_followers ?? 0)}")),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // SizedBox(
+                      //   width: SizeConfig.size20,
+                      // ),
+                      SizedBox(
+                        height: SizeConfig.size50,
+                        child: VerticalDivider(
+                          color: AppColors.coloGreyText,
+                          width: 12,
+                          thickness: 1.2,
+                        ),
+                      ),
+                      SizedBox(
+                        width: SizeConfig.size15,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CustomText(
+                            "Joined",
+                            fontSize: SizeConfig.size12,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          SizedBox(height: SizeConfig.size2),
+                          CustomText(
+                            details?.dateOfIncorporation == null
+                                ? ""
+                                : "${details?.dateOfIncorporation?.date ?? ""}/${(details?.dateOfIncorporation?.month ?? 1)}/${details?.dateOfIncorporation?.year ?? ""}",
+                            fontSize: SizeConfig.size12,
+                            maxLines: 1,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          SizedBox(height: SizeConfig.size10),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Stats Section
+
+        ],
+      ),
+    );
+  }
+
+}
+
+

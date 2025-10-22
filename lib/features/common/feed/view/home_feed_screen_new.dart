@@ -364,12 +364,18 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                           bottom: 10,
                                           left: SizeConfig.size10,
                                           right: SizeConfig.size10,
-                                          top: 5),
+                                          top: 20),
                                       decoration: BoxDecoration(
-                                          color: AppColors.mainTextColor
-                                              .withValues(alpha: 0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(5.0)),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.black.withOpacity(0.0), // Top transparent
+                                            Colors.black.withOpacity(0.9), // Bottom dark
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(5.0),
+                                      ),
                                       child: CustomText(
                                         "${imgPostData.subTitle}",
                                         color: AppColors.white,

@@ -281,6 +281,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             maxLength: controller.maxCharCount,
             hintText: 'Briefly describe your message...',
             isValidate: false,
+            inputLength: controller.maxCharCount,
           ),
           SizedBox(
             height: SizeConfig.size10,

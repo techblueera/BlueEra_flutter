@@ -132,6 +132,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: Obx(() {
@@ -183,6 +185,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                     _filterButtons(),
                   ],
                   SizedBox(height: SizeConfig.size16),
+
                   _buildTabContent(selectedIndex)
                 ],
               ),

@@ -211,7 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _buildSelectedTabContent(),
                 ),
 
-                /// Sliding Header
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
