@@ -131,8 +131,8 @@ class HomeScreenCard extends StatelessWidget {
         final double cardWidth = constraints.maxWidth;
 
         // Calculate relative offsets based on height
-        final double profileTop = cardHeight * 0.302;
-        final double profileSize = cardHeight * 0.5;
+        final double profileTop = cardHeight * 0.396;
+        final double profileSize = cardHeight * 0.42;
         final double nameBottom = cardHeight * 0.06;
         final double textLeft = cardWidth * 0.20;
 

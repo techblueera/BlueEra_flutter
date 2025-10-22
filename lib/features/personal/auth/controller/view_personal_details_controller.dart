@@ -34,6 +34,7 @@ class _ProfileFieldStatus {
 }
 
 class ViewPersonalDetailsController extends GetxController {
+
   @override
   void onInit() {
     // getAllPostApi();
@@ -423,6 +424,28 @@ class ViewPersonalDetailsController extends GetxController {
       }
     } catch (e) {
       update();
+    }
+  }
+
+  RxString isUserServiceExistsKey = 'false'.obs;
+
+  ///GET STATUS OF USER EXISTENCE...
+  Future<String> getUserServiceExistenceStatus() async {
+    try {
+      ResponseModel responseModel =
+      await AuthRepo().getServiceExistenceStatusRepo();
+
+      if (responseModel.isSuccess) {
+        String isUserServiceExits = responseModel.response?.data['exists'].toString() ?? 'false';
+        return isUserServiceExits;
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return 'false';
+      }
+    } catch (e) {
+      update();
+      return 'false';
     }
   }
 }

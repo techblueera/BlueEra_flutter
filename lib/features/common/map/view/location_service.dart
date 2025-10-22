@@ -12,7 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 class LocationService {
   static double lat = 0.0;
   static double lng = 0.0;
-  static List<String> userCurrentAddress = [];
+  static RxList<String> userCurrentAddress = <String>[].obs;
   static bool isLoading = false;
 
   // @override
@@ -90,7 +90,7 @@ class LocationService {
       final placeMarks = await placemarkFromCoordinates(lat, lng);
       if (placeMarks.isNotEmpty) {
         final place = placeMarks.first;
-        userCurrentAddress = _composeAddress(
+        userCurrentAddress.value = _composeAddress(
           thoroughfare: place.thoroughfare,
           subLocality: place.subLocality,
           locality: place.locality,
@@ -100,7 +100,7 @@ class LocationService {
         );
 
         if (userCurrentAddress.isEmpty) {
-          userCurrentAddress = [
+          userCurrentAddress.value = [
             place.subLocality ?? '',
             place.locality ?? '',
             place.administrativeArea ?? '',
@@ -108,7 +108,7 @@ class LocationService {
           ];
         }
       } else {
-        userCurrentAddress = [];
+        userCurrentAddress.value = [];
       }
 
       log("userCurrentAddress=== $userCurrentAddress");

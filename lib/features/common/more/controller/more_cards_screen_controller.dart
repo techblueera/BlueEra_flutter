@@ -38,7 +38,7 @@ class MoreCardsScreenController extends GetxController{
       //   ApiKeys.date: DateTime.now().toIso8601String()
       // };
 
-      Map<String , dynamic> queryParams = {
+      Map<String, dynamic> queryParams = {
         ApiKeys.fromDate: DateTime.now().toIso8601String(),
         ApiKeys.toDate: DateTime.now().add(Duration(days: 7)).toIso8601String(),
       };
@@ -80,15 +80,20 @@ class MoreCardsScreenController extends GetxController{
         if (cardResponseModel.cards != null) {
           for (final card in cardResponseModel.cards!) {
             cards.add(card);
-            categories.add(card.categoryName ?? '');
-            print('category name -- ${card.categoryName}');
+
+            final categoryName = card.categoryName ?? '';
+            if (!categories.contains(categoryName)) {
+              categories.add(categoryName);
+            }
+
+            print('category name -- $categoryName');
           }
         }
 
         daysRangeAllCards.assignAll(cards);
         allCategories.assignAll(categories);
-
         filteredDaysRangeAllCards.value = List.from(cards);
+
       } else {
         daysRangeAllCardCategoriesResponse.value = ApiResponse.error('error');
 

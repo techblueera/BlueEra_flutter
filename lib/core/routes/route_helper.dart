@@ -382,11 +382,11 @@ class RouteHelper {
                 isHeaderVisible: isHeaderVisible,
                 onHeaderVisibilityChanged: onHeaderVisibilityChanged));
       case RouteConstant.BottomNavigationBarScreen:
-        // final args = settings.arguments as Map<dynamic, dynamic>;
-        // int? initialIndex = args[ApiKeys.initialIndex];
+        final args = settings.arguments as Map<dynamic, dynamic>?;
+        int? initialIndex = args?[ApiKeys.initialIndex];
         return MaterialPageRoute(
           builder: (_) => BottomNavigationBarScreen(
-              // initialIndex: initialIndex??0,
+              initialIndex: initialIndex,
               ),
           settings: RouteSettings(
               name: RouteHelper.getBottomNavigationBarScreenRoute()),

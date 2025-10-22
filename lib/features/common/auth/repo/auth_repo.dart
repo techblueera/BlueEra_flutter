@@ -203,4 +203,15 @@ class AuthRepo extends BaseService {
     );
     return response;
   }
+
+  // GET PROVIDER STATUS Patch All(product, service and booking )
+  Future<ResponseModel> getServiceExistenceStatusRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      serviceExistenceStatus,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

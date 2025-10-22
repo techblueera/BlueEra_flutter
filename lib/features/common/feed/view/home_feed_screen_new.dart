@@ -8,7 +8,8 @@ import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -22,13 +23,17 @@ import 'package:BlueEra/features/common/more/controller/more_cards_screen_contro
 import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_home_screen_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -36,7 +41,6 @@ import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -70,6 +74,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   var inventoryController = Get.isRegistered<InventoryController>()
       ? Get.find<InventoryController>()
       : Get.put(InventoryController());
+  final viewPersonalDetailsController = Get.put(ViewPersonalDetailsController());
 
   @override
   void initState() {
@@ -170,7 +175,10 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           return Column(
             children: [
               isIndividual()
-                  ? _buildSocialCard()
+                  ? (viewPersonalDetailsController.isUserServiceExistsKey.value
+                  == 'true')
+                     ? _buildSocialCard()
+                     : _buildEarnWithBlueEraWidget()
                   : (inventoryController.allProducts.isNotEmpty)
                       ? _buildProductCard()
                       : _buildSocialCard(),
@@ -203,11 +211,13 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
             if (indexFeed == 0) {
-              return isIndividual()
+              return Obx(()=> isIndividual()
+                  ? (viewPersonalDetailsController.isUserServiceExistsKey.value == 'true')
                   ? _buildSocialCard()
+                  : _buildEarnWithBlueEraWidget()
                   : inventoryController.allProducts.isNotEmpty
-                      ? _buildProductCard()
-                      : _buildSocialCard();
+                  ? _buildProductCard()
+                  : _buildSocialCard());
             }
             int index = indexFeed - 1;
             final block = blocks[index];
@@ -608,6 +618,91 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           )
         : SizedBox.shrink();
   }
+
+  Widget _buildEarnWithBlueEraWidget() {
+    return Container(
+      margin: EdgeInsets.only(
+          bottom: SizeConfig.paddingXSL,
+          left: SizeConfig.paddingXS,
+          right: SizeConfig.paddingXS
+      ),
+      decoration: BoxDecoration(
+          color: AppColors.white,
+          boxShadow: [AppShadows.cardShadow],
+          borderRadius: BorderRadius.circular(12)
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+            left: SizeConfig.size8,
+            right: SizeConfig.size8,
+            top: SizeConfig.size10,
+            bottom: SizeConfig.size5
+        ),
+        child: Column(children: [
+          Row(
+            children: [
+              _buildCircleIcon(AppIconAssets.earnWithBlueEra),
+              SizedBox(width: SizeConfig.size6),
+              _buildTitleWidget('Earn with BlueEra'),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size16),
+          HorizontalVideoPlayer(),
+          SizedBox(height: SizeConfig.size16),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: CustomBtn(
+              width: SizeConfig.size160,
+              title: 'Let\'s Start Earning Now',
+              onTap: () {
+                if (Get.find<ViewPersonalDetailsController>()
+                    .personalProfileDetails.value.isProfileCreated ==
+                    false) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CreateProfileScreen()));
+                } else {
+                  Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                }
+              },
+              bgColor: AppColors.primaryColor,
+              textColor: AppColors.white,
+              height: SizeConfig.size34,
+              radius: 10.0,
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildCircleIcon(String iconImage) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size6),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primaryColor.withValues(alpha: 0.1),
+        border: Border.all(color: AppColors.primaryColor, width: 0.5),
+      ),
+      child: LocalAssets(
+        width: SizeConfig.size22,
+        height: SizeConfig.size22,
+        imagePath: iconImage,
+        imgColor: AppColors.primaryColor,
+      ),
+    );
+  }
+
+  Widget _buildTitleWidget(String text) {
+    return CustomText(
+      text,
+      fontSize: SizeConfig.medium,
+      fontWeight: FontWeight.w600,
+      color: AppColors.secondaryTextColor,
+    );
+  }
+
 }
 
 ShortFeedItem getVideoData(Post video) {

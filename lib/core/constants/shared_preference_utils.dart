@@ -1,5 +1,3 @@
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/map/controller/location_controller.dart';
@@ -34,6 +32,7 @@ String businessOwnerAddressGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
 String userServiceCreatedStatusGlobal = '';
+// String userServiceExistsKeyGlobal = 'false';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -76,6 +75,7 @@ class SharedPreferenceUtils {
   static const businessSubCategory = 'businessSubCategory';
   static const serviceProviderStatus = 'serviceProviderStatus';
   static const userServiceCreatedStatusKey = 'userServiceCreatedStatusKey';
+  static const userServiceExistsKey = 'userServiceExistsKey';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -206,6 +206,7 @@ class SharedPreferenceUtils {
       serviceProviderStatusGlobal = '';
       userServiceCreatedStatusGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
+      // userServiceExistsKeyGlobal = 'false';
       Get.put(LocationServiceProviderController()).stopLocationUpdates();
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
     } on Exception {
@@ -249,11 +250,19 @@ getServiceProviderStatusUtils() async {
           SharedPreferenceUtils.serviceProviderStatus) ??
       "";
 }
+
 getUserServiceCreatedStatusUtils() async {
   userServiceCreatedStatusGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.userServiceCreatedStatusKey) ??
       "";
 }
+
+Future<String> getUserServiceExistsKey() async {
+   return await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userServiceExistsKey) ??
+      'false';
+}
+
 
 ///GET USER DATA....
 getUserLoginData() async {

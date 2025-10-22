@@ -15,10 +15,14 @@ import 'package:BlueEra/features/common/store/view/store_food_service_card.dart'
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/features/common/store/view/store_services_card.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_icon_assets.dart';
@@ -45,6 +49,8 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
   late StoreScreenController controller;
   final viewBusinessDetailsController =
   Get.put(ViewBusinessDetailsController());
+  final ViewPersonalDetailsController viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>() ?
+  Get.find<ViewPersonalDetailsController>() : Get.put(ViewPersonalDetailsController());
   double headerHeight = 0.0;
 
   @override
@@ -155,7 +161,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                       controller: controller.scrollController,
                       child: Column(
                         children: [
-                          // 🔹 Background Image
+                          // Background Image
                           Container(
                             width: double.infinity,
                             height: dynamicSize(270),
@@ -165,6 +171,35 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                                     AppImageAssets.storeNewBackground),
                                 fit: BoxFit.cover,
                               ),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Obx(()=> LocationService.userCurrentAddress.isNotEmpty ? CustomText(
+                                  'Find Anything\n in ' + LocationService.userCurrentAddress[2],
+                                  fontSize: SizeConfig.extraLarge22,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.white,
+                                  textAlign: TextAlign.center,
+                                ) : SizedBox()),
+                                Positioned(
+                                    top: dynamicSize(12),
+                                    right: dynamicSize(15),
+                                    child: InkWell(
+                                      onTap: ()=> LocationService.fetchLocation(),
+                                      child: Container(
+                                        padding: EdgeInsets.all(dynamicSize(5)),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          shape: BoxShape.circle
+                                        ),
+                                        child: LocalAssets(
+                                          imagePath: AppIconAssets.currentLocationIcon,
+                                        ),
+                                      ),
+                                    )
+                                )
+                              ],
                             ),
                           ),
 
@@ -251,83 +286,102 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
   }
 
   Widget _buildStoreHeader() {
-    return InkWell(
-      onTap: () async {
-        // apiCalling();
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.paddingM,
-          vertical: SizeConfig.paddingXS,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.gps_fixed,
-              color: Colors.black,
-              size: SizeConfig.size24,
-            ),
-            SizedBox(width: SizeConfig.size8),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    LocationService.userCurrentAddress.isNotEmpty
-                        ? LocationService.userCurrentAddress
-                            .take(3)
-                            .where((e) => e.isNotEmpty)
-                            .join(', ')
-                        : "Get current location",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.blue,
-                  ),
-                ],
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.paddingM,
+        vertical: SizeConfig.paddingXSmall,
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(SizeConfig.size14),
+            child: CachedNetworkImage(
+              imageUrl: userProfileGlobal,
+              width: SizeConfig.size30,
+              height: SizeConfig.size30,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                width: SizeConfig.size30,
+                height: SizeConfig.size30,
+                color: Colors.grey[300],
               ),
+              errorWidget: (context, url, error) =>
+                  Icon(Icons.person, size: SizeConfig.size30 / 2),
             ),
+          ),
 
-            if(isBusinessUser())
-           ...[
-             SizedBox(width: SizeConfig.size8),
-             PopupMenuButton<String>(
-               padding: EdgeInsets.zero,
-               offset: const Offset(-6, 36),
-               color: AppColors.white,
-               elevation: 8,
-               shape: RoundedRectangleBorder(
-                   borderRadius: BorderRadius.circular(10)),
-               onSelected: (value) async {
-                 if (isGuestUser()) {
-                   createProfileScreen();
-                 } else if (value.toUpperCase() == "ADD PRODUCT") {
-                   Get.toNamed(
-                     RouteHelper.getAddProductScreenRoute(),
-                     arguments: {
-                       ApiKeys.id: businessId,
-                       ApiKeys.providerType: ProductServiceProviderType.business
-                     }
-                   );
-                 } else if (value.toUpperCase() == "ADD SERVICE") {
-                   Get.toNamed(
-                       RouteHelper.getAddServicesScreenRoute(),
-                       arguments: {
-                         ApiKeys.providerType: ProductServiceProviderType.business,
-                       }
-                   );
-                 } else if (value.toUpperCase() == "ADD FOOD") {
-                   Get.to(() => FoodUploadScreen(
-                     providerType: ProductServiceProviderType.business
-                   ));
+          SizedBox(width: SizeConfig.size8),
+
+          Expanded(
+            child: CustomText(
+              isBusiness() ? businessNameGlobal : userNameGlobal,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
+          ),
+
+          SizedBox(width: SizeConfig.size8),
+
+          CustomBtn(
+               height: SizeConfig.size30,
+               width: SizeConfig.size110,
+               onTap: () {
+                 if(isBusinessUser()){
+                   Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                 }else{
+                   if (viewPersonalDetailsController
+                       .personalProfileDetails.value.isProfileCreated ==
+                       false) {
+                     Get.to(()=> CreateProfileScreen());
+                   } else {
+                     Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                   }
                  }
                },
-               icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
-               itemBuilder: (context) => popupMenuInventoryItems(),
-             )
-           ]
-          ],
-        ),
+               title: "My Store",
+               borderColor: AppColors.primaryColor,
+               textColor: AppColors.primaryColor,
+               bgColor: Colors.transparent,
+               radius: SizeConfig.size10,
+              ),
+
+           // PopupMenuButton<String>(
+           //   padding: EdgeInsets.zero,
+           //   offset: const Offset(-6, 36),
+           //   color: AppColors.white,
+           //   elevation: 8,
+           //   shape: RoundedRectangleBorder(
+           //       borderRadius: BorderRadius.circular(10)),
+           //   onSelected: (value) async {
+           //     if (isGuestUser()) {
+           //       createProfileScreen();
+           //     } else if (value.toUpperCase() == "ADD PRODUCT") {
+           //       Get.toNamed(
+           //         RouteHelper.getAddProductScreenRoute(),
+           //         arguments: {
+           //           ApiKeys.id: businessId,
+           //           ApiKeys.providerType: ProductServiceProviderType.business
+           //         }
+           //       );
+           //     } else if (value.toUpperCase() == "ADD SERVICE") {
+           //       Get.toNamed(
+           //           RouteHelper.getAddServicesScreenRoute(),
+           //           arguments: {
+           //             ApiKeys.providerType: ProductServiceProviderType.business,
+           //           }
+           //       );
+           //     } else if (value.toUpperCase() == "ADD FOOD") {
+           //       Get.to(() => FoodUploadScreen(
+           //         providerType: ProductServiceProviderType.business
+           //       ));
+           //     }
+           //   },
+           //   icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
+           //   itemBuilder: (context) => popupMenuInventoryItems(),
+           // )
+
+        ],
       ),
     );
   }

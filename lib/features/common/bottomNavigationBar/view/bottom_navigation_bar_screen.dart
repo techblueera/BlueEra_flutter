@@ -3,17 +3,16 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
-import 'package:BlueEra/features/common/map/controller/location_controller.dart';
+import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
-import 'package:BlueEra/features/common/store/view/store_screen.dart';
-import 'package:BlueEra/widgets/service_provider_dialoge.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/services/notifications/one_signal_services.dart';
@@ -24,7 +23,8 @@ import '../../map/view/customize_map_screen.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
-  const BottomNavigationBarScreen({super.key});
+  final int? initialIndex;
+  const BottomNavigationBarScreen({super.key, this.initialIndex = 0});
 
   @override
   State<BottomNavigationBarScreen> createState() =>
@@ -37,6 +37,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final chatViewController = Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
+  final moreCardsScreenController = Get.put(MoreCardsScreenController());
+  final viewPersonalDetailsController = Get.put(ViewPersonalDetailsController());
+  final inventoryController = Get.put(InventoryController());
 
   // final callController = Get.put(CallController());
   // final groupChatViewController = Get.put(GroupChatViewController());
@@ -48,25 +51,89 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // Get.put(LocationServiceProviderController()); // initialize controller
     }
 
-
-    if (isIndividual() && channelId.isEmpty) {
-      getChannelDetails().then((channelModel) {
-        channelId = channelModel?.data.id ?? '';
-        channelName = channelModel?.data.name ?? '';
-        channelOwner = channelModel?.data.ownership.claimedBy ?? '';
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channel_Id, channelId);
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channelName, channelName);
-        SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.channelOwner, channelOwner);
-      });
+    if (isIndividual()) {
+      checkServiceExistence();
+      if(channelId.isEmpty){
+        getChannelDetails().then((channelModel) {
+          channelId = channelModel?.data.id ?? '';
+          channelName = channelModel?.data.name ?? '';
+          channelOwner = channelModel?.data.ownership.claimedBy ?? '';
+          SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.channel_Id, channelId);
+          SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.channelName, channelName);
+          SharedPreferenceUtils.setSecureValue(
+              SharedPreferenceUtils.channelOwner, channelOwner);
+        });
+      }
     }
+    else{
+      getBusinessUserOwnProduct();
+    }
+
     chatViewController.connectSocket();
     // groupChatViewController.connectSocket();
     Get.put(ChatThemeController());
     getOneSignalUpdate();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if(isBusiness()){
+        bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+      }
+      else{
+
+      }
+    });
+
+  }
+
+  Future<void> checkServiceExistence() async {
+    viewPersonalDetailsController.isUserServiceExistsKey.value = await getUserServiceExistsKey();
+    log('userServiceExistsKeyGlobal--> ${viewPersonalDetailsController.isUserServiceExistsKey.value}');
+    if(viewPersonalDetailsController.isUserServiceExistsKey.value == 'false'){
+      viewPersonalDetailsController.isUserServiceExistsKey.value = await viewPersonalDetailsController.getUserServiceExistenceStatus();
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.userServiceExistsKey,
+          viewPersonalDetailsController.isUserServiceExistsKey.value
+      );
+    } else{
+      checkAndShowGreetingDialog(context);
+    }
+  }
+
+  void checkAndShowGreetingDialog(BuildContext context) async {
+    try {
+      await moreCardsScreenController.getCardCategoriesSortedByDate(
+          todayDate: DateTime.now().toIso8601String()
+      );
+    } catch (e) {
+      print("API error: $e");
+    }
+
+    // final result = await canCallCardApi();
+    // // final canCall = result.canCall;
+    // final canCall = true;
+    // final today = result.today;
+    //
+    // if (canCall) {
+    //   try {
+    //     await moreCardsScreenController.getCardCategoriesSortedByDate(
+    //         todayDate: today
+    //     );
+    //
+    //     await saveApiCallDate();
+    //   } catch (e) {
+    //     print("API error: $e");
+    //   }
+    // }
+
+  }
+
+  Future<void> getBusinessUserOwnProduct() async {
+    await inventoryController.fetchProducts();
+    if(inventoryController.allProducts.isEmpty){
+      checkAndShowGreetingDialog(context);
+    }
   }
 
   ///GET CHANNEL DETAILS...

@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/more/controller/more_cards_screen_contro
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -64,8 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<SavedFeedTab> filters = SavedFeedTab.values.toList();
   late SavedFeedTab _selectedSavedTab;
   final homeScreenController = Get.put(HomeScreenController());
-  final moreCardsScreenController = Get.put(MoreCardsScreenController());
-  final inventoryController = Get.put(InventoryController());
 
   late PageController _pageController;
 
@@ -80,17 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {});
     });
     _selectedSavedTab = SavedFeedTab.posts;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _calculateHeaderHeight();
-      if (isBusinessUser()) getBusinessUserOwnProduct();
-      checkAndShowGreetingDialog(context);
-    });
-    if ((accountTypeGlobal.toUpperCase() == AppConstants.individual)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(isIndividual()){
         await Future.delayed(Duration(seconds: 2));
         showEnableServiceDialog();
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -200,27 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  checkAndShowGreetingDialog(BuildContext context) async {
-    final result = await canCallCardApi();
-    // final canCall = result.canCall;
-    final canCall = true;
-    final today = result.today;
 
-    if (canCall) {
-      try {
-        await moreCardsScreenController.getCardCategoriesSortedByDate(
-            todayDate: today);
-
-        await saveApiCallDate();
-      } catch (e) {
-        print("API error: $e");
-      }
-    }
-  }
-
-  getBusinessUserOwnProduct() {
-    inventoryController.fetchProducts();
-  }
 
   void _calculateHeaderHeight() {
     final renderBox =
