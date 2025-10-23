@@ -93,7 +93,7 @@ class _ServiceCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       onTap: () {
         if(index==5){
-          Get.to(()=>RentalScreen());
+          // Get.to(()=>RentalScreen());
         }
       },
       child: Padding(

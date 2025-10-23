@@ -1,8 +1,10 @@
+import 'package:BlueEra/features/personal/personal_profile/view/rental_page/rental_details.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../../../../../widgets/horizontal_tab_selector.dart';
+import 'RentalServiceUploadScreen.dart';
 
 class RentalScreen extends StatefulWidget {
   const RentalScreen({Key? key}) : super(key: key);
@@ -169,79 +171,85 @@ class _RentalScreenState extends State<RentalScreen>
                         padding: const EdgeInsets.all(10),
                         itemCount: 3,
                         itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 15),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.shade200,
-                                  blurRadius: 5,
-                                  spreadRadius: 1,
-                                )
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      topRight: Radius.circular(12)),
-                                  child: Image.asset(
-                                    "assets/diwali_card/rentalhome.png", // Replace with your image
-                                    height: 160,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
+                          return InkWell(
+                            onTap: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => RentalDetailsScreen(),));
+
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 15),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.shade200,
+                                    blurRadius: 5,
+                                    spreadRadius: 1,
+                                  )
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12)),
+                                    child: Image.asset(
+                                      "assets/diwali_card/rentalhome.png", // Replace with your image
+                                      height: 160,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Banerjee Inn- City Centre",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: const [
-                                          Icon(Icons.star, color: Colors.amber, size: 18),
-                                          SizedBox(width: 3),
-                                          Text("4.8",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500, fontSize: 13)),
-                                          SizedBox(width: 5),
-                                          Text("(48 reviews)",
-                                              style: TextStyle(color: Colors.grey, fontSize: 13)),
-                                          SizedBox(width: 10),
-                                          Icon(Icons.location_on_outlined,
-                                              color: Colors.black54, size: 16),
-                                          Text("1.2 km",
-                                              style: TextStyle(color: Colors.black54, fontSize: 13)),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(child: _actionButton(Icons.navigation_outlined, "Direction")),
-                                         const SizedBox(width: 6,),
-                                          Expanded(child: _actionButton(Icons.reviews_outlined, "Reviews")),
-                                          const SizedBox(width: 6,),
-                                          Expanded(child: _bookNowButton()),
-                                        ],
-                                      ),
-                                    ],
+                                  Padding(
+                                    padding:
+                                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          "Banerjee Inn- City Centre",
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: const [
+                                            Icon(Icons.star, color: Colors.amber, size: 18),
+                                            SizedBox(width: 3),
+                                            Text("4.8",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w500, fontSize: 13)),
+                                            SizedBox(width: 5),
+                                            Text("(48 reviews)",
+                                                style: TextStyle(color: Colors.grey, fontSize: 13)),
+                                            SizedBox(width: 10),
+                                            Icon(Icons.location_on_outlined,
+                                                color: Colors.black54, size: 16),
+                                            Text("1.2 km",
+                                                style: TextStyle(color: Colors.black54, fontSize: 13)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Row(
+                                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(child: _actionButton(Icons.navigation_outlined, "Direction")),
+                                           const SizedBox(width: 6,),
+                                            Expanded(child: _actionButton(Icons.reviews_outlined, "Reviews")),
+                                            const SizedBox(width: 6,),
+                                            Expanded(child: _bookNowButton()),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -278,8 +286,7 @@ class _RentalScreenState extends State<RentalScreen>
   Widget _bookNowButton() {
     return ElevatedButton.icon(
       onPressed: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Book Now clicked')));
+       Navigator.push(context, MaterialPageRoute(builder: (context) => RentalServiceUploadScreen(),));
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,

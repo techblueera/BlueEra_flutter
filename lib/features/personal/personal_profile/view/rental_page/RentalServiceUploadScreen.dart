@@ -7,6 +7,7 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/common_card_widget.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
+import 'myproducts.dart';
 
 class RentalServiceUploadScreen extends StatelessWidget {
   const RentalServiceUploadScreen({super.key});
@@ -26,7 +27,8 @@ class RentalServiceUploadScreen extends StatelessWidget {
               bottom: SizeConfig.size20),
           child: PositiveCustomBtn(
             onTap: () {
-              // TODO: Handle post now
+              Navigator.push(context, MaterialPageRoute(builder: (context) => MyProductsScreen(),));
+
             },
             title: "Post Now",
           ),
