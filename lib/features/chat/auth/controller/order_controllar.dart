@@ -14,11 +14,13 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/api/apiService/api_keys.dart';
-import '../../../core/api/apiService/response_model.dart';
-import '../../business/auth/controller/view_business_details_controller.dart';
-import '../../business/auth/repo/business_profile_repo.dart';
-import '../auth/controller/chat_view_controller.dart';
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/api/apiService/response_model.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../business/auth/repo/business_profile_repo.dart';
+import '../repo/make_order_repo.dart';
+import 'chat_view_controller.dart';
 
 class OrderNowController extends GetxController {
   var lat = "".obs;
@@ -33,7 +35,7 @@ class OrderNowController extends GetxController {
     commonSnackBar(message: "Copied Store Long");
   }
   Future<void> viewBusinessForLocation(String userId) async {
-    // try {
+    try {
       ResponseModel responseModel =
       await BusinessProfileRepo().viewBusinessIdForLocation(userId);
 
@@ -41,24 +43,22 @@ class OrderNowController extends GetxController {
         final data = responseModel.response?.data;
         logs("data=== ${data}");
         lat.value=data['data']['address'].toString();
-        // long.value=data['data']['business_location']['lon'].toString();
 
       }else{
 
       }
-    // }catch(e){
-    //
-    // }
+    }catch(e){
+
+    }
   }
   Future<void> updateOrderStatus(Map<String,dynamic> params) async {
     // try {
       ResponseModel responseModel =
       await BusinessProfileRepo().updateMsgOrderStatus(params);
-      log("adlskc;sldkcl;skdc order Update ${responseModel.response?.data}");
+
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
-        log("adlskc;sldkcl;skdc order Update ${data}");
       }else{
 
       }
@@ -66,8 +66,37 @@ class OrderNowController extends GetxController {
     //
     // }
   }
+  Future<void> CreateOrder(
+      {required Map<String,dynamic> params}) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().createOrder(params);
+      if (response.isSuccess ?? false) {
+        print("Create Order Response :: ${response.response?.data}");
+      } else {
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> VerifyPayment(
+      {required Map<String,dynamic> params}) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
+      if (response.isSuccess ?? false) {
+        print("Create Order Response :: ${response.response?.data}");
+      } else {
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
 
 }
+
 
 class OrderNowDialog {
   static void showDialogBox(String businessId,String messageId,String conversationId) async {
@@ -75,8 +104,6 @@ class OrderNowDialog {
     //   // ..viewBusinessProfileById(businessId);
     final controller = Get.put(OrderNowController())..viewBusinessForLocation(businessId);
     final chatViewController = Get.find<ChatViewController>();
-
-
     Get.dialog(
        Dialog(
             insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
