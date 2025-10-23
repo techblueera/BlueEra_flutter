@@ -246,10 +246,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                             if (index == 0) {
                               return InkWell(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,)),
-                                  );
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(builder: (_) => BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,)),
+                                  // );
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
