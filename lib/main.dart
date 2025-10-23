@@ -56,12 +56,24 @@ firebaseInitializeApp() async {
     await Firebase.initializeApp();
   }
 }
+Future<void> loadCertificate() async {
+  // Load the PEM certificate from assets
+  ByteData data = await PlatformAssetBundle()
+      .load('assets/certificate/lets_encrypt.pem');
 
+  // Set the loaded certificate as a trusted certificate
+  SecurityContext.defaultContext
+      .setTrustedCertificatesBytes(data.buffer.asUint8List());
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // ByteData data = await PlatformAssetBundle().load('assets/certificate/dd1cdbfe4ee7b22e.pem');
+  //
+  // // Set the loaded certificate as a trusted certificate
+  // SecurityContext.defaultContext
+  //     .setTrustedCertificatesBytes(data.buffer.asUint8List());
   await firebaseInitializeApp();
-
+  clearSecureStorageIfFreshInstall();
   Get.put(AuthController());
 
   ///GET LOGIN USER DATA...

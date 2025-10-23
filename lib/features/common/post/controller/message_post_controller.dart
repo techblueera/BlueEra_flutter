@@ -1,8 +1,11 @@
 
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/photo_post_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -12,6 +15,7 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:croppy/croppy.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
@@ -31,6 +35,7 @@ class MessagePostController extends GetxController {
   RxBool isAddLink = false.obs;
   RxBool isAddTitle = true.obs;
   RxList<User>? taggedSelectedUsersList = <User>[].obs;
+  RxList<File> selectedFiles = <File>[].obs;
 
   final postTitleController = TextEditingController().obs;
   final postTextDataController = TextEditingController().obs;
@@ -186,6 +191,7 @@ class MessagePostController extends GetxController {
           id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
     }
   }
+
 }
 
 class MessagePostImageModel {

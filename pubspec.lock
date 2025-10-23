@@ -1797,38 +1797,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.0"
-  share_handler:
-    dependency: "direct main"
-    description:
-      name: share_handler
-      sha256: "0a6d007f0e44fbee27164adcd159ecbc88238864313f4e5c58161cae2180328d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.25"
-  share_handler_android:
-    dependency: transitive
-    description:
-      name: share_handler_android
-      sha256: caf555b933dc72783aa37fef75688c7b86bd6f7bc17d80fbf585bc42f123cc8d
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.11"
-  share_handler_ios:
-    dependency: transitive
-    description:
-      name: share_handler_ios
-      sha256: cdc21f88f336a944157a8e9ceb191525cee3b082d6eb6c2082488e4f09dc3ece
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.15"
-  share_handler_platform_interface:
-    dependency: transitive
-    description:
-      name: share_handler_platform_interface
-      sha256: "7a4df95a87b326b2f07458d937f2281874567c364b7b7ebe4e7d50efaae5f106"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6"
   share_plus:
     dependency: "direct main"
     description:
@@ -1846,7 +1814,7 @@ packages:
     source: hosted
     version: "6.1.0"
   shared_preferences:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shared_preferences
       sha256: "6e8bf70b7fef813df4e9a36f658ac46d107db4b4cfe1048b477d4e453a8159f5"
@@ -2355,7 +2323,7 @@ packages:
     source: hosted
     version: "1.0.1"
   web_socket_channel:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: web_socket_channel
       sha256: d645757fb0f4773d602444000a8131ff5d48c9e47adfe9772652dd1a4f2d45c8

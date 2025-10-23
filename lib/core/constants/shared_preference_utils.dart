@@ -4,6 +4,7 @@ import 'package:BlueEra/features/common/map/controller/location_controller.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String? appVersion = '';
 String? authTokenGlobal = '';
@@ -50,8 +51,6 @@ class SharedPreferenceUtils {
   static const loginUserId = 'userId';
   static const userBusinessId = 'businessId';
   static const accountType = 'accountType';
-  static const isRegister = 'isRegister';
-  static const dobDoi = 'dobDoi';
   static const userName = 'userName';
   static const userLoginMobile = 'userMobile';
   static const userProfile = 'userProfile';
@@ -357,4 +356,18 @@ getChannelData() async {
   channelOwner = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.channelOwner) ??
       "";
+}
+
+Future<void> clearSecureStorageIfFreshInstall() async {
+  final prefs = await SharedPreferences.getInstance();
+  final hasInstalledBefore = prefs.getBool('hasInstalledBefore') ?? false;
+
+  if (!hasInstalledBefore) {
+    // Fresh install detected
+    await SharedPreferenceUtils.clearPreference();
+
+    // await _storage.deleteAll(); // Clears Keychain entries
+    await prefs.setBool('hasInstalledBefore', true);
+    print('🧹 Cleared secure storage for fresh install');
+  }
 }

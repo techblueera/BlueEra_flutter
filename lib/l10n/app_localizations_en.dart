@@ -716,7 +716,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rejectAndBlockUser => 'Reject & block user';
 
   @override
-  String get partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra =>
+  String
+  get partiallyBlockedUserCanSeeYourProfileAndPostsButCannotConnectOrSendYouMessagesOnBlueEra =>
       'Partially blocked user can see your profile and posts, but cannot connect or send you messages on BlueEra';
 
   @override
@@ -1449,7 +1450,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidForm => 'Invalid Form';
 
   @override
-  String get pleaseScrollDownAndReviewAllFieldsToEnsureTheyAreFilledOutCorrectlyAndAreNotLeftEmpty =>
+  String
+  get pleaseScrollDownAndReviewAllFieldsToEnsureTheyAreFilledOutCorrectlyAndAreNotLeftEmpty =>
       'Please scroll down and review all fields to ensure they are filled out correctly and are not left empty.';
 
   @override
@@ -1614,7 +1616,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your profile has been successfully completed!';
 
   @override
-  String get nowItsTimeToFinalizeYourBusinessListingAndShowcaseYourServicesToTheWorld =>
+  String
+  get nowItsTimeToFinalizeYourBusinessListingAndShowcaseYourServicesToTheWorld =>
       'Now, it\'s time to finalize your business listing and showcase your services to the world';
 
   @override
@@ -2742,7 +2745,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please select an organisation to verified.';
 
   @override
-  String get sendAVerificationRequestToYourCompanyToConfirmYourEmploymentOnceApprovedByTheRecruiterYouWillReceiveAVerifiedBadge =>
+  String
+  get sendAVerificationRequestToYourCompanyToConfirmYourEmploymentOnceApprovedByTheRecruiterYouWillReceiveAVerifiedBadge =>
       'Send a verification request to your company to confirm your employment. Once approved by the recruiter, you will receive a verified badge.';
 
   @override
