@@ -11,12 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
@@ -25,13 +22,12 @@ import 'package:intl/intl.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
 import '../../../common/business_service/model/get_service_model.dart';
 import '../../../common/business_service/view/service_details_view_screen.dart';
-import '../../../common/business_service/widget/service_card.dart';
 import '../../../common/food/model/get_food_details_model.dart';
-import '../../../common/food/view/widget/food_product_card.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../controllar/order_controllar.dart';
@@ -572,7 +568,51 @@ class _MessageCardState extends State<MessageCard>
               ),
             ),
              const Divider(height: 1,color: Colors.grey,),
-            (widget.message.metadata?.orderStatus??false)?
+            (!(widget.message.myMessage??false))?
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Map<String,dynamic> data = {
+                        ApiKeys.conversation_id: widget.conversationId,
+                        ApiKeys.message: "Unavailable",
+                        ApiKeys.message_type: "text",
+                      };
+
+                      chatViewController.sendMessage(data);
+                    },
+                    icon: const Icon(Icons.close, color: Colors.red,),
+                    label:  CustomText(
+                      'Unavailable',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const VerticalDivider(width: 2,color: Colors.grey,),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Map<String,dynamic> data = {
+                        ApiKeys.conversation_id: widget.conversationId,
+                        ApiKeys.message: "Available",
+                        ApiKeys.message_type: "text",
+                      };
+
+                      chatViewController.sendMessage(data);
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,size: 22,),
+                    label:   CustomText(
+                      'Available',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ):(widget.message.metadata?.orderStatus??false)?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
@@ -1405,7 +1445,51 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 serviceData?.business?.businessLocation?.lon?.toString() ??
                     ""),
             const Divider(height: 1,color: Colors.grey,),
-            (widget.message.metadata?.orderStatus??false)?
+            (!(widget.message.myMessage??false))?
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Map<String,dynamic> data = {
+                        ApiKeys.conversation_id: widget.conversationId,
+                        ApiKeys.message: "Unavailable",
+                        ApiKeys.message_type: "text",
+                      };
+
+                      chatViewController.sendMessage(data);
+                    },
+                    icon: const Icon(Icons.close, color: Colors.red,),
+                    label:  CustomText(
+                      'Unavailable',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const VerticalDivider(width: 2,color: Colors.grey,),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Map<String,dynamic> data = {
+                          ApiKeys.conversation_id: widget.conversationId,
+                        ApiKeys.message: "Available",
+                        ApiKeys.message_type: "text",
+                      };
+
+                      chatViewController.sendMessage(data);
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,size: 22,),
+                    label:   CustomText(
+                      'Available',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ):(widget.message.metadata?.orderStatus??false)?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
@@ -1436,7 +1520,8 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                   ),
                 ),
               ],
-            ):Row(mainAxisAlignment: MainAxisAlignment.center,
+            ):
+            Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
                 //   child: TextButton.icon(
@@ -1632,7 +1717,51 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
 
 
             const Divider(height: 1,color: Colors.grey,),
-            (widget.message.metadata?.orderStatus??false)?
+            (!(widget.message.myMessage??false))?
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Map<String,dynamic> data = {
+                        ApiKeys.conversation_id: widget.conversationId,
+                        ApiKeys.message: "Unavailable",
+                        ApiKeys.message_type: "text",
+                      };
+
+                      chatViewController.sendMessage(data);
+                    },
+                    icon: const Icon(Icons.close, color: Colors.red,),
+                    label:  CustomText(
+                      'Unavailable',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const VerticalDivider(width: 2,color: Colors.grey,),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Map<String,dynamic> data = {
+                        ApiKeys.conversation_id: widget.conversationId,
+                        ApiKeys.message: "Available",
+                        ApiKeys.message_type: "text",
+                      };
+
+                      chatViewController.sendMessage(data);
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,size: 22,),
+                    label:   CustomText(
+                      'Available',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ):(widget.message.metadata?.orderStatus??false)?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
