@@ -18,11 +18,15 @@ import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../widgets/custom_btn.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/contactListModel.dart';
+import '../../auth/model/view_group_members_model.dart';
 
 class BeAvailableContactsList extends StatefulWidget {
   final String? sharedText;
+  final String? conversationId;
   final List<SharedAttachment?>? sharedFiles;
-   BeAvailableContactsList({super.key, this.sharedText, this.sharedFiles});
+  final bool? isFromAddMember;
+  final  List<GroupMembersListModel>? members;
+   BeAvailableContactsList({super.key, this.sharedText, this.sharedFiles, this.isFromAddMember, this.members, this.conversationId});
 
   @override
   State<BeAvailableContactsList> createState() => _BeAvailableContactsListState();
@@ -42,6 +46,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   @override
   void initState() {
     super.initState();
+    widget.members;
     // if (widget.from == "group") {
     //   chatViewController.loadGroupConnections();
     // } else {
@@ -60,20 +65,24 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
       final query = _searchController.text.toLowerCase();
-        final details = chatViewController.contactsListModel?.value.data;
-        if (details != null) {
-          setState(() {
-            _filteredExisting = details.existingNotConnected
-                ?.where((c) =>
-            (c.name?.toLowerCase().contains(query) ?? false) ||
-                (c.contactNo?.toLowerCase().contains(query) ?? false))
-                .toList() ??
-                [];
-          });
-        }
-      // }
+      final details = chatViewController.contactsListModel?.value.data;
+      if (details != null) {
+        List<ExistingNotConnected> baseList = details.existingNotConnected ?? [];
+
+        // ✅ Exclude already added group members first
+        baseList = _excludeGroupMembers(baseList);
+
+        setState(() {
+          _filteredExisting = baseList
+              .where((c) =>
+          (c.name?.toLowerCase().contains(query) ?? false) ||
+              (c.contactNo?.toLowerCase().contains(query) ?? false))
+              .toList();
+        });
+      }
     });
   }
+
 
 
 
@@ -171,6 +180,15 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
       ),
     );
   }
+  List<ExistingNotConnected> _excludeGroupMembers(
+      List<ExistingNotConnected> contacts) {
+    if (widget.members == null || widget.members!.isEmpty) return contacts;
+
+    final memberIds = widget.members!.map((m) => m.id).toSet();
+
+    // remove those contacts whose id is already in group members
+    return contacts.where((c) => !memberIds.contains(c.id)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,8 +244,11 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                     Status.COMPLETE) {
                   final details =
                       chatViewController.contactsListModel?.value.data;
-                  final existing =
+                  List<ExistingNotConnected> existing =
                       details?.existingNotConnected ?? <ExistingNotConnected>[];
+
+                  /// ✅ Apply exclusion here too
+                  existing = _excludeGroupMembers(existing);
 
                   if (_filteredExisting.isEmpty &&
                       _searchController.text.isEmpty) {
@@ -254,17 +275,31 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                               isGroupMode: isGroupMode,
                               selectedUserIds: _selectedUsers,
                               onSelect: (id) {
-                                setState(() {
-                                  if (_selectedUsers.contains(id)) {
-                                    // If the same user is clicked again → unselect
-                                    _selectedUsers.remove(id);
-                                  } else {
-                                    // If another user is clicked → clear old selection and select new one
-                                    _selectedUsers
-                                      ..clear()
-                                      ..add(id!);
-                                  }
-                                });
+                                if(widget.isFromAddMember==true){
+                                  setState(() {
+                                    if (_selectedUsers.contains(id)) {
+                                      // If the same user is clicked again → unselect
+                                      _selectedUsers.remove(id);
+                                    } else {
+                                      // If another user is clicked → clear old selection and select new one
+                                      _selectedUsers
+                                        ..add(id!);
+                                    }
+                                  });
+                                }else{
+                                  setState(() {
+                                    if (_selectedUsers.contains(id)) {
+                                      // If the same user is clicked again → unselect
+                                      _selectedUsers.remove(id);
+                                    } else {
+                                      // If another user is clicked → clear old selection and select new one
+                                      _selectedUsers
+                                        ..clear()
+                                        ..add(id!);
+                                    }
+                                  });
+                                }
+
 
                               },
                               chatViewController: chatViewController,
@@ -296,78 +331,90 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
               onTap: _selectedUsers.isEmpty
                   ? null
                   : () async{
-                if(widget.sharedFiles!=null){
-                  List<File> selectedFiles = [];
-                  List<SharedAttachment?>? sharedList = widget.sharedFiles;
+                if(widget.isFromAddMember==true){
+                  List<String?> userId=_selectedUsers.map((e)=>e.id).toList();
+                  Map<String,dynamic> data=
+                    {
+                      ApiKeys.conversation_id: "${widget.conversationId}",
+                      ApiKeys.conversation_users: userId
+                    }
+                  ;
+                  chatViewController.addGroupMember(params: data);
+                }else{
+                  if(widget.sharedFiles!=null){
+                    List<File> selectedFiles = [];
+                    List<SharedAttachment?>? sharedList = widget.sharedFiles;
 
-                  if (sharedList != null && sharedList.isNotEmpty) {
-                    selectedFiles = sharedList
-                        .where((e) => e?.path != null && e!.path.isNotEmpty)
-                        .map((e) => File(e!.path))
-                        .toList();
+                    if (sharedList != null && sharedList.isNotEmpty) {
+                      selectedFiles = sharedList
+                          .where((e) => e?.path != null && e!.path.isNotEmpty)
+                          .map((e) => File(e!.path))
+                          .toList();
+                    }
+
+                    List<String?> fileNames = [];
+                    List<String?> fileTypes = [];
+                    for (var file in selectedFiles) {
+                      Map<String, String?> fileInfo = getFileInfo(file);
+                      fileNames.add(fileInfo['fileName']);
+                      fileTypes.add(fileInfo['mimeType']);
+                    }
+
+                    String firstFileExtension = selectedFiles.first.path
+                        .split('.')
+                        .last
+                        .toLowerCase();
+                    String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
+                        firstFileExtension)
+                        ? 'video'
+                        : 'image';
+
+                    final uploadParams = {
+                      ApiKeys.fileName: fileNames,
+                      ApiKeys.fileType: fileTypes,
+                    };
+
+                    chatViewController.generateUploadUrlsApi(
+                      params: uploadParams,
+                      listFile: selectedFiles,
+                      isInitialMessage: _selectedUsers.first.conversationId==null?true:false,
+                      userId: _selectedUsers.first.id??'',
+                      conversationId: _selectedUsers.first.conversationId??'',
+                      messageType: messageType,
+                    );
+                  }else if(widget.sharedText!=null){
+                    Map<String,dynamic> data = {
+                      if(_selectedUsers.first.conversationId==null)
+                        ApiKeys.other_user_id: _selectedUsers.first.id
+                      else
+                        ApiKeys.conversation_id: _selectedUsers.first.conversationId,
+                      ApiKeys.message: "${widget.sharedText}",
+                      ApiKeys.message_type: "text",
+                    };
+                    if(_selectedUsers.first.conversationId==null){
+                      chatViewController.sendInitialMessage(data);
+                    }else{
+                      chatViewController.sendMessage(data);
+                    }
                   }
 
-                  List<String?> fileNames = [];
-                  List<String?> fileTypes = [];
-                  for (var file in selectedFiles) {
-                    Map<String, String?> fileInfo = getFileInfo(file);
-                    fileNames.add(fileInfo['fileName']);
-                    fileTypes.add(fileInfo['mimeType']);
-                  }
-
-                  String firstFileExtension = selectedFiles.first.path
-                      .split('.')
-                      .last
-                      .toLowerCase();
-                  String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
-                      firstFileExtension)
-                      ? 'video'
-                      : 'image';
-
-                  final uploadParams = {
-                    ApiKeys.fileName: fileNames,
-                    ApiKeys.fileType: fileTypes,
-                  };
-
-                  chatViewController.generateUploadUrlsApi(
-                    params: uploadParams,
-                    listFile: selectedFiles,
-                    isInitialMessage: _selectedUsers.first.conversationId==null?true:false,
-                    userId: _selectedUsers.first.id??'',
-                    conversationId: _selectedUsers.first.conversationId??'',
-                    messageType: messageType,
+                  chatViewController.openAnyOneChatFunction(
+                    type: _selectedUsers.first.accountType,
+                    isInitialMessage: true,
+                    userId: _selectedUsers.first.id,
+                    conversationId: _selectedUsers.first.conversationId ?? '',
+                    profileImage: _selectedUsers.first.profileImage,
+                    contactName: _selectedUsers.first.name,
+                    contactNo: _selectedUsers.first.contactNo,
+                    isFromContactList: true,
                   );
-                }else if(widget.sharedText!=null){
-                 Map<String,dynamic> data = {
-                    if(_selectedUsers.first.conversationId==null)
-                      ApiKeys.other_user_id: _selectedUsers.first.id
-                    else
-                      ApiKeys.conversation_id: _selectedUsers.first.conversationId,
-                    ApiKeys.message: "${widget.sharedText}",
-                    ApiKeys.message_type: "text",
-                  };
-                 if(_selectedUsers.first.conversationId==null){
-                   chatViewController.sendInitialMessage(data);
-                 }else{
-                   chatViewController.sendMessage(data);
-                 }
                 }
 
-                chatViewController.openAnyOneChatFunction(
-                  type: _selectedUsers.first.accountType,
-                  isInitialMessage: true,
-                  userId: _selectedUsers.first.id,
-                  conversationId: _selectedUsers.first.conversationId ?? '',
-                  profileImage: _selectedUsers.first.profileImage,
-                  contactName: _selectedUsers.first.name,
-                  contactNo: _selectedUsers.first.contactNo,
-                  isFromContactList: true,
-                );
 
               },
               title: _selectedUsers.isEmpty
                   ? "Select Contact"
-                  : "Share",
+                  :(widget.isFromAddMember==true)?"Add": "Share",
             ),
           ),
         )

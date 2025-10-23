@@ -180,7 +180,7 @@ class ChatViewController extends GetxController {
     // }
 
     chatSocket.listenEvent('ChatList', (data) async {
-     log("sdkjcnsdkjcnsdc ${data}");
+
       final parsedData = GetChatListModel.fromJson(data);
       loadChatListWithType(chatListModel: parsedData);
       getPersonalFilteredChatListModel?.value = parsedData;
@@ -192,7 +192,6 @@ class ChatViewController extends GetxController {
       getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
     });
     chatSocket.listenEvent('messageReceived', (data) async {
-      log("sdkjcnsdkjcnsdc __ ${data}");
       final parsedData = GetListOfMessageData.fromJson(data);
 
 
@@ -1342,6 +1341,26 @@ class ChatViewController extends GetxController {
       } else {
         commonSnackBar(
             message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addGroupMember(
+      {required Map<String,dynamic> params}) async {
+    try {
+      ResponseModel? response = await ChatViewRepo().addGroupMembers(params);
+      if (response.isSuccess ?? false) {
+        commonSnackBar(message: "Group Member Added");
+        Map<String, dynamic> data = {
+          ApiKeys.conversation_id: params[ApiKeys.conversation_id]
+        };
+        getGroupMembersApi(data);
+        Get.back();
+      } else {
+
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);

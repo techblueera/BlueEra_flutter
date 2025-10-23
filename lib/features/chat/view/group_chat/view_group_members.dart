@@ -237,85 +237,129 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                         ),
                         ListView.builder(
                           padding: const EdgeInsets.only(bottom: 10),
-                          // itemCount no longer includes the Add Members card
-                          itemCount: members.length > 6 ? 7 : members.length,
+                          itemCount: members.length > 6 ? 8 : members.length + 1,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (context, index) {
-                            // First item — Show current user ("You")
+                            // First item — Add Members card
+
                             if (index == 0) {
-                              GroupMembersListModel? me = members.firstWhere(
-                                    (m) => m.id == userId,
-                                orElse: () => GroupMembersListModel(),
-                              );
-
-                              if (me.id == null) return const SizedBox.shrink();
-
-                              final String displayName =
-                              (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
-                              final String initial = displayName.isNotEmpty ? displayName[0] : '?';
-
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                leading: CircleAvatar(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  radius: 22,
-                                  child: (me.profileImage != null)
-                                      ? ClipOval(
-                                    child: CachedNetworkImage(
-                                      imageUrl: me.profileImage!,
-                                      fit: BoxFit.cover,
-                                      width: 44,
-                                      height: 44,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey.shade300,
-                                        child: const Center(
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
-                                        ),
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,)),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: AppColors.primaryColor,
+                                        radius: 22,
+                                        child: const Icon(Icons.person_add, color: Colors.white),
                                       ),
-                                      errorWidget: (context, url, error) => Center(
-                                        child: CustomText(
-                                          initial,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 18,
-                                        ),
+                                      const SizedBox(width: 12),
+                                      const CustomText(
+                                        "Add Members",
+                                        // style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        // ),
                                       ),
-                                    ),
-                                  )
-                                      : Center(
-                                    child: CustomText(
-                                      initial,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 18,
-                                    ),
+                                    ],
                                   ),
                                 ),
-                                title: const CustomText(
-                                  "You",
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                trailing: (me.isAdmin ?? false)
-                                    ? Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.shade400),
-                                  ),
-                                  child: const CustomText(
-                                    'Admin',
-                                    fontSize: 14,
-                                  ),
-                                )
-                                    : null,
                               );
                             }
 
+                            // Show current user ("You") right after Add Members
+                            if (index == 1) {
+                              GroupMembersListModel? me = members.firstWhere(
+                                    (m) => m.id == userId,
+                              );
+
+                              if (me != null) {
+                                final String displayName =
+                                (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
+                                final String initial =
+                                displayName.isNotEmpty ? displayName[0] : '?';
+                                return ListTile(
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  leading: CircleAvatar(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    radius: 22,
+                                    child: (me.profileImage != null)
+                                        ? ClipOval(
+                                      child: CachedNetworkImage(
+                                        imageUrl: me.profileImage!,
+                                        fit: BoxFit.cover,
+                                        width: 44,
+                                        height: 44,
+                                        placeholder: (context, url) => Container(
+                                          color: Colors.grey.shade300,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => Center(
+                                          child: CustomText(
+                                            initial,
+                                            // style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 18,
+                                            // ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                        : Center(
+                                      child: CustomText(
+                                        initial,
+                                        // style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 18,
+                                        // ),
+                                      ),
+                                    ),
+                                  ),
+                                  title: const CustomText(
+                                    "You",
+                                    // style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold
+                                    // ),
+                                  ),
+                                  trailing: (me.isAdmin ?? false)
+                                      ? Container(
+                                    padding:
+                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey.shade400),
+                                    ),
+                                    child: const CustomText(
+                                      'Admin',
+                                      // style: TextStyle(
+                                          fontSize: 14
+                                      // ),
+                                    ),
+                                  )
+                                      : null,
+                                );
+                              }
+                            }
+
                             // Last item — View All button if more than 6 members
-                            if (members.length > 6 && index == 6) {
+                            if (members.length > 6 && index == 7) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Center(
@@ -324,7 +368,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
                                     label: const CustomText(
                                       "View All",
-                                      fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w600,
                                       color: AppColors.primaryColor,
                                     ),
                                   ),
@@ -332,16 +376,18 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                               );
                             }
 
-                            // Normal members excluding "You"
-                            final nonMeMembers = members.where((m) => m.id != userId).toList();
-                            final member = nonMeMembers[index - 1]; // shift by 1 (since "You" is now index 0)
+                            // Normal member tile (excluding "You")
+                            final nonMeMembers =
+                            members.where((m) => m.id != userId).toList(); // exclude current user
+                            final member = nonMeMembers[index - 2]; // shift by 2 (Add + You)
 
                             final String displayName =
                             (member.name?.trim().isNotEmpty == true) ? member.name!.trim() : "-";
                             final String initial = displayName.isNotEmpty ? displayName[0] : '?';
 
                             return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                               leading: CircleAvatar(
                                 backgroundColor: theme.colorScheme.primary,
                                 radius: 22,
@@ -355,15 +401,20 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     placeholder: (context, url) => Container(
                                       color: Colors.grey.shade300,
                                       child: const Center(
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                     ),
                                     errorWidget: (context, url, error) => Center(
                                       child: CustomText(
                                         initial,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 18,
+                                        // style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 18,
+                                        // ),
                                       ),
                                     ),
                                   ),
@@ -371,9 +422,11 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     : Center(
                                   child: CustomText(
                                     initial,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 18,
+                                    // style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                    // ),
                                   ),
                                 ),
                               ),
@@ -381,12 +434,15 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                 displayName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                // style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                // ),
                               ),
                               trailing: (member.isAdmin ?? false)
                                   ? Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding:
+                                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(12),
@@ -394,237 +450,15 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                 ),
                                 child: const CustomText(
                                   'Admin',
-                                  fontSize: 14,
+                                  // style: TextStyle(
+                                      fontSize: 14
+                                  // ),
                                 ),
                               )
                                   : null,
                             );
                           },
-                        ),
-                        // ListView.builder(
-                        //   padding: const EdgeInsets.only(bottom: 10),
-                        //   itemCount: members.length > 6 ? 8 : members.length + 1,
-                        //   shrinkWrap: true,
-                        //   physics: const NeverScrollableScrollPhysics(),
-                        //   itemBuilder: (context, index) {
-                        //     // First item — Add Members card
-                        //
-                        //     if (index == 0) {
-                        //       return InkWell(
-                        //         onTap: () {
-                        //           Navigator.push(
-                        //             context,
-                        //             MaterialPageRoute(builder: (_) => BeAvailableContactsList()),
-                        //           );
-                        //         },
-                        //         child: Padding(
-                        //           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        //           child: Row(
-                        //             children: [
-                        //               CircleAvatar(
-                        //                 backgroundColor: AppColors.primaryColor,
-                        //                 radius: 22,
-                        //                 child: const Icon(Icons.person_add, color: Colors.white),
-                        //               ),
-                        //               const SizedBox(width: 12),
-                        //               const CustomText(
-                        //                 "Add Members",
-                        //                 // style: TextStyle(
-                        //                   fontSize: 16,
-                        //                   fontWeight: FontWeight.bold,
-                        //                   color: Colors.black,
-                        //                 // ),
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       );
-                        //     }
-                        //
-                        //     // Show current user ("You") right after Add Members
-                        //     if (index == 1) {
-                        //       GroupMembersListModel? me = members.firstWhere(
-                        //             (m) => m.id == userId,
-                        //       );
-                        //
-                        //       if (me != null) {
-                        //         final String displayName =
-                        //         (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
-                        //         final String initial =
-                        //         displayName.isNotEmpty ? displayName[0] : '?';
-                        //         return ListTile(
-                        //           contentPadding:
-                        //           const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        //           leading: CircleAvatar(
-                        //             backgroundColor: theme.colorScheme.primary,
-                        //             radius: 22,
-                        //             child: (me.profileImage != null)
-                        //                 ? ClipOval(
-                        //               child: CachedNetworkImage(
-                        //                 imageUrl: me.profileImage!,
-                        //                 fit: BoxFit.cover,
-                        //                 width: 44,
-                        //                 height: 44,
-                        //                 placeholder: (context, url) => Container(
-                        //                   color: Colors.grey.shade300,
-                        //                   child: const Center(
-                        //                     child: CircularProgressIndicator(
-                        //                       strokeWidth: 2,
-                        //                       color: Colors.grey,
-                        //                     ),
-                        //                   ),
-                        //                 ),
-                        //                 errorWidget: (context, url, error) => Center(
-                        //                   child: CustomText(
-                        //                     initial,
-                        //                     // style: const TextStyle(
-                        //                       color: Colors.white,
-                        //                       fontWeight: FontWeight.w800,
-                        //                       fontSize: 18,
-                        //                     // ),
-                        //                   ),
-                        //                 ),
-                        //               ),
-                        //             )
-                        //                 : Center(
-                        //               child: CustomText(
-                        //                 initial,
-                        //                 // style: const TextStyle(
-                        //                   color: Colors.white,
-                        //                   fontWeight: FontWeight.w800,
-                        //                   fontSize: 18,
-                        //                 // ),
-                        //               ),
-                        //             ),
-                        //           ),
-                        //           title: const CustomText(
-                        //             "You",
-                        //             // style: TextStyle(
-                        //                 fontSize: 16, fontWeight: FontWeight.bold
-                        //             // ),
-                        //           ),
-                        //           trailing: (me.isAdmin ?? false)
-                        //               ? Container(
-                        //             padding:
-                        //             const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        //             decoration: BoxDecoration(
-                        //               color: Colors.grey.shade200,
-                        //               borderRadius: BorderRadius.circular(12),
-                        //               border: Border.all(color: Colors.grey.shade400),
-                        //             ),
-                        //             child: const CustomText(
-                        //               'Admin',
-                        //               // style: TextStyle(
-                        //                   fontSize: 14
-                        //               // ),
-                        //             ),
-                        //           )
-                        //               : null,
-                        //         );
-                        //       }
-                        //     }
-                        //
-                        //     // Last item — View All button if more than 6 members
-                        //     if (members.length > 6 && index == 7) {
-                        //       return Padding(
-                        //         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        //         child: Center(
-                        //           child: OutlinedButton.icon(
-                        //             onPressed: () {},
-                        //             icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
-                        //             label: const CustomText(
-                        //               "View All",
-                        //                   fontWeight: FontWeight.w600,
-                        //               color: AppColors.primaryColor,
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       );
-                        //     }
-                        //
-                        //     // Normal member tile (excluding "You")
-                        //     final nonMeMembers =
-                        //     members.where((m) => m.id != userId).toList(); // exclude current user
-                        //     final member = nonMeMembers[index - 2]; // shift by 2 (Add + You)
-                        //
-                        //     final String displayName =
-                        //     (member.name?.trim().isNotEmpty == true) ? member.name!.trim() : "-";
-                        //     final String initial = displayName.isNotEmpty ? displayName[0] : '?';
-                        //
-                        //     return ListTile(
-                        //       contentPadding:
-                        //       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        //       leading: CircleAvatar(
-                        //         backgroundColor: theme.colorScheme.primary,
-                        //         radius: 22,
-                        //         child: (member.profileImage != null)
-                        //             ? ClipOval(
-                        //           child: CachedNetworkImage(
-                        //             imageUrl: member.profileImage!,
-                        //             fit: BoxFit.cover,
-                        //             width: 44,
-                        //             height: 44,
-                        //             placeholder: (context, url) => Container(
-                        //               color: Colors.grey.shade300,
-                        //               child: const Center(
-                        //                 child: CircularProgressIndicator(
-                        //                   strokeWidth: 2,
-                        //                   color: Colors.grey,
-                        //                 ),
-                        //               ),
-                        //             ),
-                        //             errorWidget: (context, url, error) => Center(
-                        //               child: CustomText(
-                        //                 initial,
-                        //                 // style: const TextStyle(
-                        //                   color: Colors.white,
-                        //                   fontWeight: FontWeight.w800,
-                        //                   fontSize: 18,
-                        //                 // ),
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         )
-                        //             : Center(
-                        //           child: CustomText(
-                        //             initial,
-                        //             // style: const TextStyle(
-                        //               color: Colors.white,
-                        //               fontWeight: FontWeight.w800,
-                        //               fontSize: 18,
-                        //             // ),
-                        //           ),
-                        //         ),
-                        //       ),
-                        //       title: CustomText(
-                        //         displayName,
-                        //         maxLines: 1,
-                        //         overflow: TextOverflow.ellipsis,
-                        //         // style: const TextStyle(
-                        //           fontSize: 16,
-                        //           fontWeight: FontWeight.bold,
-                        //         // ),
-                        //       ),
-                        //       trailing: (member.isAdmin ?? false)
-                        //           ? Container(
-                        //         padding:
-                        //         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        //         decoration: BoxDecoration(
-                        //           color: Colors.grey.shade200,
-                        //           borderRadius: BorderRadius.circular(12),
-                        //           border: Border.all(color: Colors.grey.shade400),
-                        //         ),
-                        //         child: const CustomText(
-                        //           'Admin',
-                        //           // style: TextStyle(
-                        //               fontSize: 14
-                        //           // ),
-                        //         ),
-                        //       )
-                        //           : null,
-                        //     );
-                        //   },
-                        // )
+                        )
 
                       ],
                     ),

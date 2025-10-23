@@ -31,7 +31,7 @@ import '../../../common/business_service/view/service_details_view_screen.dart';
 import '../../../common/food/model/get_food_details_model.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
-import '../../controllar/order_controllar.dart';
+import '../../auth/controller/order_controllar.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
@@ -99,6 +99,7 @@ class _MessageCardState extends State<MessageCard>
     final text = widget.message.message ?? '';
 
     bool isReceive;
+    print("lskdm;lkcm;sdclmsdc ${widget.message.messageType}");
 
     if (widget.message.myMessage != null) {
       isReceive = !(widget.message.myMessage ?? true);
@@ -184,7 +185,8 @@ class _MessageCardState extends State<MessageCard>
       List<String> message=widget.message.message?.split('.')??[];
 
       if(message.isNotEmpty){
-        messageWidget = FoodCardMessageCardBusiness(photos: url,
+        messageWidget = FoodCardMessageCardBusiness(
+          photos: url,
           conversationId: widget.conversationId??'',
           userId: widget.userId??'',
           message: widget.message,
@@ -582,7 +584,6 @@ class _MessageCardState extends State<MessageCard>
                         ApiKeys.message: "Unavailable",
                         ApiKeys.message_type: "text",
                       };
-
                       chatViewController.sendMessage(data);
                     },
                     icon: const Icon(Icons.close, color: Colors.red,),
