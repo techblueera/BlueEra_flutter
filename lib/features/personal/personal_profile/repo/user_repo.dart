@@ -85,6 +85,7 @@ class UserRepo extends BaseService {
   Future<ResponseModel> followUser({required String? followUserId}) async {
     final response = await ApiBaseHelper().postHTTP(
       "${follow}/${followUserId}",
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -95,6 +96,7 @@ class UserRepo extends BaseService {
   Future<ResponseModel> unfollowUser({required String? followUserId}) async {
     final response = await ApiBaseHelper().deleteHTTP(
       "${unfollow}/${followUserId}",
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

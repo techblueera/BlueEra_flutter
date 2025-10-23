@@ -164,64 +164,92 @@ class _FeedScreenState extends State<FeedScreen> {
     return totalItems;
   }
 
+  // Widget _buildListItem(int index, List<Post> posts) {
+  //   // How many ads are inserted before this index
+  //   int adCountBeforeIndex = (index / cycleSize).floor();
+  //
+  //   // The adjusted post index
+  //   int postIndex = index - adCountBeforeIndex;
+  //
+  //   final String? adUnitId = getNativeAdUnitId();
+  //
+  //   // Show ad after every 9 posts → ad goes at index 9, 19, 29...
+  //   if (Platform.isAndroid &&
+  //       adUnitId != null &&
+  //       adUnitId.isNotEmpty &&
+  //       (index + 1) % cycleSize == 0 &&
+  //       postIndex < posts.length) {
+  //     if (kReleaseMode) {
+  //       return ConstrainedBox(
+  //         constraints: BoxConstraints(
+  //           minHeight: SizeConfig.size370,
+  //           maxHeight: SizeConfig.size450,
+  //         ),
+  //         child: Container(
+  //           margin: EdgeInsets.only(
+  //             bottom: SizeConfig.paddingXS,
+  //             left: SizeConfig.paddingXS,
+  //             right: SizeConfig.paddingXS,
+  //           ),
+  //           decoration: BoxDecoration(
+  //             color: AppColors.white,
+  //             boxShadow: [AppShadows.cardShadow],
+  //           ),
+  //           child: NativeAdWidget(adUnitId: adUnitId),
+  //         ),
+  //       );
+  //     }
+  //     if (kDebugMode) {
+  //       return ConstrainedBox(
+  //         constraints: BoxConstraints(
+  //           minHeight: SizeConfig.size370,
+  //           maxHeight: SizeConfig.size450,
+  //         ),
+  //         child: Container(
+  //           margin: EdgeInsets.only(
+  //             bottom: SizeConfig.paddingXS,
+  //             left: SizeConfig.paddingXS,
+  //             right: SizeConfig.paddingXS,
+  //           ),
+  //           decoration: BoxDecoration(
+  //             color: AppColors.white,
+  //             boxShadow: [AppShadows.cardShadow],
+  //           ),
+  //           child: Center(child: CustomText("You are in Debug Mode ")),
+  //         ),
+  //       );
+  //     }
+  //   }
+  //
+  //   // Loader at the end
+  //   if (postIndex >= posts.length) {
+  //     // Only show loader if pagination is in progress
+  //     return Obx(() => feedController.isTargetMoreDataLoading.value
+  //         ? staggeredDotsWaveLoading()
+  //         : const SizedBox.shrink());
+  //   }
+  //
+  //   return VisibilityDetector(
+  //     key: Key('post_$index'),
+  //     onVisibilityChanged: (visibilityInfo) {
+  //       if (visibilityInfo.visibleFraction > 0.5) {
+  //         // Post is at least 50% visible
+  //         trackPostView(posts[postIndex].id);
+  //         print("Post ${posts[postIndex].id} is visible");
+  //         // _callViewApi(post.id); // 👈 Call your view API here
+  //       }
+  //     },
+  //     child: FeedCard(
+  //       post: posts[postIndex],
+  //       index: postIndex,
+  //       postFilteredType: widget.postFilterType,
+  //     ),
+  //   );
+  // }
+
   Widget _buildListItem(int index, List<Post> posts) {
-    // How many ads are inserted before this index
-    int adCountBeforeIndex = (index / cycleSize).floor();
 
-    // The adjusted post index
-    int postIndex = index - adCountBeforeIndex;
-
-    final String? adUnitId = getNativeAdUnitId();
-
-    // Show ad after every 9 posts → ad goes at index 9, 19, 29...
-    if (Platform.isAndroid &&
-        adUnitId != null &&
-        adUnitId.isNotEmpty &&
-        (index + 1) % cycleSize == 0 &&
-        postIndex < posts.length) {
-      if (kReleaseMode) {
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: SizeConfig.size370,
-            maxHeight: SizeConfig.size450,
-          ),
-          child: Container(
-            margin: EdgeInsets.only(
-              bottom: SizeConfig.paddingXS,
-              left: SizeConfig.paddingXS,
-              right: SizeConfig.paddingXS,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              boxShadow: [AppShadows.cardShadow],
-            ),
-            child: NativeAdWidget(adUnitId: adUnitId),
-          ),
-        );
-      }
-      if (kDebugMode) {
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: SizeConfig.size370,
-            maxHeight: SizeConfig.size450,
-          ),
-          child: Container(
-            margin: EdgeInsets.only(
-              bottom: SizeConfig.paddingXS,
-              left: SizeConfig.paddingXS,
-              right: SizeConfig.paddingXS,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              boxShadow: [AppShadows.cardShadow],
-            ),
-            child: Center(child: CustomText("You are in Debug Mode ")),
-          ),
-        );
-      }
-    }
-
-    // Loader at the end
+    int postIndex = index;
     // Loader at the end
     if (postIndex >= posts.length) {
       // Only show loader if pagination is in progress
@@ -231,7 +259,6 @@ class _FeedScreenState extends State<FeedScreen> {
     }
 
     return VisibilityDetector(
-
       key: Key('post_$index'),
       onVisibilityChanged: (visibilityInfo) {
         if (visibilityInfo.visibleFraction > 0.5) {

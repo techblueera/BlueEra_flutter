@@ -154,9 +154,10 @@ class BusinessProfileRepo extends BaseService {
   }
 
   Future<ResponseModel> submitRatingToBusinessAccount(
-      String userId, Map<String, dynamic> params) async {
+      String businessId, Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
-      businessGetRattingSummary(userId),
+      businessRattingSummary(businessId),
+      showProgress: false,
       params: params,
       onError: (error) {},
       onSuccess: (data) {},
@@ -249,6 +250,18 @@ class BusinessProfileRepo extends BaseService {
       businessServicesByUserId(businessId),
       params: queryParam,
       showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> getBusinessRatings(
+      {required String businessId, required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      businessRattingSummary(businessId),
+      showProgress: false,
+      params: queryParams,
       onError: (error) {},
       onSuccess: (data) {},
     );

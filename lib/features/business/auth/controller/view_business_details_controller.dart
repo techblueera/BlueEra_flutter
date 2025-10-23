@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/model/business_ratings_model.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
@@ -72,6 +73,7 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> businessRatingsResponse = ApiResponse.initial('Initial').obs;
 
   ViewBusinessProfileModel? businessProfileDetails;
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
@@ -126,6 +128,13 @@ class ViewBusinessDetailsController extends GetxController {
 
   final controllerVisit = Get.put(VisitProfileController());
   final isLoading = false.obs;
+
+  /// business rating list
+  RxList<BusinessRatingsData> businessRatingsList = <BusinessRatingsData>[].obs;
+  RxBool isBusinessRatingsLoadingMore = false.obs;
+  RxBool isBusinessRatingsFirstLoading = false.obs;
+  int businessRatingsPage = 1;
+  bool businessRatingsHasMore = true;
 
   loadInitData({required String visitBusinessId}) async {
     try {
@@ -456,22 +465,55 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
+  Future<void> getBusinessDetailedRatings(String businessId, {bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isBusinessRatingsLoadingMore.value || !businessRatingsHasMore) return;
+      isBusinessRatingsLoadingMore.value = true;
+    } else {
+      isBusinessRatingsFirstLoading.value = true;
+      businessRatingsPage = 1;
+      businessRatingsHasMore = true;
+      businessRatingsList.clear();
+    }
 
-  Future<void> getBusinessDetailedRatings(String userId) async {
     try {
+      Map<String, dynamic> queryParams = {
+        ApiKeys.page: businessRatingsPage,
+        ApiKeys.limit: 10,
+      };
+
       ResponseModel responseModel =
-          await BusinessProfileRepo().getBusinessDetailedRating(userId);
+      await BusinessProfileRepo().getBusinessRatings(
+          businessId: businessId, queryParams: queryParams);
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        visitBusinessDetailedRatingModel.value =
-            VisitBusinessDetailedRatingModel.fromJson(data);
-        update();
+        businessRatingsResponse.value = ApiResponse.complete(responseModel);
+
+        BusinessRatingsModel businessRatingsModel = BusinessRatingsModel
+            .fromJson(responseModel.response?.data);
+        final List<BusinessRatingsData> newBusinessRatingsData = businessRatingsModel.data ?? [];
+
+        if (newBusinessRatingsData.isNotEmpty) {
+          if (isLoadMore) {
+            businessRatingsList.addAll(newBusinessRatingsData);
+          } else {
+            businessRatingsList.assignAll(newBusinessRatingsData);
+          }
+          businessRatingsPage++;
+        }
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
+        businessRatingsHasMore = false;
+        businessRatingsResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      viewBusinessResponse = ApiResponse.error('error');
+      businessRatingsResponse.value = ApiResponse.error('error');
+    }finally{
+      if (isLoadMore) {
+        isBusinessRatingsLoadingMore.value = false;
+      } else {
+        isBusinessRatingsFirstLoading.value = false;
+      }
     }
   }
 
@@ -570,7 +612,7 @@ class ViewBusinessDetailsController extends GetxController {
   }
 
   Future<bool> submitBusinessRatingController({
-    required String userId,
+    required String businessId,
     required int rating,
     required String comment,
   }) async {
@@ -583,7 +625,7 @@ class ViewBusinessDetailsController extends GetxController {
       ResponseModel? responseModel;
 
       responseModel =
-          await BusinessProfileRepo().submitRatingToPersonal(userId, params);
+          await BusinessProfileRepo().submitRatingToBusinessAccount(businessId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");

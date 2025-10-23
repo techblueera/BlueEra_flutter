@@ -429,7 +429,7 @@ abstract class BaseService {
   String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
   String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
   String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
-  String businessGetRattingSummary(String userID)=>"user-service/business/$userID/ratings";
+  String businessRattingSummary(String businessId)=>"user-service/business/$businessId/ratings";
 
   final String subchildORRootCategroy = "product-service/api/categories/getSubchildORRootCategroy";
   final String searchProductCategory = "product-service/api/categories/searchCategories";

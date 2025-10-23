@@ -30,7 +30,7 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/firebase_notification_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
@@ -102,7 +102,7 @@ Future<void> main() async {
   /// initializeMappls Map
   await initializeMappls();
 
-  await MobileAds.instance.initialize();
+  // await MobileAds.instance.initialize();
 
   await OnesignalService().initialize();
 

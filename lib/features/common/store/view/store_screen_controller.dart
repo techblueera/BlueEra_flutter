@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
@@ -429,46 +430,131 @@ class StoreScreenController extends GetxController {
     }
   }
 
-  ///FOLLOW BUSINESS USER....
-  Future<void> followBusinessUser(
-      {required String? candidateResumeId}) async {
+  /// FOLLOW BUSINESS USER
+  Future<void> followBusinessUser({
+    required String? businessId,
+    required GetAllStoreResModel store,
+  }) async {
     try {
       followResponse.value = ApiResponse.initial('Initial');
 
-      ///FOR NOW WE SET
-      ResponseModel responseModel =
-      await UserRepo().followUser(followUserId: candidateResumeId);
+      final responseModel =
+      await UserRepo().followUser(followUserId: businessId);
+
       if (responseModel.isSuccess) {
         followResponse.value = ApiResponse.complete(responseModel);
+
+        /// Update store locally
+        final updatedStore = store.copyWith(
+          isFollowed: true,
+          followerCount:
+          ((int.tryParse(store.followerCount ?? '0') ?? 0) + 1).toString(),
+        );
+
+        /// Update both lists
+        _updateStoreInLists(updatedStore);
       } else {
         followResponse.value = ApiResponse.error('error');
         commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
       }
     } catch (e) {
       followResponse.value = ApiResponse.error('error');
     }
   }
 
-  ///UNFOLLOW BUSINESS USER...
-  Future<void> unFollowBusinessUser(
-      {required String? candidateResumeId}) async {
+  /// UNFOLLOW BUSINESS USER
+  Future<void> unFollowBusinessUser({
+    required String? businessId,
+    required GetAllStoreResModel store,
+  }) async {
     try {
       unFollowResponse.value = ApiResponse.initial('Initial');
 
-      ///FOR NOW WE SET
-      ResponseModel responseModel =
-      await UserRepo().unfollowUser(followUserId: candidateResumeId);
+      final responseModel =
+      await UserRepo().unfollowUser(followUserId: businessId);
+
       if (responseModel.isSuccess) {
         unFollowResponse.value = ApiResponse.complete(responseModel);
+
+        /// Update store locally
+        final updatedStore = store.copyWith(
+          isFollowed: false,
+          followerCount:
+          ((int.tryParse(store.followerCount ?? '0') ?? 0) - 1).toString(),
+        );
+
+        /// Update both lists
+        _updateStoreInLists(updatedStore);
       } else {
         unFollowResponse.value = ApiResponse.error('error');
         commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
       }
     } catch (e) {
       unFollowResponse.value = ApiResponse.error('error');
     }
+  }
+
+  void _updateStoreInLists(GetAllStoreResModel updatedStore) {
+    /// 1️⃣ Update in allStore list
+    final index1 = allStore.indexWhere((s) => s.id == updatedStore.id);
+    if (index1 != -1) {
+      allStore[index1] = updatedStore;
+    }
+
+    /// 2️⃣ Update inside allNearByStoresFeed list
+    final updatedFeed = allNearByStoresFeed.map((feedItem) {
+      log('updated store id--> ${updatedStore.id}');
+      log('feedItem.businessData?.id--> ${feedItem.businessData?.id}');
+      if (feedItem.type == StoreType.business.name.toLowerCase() &&
+          feedItem.businessData?.id == updatedStore.id) {
+        log('do update');
+        return feedItem.copyWith(businessData: updatedStore);
+      }
+      return feedItem;
+    }).toList();
+
+    allNearByStoresFeed.assignAll(updatedFeed);
+
+    allStore.refresh();
+    allNearByStoresFeed.refresh();
+
+  }
+
+  void updateStoreRatings(String businessId) {
+    ///  Update inside allStore list
+    final index1 = allStore.indexWhere((s) => s.id == businessId);
+    if (index1 != -1) {
+      final store = allStore[index1];
+      allStore[index1] = store.copyWith(
+        totalRatings: (int.parse(store.totalRatings ?? "0") + 1).toString(),
+      );
+    }
+
+    /// Update inside allNearByStoresFeed list
+    final updatedFeed = allNearByStoresFeed.map((feedItem) {
+      if (feedItem.type == StoreType.business.name.toLowerCase() &&
+          feedItem.businessData?.id == businessId) {
+        final businessData = feedItem.businessData!;
+        return feedItem.copyWith(
+          businessData: businessData.copyWith(
+            totalRatings: (int.parse(businessData.totalRatings ?? "0") + 1).toString(),
+          ),
+        );
+      }
+      return feedItem;
+    }).toList();
+
+    allNearByStoresFeed.assignAll(updatedFeed);
+
+    /// Refresh reactive lists
+    allStore.refresh();
+    allNearByStoresFeed.refresh();
+
+    log('✅ Store rating count updated for businessId: $businessId');
   }
 
 
