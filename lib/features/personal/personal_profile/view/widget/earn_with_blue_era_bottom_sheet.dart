@@ -5,6 +5,10 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+
+import '../rental_page/rental_page_main.dart';
 
 class ConsultBottomSheet extends StatelessWidget {
   ConsultBottomSheet({Key? key}) : super(key: key);
@@ -58,12 +62,12 @@ class ConsultBottomSheet extends StatelessWidget {
               physics: const ClampingScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                childAspectRatio: 0.9,
+                childAspectRatio: 0.7,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
               itemCount: _services.length,
-              itemBuilder: (_, i) => _ServiceCard(service: _services[i]),
+              itemBuilder: (_, i) => _ServiceCard(index: i,service: _services[i]),
             ),
           ),
         ],
@@ -80,13 +84,18 @@ class _Service {
 
 class _ServiceCard extends StatelessWidget {
   final _Service service;
-  const _ServiceCard({Key? key, required this.service}) : super(key: key);
+  final int index;
+  const _ServiceCard({Key? key, required this.service, required this.index}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(10),
-      onTap: () => Navigator.pop(context, service.label),
+      onTap: () {
+        if(index==5){
+          Get.to(()=>RentalScreen());
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
