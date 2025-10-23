@@ -14,8 +14,8 @@ class SingleVideoPlayerController extends GetxController {
   // ChewieController? _chewieController;
 
   // Ad service
-  final InterstitialAdService _interstitialService = InterstitialAdService();
-  String? adUnitId;
+  // final InterstitialAdService _interstitialService = InterstitialAdService();
+  // String? adUnitId;
 
   // Observable states
   final RxBool isVideoInitialized = false.obs;
@@ -37,7 +37,7 @@ class SingleVideoPlayerController extends GetxController {
   bool _wasPlayingBeforeNav = false;
 
   // Getters
-  InterstitialAdService get interstitialService => _interstitialService;
+  // InterstitialAdService get interstitialService => _interstitialService;
   VideoPlayerController? get videoPlayerController => _videoPlayerController;
   // ChewieController? get chewieController => _chewieController;
   ShortFeedItem? get currentVideoItem => _currentVideoItem;
@@ -76,7 +76,7 @@ class SingleVideoPlayerController extends GetxController {
     _isClosed = true;
     _hideControlsTimer?.cancel();
     disposeVideo();
-    _interstitialService.dispose();
+    // _interstitialService.dispose();
     super.onClose();
   }
 
@@ -132,29 +132,6 @@ class SingleVideoPlayerController extends GetxController {
       );
 
       await _videoPlayerController!.initialize();
-
-     /* _chewieController = ChewieController(
-        videoPlayerController: _videoPlayerController!,
-        autoPlay: false,
-        looping: false,
-        showControls: true,
-        allowFullScreen: true,
-        allowMuting: true,
-        allowPlaybackSpeedChanging: false,
-        errorBuilder: (context, err) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error, color: Colors.red, size: 60),
-                const SizedBox(height: 16),
-                const Text('Error playing video', style: TextStyle(color: Colors.red)),
-                Text(err, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          );
-        },
-      );*/
 
       _currentVideoItem = videoItem;
       _videoPlayerController!.addListener(_videoPlayerListener);

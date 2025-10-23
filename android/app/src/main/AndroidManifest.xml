@@ -63,9 +63,9 @@
             android:value="${mapApiKey}" />
 
         <!-- Google AdMob App ID -->
-        <meta-data
+       <!-- <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="${admobAppId}" />
+            android:value="${admobAppId}" />-->
 
         <!-- Main Flutter Activity -->
         <activity

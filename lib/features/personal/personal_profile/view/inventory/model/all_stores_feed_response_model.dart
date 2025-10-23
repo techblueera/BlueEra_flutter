@@ -47,41 +47,54 @@ class AllStoresFeedData {
   GetFoodDetailsModel? foodData;
   GetServiceModel? servicesData;
 
-  AllStoresFeedData(
-      {this.type,
-        this.inventoryData,
-        this.businessData,
-        this.foodData,
-        this.servicesData});
+  AllStoresFeedData({
+    this.type,
+    this.inventoryData,
+    this.businessData,
+    this.foodData,
+    this.servicesData,
+  });
 
   AllStoresFeedData.fromJson(Map<String, dynamic> json) {
     type = json['type'];
     inventoryData = json['inventory_data'] != null
-        ? new InventoryData.fromJson(json['inventory_data'])
+        ? InventoryData.fromJson(json['inventory_data'])
         : null;
     businessData = json['business_data'] != null
-        ? new GetAllStoreResModel.fromJson(json['business_data'])
+        ? GetAllStoreResModel.fromJson(json['business_data'])
         : null;
     foodData = json['food_data'] != null
-        ? new GetFoodDetailsModel.fromJson(json['food_data'])
+        ? GetFoodDetailsModel.fromJson(json['food_data'])
         : null;
     servicesData = json['services_data'] != null
-        ? new GetServiceModel.fromJson(json['services_data'])
+        ? GetServiceModel.fromJson(json['services_data'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['type'] = this.type;
-    if (this.inventoryData != null) {
-      data['inventory_data'] = this.inventoryData!.toJson();
-    }
-    if (this.businessData != null) {
-      data['business_data'] = this.businessData!.toJson();
-    }
-    data['food_data'] = this.foodData;
-    data['services_data'] = this.servicesData;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['type'] = type;
+    if (inventoryData != null) data['inventory_data'] = inventoryData!.toJson();
+    if (businessData != null) data['business_data'] = businessData!.toJson();
+    if (foodData != null) data['food_data'] = foodData!.toJson();
+    if (servicesData != null) data['services_data'] = servicesData!.toJson();
     return data;
+  }
+
+  AllStoresFeedData copyWith({
+    String? type,
+    InventoryData? inventoryData,
+    GetAllStoreResModel? businessData,
+    GetFoodDetailsModel? foodData,
+    GetServiceModel? servicesData,
+  }) {
+    return AllStoresFeedData(
+      type: type ?? this.type,
+      inventoryData: inventoryData ?? this.inventoryData,
+      businessData: businessData ?? this.businessData,
+      foodData: foodData ?? this.foodData,
+      servicesData: servicesData ?? this.servicesData,
+    );
   }
 }
 
@@ -94,19 +107,29 @@ class InventoryData {
 
   InventoryData.fromJson(Map<String, dynamic> json) {
     product =
-    json['product'] != null ? new ProductStore.fromJson(json['product']) : null;
+    json['product'] != null ? ProductStore.fromJson(json['product']) : null;
     type = json['type'];
     distance = json['distance'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.product != null) {
-      data['product'] = this.product!.toJson();
-    }
-    data['type'] = this.type;
-    data['distance'] = this.distance;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (product != null) data['product'] = product!.toJson();
+    data['type'] = type;
+    data['distance'] = distance;
     return data;
+  }
+
+  InventoryData copyWith({
+    ProductStore? product,
+    String? type,
+    double? distance,
+  }) {
+    return InventoryData(
+      product: product ?? this.product,
+      type: type ?? this.type,
+      distance: distance ?? this.distance,
+    );
   }
 }
 
@@ -116,8 +139,12 @@ class Pagination {
   int? itemsPerPage;
   int? totalItems;
 
-  Pagination(
-      {this.currentPage, this.totalPages, this.itemsPerPage, this.totalItems});
+  Pagination({
+    this.currentPage,
+    this.totalPages,
+    this.itemsPerPage,
+    this.totalItems,
+  });
 
   Pagination.fromJson(Map<String, dynamic> json) {
     currentPage = json['currentPage'];
@@ -127,12 +154,26 @@ class Pagination {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['currentPage'] = this.currentPage;
-    data['totalPages'] = this.totalPages;
-    data['itemsPerPage'] = this.itemsPerPage;
-    data['totalItems'] = this.totalItems;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['currentPage'] = currentPage;
+    data['totalPages'] = totalPages;
+    data['itemsPerPage'] = itemsPerPage;
+    data['totalItems'] = totalItems;
     return data;
   }
 
+  Pagination copyWith({
+    int? currentPage,
+    int? totalPages,
+    int? itemsPerPage,
+    int? totalItems,
+  }) {
+    return Pagination(
+      currentPage: currentPage ?? this.currentPage,
+      totalPages: totalPages ?? this.totalPages,
+      itemsPerPage: itemsPerPage ?? this.itemsPerPage,
+      totalItems: totalItems ?? this.totalItems,
+    );
+  }
 }
+

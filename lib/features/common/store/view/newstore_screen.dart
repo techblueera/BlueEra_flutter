@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
@@ -49,7 +50,8 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
   late StoreScreenController controller;
   final viewBusinessDetailsController =
   Get.put(ViewBusinessDetailsController());
-  final ViewPersonalDetailsController viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>() ?
+  final ViewPersonalDetailsController viewPersonalDetailsController =
+  Get.isRegistered<ViewPersonalDetailsController>() ?
   Get.find<ViewPersonalDetailsController>() : Get.put(ViewPersonalDetailsController());
   double headerHeight = 0.0;
 
@@ -274,6 +276,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                           children: [
                             SizedBox(height: SizeConfig.size10),
                             _buildStoreHeader(),
+                            SizedBox(height: SizeConfig.size5),
                           ],
                         ),
                       ),
@@ -289,35 +292,43 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.paddingM,
-        vertical: SizeConfig.paddingXSmall,
+        // vertical: SizeConfig.paddingXSmall,
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(SizeConfig.size14),
-            child: CachedNetworkImage(
-              imageUrl: userProfileGlobal,
-              width: SizeConfig.size30,
-              height: SizeConfig.size30,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: SizeConfig.size30,
-                height: SizeConfig.size30,
-                color: Colors.grey[300],
-              ),
-              errorWidget: (context, url, error) =>
-                  Icon(Icons.person, size: SizeConfig.size30 / 2),
-            ),
-          ),
-
-          SizedBox(width: SizeConfig.size8),
-
           Expanded(
-            child: CustomText(
-              isBusiness() ? businessNameGlobal : userNameGlobal,
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
+            child: InkWell(
+              onTap: ()=> Get.to(()=> BusinessOwnProfileScreen()),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(SizeConfig.size16),
+                    child: CachedNetworkImage(
+                      imageUrl: userProfileGlobal,
+                      width: SizeConfig.size32,
+                      height: SizeConfig.size32,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: SizeConfig.size32,
+                        height: SizeConfig.size32,
+                        color: Colors.grey[300],
+                      ),
+                      errorWidget: (context, url, error) =>
+                          Icon(Icons.person, size: SizeConfig.size32 / 2),
+                    ),
+                  ),
+
+                  SizedBox(width: SizeConfig.size8),
+
+                  CustomText(
+                    isBusiness() ? businessNameGlobal : userNameGlobal,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
+                  ),
+                ],
+              ),
             ),
           ),
 

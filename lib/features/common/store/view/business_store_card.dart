@@ -5,8 +5,11 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.dart';
+import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
+import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -102,17 +105,17 @@ class BusinessStoreCard extends StatelessWidget {
                               if (isGuestUser()) {
                                 createProfileScreen();
                               } else {
-                                // if (controllerVisit.isFollow.value) {
-                                //   await Get.find<StoreScreenController>().unFollowBusinessUser(
-                                //       candidateResumeId:
-                                //       getAllStoreResData?.userId
-                                //   );
-                                // } else {
-                                //   await Get.find<StoreScreenController>().followBusinessUser(
-                                //       candidateResumeId:
-                                //       getAllStoreResData?.userId
-                                //   );
-                                // }
+                                if (getAllStoreResData?.isFollowed ?? false) {
+                                  await Get.find<StoreScreenController>().unFollowBusinessUser(
+                                      businessId: getAllStoreResData?.userId,
+                                      store: getAllStoreResData ?? GetAllStoreResModel()
+                                  );
+                                } else {
+                                  await Get.find<StoreScreenController>().followBusinessUser(
+                                      businessId: getAllStoreResData?.userId,
+                                      store: getAllStoreResData ?? GetAllStoreResModel()
+                                  );
+                                }
                               }
                             },
                             child: Container(
@@ -123,7 +126,7 @@ class BusinessStoreCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(ds(20)),
                               ),
                               child: Text(
-                                "Follow",
+                                (getAllStoreResData?.isFollowed ?? false) ? "Unfollow" : "Follow",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: ds(11),
@@ -154,8 +157,8 @@ class BusinessStoreCard extends StatelessWidget {
                               ),
                               Text(
                                 ' ${
-                                  ((int.parse(getAllStoreResData?.totalRatings ??" 0")) > 0)
-                                      ? "(${getAllStoreResData?.totalRatings})"
+                                    (getAllStoreResData?.avgRating ?? 0) > 0
+                                      ? "(${getAllStoreResData?.avgRating})"
                                       : "No "
                                 }',
                                 style: TextStyle(color: AppColors.orangelite, fontSize: ds(12)),
@@ -366,7 +369,7 @@ class BusinessStoreCard extends StatelessWidget {
                   ),
                   SizedBox(width: ds(10)),
 
-
+                  /// Business Followers
                   InkWell(
                     onTap: (){
                       Get.to(() => FollowersFollowingPage(
@@ -388,24 +391,61 @@ class BusinessStoreCard extends StatelessWidget {
                   ),
 
                   SizedBox(width: ds(10)),
-                  LocalAssets(imagePath: AppIconAssets.comment_new),
-                  SizedBox(width: ds(4)),
-                  CustomText(
-                    "0",
-                    fontSize: SizeConfig.extraSmall,
-                    color: AppColors.secondaryTextColor,
-                  ),
+
+                  /// Business reviews
+                  InkWell(
+                   onTap: (){
+                     showModalBottomSheet(
+                       context: context,
+                       isScrollControlled: true,
+                       backgroundColor: Colors.transparent,
+                       builder: (context) =>
+                           BusinessRatingsBottomSheet(
+                             businessId: getAllStoreResData?.id ?? "",
+                           ),
+                     );
+                   },
+                    child: Row(
+                      children: [
+                        LocalAssets(imagePath: AppIconAssets.comment_new),
+                        SizedBox(width: ds(4)),
+                        CustomText(
+                          ((int.parse(getAllStoreResData?.totalRatings ??" 0")) > 0)
+                              ? "${getAllStoreResData?.totalRatings}"
+                              : "0",
+                          fontSize: SizeConfig.small,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ],
+                    ),
+                  )
+
                 ],
               ),
               Row(
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 1, color: AppColors.whiteF1),
-                      borderRadius: BorderRadius.circular(4),
+                  InkWell(
+                    onTap: () async {
+                      final success = await showDialog(
+                        context: context,
+                        builder: (_) => RatingFeedbackDialog(
+                          businessId: getAllStoreResData?.id??'',
+                          reviewFor: AppConstants.business
+                        )
+                      );
+
+                      if (success == true) {
+                        Get.find<StoreScreenController>().updateStoreRatings(getAllStoreResData?.id??'');
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 1, color: AppColors.whiteF1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Center(child: Icon(Icons.star_border, size: ds(12))),
                     ),
-                    child: Center(child: Icon(Icons.star_border, size: ds(13))),
                   ),
                   SizedBox(width: ds(6)),
                   InkWell(
@@ -422,7 +462,7 @@ class BusinessStoreCard extends StatelessWidget {
                       ));
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      padding: EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         border: Border.all(width: 1, color: AppColors.whiteF1),
                         borderRadius: BorderRadius.circular(4),
@@ -430,8 +470,8 @@ class BusinessStoreCard extends StatelessWidget {
                       child: Center(
                         child: LocalAssets(
                           imagePath: AppIconAssets.share_bold,
-                          height: 13,
-                          width: 13,
+                          width: ds(12),
+                          height: ds(12),
                         ),
                       ),
                     ),
