@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -181,8 +182,10 @@ class _MessageCardState extends State<MessageCard>
 
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
       List<String> message=widget.message.message?.split('.')??[];
+
       if(message.isNotEmpty){
-        messageWidget = FoodCardMessageCardBusiness(conversationId: widget.conversationId??'',
+        messageWidget = FoodCardMessageCardBusiness(photos: url,
+          conversationId: widget.conversationId??'',
           userId: widget.userId??'',
           message: widget.message,
           isFromChatCard: true,
@@ -1253,6 +1256,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
   final Messages message;
   final String userId;
   final String conversationId;
+  final List<String> photos;
   final bool isShowKM;
   final bool isFromChatCard;
   final bool isShowBusinessInfo;
@@ -1266,7 +1270,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
     this.isShowKM = false,
     this.isFromChatCard= false,
     this.isShowBusinessInfo = false,
-    this.businessData, required this.message, required this.userId, required this.conversationId,
+    this.businessData, required this.message, required this.userId, required this.conversationId, required this.photos,
   }) : super(key: key);
 
   @override
@@ -1336,7 +1340,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 isLoading: false,
                 width: double.infinity,
                 height: 170,
-                imagePaths: serviceData?.photos ?? [],
+                imagePaths: widget.photos,
                 borderRadius: BorderRadius.zero,
               ),
             ),
@@ -1445,6 +1449,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 serviceData?.business?.businessLocation?.lon?.toString() ??
                     ""),
             const Divider(height: 1,color: Colors.grey,),
+
             (!(widget.message.myMessage??false))?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
