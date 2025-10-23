@@ -141,13 +141,14 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.accountType, AppConstants.individual);
               await getUserLoginAccountType();
 
-              final personalController =
-                  Get.put(ViewPersonalDetailsController());
-              await personalController.viewPersonalProfile();
+
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.authToken, data.token);
 
               await getUserAuthToken();
+              final personalController =
+              Get.put(ViewPersonalDetailsController());
+              await personalController.viewPersonalProfile();
             }
 
             Get.offNamedUntil(

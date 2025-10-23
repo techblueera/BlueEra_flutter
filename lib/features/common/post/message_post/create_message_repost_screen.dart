@@ -72,8 +72,7 @@ class _CreateMessagePostScreenNewState
             );
           }),
         ),
-        bottomNavigationBar: // Continue button
-            Obx(() {
+        bottomNavigationBar: Obx(() {
           if (msgController.isLoading.value) {
             return SizedBox.shrink();
           }
@@ -141,7 +140,7 @@ class _CreateMessagePostScreenNewState
 
                             msgController.isLoading.value = false;
                           } on Exception catch (e) {
-                            logs("ERRO ${e}");
+                            logs("ERROR ${e}");
                             msgController.isLoading.value = false;
 
                             // TODO
@@ -206,8 +205,8 @@ class _CreateMessagePostScreenNewState
                             msgController.postText.value = newVal;
                           },
                           validator: (val) {
-                            if (val == null || val.trim().length < 50) {
-                              return "Message must be at least 50 characters long";
+                            if (val == null || val.trim().length < 10) {
+                              return "Message must be at least 10 characters long";
                             }
                             if (RegExp(r'https?').hasMatch(val)) {
                               return "Links are not allowed in the message";
@@ -228,7 +227,9 @@ class _CreateMessagePostScreenNewState
                         ),
                         SizedBox(height: SizeConfig.size15),
 
-                        PhotoUploadWidget(isFromRepost: true,),
+                        PhotoUploadWidget(
+                          isFromRepost: true,
+                        ),
                         SizedBox(height: SizeConfig.size15),
 
                         ((msgController.imagesList.isNotEmpty))

@@ -62,6 +62,7 @@ class SelectProfilePictureDialog {
         source: ImageSource.gallery, cropAspectRatio: cropAspectRatio);
   }
 
+
   /// Show dialog for logo/photo picker
   static Future showLogoDialog(
       BuildContext context,

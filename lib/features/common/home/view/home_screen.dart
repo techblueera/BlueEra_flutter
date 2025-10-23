@@ -2,20 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/chat/controllar/order_controllar.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
-import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -23,7 +17,7 @@ import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
-import 'package:share_handler/share_handler.dart';
+// import 'package:share_handler/share_handler.dart';
 
 import '../../../chat/contacts/view/be_available_contacts_list.dart';
 
@@ -73,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: selectedIndex);
 
-    initPlatformState();
+    // initPlatformState();
     getPackageData();
     searchController.addListener(() {
       setState(() {});
@@ -95,7 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     super.dispose();
   }
-
+///DO NOT DELETE THIS CODE.....
+/*
   SharedMedia? sharedMedia;
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -149,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
+*/
 
   Future<void> getPackageData() async {
     if (!mounted) return;
