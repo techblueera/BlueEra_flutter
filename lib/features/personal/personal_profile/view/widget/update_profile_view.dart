@@ -485,6 +485,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         .selectedProfession.value)
                                 .toList();
                             if (dataList.isNotEmpty) {
+                              authController.clearSubCategoryData();
+
                               authController.subcategoriesFiledNameList.addAll(
                                   dataList.first.subcategoriesFiledName ?? []);
                             }
@@ -499,8 +501,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               onChanged: (value) {
                                 personalCreateProfileController
                                     .selectedSubProfessionObj.value = null;
-                                authController.subcategoriesFiledNameList
-                                    .clear();
+                                // authController.subcategoriesFiledNameList
+                                //     .clear();
+                                authController.clearSubCategoryData();
 
                                 personalCreateProfileController
                                     .selectedProfession.value = value?.tagId;

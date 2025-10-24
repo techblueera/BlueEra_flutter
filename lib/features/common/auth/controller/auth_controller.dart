@@ -500,6 +500,8 @@ class AuthController extends GetxController {
   Future<void> getAllProfessionController() async {
     try {
       professionTypeDataList.clear();
+      subcategoriesFiledNameList.clear();
+
       ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
 
       if (responseModel.isSuccess) {
@@ -519,7 +521,12 @@ class AuthController extends GetxController {
       update();
     }
   }
+clearSubCategoryData()
+{
+  subcategoriesFiledNameList.clear();
+  update();
 
+}
   ///Add User...
   Future<void> createGuestAccountUserController(
       {required Map<String, dynamic> reqData}) async {

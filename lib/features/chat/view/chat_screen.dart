@@ -49,14 +49,26 @@ class ChatMainScreen extends StatefulWidget {
 
 class _ChatMainScreenState extends State<ChatMainScreen>
     with SingleTickerProviderStateMixin {
-  final chatViewController = Get.find<ChatViewController>();
+  // final chatViewController = Get.find<ChatViewController>();
 
   // final groupChatViewController = Get.find<GroupChatViewController>();
-  final chatThemeController = Get.find<ChatThemeController>();
+  // final chatThemeController = Get.find<ChatThemeController>();
+  late ChatViewController chatViewController;
+  late ChatThemeController chatThemeController;
 
   @override
   void initState() {
     super.initState();
+    if (Get.isRegistered<ChatViewController>()) {
+      chatViewController = Get.find<ChatViewController>();
+    } else {
+      chatViewController = Get.put(ChatViewController());
+    }
+    if (Get.isRegistered<ChatThemeController>()) {
+      chatThemeController = Get.find<ChatThemeController>();
+    } else {
+      chatThemeController = Get.put(ChatThemeController());
+    }
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     } else {

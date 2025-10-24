@@ -120,7 +120,6 @@ flutter:
     - assets/diwali_card/
     - assets/video/
     - assets/store/
-#    - assets/certificate/
 
   fonts:
     - family: OpenSans
