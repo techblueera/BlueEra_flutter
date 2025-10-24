@@ -1762,7 +1762,7 @@ class _PersonalProfileSetupNewScreenState
 
                 PositiveCustomBtn(
                   onTap: ()  {
-                    Get.toNamed(RouteHelper.getaddDocumentScreenRoute());
+                    Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
 
                   },
                   title: 'Add Document',
