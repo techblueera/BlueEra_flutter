@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
+import 'package:BlueEra/features/common/post/message_post/edit_photo_feed_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -42,7 +43,7 @@ class _InstaSliderState extends State<InstaSlider> {
           setState(() {});
         },
         itemBuilder: (context, index) {
-          MessagePostImageModel imageData = msgPostController.imagesList[index];
+          File imageData = msgPostController.imagesList[index];
 
           return Stack(
             children: [
@@ -53,17 +54,11 @@ class _InstaSliderState extends State<InstaSlider> {
                       imageData.imgCropMode == AppConstants.Square ? 0 : 12),*/
                   child: Container(
                     height: 300,
-                    // width: 300,
 
-                    // height: Get.width * 0.5,
-                    // width: imageData.imgCropMode == AppConstants.Square
-                    //     ? Get.width * 0.5
-                    //     : double.parse(
-                    //         imageData.imgWidth ?? Get.width.toString()),
                     decoration: BoxDecoration(
                       // borderRadius: BorderRadius.circular(1),
                       image: DecorationImage(
-                        image: FileImage(File(imageData.imageFile?.path ?? "")),
+                        image: FileImage(File(imageData.path ?? "")),
                         fit: BoxFit.fitWidth,
                       ),
                     ),

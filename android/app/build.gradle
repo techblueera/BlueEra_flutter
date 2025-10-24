@@ -42,7 +42,8 @@ if (!mapApiKey || mapApiKey.isEmpty()) {
 android {
     namespace "ai.bluecs.app"
     compileSdk 36
-    ndkVersion "27.0.12077973"
+    ndkVersion "29.0.14033849 rc4"
+//    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -100,15 +101,6 @@ configurations.all {
     exclude group: 'androidx.media3', module: 'media3-exoplayer-rtsp'
 }
 dependencies {
-
-//    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
-//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
-//    implementation platform('com.google.firebase:firebase-bom:31.0.2')
-//    implementation 'com.google.firebase:firebase-messaging:23.2.1'
-//    implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
-//    implementation 'com.google.android.material:material:1.11.0'
-
-
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21"
     implementation platform('com.google.firebase:firebase-bom:31.0.2')

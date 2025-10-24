@@ -100,7 +100,7 @@ class _CreateMessagePostScreenNewState
                                 i++) {
                               final data = msgController.imagesList[i];
 
-                              File processed = File(data.imageFile?.path ?? "");
+                              File processed = File(data.path ?? "");
 
                               String fileName = processed.path.split('/').last;
                               formData.files.add(
