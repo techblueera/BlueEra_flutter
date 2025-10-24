@@ -47,6 +47,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../widgets/common_back_app_bar.dart';
+import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
 class PersonalProfileSetupNewScreen extends StatefulWidget {
@@ -693,9 +694,10 @@ class _PersonalProfileSetupNewScreenState
                                 ),
                                 SizedBox(width: 2),
                                 Expanded(
+
                                   child: CustomText(
                                     item.title,
-                                    fontSize: SizeConfig.small,
+                                    fontSize: 11,
                                     color: AppColors.mainTextColor,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -735,93 +737,124 @@ class _PersonalProfileSetupNewScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // === Banner + Profile + Edit + Share ===
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Banner (dark gradient or user banner)
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  ),
-                  child: Container(
-                    height: 130,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF1A1A1A), Color(0xFF2B2B2B)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
+            Container(
+              height: 180,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Banner (dark gradient or user banner)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
                     ),
-                    child: Obx(() {
-                      final banner = personalCreateProfileController.imagePath?.value ?? '';
-                      return banner.isNotEmpty
-                          ? Image.network(banner, fit: BoxFit.cover)
-                          : const SizedBox();
-                    }),
-                  ),
-                ),
-
-                // Profile Image
-                Positioned(
-                  left: 20,
-                  bottom: -40,
-                  child: Obx(() {
-                    return CommonProfileImage(
-                      imagePath: personalCreateProfileController.imagePath?.value ?? "",
-                      onImageUpdate: (image) async {
-                        personalCreateProfileController.imagePath?.value = image;
-                        dynamic dataImage = await multiPartImage(imagePath: image);
-                        var reqProfile = {ApiKeys.profile_image: dataImage};
-                        await personalCreateProfileController.updateUserProfileDetails(
-                            params: reqProfile, isFromProfileOnly: true);
-                      },
-                      dialogTitle: 'Upload Profile Picture',
-                      //radius: 36,
-                      showProfileBorder: true,
-                    );
-                  }),
-                ),
-
-                // Edit + Share buttons
-                Positioned(
-                  right: 12,
-                  bottom: -35,
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          if (viewProfileController.personalProfileDetails.value.isProfileCreated == false) {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => CreateProfileScreen()));
-                          } else {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateProfileScreen()));
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: BoxBorder.all(color:AppColors.primaryColor, )
-                          ),
-                          child: const CustomText(
-                            "Edit Profile",
-                            color: AppColors.primaryColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    child: Container(
+                      height: 130,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF1A1A1A), Color(0xFF2B2B2B)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.share_outlined, color: AppColors.secondaryTextColor, size: 20),
-                    ],
+                      child: Obx(() {
+                        final banner = personalCreateProfileController.imagePath?.value ?? '';
+                        return banner.isNotEmpty
+                            ? Image.network(banner, fit: BoxFit.cover)
+                            : const SizedBox();
+                      }),
+                    ),
                   ),
-                ),
-              ],
+
+                  // Profile Image
+                  Positioned(
+                    left: 20,
+                    top: 90,
+                    child: Obx(() {
+                      return CommonProfileImage(
+                        imagePath: personalCreateProfileController.imagePath?.value ?? "",
+                        onImageUpdate: (image) async {
+                          personalCreateProfileController.imagePath?.value = image;
+                          dynamic dataImage = await multiPartImage(imagePath: image);
+                          var reqProfile = {ApiKeys.profile_image: dataImage};
+                          await personalCreateProfileController.updateUserProfileDetails(
+                              params: reqProfile, isFromProfileOnly: true);
+                        },
+                        dialogTitle: 'Upload Profile Picture',
+                        //radius: 36,
+                        showProfileBorder: true,
+                      );
+                    }),
+                  ),
+
+                  // Edit + Share buttons
+                  Positioned(
+                    right: 12,
+                    top: 140,
+
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            if (viewProfileController.personalProfileDetails.value.isProfileCreated == false) {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CreateProfileScreen()));
+                            } else {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateProfileScreen()));
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color:AppColors.primaryColor, )
+                            ),
+                            child: const CustomText(
+                              "Edit Profile",
+                              color: AppColors.primaryColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SvgPicture.asset(
+                          AppIconAssets.shareIcon,
+                          color: Colors.black,
+                        )
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 10,top: 8,
+
+                      child: InkWell(
+                        onTap: ()async{
+                          final newPath =
+                          await SelectProfilePictureDialog.showLogoDialog(
+                            context,
+                            "Edit Cover Picture",
+                            isOnlyCamera: true,
+                            isGallery: true,
+                          );
+                          dynamic dataImage = await multiPartImage(imagePath: newPath);
+                          var reqProfile = {ApiKeys.profile_image: dataImage};
+                          await personalCreateProfileController.updateUserProfileDetails(
+                              params: reqProfile, isFromProfileOnly: true);
+                              // personalCreateProfileController.imagePath?.value = image;
+                            // dynamic dataImage = await multiPartImage(imagePath: image);
+                            // var reqProfile = {ApiKeys.profile_image: dataImage};
+                            // await personalCreateProfileController.updateUserProfileDetails(
+                            //     params: reqProfile, isFromProfileOnly: true);
+                          },
+
+                          child: Image.asset('assets/diwali_card/camera.png')))
+                ],
+              ),
             ),
 
-            const SizedBox(height: 48),
+           // const SizedBox(height: 48),
 
             // === Name + Role ===
             Padding(
@@ -836,18 +869,36 @@ class _PersonalProfileSetupNewScreenState
                     color: AppColors.mainTextColor,
                   ),
                   const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: BoxBorder.all(color:AppColors.secondaryTextColor, )),
-                    child: CustomText(
-                      viewProfileController.personalProfileDetails.value.user?.profession ?? 'UI/UX Designer',
-                      color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    children: [
+                      (viewProfileController.personalProfileDetails.value.user?.name=='')?SizedBox():Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: BoxBorder.all(color:AppColors.secondaryTextColor, )),
+                        child: CustomText(
+                          viewProfileController.personalProfileDetails.value.user?.name ?? '',
+                          color: AppColors.secondaryTextColor,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 6,),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: BoxBorder.all(color:AppColors.secondaryTextColor, )),
+                        child: CustomText(
+                          viewProfileController.personalProfileDetails.value.user?.profession ?? 'UI/UX Designer',
+                          color: AppColors.secondaryTextColor,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -896,8 +947,8 @@ class _PersonalProfileSetupNewScreenState
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                 child: ExpandableText(
                   text: viewProfileController.personalProfileDetails.value.user?.bio ??
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum...",
-                 // trimLines: 3,
+                      "",
+                 trimLines: 2,
                   style: TextStyle(
                     color: AppColors.mainTextColor,
                     fontSize: 14,
@@ -921,7 +972,7 @@ class _PersonalProfileSetupNewScreenState
                         Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
                       },
                       child: Container(
-                        padding: EdgeInsets.all(SizeConfig.size10),
+                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10,vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(color: AppColors.primaryColor),
@@ -934,7 +985,7 @@ class _PersonalProfileSetupNewScreenState
                             CustomText(
                               "My Resume",
                               color: AppColors.primaryColor,
-                              fontSize: SizeConfig.medium,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                             const SizedBox(width: 8),
@@ -946,7 +997,7 @@ class _PersonalProfileSetupNewScreenState
                                 child: Center(
                                   child: CustomText(
                                     "${(0.85 * 100).toInt()}%",
-                                    fontSize: SizeConfig.extraSmall,
+                                    fontSize: 8,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.mainTextColor,
                                   ),
@@ -962,11 +1013,13 @@ class _PersonalProfileSetupNewScreenState
                   Expanded(
                     child: Obx(() => GestureDetector(
                       onTap: () {
+
                         viewProfileController.isMyProfileShow.value =
                         !viewProfileController.isMyProfileShow.value;
+
                       },
                       child: Container(
-                        padding: EdgeInsets.all(SizeConfig.size10),
+                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10,vertical: 8),
                         decoration: BoxDecoration(
                           color: viewProfileController.isMyProfileShow.isTrue
                               ? AppColors.primaryColor
@@ -983,7 +1036,7 @@ class _PersonalProfileSetupNewScreenState
                               color: viewProfileController.isMyProfileShow.isTrue
                                   ? Colors.white
                                   : AppColors.primaryColor,
-                              fontSize: SizeConfig.medium,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                             const SizedBox(width: 8),
@@ -998,11 +1051,11 @@ class _PersonalProfileSetupNewScreenState
                                 child: Center(
                                   child: CustomText(
                                     "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
-                                    fontSize: SizeConfig.extraSmall,
+                                    fontSize: 8,
                                     fontWeight: FontWeight.w600,
                                     color: viewProfileController.isMyProfileShow.isTrue
                                         ? Colors.white
-                                        : AppColors.mainTextColor,
+                                        : AppColors.black,
                                   ),
                                 ),
                               ),
@@ -1015,6 +1068,11 @@ class _PersonalProfileSetupNewScreenState
                 ],
               ),
             ),
+            Obx(
+              () {
+                return !viewProfileController.isMyProfileShow.value?SizedBox():_buildMyProfileWidget();
+              }
+            )
           ],
         ),
       ),

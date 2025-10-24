@@ -11,6 +11,9 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:path/path.dart';
+
+import '../rental_page/rental_page_main.dart';
 
 class ConsultBottomSheet extends StatelessWidget {
   ConsultBottomSheet({Key? key}) : super(key: key);
@@ -203,3 +206,6 @@ class _ServiceCard extends StatelessWidget {
     );
   }
 }
+// onTap: (){
+// Navigator.push(context, MaterialPageRoute(builder: (context) => RentalScreen(),));
+// },
