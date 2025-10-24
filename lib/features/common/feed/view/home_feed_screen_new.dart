@@ -26,7 +26,7 @@ import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_home_screen_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
@@ -607,7 +607,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           left: SizeConfig.size8,
           right: SizeConfig.size8,
           top: SizeConfig.size8),
-      child: ProductHomeScreenCard(
+      child: BusinessProductCard(
           allProducts: Get.find<InventoryController>().allProducts),
     );
   }

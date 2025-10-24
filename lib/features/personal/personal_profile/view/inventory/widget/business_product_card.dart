@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -12,27 +12,21 @@ import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
-class ProductHomeScreenCard extends StatefulWidget {
+class BusinessProductCard extends StatefulWidget {
   final List<GetProductData> allProducts;
+  final bool showHorizontal;
 
-  const ProductHomeScreenCard({super.key, required this.allProducts});
+  const BusinessProductCard({super.key, required this.allProducts, this.showHorizontal = true});
 
   @override
-  State<ProductHomeScreenCard> createState() => _ProductHomeScreenCardState();
+  State<BusinessProductCard> createState() => _BusinessProductCardState();
 }
 
-class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
+class _BusinessProductCardState extends State<BusinessProductCard> {
   final CarouselSliderController _carouselController = CarouselSliderController();
   int _currentIndex = 0;
 
-  final List<String> bgAssets = [
-    'assets/diwali_card/diwali_sample_card1.jpeg',
-    'assets/diwali_card/diwali_sample_card2.jpeg',
-    'assets/diwali_card/diwali_sample_card3.jpeg',
-    'assets/diwali_card/diwali_sample_card4.jpeg',
-    'assets/diwali_card/diwali_sample_card5.jpeg',
-    'assets/diwali_card/diwali_sample_card6.jpeg',
-  ];
+
   late final List<GlobalKey> _cardKey;
 
   @override
@@ -50,7 +44,8 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
     final double cardSize = screenWidth > maxCardSize ? maxCardSize : screenWidth * 0.9;
 
 
-    return Column(
+    return (widget.showHorizontal)
+        ? Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
@@ -84,13 +79,13 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
                         itemCount: widget.allProducts.length,
                         itemBuilder: (context, index, realIndex) {
                           final product = widget.allProducts[index];
-                          final int randomIndex = Random().nextInt(bgAssets.length);
-                          final String bgAsset = bgAssets[randomIndex];
+                          final int randomIndex = Random().nextInt(bgAssetsForProductSharing.length);
+                          final String bgAsset = bgAssetsForProductSharing[randomIndex];
 
-                          return DiwaliOfferCard(
-                              cardKey: _cardKey[index],
-                              ownProductData: product,
-                              backgroundAsset: bgAsset,
+                          return SharingBusinessProductCard(
+                            cardKey: _cardKey[index],
+                            ownProductData: product,
+                            backgroundAsset: bgAsset,
                           );
                         },
                         options: CarouselOptions(
@@ -221,7 +216,74 @@ class _ProductHomeScreenCardState extends State<ProductHomeScreenCard> {
           ),
         ),
       ],
-    );
+    )
+         : ListView.builder(
+           itemCount: widget.allProducts.length,
+           scrollDirection: Axis.vertical,
+           padding: EdgeInsets.all(SizeConfig.size15),
+           itemBuilder: (context, index) {
+             final product = widget.allProducts[index];
+             final int randomIndex = Random().nextInt(bgAssetsForProductSharing.length);
+             final String bgAsset = bgAssetsForProductSharing[randomIndex];
+
+             return Container(
+               padding: const EdgeInsets.all(10.0),
+               margin: const EdgeInsets.only(bottom: 10.0),
+               decoration: BoxDecoration(
+                   color: AppColors.white,
+                   borderRadius: BorderRadius.circular(10.0),
+                   border: Border.all(color: AppColors.whiteE5),
+                   boxShadow: [
+                     BoxShadow(
+                         color: AppColors.black.withValues(alpha: 0.08),
+                         offset: Offset(0, 1),
+                         blurRadius: 2)
+                   ]),
+               child: Column(
+                 children: [
+                   SizedBox(
+                     height: cardSize,
+                     child: SharingBusinessProductCard(
+                       cardKey: _cardKey[index],
+                       ownProductData: product,
+                       backgroundAsset: bgAsset,
+                     ),
+                   ),
+                   const SizedBox(height: 12),
+
+                   Row(
+                     children: [
+                       Expanded(
+                         child: CustomText(
+                             "Share card to social media, Grow business",
+                             color: AppColors.secondaryTextColor,
+                             fontWeight: FontWeight.w400,
+                             fontSize: SizeConfig.small,
+                             fontFamily: AppConstants.OpenSans),
+                       ),
+                       Align(
+                         alignment: Alignment.topRight,
+                         child: InkWell(
+                           onTap: () async {
+                             final currentProduct = widget.allProducts[_currentIndex];
+                             await VisitingCardHelper().shareVisitingCard(
+                                 _cardKey[index],
+                                 productId: currentProduct.product.details?.id
+                             );
+                           },
+                           child: Container(
+                             margin: EdgeInsets.only(bottom: SizeConfig.size5,right: SizeConfig.size5,top: SizeConfig.size5),
+                             child: LocalAssets(imagePath: AppIconAssets.share_bold, imgColor: AppColors.primaryColor ),
+                           ),
+                         ),
+                       ),
+                     ],
+                   ),
+                 ],
+               ),
+             );
+           },
+         );
   }
 
 }

@@ -14,8 +14,8 @@ class LocationController extends GetxController {
   final fetchAddressFromGeo = false.obs;
 
   Future<LocationDataModel?> checkPermissionAndSetData() async {
-    isFetchingAddress.value = true; // show loader immediately
-    HapticFeedback.lightImpact();   // ✅ instant haptic feedback
+    isFetchingAddress.value = true;
+    HapticFeedback.lightImpact();
 
     final locationResult = await LocationPermissionHandler.getCurrentLocation();
 

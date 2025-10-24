@@ -214,8 +214,8 @@ class FoodItemCard extends StatelessWidget {
                               color: Colors.green,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              "Veg",
+                            child: Text(
+                              foodData.vegType ?? "",
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,

@@ -557,7 +557,6 @@ class StoreScreenController extends GetxController {
     log('✅ Store rating count updated for businessId: $businessId');
   }
 
-
   // Scroll and Header Management
   final GlobalKey headerKey = GlobalKey();
   final ScrollController scrollController = ScrollController();

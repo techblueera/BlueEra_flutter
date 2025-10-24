@@ -72,6 +72,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/a
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/create_varient_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen_product.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
@@ -121,8 +122,8 @@ class RouteHelper {
 
   static String getBusinessAccountRoute() => RouteConstant.BusinessAccount;
 
-  static String getAddEditVisitingCardScreenRoute() =>
-      RouteConstant.AddEditVisitingCardScreen;
+  // static String getAddEditVisitingCardScreenRoute() =>
+  //     RouteConstant.AddEditVisitingCardScreen;
 
   static String getBottomNavigationBarScreenRoute() =>
       RouteConstant.BottomNavigationBarScreen;
@@ -337,6 +338,9 @@ class RouteHelper {
   static String getEarnWithBlueEraNewScreenRoute() =>
       RouteConstant.earnWithBlueEraNewScreen;
 
+  static String getInventoryBusinessCardsScreenRoute() =>
+      RouteConstant.inventoryBusinessCardsScreen;
+
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -402,10 +406,10 @@ class RouteHelper {
         );
       case RouteConstant.BusinessAccount:
         return MaterialPageRoute(builder: (_) => BusinessAccountScreen());
-      case RouteConstant.AddEditVisitingCardScreen:
-        // final companyData =
-        //     args[ApiKeys.argCompanyData] != null ? args[ApiKeys.argCompanyData] as GetMyProfileModel : null;
-        return MaterialPageRoute(builder: (_) => BusinessDetailsEditPageOne());
+      // case RouteConstant.AddEditVisitingCardScreen:
+      //   // final companyData =
+      //   //     args[ApiKeys.argCompanyData] != null ? args[ApiKeys.argCompanyData] as GetMyProfileModel : null;
+      //   return MaterialPageRoute(builder: (_) => BusinessDetailsEditPageOne());
       case RouteConstant.BusinessOwnProfileScreen:
         return MaterialPageRoute(builder: (_) => BusinessOwnProfileScreen());
 
@@ -1005,6 +1009,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => EarnWithBlueEraNewScreen(),
             settings: RouteSettings(name: getEarnWithBlueEraNewScreenRoute()));
+     case RouteConstant.inventoryBusinessCardsScreen:
+        return MaterialPageRoute(
+            builder: (_) => InventoryBusinessCardsScreen(),
+            settings: RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
 
       default:
         return MaterialPageRoute(

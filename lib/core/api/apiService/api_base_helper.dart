@@ -105,7 +105,8 @@ class ApiBaseHelper {
           },
           onResponse: (response, handler) {
             numberOfReq--;
-            if (showProgressDialog && numberOfReq == 0) {
+            if (showProgressDialog && numberOfReq ==  0) {
+              log('close dialog');
               ProgressDialog.showProgressDialog(false);
             }
             // ===== YOUR FIX BELOW: normalize all Map keys to String to prevent _Map<dynamic, dynamic> issues ===

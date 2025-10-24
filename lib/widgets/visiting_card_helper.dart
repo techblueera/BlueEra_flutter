@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
-import 'package:BlueEra/features/common/home/widgets/diwali_offer_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -55,17 +55,8 @@ class VisitingCardHelper {
 
     GlobalKey cardKey = GlobalKey();
 
-    final List<String> bgAssets = [
-      'assets/diwali_card/diwali_sample_card1.jpeg',
-      'assets/diwali_card/diwali_sample_card2.jpeg',
-      'assets/diwali_card/diwali_sample_card3.jpeg',
-      'assets/diwali_card/diwali_sample_card4.jpeg',
-      'assets/diwali_card/diwali_sample_card5.jpeg',
-      'assets/diwali_card/diwali_sample_card6.jpeg',
-    ];
-
-    final int randomIndex = Random().nextInt(bgAssets.length);
-    final String bgAsset = bgAssets[randomIndex];
+    final int randomIndex = Random().nextInt(bgAssetsForProductSharing.length);
+    final String bgAsset = bgAssetsForProductSharing[randomIndex];
 
     await Future.wait([
       precacheImage(AssetImage(bgAsset), context),
@@ -85,7 +76,7 @@ class VisitingCardHelper {
     final overlay = OverlayEntry(
       builder: (_) => Transform.translate(
         offset: const Offset(0, -9999), // move completely off-screen
-        child: DiwaliOfferCard(
+        child: SharingBusinessProductCard(
           cardKey: cardKey,
           ownProductData: ownProductData,
           backgroundAsset: bgAsset,
@@ -121,7 +112,7 @@ class VisitingCardHelper {
 
   bool _isSharing = false;
 
-  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, String? productId}) async {
+  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, String? productId, String? serviceId, String? foodServiceId}) async {
     print('sharing');
     if (_isSharing) return;
 

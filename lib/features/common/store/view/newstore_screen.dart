@@ -275,8 +275,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SizedBox(height: SizeConfig.size10),
-                            _buildStoreHeader(),
-                            SizedBox(height: SizeConfig.size5),
+                            if (!isGuestUser())
+                              ...[
+                                _buildStoreHeader(),
+                                SizedBox(height: SizeConfig.size5),
+                              ]
                           ],
                         ),
                       ),

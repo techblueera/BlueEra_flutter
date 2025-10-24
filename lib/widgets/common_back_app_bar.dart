@@ -95,9 +95,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isGoLiveWidget,
       this.isFollowRefreshWidget,
       this.isFollowRefresh = false,
-      this.isProductPopUpMenu,
       this.showGoLiveWidget,
       this.isGoLive = false,
+      this.isInventoryPopUpMenu = false,
       });
 
   // final AppBar? appBar;
@@ -164,12 +164,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   // final bool isAddProduct;
   // final bool isAddProductCategory;
   final PreferredSizeWidget? bottomWidget;
-  final bool? isProductPopUpMenu;
   final bool? isFollowRefresh;
   final bool? isGoLive;
   final Widget Function()? isFollowRefreshWidget;
   final Widget? showGoLiveWidget;
   final Widget Function()? isGoLiveWidget;
+  final bool? isInventoryPopUpMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -204,6 +204,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: SizeConfig.paddingL,
                     imgColor: Colors.black,
                   )),
+
             // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
             if (isProfile ?? false)
               Builder(
@@ -234,6 +235,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   }));
                 },
               ),
+
             if (title?.isNotEmpty ?? false)
               Flexible(
                 child: Padding(
@@ -252,6 +254,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
+
             if (isSearch ?? false)
               (controller == null)
                   ? SizedBox()
@@ -271,6 +274,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             hintText: searchHintText),
                       ),
                     ),
+
             /* if (currentCity != null)
               Builder(
                 builder: (context) => Row(
@@ -290,6 +294,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 ),
               ),*/
+
             if (isGoLive ?? false)
               Builder(
                 builder: (context) => Row(
@@ -314,6 +319,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
+
             if (isNotification ?? false)
               Builder(builder: (context) {
                 return Padding(
@@ -436,6 +442,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: LocalAssets(imagePath: AppIconAssets.resumeCardIcon),
                 itemBuilder: (context) => popupMenuResumeCardItems(),
               ),
+
             if (isGuestLogout ?? false)
               Builder(
                 builder: (context) => Container(
@@ -470,12 +477,16 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
 
-            if (isProductPopUpMenu ?? false)
-              Builder(
-                builder: (context) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Icon(Icons.more_vert, color: AppColors.black),
-                ),
+            if (isInventoryPopUpMenu ?? false)
+              PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                offset: const Offset(-6, 36),
+                color: AppColors.white,
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                icon: Icon(Icons.more_vert),
+                itemBuilder: (context) => inventoryPopupMenuItems(),
               ),
           ],
         ),
@@ -711,44 +722,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           Builder(
             builder: (context) => buildCustomWidget!(),
           ),
-
-        // if (isAddProduct)
-        //   Builder(
-        //     builder: (context) => AddProductBtn(),
-        //   ),
-        //
-        // if (isAddProductCategory)
-        //   Builder(
-        //     builder: (context) => GestureDetector(
-        //       onTap: ()=> Get.to(()=> AddCategoryFolderScreen()),
-        //       child: Container(
-        //         height: SizeConfig.size30,
-        //         margin: EdgeInsets.only(right: SizeConfig.size10),
-        //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        //         decoration: BoxDecoration(
-        //             borderRadius: BorderRadius.circular(10),
-        //             border: Border.all(color: AppColors.primaryColor)
-        //         ),
-        //         child: Row(
-        //           mainAxisSize: MainAxisSize.min,
-        //           children: [
-        //             const Icon(
-        //               Icons.add,
-        //               color: AppColors.primaryColor,
-        //               size: 16,
-        //             ),
-        //             const SizedBox(width: 4),
-        //             CustomText(
-        //               'Add Category',
-        //               fontSize: 12,
-        //               fontWeight: FontWeight.w600,
-        //               color: AppColors.primaryColor,
-        //             ),
-        //           ],
-        //         ),
-        //       ),
-        //     ),
-        //   ),
 
         if (showGoLiveWidget!=null)
           Builder(

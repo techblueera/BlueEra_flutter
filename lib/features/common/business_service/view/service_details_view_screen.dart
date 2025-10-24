@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen;
+import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen;
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -104,6 +104,12 @@ class ServiceDetailsScreen extends StatelessWidget {
                       ),
                       InkWell(
                         onTap: () async {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+
+                            return;
+                          }
+
                           Discounts? maxDiscount;
                           if ((service.discounts?.length ?? 0) > 0)
                             maxDiscount = service.discounts
