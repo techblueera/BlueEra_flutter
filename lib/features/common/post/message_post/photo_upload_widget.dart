@@ -81,7 +81,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20,),
+              /*  SizedBox(height: 20,),
                 InkWell(
                   onTap: () async {
                     if (msgController.imagesList.length < 4) {
@@ -124,7 +124,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       ),
                     ),
                   ),
-                ),
+                ),*/
               ],
               if (msgController.selectedType.value?.name ==
                   MediaType.image.name)
@@ -170,7 +170,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                     ),
                   ),
                 ),
-              if (msgController.selectedType.value?.name ==
+        /*      if (msgController.selectedType.value?.name ==
                   MediaType.video.name)
                 InkWell(
                   onTap: () async {
@@ -214,7 +214,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       ),
                     ),
                   ),
-                ),
+                ),*/
 
               SizedBox(height: SizeConfig.size10),
               msgController.imagesList.isNotEmpty
