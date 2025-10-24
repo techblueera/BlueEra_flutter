@@ -84,7 +84,7 @@ class _CreateMessagePostScreenNewState
         },
       ),
       bottomNavigationBar: // Continue button
-          Obx(() {
+      Obx(() {
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
@@ -97,57 +97,60 @@ class _CreateMessagePostScreenNewState
                     msgController.messageTitle.value.isNotEmpty &&
                     (msgController.imagesList.length >= 1)),
                 onTap: (msgController.postText.value.isNotEmpty &&
-                        msgController.messageTitle.value.isNotEmpty &&
-                        (msgController.imagesList.length >= 1))
+                    msgController.messageTitle.value.isNotEmpty &&
+                    (msgController.imagesList.length >= 1))
                     ? () async {
-                        await Future.delayed(Duration(milliseconds: 200));
-                        final input = msgController.postText.value.trim();
-                        if (containsHttpButNotHttps(input)) {
-                          commonSnackBar(
-                              message: "Only HTTPS links are allowed");
-                          return;
-                        }
-                        if (msgController.postText.value.isEmpty ||
-                            msgController.postText.value.trim().length < 50) {
-                          return commonSnackBar(
-                              message:
-                                  "Message must be at least 50 characters long");
-                        }
-                        if (msgController.messageTitle.value.isEmpty) {
-                          commonSnackBar(message: "Title is required");
-                          return;
-                        }
-                        if (msgController.imagesList.length < 1) {
-                          // if (msgController.imagesList.length < 1) {
-                          commonSnackBar(
-                              message: "At least 1 photo is required");
-                          return;
-                        }
+                  await Future.delayed(Duration(milliseconds: 200));
+                  final input = msgController.postText.value.trim();
+                  if (containsHttpButNotHttps(input)) {
+                    commonSnackBar(
+                        message: "Only HTTPS links are allowed");
+                    return;
+                  }
+                  if (msgController.postText.value.isEmpty ||
+                      msgController.postText.value
+                          .trim()
+                          .length < 50) {
+                    return commonSnackBar(
+                        message:
+                        "Message must be at least 50 characters long");
+                  }
+                  if (msgController.messageTitle.value.isEmpty) {
+                    commonSnackBar(message: "Title is required");
+                    return;
+                  }
+                  if (msgController.imagesList.length < 1) {
+                    // if (msgController.imagesList.length < 1) {
+                    commonSnackBar(
+                        message: "At least 1 photo is required");
+                    return;
+                  }
 
-                        ///FOR ADD POST...
-                        if (!msgController.isMsgPostEdit) {
-                          Get.to(() => MessagePostPreviewScreenNew(
-                                postVia: widget.postVia,
-                                isEdit: msgController.isMsgPostEdit,
-                              ));
-                          return;
-                        }
+                  ///FOR ADD POST...
+                  if (!msgController.isMsgPostEdit) {
+                    Get.to(() =>
+                        MessagePostPreviewScreenNew(
+                          postVia: widget.postVia,
+                          isEdit: msgController.isMsgPostEdit,
+                        ));
+                    return;
+                  }
 
-                        ///FOR EDIT....
-                        if (msgController.isMsgPostEdit) {
-                          if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
-                            final taggedIds = widget.post?.taggedUsers ?? [];
+                  ///FOR EDIT....
+                  if (msgController.isMsgPostEdit) {
+                    if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
+                      final taggedIds = widget.post?.taggedUsers ?? [];
 
-                            tagUserController.selectedUsers.value =
-                                tagUserController.allUsers.where((user) {
-                              final isTagged = taggedIds.contains(user.id);
-                              user.isSelected.value =
-                                  isTagged; // set isSelected based on tagged
-                              return isTagged;
-                            }).toList();
-                          }
-                        }
-                      }
+                      tagUserController.selectedUsers.value =
+                          tagUserController.allUsers.where((user) {
+                            final isTagged = taggedIds.contains(user.id);
+                            user.isSelected.value =
+                                isTagged; // set isSelected based on tagged
+                            return isTagged;
+                          }).toList();
+                    }
+                  }
+                }
                     : null,
                 title: "Continue"),
           ),
@@ -168,186 +171,200 @@ class _CreateMessagePostScreenNewState
                     offset: Offset(0, 2),
                   ),
                 ]),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Message description input
-                CommonTextField(
-                  textEditController: msgController.descriptionMessage.value,
-                  hintText:
+            child: Obx(() {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PhotoUploadWidget(),
+                  if (msgController.selectedType.value != null) ...[
+                    SizedBox(
+                      height: SizeConfig.size10,
+                    ),
+                    // Message description input
+                    CommonTextField(
+                      textEditController: msgController.descriptionMessage
+                          .value,
+                      hintText:
                       "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
-                  title: "Your Message",
-                  maxLine: 5,
-                  maxLength: 1000,
-                  isValidate: false,
-                  keyBoardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  onChange: (val) {
-                    // Replace multiple consecutive newlines with a single newline
-                    String newVal = val.replaceAll(RegExp(r'\n{2,}'), '\n');
+                      title: "Your Message",
+                      maxLine: 5,
+                      maxLength: 1000,
+                      isValidate: false,
+                      keyBoardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      onChange: (val) {
+                        // Replace multiple consecutive newlines with a single newline
+                        String newVal = val.replaceAll(RegExp(r'\n{2,}'), '\n');
 
-                    // Block http/https
-                    newVal = newVal.replaceAll(RegExp(r'https?:\/\/\S+'), '');
+                        // Block http/https
+                        newVal =
+                            newVal.replaceAll(RegExp(r'https?:\/\/\S+'), '');
 
-                    if (newVal != val) {
-                      msgController.descriptionMessage.value.text = newVal;
-                      msgController.descriptionMessage.value.selection =
-                          TextSelection.fromPosition(
-                        TextPosition(offset: newVal.length),
-                      );
-                    }
+                        if (newVal != val) {
+                          msgController.descriptionMessage.value.text = newVal;
+                          msgController.descriptionMessage.value.selection =
+                              TextSelection.fromPosition(
+                                TextPosition(offset: newVal.length),
+                              );
+                        }
 
-                    msgController.postText.value = newVal;
-                  },
-                  validator: (val) {
-                    if (val == null || val.trim().length < 50) {
-                      return "Message must be at least 50 characters long";
-                    }
-                    if (RegExp(r'https?').hasMatch(val)) {
-                      return "Links are not allowed in the message";
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(
-                  height: SizeConfig.size5,
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Obx(() => CustomText(
-                        "${msgController.postText.value.length}/1000",
-                        color: Colors.grey,
-                        fontSize: 12,
-                      )),
-                ),
-                SizedBox(height: SizeConfig.size15),
-
-                ///ADD TITLE....
-                Obx(() {
-                  if (!msgController.isAddTitle.value) {
-                    return InkWell(
-                      onTap: () {
-                        msgController.isAddTitle.value = true;
+                        msgController.postText.value = newVal;
                       },
-                      child: AddLinkRow(
-                        title: 'Add Your Message Title',
-                      ),
-                    );
-                  }
-                  if (msgController.isAddTitle.value) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                                child: CustomText(
-                              'Add Your Message Title',
-                            )),
-                          ],
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size10,
-                        ),
-                        CommonTextField(
-                          textEditController:
-                              msgController.postTitleController.value,
-                          hintText: "Title of your post",
-                          title: "",
-                          maxLength: 50,
-                          isValidate: false,
-                          keyBoardType: TextInputType.multiline,
-                          maxLine: 1,
-                          // expands automatically
-                          onChange: (val) {
-                            msgController.messageTitle.value = val;
+                      validator: (val) {
+                        if (val == null || val
+                            .trim()
+                            .length < 50) {
+                          return "Message must be at least 50 characters long";
+                        }
+                        if (RegExp(r'https?').hasMatch(val)) {
+                          return "Links are not allowed in the message";
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size5,
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Obx(() =>
+                          CustomText(
+                            "${msgController.postText.value.length}/1000",
+                            color: Colors.grey,
+                            fontSize: 12,
+                          )),
+                    ),
+                    SizedBox(height: SizeConfig.size15),
+
+                    ///ADD TITLE....
+                    Obx(() {
+                      if (!msgController.isAddTitle.value) {
+                        return InkWell(
+                          onTap: () {
+                            msgController.isAddTitle.value = true;
                           },
-                        ),
-                      ],
-                    );
-                  }
-                  return SizedBox();
-                }),
-                SizedBox(height: SizeConfig.size15),
-
-                Obx(() {
-                  if (!msgController.isAddLink.value) {
-                    return InkWell(
-                      onTap: () {
-                        msgController.isAddLink.value = true;
-                      },
-                      child: AddLinkRow(
-                        title: 'Add Link (Reference / Website)',
-                      ),
-                    );
-                  }
-                  if (msgController.isAddLink.value) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: AddLinkRow(
+                            title: 'Add Your Message Title',
+                          ),
+                        );
+                      }
+                      if (msgController.isAddTitle.value) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CustomText("Reference link"),
-                            InkWell(
-                              onTap: () {
-                                msgController.referenceLinkController.value
-                                    .clear();
-                                msgController.isAddLink.value = false;
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                    child: CustomText(
+                                      'Add Your Message Title',
+                                    )),
+                              ],
+                            ),
+                            SizedBox(
+                              height: SizeConfig.size10,
+                            ),
+                            CommonTextField(
+                              textEditController:
+                              msgController.postTitleController.value,
+                              hintText: "Title of your post",
+                              title: "",
+                              maxLength: 50,
+                              isValidate: false,
+                              keyBoardType: TextInputType.multiline,
+                              maxLine: 1,
+                              // expands automatically
+                              onChange: (val) {
+                                msgController.messageTitle.value = val;
                               },
-                              child: CustomText(
-                                "Remove",
-                                color: AppColors.red,
-                              ),
                             ),
                           ],
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size10,
-                        ),
-                        HttpsTextField(
-                            controller:
+                        );
+                      }
+                      return SizedBox();
+                    }),
+                    SizedBox(height: SizeConfig.size15),
+
+                    Obx(() {
+                      if (!msgController.isAddLink.value) {
+                        return InkWell(
+                          onTap: () {
+                            msgController.isAddLink.value = true;
+                          },
+                          child: AddLinkRow(
+                            title: 'Add Link (Reference / Website)',
+                          ),
+                        );
+                      }
+                      if (msgController.isAddLink.value) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                CustomText("Reference link"),
+                                InkWell(
+                                  onTap: () {
+                                    msgController.referenceLinkController.value
+                                        .clear();
+                                    msgController.isAddLink.value = false;
+                                  },
+                                  child: CustomText(
+                                    "Remove",
+                                    color: AppColors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: SizeConfig.size10,
+                            ),
+                            HttpsTextField(
+                                controller:
                                 msgController.referenceLinkController.value,
-                            hintText: "Add website link"),
-                      ],
-                    );
-                  }
-                  return SizedBox();
-                }),
-                SizedBox(height: SizeConfig.size15),
-                // Add Tag People / Organization button
-                GestureDetector(
-                  onTap: () async {
-                    await Get.to(() => TagUserScreen());
-                  },
-                  child: AddLinkRow(
-                    title: 'Add Tag People / Organization',
-                  ),
-                ),
+                                hintText: "Add website link"),
+                          ],
+                        );
+                      }
+                      return SizedBox();
+                    }),
+                    SizedBox(height: SizeConfig.size15),
+                    // Add Tag People / Organization button
+                    GestureDetector(
+                      onTap: () async {
+                        await Get.to(() => TagUserScreen());
+                      },
+                      child: AddLinkRow(
+                        title: 'Add Tag People / Organization',
+                      ),
+                    ),
 
-                // Selected users chips
-                Obx(() => tagUserController.selectedUsers.isNotEmpty
-                    ? Padding(
-                        padding: EdgeInsets.only(top: SizeConfig.size16),
-                        child: Wrap(
-                          children: tagUserController.selectedUsers
-                              .map((user) => UserChip(
-                                    user: user,
-                                    onRemove: () => tagUserController
-                                        .removeSelectedUser(user),
-                                  ))
-                              .toList(),
-                        ),
-                      )
-                    : const SizedBox.shrink()),
-                SizedBox(height: SizeConfig.size15),
-
-                PhotoUploadWidget(),
-              ],
-            ),
+                    // Selected users chips
+                    Obx(() =>
+                    tagUserController.selectedUsers.isNotEmpty
+                        ? Padding(
+                      padding: EdgeInsets.only(top: SizeConfig.size16),
+                      child: Wrap(
+                        children: tagUserController.selectedUsers
+                            .map((user) =>
+                            UserChip(
+                              user: user,
+                              onRemove: () =>
+                                  tagUserController
+                                      .removeSelectedUser(user),
+                            ))
+                            .toList(),
+                      ),
+                    )
+                        : const SizedBox.shrink()),
+                    SizedBox(height: SizeConfig.size15),
+                  ]
+                ],
+              );
+            }),
           ),
         ),
       ),

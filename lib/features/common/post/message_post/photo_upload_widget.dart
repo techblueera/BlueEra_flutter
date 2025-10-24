@@ -7,20 +7,11 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/feed_video_preview_widget.dart';
-import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:video_player/video_player.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
-
-
 
 class PhotoUploadWidget extends StatefulWidget {
   PhotoUploadWidget({super.key, this.isFromRepost = false});
@@ -47,112 +38,257 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       ? "Upload Photo or Video"
                       : "Upload Photo or Video (at least 1 media required)")),
               SizedBox(height: SizeConfig.size10),
-              InkWell(
-                onTap: () async {
-                  if (msgController.imagesList.length < 4) {
-                    msgController.pickMedia();
-                  } else {
-                    if (msgController.selectedType?.value == MediaType.video) {
-                      commonSnackBar(message: "Upload max 1 ");
+              if (msgController.selectedType.value == null) ...[
+                InkWell(
+                  onTap: () async {
+                    if (msgController.imagesList.length < 4) {
+                      msgController.pickMedia();
                     } else {
-                      commonSnackBar(message: "Upload max 4 ");
+                      if (msgController.selectedType.value == MediaType.video) {
+                        commonSnackBar(message: "Upload max 1 ");
+                      } else {
+                        commonSnackBar(message: "Upload max 4 ");
+                      }
                     }
-                  }
-                  // Get.to(TwitterStyleMediaPicker());
-                  // _pickMedia();
-                  // msgController.pickImageFrom(context);
-                },
-                child: Container(
-                  width: SizeConfig.screenWidth,
-                  height: SizeConfig.size50 + 2,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    // White background
-                    borderRadius: BorderRadius.circular(10.0),
-                    // Rounded corners
-                    border: Border.all(width: 1, color: AppColors.greyE5),
-                    boxShadow: [AppShadows.textFieldShadow],
-                  ),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LocalAssets(imagePath: AppIconAssets.black_gallery),
-                        SizedBox(width: SizeConfig.size8),
-                        CustomText(
-                          "Add Photo or Video ",
-                          color: AppColors.secondaryTextColor,
-                          fontSize: SizeConfig.medium15,
-                        ),
-                      ],
+                    // Get.to(TwitterStyleMediaPicker());
+                    // _pickMedia();
+                    // msgController.pickImageFrom(context);
+                  },
+                  child: Container(
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.size50 + 2,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      // White background
+                      borderRadius: BorderRadius.circular(10.0),
+                      // Rounded corners
+                      border: Border.all(width: 1, color: AppColors.greyE5),
+                      boxShadow: [AppShadows.textFieldShadow],
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LocalAssets(imagePath: AppIconAssets.black_gallery),
+                          SizedBox(width: SizeConfig.size8),
+                          CustomText(
+                            "Add Photo ",
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium15,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+                SizedBox(height: 20,),
+                InkWell(
+                  onTap: () async {
+                    if (msgController.imagesList.length < 4) {
+                      msgController.pickVideoMedia();
+                    } else {
+                      if (msgController.selectedType?.value ==
+                          MediaType.video) {
+                        commonSnackBar(message: "Upload max 1 ");
+                      } else {
+                        commonSnackBar(message: "Upload max 4 ");
+                      }
+                    }
+                    // Get.to(TwitterStyleMediaPicker());
+                    // _pickMedia();
+                    // msgController.pickImageFrom(context);
+                  },
+                  child: Container(
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.size50 + 2,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      // White background
+                      borderRadius: BorderRadius.circular(10.0),
+                      // Rounded corners
+                      border: Border.all(width: 1, color: AppColors.greyE5),
+                      boxShadow: [AppShadows.textFieldShadow],
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LocalAssets(imagePath: AppIconAssets.black_gallery),
+                          SizedBox(width: SizeConfig.size8),
+                          CustomText(
+                            "Add Video ",
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium15,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              if (msgController.selectedType.value?.name ==
+                  MediaType.image.name)
+                InkWell(
+                  onTap: () async {
+                    if (msgController.imagesList.length < 4) {
+                      msgController.pickMedia();
+                    } else {
+                      if (msgController.selectedType.value == MediaType.video) {
+                        commonSnackBar(message: "Upload max 1 ");
+                      } else {
+                        commonSnackBar(message: "Upload max 4 ");
+                      }
+                    }
+                    // Get.to(TwitterStyleMediaPicker());
+                    // _pickMedia();
+                    // msgController.pickImageFrom(context);
+                  },
+                  child: Container(
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.size50 + 2,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      // White background
+                      borderRadius: BorderRadius.circular(10.0),
+                      // Rounded corners
+                      border: Border.all(width: 1, color: AppColors.greyE5),
+                      boxShadow: [AppShadows.textFieldShadow],
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LocalAssets(imagePath: AppIconAssets.black_gallery),
+                          SizedBox(width: SizeConfig.size8),
+                          CustomText(
+                            "Add Photo ",
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium15,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              if (msgController.selectedType.value?.name ==
+                  MediaType.video.name)
+                InkWell(
+                  onTap: () async {
+                    if (msgController.imagesList.length < 4) {
+                      msgController.pickVideoMedia();
+                    } else {
+                      if (msgController.selectedType?.value ==
+                          MediaType.video) {
+                        commonSnackBar(message: "Upload max 1 ");
+                      } else {
+                        commonSnackBar(message: "Upload max 4 ");
+                      }
+                    }
+                    // Get.to(TwitterStyleMediaPicker());
+                    // _pickMedia();
+                    // msgController.pickImageFrom(context);
+                  },
+                  child: Container(
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.size50 + 2,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      // White background
+                      borderRadius: BorderRadius.circular(10.0),
+                      // Rounded corners
+                      border: Border.all(width: 1, color: AppColors.greyE5),
+                      boxShadow: [AppShadows.textFieldShadow],
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          LocalAssets(imagePath: AppIconAssets.black_gallery),
+                          SizedBox(width: SizeConfig.size8),
+                          CustomText(
+                            "Add Video ",
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium15,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
 
               SizedBox(height: SizeConfig.size10),
-              msgController.imagesList.isNotEmpty?
-              GridView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(10),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: msgController.selectedType?.value == MediaType.video ? 1 : 2,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                ),
-                itemCount: msgController.imagesList.length,
-                itemBuilder: (context, index) {
-                  final file = msgController.imagesList[index];
-                  final isVideo = msgController.selectedType?.value == MediaType.video;
-                  final thumb = msgController.videoThumbnails[file.path];
+              msgController.imagesList.isNotEmpty
+                  ? GridView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(10),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount:
+                            msgController.selectedType?.value == MediaType.video
+                                ? 1
+                                : 2,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                      ),
+                      itemCount: msgController.imagesList.length,
+                      itemBuilder: (context, index) {
+                        final file = msgController.imagesList[index];
+                        final isVideo =
+                            msgController.selectedType.value == MediaType.video;
 
-                  return GestureDetector(
-                    onTap: isVideo ? () => _openVideoPreview(file) : null,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: isVideo
-                              ? (thumb != null
-                                  ? Image.file(thumb, fit: BoxFit.cover)
-                                  : Container(
-                                      color: Colors.black12,
-                                      child: const Center(
-                                          child: CircularProgressIndicator()),
-                                    ))
-                              : Image.file(file, fit: BoxFit.cover),
-                        ),
-                        if (isVideo)
-                          const Center(
-                            child: Icon(Icons.play_circle_fill,
-                                color: Colors.white, size: 40),
-                          ),
-                        Positioned(
-                          right: 4,
-                          top: 4,
-                          child: GestureDetector(
-                            onTap: () => msgController.removeMedia(index),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
+                        return GestureDetector(
+                          onTap: isVideo ? () => _openVideoPreview(file) : null,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Obx(() {
+                                final thumb =
+                                    msgController.videoThumbnails[file.path];
+
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: isVideo
+                                      ? (thumb != null
+                                          ? Image.file(thumb, fit: BoxFit.cover)
+                                          : Container(
+                                              color: Colors.black12,
+                                              child: const Center(
+                                                  child:
+                                                      CircularProgressIndicator()),
+                                            ))
+                                      : Image.file(file, fit: BoxFit.cover),
+                                );
+                              }),
+                              if (isVideo)
+                                const Center(
+                                  child: Icon(Icons.play_circle_fill,
+                                      color: Colors.white, size: 40),
+                                ),
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: GestureDetector(
+                                  onTap: () => msgController.removeMedia(index),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: const Icon(Icons.close,
+                                        color: Colors.white, size: 16),
+                                  ),
+                                ),
                               ),
-                              padding: const EdgeInsets.all(4),
-                              child: const Icon(Icons.close,
-                                  color: Colors.white, size: 16),
-                            ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ):SizedBox.shrink(),
+                        );
+                      },
+                    )
+                  : SizedBox.shrink(),
 
-///OLD CODE....
-            /*  SizedBox(height: SizeConfig.size15),
+              ///OLD CODE....
+              /*  SizedBox(height: SizeConfig.size15),
               ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.all(SizeConfig.size1),
@@ -235,13 +371,10 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
     );
   }
 
-
-
   void _openVideoPreview(File file) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => VideoPreviewScreen(file: file)),
     );
   }
-
 }

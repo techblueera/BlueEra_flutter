@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -37,6 +36,7 @@ class MessagePostController extends GetxController {
   RxBool isAddLink = false.obs;
   RxBool isAddTitle = true.obs;
   RxList<User>? taggedSelectedUsersList = <User>[].obs;
+
   // RxList<File> selectedFiles = <File>[].obs;
 
   final postTitleController = TextEditingController().obs;
@@ -158,8 +158,6 @@ class MessagePostController extends GetxController {
     postText.value = "";
   }
 
-
-
   void removePhoto(int index) {
     if (index >= 0 && index < imagesList.length) {
       imagesList.removeAt(index);
@@ -175,22 +173,25 @@ class MessagePostController extends GetxController {
   // RxList<MessagePostImageModel> imagesList = <MessagePostImageModel>[].obs;
   RxList<String> uploadImageList = <String>[].obs;
   RxList<File> imagesList = <File>[].obs;
-  Rx<MediaType>? selectedType;
+  Rx<MediaType?> selectedType = Rx<MediaType?>(null);
 
   void removeMedia(int index) {
-      imagesList.removeAt(index);
-      if (imagesList.isEmpty) selectedType = null;
+    imagesList.removeAt(index);
+    if (imagesList.isEmpty) selectedType.value = null;
   }
+
   // 🟢 PICK MEDIA (image or video)
   Future<void> pickMedia() async {
-    FileType fileType = FileType.media;
-    if (selectedType?.value == MediaType.image) fileType = FileType.image;
-    // if (_selectedType == MediaType.video) fileType = FileType.video;
+    FileType fileType = FileType.image;
+    // FileType fileType = FileType.media;
+    // if (selectedType.value == MediaType.image)
+      fileType = FileType.image;
+    // if (selectedType.value == MediaType.video) fileType = FileType.video;
 
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: selectedType?.value == MediaType.image,
-      type: fileType,
-    );
+    FilePickerResult? result =  await FilePicker.platform.pickFiles(
+            allowMultiple: false,
+            type: fileType,
+          );
 
     if (result == null) return;
 
@@ -199,19 +200,52 @@ class MessagePostController extends GetxController {
     final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
 
     // setState(() {
-    if (selectedType?.value == null) {
-      selectedType?.value = isVideo ? MediaType.video : MediaType.image;
-    }
+    // if (selectedType.value == null) {
+    //   selectedType.value = isVideo ? MediaType.video : MediaType.image;
+    // }
+      selectedType.value = MediaType.image;
 
-    if (selectedType?.value == MediaType.video) {
-      imagesList.value = [files.first];
-      _generateThumbnail(files.first); // <-- Add for video
-    } else {
+    // if (selectedType.value == MediaType.video) {
+    //   imagesList.value = [files.first];
+    //   _generateThumbnail(files.first); // <-- Add for video
+    // } else {
       imagesList.addAll(files);
-    }
+    // }
     // });
   }
-   RxMap videoThumbnails = {}.obs; // videoPath -> thumbnail file
+  Future<void> pickVideoMedia() async {
+    // FileType fileType = FileType.media;
+    // if (selectedType.value == MediaType.image) fileType = FileType.image;
+  selectedType.value = MediaType.video;
+
+    FilePickerResult? result =  await FilePicker.platform.pickFiles(
+            allowMultiple: false,
+            type: FileType.custom,
+            allowedExtensions: ['mp4', 'mov', 'avi', 'mkv'])
+      ;
+
+    if (result == null) return;
+
+    final files = result.paths.map((e) => File(e!)).toList();
+    final firstExt = files.first.path.split('.').last.toLowerCase();
+    final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
+
+    // setState(() {
+    // if (selectedType.value == null) {
+      selectedType.value =  MediaType.video ;
+      // selectedType.value = isVideo ? MediaType.video : MediaType.image;
+    // }
+
+    // if (selectedType.value == MediaType.video) {
+      imagesList.value = [files.first];
+      _generateThumbnail(files.first); // <-- Add for video
+    // } else {
+    //   imagesList.addAll(files);
+    // }
+    // });
+  }
+
+  RxMap<String, File> videoThumbnails = <String, File>{}.obs;
 
   Future<void> _generateThumbnail(File videoFile) async {
     final tempDir = await getTemporaryDirectory();
@@ -224,29 +258,28 @@ class MessagePostController extends GetxController {
     );
 
     if (thumbPath != null) {
-        videoThumbnails[videoFile.path] = File(thumbPath);
+      videoThumbnails[videoFile.path] = File(thumbPath);
     }
   }
 
-  // Aspect ratio (default Square 1:1)
+// Aspect ratio (default Square 1:1)
 
-  // Future<void> pickImageFrom(BuildContext context) async {
-  //   if (imagesList.length >= 4) {
-  //     commonSnackBar(message: "Limit Reached You can select max 4 images");
-  //     return;
-  //   }
-  //   // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-  //   final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
-  //     context,
-  //     cropAspectRatio:  CropAspectRatio(width:300, height: 300),
-  //   );
-  //   // XFile image=XFile(pickedFile?.path??"");
-  //   if (croppedPath?.isNotEmpty??false) {
-  //     imagesList.add(MessagePostImageModel(
-  //         id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
-  //   }
-  // }
-
+// Future<void> pickImageFrom(BuildContext context) async {
+//   if (imagesList.length >= 4) {
+//     commonSnackBar(message: "Limit Reached You can select max 4 images");
+//     return;
+//   }
+//   // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+//   final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+//     context,
+//     cropAspectRatio:  CropAspectRatio(width:300, height: 300),
+//   );
+//   // XFile image=XFile(pickedFile?.path??"");
+//   if (croppedPath?.isNotEmpty??false) {
+//     imagesList.add(MessagePostImageModel(
+//         id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
+//   }
+// }
 }
 
 class MessagePostImageModel {
