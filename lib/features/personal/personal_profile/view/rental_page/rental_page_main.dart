@@ -33,8 +33,10 @@ class _RentalScreenState extends State<RentalScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-      title: "Rental",
-      searchHintText: "sdlc",
+        isSearch: true,
+        controller: TextEditingController(),
+        onClearCallback: (){},
+        // onProfileTap: widget.onProfileTap,
       ),
       body: Stack(
         children: [
@@ -48,7 +50,7 @@ class _RentalScreenState extends State<RentalScreen>
         child: DecoratedBox(
           decoration: BoxDecoration(color: Color(0xFFECECEC)),
           child: Center(
-            child: Text("Map Background (Your map widget here)"),
+            child: Text(""),
           ),
         ),
       ),),
@@ -78,53 +80,7 @@ class _RentalScreenState extends State<RentalScreen>
                 padding: EdgeInsets.symmetric(horizontal: 14,vertical: 20),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Search bar + back + location
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    //   child: Row(
-                    //     children: [
-                    //       const Icon(Icons.arrow_back_ios_new, size: 20),
-                    //       const SizedBox(width: 10),
-                    //       Expanded(
-                    //         child: Container(
-                    //           height: 42,
-                    //           decoration: BoxDecoration(
-                    //             color: Colors.grey.shade200,
-                    //             borderRadius: BorderRadius.circular(10),
-                    //           ),
-                    //           child: const Row(
-                    //             children: [
-                    //               SizedBox(width: 10),
-                    //               Icon(Icons.search, color: Colors.grey),
-                    //               SizedBox(width: 8),
-                    //               Expanded(
-                    //                 child: TextField(
-                    //                   decoration: InputDecoration(
-                    //                     hintText: "Search here...",
-                    //                     hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                    //                     border: InputBorder.none,
-                    //                   ),
-                    //                 ),
-                    //               ),
-                    //             ],
-                    //           ),
-                    //         ),
-                    //       ),
-                    //       const SizedBox(width: 10),
-                    //       const Icon(CupertinoIcons.location_solid, color: Colors.black),
-                    //       const SizedBox(width: 5),
-                    //       const Text("Lucknow",
-                    //           style: TextStyle(
-                    //               fontSize: 15,
-                    //               fontWeight: FontWeight.w500,
-                    //               color: Colors.blue)),
-                    //     ],
-                    //   ),
-                    // ),
 
-                    // Top Tabs
-
-                    // Sub Tabs (Rental categories)
                     Container(
 
                       height: 45,
