@@ -49,10 +49,11 @@ class StoreFeedScreen extends StatefulWidget {
 class _StoreFeedScreenState extends State<StoreFeedScreen> {
   late StoreScreenController controller;
   final viewBusinessDetailsController =
-  Get.put(ViewBusinessDetailsController());
+      Get.put(ViewBusinessDetailsController());
   final ViewPersonalDetailsController viewPersonalDetailsController =
-  Get.isRegistered<ViewPersonalDetailsController>() ?
-  Get.find<ViewPersonalDetailsController>() : Get.put(ViewPersonalDetailsController());
+      Get.isRegistered<ViewPersonalDetailsController>()
+          ? Get.find<ViewPersonalDetailsController>()
+          : Get.put(ViewPersonalDetailsController());
   double headerHeight = 0.0;
 
   @override
@@ -68,29 +69,28 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
   }
 
   void _scrollListener() {
-      if (controller.scrollController.position.pixels >=
-          controller.scrollController.position.maxScrollExtent - 200) {
-        final index = controller.selectedStoreIndex.value;
+    if (controller.scrollController.position.pixels >=
+        controller.scrollController.position.maxScrollExtent - 200) {
+      final index = controller.selectedStoreIndex.value;
 
-        switch (index) {
-          case 0:
-            controller.getAllStoresFeedNearBy(isLoadMore: true);
-            break;
-          case 1:
-            controller.getAllStoreProductNearBy(isLoadMore: true);
-            break;
-          case 2:
-            controller.getAllServiceNearBy(isLoadMore: true);
-            break;
-          case 3:
-            controller.getAllFoodService(isLoadMore: true);
-            break;
-          case 4:
-            controller.getAllStoreNearBy(isLoadMore: true);
-            break;
+      switch (index) {
+        case 0:
+          controller.getAllStoresFeedNearBy(isLoadMore: true);
+          break;
+        case 1:
+          controller.getAllStoreProductNearBy(isLoadMore: true);
+          break;
+        case 2:
+          controller.getAllServiceNearBy(isLoadMore: true);
+          break;
+        case 3:
+          controller.getAllFoodService(isLoadMore: true);
+          break;
+        case 4:
+          controller.getAllStoreNearBy(isLoadMore: true);
+          break;
       }
     }
-
   }
 
   void _calculateHeaderHeight() {
@@ -101,7 +101,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
       // log('header height-- ${controller.headerHeight.value}');
 
       headerHeight = renderBox.size.height;
-     setState(() {});
+      setState(() {});
     }
   }
 
@@ -126,163 +126,165 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
       child: Scaffold(
         body: Obx(() {
           return Stack(
-              children: [
-                AnimatedPadding(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                  padding: EdgeInsets.only(
-                    top: headerHeight *
-                        (1 - controller.headerOffset.value),
-                    // top: controller.headerHeight *
-                    //     (1 - controller.headerOffset.value),
-                  ),
-                  child: setupScrollVisibilityNotification(
+            children: [
+              AnimatedPadding(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                padding: EdgeInsets.only(
+                  top: headerHeight * (1 - controller.headerOffset.value),
+                  // top: controller.headerHeight *
+                  //     (1 - controller.headerOffset.value),
+                ),
+                child: setupScrollVisibilityNotification(
+                  controller: controller.scrollController,
+                  headerHeight: headerHeight,
+                  // headerHeight: controller.headerHeight.value,
+                  onVisibilityChanged: (visible, offset) {
+                    final currentOffset = controller.headerOffset.value;
+
+                    // Linear animation step (same speed up/down)
+                    const step = 0.25;
+
+                    double newOffset = currentOffset;
+                    if (visible) {
+                      // show header
+                      newOffset = (currentOffset - step).clamp(0.0, 1.0);
+                    } else {
+                      // hide header
+                      newOffset = (currentOffset + step).clamp(0.0, 1.0);
+                    }
+
+                    controller.headerOffset.value = newOffset;
+                    controller.isHeaderVisible.value = visible;
+                    widget.onHeaderVisibilityChanged?.call(visible);
+                  },
+                  child: SingleChildScrollView(
                     controller: controller.scrollController,
-                    headerHeight: headerHeight,
-                    // headerHeight: controller.headerHeight.value,
-                    onVisibilityChanged: (visible, offset) {
-                      final currentOffset = controller.headerOffset.value;
+                    child: Column(
+                      children: [
+                        // Background Image
+                        Container(
+                          width: double.infinity,
+                          height: dynamicSize(270),
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image:
+                                  AssetImage(AppImageAssets.storeNewBackground),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Obx(() => LocationService
+                                      .userCurrentAddress.isNotEmpty
+                                  ? CustomText(
+                                      'Find Anything\n in ' +
+                                          LocationService.userCurrentAddress[2],
+                                      fontSize: SizeConfig.extraLarge22,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.white,
+                                      textAlign: TextAlign.center,
+                                    )
+                                  : SizedBox()),
+                              Positioned(
+                                  top: dynamicSize(12),
+                                  right: dynamicSize(15),
+                                  child: InkWell(
+                                    onTap: () =>
+                                        LocationService.fetchLocation(),
+                                    child: Container(
+                                      padding: EdgeInsets.all(dynamicSize(5)),
+                                      decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          shape: BoxShape.circle),
+                                      child: LocalAssets(
+                                        imagePath:
+                                            AppIconAssets.currentLocationIcon,
+                                      ),
+                                    ),
+                                  ))
+                            ],
+                          ),
+                        ),
 
-                      // Linear animation step (same speed up/down)
-                      const step = 0.25;
-
-                      double newOffset = currentOffset;
-                      if (visible) {
-                        // show header
-                        newOffset = (currentOffset - step).clamp(0.0, 1.0);
-                      } else {
-                        // hide header
-                        newOffset = (currentOffset + step).clamp(0.0, 1.0);
-                      }
-
-                      controller.headerOffset.value = newOffset;
-                      controller.isHeaderVisible.value = visible;
-                      widget.onHeaderVisibilityChanged?.call(visible);
-                    },
-                    child: SingleChildScrollView(
-                      controller: controller.scrollController,
-                      child: Column(
-                        children: [
-                          // Background Image
-                          Container(
+                        // Foreground White Container (with overlap effect)
+                        Transform.translate(
+                          offset: Offset(0, -dynamicSize(20)),
+                          // slight overlap for same look
+                          child: Container(
                             width: double.infinity,
-                            height: dynamicSize(270),
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage(
-                                    AppImageAssets.storeNewBackground),
-                                fit: BoxFit.cover,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: dynamicSize(15)),
+                            decoration: const BoxDecoration(
+                              color: AppColors.whiteF1,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
                               ),
                             ),
-                            child: Stack(
-                              alignment: Alignment.center,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Obx(()=> LocationService.userCurrentAddress.isNotEmpty ? CustomText(
-                                  'Find Anything\n in ' + LocationService.userCurrentAddress[2],
-                                  fontSize: SizeConfig.extraLarge22,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white,
-                                  textAlign: TextAlign.center,
-                                ) : SizedBox()),
-                                Positioned(
-                                    top: dynamicSize(12),
-                                    right: dynamicSize(15),
-                                    child: InkWell(
-                                      onTap: ()=> LocationService.fetchLocation(),
-                                      child: Container(
-                                        padding: EdgeInsets.all(dynamicSize(5)),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.white,
-                                          shape: BoxShape.circle
-                                        ),
-                                        child: LocalAssets(
-                                          imagePath: AppIconAssets.currentLocationIcon,
-                                        ),
-                                      ),
+                                SizedBox(height: dynamicSize(10)),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      height: 2,
+                                      width: 60,
+                                      color: AppColors.secondaryTextColor,
                                     )
-                                )
+                                  ],
+                                ),
+                                SizedBox(height: dynamicSize(24)),
+                                HorizontalTabSelector(
+                                  tabs: controller.storeTab,
+                                  selectedIndex:
+                                      controller.selectedStoreIndex.value,
+                                  horizontalMargin: 0.0,
+                                  onTabSelected: (index, value) {
+                                    controller.onStoreTabChanged(index);
+                                  },
+                                  labelBuilder: (label) => label,
+                                ),
+                                SizedBox(height: dynamicSize(18)),
+                                _buildStoreTab(dynamicSize),
+                                SizedBox(height: dynamicSize(10)),
                               ],
                             ),
                           ),
-
-                          // Foreground White Container (with overlap effect)
-                          Transform.translate(
-                            offset: Offset(0, -dynamicSize(20)),
-                            // slight overlap for same look
-                            child: Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: dynamicSize(15)),
-                              decoration: const BoxDecoration(
-                                color: AppColors.whiteF1,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(20),
-                                  topRight: Radius.circular(20),
-                                ),
-                              ),
-                              child: Column(
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: dynamicSize(10)),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        height: 2,
-                                        width: 60,
-                                        color: AppColors.secondaryTextColor,
-                                      )
-                                    ],
-                                  ),
-                                  SizedBox(height: dynamicSize(24)),
-                                  HorizontalTabSelector(
-                                    tabs: controller.storeTab,
-                                    selectedIndex:
-                                        controller.selectedStoreIndex.value,
-                                    horizontalMargin: 0.0,
-                                    onTabSelected: (index, value) {
-                                      controller.onStoreTabChanged(index);
-                                    },
-                                    labelBuilder: (label) => label,
-                                  ),
-                                  SizedBox(height: dynamicSize(18)),
-                                  _buildStoreTab(dynamicSize),
-                                  SizedBox(height: dynamicSize(10)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+              ),
 
-                /// Sliding Header
-                Obx(() => AnimatedPositioned(
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
-                      top: -controller.headerOffset.value *
-                          headerHeight,
-                     // top: -controller.headerOffset.value *
-                     //      controller.headerHeight.value,
-                      left: 0,
-                      right: 0,
-                      child: KeyedSubtree(
-                        key: controller.headerKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: SizeConfig.size10),
-                            _buildStoreHeader(),
-                            SizedBox(height: SizeConfig.size5),
-                          ],
-                        ),
+              /// Sliding Header
+              Obx(() => AnimatedPositioned(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    top: -controller.headerOffset.value * headerHeight,
+                    // top: -controller.headerOffset.value *
+                    //      controller.headerHeight.value,
+                    left: 0,
+                    right: 0,
+                    child: KeyedSubtree(
+                      key: controller.headerKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: SizeConfig.size10),
+                          if (!isGuestUser()) _buildStoreHeader(),
+                          SizedBox(height: SizeConfig.size5),
+                        ],
                       ),
-                    )),
-              ],
-            );
+                    ),
+                  )),
+            ],
+          );
         }),
       ),
     );
@@ -298,7 +300,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
         children: [
           Expanded(
             child: InkWell(
-              onTap: ()=> Get.to(()=> BusinessOwnProfileScreen()),
+              onTap: () => Get.to(() => BusinessOwnProfileScreen()),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -318,9 +320,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                           Icon(Icons.person, size: SizeConfig.size32 / 2),
                     ),
                   ),
-
                   SizedBox(width: SizeConfig.size8),
-
                   CustomText(
                     isBusiness() ? businessNameGlobal : userNameGlobal,
                     fontSize: SizeConfig.large,
@@ -335,63 +335,62 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
           SizedBox(width: SizeConfig.size8),
 
           CustomBtn(
-               height: SizeConfig.size30,
-               width: SizeConfig.size110,
-               onTap: () {
-                 if(isBusinessUser()){
-                   Get.toNamed(RouteHelper.getInventoryScreenRoute());
-                 }else{
-                   if (viewPersonalDetailsController
-                       .personalProfileDetails.value.isProfileCreated ==
-                       false) {
-                     Get.to(()=> CreateProfileScreen());
-                   } else {
-                     Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-                   }
-                 }
-               },
-               title: "My Store",
-               borderColor: AppColors.primaryColor,
-               textColor: AppColors.primaryColor,
-               bgColor: Colors.transparent,
-               radius: SizeConfig.size10,
-              ),
+            height: SizeConfig.size30,
+            width: SizeConfig.size110,
+            onTap: () {
+              if (isBusinessUser()) {
+                Get.toNamed(RouteHelper.getInventoryScreenRoute());
+              } else {
+                if (viewPersonalDetailsController
+                        .personalProfileDetails.value.isProfileCreated ==
+                    false) {
+                  Get.to(() => CreateProfileScreen());
+                } else {
+                  Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                }
+              }
+            },
+            title: "My Store",
+            borderColor: AppColors.primaryColor,
+            textColor: AppColors.primaryColor,
+            bgColor: Colors.transparent,
+            radius: SizeConfig.size10,
+          ),
 
-           // PopupMenuButton<String>(
-           //   padding: EdgeInsets.zero,
-           //   offset: const Offset(-6, 36),
-           //   color: AppColors.white,
-           //   elevation: 8,
-           //   shape: RoundedRectangleBorder(
-           //       borderRadius: BorderRadius.circular(10)),
-           //   onSelected: (value) async {
-           //     if (isGuestUser()) {
-           //       createProfileScreen();
-           //     } else if (value.toUpperCase() == "ADD PRODUCT") {
-           //       Get.toNamed(
-           //         RouteHelper.getAddProductScreenRoute(),
-           //         arguments: {
-           //           ApiKeys.id: businessId,
-           //           ApiKeys.providerType: ProductServiceProviderType.business
-           //         }
-           //       );
-           //     } else if (value.toUpperCase() == "ADD SERVICE") {
-           //       Get.toNamed(
-           //           RouteHelper.getAddServicesScreenRoute(),
-           //           arguments: {
-           //             ApiKeys.providerType: ProductServiceProviderType.business,
-           //           }
-           //       );
-           //     } else if (value.toUpperCase() == "ADD FOOD") {
-           //       Get.to(() => FoodUploadScreen(
-           //         providerType: ProductServiceProviderType.business
-           //       ));
-           //     }
-           //   },
-           //   icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
-           //   itemBuilder: (context) => popupMenuInventoryItems(),
-           // )
-
+          // PopupMenuButton<String>(
+          //   padding: EdgeInsets.zero,
+          //   offset: const Offset(-6, 36),
+          //   color: AppColors.white,
+          //   elevation: 8,
+          //   shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(10)),
+          //   onSelected: (value) async {
+          //     if (isGuestUser()) {
+          //       createProfileScreen();
+          //     } else if (value.toUpperCase() == "ADD PRODUCT") {
+          //       Get.toNamed(
+          //         RouteHelper.getAddProductScreenRoute(),
+          //         arguments: {
+          //           ApiKeys.id: businessId,
+          //           ApiKeys.providerType: ProductServiceProviderType.business
+          //         }
+          //       );
+          //     } else if (value.toUpperCase() == "ADD SERVICE") {
+          //       Get.toNamed(
+          //           RouteHelper.getAddServicesScreenRoute(),
+          //           arguments: {
+          //             ApiKeys.providerType: ProductServiceProviderType.business,
+          //           }
+          //       );
+          //     } else if (value.toUpperCase() == "ADD FOOD") {
+          //       Get.to(() => FoodUploadScreen(
+          //         providerType: ProductServiceProviderType.business
+          //       ));
+          //     }
+          //   },
+          //   icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
+          //   itemBuilder: (context) => popupMenuInventoryItems(),
+          // )
         ],
       ),
     );
@@ -443,86 +442,84 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
               groupedStoreFeed.add([item]); // non-food item as its own block
             }
           }
-          if (tempStoreFeed.isNotEmpty) groupedStoreFeed.add(List.from(tempStoreFeed));
+          if (tempStoreFeed.isNotEmpty)
+            groupedStoreFeed.add(List.from(tempStoreFeed));
 
-          tabContent = Column(
-            children: [
-              ...groupedStoreFeed.map((block) {
-                final first = block.first;
-                final type = StoreTypeExtension.fromString(first.type);
+          tabContent = Column(children: [
+            ...groupedStoreFeed.map((block) {
+              final first = block.first;
+              final type = StoreTypeExtension.fromString(first.type);
 
-                if (type == StoreType.food) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount = block.length;
-                        final crossSpacing = 10.0;
-                        final itemWidth = (constraints.maxWidth -
-                            ((crossAxisCount - 1) * crossSpacing)) /
-                            crossAxisCount;
+              if (type == StoreType.food) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: ds(10)),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final crossAxisCount = block.length;
+                      final crossSpacing = 10.0;
+                      final itemWidth = (constraints.maxWidth -
+                              ((crossAxisCount - 1) * crossSpacing)) /
+                          crossAxisCount;
 
-                        List<Widget> rowChildren = [];
-                        for (int i = 0; i < block.length; i++) {
-                          rowChildren.add(
-                            SizedBox(
-                              width: itemWidth,
-                              child: StoreFoodServiceCard(
-                                foodDetailsData: block[i].foodData ?? GetFoodDetailsModel(),
-                                isShowVerticalUi: true,
-                              ),
+                      List<Widget> rowChildren = [];
+                      for (int i = 0; i < block.length; i++) {
+                        rowChildren.add(
+                          SizedBox(
+                            width: itemWidth,
+                            child: StoreFoodServiceCard(
+                              foodDetailsData:
+                                  block[i].foodData ?? GetFoodDetailsModel(),
+                              isShowVerticalUi: true,
                             ),
-                          );
-
-                          if (i != block.length - 1) {
-                            rowChildren.add(SizedBox(width: crossSpacing));
-                          }
-                        }
-
-                        return Row(
-                          children: rowChildren,
+                          ),
                         );
-                      },
-                    ),
-                  );
-                } else if (type == StoreType.business) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: BusinessStoreCard(
-                      ds: ds,
-                      getAllStoreResData:
-                      first.businessData ?? GetAllStoreResModel(),
-                    ),
-                  );
-                } else if (type == StoreType.service) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: StoreServicesCard(
-                      serviceData: first.servicesData ?? GetServiceModel(),
-                    ),
-                  );
-                } else if (type == StoreType.inventory) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: StoreProductCard(
-                      productStore: first.inventoryData?.product ?? ProductStore(),
-                      isShowBusinessInfo: true,
-                    ),
-                  );
-                } else {
-                  return const SizedBox.shrink();
-                }
-              })
-                  .toList(),
 
+                        if (i != block.length - 1) {
+                          rowChildren.add(SizedBox(width: crossSpacing));
+                        }
+                      }
 
-              if (controller.isAllStoreFeedLoadingMore.value)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            ]
-          );
+                      return Row(
+                        children: rowChildren,
+                      );
+                    },
+                  ),
+                );
+              } else if (type == StoreType.business) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: ds(10)),
+                  child: BusinessStoreCard(
+                    ds: ds,
+                    getAllStoreResData:
+                        first.businessData ?? GetAllStoreResModel(),
+                  ),
+                );
+              } else if (type == StoreType.service) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: ds(10)),
+                  child: StoreServicesCard(
+                    serviceData: first.servicesData ?? GetServiceModel(),
+                  ),
+                );
+              } else if (type == StoreType.inventory) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: ds(10)),
+                  child: StoreProductCard(
+                    productStore:
+                        first.inventoryData?.product ?? ProductStore(),
+                    isShowBusinessInfo: true,
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            }).toList(),
+            if (controller.isAllStoreFeedLoadingMore.value)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+          ]);
 
           break;
 
@@ -559,7 +556,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                   );
                 },
               ),
-
               if (controller.isStoreProductDataLoadingMore.value)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
@@ -601,7 +597,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                   );
                 },
               ),
-
               if (controller.isServiceDataLoadingMore.value)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
@@ -610,7 +605,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
             ],
           );
           break;
-
 
         case 3:
           final foodList = controller.foodDataList;
@@ -639,13 +633,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                   return Padding(
                     padding: EdgeInsets.only(bottom: ds(10)),
                     child: StoreFoodServiceCard(
-                      foodDetailsData: foodItem,
-                      isShowVerticalUi: false
-                    ),
+                        foodDetailsData: foodItem, isShowVerticalUi: false),
                   );
                 },
               ),
-
               if (controller.isFoodDataLoadingMore.value)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
@@ -655,9 +646,9 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
           );
           break;
 
-
         case 4:
-          final storeList = controller.allStore; // or storeProductDataList if showing products
+          final storeList = controller
+              .allStore; // or storeProductDataList if showing products
 
           if (controller.isAllStoreFirstLoading.value) {
             tabContent = const Center(
@@ -689,7 +680,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
                   );
                 },
               ),
-
               if (controller.isAllStoreLoadingMore.value)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
@@ -699,7 +689,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
           );
           break;
 
-
         default:
           tabContent = const SizedBox.shrink();
       }
@@ -707,5 +696,4 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
       return tabContent;
     });
   }
-
 }

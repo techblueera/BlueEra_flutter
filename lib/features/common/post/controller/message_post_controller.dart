@@ -22,6 +22,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class MessagePostController extends GetxController {
   /// ADD MSG POST
@@ -35,7 +37,7 @@ class MessagePostController extends GetxController {
   RxBool isAddLink = false.obs;
   RxBool isAddTitle = true.obs;
   RxList<User>? taggedSelectedUsersList = <User>[].obs;
-  RxList<File> selectedFiles = <File>[].obs;
+  // RxList<File> selectedFiles = <File>[].obs;
 
   final postTitleController = TextEditingController().obs;
   final postTextDataController = TextEditingController().obs;
@@ -170,27 +172,80 @@ class MessagePostController extends GetxController {
   final ImagePicker picker = ImagePicker();
 
   // Store up to 5 images
-  RxList<MessagePostImageModel> imagesList = <MessagePostImageModel>[].obs;
+  // RxList<MessagePostImageModel> imagesList = <MessagePostImageModel>[].obs;
   RxList<String> uploadImageList = <String>[].obs;
+  RxList<File> imagesList = <File>[].obs;
+  Rx<MediaType>? selectedType;
+
+  void removeMedia(int index) {
+      imagesList.removeAt(index);
+      if (imagesList.isEmpty) selectedType = null;
+  }
+  // 🟢 PICK MEDIA (image or video)
+  Future<void> pickMedia() async {
+    FileType fileType = FileType.media;
+    if (selectedType?.value == MediaType.image) fileType = FileType.image;
+    // if (_selectedType == MediaType.video) fileType = FileType.video;
+
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: selectedType?.value == MediaType.image,
+      type: fileType,
+    );
+
+    if (result == null) return;
+
+    final files = result.paths.map((e) => File(e!)).toList();
+    final firstExt = files.first.path.split('.').last.toLowerCase();
+    final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
+
+    // setState(() {
+    if (selectedType?.value == null) {
+      selectedType?.value = isVideo ? MediaType.video : MediaType.image;
+    }
+
+    if (selectedType?.value == MediaType.video) {
+      imagesList.value = [files.first];
+      _generateThumbnail(files.first); // <-- Add for video
+    } else {
+      imagesList.addAll(files);
+    }
+    // });
+  }
+   RxMap videoThumbnails = {}.obs; // videoPath -> thumbnail file
+
+  Future<void> _generateThumbnail(File videoFile) async {
+    final tempDir = await getTemporaryDirectory();
+    final thumbPath = await VideoThumbnail.thumbnailFile(
+      video: videoFile.path,
+      thumbnailPath: tempDir.path,
+      imageFormat: ImageFormat.JPEG,
+      maxHeight: 400,
+      quality: 80,
+    );
+
+    if (thumbPath != null) {
+        videoThumbnails[videoFile.path] = File(thumbPath);
+    }
+  }
 
   // Aspect ratio (default Square 1:1)
 
-  Future<void> pickImageFrom(BuildContext context) async {
-    if (imagesList.length >= 4) {
-      commonSnackBar(message: "Limit Reached You can select max 4 images");
-      return;
-    }
-    // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
-      context,
-      cropAspectRatio:  CropAspectRatio(width:300, height: 300),
-    );
-    // XFile image=XFile(pickedFile?.path??"");
-    if (croppedPath?.isNotEmpty??false) {
-      imagesList.add(MessagePostImageModel(
-          id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
-    }
-  }
+  // Future<void> pickImageFrom(BuildContext context) async {
+  //   if (imagesList.length >= 4) {
+  //     commonSnackBar(message: "Limit Reached You can select max 4 images");
+  //     return;
+  //   }
+  //   // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  //   final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+  //     context,
+  //     cropAspectRatio:  CropAspectRatio(width:300, height: 300),
+  //   );
+  //   // XFile image=XFile(pickedFile?.path??"");
+  //   if (croppedPath?.isNotEmpty??false) {
+  //     imagesList.add(MessagePostImageModel(
+  //         id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
+  //   }
+  // }
 
 }
 

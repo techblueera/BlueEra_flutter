@@ -73,7 +73,6 @@ class _MessagePostPreviewScreenNewState
         msgPostController.uploadImageList.add(action);
       });
 
-
       msgPostController.postId = widget.post?.id ?? "";
       msgPostController.postText.value = widget.post?.message ?? "";
       msgPostController.postTextDataController.value.text =
@@ -303,8 +302,15 @@ class _MessagePostPreviewScreenNewState
                                           height: SizeConfig.size10,
                                         ),
                                         CustomText(msgPostController
-                                            .natureOfPostController.value.text.isNotEmpty?msgPostController
-                                            .natureOfPostController.value.text:"Not available"),
+                                                .natureOfPostController
+                                                .value
+                                                .text
+                                                .isNotEmpty
+                                            ? msgPostController
+                                                .natureOfPostController
+                                                .value
+                                                .text
+                                            : "Not available"),
                                       ],
                                     )
                                   : CommonTextField(
@@ -324,7 +330,6 @@ class _MessagePostPreviewScreenNewState
                                   Expanded(
                                     child: PositiveCustomBtn(
                                       onTap: () {
-
                                         Get.back();
                                       },
                                       title: "Back",
@@ -374,10 +379,7 @@ class _MessagePostPreviewScreenNewState
                                               final data = msgPostController
                                                   .imagesList[i];
 
-                                              File processed =
-                                              File(
-                                                  data.imageFile?.path ?? "");
-
+                                              File processed = File(data.path);
 
                                               String fileName = processed.path
                                                   .split('/')

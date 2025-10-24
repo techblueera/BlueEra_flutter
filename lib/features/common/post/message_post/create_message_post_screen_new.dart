@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -24,7 +23,7 @@ import 'package:get/get.dart';
 class CreateMessagePostScreenNew extends StatefulWidget {
   final Post? post;
   final bool isEdit;
-  final bool isRepost=false;
+  final bool isRepost = false;
   final PostVia? postVia;
 
   const CreateMessagePostScreenNew(
@@ -96,10 +95,10 @@ class _CreateMessagePostScreenNewState
             child: CustomBtn(
                 isValidate: (msgController.postText.value.isNotEmpty &&
                     msgController.messageTitle.value.isNotEmpty &&
-                    (msgController.imagesList.length >=1)),
+                    (msgController.imagesList.length >= 1)),
                 onTap: (msgController.postText.value.isNotEmpty &&
-                    msgController.messageTitle.value.isNotEmpty &&
-                    (msgController.imagesList.length >=1))
+                        msgController.messageTitle.value.isNotEmpty &&
+                        (msgController.imagesList.length >= 1))
                     ? () async {
                         await Future.delayed(Duration(milliseconds: 200));
                         final input = msgController.postText.value.trim();
@@ -119,6 +118,7 @@ class _CreateMessagePostScreenNewState
                           return;
                         }
                         if (msgController.imagesList.length < 1) {
+                          // if (msgController.imagesList.length < 1) {
                           commonSnackBar(
                               message: "At least 1 photo is required");
                           return;
@@ -246,7 +246,6 @@ class _CreateMessagePostScreenNewState
                                 child: CustomText(
                               'Add Your Message Title',
                             )),
-
                           ],
                         ),
                         SizedBox(

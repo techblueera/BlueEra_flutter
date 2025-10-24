@@ -24,41 +24,43 @@ class _PortfolioWidgetState extends State<PortfolioWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
+            OverviewWidgetView(
+              isSelfPortfolio: widget.isSelfPortfolio,
+            ),
+
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
+            SkillWidgetView(
+              isSelfPortfolio: widget.isSelfPortfolio,
+            ),
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
+            ProjectWidgetView(
+              isSelfPortfolio: widget.isSelfPortfolio,
+            ),
+
+
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
+            ExperienceWidgetView(
+              isSelfPortfolio: widget.isSelfPortfolio,
+            ),
 
           SizedBox(
             height: SizeConfig.size10,
           ),
-          OverviewWidgetView(
-            isSelfPortfolio: widget.isSelfPortfolio,
-          ),
-
-          SizedBox(
-            height: SizeConfig.size10,
-          ),
-          SkillWidgetView(
-            isSelfPortfolio: widget.isSelfPortfolio,
-          ),
-          SizedBox(
-            height: SizeConfig.size10,
-          ),
-          ProjectWidgetView(
-            isSelfPortfolio: widget.isSelfPortfolio,
-          ),
-
-
-          SizedBox(
-            height: SizeConfig.size10,
-          ),
-          ExperienceWidgetView(
-            isSelfPortfolio: widget.isSelfPortfolio,
-          ),
-
-        SizedBox(
-          height: SizeConfig.size10,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
