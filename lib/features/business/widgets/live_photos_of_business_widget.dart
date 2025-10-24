@@ -17,6 +17,8 @@ class BusinessLivePhotos extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Container(
+      padding: EdgeInsets.all(8),
+
       child: Column(mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

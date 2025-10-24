@@ -290,7 +290,10 @@ class _AddSongScreenState extends State<AddSongScreen> {
             ),
             SizedBox(height: SizeConfig.size20),
             if (_isLoading)
-              const Center(child: CircularProgressIndicator())
+              const Center(child: Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: CircularProgressIndicator(),
+              ))
             else if (_audioFile != null) ...[
               Column(
                 children: [
@@ -357,6 +360,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
                 ],
               ),
             ],
+            SizedBox(height: 18,)
           ],
         ),
       ),

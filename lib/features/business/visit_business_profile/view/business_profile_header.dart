@@ -26,7 +26,7 @@ class BusinessProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return Material(borderRadius: BorderRadius.circular(10),
       child: Column(
         children: [
           Row(
@@ -348,7 +348,7 @@ class BusinessProfileHeader extends StatelessWidget {
                 color: const Color(0xFFE5E5E5), // #E5E5E5 border
                 width: 1,
               ),
-              borderRadius: BorderRadius.circular(SizeConfig.size14),
+              borderRadius: BorderRadius.circular(SizeConfig.size10),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0x14000000), // #000000 with 8% opacity

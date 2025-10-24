@@ -17,566 +17,380 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../../../core/api/model/user_profile_res.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
-  NewProfileHeaderWidget(
-      {super.key, required this.user, required this.screenFromName});
-
   final User? user;
-  final controller = Get.find<VisitProfileController>();
   final String? screenFromName;
+  final controller = Get.find<VisitProfileController>();
+
+  NewProfileHeaderWidget({
+    super.key,
+    required this.user,
+    required this.screenFromName,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+      margin: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
-          color: AppColors.white, borderRadius: BorderRadius.circular(0)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// ==== Banner ====
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 140,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8DD0F7),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                  image: (user?.profileImage != null &&
+                      user!.profileImage!.isNotEmpty)
+                      ? DecorationImage(
+                    image: NetworkImage(user!.profileImage!),
+                    fit: BoxFit.cover,
+                  )
+                      : null,
+                ),
+              ),
+
+              /// ==== Profile Image ====
+              Positioned(
+                left: 20,
+                bottom: -35,
+                child: CircleAvatar(
+                  radius: 38,
+                  backgroundColor: AppColors.white,
+                  child: CircleAvatar(
+                    radius: 35,
+                    backgroundImage: (user?.profileImage != null &&
+                        user!.profileImage!.isNotEmpty)
+                        ? NetworkImage(user!.profileImage!)
+                        : null,
+                    backgroundColor: AppColors.primaryColor,
+                    child: (user?.profileImage == null ||
+                        user!.profileImage!.isEmpty)
+                        ? CustomText(
+                      getInitials(user?.name),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: SizeConfig.size20,
+                    )
+                        : null,
+                  ),
+                ),
+              ),
+
+              /// ==== Follow Button + Menu ====
+              Positioned(
+                right: 4,
+                bottom: -50,
+                child: Row(
+                  children: [
+                    if (user?.id != null)
+                      Obx(() {
+                        return GestureDetector(
+                          onTap: () async {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                            } else {
+                              if (controller.isFollow.value) {
+                                await controller.unFollowUserController(
+                                    candidateResumeId: user?.id);
+                              } else {
+                                await controller.followUserController(
+                                    candidateResumeId: user?.id);
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 13, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: controller.isFollow.value
+                                  ? AppColors.colorTextDarkGrey
+                                  : AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                CustomText(
+                                  controller.isFollow.value
+                                      ? "Unfollow"
+                                      : "Follow",
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: SizeConfig.size10,
+                                ),
+                                 const SizedBox(width: 6),
+
+                                Icon(Icons.person_add_alt,color: Colors.white,size: 14,)
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                   // const SizedBox(width: 6),
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      color: AppColors.white,
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      onSelected: (value) async {
+                        if (value.toUpperCase() == "SHARE") {
+                          final link = profileDeepLink(userId: user?.id);
+                          final message =
+                              "See my profile on BlueEra:\n$link\n";
+                          await SharePlus.instance.share(
+                            ShareParams(text: message, subject: user?.name),
+                          );
+                        }
+                      },
+                      icon: LocalAssets(
+                          imagePath: AppIconAssets.more_vertical),
+                      itemBuilder: (context) => popupMenuVisitProfileItems(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 45),
+
+          /// ==== Name + Username ====
           Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: Row(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ///PROFILE PICTURE....
-                Padding(
-                  padding: EdgeInsets.only(right: 0, top: SizeConfig.size25),
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: user?.profileImage != null
-                        ? NetworkImage(user?.profileImage ?? "")
-                        : null,
-                    child: user?.profileImage == null
-                        ? CustomText(
-                            getInitials(user?.name),
-                            fontSize: SizeConfig.size18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          )
-                        : null,
+                CustomText(
+                  user?.name ?? '',
+                  fontSize: SizeConfig.large18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+                if (user?.username != null && user!.username!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: CustomText(
+                      "@${user?.username}",
+                      fontSize: SizeConfig.medium,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: SizeConfig.size10,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          /// ==== Profession or Channel ====
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (user?.profession != null &&
+                    user?.profession != "null" &&
+                    (user?.profession?.isNotEmpty ?? false))
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size10,
+                        vertical: SizeConfig.size4),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.secondaryTextColor),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: CustomText(
+                      "${user?.profession}",
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.extraSmall,
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Obx(() {
+                  return (controller.channelUserName?.value.isNotEmpty ?? false)
+                      ? Row(
                     children: [
-                      SizedBox(
-                        height: SizeConfig.size5,
+                      CustomText(
+                        "Visit my channel: ",
+                        fontSize: SizeConfig.size12,
                       ),
-
-                      /// USER NAME AND FOLLOW/UNFOLLOW,MORE ICON VIEW....
-                      SizedBox(
-                        width: Get.width,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Flexible(
-                                    child: CustomText(
-                                      user?.name,
-                                      fontSize: SizeConfig.large,
-                                      fontWeight: FontWeight.w600,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      // color: AppColors.secondaryTextColor,
-                                    ),
-                                  ),
-                                  if (user?.username != null &&
-                                      (user?.username?.isNotEmpty ?? false))
-                                    Flexible(
-                                      child: Padding(
-                                        padding: EdgeInsets.only(top: 3),
-                                        child: CustomText(
-                                          " @${user?.username}",
-                                          fontSize: SizeConfig.medium,
-                                          fontWeight: FontWeight.w600,
-                                          overflow: TextOverflow.ellipsis,
-                                          color: AppColors.shadowColor,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                if (user?.id != null)
-                                  Obx(() {
-                                    return Container(
-                                      margin: EdgeInsets.only(
-                                          top: SizeConfig.size8,
-                                          left: SizeConfig.size10),
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: SizeConfig.size10,
-                                          vertical: SizeConfig.size3),
-                                      decoration: BoxDecoration(
-                                          color: controller.isFollow.value
-                                              ? AppColors.colorTextDarkGrey
-                                              : AppColors.primaryColor,
-                                          borderRadius:
-                                              BorderRadius.circular(8)),
-                                      child: InkWell(
-                                          onTap: () async {
-                                            if (isGuestUser()) {
-                                              createProfileScreen();
-                                            } else {
-                                              if (controller.isFollow.value) {
-                                                await controller
-                                                    .unFollowUserController(
-                                                        candidateResumeId:
-                                                            user?.id);
-                                              } else {
-                                                await controller
-                                                    .followUserController(
-                                                        candidateResumeId:
-                                                            user?.id);
-                                              }
-                                            }
-                                          },
-                                          child: CustomText(
-                                            controller.isFollow.value
-                                                ? "Unfollow"
-                                                : "Follow",
-                                            color: AppColors.white,
-                                            fontWeight: FontWeight.w600,
-                                            // decoration: TextDecoration.underline,
-                                            // decorationColor: AppColors.primaryColor,
-                                            fontSize: SizeConfig.size12,
-                                          )),
-                                    );
-                                  }),
-                                Container(
-                                  height: 20,
-                                  width: 20,
-                                  margin: EdgeInsets.only(
-                                      top: SizeConfig.size8,
-                                      right: SizeConfig.size2),
-                                  child: PopupMenuButton<String>(
-                                    padding: EdgeInsets.zero,
-                                    // offset: const Offset(-6, 36),
-                                    color: AppColors.white,
-
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    onSelected: (value) async {
-                                      if (value.toUpperCase() == "SHARE") {
-                                        final link =
-                                            profileDeepLink(userId: user?.id);
-                                        final message =
-                                            "See my profile on BlueEra:\n$link\n";
-                                        await SharePlus.instance
-                                            .share(ShareParams(
-                                          text: message,
-                                          subject: user?.name,
-                                        ));
-                                      }
-                                    },
-                                    icon: LocalAssets(
-                                        imagePath:
-                                            AppIconAssets.more_vertical),
-                                    itemBuilder: (context) =>
-                                        popupMenuVisitProfileItems(),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            RouteHelper.getChannelScreenRoute(),
+                            arguments: {
+                              ApiKeys.argAccountType: user?.accountType,
+                              ApiKeys.channelId:
+                              controller.channelUserId?.value,
+                              ApiKeys.authorId: user?.id,
+                            },
+                          );
+                        },
+                        child: CustomText(
+                          "@${controller.channelName?.value}",
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.primaryColor,
+                          fontSize: SizeConfig.size12,
                         ),
                       ),
-
-                      ///PERSONAL DETAILS VIEW TEXT  DIALOG...
-                      if (screenFromName == AppConstants.chatScreen)
-                        GestureDetector(
-                          onTap: () async {
-                            // await controller.getUserChannelDetailsController(
-                            //     userId: user?.id);
-                            showPersonalDetailsPopup(context);
-                          },
-                          // Reuse method if applicable
-                          child: CustomText(
-                            'Personal Details',
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
-                            decorationColor: AppColors.primaryColor,
-                            fontSize: SizeConfig.size12,
-                          ),
-                        ),
-
-                      ///SET PROFESSION...
-                      if (screenFromName == AppConstants.feedScreen)...[
-                        Padding(
-                          padding: EdgeInsets.only(top: SizeConfig.size1),
-                          child: (user?.profession != null &&user?.profession != "null" &&
-                              (user?.profession?.isNotEmpty ?? false))
-                              ? Container(
-                            margin: EdgeInsets.only(top: SizeConfig.size5),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.size8,
-                                  vertical: SizeConfig.size3),
-                              decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: AppColors
-                                          .secondaryTextColor),
-                                  borderRadius:
-                                  BorderRadius.circular(15)),
-                              child: CustomText(
-                                "${user?.profession}",
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.extraSmall,
-                                maxLines: 1,
-                              ))
-                              : SizedBox(),
-                        ),
-
-                      ],
-                      ///VISIT CHANNEL IF CHANNEL IS CREATED...
-                      Obx(() {
-                        return (controller
-                                    .channelUserName?.value.isNotEmpty ??
-                                false)
-                            ? Padding(
-                                padding:
-                                    EdgeInsets.only(top: SizeConfig.size1),
-                                child: Row(
-                                  children: [
-                                    CustomText(
-                                      "Visit my channel : ",
-                                      fontSize: SizeConfig.size12,
-                                    ),
-                                    Flexible(
-                                      child: InkWell(
-                                        onTap: () {
-                                          Navigator.pushNamed(
-                                              context,
-                                              RouteHelper
-                                                  .getChannelScreenRoute(),
-                                              arguments: {
-                                                ApiKeys.argAccountType:
-                                                    user?.accountType,
-                                                ApiKeys.channelId: controller
-                                                    .channelUserId?.value,
-                                                ApiKeys.authorId: user?.id
-                                              });
-                                        },
-                                        child: CustomText(
-                                          '@${controller.channelName?.value}',
-                                          color: AppColors.primaryColor,
-                                          fontWeight: FontWeight.w600,
-                                          decoration:
-                                              TextDecoration.underline,
-                                          decorationColor:
-                                              AppColors.primaryColor,
-                                          fontSize: SizeConfig.size12,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : SizedBox();
-                      }),
-                      ///SHOW POST/FOLLOWER/FOLLOWING COUNT....
-                      Padding(
-                        padding: EdgeInsets.only(
-                            right: 38.0, top: SizeConfig.size5),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            StatBlock(
-                                count:
-                                    controller.userData.value?.totalPosts !=
-                                            null
-                                        ? formatIndianNumber(num.parse(
-                                            controller.userData.value
-                                                    ?.totalPosts
-                                                    .toString() ??
-                                                "0"))
-                                        : "0",
-                                label: "Post"),
-                            Container(
-                              height: 15,
-                              width: 0.9,
-                              color: AppColors.secondaryTextColor,
-                              margin: EdgeInsets.only(
-                                  left: SizeConfig.size5,
-                                  right: SizeConfig.size5),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Get.to(() => FollowersFollowingPage(
-                                      tabIndex: 0,
-                                      userID: controller
-                                              .userData.value?.user?.id ??
-                                          "",
-                                    ));
-                              },
-                              child: StatBlock(
-                                  count: controller.userData.value
-                                              ?.followingCount !=
-                                          null
-                                      ? formatIndianNumber(num.parse(
-                                          controller.userData.value
-                                                  ?.followingCount
-                                                  .toString() ??
-                                              "0"))
-                                      : "0",
-                                  label: "Following"),
-                            ),
-                            Container(
-                              height: 15,
-                              width: 0.9,
-                              color: AppColors.secondaryTextColor,
-                              margin: EdgeInsets.only(
-                                  left: SizeConfig.size5,
-                                  right: SizeConfig.size5),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Get.to(() => FollowersFollowingPage(
-                                      tabIndex: 1,
-                                      userID: controller
-                                              .userData.value?.user?.id ??
-                                          "",
-                                    ));
-                              },
-                              child: StatBlock(
-                                  count: formatIndianNumber(
-                                      controller.followerCount.value),
-                                  label: "Followers"),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.size5),
-                  ///LOCATION AND JOIN DATE VIEW....
-                      // if (screenFromName == AppConstants.feedScreen)
-                      Row(
-                        children: [
-                          if (user?.location != null &&
-                              (user?.location?.isNotEmpty ?? false)) ...[
-                            LocalAssets(
-                                imagePath: AppIconAssets.location_new),
-                            SizedBox(
-                              width: SizeConfig.size5,
-                            ),
-                            Flexible(
-                              child: CustomText(
-                                "${user?.location}",
-                                fontSize: SizeConfig.size12,
-                                overflow: TextOverflow.ellipsis,
-                                color: AppColors.mainTextColor,
-                              ),
-                            ),
-                            SizedBox(
-                              width: SizeConfig.size5,
-                            ),
-                          ],
-                          if (user?.createdAt != null &&
-                              (user?.createdAt?.isNotEmpty ?? false)) ...[
-                            LocalAssets(
-                                imagePath: AppIconAssets.calender_new),
-                            SizedBox(
-                              width: SizeConfig.size5,
-                            ),
-                            CustomText(
-                              stringDateFormatDate(
-                                  dateValue: user?.createdAt ?? ""),
-                              fontSize: SizeConfig.size12,
-                              overflow: TextOverflow.ellipsis,
-                              color: AppColors.mainTextColor,
-                            ),
-                          ],
-                        ],
-                      ),
-                      /*   if (screenFromName == AppConstants.chatScreen)
-                        Row(
-                          children: [
-                            LocalAssets(imagePath: AppIconAssets.calender_new),
-                            SizedBox(
-                              width: SizeConfig.size5,
-                            ),
-                            CustomText(
-                              "Join US: ",
-                              color: Colors.black,
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            CustomText(
-                              (user?.createdAt != null)
-                                  ? stringDateFormatDate(dateValue: user?.createdAt ?? "")
-                                  : "N/A",
-                              fontSize: SizeConfig.size12,
-                              overflow: TextOverflow.ellipsis,
-                              color: AppColors.mainTextColor,
-                            ),
-                          ],
-                        ),*/
                     ],
-                  ),
+                  )
+                      : const SizedBox();
+                }),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// ==== Stats Row ====
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _statBlock(
+                    "Post",
+                    controller.userData.value?.totalPosts?.toString() ??
+                        "0"),
+                const SizedBox(width: 20),
+
+                //  _divider(),
+                InkWell(
+                  onTap: () {
+                    Get.to(() => FollowersFollowingPage(
+                        tabIndex: 0, userID: user?.id ?? ""));
+                  },
+                  child: _statBlock(
+                      "Following",
+                      controller.userData.value?.followingCount?.toString() ??
+                          "0"),
+                ),
+                const SizedBox(width: 20),
+
+                //  _divider(),
+                InkWell(
+                  onTap: () {
+                    Get.to(() => FollowersFollowingPage(
+                        tabIndex: 1, userID: user?.id ?? ""));
+                  },
+                  child: _statBlock("Followers",
+                      controller.followerCount.value.toString()),
                 ),
               ],
             ),
           ),
-          // SizedBox(height: SizeConfig.size12),
 
-          SizedBox(height: SizeConfig.size5),
-/// ADD USER BIO VIEW....
-          if ((user?.bio ?? '').trim().isNotEmpty)
-            CustomText("     ${user?.bio ?? ''}"),
-          SizedBox(height: SizeConfig.size10),
+          const SizedBox(height: 10),
+
+          /// ==== Bio ====
+         // if ((user?.bio ?? '').trim().isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+              child: CustomText(
+                user?.bio ?? 'Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis',
+                fontSize: SizeConfig.size14,
+                color: AppColors.mainTextColor,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+          const SizedBox(height: 8),
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+            child: CustomText(
+              "Read More",
+              color: AppColors.primaryColor,
+              fontSize: SizeConfig.size12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+
+        //  const SizedBox(height: 16),
+
+          /// ==== Location + Join Date ====
+          // Padding(
+          //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+          //   child: Row(
+          //     children: [
+          //       if (user?.location?.isNotEmpty ?? false) ...[
+          //         LocalAssets(imagePath: AppIconAssets.location_new),
+          //         const SizedBox(width: 5),
+          //         Flexible(
+          //           child: CustomText(
+          //             user?.location ?? '',
+          //             fontSize: SizeConfig.size12,
+          //             color: AppColors.mainTextColor,
+          //             overflow: TextOverflow.ellipsis,
+          //           ),
+          //         ),
+          //       ],
+          //       const SizedBox(width: 10),
+          //       if (user?.createdAt?.isNotEmpty ?? false) ...[
+          //         LocalAssets(imagePath: AppIconAssets.calender_new),
+          //         const SizedBox(width: 5),
+          //         CustomText(
+          //           stringDateFormatDate(dateValue: user?.createdAt ?? ""),
+          //           fontSize: SizeConfig.size12,
+          //           color: AppColors.mainTextColor,
+          //         ),
+          //       ],
+          //     ],
+          //   ),
+          // ),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  void showPersonalDetailsPopup(BuildContext context) {
-    final user = controller.userData.value?.user;
-    if (user == null) return;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          user.name,
-                          fontSize: SizeConfig.size20,
-                          fontWeight: FontWeight.bold,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: SizedBox(
-                            height: SizeConfig.size25,
-                            width: SizeConfig.size25,
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.close_white,
-                              imgColor: Colors.black,
-                            )),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size10,
-                  ),
-                  CustomText(
-                    user.profession,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: SizeConfig.size5),
-                  Divider(
-                    color: AppColors.greyE5,
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  _buildDetailRow(
-                    icon: AppIconAssets.mail_new,
-                    label: 'Email',
-                    value: user.email ?? 'Not available',
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  _buildDetailRow(
-                    icon: AppIconAssets.calender_new,
-                    label: 'Birth Day',
-                    value: stringDateFormat(
-                        day: user.dateOfBirth?.date ?? 0,
-                        month: user.dateOfBirth?.month ?? 0,
-                        year: user.dateOfBirth?.year ?? 0),
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  _buildDetailRow(
-                    icon: AppIconAssets.location_new,
-                    label: 'Location',
-                    value: user.location ?? 'Not available',
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  if (controller.channelUserName?.value.isNotEmpty ?? false)
-                    _buildDetailRow(
-                        icon: AppIconAssets.channel_video_new,
-                        label: 'Channel Name',
-                        value: "@${controller.channelUserName?.value}",
-                        valueColor: AppColors.primaryColor),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDetailRow({
-    required String icon,
-    required String label,
-    required String value,
-    Color? valueColor,
-  }) {
+  Widget _statBlock(String label, String count) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.only(top: 5),
-          child: LocalAssets(
-            imagePath: icon,
-          ),
+        CustomText(
+          count,
+          fontSize: SizeConfig.size15,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            // color: Colors.red,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  label,
-                  fontWeight: FontWeight.w600,
-                  fontSize: SizeConfig.size15,
-                ),
-                SizedBox(height: SizeConfig.size2),
-                CustomText(
-                  value, fontSize: SizeConfig.size16,
-                  color: valueColor ?? AppColors.secondaryTextColor,
-                  // maxLines: 2,
-                ),
-              ],
-            ),
-          ),
+        const SizedBox(width: 4,),
+        CustomText(
+          label,
+          fontSize: SizeConfig.size12,
+          color: Colors.grey[600],
         ),
       ],
     );
   }
+
+  Widget _divider() => Container(
+    width: 1,
+    height: 20,
+    color: Colors.grey[400],
+  );
 }

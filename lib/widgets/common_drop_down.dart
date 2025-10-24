@@ -151,7 +151,7 @@ class _CustomDropdownOverlayInternalState<T> extends State<_CommonDropdownIntern
                                   ),
                                 ),
                                 if (i != widget.items.length - 1)
-                                  CommonHorizontalDivider(color: AppColors.grey99, height: 0.2),
+                                  CommonHorizontalDivider(color: AppColors.grey99, height: 0.7),
                               ]
                             ],
                           ),

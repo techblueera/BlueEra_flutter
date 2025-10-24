@@ -18,7 +18,7 @@ class StatBlock extends StatelessWidget {
       onTap: (){
         if(callback!=null) callback!();
       },
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
@@ -28,6 +28,7 @@ class StatBlock extends StatelessWidget {
             fontSize: SizeConfig.medium,
             fontFamily: AppConstants.OpenSans,
           ),
+          const SizedBox(width: 4,),
           CustomText(
             label,
             color: AppColors.secondaryTextColor,

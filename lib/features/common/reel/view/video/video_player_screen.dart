@@ -667,6 +667,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       createProfileScreen();
       return;
     }
+    print("sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
     if(videoController.videoFeedItem?.channel?.id!=null){
       Navigator.pushNamed(
           context,
@@ -683,6 +684,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         if (videoController.videoFeedItem?.author?.id == userId) {
           navigatePushTo(context, PersonalProfileSetupScreen());
         } else {
+          print("sdkljcnlksdmclksdc klllll");
           Get.to(() => NewVisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??'', screenFromName: AppConstants.feedScreen,));
         }
       }else{

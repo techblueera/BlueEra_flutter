@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../widgets/custom_text_cm.dart';
+
 class BusinessLocationWidget extends StatefulWidget {
   final double latitude;
   final double longitude;
@@ -50,31 +52,34 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      // margin: EdgeInsets.symmetric(horizontal: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SizeConfig.size16),
+        borderRadius: BorderRadius.circular(SizeConfig.size10),
       ),
       elevation: 0,
       color: AppColors.white,
       child: Padding(
-        padding: EdgeInsets.all(widget.padding ?? SizeConfig.size12),
+        padding: EdgeInsets.all(widget.padding ?? SizeConfig.size10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row(
-            //   crossAxisAlignment: CrossAxisAlignment.start,
-            //   children: [
-            //     const Icon(Icons.location_on_outlined,
-            //         color: AppColors.black1A),
-            //     SizedBox(width: SizeConfig.size6),
-            //     Expanded(
-            //         child: CustomText(
-            //       widget.locationText,
-            //       fontSize: SizeConfig.size14,
-            //       color: AppColors.black1A,
-            //     )),
-            //   ],
-            // ),
-            // SizedBox(height: 15),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // const Icon(Icons.location_on_outlined,
+                //     color: AppColors.black1A),
+                // SizedBox(width: SizeConfig.size6),
+                // Expanded(
+                //     child: CustomText(
+                //
+                //   "KJCJKLJWEN",
+                //   fontSize: SizeConfig.size14,
+                //   fontWeight: FontWeight.w400,
+                //   color: AppColors.black1A,
+                // )),
+              ],
+            ),
+            SizedBox(height: 15),
             ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 // Adjust border radius here
