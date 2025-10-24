@@ -1,23 +1,23 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-class DiwaliOfferCard extends StatelessWidget {
+class SharingBusinessFoodServiceCard extends StatelessWidget {
   final GlobalKey cardKey;
-  final GetProductData ownProductData;
+  final GetFoodDetailsModel foodServiceData;
   final String backgroundAsset;
 
-  const DiwaliOfferCard({
+  const SharingBusinessFoodServiceCard({
     super.key,
     required this.cardKey,
-    required this.ownProductData,
+    required this.foodServiceData,
     required this.backgroundAsset,
   });
 
@@ -34,7 +34,7 @@ class DiwaliOfferCard extends StatelessWidget {
 
     String getProductImageUrl() {
       try {
-        final media = ownProductData.product.details?.media;
+        final media = foodServiceData.photos;
         if (media != null && media.isNotEmpty) {
           return media.first;
         }
@@ -46,6 +46,19 @@ class DiwaliOfferCard extends StatelessWidget {
     }
 
     final String productImageUrl = getProductImageUrl();
+
+    final priceOptions = foodServiceData.priceOptions;
+
+    String priceText = "N/A";
+    if (priceOptions != null && priceOptions.isNotEmpty) {
+      if (priceOptions.length == 1) {
+        priceText = "${priceOptions.first.price ?? ''}";
+      } else {
+        final prices = priceOptions.map((e) => e.price ?? 0).toList();
+        prices.sort();
+        priceText = "${prices.first} - ₹${prices.last}";
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -68,8 +81,8 @@ class DiwaliOfferCard extends StatelessWidget {
               children: [
                 // Product Image and Details Section
                 Positioned(
-                  top: cardSize * 0.2,
-                  left: cardSize * 0.09,
+                  top: cardSize * 0.195,
+                  left: cardSize * 0.07,
                   right: cardSize * 0.05,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +130,7 @@ class DiwaliOfferCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              ownProductData.product.details?.name,
+                              foodServiceData.title,
                               color: AppColors.darkBrown,
                               fontWeight: FontWeight.w600,
                               maxLines: 2,
@@ -127,7 +140,7 @@ class DiwaliOfferCard extends StatelessWidget {
                             ),
                             SizedBox(height: 4 * scaleFactor),
                             CustomText(
-                              "${ownProductData.product.details?.description ?? ''}",
+                              "${foodServiceData.description ?? ''}",
                               color: AppColors.grayText,
                               fontWeight: FontWeight.w400,
                               maxLines: 3,
@@ -142,98 +155,104 @@ class DiwaliOfferCard extends StatelessWidget {
                   ),
                 ),
 
-                // Price Section(MRP)
                 Positioned(
-                  top: cardSize * 0.49,
-                  left: cardSize * 0.5,
-                  right: cardSize * 0.05,
-                  child: Row(
+                  top: cardSize * 0.4,
+                  left: cardSize * 0.44,
+                  right: cardSize * 0.04,
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
-                      CustomText(
-                        "MRP: ",
-                        color: AppColors.secondaryTextColor,
-                        fontSize: 13 * scaleFactor,
-                        fontWeight: FontWeight.w700
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: foodServiceData.vegType == 'veg'
+                                  ? AppColors.green7F
+                                  : AppColors.red,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              foodServiceData.vegType ?? "",
+                              style: TextStyle(
+                                  color: AppColors.white,
+                                  fontSize: SizeConfig.small,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            foodServiceData.category ?? "",
+                            style: TextStyle(
+                              color: AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.small,
+                            ),
+                          ),
+                        ],
                       ),
 
-                      // Original Price
-                      CustomText(
-                        // "₹ 1000000",
-                        "₹ ${ownProductData.product.sellerClassification?.variants[0].mrp}",
-                        color: AppColors.secondaryTextColor,
-                        fontSize: 13 * scaleFactor,
-                        fontWeight: FontWeight.w700,
-                        decoration: TextDecoration.lineThrough,
-                        decorationStyle: TextDecorationStyle.solid,
-                        decorationColor: AppColors.red,
+                      SizedBox(height: SizeConfig.size8),
+
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: (foodServiceData.priceType == "single")
+                            ? CustomText(
+                          "Price : ₹ ${foodServiceData.singlePrice ?? "0"}",
+                          fontSize: SizeConfig.small,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          color: AppColors.primaryColor,
+                        )
+                            : CustomText(
+                          "Price : ₹ ${priceText}",
+                          fontWeight: FontWeight.w600,
+                          overflow: TextOverflow.ellipsis,
+                          color: AppColors.primaryColor,
+                          maxLines: 1,
+                        ),
                       ),
+
+                      SizedBox(height: SizeConfig.size8),
+
+                      // Discount
+                      if (foodServiceData.discounts != null &&
+                          foodServiceData.discounts!.isNotEmpty)
+                        Text(
+                          foodServiceData.discounts!.first,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                      SizedBox(height: SizeConfig.size8),
+
+                      // // Add-ons
+                      // if (foodServiceData.addOns != null && foodServiceData.addOns!.isNotEmpty)
+                      //   Wrap(
+                      //     spacing: 12,
+                      //     runSpacing: 4,
+                      //     children: foodServiceData.addOns!
+                      //         .map((addon) => InkWell(
+                      //       onTap: () {},
+                      //       child: Text(
+                      //         addon,
+                      //         style: const TextStyle(
+                      //           color: Colors.blue,
+                      //           fontSize: 13,
+                      //           decoration: TextDecoration.underline,
+                      //         ),
+                      //       ),
+                      //     ))
+                      //         .toList(),
+                      //   )
+
                     ],
                   ),
                 ),
 
-                // Price Section(SELLING PRICE)
-                Positioned(
-                  top: cardSize * 0.6,
-                  left: cardSize * 0.49,
-                  right: cardSize * 0.05,
-                  child: Stack(
-                    children: [
-                      Text(
-                        // '₹ 1000000"',
-                        '₹ ${ownProductData.product.sellerClassification?.variants[0].sellingPrice}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18 * scaleFactor,
-                          foreground: Paint()
-                            ..style = PaintingStyle.stroke
-                            ..strokeWidth = 1
-                            ..color = AppColors.primaryColor,
-                        ),
-                      ),
-                      CustomText(
-                        '₹ ${ownProductData.product.sellerClassification?.variants[0].sellingPrice}',
-                        color: AppColors.red,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18 * scaleFactor,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // DISCOUNT
-                Positioned(
-                  top: cardSize * 0.55,
-                  left: cardSize * 0.75,
-                  right: cardSize * 0.05,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${calculateDiscount(
-                          ownProductData.product.sellerClassification?.variants[0].sellingPrice.toString() ?? "0",
-                          ownProductData.product.sellerClassification?.variants[0].mrp.toString() ?? "0",
-                        ).toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondaryTextColor,
-                          fontSize: 13 * scaleFactor,
-                        ),
-                      ),
-                      Text(
-                        'OFF',
-                        style: TextStyle(
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13 * scaleFactor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Store Info Section
                 Positioned(
                   top: cardSize * 0.77,
                   left: cardSize * 0.05,
@@ -351,5 +370,3 @@ class DiwaliOfferCard extends StatelessWidget {
     );
   }
 }
-
-

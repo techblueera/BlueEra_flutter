@@ -37,7 +37,7 @@ class _GreetingCardDialogState extends State<GreetingCardDialog> {
   @override
   void initState() {
     super.initState();
-    log('total cards--> ${widget.cards}');
+    log('total cards--> ${widget.cards.length}');
     _cardKey = List.generate(widget.cards.length, (_) => GlobalKey());
   }
 

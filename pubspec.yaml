@@ -120,6 +120,8 @@ flutter:
     - assets/diwali_card/
     - assets/video/
     - assets/store/
+    - assets/products_cards/
+    - assets/services_cards/
 #    - assets/certificate/
 
   fonts:

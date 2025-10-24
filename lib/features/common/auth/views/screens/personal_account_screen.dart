@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -65,6 +66,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
   final authController = Get.find<AuthController>();
+  final locationController = Get.put(LocationController());
 
   @override
   void initState() {
@@ -881,96 +883,106 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
           return;
         }
       }
-      final position = await getCurrentLocation();
-      final imageFile = (UserSession().imagePath != null)
-          ? File(UserSession().imagePath!)
-          : null;
-      dio.MultipartFile? imageByPart;
-      if (imageFile?.path.isNotEmpty ?? false) {
-        String fileName = imageFile?.path.split('/').last ?? "";
-        imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
-            filename: fileName);
+      // final position = await getCurrentLocation();
+      final locationData = await locationController.checkPermissionAndSetData();
+      if (locationData != null) {
+        final imageFile = (UserSession().imagePath != null)
+            ? File(UserSession().imagePath!)
+            : null;
+        dio.MultipartFile? imageByPart;
+        if (imageFile?.path.isNotEmpty ?? false) {
+          String fileName = imageFile?.path.split('/').last ?? "";
+          imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
+              filename: fileName);
+        }
+        String? designation;
+        if ((_selectedProfession == SELF_EMPLOYED)) {
+          designation = _selectedSelfEmployment ?? "";
+        } else {
+          designation = _designationTextController.text;
+        }
+
+        Map<String, dynamic> requestData = {
+          ApiKeys.profile_image: imageByPart,
+          ApiKeys.name: _nameTextController.text,
+          "date_of_birth": jsonEncode({
+            ApiKeys.date: _selectedDay,
+            ApiKeys.month: _selectedMonth,
+            ApiKeys.year: _selectedYear,
+          }),
+          ApiKeys.gender: _selectedGender?.name,
+
+          ///CONDITION....
+          ApiKeys.profession: _selectedProfession,
+          ApiKeys.designation: designation,
+          if (_selectedProfession == PRIVATE_JOB)
+            ApiKeys.sector: _sectorTextController.text,
+          if ((_selectedProfession == SELF_EMPLOYED))
+            ApiKeys.specilization: _designationTextController.text,
+          if (_selectedProfession == SKILLED_WORKER)
+            ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
+          if (_selectedProfession == CONTENT_CREATOR)
+            ApiKeys.specilization: _contentCraterTextController.text,
+
+          ///USER NAME
+          if ((_selectedProfession == CONTENT_CREATOR) ||
+              (_selectedProfession == POLITICIAN) ||
+              (_selectedProfession == REG_UNION) ||
+              (_selectedProfession == INDUSTRIALIST) ||
+              (_selectedProfession == ARTIST) ||
+              (_selectedProfession == MEDIA) ||
+              (_selectedProfession == GOVTPSU))
+            ApiKeys.username: userNameController.text,
+
+          if (_selectedProfession == POLITICIAN)
+            ApiKeys.department: politicalPartyController.text,
+          if (_selectedProfession == GOVTPSU)
+            ApiKeys.department: departmentNameController.text,
+          if (_selectedProfession == GOVTPSU)
+            ApiKeys.subDivision: subDivision.text,
+          if (_selectedProfession == REG_UNION)
+            ApiKeys.department: _ngoNameTextController.text,
+
+          if (_selectedProfession == INDUSTRIALIST)
+            ApiKeys.department: _companyNameTextController.text,
+
+          if (_selectedProfession == STUDENT)
+            ApiKeys.schoolOrCollegeName: _CourseTextController.text,
+          if (_selectedProfession == OTHERS)
+            ApiKeys.specilization: _otherProfessionTextController.text,
+          if (_selectedProfession == ARTIST)
+            ApiKeys.art: jsonEncode({
+              ApiKeys.artName: _selectedSelfEmploymentObj?.tagId,
+              ApiKeys.artType: _artTypeController.text
+            }),
+          if (_selectedProfession == HOMEMAKER)
+            ApiKeys.art: jsonEncode({
+              ApiKeys.artName: _ExpertiseTextController.text,
+            }),
+
+          if (_selectedProfession == SENIOR_CITIZEN_RETIRED)
+            ApiKeys.art: jsonEncode({
+              ApiKeys.artName: _SeniorTextController.text,
+            }),
+
+          ApiKeys.referred_by_code:
+          _referralCodeEnable ? _referralCodeController.text : null,
+          // if (position?.latitude != null && position?.longitude != null)
+            ApiKeys.user_cordinates: jsonEncode({
+              ApiKeys.lat: locationData.lat,
+              ApiKeys.lon: locationData.long,
+            }),
+        };
+        logs("requestData PERSONAL ==== ${requestData}");
+        await authController.addIndivisualUser(reqData: requestData);
       }
-      String? designation;
-      if ((_selectedProfession == SELF_EMPLOYED)) {
-        designation = _selectedSelfEmployment ?? "";
-      } else {
-        designation = _designationTextController.text;
+      else{
+        commonSnackBar(
+            message:
+            "Please enable your location permission and gps to access app features.");
+        return;
       }
 
-      Map<String, dynamic> requestData = {
-        ApiKeys.profile_image: imageByPart,
-        ApiKeys.name: _nameTextController.text,
-        "date_of_birth": jsonEncode({
-          ApiKeys.date: _selectedDay,
-          ApiKeys.month: _selectedMonth,
-          ApiKeys.year: _selectedYear,
-        }),
-        ApiKeys.gender: _selectedGender?.name,
-
-        ///CONDITION....
-        ApiKeys.profession: _selectedProfession,
-        ApiKeys.designation: designation,
-        if (_selectedProfession == PRIVATE_JOB)
-          ApiKeys.sector: _sectorTextController.text,
-        if ((_selectedProfession == SELF_EMPLOYED))
-          ApiKeys.specilization: _designationTextController.text,
-        if (_selectedProfession == SKILLED_WORKER)
-          ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
-        if (_selectedProfession == CONTENT_CREATOR)
-          ApiKeys.specilization: _contentCraterTextController.text,
-
-        ///USER NAME
-        if ((_selectedProfession == CONTENT_CREATOR) ||
-            (_selectedProfession == POLITICIAN) ||
-            (_selectedProfession == REG_UNION) ||
-            (_selectedProfession == INDUSTRIALIST) ||
-            (_selectedProfession == ARTIST) ||
-            (_selectedProfession == MEDIA) ||
-            (_selectedProfession == GOVTPSU))
-          ApiKeys.username: userNameController.text,
-
-        if (_selectedProfession == POLITICIAN)
-          ApiKeys.department: politicalPartyController.text,
-        if (_selectedProfession == GOVTPSU)
-          ApiKeys.department: departmentNameController.text,
-        if (_selectedProfession == GOVTPSU)
-          ApiKeys.subDivision: subDivision.text,
-        if (_selectedProfession == REG_UNION)
-          ApiKeys.department: _ngoNameTextController.text,
-
-        if (_selectedProfession == INDUSTRIALIST)
-          ApiKeys.department: _companyNameTextController.text,
-
-        if (_selectedProfession == STUDENT)
-          ApiKeys.schoolOrCollegeName: _CourseTextController.text,
-        if (_selectedProfession == OTHERS)
-          ApiKeys.specilization: _otherProfessionTextController.text,
-        if (_selectedProfession == ARTIST)
-          ApiKeys.art: jsonEncode({
-            ApiKeys.artName: _selectedSelfEmploymentObj?.tagId,
-            ApiKeys.artType: _artTypeController.text
-          }),
-        if (_selectedProfession == HOMEMAKER)
-          ApiKeys.art: jsonEncode({
-            ApiKeys.artName: _ExpertiseTextController.text,
-          }),
-
-        if (_selectedProfession == SENIOR_CITIZEN_RETIRED)
-          ApiKeys.art: jsonEncode({
-            ApiKeys.artName: _SeniorTextController.text,
-          }),
-
-        ApiKeys.referred_by_code:
-            _referralCodeEnable ? _referralCodeController.text : null,
-        if (position?.latitude != null && position?.longitude != null)
-          ApiKeys.user_cordinates: jsonEncode({
-            ApiKeys.lat: position?.latitude.toString() ?? "",
-            ApiKeys.lon: position?.longitude.toString() ?? "",
-          }),
-      };
-      logs("requestData PERSONAL ==== ${requestData}");
-      await authController.addIndivisualUser(reqData: requestData);
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;

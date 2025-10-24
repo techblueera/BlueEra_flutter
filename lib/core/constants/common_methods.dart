@@ -197,6 +197,16 @@ String productDeepLink({String? productId}) {
   return 'https://blueera.ai/app/product/${productId ?? ""}';
 }
 
+/// Generate deep link for a Product item
+String serviceDeepLink({String? productId}) {
+  return 'https://blueera.ai/app/product/${productId ?? ""}';
+}
+
+/// Generate deep link for a Product item
+String foodServiceDeepLink({String? productId}) {
+  return 'https://blueera.ai/app/product/${productId ?? ""}';
+}
+
 // String staticDeepLink() {
 //   return "https://dart.dev/tools/pub/publishing";
 //   // return "https://www.myntra.com/apparel-set/gosriki/gosriki-women-kurta-with-trousers-&-dupatta-set/31079027/buy?utm_source=social_share_pdp&utm_medium=deeplink&utm_campaign=social_share_pdp_deeplink";

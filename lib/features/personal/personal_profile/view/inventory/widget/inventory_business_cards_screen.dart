@@ -1,0 +1,171 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_food_service_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_service_card.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class InventoryBusinessCardsScreen extends StatefulWidget {
+  const InventoryBusinessCardsScreen({super.key});
+
+  @override
+  State<InventoryBusinessCardsScreen> createState() => _InventoryBusinessCardsScreenState();
+}
+
+class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final inventoryController = Get.find<InventoryController>();
+  final serviceController = Get.put(ServiceController());
+  final foodUploadController = Get.put(FoodUploadController());
+
+  // Dynamic tab list
+  late final List<_TabItem> _tabs;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Dynamically prepare tab list based on business type
+    final type = businessType();
+    _tabs = [];
+
+    if (isShowProduct.contains(type)) {
+      _tabs.add(_TabItem(title: 'My Products', type: 'product'));
+    }
+    if (isShowService.contains(type)) {
+      _tabs.add(_TabItem(title: 'My Services', type: 'service'));
+    }
+    if (isShowFood.contains(type)) {
+      _tabs.add(_TabItem(title: 'Food & Grocery', type: 'food'));
+    }
+
+    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
+    // Fetch first tab data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchTabData(_tabs.first.type);
+    });
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    final tabType = _tabs[_tabController.index].type;
+    _fetchTabData(tabType);
+  }
+
+  void _fetchTabData(String type) {
+    switch (type) {
+      case 'product':
+        if (inventoryController.allProducts.isEmpty) {
+          inventoryController.fetchProducts();
+        }
+        break;
+
+      case 'service':
+        if (serviceController.serviceDataList.isEmpty) {
+          final queryParams = {
+            ApiKeys.all: false,
+            ApiKeys.type: "service",
+            ApiKeys.providerType: ProductServiceProviderType.business.title,
+          };
+          serviceController.getServices(queryParams);
+        }
+        break;
+
+      case 'food':
+        if (foodUploadController.foodDataList.isEmpty) {
+          final queryParams = {
+            ApiKeys.all: false,
+            ApiKeys.type: "food",
+            ApiKeys.providerType: ProductServiceProviderType.business.title,
+          };
+          foodUploadController.getFoodService(queryParams);
+        }
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        child: CommonBackAppBar(
+          isLeading: true,
+          title: 'My Business Cards',
+          bottomWidget: TabBar(
+            controller: _tabController,
+            labelColor: AppColors.primaryColor,
+            unselectedLabelColor: Colors.grey[600],
+            indicatorColor: Colors.blue,
+            indicatorWeight: 2,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+            tabs: _tabs.map((t) => Tab(text: t.title)).toList(),
+          ),
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: _tabs.map((t) {
+          switch (t.type) {
+            case 'product':
+              return Obx(() {
+                if (inventoryController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (inventoryController.allProducts.isEmpty) {
+                  return const Center(child: Text('No products found'));
+                }
+                return BusinessProductCard(
+                  allProducts: inventoryController.allProducts,
+                  showHorizontal: false,
+                );
+              });
+
+            case 'service':
+              return Obx(() {
+                if (serviceController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (serviceController.serviceDataList.isEmpty) {
+                  return const Center(child: Text('No services found'));
+                }
+                return BusinessServiceCard(allServices: serviceController.serviceDataList);
+              });
+
+            case 'food':
+              return Obx(() {
+                if (foodUploadController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (foodUploadController.foodDataList.isEmpty) {
+                  return const Center(child: Text('No food items found'));
+                }
+                return BusinessFoodServiceCard(allFoodServices: foodUploadController.foodDataList);
+              });
+
+            default:
+              return const SizedBox.shrink();
+          }
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _TabItem {
+  final String title;
+  final String type;
+  _TabItem({required this.title, required this.type});
+}
+

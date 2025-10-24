@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -461,6 +462,15 @@ class _CreateBusinessAccountStepTwoState
                                       return;
                                     }
                                   }
+
+                                  // log('address lat--> ${viewBusinessDetailsController.addressLat?.value}');
+                                  // log('address lng--> ${viewBusinessDetailsController.addressLong?.value}');
+                                  // if(viewBusinessDetailsController.addressLat?.value==0.0 && viewBusinessDetailsController.addressLong?.value==0.0){
+                                  //   commonSnackBar(
+                                  //       message:
+                                  //       "Please enable your location permission and gps to fetch business location");
+                                  //       return;
+                                  // }
 
                                   /// Submit action
                                   print("Form submitted!");

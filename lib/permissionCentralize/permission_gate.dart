@@ -1,8 +1,7 @@
-
-import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/permissionCentralize/location_permission_service.dart';
-import 'package:BlueEra/permissionCentralize/permission_request_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
+import 'package:BlueEra/permissionCentralize/permission_required_screen.dart';
 
 class PermissionGate extends StatefulWidget {
   const PermissionGate({super.key});
@@ -13,17 +12,19 @@ class PermissionGate extends StatefulWidget {
 
 class _PermissionGateState extends State<PermissionGate> {
   bool? hasPermission;
+  List<PermissionItem> missingPermissions = [];
 
   @override
   void initState() {
     super.initState();
-    _checkPermission();
+    _checkAllPermissions();
   }
 
-  Future<void> _checkPermission() async {
-    bool granted = await PermissionService.checkLocationPermissionAndGPS();
+  Future<void> _checkAllPermissions() async {
+    final (granted, missing) = await PermissionService.checkAllPermissions();
     setState(() {
       hasPermission = granted;
+      missingPermissions = missing;
     });
   }
 
@@ -34,8 +35,12 @@ class _PermissionGateState extends State<PermissionGate> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
+
     return hasPermission!
         ? const SplashScreen()
-        : const PermissionRequiredScreen();
+        : PermissionRequiredScreen(
+      missingPermissions: missingPermissions,
+      onRetry: _checkAllPermissions,
+    );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -1176,6 +1177,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
       children: [
         GestureDetector(
           onTap: () async {
+
             if (imagePath == "") {
               showCommonDialog(
                   context: context,
@@ -1302,32 +1304,47 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
       ViewBusinessDetailsController controller) {
     return Stack(
       children: [
-        Container(
-          height: SizeConfig.screenWidth * .30,
-          width: SizeConfig.screenWidth * .30,
-          margin: EdgeInsets.only(right: SizeConfig.size10),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [AppShadows.textFieldShadow],
-            image: imagePath != null
-                ? DecorationImage(
-                    image: imagePath.startsWith("http")
-                        ? NetworkImage(imagePath) as ImageProvider
-                        : FileImage(File(imagePath)),
-                    fit: BoxFit.cover,
+        InkWell(
+          onTap: () {
+            if(imagePath != null){
+              navigatePushTo(
+                context,
+                ImageViewScreen(
+                  subTitle: '',
+                  appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                  imageUrls: [imagePath],
+                  initialIndex: index,
+                ),
+              );
+            }
+          },
+          child: Container(
+            height: SizeConfig.screenWidth * .30,
+            width: SizeConfig.screenWidth * .30,
+            margin: EdgeInsets.only(right: SizeConfig.size10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [AppShadows.textFieldShadow],
+              image: imagePath != null
+                  ? DecorationImage(
+                      image: imagePath.startsWith("http")
+                          ? NetworkImage(imagePath) as ImageProvider
+                          : FileImage(File(imagePath)),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: imagePath == null
+                ? const Center(
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   )
                 : null,
           ),
-          child: imagePath == null
-              ? const Center(
-                  child: Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                )
-              : null,
         ),
         if (imagePath != null)
           Positioned(

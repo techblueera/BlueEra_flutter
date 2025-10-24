@@ -12,7 +12,7 @@ class RouteConstant {
   static const String BottomNavigationBarScreen = "/BottomNavigationBarScreen";
   static const String HomeScreen = "/HomeScreen";
   static const String BusinessAccount = "/BusinessAccount";
-  static const String AddEditVisitingCardScreen = "/AddEditVisitingCardScreen";
+  // static const String AddEditVisitingCardScreen = "/AddEditVisitingCardScreen";
   static const String BusinessOwnProfileScreen = "/BusinessOwnProfileScreen";
   static const String PersonalProfileCreateScreen =
       "/PersonalProfileCreateScreen";
@@ -96,4 +96,5 @@ class RouteConstant {
   static const String productPreviewScreenProduct = "/ProductPreviewScreenProduct";
   static const String storeFeedScreen = "/StoreFeedScreen";
   static const String earnWithBlueEraNewScreen = "/EarnWithBlueEraNewScreen";
+  static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
 }

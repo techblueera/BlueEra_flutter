@@ -60,7 +60,7 @@ class _InventoryScreenState extends State<InventoryScreen>
               // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
           onClearCallback: () => searchController.clear(),
           isSearch: true,
-          isProductPopUpMenu: true,
+          isInventoryPopUpMenu: true,
           bottomWidget: TabBar(
             controller: _tabController,
             labelColor: AppColors.primaryColor,
@@ -144,7 +144,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     // Menu height (approximate based on items * itemHeight)
     const double itemHeight = 36.0;
     const int itemCount = 3;
-    const double menuHeight = itemHeight * itemCount;
+    const double menuHeight = itemHeight * (itemCount-1);
 
     final RelativeRect position = RelativeRect.fromLTRB(
       fabPosition.dx, // align with FAB left

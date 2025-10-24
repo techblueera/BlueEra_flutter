@@ -664,6 +664,57 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   return entries;
 }
 
+List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
+  final items = <Map<String, dynamic>>[
+    {"id": "BUSINESS CARD", 'title': 'My Business Card'}
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['title'],
+        onTap: () {
+          if (items[i]['id'] == "BUSINESS CARD") {
+            Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              items[i]['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.6,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
+
 bool isIndividual() {
   return (accountTypeGlobal.toUpperCase() == AppConstants.individual);
 }
@@ -1853,3 +1904,39 @@ canGoogleMapOpen({required double latitude, required double longitude}) async {
     }
   }
 }
+
+final List<String> bgAssetsForProductSharing = [
+  'assets/products_cards/blueera_aatmnirbhar_product_card1.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card2.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card3.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card4.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card5.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card6.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card7.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card8.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card9.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card10.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card11.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card12.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card13.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card14.jpeg',
+  'assets/products_cards/blueera_aatmnirbhar_product_card15.jpeg',
+];
+
+final List<String> bgAssetsForServices = [
+  'assets/services_cards/blueera_aatmnirbhar_service_card1.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card2.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card3.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card4.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card5.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card6.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card7.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card8.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card9.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card10.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card11.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card12.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card13.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card14.jpeg',
+  'assets/services_cards/blueera_aatmnirbhar_service_card15.jpeg',
+];
