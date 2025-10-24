@@ -193,7 +193,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: CustomText(
-                          langController.tr('enterOtp'),
+                          langController.tr('EnterOtp'),
                           fontWeight: FontWeight.bold,
                           fontSize: SizeConfig.large,
                         ),
@@ -241,7 +241,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         onTap: _isSubmitDisabled
                             ? () => _onVerifyOtpPressed(context)
                             : null,
-                        title: langController.tr('submit'),
+                        title: langController.tr('Submit'),
                         isValidate: _isSubmitDisabled,
                       ),
 
@@ -286,7 +286,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         runSpacing: 4,
                         children: [
                           CustomText(
-                            langController.tr('didntGetTheOtpCode'),
+                            langController.tr('Didnt Get The OtpCode?'),
                             color: Colors.black,
                             fontWeight: FontWeight.w400,
                            // decoration: TextDecoration.underline,
@@ -301,7 +301,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                               : InkWell(
                             onTap: () => _onResendOtpPressed(context),
                             child: CustomText(
-                              langController.tr('resendCode'),
+                              langController.tr('ResendCode'),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.primaryColor,

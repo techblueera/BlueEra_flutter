@@ -15,9 +15,11 @@ import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/api/apiService/api_response.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constant.dart';
+import '../../../core/services/multipart_image_service.dart';
 import '../../../widgets/common_box_shadow.dart';
 import '../../../widgets/common_circular_profile_image.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
+import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
@@ -287,6 +289,31 @@ class BusinessProfileHeader extends StatelessWidget {
                   // ),
                 ),
               ),
+              Positioned(
+                  right: 10,top: 8,
+
+                  child: InkWell(
+                      onTap: ()async{
+                        final newPath =
+                        await SelectProfilePictureDialog.showLogoDialog(
+                          context,
+                          "Edit Cover Picture",
+                          isOnlyCamera: true,
+                          isGallery: true,
+                        );
+                        dynamic dataImage = await multiPartImage(imagePath: newPath);
+                        var reqProfile = {ApiKeys.profile_image: dataImage};
+                        await controller.uploadLiveStoreImage(
+
+                           reqProfile, );
+                        // personalCreateProfileController.imagePath?.value = image;
+                        // dynamic dataImage = await multiPartImage(imagePath: image);
+                        // var reqProfile = {ApiKeys.profile_image: dataImage};
+                        // await personalCreateProfileController.updateUserProfileDetails(
+                        //     params: reqProfile, isFromProfileOnly: true);
+                      },
+
+                      child: Image.asset('assets/diwali_card/camera.png'))),
 
               // Follow button & menu
               Positioned(

@@ -56,6 +56,7 @@ class _ExpandableTextState extends State<ExpandableText> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+
           HighlightText(
             text: widget.text,
             style: style,
