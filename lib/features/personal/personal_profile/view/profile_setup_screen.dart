@@ -127,6 +127,7 @@ class _PersonalProfileSetupScreenState
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
@@ -144,6 +145,7 @@ class _PersonalProfileSetupScreenState
       //   Get.to(()=>AddAccountScreen());
       //
       // }),
+
       body: isGuestUser()
           ? PositiveCustomBtn(onTap: () {}, title: "Logout")
           : Obx(() {

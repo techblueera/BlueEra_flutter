@@ -197,16 +197,26 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
               left: 0,
               // right: SizeConfig.size6,
               child: Container(
+               // height: 103,
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(
-                    bottom: 10,
-                    left: SizeConfig.size10,
-                    right: SizeConfig.size10,
-                    top: 5),
+                  bottom: 10,
+                  left: SizeConfig.size10,
+                  right: SizeConfig.size10,
+                  top: 20,
+                ),
                 decoration: (widget.withBackground)
                     ? BoxDecoration(
-                        color: AppColors.mainTextColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(5.0))
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.0), // Top transparent
+                      Colors.black.withOpacity(0.9), // Bottom dark
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(5.0),
+                )
                     : null,
                 child: CustomText(
                   "${shortItem?.video?.title}",
@@ -215,7 +225,9 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                   fontWeight: FontWeight.w400,
                   overflow: TextOverflow.ellipsis,
                 ),
-              )),
+              )
+
+          ),
 
           if (canShowMenu && shortItem != null)
             Positioned(

@@ -298,12 +298,13 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
   }
 
   Widget _buildHeaderSection() {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: SizeConfig.size15,
-        right: SizeConfig.size15,
-        top: SizeConfig.size12,
-        bottom: SizeConfig.size6,
+    return Container(
+      margin: EdgeInsets.all(8),
+      padding:  EdgeInsets.all(12),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6),
+        color: Colors.white,
+
+
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,12 +445,13 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                       ),
                       SizedBox(height: SizeConfig.size8),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           buildStatBlock(
                             channelController.channelStats.value?.posts.toString() ?? "0",
                             "Posts",
                           ),
+                          const SizedBox(width: 19,),
                           GestureDetector(
                             onTap: () {},
                             child: buildStatBlock(
@@ -457,6 +459,8 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                               "Followers",
                             ),
                           ),
+                          const SizedBox(width: 19,),
+
                           GestureDetector(
                             onTap: () {},
                             child: buildStatBlock(
@@ -546,8 +550,8 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                   },
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    foregroundColor: isSelected ? Colors.black87 : Colors.black54,
-                    backgroundColor: isSelected ? Colors.blue.shade100 : Colors.white,
+                    foregroundColor: isSelected ? Colors.white : Colors.black54,
+                    backgroundColor: isSelected ? AppColors.primaryColor : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(SizeConfig.size10),
                       side: BorderSide(

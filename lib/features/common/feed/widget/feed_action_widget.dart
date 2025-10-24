@@ -93,6 +93,7 @@ class _PostActionsBarState extends State<PostActionsBar> {
               },
               child: Container(
                 padding: EdgeInsets.all(SizeConfig.size10),
+                margin: EdgeInsets.only(top: 10,bottom: 10),
                 decoration: BoxDecoration(
                     border: Border.all(color: AppColors.greyE5),
                     borderRadius: BorderRadius.circular(10)),

@@ -74,507 +74,507 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     final theme = Theme.of(context);
     return Column(
       children: [
-        CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              children: [
-                ///COMPANY PROFILE VIEW ....
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ///UPLOAD PROFILE....
-                    CommonProfileImage(
-                      imagePath:
-                      controller.imagePath?.value ?? "",
-                      onImageUpdate: (image) async {
-                        controller.imagePath?.value = image;
-                        dioObj.MultipartFile? imageByPart;
-                        // if (viewBusinessDetailsController.isImageUpdated.value) {
-                        if (controller
-                                .imagePath?.value.isNotEmpty ??
-                            false) {
-                          String fileName = controller
-                                  .imagePath?.value
-                                  .split('/')
-                                  .last ??
-                              "";
-                          imageByPart = await dioObj.MultipartFile.fromFile(
-                              controller.imagePath?.value ??
-                                  "",
-                              filename: fileName);
-                        }
-                        // }
-                        dynamic reqData = {
-                          ApiKeys.businessId: businessId,
-                          ApiKeys.logo_image: imageByPart,
-                        };
-
-                        await controller
-                            .updateBusinessDetails(reqData);
-                      },
-                      dialogTitle: 'Upload Business Logo',
-                    ),
-                    SizedBox(width: SizeConfig.size10),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            top: SizeConfig.size10, left: SizeConfig.size8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: CustomText(
-                                    "${details?.businessName ?? ''}",
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: SizeConfig.size20,
-                                    color: AppColors.mainTextColor,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: SizeConfig.size8,
-                                ),
-                                InkWell(
-                                    onTap: () {
-                                      // navigatePushTo(
-                                      //     context,
-                                      //     BusinessDetailsEditPageOne(
-                                      //         prevBusinessDetails: details
-                                      //     ));
-
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (context) =>
-                                            BusinessDetailsBottomSheet(
-                                          prevBusinessDetails: details,
-                                        ),
-                                      );
-                                    },
-                                    child: LocalAssets(
-                                      height: 18,
-                                      imagePath: AppIconAssets.pen_line,
-                                      imgColor: AppColors.primaryColor,
-                                    ))
-                              ],
-                            ),
-                            CustomText(
-                              (details?.categoryDetails?.name?.isNotEmpty ??
-                                      false)
-                                  ? details?.categoryDetails?.name ?? 'Other'
-                                  : (details?.subCategoryDetails?.name
-                                              ?.isNotEmpty ??
-                                          false)
-                                      ? details?.subCategoryDetails?.name ?? ''
-                                      : (details?.natureOfBusiness ?? 'OTHERS'),
-                              fontWeight: FontWeight.w400,
-                              fontSize: SizeConfig.large,
-                              color: AppColors.mainTextColor,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-
-                            if (details?.ownerDetails?.isNotEmpty ?? false)
-                              Padding(
-                                padding: EdgeInsets.only(top: SizeConfig.size8),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      CustomText(
-                                        details?.ownerDetails?[0].name,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: SizeConfig.medium,
-                                        color: AppColors.mainTextColor,
-                                      ),
-                                      SizedBox(width: SizeConfig.size4),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: SizeConfig.size8,
-                                          vertical: SizeConfig.size2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                            color: AppColors.appBackgroundColor,
-                                            borderRadius:
-                                                BorderRadius.circular(100.0),
-                                            border: Border.all(
-                                                color: AppColors
-                                                    .secondaryTextColor,
-                                                width: 0.5)),
-                                        child: CustomText(
-                                          'Owner',
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: SizeConfig.extraSmall,
-                                          color: AppColors.secondaryTextColor,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: SizeConfig.size8,
-                                      ),
-                                      InkWell(
-                                          onTap: () {
-                                            showModalBottomSheet(
-                                              context: context,
-                                              isScrollControlled: true,
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              builder: (context) =>
-                                                  OwnerDetailsBottomSheet(
-                                                prevBusinessDetails: details,
-                                                // Pass existing params
-                                                isFromCreateUser: false,
-                                              ),
-                                            );
-                                          },
-                                          child: LocalAssets(
-                                            height: 18,
-                                            imagePath: AppIconAssets.pen_line,
-                                            imgColor: AppColors.primaryColor,
-                                          ))
-                                    ],
-                                  ),
-                                ),
-                              )
-
-                            //   (details?.address == null || details?.address == '')
-                            //     ? SizedBox()
-                            //     : const SizedBox(
-                            //   height: 4,
-                            // ),
-
-                            // Row(
-                            //   children: [
-                            //     (details?.address == null || details?.address == '')
-                            //         ? SizedBox()
-                            //         : SvgPicture.asset(
-                            //             height: 28,
-                            //             width: 28,
-                            //             "assets/svg/profile_location.svg",
-                            //           ),
-                            //     const SizedBox(
-                            //       width: 4,
-                            //     ),
-                            //     Expanded(
-                            //       child: CustomText(
-                            //         "${details?.address ?? ''}",
-                            //         fontSize: SizeConfig.size14,
-                            //         maxLines: 2,
-                            //         overflow: TextOverflow.ellipsis,
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-                            // (details?.address == null || details?.address == '')
-                            //     ? SizedBox()
-                            //     : SizedBox(
-                            //         height: SizeConfig.size10,
-                            //       ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-
-                (details?.businessIsVerified ?? false)
-                    ? Container(
-                        width: Get.width,
-                        padding: EdgeInsets.only(
-                            top: SizeConfig.size10, left: SizeConfig.size10),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.inversePrimary,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.check,
-                                color: theme.colorScheme.onTertiary,
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              CustomText(
-                                "Your business is verified.",
-                                color: theme.colorScheme.onTertiary,
-                                fontWeight: FontWeight.w500,
-                                fontSize: SizeConfig.medium,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : Padding(
-                        padding: EdgeInsets.only(
-                            top: SizeConfig.size10, left: SizeConfig.size10),
-                        child: Container(
-                          width: Get.width,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.tertiary,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            // crossAxisAlignment: CrossAxisAlignment.center,
-                            // mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SvgPicture.asset(
-                                height: 18,
-                                width: 18,
-                                "assets/svg/ac_verify_icon.svg",
-                              ),
-                              const SizedBox(
-                                width: 4,
-                              ),
-                              Expanded(
-                                child: CustomText(
-                                  "Your business is not verified ",
-                                  color: theme.colorScheme.onTertiary,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: SizeConfig.medium,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 1,
-                              ),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    // Navigator.push(
-                                    //     context,
-                                    //     MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             BusinessVerificationScrn()));
-                                    Get.to(() => VisitBusinessProfileNew(
-                                          businessId: businessId,
-                                          screenName: AppConstants.feedScreen,
-                                        ));
-                                  },
-                                  child: CustomText(
-                                    fontWeight: FontWeight.w900,
-                                    "Verify Now",
-                                    color: theme.colorScheme.onTertiary,
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: SizeConfig.medium,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor:
-                                        theme.colorScheme.onTertiary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                SizedBox(
-                  height: SizeConfig.size18,
-                ),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  8), // Set your desired radius here
-                            ),
-                            side: BorderSide(color: theme.colorScheme.primary),
-                            backgroundColor: theme.colorScheme.primary),
-                        onPressed: null,
-                        // onPressed: _captureAndShareCard,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: SizeConfig.paddingXSmall,
-                              ),
-                              CustomText(
-                                "Your Orders",
-                                color: theme.colorScheme.surface,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: SizeConfig.size12,
-                    ),
-                    Expanded(
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  8), // Set your desired radius here
-                            ),
-                            side: BorderSide(
-                              color: theme.colorScheme.primary,
-                            )),
-                        onPressed: () {
-                          _showVisitingCardDialog(context);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: CustomText(
-                            AppLocalizations.of(context)!.visitingCard,
-                            color: theme.colorScheme.primary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 16,
-                ),
-                SizedBox(height: SizeConfig.size12),
-                Container(
-                  // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size10,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    border: Border.all(
-                      color: AppColors.whiteE5, // #E5E5E5 border
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(SizeConfig.size10),
-                    boxShadow: [AppShadows.textFieldShadow],
-                    // color: Colors.white, // optional background
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            buildInfo("Rating",
-                                "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
-                            SizedBox(
-                              height: SizeConfig.size12,
-                            ),
-                            buildInfo("Views",
-                                "${formatIndianNumber(details?.total_views ?? 0)}"),
-                          ],
-                        ),
-                      ),
-                      // SizedBox(
-                      //   width: 100,
-                      // ),
-                      Expanded(
-                        child: SizedBox(
-                          height: SizeConfig.size50,
-                          child: VerticalDivider(
-                            color: AppColors.coloGreyText,
-                            width: 12,
-                            thickness: 1.2,
-                          ),
-                        ),
-                      ),
-                      // SizedBox(
-                      //   width: SizeConfig.size24,
-                      // ),
-                      Flexible(
-                        flex: 2,
-                        child: Container(
-                          // color: Colors.red,
-                          width: Get.width,
-                          alignment: Alignment.center,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              buildInfo("Inquiries", formatIndianNumber(0)),
-                              SizedBox(
-                                height: SizeConfig.size12,
-                              ),
-                              InkWell(
-                                  onTap: () {
-                                    Get.to(() => FollowersFollowingPage(
-                                          tabIndex: 1,
-                                          userID: details?.id ?? "",
-                                        ));
-                                  },
-                                  child: buildInfo("Followers",
-                                      "${formatIndianNumber(details?.total_followers ?? 0)}")),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // SizedBox(
-                      //   width: SizeConfig.size20,
-                      // ),
-                      SizedBox(
-                        height: SizeConfig.size50,
-                        child: VerticalDivider(
-                          color: AppColors.coloGreyText,
-                          width: 12,
-                          thickness: 1.2,
-                        ),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size15,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          CustomText(
-                            "Joined",
-                            fontSize: SizeConfig.size12,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          SizedBox(height: SizeConfig.size2),
-                          CustomText(
-                            details?.dateOfIncorporation == null
-                                ? ""
-                                : "${details?.dateOfIncorporation?.date ?? ""}/${(details?.dateOfIncorporation?.month ?? 1)}/${details?.dateOfIncorporation?.year ?? ""}",
-                            fontSize: SizeConfig.size12,
-                            maxLines: 1,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          SizedBox(height: SizeConfig.size10),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size12),
-              ],
-            )),
+        // CustomFormCard(
+        //     padding: EdgeInsets.all(SizeConfig.size10),
+        //     child: Column(
+        //       children: [
+        //         ///COMPANY PROFILE VIEW ....
+        //         Row(
+        //           crossAxisAlignment: CrossAxisAlignment.start,
+        //           children: [
+        //             ///UPLOAD PROFILE....
+        //             CommonProfileImage(
+        //               imagePath:
+        //               controller.imagePath?.value ?? "",
+        //               onImageUpdate: (image) async {
+        //                 controller.imagePath?.value = image;
+        //                 dioObj.MultipartFile? imageByPart;
+        //                 // if (viewBusinessDetailsController.isImageUpdated.value) {
+        //                 if (controller
+        //                         .imagePath?.value.isNotEmpty ??
+        //                     false) {
+        //                   String fileName = controller
+        //                           .imagePath?.value
+        //                           .split('/')
+        //                           .last ??
+        //                       "";
+        //                   imageByPart = await dioObj.MultipartFile.fromFile(
+        //                       controller.imagePath?.value ??
+        //                           "",
+        //                       filename: fileName);
+        //                 }
+        //                 // }
+        //                 dynamic reqData = {
+        //                   ApiKeys.businessId: businessId,
+        //                   ApiKeys.logo_image: imageByPart,
+        //                 };
+        //
+        //                 await controller
+        //                     .updateBusinessDetails(reqData);
+        //               },
+        //               dialogTitle: 'Upload Business Logo',
+        //             ),
+        //             SizedBox(width: SizeConfig.size10),
+        //             Expanded(
+        //               child: Padding(
+        //                 padding: EdgeInsets.only(
+        //                     top: SizeConfig.size10, left: SizeConfig.size8),
+        //                 child: Column(
+        //                   crossAxisAlignment: CrossAxisAlignment.start,
+        //                   mainAxisAlignment: MainAxisAlignment.start,
+        //                   children: [
+        //                     Row(
+        //                       children: [
+        //                         Flexible(
+        //                           child: CustomText(
+        //                             "${details?.businessName ?? ''}",
+        //                             fontWeight: FontWeight.w700,
+        //                             fontSize: SizeConfig.size20,
+        //                             color: AppColors.mainTextColor,
+        //                             maxLines: 1,
+        //                             overflow: TextOverflow.ellipsis,
+        //                           ),
+        //                         ),
+        //                         SizedBox(
+        //                           width: SizeConfig.size8,
+        //                         ),
+        //                         InkWell(
+        //                             onTap: () {
+        //                               // navigatePushTo(
+        //                               //     context,
+        //                               //     BusinessDetailsEditPageOne(
+        //                               //         prevBusinessDetails: details
+        //                               //     ));
+        //
+        //                               showModalBottomSheet(
+        //                                 context: context,
+        //                                 isScrollControlled: true,
+        //                                 backgroundColor: Colors.transparent,
+        //                                 builder: (context) =>
+        //                                     BusinessDetailsBottomSheet(
+        //                                   prevBusinessDetails: details,
+        //                                 ),
+        //                               );
+        //                             },
+        //                             child: LocalAssets(
+        //                               height: 18,
+        //                               imagePath: AppIconAssets.pen_line,
+        //                               imgColor: AppColors.primaryColor,
+        //                             ))
+        //                       ],
+        //                     ),
+        //                     CustomText(
+        //                       (details?.categoryDetails?.name?.isNotEmpty ??
+        //                               false)
+        //                           ? details?.categoryDetails?.name ?? 'Other'
+        //                           : (details?.subCategoryDetails?.name
+        //                                       ?.isNotEmpty ??
+        //                                   false)
+        //                               ? details?.subCategoryDetails?.name ?? ''
+        //                               : (details?.natureOfBusiness ?? 'OTHERS'),
+        //                       fontWeight: FontWeight.w400,
+        //                       fontSize: SizeConfig.large,
+        //                       color: AppColors.mainTextColor,
+        //                       maxLines: 1,
+        //                       overflow: TextOverflow.ellipsis,
+        //                     ),
+        //
+        //                     if (details?.ownerDetails?.isNotEmpty ?? false)
+        //                       Padding(
+        //                         padding: EdgeInsets.only(top: SizeConfig.size8),
+        //                         child: FittedBox(
+        //                           fit: BoxFit.scaleDown,
+        //                           child: Row(
+        //                             crossAxisAlignment:
+        //                                 CrossAxisAlignment.center,
+        //                             children: [
+        //                               CustomText(
+        //                                 details?.ownerDetails?[0].name,
+        //                                 fontWeight: FontWeight.w400,
+        //                                 fontSize: SizeConfig.medium,
+        //                                 color: AppColors.mainTextColor,
+        //                               ),
+        //                               SizedBox(width: SizeConfig.size4),
+        //                               Container(
+        //                                 padding: EdgeInsets.symmetric(
+        //                                   horizontal: SizeConfig.size8,
+        //                                   vertical: SizeConfig.size2,
+        //                                 ),
+        //                                 decoration: BoxDecoration(
+        //                                     color: AppColors.appBackgroundColor,
+        //                                     borderRadius:
+        //                                         BorderRadius.circular(100.0),
+        //                                     border: Border.all(
+        //                                         color: AppColors
+        //                                             .secondaryTextColor,
+        //                                         width: 0.5)),
+        //                                 child: CustomText(
+        //                                   'Owner',
+        //                                   fontWeight: FontWeight.w400,
+        //                                   fontSize: SizeConfig.extraSmall,
+        //                                   color: AppColors.secondaryTextColor,
+        //                                 ),
+        //                               ),
+        //                               SizedBox(
+        //                                 width: SizeConfig.size8,
+        //                               ),
+        //                               InkWell(
+        //                                   onTap: () {
+        //                                     showModalBottomSheet(
+        //                                       context: context,
+        //                                       isScrollControlled: true,
+        //                                       backgroundColor:
+        //                                           Colors.transparent,
+        //                                       builder: (context) =>
+        //                                           OwnerDetailsBottomSheet(
+        //                                         prevBusinessDetails: details,
+        //                                         // Pass existing params
+        //                                         isFromCreateUser: false,
+        //                                       ),
+        //                                     );
+        //                                   },
+        //                                   child: LocalAssets(
+        //                                     height: 18,
+        //                                     imagePath: AppIconAssets.pen_line,
+        //                                     imgColor: AppColors.primaryColor,
+        //                                   ))
+        //                             ],
+        //                           ),
+        //                         ),
+        //                       )
+        //
+        //                     //   (details?.address == null || details?.address == '')
+        //                     //     ? SizedBox()
+        //                     //     : const SizedBox(
+        //                     //   height: 4,
+        //                     // ),
+        //
+        //                     // Row(
+        //                     //   children: [
+        //                     //     (details?.address == null || details?.address == '')
+        //                     //         ? SizedBox()
+        //                     //         : SvgPicture.asset(
+        //                     //             height: 28,
+        //                     //             width: 28,
+        //                     //             "assets/svg/profile_location.svg",
+        //                     //           ),
+        //                     //     const SizedBox(
+        //                     //       width: 4,
+        //                     //     ),
+        //                     //     Expanded(
+        //                     //       child: CustomText(
+        //                     //         "${details?.address ?? ''}",
+        //                     //         fontSize: SizeConfig.size14,
+        //                     //         maxLines: 2,
+        //                     //         overflow: TextOverflow.ellipsis,
+        //                     //       ),
+        //                     //     ),
+        //                     //   ],
+        //                     // ),
+        //                     // (details?.address == null || details?.address == '')
+        //                     //     ? SizedBox()
+        //                     //     : SizedBox(
+        //                     //         height: SizeConfig.size10,
+        //                     //       ),
+        //                   ],
+        //                 ),
+        //               ),
+        //             ),
+        //           ],
+        //         ),
+        //         SizedBox(
+        //           height: SizeConfig.size10,
+        //         ),
+        //
+        //         (details?.businessIsVerified ?? false)
+        //             ? Container(
+        //                 width: Get.width,
+        //                 padding: EdgeInsets.only(
+        //                     top: SizeConfig.size10, left: SizeConfig.size10),
+        //                 child: Container(
+        //                   decoration: BoxDecoration(
+        //                     color: theme.colorScheme.inversePrimary,
+        //                     borderRadius: BorderRadius.circular(10),
+        //                   ),
+        //                   padding:
+        //                       EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        //                   child: Row(
+        //                     mainAxisSize: MainAxisSize.min,
+        //                     crossAxisAlignment: CrossAxisAlignment.center,
+        //                     mainAxisAlignment: MainAxisAlignment.center,
+        //                     children: [
+        //                       Icon(
+        //                         Icons.check,
+        //                         color: theme.colorScheme.onTertiary,
+        //                       ),
+        //                       const SizedBox(
+        //                         width: 4,
+        //                       ),
+        //                       CustomText(
+        //                         "Your business is verified.",
+        //                         color: theme.colorScheme.onTertiary,
+        //                         fontWeight: FontWeight.w500,
+        //                         fontSize: SizeConfig.medium,
+        //                         fontStyle: FontStyle.italic,
+        //                       ),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               )
+        //             : Padding(
+        //                 padding: EdgeInsets.only(
+        //                     top: SizeConfig.size10, left: SizeConfig.size10),
+        //                 child: Container(
+        //                   width: Get.width,
+        //                   decoration: BoxDecoration(
+        //                     color: theme.colorScheme.tertiary,
+        //                     borderRadius: BorderRadius.circular(10),
+        //                   ),
+        //                   padding:
+        //                       EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        //                   child: Row(
+        //                     mainAxisSize: MainAxisSize.min,
+        //                     // crossAxisAlignment: CrossAxisAlignment.center,
+        //                     // mainAxisAlignment: MainAxisAlignment.center,
+        //                     children: [
+        //                       SvgPicture.asset(
+        //                         height: 18,
+        //                         width: 18,
+        //                         "assets/svg/ac_verify_icon.svg",
+        //                       ),
+        //                       const SizedBox(
+        //                         width: 4,
+        //                       ),
+        //                       Expanded(
+        //                         child: CustomText(
+        //                           "Your business is not verified ",
+        //                           color: theme.colorScheme.onTertiary,
+        //                           fontWeight: FontWeight.w500,
+        //                           fontSize: SizeConfig.medium,
+        //                           fontStyle: FontStyle.italic,
+        //                         ),
+        //                       ),
+        //                       SizedBox(
+        //                         width: 1,
+        //                       ),
+        //                       Expanded(
+        //                         child: InkWell(
+        //                           onTap: () {
+        //                             // Navigator.push(
+        //                             //     context,
+        //                             //     MaterialPageRoute(
+        //                             //         builder: (context) =>
+        //                             //             BusinessVerificationScrn()));
+        //                             Get.to(() => VisitBusinessProfileNew(
+        //                                   businessId: businessId,
+        //                                   screenName: AppConstants.feedScreen,
+        //                                 ));
+        //                           },
+        //                           child: CustomText(
+        //                             fontWeight: FontWeight.w900,
+        //                             "Verify Now",
+        //                             color: theme.colorScheme.onTertiary,
+        //                             fontStyle: FontStyle.italic,
+        //                             fontSize: SizeConfig.medium,
+        //                             decoration: TextDecoration.underline,
+        //                             decorationColor:
+        //                                 theme.colorScheme.onTertiary,
+        //                           ),
+        //                         ),
+        //                       ),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //         SizedBox(
+        //           height: SizeConfig.size18,
+        //         ),
+        //
+        //         Row(
+        //           children: [
+        //             Expanded(
+        //               child: TextButton(
+        //                 style: TextButton.styleFrom(
+        //                     shape: RoundedRectangleBorder(
+        //                       borderRadius: BorderRadius.circular(
+        //                           8), // Set your desired radius here
+        //                     ),
+        //                     side: BorderSide(color: theme.colorScheme.primary),
+        //                     backgroundColor: theme.colorScheme.primary),
+        //                 onPressed: null,
+        //                 // onPressed: _captureAndShareCard,
+        //                 child: Padding(
+        //                   padding: const EdgeInsets.symmetric(vertical: 4),
+        //                   child: Row(
+        //                     mainAxisAlignment: MainAxisAlignment.center,
+        //                     children: [
+        //                       SizedBox(
+        //                         width: SizeConfig.paddingXSmall,
+        //                       ),
+        //                       CustomText(
+        //                         "Your Orders",
+        //                         color: theme.colorScheme.surface,
+        //                         fontSize: 15,
+        //                         fontWeight: FontWeight.w700,
+        //                       ),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //             ),
+        //             SizedBox(
+        //               width: SizeConfig.size12,
+        //             ),
+        //             Expanded(
+        //               child: TextButton(
+        //                 style: TextButton.styleFrom(
+        //                     shape: RoundedRectangleBorder(
+        //                       borderRadius: BorderRadius.circular(
+        //                           8), // Set your desired radius here
+        //                     ),
+        //                     side: BorderSide(
+        //                       color: theme.colorScheme.primary,
+        //                     )),
+        //                 onPressed: () {
+        //                   _showVisitingCardDialog(context);
+        //                 },
+        //                 child: Padding(
+        //                   padding: const EdgeInsets.symmetric(vertical: 4),
+        //                   child: CustomText(
+        //                     AppLocalizations.of(context)!.visitingCard,
+        //                     color: theme.colorScheme.primary,
+        //                     fontSize: 15,
+        //                     fontWeight: FontWeight.w700,
+        //                   ),
+        //                 ),
+        //               ),
+        //             ),
+        //           ],
+        //         ),
+        //         SizedBox(
+        //           height: 16,
+        //         ),
+        //         SizedBox(height: SizeConfig.size12),
+        //         Container(
+        //           // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+        //           padding: EdgeInsets.symmetric(
+        //             vertical: SizeConfig.size10,
+        //             horizontal: SizeConfig.size10,
+        //           ),
+        //           decoration: BoxDecoration(
+        //             color: AppColors.white,
+        //             border: Border.all(
+        //               color: AppColors.whiteE5, // #E5E5E5 border
+        //               width: 1,
+        //             ),
+        //             borderRadius: BorderRadius.circular(SizeConfig.size10),
+        //             boxShadow: [AppShadows.textFieldShadow],
+        //             // color: Colors.white, // optional background
+        //           ),
+        //           child: Row(
+        //             mainAxisSize: MainAxisSize.min,
+        //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //             children: [
+        //               Expanded(
+        //                 flex: 2,
+        //                 child: Column(
+        //                   crossAxisAlignment: CrossAxisAlignment.start,
+        //                   children: [
+        //                     buildInfo("Rating",
+        //                         "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+        //                     SizedBox(
+        //                       height: SizeConfig.size12,
+        //                     ),
+        //                     buildInfo("Views",
+        //                         "${formatIndianNumber(details?.total_views ?? 0)}"),
+        //                   ],
+        //                 ),
+        //               ),
+        //               // SizedBox(
+        //               //   width: 100,
+        //               // ),
+        //               Expanded(
+        //                 child: SizedBox(
+        //                   height: SizeConfig.size50,
+        //                   child: VerticalDivider(
+        //                     color: AppColors.coloGreyText,
+        //                     width: 12,
+        //                     thickness: 1.2,
+        //                   ),
+        //                 ),
+        //               ),
+        //               // SizedBox(
+        //               //   width: SizeConfig.size24,
+        //               // ),
+        //               Flexible(
+        //                 flex: 2,
+        //                 child: Container(
+        //                   // color: Colors.red,
+        //                   width: Get.width,
+        //                   alignment: Alignment.center,
+        //                   child: Column(
+        //                     crossAxisAlignment: CrossAxisAlignment.start,
+        //                     mainAxisAlignment: MainAxisAlignment.start,
+        //                     children: [
+        //                       buildInfo("Inquiries", formatIndianNumber(0)),
+        //                       SizedBox(
+        //                         height: SizeConfig.size12,
+        //                       ),
+        //                       InkWell(
+        //                           onTap: () {
+        //                             Get.to(() => FollowersFollowingPage(
+        //                                   tabIndex: 1,
+        //                                   userID: details?.id ?? "",
+        //                                 ));
+        //                           },
+        //                           child: buildInfo("Followers",
+        //                               "${formatIndianNumber(details?.total_followers ?? 0)}")),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //               // SizedBox(
+        //               //   width: SizeConfig.size20,
+        //               // ),
+        //               SizedBox(
+        //                 height: SizeConfig.size50,
+        //                 child: VerticalDivider(
+        //                   color: AppColors.coloGreyText,
+        //                   width: 12,
+        //                   thickness: 1.2,
+        //                 ),
+        //               ),
+        //               SizedBox(
+        //                 width: SizeConfig.size15,
+        //               ),
+        //               Column(
+        //                 mainAxisAlignment: MainAxisAlignment.start,
+        //                 crossAxisAlignment: CrossAxisAlignment.end,
+        //                 children: [
+        //                   CustomText(
+        //                     "Joined",
+        //                     fontSize: SizeConfig.size12,
+        //                     color: AppColors.secondaryTextColor,
+        //                     fontWeight: FontWeight.w700,
+        //                   ),
+        //                   SizedBox(height: SizeConfig.size2),
+        //                   CustomText(
+        //                     details?.dateOfIncorporation == null
+        //                         ? ""
+        //                         : "${details?.dateOfIncorporation?.date ?? ""}/${(details?.dateOfIncorporation?.month ?? 1)}/${details?.dateOfIncorporation?.year ?? ""}",
+        //                     fontSize: SizeConfig.size12,
+        //                     maxLines: 1,
+        //                     fontWeight: FontWeight.w400,
+        //                   ),
+        //                   SizedBox(height: SizeConfig.size10),
+        //                 ],
+        //               )
+        //             ],
+        //           ),
+        //         ),
+        //         SizedBox(height: SizeConfig.size12),
+        //       ],
+        //     )),
 
         SizedBox(
           height: SizeConfig.size10,
