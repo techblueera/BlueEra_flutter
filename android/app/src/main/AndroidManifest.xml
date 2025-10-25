@@ -64,11 +64,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${mapApiKey}" />
 
-        <!-- Google AdMob App ID -->
-       <!-- <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="${admobAppId}" />-->
-
         <!-- Main Flutter Activity -->
         <activity
             android:name=".MainActivity"

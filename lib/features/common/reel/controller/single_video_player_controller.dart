@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/widgets/intertitial_ad_service.dart';
 // import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,10 +11,6 @@ class SingleVideoPlayerController extends GetxController {
   // Video controllers
   VideoPlayerController? _videoPlayerController;
   // ChewieController? _chewieController;
-
-  // Ad service
-  // final InterstitialAdService _interstitialService = InterstitialAdService();
-  // String? adUnitId;
 
   // Observable states
   final RxBool isVideoInitialized = false.obs;
@@ -37,7 +32,6 @@ class SingleVideoPlayerController extends GetxController {
   bool _wasPlayingBeforeNav = false;
 
   // Getters
-  // InterstitialAdService get interstitialService => _interstitialService;
   VideoPlayerController? get videoPlayerController => _videoPlayerController;
   // ChewieController? get chewieController => _chewieController;
   ShortFeedItem? get currentVideoItem => _currentVideoItem;
@@ -76,7 +70,6 @@ class SingleVideoPlayerController extends GetxController {
     _isClosed = true;
     _hideControlsTimer?.cancel();
     disposeVideo();
-    // _interstitialService.dispose();
     super.onClose();
   }
 
@@ -84,9 +77,6 @@ class SingleVideoPlayerController extends GetxController {
   Future<void> initializeVideo(
       ShortFeedItem videoItem, {
         bool autoPlay = false,
-        bool showAd = true,
-        Function? onAdShow,
-        Function? onAdClosed,
         int retryLevel = 0, // 0 = first try (master), 1 = retry (videoUrl)
       }) async {
     if (_isClosed) return;
@@ -155,9 +145,6 @@ class SingleVideoPlayerController extends GetxController {
         await initializeVideo(
           videoItem,
           autoPlay: autoPlay,
-          showAd: showAd,
-          onAdShow: onAdShow,
-          onAdClosed: onAdClosed,
           retryLevel: 1,
         );
         return;

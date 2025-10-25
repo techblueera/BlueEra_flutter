@@ -37,10 +37,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   static const double _swipeThreshold = 0.5;
   int _lastRoundedPage = 0;
 
-  // final InterstitialAdService _interstitialService = InterstitialAdService();
-  // String? adUnitId;
-  // bool _isAdShowing = false;
-
   @override
   void initState() {
     super.initState();
@@ -62,10 +58,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       print('✅ INIT: Initialization complete');
     });
 
-    // adUnitId = getInterstitialAdUnitId();
-    // if (Platform.isAndroid && adUnitId != null) {
-    //   _interstitialService.loadInterstitialAd(adUnitId: adUnitId!);
-    // }
   }
 
   @override
@@ -97,7 +89,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     print('✅ DISPOSE: All controllers disposed and cache cleared');
 
     _pageController.dispose();
-    // _interstitialService.dispose();
     super.dispose();
   }
 
@@ -401,21 +392,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       _onScrollToEnd(shortsFeedController!);
     }
 
-    /* ads each 6th video */
-    // if (adUnitId != null && index != 0 && index % 6 == 0) {
-    //   _isAdShowing = true;
-    //   _videoCache[index]?.controller?.pause();
-    //   print('📺 AD: Paused video at index $index for ad');
-    //   _interstitialService.showInterstitialAd(onAdClosed: () {
-    //     _isAdShowing = false;
-    //     _videoCache[index]?.controller?.play();
-    //     print('📺 AD: Resumed video at index $index after ad');
-    //     setState(() {});
-    //   });
-    //   if (Platform.isAndroid) {
-    //     _interstitialService.loadInterstitialAd(adUnitId: adUnitId!);
-    //   }
-    // }
   }
 
   Future<bool> _onPop() async {

@@ -10,9 +10,6 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-//import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
-//import com.google.android.gms.ads.nativead.NativeAd
-//import com.google.android.gms.ads.nativead.NativeAdView
 
 class MainActivity : FlutterActivity() {
     private val SCREEN_CHANNEL = "com.bluehr.screenshot/channel"
@@ -54,20 +51,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-
-        // TODO: Register the ListTileNativeAdFactory
-//        GoogleMobileAdsPlugin.registerNativeAdFactory(
-//            flutterEngine,
-//            "listTile",
-//            ListTileNativeAdFactory(context)
-//        )
-
     }
-
-//    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
-//        super.cleanUpFlutterEngine(flutterEngine)
-//        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "listTile")
-//    }
 
 }
 

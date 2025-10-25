@@ -13,14 +13,9 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_shimmer_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:BlueEra/features/common/post/repo/post_repo.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
-import 'package:BlueEra/widgets/native_ad_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -51,9 +46,6 @@ class _FeedScreenState extends State<FeedScreen> {
   final feedController = Get.find<FeedController>();
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
-
-  static const int postsPerAd = 9;
-  static const int cycleSize = postsPerAd + 1;
 
   @override
   void initState() {
@@ -152,8 +144,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   int _calculateItemCount(int postsLength) {
-    int adCount = postsLength ~/ postsPerAd; // how many ads will fit
-    int totalItems = postsLength + adCount;
+    int totalItems = postsLength;
 
     // Add loading indicator if there's more data
     if (widget.postFilterType != PostType.saved &&
@@ -163,89 +154,6 @@ class _FeedScreenState extends State<FeedScreen> {
 
     return totalItems;
   }
-
-  // Widget _buildListItem(int index, List<Post> posts) {
-  //   // How many ads are inserted before this index
-  //   int adCountBeforeIndex = (index / cycleSize).floor();
-  //
-  //   // The adjusted post index
-  //   int postIndex = index - adCountBeforeIndex;
-  //
-  //   final String? adUnitId = getNativeAdUnitId();
-  //
-  //   // Show ad after every 9 posts → ad goes at index 9, 19, 29...
-  //   if (Platform.isAndroid &&
-  //       adUnitId != null &&
-  //       adUnitId.isNotEmpty &&
-  //       (index + 1) % cycleSize == 0 &&
-  //       postIndex < posts.length) {
-  //     if (kReleaseMode) {
-  //       return ConstrainedBox(
-  //         constraints: BoxConstraints(
-  //           minHeight: SizeConfig.size370,
-  //           maxHeight: SizeConfig.size450,
-  //         ),
-  //         child: Container(
-  //           margin: EdgeInsets.only(
-  //             bottom: SizeConfig.paddingXS,
-  //             left: SizeConfig.paddingXS,
-  //             right: SizeConfig.paddingXS,
-  //           ),
-  //           decoration: BoxDecoration(
-  //             color: AppColors.white,
-  //             boxShadow: [AppShadows.cardShadow],
-  //           ),
-  //           child: NativeAdWidget(adUnitId: adUnitId),
-  //         ),
-  //       );
-  //     }
-  //     if (kDebugMode) {
-  //       return ConstrainedBox(
-  //         constraints: BoxConstraints(
-  //           minHeight: SizeConfig.size370,
-  //           maxHeight: SizeConfig.size450,
-  //         ),
-  //         child: Container(
-  //           margin: EdgeInsets.only(
-  //             bottom: SizeConfig.paddingXS,
-  //             left: SizeConfig.paddingXS,
-  //             right: SizeConfig.paddingXS,
-  //           ),
-  //           decoration: BoxDecoration(
-  //             color: AppColors.white,
-  //             boxShadow: [AppShadows.cardShadow],
-  //           ),
-  //           child: Center(child: CustomText("You are in Debug Mode ")),
-  //         ),
-  //       );
-  //     }
-  //   }
-  //
-  //   // Loader at the end
-  //   if (postIndex >= posts.length) {
-  //     // Only show loader if pagination is in progress
-  //     return Obx(() => feedController.isTargetMoreDataLoading.value
-  //         ? staggeredDotsWaveLoading()
-  //         : const SizedBox.shrink());
-  //   }
-  //
-  //   return VisibilityDetector(
-  //     key: Key('post_$index'),
-  //     onVisibilityChanged: (visibilityInfo) {
-  //       if (visibilityInfo.visibleFraction > 0.5) {
-  //         // Post is at least 50% visible
-  //         trackPostView(posts[postIndex].id);
-  //         print("Post ${posts[postIndex].id} is visible");
-  //         // _callViewApi(post.id); // 👈 Call your view API here
-  //       }
-  //     },
-  //     child: FeedCard(
-  //       post: posts[postIndex],
-  //       index: postIndex,
-  //       postFilteredType: widget.postFilterType,
-  //     ),
-  //   );
-  // }
 
   Widget _buildListItem(int index, List<Post> posts) {
 

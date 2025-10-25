@@ -119,12 +119,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _startHideControlsTimer();
     videoPlayerController.initializeVideo(
       widget.videoItem,
-      // autoPlay: !videoPlayerController.interstitialService.shouldShowAdOnThisVisit(),
-      // showAd: videoPlayerController.interstitialService.shouldShowAdOnThisVisit(),
       autoPlay: true,
-      showAd: false,
-      onAdShow: () => log('Ad is showing - video paused'),
-      onAdClosed: () => log('Ad closed - video resumed'),
     );
   }
 

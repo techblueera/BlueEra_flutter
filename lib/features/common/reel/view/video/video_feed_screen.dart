@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
@@ -18,7 +15,6 @@ import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/native_ad_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -207,76 +203,6 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
             top: SizeConfig.paddingXSmall,
           ),
           shrinkWrap: true,
-          // itemCount: videoController.videoFeedPosts.length +
-          //     (videoController.videoFeedPosts.length ~/ videosPerAd) +
-          //     (videoController.isLoadingMore.isTrue ? 1 : 0),
-          // itemBuilder: (context, index) {
-          //   final String? adUnitId = getNativeAdUnitId();
-          //
-          //   // how many ads before this index
-          //   int adCountBeforeIndex = index ~/ cycleSize;
-          //   int videoIndex = index - adCountBeforeIndex;
-          //
-          //   // ✅ Loader at the end
-          //   if (videoIndex >= videoController.videoFeedPosts.length) {
-          //     return Container(
-          //       padding: EdgeInsets.all(SizeConfig.size16),
-          //       alignment: Alignment.center,
-          //       child: staggeredDotsWaveLoading(),
-          //     );
-          //   }
-          //
-          //   // ✅ Insert ad after every 9 videos (only if NOT iOS)
-          //   if (Platform.isAndroid &&
-          //       adUnitId != null &&
-          //       adUnitId.isNotEmpty &&
-          //       (index + 1) % cycleSize == 0 &&
-          //       videoIndex < videoController.videoFeedPosts.length) {
-          //     return ConstrainedBox(
-          //       constraints: BoxConstraints(
-          //         minHeight: SizeConfig.size370,
-          //         maxHeight: SizeConfig.size450,
-          //       ),
-          //       child: Container(
-          //         margin: EdgeInsets.only(bottom: SizeConfig.size10),
-          //         decoration: BoxDecoration(
-          //           color: AppColors.white,
-          //           borderRadius: BorderRadius.circular(8),
-          //         ),
-          //         child: NativeAdWidget(adUnitId: adUnitId),
-          //       ),
-          //     );
-          //   }
-          //
-          //   // ✅ Normal video card
-          //   final videoFeedItem = videoController.videoFeedPosts[videoIndex];
-          //   return AutoPlayVideoCard(
-          //     videoItem: videoFeedItem,
-          //     globalMuteNotifier: globalMuteNotifier,
-          //     videoType: VideoType.videoFeed,
-          //     onTapOption: () {
-          //       openBlockSelectionDialog(
-          //         context: context,
-          //         reportType: 'VIDEO_POST',
-          //         userId: videoFeedItem.video?.userId??'',
-          //         contentId: videoFeedItem.video?.id??'',
-          //         userBlockVoidCallback: () async {
-          //           await Get.find<VideoController>().userBlocked(
-          //             videoType: VideoType.videoFeed,
-          //             otherUserId: videoFeedItem.video?.userId ?? '',
-          //           );
-          //         },
-          //           reportCallback: (params){
-          //             Get.find<VideoController>().videoPostReport(
-          //                 videoId: videoFeedItem.video?.id??'',
-          //                 videoType: VideoType.videoFeed,
-          //                 params: params
-          //             );
-          //           }
-          //       );
-          //     },
-          //   );
-          // },
           itemCount: videoController.videoFeedPosts.length +
               (videoController.isLoadingMore.isTrue ? 1 : 0),
           itemBuilder: (context, videoIndex) {

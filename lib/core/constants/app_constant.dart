@@ -1751,26 +1751,6 @@ const String mapLightCode = '''[
     }
   ]''';
 
-String? getNativeAdUnitId() {
-  // Replace these with your actual AdMob ad unit IDs
-  // For testing, you can use the test ad unit IDs
-  if (Platform.isAndroid) {
-    return androidNativeAdUnitId; // Android test ad unit ID
-  } else if (Platform.isIOS) {
-    return iosNativeAdUnitId; // iOS test ad unit ID
-  }
-  return null;
-}
-
-String? getInterstitialAdUnitId() {
-  if (Platform.isAndroid) {
-    return androidInterstitialAdUnitId; // Android test ad unit ID
-  } else if (Platform.isIOS) {
-    return iosInterstitialAdUnitId; // iOS test ad unit ID
-  } else {
-    return androidInterstitialAdUnitId; // Default to Android test ad unit ID
-  }
-}
 
 // Constants
 const String SELF_EMPLOYED = "SELF_EMPLOYED";

@@ -34,11 +34,6 @@ if (!mapApiKey || mapApiKey.isEmpty()) {
     throw new GradleException("Missing MAP_API_KEY in local.properties")
 }
 
-//def admobId = localProperties.getProperty('ADMOB_APP_ID')
-//if (!admobId || admobId.isEmpty()) {
-//    throw new GradleException("Missing ADMOB_APP_ID in local.properties")
-//}
-
 android {
     namespace "ai.bluecs.app"
     compileSdk 36
@@ -69,8 +64,7 @@ android {
         versionCode 109
         versionName "13.40.53"
         manifestPlaceholders = [
-                mapApiKey: mapApiKey,
-//                admobAppId: admobId
+                mapApiKey: mapApiKey
         ]
     }
     signingConfigs {
