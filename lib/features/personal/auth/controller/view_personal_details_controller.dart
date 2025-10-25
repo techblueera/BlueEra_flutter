@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -175,6 +176,7 @@ class ViewPersonalDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
+        log("sdkjcnksjnskjcnsdc ${data}");
         personalProfileDetails.value =
             PersonalProfileDetailsModel.fromJson(data);
 

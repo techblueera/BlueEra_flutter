@@ -317,7 +317,7 @@ abstract class BaseService {
   final String postSearch = "post-service/post/search";
   final String journeyStatus = "travel-service/journey/status";
 
-  final String getUserByIdUrl = "user-service/user/getUserById";
+  final String getUserByIdUrl = "user-service/user/getUserById/${userId}";
   final String bussinessProfileById = "/user-service/business";
   final String businessIdViewForLocation = "user-service/business/user";
   final String businessRating = "/user-service/business/business";

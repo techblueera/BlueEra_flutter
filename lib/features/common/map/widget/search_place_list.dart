@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:mappls_gl/mappls_gl.dart';
 
 class SearchPlaceList extends StatefulWidget {
   final String query;
@@ -41,7 +42,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   bool isGettingCurrentLocation = false; // New state for current location loading
   String? errorMessage;
   List<PlacePrediction> predictions = [];
-
+  MapplsMapController? mapController;
   @override
   void didUpdateWidget(covariant SearchPlaceList oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -50,11 +51,26 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
       _fetchPredictions();
     }
   }
-
+   LatLng? targetLocation ;
   @override
   void initState() {
     super.initState();
     _handleCurrentLocationTap();
+    targetLocation=LatLng(widget.lat, widget.lng);
+  }
+  Future<void> _updateMarker(LatLng newLocation) async {
+    targetLocation = newLocation;
+    await mapController?.clearSymbols();
+    await mapController?.addSymbol(
+      SymbolOptions(
+        geometry: newLocation,
+        iconImage: "marker-15",
+        iconSize: 1.5,
+      ),
+    );
+    await mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(newLocation, 14.0),
+    );
   }
 
   Future<void> _fetchPredictions() async {
@@ -123,7 +139,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
     setState(() {
       isGettingCurrentLocation = true;
     });
-
     try {
     } catch (e) {
       // Handle location error
@@ -146,13 +161,34 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
       }
     }
   }
+  Future<void> _showMarkerAndZoom() async {
+    if (mapController == null) return;
 
+    // Clear old markers (if any)
+    await mapController!.clearSymbols();
+
+    // Add marker at your location
+    await mapController!.addSymbol(
+      SymbolOptions(
+        geometry: LatLng(widget.lat, widget.lng),
+        iconImage: "marker-15",
+        iconSize: 1.8,
+      ),
+    );
+
+    // Smoothly animate camera to marker
+    await mapController!.animateCamera(
+      CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.lng), 16.0),
+    );
+  }
   @override
   Widget build(BuildContext context) {
+    print("sdkcslklsdkcm ${widget.lng}__ ${widget.lat}");
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           InkWell(
             onTap: ()=>  navigateToAddPlaceScreen(
                 widget.lat,
@@ -212,6 +248,41 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
               ),
             ),
           ),
+          InkWell(
+            onTap: (){
+              _handleCurrentLocationTap();
+            } ,
+            child: Container(
+              color: AppColors.whiteF3,
+              child: Padding(
+                padding: EdgeInsets.only(
+                    left: SizeConfig.size20,
+                    right: SizeConfig.size20,
+                    top: SizeConfig.size15,
+                    bottom: SizeConfig.size15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: SizeConfig.size15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            "Refresh Location",
+                            fontSize: SizeConfig.large,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.black,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           if (isLoading)
             Expanded(
               child: Center(
@@ -225,12 +296,32 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
           else if (errorMessage != null)
             Expanded(child: Center(child: Text(errorMessage!)))
           else if (predictions.isEmpty)
-              Expanded(
+              ((!isGettingCurrentLocation)?
+              Container(
+                height: 240,
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: MapplsMap(
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(widget.lat, widget.lng),
+                    zoom: 14.0,
+                  ),
+                  myLocationEnabled: true,
+                  onMapCreated: (controller) async {
+                    mapController = controller;
+                  },
+                  onStyleLoadedCallback: () async {
+                    await _showMarkerAndZoom();
+                  },
+                )
+              )
+
+                  :Expanded(
                   child: Center(
                       child: CustomText("No results found",
                           color: AppColors.grey44,
                           fontWeight: FontWeight.w700,
-                          fontSize: SizeConfig.large)))
+                          fontSize: SizeConfig.large))))
             else
               Expanded(
                 child: ListView.separated(

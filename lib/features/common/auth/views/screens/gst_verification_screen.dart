@@ -80,36 +80,49 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                     ),
                     Obx(() {
                       if (authController.hasGstNumber.value) {
-                        return CommonTextField(
-                          textEditController: _gstController,
-                          hintText: appLocalizations?.enterGSTNumber,
-                          title: appLocalizations?.enterGSTNumber,
-                          // autovalidateMode: _autoValidate,
-                          maxLength: 15,
-                          isValidate: false,
-                          onChange: (value) {
-                            if (value.isEmpty) {
-                              authController.isValidate.value = false;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CommonTextField(
+                              textEditController: _gstController,
+                              hintText: appLocalizations?.enterGSTNumber,
+                              title: appLocalizations?.enterGSTNumber,
+                              maxLength: 15,
+                              isValidate: false,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  authController.isValidate.value = false;
+                                  return 'Please enter your GST number';
+                                }
 
-                              return;
-                            } else if (value.length != 15) {
-                              authController.isValidate.value = false;
+                                // ✅ Check format using GST regex
+                                final gstRegExp = RegExp(
+                                  r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+                                );
 
-                              return;
-                            }
-                            // authController.gstNumber.value=value;
-                            authController.isValidate.value = true;
+                                if (!gstRegExp.hasMatch(value)) {
+                                  authController.isValidate.value = false;
+                                  return 'Please enter a valid GST number';
+                                }
 
-                            return null;
-                          },
+                                // ✅ Valid GST number
+                                authController.isValidate.value = true;
+                                return null;
+                              },
+                            ),
+
+
+                          ],
                         );
                       } else {
-                        return SizedBox();
+                        return const SizedBox();
                       }
                     }),
                     SizedBox(height: SizeConfig.size20),
                     /*   (_hasGstNumber == false)
                         ?*/
+
                     Obx(() {
                       return CustomBtn(
                         onTap: authController.hasGstNumber.value

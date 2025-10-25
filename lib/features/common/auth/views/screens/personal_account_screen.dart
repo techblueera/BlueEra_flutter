@@ -134,7 +134,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
               children: [
                 // SizedBox(height: SizeConfig.size10),
                 CustomText(
-                  langController.tr('your Details'),
+                  langController.tr('Your Details'),
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.bold,
                   color: AppColors.black,
@@ -143,28 +143,33 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
 
                 ///ENTER NAME...
                 CommonTextField(
-                    textEditController: _nameTextController,
-                    inputLength: AppConstants.inputCharterLimit50,
-                    keyBoardType: TextInputType.text,
-                    regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                    title: langController.tr('yourName'),
-                    titleColor: Colors.black,
-                    hintText: AppConstants.name,
-                    autovalidateMode: _autoValidate,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    }),
+                  textEditController: _nameTextController,
+                  inputLength: 30,
+                  keyBoardType: TextInputType.text,
+                  regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                  title: langController.tr('Your Name'),
+                  titleColor: Colors.black,
+                  hintText: AppConstants.name,
+                  autovalidateMode: _autoValidate,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your name';
+                    } else if (value.trim().length < 6) {
+                      return 'Name must be at least 6 characters';
+                    } else if (value.trim().length > 30) {
+                      return 'Name must not exceed 30 characters';
+                    }
+                    return null;
+                  },
+                ),
+
                 SizedBox(
                   height: SizeConfig.size20,
                 ),
 
                 ///DOB selection
                 CustomText(
-                  langController.tr('dateOfBirth'),
+                  langController.tr('Date Of Birth'),
                   fontSize: SizeConfig.medium,
                 ),
                 SizedBox(
@@ -196,7 +201,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                 ),
                 // Gender
                 CustomText(
-                  langController.tr('selectGender'),
+                  langController.tr('Select Gender'),
                   fontSize: SizeConfig.medium,
                 ),
                 SizedBox(
@@ -205,7 +210,8 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                 CommonDropdown<GenderType>(
                   items: GenderType.values,
                   selectedValue: _selectedGender,
-                  hintText: appLocalizations?.selectGenderHint ?? '',
+                  hintText:'eg. Male,Female',
+                  //appLocalizations?.selectGenderHint ?? '',
                   displayValue: (value) => value.displayName,
                   onChanged: (value) {
                     setState(() {
@@ -225,7 +231,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
 
                 ///selectYourProfession
                 CustomText(
-                  langController.tr('selectYourProfession'),
+                  langController.tr('Select Your Profession'),
                   fontSize: SizeConfig.medium,
                 ),
                 SizedBox(
@@ -235,7 +241,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   return CommonDropdownDialog<ProfessionTypeData>(
                     items: authController.professionTypeDataList,
                     selectedValue: selectedProfessionObj,
-                    hintText: AppConstants.selectProfession,
+                    hintText:'eg.Manager',
                     title: appLocalizations?.selectYourProfession ?? "Select",
                     displayValue: (profession) => profession.name ?? "",
                     onChanged: (value) {
@@ -268,7 +274,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   CommonDropdownDialog<SubcategoriesFiledName>(
                     items: selectedProfessionObj?.subcategoriesFiledName ?? [],
                     selectedValue: _selectedSelfEmploymentObj,
-                    hintText: AppConstants.selectSelfEmployee,
+                    hintText: 'eg.Plumber',
                     title: "Select Work Type",
                     displayValue: (selfEmployment) => selfEmployment.name ?? "",
                     onChanged: (value) {
@@ -309,7 +315,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. Education,Poetry",
+                    hintText: "eg. Education,Poetry",
                   ),
                 ],
 
@@ -324,7 +330,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. Helper",
+                    hintText: "eg. Helper",
                     isValidate: false,
                     // autovalidateMode: _autoValidate,
                     /*   validator: (value) {
@@ -349,7 +355,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. Auto Union",
+                    hintText: "eg. Auto Union",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
@@ -373,7 +379,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. TCS LTD",
+                    hintText: "eg. TCS LTD",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
@@ -398,7 +404,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. Cooking,Dancing",
+                    hintText: "eg. Cooking,Dancing",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
@@ -421,7 +427,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. Banking,Teaching",
+                    hintText: "eg. Banking,Teaching",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
@@ -440,11 +446,11 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
 
                     textEditController: _CourseTextController,
                     inputLength: 24,
-                    title: "Which class you study?",
+                    title: "Enter your Education",
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    hintText: "Eg. 10th,Diploma,BE,PHD",
+                    hintText: "eg. 10th,Diploma,BE,PHD",
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
@@ -471,7 +477,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   CommonDropdownDialog<SubcategoriesFiledName>(
                     items: selectedProfessionObj?.subcategoriesFiledName ?? [],
                     selectedValue: _selectedSelfEmploymentObj,
-                    hintText: AppConstants.selectSelfArtist,
+                    hintText:'eg.Painter...',
                     title: "Select Your Art / Skill",
                     displayValue: (selfEmployment) => selfEmployment.name ?? "",
                     onChanged: (value) {
@@ -594,7 +600,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern_,
                     titleColor: Colors.black,
-                    hintText: "Eg., Ministry of Education",
+                    hintText: "eg., Ministry of Education",
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
                     //     return 'Please enter your department name';
@@ -605,14 +611,14 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                   SizedBox(height: SizeConfig.size18),
                   CommonTextField(
                     isValidate: false,
-                    title: "SUB Division / Branch",
+                    title: "SUB Division/Branch",
                     textEditController: subDivision,
                     inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern_,
                     titleColor: Colors.black,
-                    hintText: "Eg., Civil Engineering Division",
+                    hintText: "eg., Civil Engineering Division",
                   ),
                   SizedBox(height: SizeConfig.size18),
                 ],
@@ -626,7 +632,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
                     title: "Sector",
-                    hintText: "Eg. IT Sector",
+                    hintText: "eg. IT Sector",
                     // autovalidateMode: _autoValidate,
                   ),
                   SizedBox(height: SizeConfig.size18),
@@ -647,7 +653,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    title: langController.tr('designation'),
+                    title: langController.tr('Designation'),
                     hintText: "Enter your designation",
                     isValidate: false,
                   ),
@@ -753,7 +759,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     regularExpression:
                         RegularExpressionUtils.alphanumericPattern,
                     titleColor: Colors.black,
-                    hintText: "Eg @Sachin",
+                    hintText: "eg @Sachin",
                     isValidate: false,
                     prefixText: userNameController.text.isNotEmpty ? "@" : "",
                     validator: (value) {

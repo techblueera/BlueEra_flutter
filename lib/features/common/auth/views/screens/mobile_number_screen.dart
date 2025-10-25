@@ -75,7 +75,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: CustomText(
-                      langController.tr('Login / signUp'),
+                      langController.tr('Login / Sign Up'),
                       fontWeight: FontWeight.bold,
                       fontSize: SizeConfig.large,
                     ),
@@ -245,7 +245,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   CustomBtn(
                     bgColor: AppColors.primaryColor,
                     textColor: AppColors.white,
-                    title: langController.tr('GetOtp'),
+                    title: langController.tr('Get OTP'),
                     onTap: () => _onNextButtonPressed(context),
                   ),
 
