@@ -63,8 +63,6 @@ class _InventoryScreenState extends State<InventoryScreen>
       return;
     }
 
-    _tabController = TabController(length: _tabs.length, vsync: this);
-
     final firstTab = _tabs.first.text;
     if (firstTab == 'My Products') {
       inventoryController.callApi(forceRefresh: true);

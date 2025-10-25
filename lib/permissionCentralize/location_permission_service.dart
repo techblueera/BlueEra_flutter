@@ -115,40 +115,44 @@ class PermissionService {
       Permission permission;
 
       if (Platform.isIOS) {
-        // iOS always uses the Photos permission
+        // iOS uses Photos permission (can return limited access)
         permission = Permission.photos;
       } else {
-        // Android logic depending on SDK version
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;
         final sdkInt = androidInfo.version.sdkInt ?? 0;
 
         if (sdkInt >= 33) {
-          // Android 13+ (API 33): use photos/media permissions
-          permission = Permission.photos;
-        } else if (sdkInt >= 30) {
-          // Android 11–12: storage is still usable but scoped
-          permission = Permission.storage;
+          // Android 13+ (API 33+): granular media permission
+          permission = Permission.photos; // You can also use Permission.mediaLibrary
         } else {
-          // Android 10 and below
+          // Android 12 and below: storage permission
           permission = Permission.storage;
         }
       }
 
+      // ✅ Step 1: Check current status
       var status = await permission.status;
-      if (!status.isGranted) {
+
+      // ✅ Step 2: Only request if allowed and needed
+      if (!status.isGranted && !status.isLimited) {
         status = await permission.request();
-        if (!status.isGranted) {
-          if (status.isPermanentlyDenied) await openAppSettings();
-          return false;
-        }
       }
-      return true;
+
+      // ✅ Step 3: Handle permanently denied
+      if (status.isPermanentlyDenied) {
+        await openAppSettings();
+        return false;
+      }
+
+      // ✅ Step 4: Return true if granted or limited
+      return status.isGranted || status.isLimited;
     } catch (e) {
       log("Gallery permission error: $e");
       return false;
     }
   }
+
 
   // ---------------- CAMERA ----------------
   static Future<bool> _checkCameraPermission() async {
