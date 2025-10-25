@@ -108,7 +108,7 @@ class AppConstants {
   static const String education = 'E.g. Educational...';
   static const String selectProfession = "Eg. Manager...";
   static const String selectSelfEmployee = "Eg. Plumber...";
-  static const String selectSelfArtist = "Eg. Painter...";
+  static const String selectSelfArtist = "eg. Painter...";
   static const String designation = "Enter your job title(Eg. Manager)";
   static const String hrManager = "Eg. HR Manager";
   static const String typeOfService = "Type of service";
@@ -456,14 +456,14 @@ List<OnboardingData> getOnboardingPages() => [
 List<AccountOption> getCreateAccountType() => [
       AccountOption(
         id: AppConstants.individual,
-        title: 'individualAccount',
+        title: 'Individual Account',
         subtitle: loc.accountType1SubTitle,
         description: loc.accountType1Description,
         iconPath: AppIconAssets.personal_account,
       ),
       AccountOption(
         id: AppConstants.business,
-        title: "businessListing",
+        title: "Business Listing",
 
         //title: "Shop / Services / Business Listing",
         subtitle: loc.accountType2SubTitle,

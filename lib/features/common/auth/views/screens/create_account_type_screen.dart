@@ -109,7 +109,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       children: [
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          langController.tr('chooseAccountType'),
+                          langController.tr('Choose Account Type'),
                           color: Colors.black,
                           textAlign: TextAlign.center,
                           fontSize: SizeConfig.extraLarge22,
@@ -154,7 +154,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         InkWell(
                           onTap: () => _selectImage(context),
                           child: CustomText(
-                            langController.tr('uploadYourPhotoLogo'),
+                            langController.tr('Upload Your Photo/Logo'),
                             color: AppColors.primaryColor,
                             textAlign: TextAlign.center,
 
@@ -209,7 +209,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   children: [
                                     SizedBox(height: SizeConfig.paddingS),
                                     CustomText(
-                                      langController.tr(option.title),
+                                      option.title,
+                                      //langController.tr(option.title),
                                       color: AppColors.navy,
                                       fontWeight: FontWeight.bold,
                                       fontSize: SizeConfig.large,
@@ -236,7 +237,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   PositiveCustomBtn(
                     onTap: _onGetStartedPressed,
-                    title: langController.tr('submit'),
+                    title: langController.tr('Submit'),
                     radius: SizeConfig.size8,
                   ),
                   SizedBox(height: kToolbarHeight),

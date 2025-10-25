@@ -406,7 +406,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                             },
                             child: CommonTextField(
                               textEditController: locationController,
-                              hintText: "E.g., Rajiv Chowk, Delhi",
+                              hintText: "eg.Rajiv Chowk, Delhi",
                               isValidate: false,
                               title: "Location",
                               onTap: () {
@@ -458,7 +458,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                           SizedBox(height: SizeConfig.size18),
                           CommonTextField(
                             title: "Highest Education",
-                            hintText: "Eg. 12th, B.A, M.A, PhD",
+                            hintText: "eg. 12th, B.A, M.A, PhD",
                             textEditController: educationController,
                             onChange: (val) {
                               filedValidation();
@@ -565,7 +565,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 title: "Select Work Type",
                                 selectedValue: personalCreateProfileController
                                     .selectedSubProfessionObj.value,
-                                hintText: AppConstants.selectSelfEmployee,
+                                hintText:'eg. Plumber',
                                 displayValue: (selfEmployment) =>
                                     selfEmployment.name ?? "",
                                 onChanged: (value) {
@@ -606,7 +606,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. Helper",
+                              hintText: "eg. Helper",
                               isValidate: false,
                             ),
                             SizedBox(
@@ -624,7 +624,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. Education,Poetry",
+                              hintText: "eg. Education,Poetry",
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -640,7 +640,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. Auto Union",
+                              hintText: "eg. Auto Union",
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -660,7 +660,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. TCS LTD",
+                              hintText: "eg. TCS LTD",
                             ),
                           ],
 
@@ -675,7 +675,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. Cooking,Dancing",
+                              hintText: "eg. Cooking,Dancing",
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -694,7 +694,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. Banking,Teaching",
+                              hintText: "eg. Banking,Teaching",
                             ),
                           ],
                           if ((selectedProfession == STUDENT)) ...[
@@ -706,7 +706,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              hintText: "Eg. 10th,Diploma,BE,PHD",
+                              hintText: "eg.10th,Diploma,BE,PHD",
                             ),
                             SizedBox(
                               height: SizeConfig.size20,
@@ -730,7 +730,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               title: "Select Your Art / Skill",
                               selectedValue: personalCreateProfileController
                                   .selectedSubProfessionObj.value,
-                              hintText: AppConstants.selectSelfArtist,
+                              hintText: 'eg. Paintert',
                               displayValue: (selfEmployment) =>
                                   selfEmployment.name ?? "",
                               onChanged: (value) {
@@ -774,7 +774,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
                               title: "Sector",
-                              hintText: "Eg. IT Sector",
+                              hintText: "eg. IT Sector",
                             ),
                             SizedBox(height: SizeConfig.size18),
                           ],
@@ -799,7 +799,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern_,
                               titleColor: Colors.black,
-                              hintText: "Eg., Ministry of Education",
+                              hintText: "eg., Ministry of Education",
                               isValidate: false,
                             ),
                             SizedBox(height: SizeConfig.size18),
@@ -814,7 +814,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern_,
                               titleColor: Colors.black,
-                              hintText: "Eg., Civil Engineering Division",
+                              hintText: "eg., Civil Engineering Division",
                             ),
                             SizedBox(height: SizeConfig.size18),
                           ],
