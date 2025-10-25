@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_network_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_widget.dart';
+import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
@@ -221,10 +222,11 @@ class _MessagePostPreviewScreenNewState
                                 ),
 
                               if (msgPostController.imagesList.isNotEmpty)
-                                InstaSlider(),
+
+                              InstaSlider(),
                               if (msgPostController.isMsgPostEdit &&
                                   msgPostController.uploadImageList.isNotEmpty)
-                                InstaSliderNetwork(),
+                                InstaSliderNetwork(post: widget.post,),
                               // Selected users chips
                               Obx(
                                 () => tagUserController.selectedUsers.isNotEmpty
@@ -339,6 +341,72 @@ class _MessagePostPreviewScreenNewState
                                   ),
                                   SizedBox(width: SizeConfig.size16),
                                   Expanded(
+                                    child: PositiveCustomBtn(
+                                      onTap: () async {
+                                        try {
+                                          String? tagUserIds = tagUserController
+                                              .selectedUsers
+                                              .map((user) => user.id.toString())
+                                              .join(',');
+                                          msgPostController.isLoading.value =
+                                              true;
+
+                                          dynamic reqData;
+
+                                          if (msgPostController.isMsgPostEdit) {
+                                            reqData = {
+                                              ApiKeys.type:
+                                                  AppConstants.MESSAGE_POST,
+                                              ApiKeys.tagged_users:
+                                                  tagUserIds.isNotEmpty
+                                                      ? tagUserIds
+                                                      : ""
+                                            };
+                                            await msgPostController
+                                                .editMsgPostController(
+                                              bodyReq: reqData,
+                                            );
+                                          } else {
+                                            await msgPostController
+                                                .uploadMessagePost(
+                                                    postVia: widget.postVia);
+                                          }
+
+                                          msgPostController.isLoading.value =
+                                              false;
+                                        } on Exception catch (e) {
+                                          logs("ERRO ${e}");
+                                          msgPostController.isLoading.value =
+                                              false;
+
+                                          // TODO
+                                        }
+                                      },
+                                      title: msgPostController.isMsgPostEdit
+                                          ? "Post Update"
+                                          : "Post Now",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                if (msgPostController.isLoading.value) CircularIndicator(),
+              ],
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+/*
+Expanded(
                                     child: PositiveCustomBtn(
                                       onTap: () async {
                                         try {
@@ -496,22 +564,4 @@ class _MessagePostPreviewScreenNewState
                                           ? "Post Update"
                                           : "Post Now",
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                if (msgPostController.isLoading.value) CircularIndicator(),
-              ],
-            );
-          }),
-        ),
-      ),
-    );
-  }
-}
+                                  ),*/

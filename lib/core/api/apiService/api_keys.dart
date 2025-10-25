@@ -398,5 +398,9 @@ class ApiKeys {
   static const all = "all";
   static const providerType = 'providerType';
   static const owner = 'owner';
+  static const media_types = 'media_types';
+  static const contentTypeKey = 'contentType';
+  static const filenameKey = 'filename';
+  static const thumbnail = 'thumbnail';
 
 }

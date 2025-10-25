@@ -74,7 +74,12 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   var inventoryController = Get.isRegistered<InventoryController>()
       ? Get.find<InventoryController>()
       : Get.put(InventoryController());
-  final viewPersonalDetailsController = Get.put(ViewPersonalDetailsController());
+
+  var homeScreenController = Get.isRegistered<HomeScreenController>()
+      ? Get.find<HomeScreenController>()
+      : Get.put(HomeScreenController());
+  final viewPersonalDetailsController =
+      Get.put(ViewPersonalDetailsController());
 
   @override
   void initState() {
@@ -175,10 +180,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           return Column(
             children: [
               isIndividual()
-                  ? (viewPersonalDetailsController.isUserServiceExistsKey.value
-                  == 'true')
-                     ? _buildSocialCard()
-                     : _buildEarnWithBlueEraWidget()
+                  ? (viewPersonalDetailsController
+                              .isUserServiceExistsKey.value ==
+                          'true')
+                      ? _buildSocialCard()
+                      : _buildEarnWithBlueEraWidget()
                   : (inventoryController.allProducts.isNotEmpty)
                       ? _buildProductCard()
                       : _buildSocialCard(),
@@ -211,13 +217,15 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
             if (indexFeed == 0) {
-              return Obx(()=> isIndividual()
-                  ? (viewPersonalDetailsController.isUserServiceExistsKey.value == 'true')
-                  ? _buildSocialCard()
-                  : _buildEarnWithBlueEraWidget()
+              return Obx(() => isIndividual()
+                  ? (viewPersonalDetailsController
+                              .isUserServiceExistsKey.value ==
+                          'true')
+                      ? _buildSocialCard()
+                      : _buildEarnWithBlueEraWidget()
                   : inventoryController.allProducts.isNotEmpty
-                  ? _buildProductCard()
-                  : _buildSocialCard());
+                      ? _buildProductCard()
+                      : _buildSocialCard());
             }
             int index = indexFeed - 1;
             final block = blocks[index];
@@ -307,7 +315,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                 appBarTitle:
                                     AppLocalizations.of(context)!.imageViewer,
                                 imageUrls: imgPostData.media ?? [],
-                                initialIndex: postIndex,postData: imgPostData,
+                                initialIndex: postIndex,
+                                postData: imgPostData,
                               ),
                             );
                           },
@@ -376,11 +385,14 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Colors.black.withOpacity(0.0), // Top transparent
-                                            Colors.black.withOpacity(0.9), // Bottom dark
+                                            Colors.black.withOpacity(0.0),
+                                            // Top transparent
+                                            Colors.black.withOpacity(0.9),
+                                            // Bottom dark
                                           ],
                                         ),
-                                        borderRadius: BorderRadius.circular(5.0),
+                                        borderRadius:
+                                            BorderRadius.circular(5.0),
                                       ),
                                       child: CustomText(
                                         "${imgPostData.subTitle}",
@@ -472,6 +484,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             if (item.type?.toLowerCase() == "message_post" ||
                 item.type?.toLowerCase() == "poll_post") {
               trackPostView(item.id);
+              // widget.post?.media_types?.firstOrNull == "video/mp4"
 
               return Padding(
                 padding: EdgeInsets.only(
@@ -630,20 +643,17 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       margin: EdgeInsets.only(
           bottom: SizeConfig.paddingXSL,
           left: SizeConfig.paddingXS,
-          right: SizeConfig.paddingXS
-      ),
+          right: SizeConfig.paddingXS),
       decoration: BoxDecoration(
           color: AppColors.white,
           boxShadow: [AppShadows.cardShadow],
-          borderRadius: BorderRadius.circular(12)
-      ),
+          borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: EdgeInsets.only(
             left: SizeConfig.size8,
             right: SizeConfig.size8,
             top: SizeConfig.size10,
-            bottom: SizeConfig.size5
-        ),
+            bottom: SizeConfig.size5),
         child: Column(children: [
           Row(
             children: [
@@ -662,7 +672,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               title: 'Let\'s Start Earning Now',
               onTap: () {
                 if (Get.find<ViewPersonalDetailsController>()
-                    .personalProfileDetails.value.isProfileCreated ==
+                        .personalProfileDetails
+                        .value
+                        .isProfileCreated ==
                     false) {
                   Navigator.push(
                       context,
@@ -708,7 +720,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       color: AppColors.secondaryTextColor,
     );
   }
-
 }
 
 ShortFeedItem getVideoData(Post video) {
@@ -733,8 +744,10 @@ ShortFeedItem getVideoData(Post video) {
           type: video.type,
           title: video.title,
           description: video.message,
-          videoUrl: video.videoUrl,
+          videoUrl: video.media?.firstOrNull,
           coverUrl: video.thumbnail,
+          // videoUrl: video.videoUrl,
+          // coverUrl: video.thumbnail,
           createdAt: video.createdAt.toString(),
           duration: video.duration,
           stats: Stats(
@@ -746,6 +759,7 @@ ShortFeedItem getVideoData(Post video) {
       interactions: Interactions(
           isBookmarked: false, isFollowing: false, isLiked: false));
 }
+
 class FeedBlock {
   final bool isGrid;
   final List<Post> items;
@@ -821,5 +835,3 @@ class FeedBlock {
         'is_like': isLike,
       };
 }*/
-
-

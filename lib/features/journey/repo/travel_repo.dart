@@ -51,7 +51,6 @@ class TravelRepo extends BaseService {
     final response = await ApiBaseHelper().postMultiImage(
       travelJourneyPost, // Using the endpoint specified in requirements
       params: reqParma,
-      isMultipart: true,
       onError: (error) {},
       onSuccess: (data) {},
     );

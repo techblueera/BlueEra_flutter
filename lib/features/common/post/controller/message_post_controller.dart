@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/photo_post_model.dart';
@@ -10,9 +11,13 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
+import 'package:BlueEra/features/common/reel/models/generate_presigned_url.dart';
+import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:croppy/croppy.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +28,7 @@ import 'package:dio/dio.dart' as dioObj;
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:dio/dio.dart' as dio;
 
 class MessagePostController extends GetxController {
   /// ADD MSG POST
@@ -90,7 +96,6 @@ class MessagePostController extends GetxController {
     try {
       ResponseModel responseModel = await PostRepo().addPostNewRepo(
         formData: bodyReq,
-        isMultiPartPost: true,
       );
       final data = responseModel.response?.data;
       clearData();
@@ -119,7 +124,6 @@ class MessagePostController extends GetxController {
     try {
       ResponseModel responseModel = await PostRepo().addPostNewRepo(
         formData: bodyReq,
-        isMultiPartPost: true,
       );
       final data = responseModel.response?.data;
       clearRepostData();
@@ -185,13 +189,13 @@ class MessagePostController extends GetxController {
     FileType fileType = FileType.image;
     // FileType fileType = FileType.media;
     // if (selectedType.value == MediaType.image)
-      fileType = FileType.image;
+    fileType = FileType.image;
     // if (selectedType.value == MediaType.video) fileType = FileType.video;
 
-    FilePickerResult? result =  await FilePicker.platform.pickFiles(
-            allowMultiple: false,
-            type: fileType,
-          );
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: fileType,
+    );
 
     if (result == null) return;
 
@@ -203,26 +207,26 @@ class MessagePostController extends GetxController {
     // if (selectedType.value == null) {
     //   selectedType.value = isVideo ? MediaType.video : MediaType.image;
     // }
-      selectedType.value = MediaType.image;
+    selectedType.value = MediaType.image;
 
     // if (selectedType.value == MediaType.video) {
     //   imagesList.value = [files.first];
     //   _generateThumbnail(files.first); // <-- Add for video
     // } else {
-      imagesList.addAll(files);
+    imagesList.addAll(files);
     // }
     // });
   }
+
   Future<void> pickVideoMedia() async {
     // FileType fileType = FileType.media;
     // if (selectedType.value == MediaType.image) fileType = FileType.image;
-  selectedType.value = MediaType.video;
+    selectedType.value = MediaType.video;
 
-    FilePickerResult? result =  await FilePicker.platform.pickFiles(
-            allowMultiple: false,
-            type: FileType.custom,
-            allowedExtensions: ['mp4', 'mov', 'avi', 'mkv'])
-      ;
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']);
 
     if (result == null) return;
 
@@ -232,13 +236,13 @@ class MessagePostController extends GetxController {
 
     // setState(() {
     // if (selectedType.value == null) {
-      selectedType.value =  MediaType.video ;
-      // selectedType.value = isVideo ? MediaType.video : MediaType.image;
+    selectedType.value = MediaType.video;
+    // selectedType.value = isVideo ? MediaType.video : MediaType.image;
     // }
 
     // if (selectedType.value == MediaType.video) {
-      imagesList.value = [files.first];
-      _generateThumbnail(files.first); // <-- Add for video
+    imagesList.value = [files.first];
+    _generateThumbnail(files.first); // <-- Add for video
     // } else {
     //   imagesList.addAll(files);
     // }
@@ -262,38 +266,249 @@ class MessagePostController extends GetxController {
     }
   }
 
-// Aspect ratio (default Square 1:1)
+  Future<void> uploadMessagePost({required PostVia? postVia}) async {
+    try {
+      dio.FormData formData = dio.FormData();
+      if (imagesList.length > 4) {
+        commonSnackBar(message: "Max 4 image are allowed");
+        return;
+      }
+      if (selectedType.value == MediaType.video) {
+        double progress = 0.0;
 
-// Future<void> pickImageFrom(BuildContext context) async {
-//   if (imagesList.length >= 4) {
-//     commonSnackBar(message: "Limit Reached You can select max 4 images");
-//     return;
-//   }
-//   // final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-//   final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
-//     context,
-//     cropAspectRatio:  CropAspectRatio(width:300, height: 300),
-//   );
-//   // XFile image=XFile(pickedFile?.path??"");
-//   if (croppedPath?.isNotEmpty??false) {
-//     imagesList.add(MessagePostImageModel(
-//         id: 0, imageFile: XFile(croppedPath??""), imgCropMode: AppConstants.Landscape));
-//   }
+        void updateProgress(double value) {
+          progress = value.clamp(0.0, 1.0);
+          UploadProgressDialog.update(progress);
+        }
+
+        // ✅ Show the dialog (GetX version, no context needed)
+        UploadProgressDialog.show(initialProgress: progress);
+
+        final videoFile = File(imagesList.firstOrNull?.path ?? "");
+        final coverFile = File(videoThumbnails[videoFile.path]?.path ?? "");
+
+        final videoInfo = getFileInfo(videoFile);
+        final coverInfo = getFileInfo(coverFile);
+
+        // 1. Init both uploads (20%)
+        await Future.wait([
+          uploadInit(
+            queryParams: {
+              ApiKeys.filenameKey: videoInfo['fileName'],
+              ApiKeys.contentTypeKey: videoInfo['mimeType']
+            },
+            isVideoUpload: true,
+          ),
+          uploadInit(
+            queryParams: {
+              ApiKeys.filenameKey: coverInfo['fileName'],
+              ApiKeys.contentTypeKey: coverInfo['mimeType']
+            },
+            isVideoUpload: false,
+          ),
+        ]);
+        updateProgress(0.2);
+
+        // 2. Upload files with combined progress (20% → 90%)
+        double videoProgress = 0.0;
+        double coverProgress = 0.0;
+
+        void updateCombinedProgress() {
+          // 20% init + 70% file uploads
+          final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
+          updateProgress(combined);
+        }
+
+        if (uploadInitVideoFile?.success ?? false) {
+          await Future.wait([
+            uploadFileToS3(
+              file: videoFile,
+              fileType: videoInfo['mimeType']!,
+              preSignedUrl: uploadInitVideoFile?.data?.uploadUrl ?? "",
+              onProgress: (total) {
+                videoProgress = total;
+                updateCombinedProgress();
+              },
+            ),
+            uploadFileToS3(
+              file: coverFile,
+              fileType: coverInfo['mimeType']!,
+              preSignedUrl: uploadInitCoverImageFile?.data?.uploadUrl ?? "",
+              onProgress: (total) {
+                coverProgress = total;
+                updateCombinedProgress();
+              },
+            ),
+          ]);
+          formData.fields.add(MapEntry(ApiKeys.media_types, "video/mp4"));
+          formData.fields.add(MapEntry(ApiKeys.thumbnail,
+              uploadInitCoverImageFile?.data?.publicUrl ?? ""));
+
+          formData.fields.add(MapEntry(
+              ApiKeys.media, uploadInitVideoFile?.data?.publicUrl ?? ""));
+        }
+
+        updateProgress(0.9);
+      }
+      if ((uploadInitVideoFile?.success == false ||
+              uploadInitVideoFile?.success == null) &&
+          (selectedType.value == MediaType.video)) {
+        return;
+      }
+      final position = await getCurrentLocation();
+      final tagUserController = Get.find<TagUserController>();
+
+      String? tagUserIds = tagUserController.selectedUsers
+          .map((user) => user.id.toString())
+          .join(',');
+      if (selectedType.value == MediaType.image) {
+        /// Add media files
+        for (int i = 0; i < (imagesList.length); i++) {
+          final data = imagesList[i];
+
+          File processed = File(data.path);
+
+          String fileName = processed.path.split('/').last;
+          formData.files.add(
+            MapEntry(
+              ApiKeys.media,
+              await dio.MultipartFile.fromFile(
+                processed.path,
+                filename: fileName,
+              ),
+            ),
+          );
+          formData.fields.add(MapEntry(ApiKeys.media_types, "image/jpeg"));
+        }
+      }
+
+      ///POST VIA TYPE...
+      formData.fields
+          .add(MapEntry(ApiKeys.postVia, postVia?.name ?? "profile"));
+
+      ///TITLE...
+      if (postTitleController.value.text.isNotEmpty)
+        formData.fields
+            .add(MapEntry(ApiKeys.title, postTitleController.value.text));
+
+      ///DESCRIPTION...
+      if (descriptionMessage.value.text.isNotEmpty)
+        formData.fields
+            .add(MapEntry(ApiKeys.sub_title, descriptionMessage.value.text));
+
+      ///NATURE OF POST...
+      if (natureOfPostController.value.text.isNotEmpty)
+        formData.fields.add(MapEntry(
+            ApiKeys.nature_of_post, natureOfPostController.value.text));
+
+      ///REFERENCE LINK...
+      if (referenceLinkController.value.text.isNotEmpty)
+        formData.fields.add(MapEntry(
+          ApiKeys.reference_link,
+          referenceLinkController.value.text.isNotEmpty
+              ? referenceLinkController.value.text
+              : "",
+        ));
+
+      /// Add location if available
+      if (position?.latitude != null && position?.longitude != null) {
+        formData.fields.add(
+            MapEntry(ApiKeys.latitude, position?.latitude.toString() ?? ""));
+        formData.fields.add(
+            MapEntry(ApiKeys.longitude, position?.longitude.toString() ?? ""));
+      }
+
+      ///POST TYPE....
+      formData.fields.add(MapEntry(ApiKeys.type, AppConstants.MESSAGE_POST));
+
+      ///TAG IDS...
+      if (tagUserIds.isNotEmpty)
+        formData.fields.add(MapEntry(ApiKeys.tagged_users, tagUserIds));
+      await addMsgPostControllerNew(
+        bodyReq: formData,
+      );
+    } catch (e) {
+      logs("errorr === $e");
+
+      /// ❌ On error also close dialog
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      UploadProgressDialog.close();
+    }
+  }
+
+  ApiResponse uploadInitResponse = ApiResponse.initial('Initial');
+  ApiResponse uploadFileToS3Response = ApiResponse.initial('Initial');
+  GeneratePresignedUrl? uploadInitVideoFile;
+  GeneratePresignedUrl? uploadInitCoverImageFile;
+
+  Future<void> uploadInit(
+      {required Map<String, dynamic> queryParams,
+      required bool isVideoUpload}) async {
+    try {
+      ResponseModel? response = await PostRepo().uploadMessagePostVideoRepo(
+        queryParams: queryParams,
+      );
+
+      if (response?.isSuccess ?? false) {
+        uploadInitResponse = ApiResponse.complete(response);
+        final uploadInit =
+            GeneratePresignedUrl.fromJson(response?.response?.data);
+        if (isVideoUpload) {
+          uploadInitVideoFile = uploadInit;
+        } else {
+          uploadInitCoverImageFile = uploadInit;
+        }
+      } else {
+        uploadInitResponse = ApiResponse.error('error');
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      uploadInitResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  Future<void> uploadFileToS3({
+    required File file,
+    required String fileType,
+    required String preSignedUrl,
+    required Function(double progress) onProgress,
+  }) async {
+    try {
+      ResponseModel? response = await PostRepo().uploadMessagePostVideoRepoToS3(
+          onProgress: onProgress,
+          file: file,
+          fileType: fileType,
+          preSignedUrl: preSignedUrl);
+
+      if (response?.isSuccess ?? false) {
+        uploadFileToS3Response = ApiResponse.complete(response);
+      } else {
+        uploadFileToS3Response = ApiResponse.error('error');
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      uploadFileToS3Response = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+}
+//
+// class MessagePostImageModel {
+//   final int? id;
+//   final XFile? imageFile;
+//   final String? imgWidth;
+//   final String? imgHeight;
+//   final String? imgCropMode;
+//
+//   MessagePostImageModel({
+//     required this.id,
+//     required this.imageFile,
+//     this.imgWidth,
+//     this.imgHeight,
+//     this.imgCropMode,
+//   });
 // }
-}
-
-class MessagePostImageModel {
-  final int? id;
-  final XFile? imageFile;
-  final String? imgWidth;
-  final String? imgHeight;
-  final String? imgCropMode;
-
-  MessagePostImageModel({
-    required this.id,
-    required this.imageFile,
-    this.imgWidth,
-    this.imgHeight,
-    this.imgCropMode,
-  });
-}

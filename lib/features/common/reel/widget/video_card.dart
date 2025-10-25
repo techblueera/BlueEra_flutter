@@ -139,7 +139,7 @@ class VideoCard extends StatelessWidget {
             videoType: videoType,
             onTapOption: onTapOption,
             onTapCard: voidCallback,
-            boxShadow: boxShadow,
+            boxShadow: boxShadow, isShowUser: true,
           ),
 
           // Overlay if video is under progress

@@ -139,7 +139,13 @@ class _FeedCardState extends State<FeedCard> {
             ),
           ),
           commentView: () => _onCommentPressed(),
-          buildActions: (widget.isRepost ?? false)
+          buildActions:SizedBox.shrink, likeFeed: () {
+          _onLikeDislikePressed();
+        }, onShareButtonPressed: () {
+          onShareButtonPressed(_post);
+
+        }  ,
+          /*buildActions: (widget.isRepost ?? false)
               ? SizedBox.shrink
               : () => PostActionsBar(
                     post: _post,
@@ -160,7 +166,7 @@ class _FeedCardState extends State<FeedCard> {
                     onShareButtonPressed: () async {
                       onShareButtonPressed(_post);
                     },
-                  ),
+                  ),*/
         );
 
       case FeedType.qaPost:

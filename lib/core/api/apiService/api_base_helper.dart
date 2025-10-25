@@ -289,7 +289,6 @@ class ApiBaseHelper {
     String url, {
     dynamic params,
     bool showProgress = true,
-    bool isMultipart = false,
     bool isArrayReq = false,
     Function(ResponseModel res)? onSuccess,
     Function(DioExceptions dioExceptions)? onError,
