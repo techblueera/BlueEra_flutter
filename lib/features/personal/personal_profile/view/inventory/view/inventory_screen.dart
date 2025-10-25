@@ -6,6 +6,8 @@ import 'package:BlueEra/core/constants/common_methods.dart' hide businessType;
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
@@ -28,11 +30,14 @@ class _InventoryScreenState extends State<InventoryScreen>
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
   TabController? _tabController;
-  final controller = Get.put(InventoryController());
 
-  String? _businessType;
+  String _businessType = BusinessType.Product.name;
   bool _isLoading = true;
   late List<Tab> _tabs;
+
+  final inventoryController = Get.put(InventoryController());
+  final serviceController = Get.put(ServiceController());
+  final foodUploadController = Get.put(FoodUploadController());
 
   @override
   void initState() {
@@ -52,9 +57,32 @@ class _InventoryScreenState extends State<InventoryScreen>
     if (isShowFood.contains(business)) _tabs.add(const Tab(text: 'Food & Grocery'));
 
     _tabController = TabController(length: _tabs.length, vsync: this);
+    if (_tabs.isEmpty) {
+      debugPrint("No tabs available for business type: $business");
+      setState(() => _isLoading = false);
+      return;
+    }
 
-    controller.callApi(forceRefresh: true);
+    _tabController = TabController(length: _tabs.length, vsync: this);
 
+    final firstTab = _tabs.first.text;
+    if (firstTab == 'My Products') {
+      inventoryController.callApi(forceRefresh: true);
+    } else if (firstTab == 'My Services') {
+      final queryParams = {
+        ApiKeys.all: false,
+        ApiKeys.type: "service",
+        ApiKeys.providerType: ProductServiceProviderType.business.title,
+      };
+      serviceController.getServices(queryParams);
+    } else if (firstTab == 'Food & Grocery') {
+      final queryParams = {
+        ApiKeys.all: false,
+        ApiKeys.type: "food",
+        ApiKeys.providerType: ProductServiceProviderType.business.title,
+      };
+      foodUploadController.getFoodService(queryParams);
+    }
     setState(() => _isLoading = false);
   }
 
@@ -109,19 +137,19 @@ class _InventoryScreenState extends State<InventoryScreen>
       ),
       floatingActionButton: Builder(builder: (context) {
         return FloatingActionButton(
-          onPressed: () => showPopUpMenu(context, controller),
+          onPressed: () => showPopUpMenu(context, inventoryController),
           backgroundColor: AppColors.primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           child: AnimatedRotation(
-            turns: controller.isMenuOpen.value ? 0.25 : 0,
+            turns: inventoryController.isMenuOpen.value ? 0.25 : 0,
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOut,
             child: Obx(() => Icon(
-                  controller.isMenuOpen.value ? Icons.close : Icons.add,
-                  key: ValueKey(controller.isMenuOpen.value),
+                  inventoryController.isMenuOpen.value ? Icons.close : Icons.add,
+                  key: ValueKey(inventoryController.isMenuOpen.value),
                   // important for AnimatedSwitcher
                   size: SizeConfig.size36,
                 )),
@@ -188,7 +216,7 @@ class _InventoryScreenState extends State<InventoryScreen>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      items: popupMenuInventoryItems(),
+      items: popupMenuInventoryItems(_businessType),
     );
     controller.isMenuOpen.value = false;
 

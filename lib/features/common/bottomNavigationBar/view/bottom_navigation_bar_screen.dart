@@ -77,7 +77,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<void> _initializeIndividualUser() async {
-    checkServiceExistence();
+    // checkServiceExistence();
 
     if (channelId.isNotEmpty) return;
 
@@ -121,53 +121,53 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
 
-  Future<void> checkServiceExistence() async {
-    viewPersonalDetailsController.isUserServiceExistsKey.value = await getUserServiceExistsKey();
-    log('userServiceExistsKeyGlobal--> ${viewPersonalDetailsController.isUserServiceExistsKey.value}');
-    if(viewPersonalDetailsController.isUserServiceExistsKey.value == 'false'){
-      viewPersonalDetailsController.isUserServiceExistsKey.value = await viewPersonalDetailsController.getUserServiceExistenceStatus();
-      await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.userServiceExistsKey,
-          viewPersonalDetailsController.isUserServiceExistsKey.value
-      );
-    } else{
-      checkAndShowGreetingDialog(context);
-    }
-  }
-
-  void checkAndShowGreetingDialog(BuildContext context) async {
-    try {
-      await moreCardsScreenController.getCardCategoriesSortedByDate(
-          todayDate: DateTime.now().toIso8601String()
-      );
-    } catch (e) {
-      print("API error: $e");
-    }
-
-    // final result = await canCallCardApi();
-    // // final canCall = result.canCall;
-    // final canCall = true;
-    // final today = result.today;
-    //
-    // if (canCall) {
-    //   try {
-    //     await moreCardsScreenController.getCardCategoriesSortedByDate(
-    //         todayDate: today
-    //     );
-    //
-    //     await saveApiCallDate();
-    //   } catch (e) {
-    //     print("API error: $e");
-    //   }
-    // }
-
-  }
+  // Future<void> checkServiceExistence() async {
+  //   viewPersonalDetailsController.isUserServiceExistsKey.value = await getUserServiceExistsKey();
+  //   log('userServiceExistsKeyGlobal--> ${viewPersonalDetailsController.isUserServiceExistsKey.value}');
+  //   if(viewPersonalDetailsController.isUserServiceExistsKey.value == 'false'){
+  //     viewPersonalDetailsController.isUserServiceExistsKey.value = await viewPersonalDetailsController.getUserServiceExistenceStatus();
+  //     await SharedPreferenceUtils.setSecureValue(
+  //         SharedPreferenceUtils.userServiceExistsKey,
+  //         viewPersonalDetailsController.isUserServiceExistsKey.value
+  //     );
+  //   } else{
+  //     checkAndShowGreetingDialog(context);
+  //   }
+  // }
+  //
+  // void checkAndShowGreetingDialog(BuildContext context) async {
+  //   try {
+  //     await moreCardsScreenController.getCardCategoriesSortedByDate(
+  //         todayDate: DateTime.now().toIso8601String()
+  //     );
+  //   } catch (e) {
+  //     print("API error: $e");
+  //   }
+  //
+  //   // final result = await canCallCardApi();
+  //   // // final canCall = result.canCall;
+  //   // final canCall = true;
+  //   // final today = result.today;
+  //   //
+  //   // if (canCall) {
+  //   //   try {
+  //   //     await moreCardsScreenController.getCardCategoriesSortedByDate(
+  //   //         todayDate: today
+  //   //     );
+  //   //
+  //   //     await saveApiCallDate();
+  //   //   } catch (e) {
+  //   //     print("API error: $e");
+  //   //   }
+  //   // }
+  //
+  // }
 
   Future<void> getBusinessUserOwnProduct() async {
     await inventoryController.fetchProducts();
-    if(inventoryController.allProducts.isEmpty){
-      checkAndShowGreetingDialog(context);
-    }
+    // if(inventoryController.allProducts.isEmpty){
+    //   checkAndShowGreetingDialog(context);
+    // }
   }
 
   ///GET CHANNEL DETAILS...

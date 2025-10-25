@@ -45,11 +45,11 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                 ),
                   child: Column(
                      children: [
-                       _buildTile(
-                           AppIconAssets.cards, "My Cards",
-                           onTap: () => Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
-                               arguments: {ApiKeys.isFromHomeScreen: false})
-                       ),
+                       // _buildTile(
+                       //     AppIconAssets.cards, "My Cards",
+                       //     onTap: () => Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
+                       //         arguments: {ApiKeys.isFromHomeScreen: false})
+                       // ),
                        _buildTile(
                            AppIconAssets.accountSetting,
                            "App Settings",

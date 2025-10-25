@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -278,11 +279,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           query: searchController.text,
                           selectedTab: _selectedSavedTab,
                           headerHeight: _headerHeight + SizeConfig.size30),
-                      MoreCardsScreen(
-                        isFromHomeScreen: true,
-                        headerHeight: _headerHeight,
-                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                      ),
+
+                      isIndividual() ?
+                         Center(
+                           child: CustomText(
+                               'Coming Soon..'
+                           ),
+                         )
+                          : InventoryBusinessCardsScreen(
+                        showBackAppBar: false,
+                      )
+                      // MoreCardsScreen(
+                      //   isFromHomeScreen: true,
+                      //   headerHeight: _headerHeight,
+                      //   onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                      // ),
                     ],
                   ),
                 ),

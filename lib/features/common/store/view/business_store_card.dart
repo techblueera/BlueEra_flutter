@@ -10,9 +10,11 @@ import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -261,78 +263,104 @@ class BusinessStoreCard extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          right: BorderSide(
-                            color: AppColors.whiteFE,
-                            width: 1,
+                    child: GestureDetector(
+                      onTap: ()=> viewImageOnFullScreen(
+                          index: 0,
+                          storeImage: getAllStoreResData?.livePhotos??[],
+                          natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
+                              getAllStoreResData?.natureOfBusiness ??
+                              'OTHER'
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            right: BorderSide(
+                              color: AppColors.whiteFE,
+                              width: 1,
+                            ),
                           ),
                         ),
-                      ),
-                      child: CachedNetworkImage(
-                        imageUrl: getAllStoreResData?.livePhotos?[0] ?? '',
-                        height: ds(190),
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => LocalAssets(
-                          imagePath:
-                          AppIconAssets.place_holder_image,
-                          boxFix: BoxFit.fill,
+                        child: CachedNetworkImage(
+                          imageUrl: getAllStoreResData?.livePhotos?[0] ?? '',
+                          height: ds(190),
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => LocalAssets(
+                            imagePath:
+                            AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                          errorWidget: (context, url, error) =>
+                              LocalAssets(
+                                imagePath:
+                                AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
+                              ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            LocalAssets(
-                              imagePath:
-                              AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.fill,
-                            ),
-                      ),
 
+                      ),
                     ),
                   ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child:
-                          CachedNetworkImage(
-                            imageUrl: ((getAllStoreResData?.livePhotos?.length??0) > 1) ? getAllStoreResData!.livePhotos![1] : '',
-                            height: ds(95),
-                            fit: BoxFit.fitWidth,
-                            placeholder: (context, url) => LocalAssets(
-                              imagePath:
-                              AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.fill,
-                            ),
-                            errorWidget: (context, url, error) =>
-                                LocalAssets(
-                                  imagePath:
-                                  AppIconAssets.place_holder_image,
-                                  boxFix: BoxFit.fill,
-                                ),
+                        GestureDetector(
+                          onTap: ()=> viewImageOnFullScreen(
+                              index: 1,
+                              storeImage: getAllStoreResData?.livePhotos??[],
+                              natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
+                                  getAllStoreResData?.natureOfBusiness ??
+                                  'OTHER'
                           ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: CachedNetworkImage(
+                              imageUrl: ((getAllStoreResData?.livePhotos?.length??0) > 1) ? getAllStoreResData!.livePhotos![1] : '',
+                              height: ds(95),
+                              fit: BoxFit.fitWidth,
+                              placeholder: (context, url) => LocalAssets(
+                                imagePath:
+                                AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  LocalAssets(
+                                    imagePath:
+                                    AppIconAssets.place_holder_image,
+                                    boxFix: BoxFit.fill,
+                                  ),
+                            ),
 
+                          ),
                         ),
                         SizedBox(height: ds(1)),
-                        SizedBox(
-                          width: double.infinity,
-                          child: CachedNetworkImage(
-                            imageUrl: ((getAllStoreResData?.livePhotos?.length??0) > 2) ? getAllStoreResData!.livePhotos![2] : '',
-                            height: ds(95),
-                            fit: BoxFit.fitWidth,
-                            placeholder: (context, url) => LocalAssets(
-                              imagePath:
-                              AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.fill,
+                        GestureDetector(
+                          onTap: ()=> viewImageOnFullScreen(
+                              index: 2,
+                              storeImage: getAllStoreResData?.livePhotos??[],
+                              natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
+                                  getAllStoreResData?.natureOfBusiness ??
+                                  'OTHER'
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: CachedNetworkImage(
+                              imageUrl: ((getAllStoreResData?.livePhotos?.length??0) > 2) ? getAllStoreResData!.livePhotos![2] : '',
+                              height: ds(95),
+                              fit: BoxFit.fitWidth,
+                              placeholder: (context, url) => LocalAssets(
+                                imagePath:
+                                AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.fill,
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  LocalAssets(
+                                    imagePath:
+                                    AppIconAssets.place_holder_image,
+                                    boxFix: BoxFit.fill,
+                                  ),
                             ),
-                            errorWidget: (context, url, error) =>
-                                LocalAssets(
-                                  imagePath:
-                                  AppIconAssets.place_holder_image,
-                                  boxFix: BoxFit.fill,
-                                ),
                           ),
                         ),
                       ],
@@ -444,7 +472,7 @@ class BusinessStoreCard extends StatelessWidget {
                         border: Border.all(width: 1, color: AppColors.whiteF1),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Center(child: Icon(Icons.star_border, size: ds(12))),
+                      child: Center(child: Icon(Icons.star_border, size: ds(12), color: AppColors.primaryColor)),
                     ),
                   ),
                   SizedBox(width: ds(6)),
@@ -472,6 +500,7 @@ class BusinessStoreCard extends StatelessWidget {
                           imagePath: AppIconAssets.share_bold,
                           width: ds(12),
                           height: ds(12),
+                          imgColor: AppColors.primaryColor
                         ),
                       ),
                     ),
@@ -481,6 +510,20 @@ class BusinessStoreCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void viewImageOnFullScreen(
+      {required int index, required List<String> storeImage, required String natureOfBusiness}) {
+    navigatePushTo(
+      Get.context!,
+      ImageViewScreen(
+        subTitle: natureOfBusiness,
+        appBarTitle:
+        AppLocalizations.of(Get.context!)!.imageViewer,
+        imageUrls: storeImage,
+        initialIndex: index,
       ),
     );
   }

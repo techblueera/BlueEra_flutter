@@ -1,68 +1,88 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart' show CommonBackAppBar;
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_food_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_service_card.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_food_service_card.dart';
 
 class InventoryBusinessCardsScreen extends StatefulWidget {
-  const InventoryBusinessCardsScreen({super.key});
+  final bool showBackAppBar;
+  const InventoryBusinessCardsScreen({super.key, this.showBackAppBar = true});
 
   @override
-  State<InventoryBusinessCardsScreen> createState() => _InventoryBusinessCardsScreenState();
+  State<InventoryBusinessCardsScreen> createState() =>
+      _InventoryBusinessCardsScreenState();
 }
 
-class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScreen>
+class _InventoryBusinessCardsScreenState
+    extends State<InventoryBusinessCardsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final inventoryController = Get.find<InventoryController>();
   final serviceController = Get.put(ServiceController());
   final foodUploadController = Get.put(FoodUploadController());
 
-  // Dynamic tab list
-  late final List<_TabItem> _tabs;
+  late List<Tab> _tabs = [];
+  late List<String> _tabTypes = [];
+
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _initializeTabs();
+  }
 
-    // Dynamically prepare tab list based on business type
-    final type = businessType();
+  Future<void> _initializeTabs() async {
+    final type = await getBusinessType();
+    final business = type.toLowerCase();
+
     _tabs = [];
+    _tabTypes = [];
 
-    if (isShowProduct.contains(type)) {
-      _tabs.add(_TabItem(title: 'My Products', type: 'product'));
+    if (isShowProduct.contains(business)) {
+      _tabs.add(const Tab(text: 'My Products'));
+      _tabTypes.add('product');
     }
-    if (isShowService.contains(type)) {
-      _tabs.add(_TabItem(title: 'My Services', type: 'service'));
+    if (isShowService.contains(business)) {
+      _tabs.add(const Tab(text: 'My Services'));
+      _tabTypes.add('service');
     }
-    if (isShowFood.contains(type)) {
-      _tabs.add(_TabItem(title: 'Food & Grocery', type: 'food'));
+    if (isShowFood.contains(business)) {
+      _tabs.add(const Tab(text: 'Food & Grocery'));
+      _tabTypes.add('food');
+    }
+
+    if (_tabs.isEmpty) {
+      debugPrint(" No matching tabs found for businessType: $business");
+      setState(() => _isLoading = false);
+      return;
     }
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_onTabChanged);
 
-    // Fetch first tab data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchTabData(_tabs.first.type);
-    });
+    // Fetch data for the first tab only
+    await _fetchTabData(_tabTypes.first);
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
-    final tabType = _tabs[_tabController.index].type;
-    _fetchTabData(tabType);
+    final currentType = _tabTypes[_tabController.index];
+    _fetchTabData(currentType);
   }
 
-  void _fetchTabData(String type) {
+  Future<void> _fetchTabData(String type) async {
     switch (type) {
       case 'product':
         if (inventoryController.allProducts.isEmpty) {
@@ -96,13 +116,22 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        preferredSize: Size.fromHeight(widget.showBackAppBar
+            ? kToolbarHeight + 50
+            : 50
+        ),
         child: CommonBackAppBar(
-          isLeading: true,
-          title: 'My Business Cards',
+          isLeading: widget.showBackAppBar ? true : null,
+          title: widget.showBackAppBar ? 'My Business Cards' : null,
           bottomWidget: TabBar(
             controller: _tabController,
             labelColor: AppColors.primaryColor,
@@ -110,14 +139,15 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
             indicatorColor: Colors.blue,
             indicatorWeight: 2,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            tabs: _tabs.map((t) => Tab(text: t.title)).toList(),
+            tabs: _tabs,
           ),
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: _tabs.map((t) {
-          switch (t.type) {
+        children: List.generate(_tabs.length, (index) {
+          final type = _tabTypes[index];
+          switch (type) {
             case 'product':
               return Obx(() {
                 if (inventoryController.isLoading.value) {
@@ -140,7 +170,8 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                 if (serviceController.serviceDataList.isEmpty) {
                   return const Center(child: Text('No services found'));
                 }
-                return BusinessServiceCard(allServices: serviceController.serviceDataList);
+                return BusinessServiceCard(
+                    allServices: serviceController.serviceDataList);
               });
 
             case 'food':
@@ -151,21 +182,15 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                 if (foodUploadController.foodDataList.isEmpty) {
                   return const Center(child: Text('No food items found'));
                 }
-                return BusinessFoodServiceCard(allFoodServices: foodUploadController.foodDataList);
+                return BusinessFoodServiceCard(
+                    allFoodServices: foodUploadController.foodDataList);
               });
 
             default:
               return const SizedBox.shrink();
           }
-        }).toList(),
+        }),
       ),
     );
   }
 }
-
-class _TabItem {
-  final String title;
-  final String type;
-  _TabItem({required this.title, required this.type});
-}
-

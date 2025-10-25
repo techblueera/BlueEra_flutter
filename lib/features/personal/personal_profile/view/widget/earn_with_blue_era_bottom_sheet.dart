@@ -11,33 +11,20 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
 
-import '../rental_page/rental_page_main.dart';
 
 class ConsultBottomSheet extends StatelessWidget {
   ConsultBottomSheet({Key? key}) : super(key: key);
 
-  // final List<_Service> _services = [
-  //   _Service('Swadesh\nSamaan',  AppIconAssets.localGoodsIcon),
-  //   _Service('Consult by\ncontent creation', AppIconAssets.contentCreationIcon),
-  //   _Service('Self\nEmployment ', AppIconAssets.selfEmploymentIcon),
-  //   _Service('Desi\nKhana', AppIconAssets.foodBowlIcon),
-  //   _Service('Home\nServices', AppIconAssets.homeServiceIcon),
-  //   _Service('Rental\nServices', AppIconAssets.homeRentalIcon),
-  //   _Service('Delivery', AppIconAssets.deliveryBoyIcon),
-  //   _Service('Part-Time\njobs', AppIconAssets.jobSearchIcon),
-  //   _Service('Teaching', AppIconAssets.jobSearchIcon),
-  //   _Service('Teaching', AppIconAssets.jobSearchIcon),
-  // ];
-
   final List<_Service> _services = [
-    _Service('Swadesh\nSamaan',  AppIconAssets.localGoodsIcon),
-    _Service('Desi\nKhana', AppIconAssets.foodBowlIcon),
-    _Service('Home\nServices', AppIconAssets.homeServiceIcon),
-    _Service('Rental\nServices', AppIconAssets.homeRentalIcon),
-    _Service('Home\nStay', AppIconAssets.homeStayIcon),
-    _Service('Content\nconsulting', AppIconAssets.contentCreationIcon),
+    _Service('Self Work',  AppIconAssets.selfWorkIcon, Color(0xFFCBEAFC)),
+    _Service('Delivery\nPartner', AppIconAssets.deliveryPartnerIcon, Color(0xFFDAEDCF)),
+    _Service('Home Mad\nProducts', AppIconAssets.homeMadeProductIcon, Color(0xFFFDD5A4)),
+    _Service('Home Made\nFood Items', AppIconAssets.homeMadeFoodIcon, Color(0xFFFEF2B6)),
+    _Service('Home\nServices', AppIconAssets.homeServiceIcon, Color(0xFFDBD5F7)),
+    _Service('Rental\nServices', AppIconAssets.rentalServiceIcon, Color(0xFFFAD7D3)),
+    _Service('Counselling /\nConsulting ', AppIconAssets.consultingIcon, Color(0xFFBCEEE2)),
+    _Service('Tuition Classes\nOnline/Ofline', AppIconAssets.teachingIcon, Color(0xFFEEBCE7)),
   ];
 
   @override
@@ -76,9 +63,9 @@ class ConsultBottomSheet extends StatelessWidget {
               shrinkWrap: true,
               physics: const ClampingScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 0.7,
-                crossAxisSpacing: 20,
+                crossAxisCount: 4,
+                childAspectRatio: 0.68,
+                crossAxisSpacing: 2,
                 mainAxisSpacing: 2,
               ),
               itemCount: _services.length,
@@ -94,7 +81,8 @@ class ConsultBottomSheet extends StatelessWidget {
 class _Service {
   final String label;
   final String icon;
-  const _Service(this.label, this.icon);
+  final Color color;
+  const _Service(this.label, this.icon, this.color);
 }
 
 class _ServiceCard extends StatelessWidget {
@@ -103,7 +91,7 @@ class _ServiceCard extends StatelessWidget {
 
   void _handleServiceTap() async {
     switch (service.label) {
-      case 'Swadesh\nSamaan':
+      case 'Home Mad\nProducts':
         await Get.offNamed(
           RouteHelper.getAddProductScreenRoute(),
           arguments: {
@@ -113,7 +101,7 @@ class _ServiceCard extends StatelessWidget {
         );
         break;
 
-      case 'Desi\nKhana':
+      case 'Home Made\nFood Items':
         Get.off(() => FoodUploadScreen(
           providerType: ProductServiceProviderType.user,
         ));
@@ -175,16 +163,15 @@ class _ServiceCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             AspectRatio(
               aspectRatio: 1,
               child: Container(
                   padding: EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: service.color,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.greyE5, width: 1),
                       boxShadow: [AppShadows.textFieldShadow]
                   ),
                   alignment: Alignment.center,

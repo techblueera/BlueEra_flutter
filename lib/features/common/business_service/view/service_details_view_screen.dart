@@ -1,8 +1,6 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen;
+import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen, navigatePushTo;
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -12,6 +10,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -23,14 +22,23 @@ class ServiceDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isSelfService = false;
-    if(service.serviceProvider?.type == ProductServiceProviderType.user.title){
+    // log('type--> ${service.serviceProvider?.type}');
+
+    if(service.serviceProvider?.type?.toLowerCase()
+        == ProductServiceProviderType.user.name.toLowerCase() ||
+        service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
       isSelfService = service.serviceProvider?.id == userId;
-    }else if(service.serviceProvider?.type == ProductServiceProviderType.business.title){
-      isSelfService = service.serviceProvider?.id == businessId;
     }
-    else if(service.serviceProvider?.type == ProductServiceProviderType.channel.title){
+    // else if(service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
+    //   log('service.serviceProvider?.id--> ${service.serviceProvider?.id}');
+    //   log('businessId--> $businessId');
+    //   isSelfService = service.serviceProvider?.id == businessId;
+    // }
+    else if(service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.channel.name.toLowerCase()){
       isSelfService = service.serviceProvider?.id == channelId;
     }
+    // log('isSelfService--> $isSelfService');
+
     return Scaffold(
       // backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
@@ -44,14 +52,27 @@ class ServiceDetailsScreen extends StatelessWidget {
             children: [
               // --- Image Slider ---
               if (service.photos != null && service.photos!.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: CustomImageSlideshow(
-                    isLoading: false,
-                    width: double.infinity,
-                    height: 220,
-                    imagePaths: service.photos ?? [],
-                    borderRadius: BorderRadius.zero,
+                InkWell(
+                  onTap: (){
+                    navigatePushTo(
+                      Get.context!,
+                      ImageViewScreen(
+                        subTitle: service.title ?? "",
+                        appBarTitle: 'Food Service',
+                        imageUrls: service.photos ?? [],
+                        initialIndex: 0,
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: CustomImageSlideshow(
+                      isLoading: false,
+                      width: double.infinity,
+                      height: 220,
+                      imagePaths: service.photos ?? [],
+                      borderRadius: BorderRadius.zero,
+                    ),
                   ),
                 ),
 

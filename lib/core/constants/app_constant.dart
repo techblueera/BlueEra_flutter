@@ -930,14 +930,14 @@ Future<String?> businessType() async {
   // return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
 }
 
-List<PopupMenuEntry<String>> popupMenuInventoryItems() {
-  log('businessType-- ${businessType()}');
+List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
+  log('businessType-- $businessType');
   final items = <Map<String, dynamic>>[
-    if (isShowProduct.contains(businessType()))
+    if (isShowProduct.contains(businessType))
       {"id": "ADD PRODUCT", 'title': 'Add Product'},
-    if (isShowService.contains(businessType()))
+    if (isShowService.contains(businessType))
       {"id": "ADD SERVICE", 'title': 'Add Service'},
-    if (isShowFood.contains(businessType()))
+    if (isShowFood.contains(businessType))
       {"id": "ADD FOOD", 'title': 'Add Food'},
     // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
   ];

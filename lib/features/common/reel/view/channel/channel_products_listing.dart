@@ -62,8 +62,10 @@ class _ChannelProductListingState extends State<ChannelProductListing> {
                   padding: EdgeInsets.only(bottom: SizeConfig.size10),
                   child: OwnProductCard(
                     product: productData,
-                    controller: inventoryController,
-                    isGridShow: false
+                    isGridShow: false,
+                    deleteProductApi: (){
+                      // widget.channelController.deleteProduct();
+                    },
                   ),
                 );
               },

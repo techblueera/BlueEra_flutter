@@ -34,18 +34,18 @@ class MoreCardsScreenController extends GetxController{
   Future<void> getCardCategoriesSortedByDate({required String todayDate}) async {
     try {
 
-      // Map<String , dynamic> params = {
-      //   ApiKeys.date: DateTime.now().toIso8601String()
-      // };
-
-      Map<String, dynamic> queryParams = {
-        ApiKeys.fromDate: DateTime.now().toIso8601String(),
-        ApiKeys.toDate: DateTime.now().add(Duration(days: 7)).toIso8601String(),
+      Map<String , dynamic> params = {
+        ApiKeys.date: DateTime.now().toIso8601String()
       };
 
-       ResponseModel responseModel = await UserRepo().getAllCards(queryParams: queryParams);
+      // Map<String, dynamic> queryParams = {
+      //   ApiKeys.fromDate: DateTime.now().toIso8601String(),
+      //   ApiKeys.toDate: DateTime.now().add(Duration(days: 7)).toIso8601String(),
+      // };
 
-      // ResponseModel responseModel = await UserRepo().cardCategoriesSortedByDate(queryParams: params);
+       // ResponseModel responseModel = await UserRepo().getAllCards(queryParams: queryParams);
+
+      ResponseModel responseModel = await UserRepo().cardCategoriesSortedByDate(queryParams: params);
       if (responseModel.isSuccess) {
         cardCategoriesSortedByDateResponse.value = ApiResponse.complete(responseModel);
         final cardResponseModel = CardResponseModel.fromJson(responseModel.response?.data);

@@ -1,12 +1,15 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,6 +30,16 @@ class FoodDetailsViewScreen extends StatelessWidget {
     final keyIngredients = item.keyIngredients ?? [];
     final nutrition = item.nutritionalSummaryPer100g;
     final photos = item.photos ?? [];
+
+    bool isSelfService = false;
+    if(data.serviceProvider?.type?.toLowerCase()
+        == ProductServiceProviderType.user.name.toLowerCase() ||
+        data.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
+      isSelfService = data.serviceProvider?.id == userId;
+    } else if(data.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.channel.name.toLowerCase()){
+      isSelfService = data.serviceProvider?.id == channelId;
+    }
+
     return Scaffold(
       appBar: CommonBackAppBar(
         title: "Details",
@@ -38,17 +51,32 @@ class FoodDetailsViewScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ---- IMAGE ----
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: CustomImageSlideshow(
-                  isLoading: false,
-                  width: double.infinity,
-                  height: 220,
-                  imagePaths: photos,
-                  borderRadius: BorderRadius.zero,
+              InkWell(
+                onTap: (){
+                  navigatePushTo(
+                    Get.context!,
+                    ImageViewScreen(
+                      subTitle: item.title,
+                      appBarTitle: 'Food Service',
+                      imageUrls: photos,
+                      initialIndex: 0,
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: CustomImageSlideshow(
+                    isLoading: false,
+                    width: double.infinity,
+                    height: 220,
+                    imagePaths: photos,
+                    borderRadius: BorderRadius.zero,
+                  ),
                 ),
               ),
               SizedBox(height: SizeConfig.size16),
+                if(!isSelfService)
+              ...[
               if (item.business != null &&
                   item.business?.businessName != null &&
                   business?.userId != null)
@@ -204,6 +232,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              ],
 
               // ---- TITLE ----
               Container(
@@ -214,7 +243,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withOpacity(0.1),
+                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -273,7 +302,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -325,7 +354,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -361,7 +390,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withOpacity(0.1),
+                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -405,7 +434,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                         boxShadow: [
                           BoxShadow(
                             color:
-                                AppColors.secondaryTextColor.withOpacity(0.1),
+                                AppColors.secondaryTextColor.withValues(alpha: 0.1),
                             spreadRadius: 0.5,
                             blurRadius: 1,
                             offset: Offset(0, 1),

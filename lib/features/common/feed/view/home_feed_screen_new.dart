@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -175,13 +174,18 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
           return Column(
             children: [
               isIndividual()
-                  ? (viewPersonalDetailsController.isUserServiceExistsKey.value
-                  == 'true')
-                     ? _buildSocialCard()
-                     : _buildEarnWithBlueEraWidget()
+                  ? _buildEarnWithBlueEraWidget()
                   : (inventoryController.allProducts.isNotEmpty)
-                      ? _buildProductCard()
-                      : _buildSocialCard(),
+                  ? _buildProductCard()
+                  : SizedBox.shrink(),
+              // isIndividual()
+              //     ? (viewPersonalDetailsController.isUserServiceExistsKey.value
+              //     == 'true')
+              //        ? _buildSocialCard()
+              //        : _buildEarnWithBlueEraWidget()
+              //     : (inventoryController.allProducts.isNotEmpty)
+              //         ? _buildProductCard()
+              //         : _buildSocialCard(),
               Expanded(
                 child: Center(
                   child: Padding(
@@ -211,13 +215,18 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
             if (indexFeed == 0) {
-              return Obx(()=> isIndividual()
-                  ? (viewPersonalDetailsController.isUserServiceExistsKey.value == 'true')
-                  ? _buildSocialCard()
-                  : _buildEarnWithBlueEraWidget()
-                  : inventoryController.allProducts.isNotEmpty
+              return isIndividual()
+                  ? _buildEarnWithBlueEraWidget()
+                  : (inventoryController.allProducts.isNotEmpty)
                   ? _buildProductCard()
-                  : _buildSocialCard());
+                  : SizedBox.shrink();
+              // return Obx(()=> isIndividual()
+              //     ? (viewPersonalDetailsController.isUserServiceExistsKey.value == 'true')
+              //     ? _buildSocialCard()
+              //     : _buildEarnWithBlueEraWidget()
+              //     : inventoryController.allProducts.isNotEmpty
+              //     ? _buildProductCard()
+              //     : _buildSocialCard());
             }
             int index = indexFeed - 1;
             final block = blocks[index];

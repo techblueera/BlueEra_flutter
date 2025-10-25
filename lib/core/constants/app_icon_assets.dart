@@ -375,21 +375,19 @@ class AppIconAssets {
   static String food_service = "${iconPath}food_service.svg";
   static String other_type = "${iconPath}other_type.svg";
   static String place_holder_image = "${AppConstants.baseImageAssetsPath}place_holder_image.jpeg";
-  static String localGoodsIcon = "${iconPath}local_goods_icon.svg";
-  static String contentCreationIcon = "${iconPath}content_creation_icon.svg";
-  static String selfEmploymentIcon = "${iconPath}self_employment_icon.svg";
-  static String foodBowlIcon = "${iconPath}food_bowl_icon.svg";
-  static String homeServiceIcon = "${iconPath}home_service_icon.svg";
-  static String homeRentalIcon = "${iconPath}home_rental_icon.svg";
-  static String deliveryBoyIcon = "${iconPath}delivery_boy_icon.svg";
-  static String jobSearchIcon = "${iconPath}job_search_icon.svg";
-  static String teachingIcon = "${iconPath}teaching_icon.svg";
-  static String homeStayIcon = "${iconPath}home_stay_icon.svg";
   static String storeWatch = "${iconPath}store_watch.svg";
   static String ai_generative = "${AppConstants.baseIconAssetsPath}ai_generative.png";
   static String open_close = "${AppConstants.baseIconAssetsPath}open_close.png";
   static String location_track = "${iconPath}location_track.svg";
   static String porter = "${AppConstants.baseIconAssetsPath}porter.png";
   static String rapido = "${AppConstants.baseIconAssetsPath}rapido.png";
+  static String homeServiceIcon = "${iconPath}home_service_icon.svg";
+  static String selfWorkIcon = "${iconPath}self_work_icon.svg";
+  static String deliveryPartnerIcon = "${iconPath}delivery_partner_icon.svg";
+  static String homeMadeProductIcon = "${iconPath}home_made_product_icon.svg";
+  static String homeMadeFoodIcon = "${iconPath}home_made_food_icon.svg";
+  static String rentalServiceIcon = "${iconPath}rental_service_icon.svg";
+  static String consultingIcon = "${iconPath}consulting_icon.svg";
+  static String teachingIcon = "${iconPath}teaching_icon.svg";
 
 }

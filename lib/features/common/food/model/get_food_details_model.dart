@@ -62,6 +62,7 @@ class GetFoodDetailsModel {
     String? availability,   // ✅ added
     String? vegType,
     BusinessService? business,
+    ServiceProvider? serviceProvider
 // ✅ added
   }) {
     _id = id;
@@ -96,6 +97,7 @@ class GetFoodDetailsModel {
     _availability = availability;   // ✅ added
     _vegType = vegType;             // ✅ added
     _business = business;             // ✅ added
+    _serviceProvider = serviceProvider;
   }
 
   GetFoodDetailsModel.fromJson(dynamic json) {
@@ -180,6 +182,9 @@ class GetFoodDetailsModel {
     _business = json['business'] != null
         ? new BusinessService.fromJson(json['business'])
         : null;// ✅ added
+    _serviceProvider = json['serviceProvider'] != null
+        ? new ServiceProvider.fromJson(json['serviceProvider'])
+        : null;
   }
 
   String? _id;
@@ -214,6 +219,7 @@ class GetFoodDetailsModel {
   String? _availability;  // ✅ added
   String? _vegType;       // ✅ added
   BusinessService? _business;
+  ServiceProvider? _serviceProvider;
 
   GetFoodDetailsModel copyWith({
     String? id,
@@ -248,6 +254,7 @@ class GetFoodDetailsModel {
     String? availability,   // ✅ added
     String? vegType,
     BusinessService? business,
+    ServiceProvider? serviceProvider
 // ✅ added
   }) =>
       GetFoodDetailsModel(
@@ -284,6 +291,7 @@ class GetFoodDetailsModel {
         availability: availability ?? _availability, // ✅ added
         vegType: vegType ?? _vegType,               // ✅ added
         business: business ?? _business,               // ✅ added
+        serviceProvider: serviceProvider ?? _serviceProvider,               // ✅ added
       );
 
   // ✅ Getters
@@ -319,6 +327,7 @@ class GetFoodDetailsModel {
   String? get availability => _availability;  // ✅ added
   String? get vegType => _vegType;            // ✅ added
   BusinessService? get business => _business;            // ✅ added
+  ServiceProvider? get serviceProvider => _serviceProvider;            // ✅ added
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -373,7 +382,34 @@ class GetFoodDetailsModel {
     map['__v'] = _v;
     map['availability'] = _availability; // ✅ added
     map['vegType'] = _vegType;           // ✅ added
+    if (this.serviceProvider != null) {
+      map['serviceProvider'] = this.serviceProvider!.toJson();
+    }
     return map;
+  }
+}
+
+class ServiceProvider {
+  String? id;
+  String? type;
+
+  ServiceProvider({
+    this.id,
+    this.type
+  });
+
+  ServiceProvider.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    type = json['type'];
+
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+
+    data['id'] = this.id;
+    data['type'] = this.type;
+    return data;
   }
 }
 

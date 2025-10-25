@@ -15,10 +15,14 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
 
 class ServiceController extends GetxController {
-  Rx<ApiResponse> serviceAiResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> addServiceResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> serviceAiResponse
+            = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> addServiceResponse
+             = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getServiceResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> deleteServiceResponse
+             = ApiResponse.initial('Initial').obs;
 
   // Form controllers
   final TextEditingController serviceNameController = TextEditingController();
@@ -82,7 +86,6 @@ class ServiceController extends GetxController {
       serviceAiResponse.value = ApiResponse.error(e.toString());
     }
   }
-
 
   /// All Service data
   RxList<GetServiceModel> serviceDataList = <GetServiceModel>[].obs;
@@ -151,6 +154,33 @@ class ServiceController extends GetxController {
       }
     }
   }
+
+  RxBool isDeleteServiceLoading = false.obs;
+
+  Future<void> deleteService({required String serviceId}) async {
+    isDeleteServiceLoading.value = true;
+
+    try {
+      ResponseModel response =
+      await ServiceAiRepo().deleteServiceRepo(serviceId: serviceId);
+
+      if (response.isSuccess) {
+        deleteServiceResponse.value = ApiResponse.complete(response);
+        Get.back();
+        serviceDataList.removeWhere((service) => service.id == serviceId);
+        serviceDataList.refresh();
+        print('Total: ${serviceDataList.length}');
+      } else {
+        deleteServiceResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      deleteServiceResponse.value = ApiResponse.error('error');
+      logs("stack trace--> $s");
+    }finally{
+      isDeleteServiceLoading.value = false;
+    }
+  }
+
 
   @override
   void onClose() {

@@ -2,12 +2,14 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SharingBusinessFoodServiceCard extends StatelessWidget {
   final GlobalKey cardKey;
@@ -138,7 +140,7 @@ class SharingBusinessFoodServiceCard extends StatelessWidget {
                               fontSize: 16 * scaleFactor,
                               height: 1.2,
                             ),
-                            SizedBox(height: 4 * scaleFactor),
+                            SizedBox(height: 10 * scaleFactor),
                             CustomText(
                               "${foodServiceData.description ?? ''}",
                               color: AppColors.grayText,
@@ -156,7 +158,7 @@ class SharingBusinessFoodServiceCard extends StatelessWidget {
                 ),
 
                 Positioned(
-                  top: cardSize * 0.4,
+                  top: cardSize * 0.42,
                   left: cardSize * 0.44,
                   right: cardSize * 0.04,
                   child: Column(
@@ -168,9 +170,7 @@ class SharingBusinessFoodServiceCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: foodServiceData.vegType == 'veg'
-                                  ? AppColors.green7F
-                                  : AppColors.red,
+                              color: Get.find<FoodUploadController>().getFoodTypeColor(foodServiceData.vegType),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(

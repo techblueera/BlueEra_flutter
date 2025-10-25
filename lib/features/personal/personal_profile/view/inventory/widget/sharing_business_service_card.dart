@@ -71,7 +71,7 @@ class SharingBusinessServiceCard extends StatelessWidget {
                 // Product Image and Details Section
                 Positioned(
                   top: cardSize * 0.2,
-                  left: cardSize * 0.09,
+                  left: cardSize * 0.07,
                   right: cardSize * 0.05,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +127,7 @@ class SharingBusinessServiceCard extends StatelessWidget {
                               fontSize: 16 * scaleFactor,
                               height: 1.2,
                             ),
-                            SizedBox(height: 4 * scaleFactor),
+                            SizedBox(height: 8 * scaleFactor),
                             CustomText(
                               "${serviceData.description ?? ''}",
                               color: AppColors.grayText,
@@ -145,15 +145,15 @@ class SharingBusinessServiceCard extends StatelessWidget {
                 ),
 
                 Positioned(
-                  top: cardSize * 0.35,
-                  left: cardSize * 0.46,
+                  top: cardSize * 0.4,
+                  left: cardSize * 0.44,
                   right: cardSize * 0.04,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
                         "${serviceData.facilities?.join(',')}",
-                        fontSize: SizeConfig.small,
+                        fontSize: 12 * scaleFactor,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
                         overflow: TextOverflow.ellipsis,
@@ -194,7 +194,6 @@ class SharingBusinessServiceCard extends StatelessWidget {
                               fontWeight: FontWeight.w400,
                               color: AppColors.grayText,
                               overflow: TextOverflow.ellipsis,
-
                               maxLines: 1,
                             ),
                           ],

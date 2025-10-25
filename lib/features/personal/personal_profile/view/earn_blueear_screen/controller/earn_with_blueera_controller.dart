@@ -93,6 +93,8 @@ class EarnWithBlueEraController extends GetxController{
     }
   }
 
+
+
   // ///GET FOOD SERVICES ONLY....
   // Future<void> getAllFoodService({bool isLoadMore = false}) async {
   //   if (isLoadMore) {

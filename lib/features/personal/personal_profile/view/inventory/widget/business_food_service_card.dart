@@ -25,10 +25,6 @@ class BusinessFoodServiceCard extends StatefulWidget {
 }
 
 class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
-  final CarouselSliderController _carouselController = CarouselSliderController();
-  int _currentIndex = 0;
-
-
   late final List<GlobalKey> _cardKey;
 
   @override
@@ -94,9 +90,9 @@ class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
                     alignment: Alignment.topRight,
                     child: InkWell(
                       onTap: () async {
-                        final currentFoodServices = widget.allFoodServices[_currentIndex];
+                        final currentFoodServices = widget.allFoodServices[index];
                         await VisitingCardHelper().shareVisitingCard(
-                            _cardKey[_currentIndex],
+                            _cardKey[index],
                             foodServiceId: currentFoodServices.id
                         );
                       },

@@ -220,8 +220,10 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
                     padding: EdgeInsets.only(bottom: SizeConfig.size10),
                     child: OwnProductCard(
                       product: productData,
-                      controller: inventoryController,
-                        isGridShow: false
+                      isGridShow: false,
+                      deleteProductApi: (){
+                        // earnWithBlueEraController.deleteProduct();
+                      },
                     ),
                   );
                 },

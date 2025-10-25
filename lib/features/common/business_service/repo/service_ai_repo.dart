@@ -28,4 +28,15 @@ class ServiceAiRepo extends BaseService {
     );
     return response;
   }
+
+  ///DELETE SERVICES....
+  Future<ResponseModel> deleteServiceRepo({required String serviceId}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      businessServicesById(serviceId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

@@ -44,6 +44,8 @@ class FoodUploadController extends GetxController {
   ApiResponse uploadFileToS3Response = ApiResponse.initial('Initial');
   Rx<ApiResponse> getFoodServiceResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> deleteServiceResponse
+                = ApiResponse.initial('Initial').obs;
 
   // Form controllers
   final TextEditingController foodNameController = TextEditingController();
@@ -115,6 +117,22 @@ class FoodUploadController extends GetxController {
     "Vigan",
     "Dairy/Sweet"
   ];
+
+  Color getFoodTypeColor(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'veg':
+        return Colors.green;
+      case 'non-veg':
+        return Colors.red;
+      case 'vigan': // assuming this means Vegan
+        return Colors.orange;
+      case 'dairy/sweet':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
 
   final List<String> cookingMethodOptions = [
     "Cold Mix",
@@ -410,6 +428,32 @@ class FoodUploadController extends GetxController {
          isFoodDataFirstLoading.value = false;
        }
      }
+  }
+
+  RxBool isDeleteServiceLoading = false.obs;
+
+  Future<void> deleteFoodService({required String serviceId}) async {
+    isDeleteServiceLoading.value = true;
+
+    try {
+      ResponseModel response =
+      await FoodAiRepo().deleteFoodServiceRepo(serviceId: serviceId);
+
+      if (response.isSuccess) {
+        deleteServiceResponse.value = ApiResponse.complete(response);
+        Get.back();
+        foodDataList.removeWhere((service) => service.id == serviceId);
+        foodDataList.refresh();
+        print('Total: ${foodDataList.length}');
+      } else {
+        deleteServiceResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      deleteServiceResponse.value = ApiResponse.error('error');
+      logs("stack trace--> $s");
+    }finally{
+      isDeleteServiceLoading.value = false;
+    }
   }
 
   @override

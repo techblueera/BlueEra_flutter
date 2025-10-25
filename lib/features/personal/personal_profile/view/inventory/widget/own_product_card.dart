@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -17,14 +18,14 @@ import 'package:BlueEra/core/constants/size_config.dart';
 
 class OwnProductCard extends StatelessWidget {
   final GetProductData product;
-  final InventoryController controller;
+  final VoidCallback deleteProductApi;
   final double? width;
   final bool isGridShow;
 
   const OwnProductCard({
     super.key,
     required this.product,
-    required this.controller,
+    required this.deleteProductApi,
     this.width,
     this.isGridShow = true,
   });
@@ -120,6 +121,7 @@ class OwnProductCard extends StatelessWidget {
                       top: 8,
                       right: 8,
                       child: _buildIconBox(
+                        onTap: deleteProductApi,
                         Icon(Icons.more_vert, color: Colors.white, size: 16),
                       ),
                     ),

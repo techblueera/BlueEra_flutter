@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/map/controller/location_controller.dart';
@@ -268,7 +269,7 @@ Future<String> getUserServiceExistsKey() async {
 Future<String> getBusinessType() async {
   return await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.businessType) ??
-      '';
+      BusinessType.Product.name;
 }
 
 

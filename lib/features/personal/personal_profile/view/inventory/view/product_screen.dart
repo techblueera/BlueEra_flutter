@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_product_card.dart';
@@ -116,7 +118,9 @@ class _ProductScreenState extends State<ProductScreen> {
               itemBuilder: (context, index) {
                 final product = inventoryController.allProducts[index];
                 return OwnProductCard(
-                  controller: inventoryController,
+                  deleteProductApi: (){
+                    inventoryController.deleteProduct();
+                  },
                   width: itemWidth,
                   product: product,
                 );
@@ -158,8 +162,10 @@ class _ProductScreenState extends State<ProductScreen> {
               itemBuilder: (context, index) {
                 final product = inventoryController.liveProducts[index];
                 return OwnProductCard(
+                  deleteProductApi: (){
+                      inventoryController.deleteProduct();
+                  },
                   product: product,
-                  controller: inventoryController,
                   width: itemWidth
                 );
               },
@@ -201,8 +207,10 @@ class _ProductScreenState extends State<ProductScreen> {
               itemBuilder: (context, index) {
                 final product = inventoryController.draftProducts[index];
                 return OwnProductCard(
+                  deleteProductApi: (){
+                    inventoryController.deleteProduct();
+                  },
                   product: product,
-                  controller: inventoryController,
                   width: itemWidth
                 );
               },

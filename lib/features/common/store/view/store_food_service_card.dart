@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
@@ -12,10 +13,12 @@ import 'package:hive/hive.dart';
 class StoreFoodServiceCard extends StatelessWidget {
   final GetFoodDetailsModel? foodDetailsData;
   final bool isShowVerticalUi;
-  const StoreFoodServiceCard({Key? key, this.foodDetailsData, required this.isShowVerticalUi}) : super(key: key);
+  const StoreFoodServiceCard({Key? key,
+    this.foodDetailsData, required this.isShowVerticalUi}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    FoodUploadController controller = Get.put(FoodUploadController());
     final priceOptions = foodDetailsData?.priceOptions;
 
     String priceText = "N/A";
@@ -89,9 +92,7 @@ class StoreFoodServiceCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: (foodDetailsData?.vegType == "veg")
-                              ? Colors.green
-                              : Colors.red,
+                          color: controller.getFoodTypeColor(foodDetailsData?.vegType),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: CustomText("${foodDetailsData?.vegType ?? "veg"}",
@@ -159,7 +160,7 @@ class StoreFoodServiceCard extends StatelessWidget {
                       color: AppColors.primaryColor,
                     )
                         : CustomText(
-                      "Price : ₹ ${priceText}",
+                      "Price : ₹${priceText}",
                       fontWeight: FontWeight.w600,
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.primaryColor,
@@ -317,7 +318,7 @@ class StoreFoodServiceCard extends StatelessWidget {
                         color: AppColors.primaryColor,
                       )
                           : CustomText(
-                        "Price : ₹ ${priceText}",
+                        "Price : ₹${priceText}",
                         fontWeight: FontWeight.w600,
                         overflow: TextOverflow.ellipsis,
                         color: AppColors.primaryColor,

@@ -18,6 +18,7 @@ class InventoryController extends GetxController {
   Rx<ApiResponse> ownDraftAndPublicProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> searchProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> cloneVariantProductResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> deleteProductVariantResponse = ApiResponse.initial('Initial').obs;
 
   final TextEditingController searchController = TextEditingController();
   
@@ -571,6 +572,47 @@ class InventoryController extends GetxController {
         // Implement delete functionality
         commonSnackBar(message: "Category Deleted.");
         break;
+    }
+  }
+
+  RxBool isDeleteProductVariantLoading = false.obs;
+
+  void deleteProduct() {
+    try {
+      isDeleteProductVariantLoading.value = true;
+
+      Map<String, dynamic> queryParams = {
+        'ownerId': businessId,
+        'ownerType': ProductServiceProviderType.business.title,
+      };
+
+      // final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      // if (response.isSuccess) {
+      //   deleteProductVariantResponse.value = ApiResponse.complete(response);
+      //   // final getOwnProductModel = GetProductModel.fromJson(response.response!.data);
+      //   // List<GetProductData> products = getOwnProductModel.data;
+      //   //
+      //   // if(isDraftProduct!=null){
+      //   //   if(isDraftProduct){
+      //   //     draftProducts.clear();
+      //   //     draftProducts.assignAll(products);
+      //   //   }else{
+      //   //     liveProducts.clear();
+      //   //     liveProducts.assignAll(products);
+      //   //   }
+      //   // }else{
+      //   //   allProducts.clear();
+      //   //   allProducts.assignAll(products);
+      //   // }
+      // } else {
+      //   print("API failed with status: ${response.statusCode}");
+      //   deleteProductVariantResponse.value = ApiResponse.error('error');
+      // }
+    } catch (e, s) {
+      print("stack trace: $s");
+    } finally {
+      isDeleteProductVariantLoading.value = false;
+      deleteProductVariantResponse.value = ApiResponse.error('error');
     }
   }
 }

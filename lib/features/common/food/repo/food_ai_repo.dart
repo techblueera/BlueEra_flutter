@@ -54,4 +54,16 @@ class FoodAiRepo extends BaseService {
     );
     return response;
   }
+
+  ///DELETE FOOD SERVICES....
+  Future<ResponseModel> deleteFoodServiceRepo({required String serviceId}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      businessServicesById(serviceId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

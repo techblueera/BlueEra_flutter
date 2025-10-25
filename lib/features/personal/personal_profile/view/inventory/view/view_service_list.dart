@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
@@ -63,10 +65,10 @@ class _ViewServiceListState extends State<ViewServiceList> {
               child: ListView.builder(
                 controller: scrollController,
                 shrinkWrap: true,
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: 12),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: SizeConfig.size10),
                 itemCount: serviceController.serviceDataList.length,
                 itemBuilder: (context, index) {
-                  GetServiceModel? serviceData= serviceController.serviceDataList[index];
+                  GetServiceModel? serviceData = serviceController.serviceDataList[index];
                   return Padding(
                     padding: const EdgeInsets.only(top: 10.0),
                     child: InkWell(
@@ -97,7 +99,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                 borderRadius: BorderRadius.only(
                                     topLeft:
                                     Radius.circular(10),
-                                bottomLeft:Radius.circular(10) ),
+                                    bottomLeft:Radius.circular(10) ),
                                 child: CustomImageSlideshow(
                                   isLoading: false,
                                   width: double.infinity,
@@ -108,114 +110,119 @@ class _ViewServiceListState extends State<ViewServiceList> {
                               ),
                             ),
                             Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 12),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Title & price
-                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title & price
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        CustomText(
-                                          serviceData.title ?? "N/A",
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
+                                        Expanded(
+                                          child: CustomText(
+                                            serviceData.title ?? "N/A",
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                          ),
                                         ),
+                                        IconButton(
+                                            onPressed: () async {
+                                              await showCommonDialog(
+                                                context: context,
+                                                text: "Are you sure you want to delete this service? Once deleted, it cannot be recovered.",
+                                                confirmText: 'Delete',
+                                                cancelText: 'Cancel',
+                                                confirmCallback: () {
+                                                  serviceController.deleteService(serviceId: serviceData.id ?? '');
+                                                },
+                                                cancelCallback: () {
+                                                  Get.back();
+                                                },
+                                              );
+                                            }, icon: Icon(
+                                          Icons.more_vert, color: Colors.black, size: 20,
+                                        ))
                                       ],
                                     ),
-                                    SizedBox(height: SizeConfig.size6),
-                                    Container(
-                                      // height: SizeConfig.size20,
-                                      alignment: Alignment.centerLeft,
-                                      child: CustomText(
-                                        serviceData.description,
-                                        fontSize: SizeConfig.small,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 2,
-                                      ),
-                                    ),
+                                  ),
 
-                                    SizedBox(height: SizeConfig.size8),
-                                    Container(
-                                      // height: SizeConfig.size20,
-                                      alignment: Alignment.centerLeft,
-                                      child: Row(
-                                        children: [
-                                          CustomText(
-                                            "₹${serviceData.priceRange?.min}-${serviceData.priceRange?.max}",
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w900,
-                                            overflow: TextOverflow.ellipsis,
-
-                                            maxLines: 2,
-                                          ),
-                                          CustomText(
-                                            "/${serviceData.perUnit}",
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w400,
-                                            overflow: TextOverflow.ellipsis,
-
-                                            maxLines: 2,
-                                          ),
-
-                                        ],
-                                      ),
-
-                                    ),
-                                    SizedBox(height: SizeConfig.size8),
-                                    CustomText(
-                                      "${serviceData.facilities?.join(',')}",
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primaryColor,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    alignment: Alignment.centerLeft,
+                                    child: CustomText(
+                                      serviceData.description,
+                                      fontSize: SizeConfig.small,
                                       overflow: TextOverflow.ellipsis,
-
                                       maxLines: 2,
                                     ),
-                                    SizedBox(height: SizeConfig.size12),
-                                    Row(
+                                  ),
+
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                                    child: Column(
                                       children: [
                                         CustomText(
-                                          "Open :",
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
+                                          "${serviceData.facilities?.join(',')}",
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryColor,
                                           overflow: TextOverflow.ellipsis,
-                                          color: AppColors.green39,
-
+                                          maxLines: 2,
                                         ),
-                                        CustomText(
-                                          "${serviceData.timings?[0].start}",
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          overflow: TextOverflow.ellipsis,
-                                          color: AppColors.grayText,
-                                          maxLines: 1,
-                                        ),
-                                        CustomText(
-                                          " Close :",
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          overflow: TextOverflow.ellipsis,
-                                          color: AppColors.red,
+                                        SizedBox(height: SizeConfig.size8),
+                                        Row(
+                                          children: [
+                                            CustomText(
+                                              "Open :",
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              overflow: TextOverflow.ellipsis,
+                                              color: AppColors.green39,
 
-                                          maxLines: 1,
-                                        ), CustomText(
-                                          "${serviceData.timings?[0].end}",
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppColors.grayText,
-                                          overflow: TextOverflow.ellipsis,
-
-                                          maxLines: 1,
+                                            ),
+                                            CustomText(
+                                              "${serviceData.timings?[0].start}",
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              overflow: TextOverflow.ellipsis,
+                                              color: AppColors.grayText,
+                                              maxLines: 1,
+                                            ),
+                                            CustomText(
+                                                ' | ',
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.grayText,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            CustomText(
+                                              "Close :",
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              overflow: TextOverflow.ellipsis,
+                                              color: AppColors.red,
+                                              maxLines: 1,
+                                            ),
+                                            CustomText(
+                                              "${serviceData.timings?[0].end}",
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.grayText,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: SizeConfig.size5),
-                                  ],
-                                ),
+                                  ),
+
+                                  SizedBox(height: SizeConfig.size5),
+                                ],
                               ),
                             ),
                           ],
