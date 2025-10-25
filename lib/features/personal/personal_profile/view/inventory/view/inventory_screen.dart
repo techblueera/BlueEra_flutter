@@ -27,21 +27,43 @@ class _InventoryScreenState extends State<InventoryScreen>
     with SingleTickerProviderStateMixin {
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
-  late TabController _tabController;
+  TabController? _tabController;
   final controller = Get.put(InventoryController());
+
+  String? _businessType;
+  bool _isLoading = true;
+  late List<Tab> _tabs;
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
-    controller.callApi(forceRefresh: true);
+    _initializeData();
     super.initState();
   }
+
+  Future<void> _initializeData() async {
+    final type = await getBusinessType();
+    final business = type.toLowerCase();
+
+    _businessType = business;
+    _tabs = [];
+
+    if (isShowProduct.contains(business)) _tabs.add(const Tab(text: 'My Products'));
+    if (isShowService.contains(business)) _tabs.add(const Tab(text: 'My Services'));
+    if (isShowFood.contains(business)) _tabs.add(const Tab(text: 'Food & Grocery'));
+
+    _tabController = TabController(length: _tabs.length, vsync: this);
+
+    controller.callApi(forceRefresh: true);
+
+    setState(() => _isLoading = false);
+  }
+
 
   @override
   void dispose() {
     Get.delete<ProductController>();
     Get.delete<InventoryController>();
-    _tabController.dispose();
+    _tabController?.dispose();
     _searchFocusNode.dispose();
     super.dispose();
   }
@@ -49,6 +71,12 @@ class _InventoryScreenState extends State<InventoryScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: PreferredSize(
@@ -69,12 +97,12 @@ class _InventoryScreenState extends State<InventoryScreen>
             indicatorWeight: 2,
             labelStyle: TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              if ((isShowProduct.contains(businessType())))
-                Tab(text: 'My Products'),
-              if ((isShowService.contains(businessType())))
-                Tab(text: 'My Services'),
-              if ((isShowFood.contains(businessType())))
-                Tab(text: 'Food & Grocery'),
+              if (isShowProduct.contains(_businessType))
+                const Tab(text: 'My Products'),
+              if (isShowService.contains(_businessType))
+                const Tab(text: 'My Services'),
+              if (isShowFood.contains(_businessType))
+                const Tab(text: 'Food & Grocery'),
             ],
           ),
         ),
@@ -103,13 +131,13 @@ class _InventoryScreenState extends State<InventoryScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          if ((isShowProduct.contains(businessType())))
+          if ((isShowProduct.contains(_businessType)))
             ProductScreen(),
-          if ((isShowService.contains(businessType())))
+          if ((isShowService.contains(_businessType)))
             ViewServiceList(
               providerType: ProductServiceProviderType.business,
             ),
-          if ((isShowFood.contains(businessType())))
+          if ((isShowFood.contains(_businessType)))
             FoodAndGroceryScreen(
               providerType: ProductServiceProviderType.business,
             ),

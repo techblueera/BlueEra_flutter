@@ -922,9 +922,12 @@ List<String> isShowProduct = ["product", "service", "both"];
 List<String> isShowService = ["product", "service", "both", "food"];
 List<String> isShowFood = ["food"];
 
-String? businessType() {
-  final controller = Get.find<ViewBusinessDetailsController>();
-  return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
+Future<String?> businessType() async {
+  String businessType = await getBusinessType();
+  log('business type--> ${businessType.toLowerCase()}');
+  return businessType.toLowerCase();
+  // final controller = Get.find<ViewBusinessDetailsController>();
+  // return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
 }
 
 List<PopupMenuEntry<String>> popupMenuInventoryItems() {

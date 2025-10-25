@@ -1,8 +1,10 @@
 import 'dart:developer';
 
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
@@ -47,45 +49,77 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
-    if (!isGuestUser()) {
-      // Get.put(LocationServiceProviderController()); // initialize controller
-    }
 
-    if (isIndividual()) {
-      checkServiceExistence();
-      if(channelId.isEmpty){
-        getChannelDetails().then((channelModel) {
-          channelId = channelModel?.data.id ?? '';
-          channelName = channelModel?.data.name ?? '';
-          channelOwner = channelModel?.data.ownership.claimedBy ?? '';
-          SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.channel_Id, channelId);
-          SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.channelName, channelName);
-          SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.channelOwner, channelOwner);
-        });
-      }
-    }
-    else{
-      getBusinessUserOwnProduct();
-    }
-
-    chatViewController.connectSocket();
-    // groupChatViewController.connectSocket();
-    Get.put(ChatThemeController());
-    getOneSignalUpdate();
+    _initializeControllers();
+    _initializeUserData();
+    _initializeSocketConnections();
+    _initializeOneSignal();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if(isBusiness()){
-        bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
-      }
-      else{
-
-      }
+      _handlePostFrameInitialization();
     });
-
   }
+
+  void _initializeControllers() {
+    if (!isGuestUser()) {
+      // Get.put(LocationServiceProviderController());
+    }
+
+    Get.put(ChatThemeController());
+  }
+
+  Future<void> _initializeUserData() async {
+    if (isIndividual()) {
+      await _initializeIndividualUser();
+    } else {
+      await _initializeBusinessUser();
+    }
+  }
+
+  Future<void> _initializeIndividualUser() async {
+    checkServiceExistence();
+
+    if (channelId.isNotEmpty) return;
+
+    final channelModel = await getChannelDetails();
+    if (channelModel?.data == null) return;
+
+    final data = channelModel!.data;
+    channelId = data.id ?? '';
+    channelName = data.name ?? '';
+    channelOwner = data.ownership.claimedBy ?? '';
+
+    await Future.wait([
+      SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channel_Id, channelId),
+      SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channelName, channelName),
+      SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channelOwner, channelOwner),
+    ]);
+  }
+
+  Future<void> _initializeBusinessUser() async {
+    await getBusinessUserOwnProduct();
+  }
+
+  void _initializeSocketConnections() {
+    chatViewController.connectSocket();
+    // groupChatViewController.connectSocket();
+  }
+
+  void _initializeOneSignal() {
+    getOneSignalUpdate();
+  }
+
+  void _handlePostFrameInitialization() {
+    if (isBusiness()) {
+      bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+
+      final viewProfileController = Get.put(ViewBusinessDetailsController());
+      if (viewProfileController.viewBusinessResponse.status != Status.COMPLETE) {
+        viewProfileController.viewBusinessProfile();
+      }
+    }
+  }
+
 
   Future<void> checkServiceExistence() async {
     viewPersonalDetailsController.isUserServiceExistsKey.value = await getUserServiceExistsKey();

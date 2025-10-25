@@ -33,7 +33,6 @@ String businessOwnerAddressGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
 String userServiceCreatedStatusGlobal = '';
-// String userServiceExistsKeyGlobal = 'false';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -75,6 +74,7 @@ class SharedPreferenceUtils {
   static const serviceProviderStatus = 'serviceProviderStatus';
   static const userServiceCreatedStatusKey = 'userServiceCreatedStatusKey';
   static const userServiceExistsKey = 'userServiceExistsKey';
+  static const businessType = 'businessType';
 
   static Future<void> userLoggedInIndivisualGuest({
     required String loginUserId_,
@@ -126,6 +126,7 @@ class SharedPreferenceUtils {
     required String userNameAt,
     required String businessAddress,
     required String subCategoryOfBusiness,
+    required String typeOfBusiness,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(
@@ -143,6 +144,8 @@ class SharedPreferenceUtils {
         SharedPreferenceUtils.businessOwnerAddress, businessAddress);
     await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.businessSubCategory, subCategoryOfBusiness);
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.businessType, typeOfBusiness);
 
     userProfileGlobal = profileImage;
     precacheImage(
@@ -257,9 +260,15 @@ getUserServiceCreatedStatusUtils() async {
 }
 
 Future<String> getUserServiceExistsKey() async {
-   return await SharedPreferenceUtils.getSecureValue(
+  return await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.userServiceExistsKey) ??
       'false';
+}
+
+Future<String> getBusinessType() async {
+  return await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessType) ??
+      '';
 }
 
 
