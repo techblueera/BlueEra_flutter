@@ -17,14 +17,12 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/services/multipart_image_service.dart';
 import '../../../widgets/common_box_shadow.dart';
-import '../../../widgets/common_circular_profile_image.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
 import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
 import '../visit_business_profile/view/business_profile_header.dart';
-import 'package:dio/dio.dart' as dio;
 
 
 

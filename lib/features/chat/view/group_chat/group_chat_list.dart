@@ -12,7 +12,6 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/get_Group_List_Model.dart';
 import '../widget/component_widgets.dart';
 import 'group_chat_screen.dart';
 class GroupChatListTabPage extends StatefulWidget {

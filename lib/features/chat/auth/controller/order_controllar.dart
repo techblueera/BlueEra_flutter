@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,7 +7,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -17,7 +15,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
 import '../repo/make_order_repo.dart';
 import 'chat_view_controller.dart';
@@ -57,7 +54,6 @@ class OrderNowController extends GetxController {
       await BusinessProfileRepo().updateMsgOrderStatus(params);
 
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
 
       }else{
 
@@ -74,7 +70,7 @@ class OrderNowController extends GetxController {
         print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -88,7 +84,7 @@ class OrderNowController extends GetxController {
         print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
