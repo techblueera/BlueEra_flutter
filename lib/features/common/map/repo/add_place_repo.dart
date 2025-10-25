@@ -78,7 +78,7 @@ class AddPlaceRepo extends BaseService {
         formData.fields
             .add(MapEntry(ApiKeys.visitingHours, placeReq.visitingHours ?? ""));
       final response = await ApiBaseHelper().postMultiImage(addPlace,
-          params: formData, isArrayReq: true, isMultipart: true);
+          params: formData, isArrayReq: true, );
       return response;
     } catch (e) {
       logs("ERROR ${e.toString()}");

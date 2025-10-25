@@ -68,6 +68,7 @@ class Post {
   final String? quesOptions;
   final List<User>? taggedUsers;
   final List<String>? media;
+  final List<String>? media_types;
 
   // final LocationMetadata? locationMetadata;
   final Poll? poll;
@@ -107,6 +108,7 @@ class Post {
     this.quesOptions,
     this.taggedUsers,
     this.media,
+    this.media_types,
     // this.locationMetadata,
     this.poll,
     this.isLiked,
@@ -154,6 +156,7 @@ class Post {
           ?.map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
       media: (json['media'] as List?)?.map((e) => e.toString()).toList(),
+      media_types: (json['media_types'] as List?)?.map((e) => e.toString()).toList(),
 
       poll: json['poll'] != null ? Poll.fromJson(json['poll']) : null,
       isLiked: json['isLiked'],
@@ -195,6 +198,7 @@ class Post {
       'ques_options': quesOptions,
       'tagged_users_details': taggedUsers?.map((e) => e.toJson()).toList(),
       'media': media,
+      'media_types': media_types,
       // 'location_metadata': locationMetadata?.toJson(),
       'poll': poll?.toJson(),
       'isLiked': isLiked,
@@ -232,6 +236,7 @@ class Post {
     String? quesOptions,
     List<User>? taggedUsers,
     List<String>? media,
+    List<String>? media_types,
     Poll? poll,
     bool? isLiked,
     User? user,
@@ -268,6 +273,7 @@ class Post {
       quesOptions: quesOptions ?? this.quesOptions,
       taggedUsers: taggedUsers ?? this.taggedUsers,
       media: media ?? this.media,
+      media_types: media_types ?? this.media_types,
       poll: poll ?? this.poll,
       isLiked: isLiked ?? this.isLiked,
       user: user ?? this.user,

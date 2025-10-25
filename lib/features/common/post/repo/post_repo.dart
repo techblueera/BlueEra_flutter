@@ -33,12 +33,11 @@ class PostRepo extends BaseService {
   }
 
   Future<ResponseModel> addPostNewRepo(
-      {required FormData? formData, required bool? isMultiPartPost}) async {
+      {required FormData? formData, }) async {
     final response = await ApiBaseHelper().postMultiImage(
       addPost,
       params: formData,
       isArrayReq: true,
-      isMultipart: true,
       showProgress: false,
       onSendProgress: (sent, total) {
         double progress = sent / total;
@@ -144,7 +143,6 @@ class PostRepo extends BaseService {
         addPost,
         params: formData,
         isArrayReq: true,
-        isMultipart: true,
         showProgress: false,
         onSendProgress: (sent, total) {
           double progress = sent / total;
@@ -270,6 +268,35 @@ class PostRepo extends BaseService {
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
+  ///UPLOAD INIT...
+  Future<ResponseModel?> uploadMessagePostVideoRepo(
+      {required Map<String, dynamic> queryParams, }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      initPostServiceUpload,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  ///UPLOAD TO S3...
+  Future<ResponseModel?> uploadMessagePostVideoRepoToS3(
+      {required Function(double progress) onProgress,
+        required File file,
+        required String fileType,
+        required String preSignedUrl}) async {
+    final response = await ApiBaseHelper().uploadVideoToS3(
+      preSignedUrl,
+      file: file,
+      fileType: fileType,
+      showProgress: false,
+      onProgress: onProgress,
     );
     return response;
   }

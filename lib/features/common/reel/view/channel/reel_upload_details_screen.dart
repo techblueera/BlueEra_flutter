@@ -42,10 +42,17 @@ class ReelUploadDetailsScreen extends StatefulWidget {
   final Video videoType;
   final String? videoId;
   final PostVia? postVia;
-  const ReelUploadDetailsScreen({super.key, required this.videoPath, required this.videoType, required this.videoId, this.postVia});
+
+  const ReelUploadDetailsScreen(
+      {super.key,
+      required this.videoPath,
+      required this.videoType,
+      required this.videoId,
+      this.postVia});
 
   @override
-  State<ReelUploadDetailsScreen> createState() => _ReelUploadDetailsScreenState();
+  State<ReelUploadDetailsScreen> createState() =>
+      _ReelUploadDetailsScreenState();
 }
 
 class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
@@ -73,14 +80,13 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   bool _isBrandPromotion = false;
 
   final _formKey = GlobalKey<FormState>();
-  final reelUploadDetailsController = Get.put<ReelUploadDetailsController>(
-      ReelUploadDetailsController());
+  final reelUploadDetailsController =
+      Get.put<ReelUploadDetailsController>(ReelUploadDetailsController());
   Map<String, String>? tagUsers;
   SongModel? songData;
   Map<String, dynamic>? selectedLocation;
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   bool isBookingAvailabilitySet = false;
-
 
   // /// for showing progress of video uploading
   // RxDouble totalProgress = 0.0.obs;
@@ -89,26 +95,25 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   //   totalProgress.value = value;
   // }
 
-
   @override
-   initState()  {
+  initState() {
     super.initState();
     reelUploadDetailsController.video = widget.videoType;
     reelUploadDetailsController.getVideoCategories();
     if (widget.videoId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        reelUploadDetailsController.getVideosDetails(
-            videoId: widget.videoId ?? '').then((response) {
+        reelUploadDetailsController
+            .getVideosDetails(videoId: widget.videoId ?? '')
+            .then((response) {
           setVideoMetaData(reelUploadDetailsController.videoData.value);
         });
       });
-    }else{
+    } else {
       setInitialCover();
     }
-
   }
-  Future<void> setInitialCover() async {
 
+  Future<void> setInitialCover() async {
     print("Video path: ${widget.videoPath}");
 
     final videoPath = widget.videoPath;
@@ -128,7 +133,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         if (thumbnailPath != null) {
           setState(() {
             _commonCoverImage = thumbnailPath;
-
           });
           print("Thumbnail generated at: $_commonCoverImage");
         } else {
@@ -136,11 +140,13 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         }
       } catch (e) {
         print("Thumbnail generation error: $e");
-        _commonCoverImage = reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
+        _commonCoverImage =
+            reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
       }
     } else {
       print("Video path invalid or file does not exist");
-      _commonCoverImage = reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
+      _commonCoverImage =
+          reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
     }
   }
 
@@ -153,11 +159,10 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     } else {
       _shortDescription.text = VideoFeedItemMetaData.video?.title ?? '';
       songData = SongModel(
-        id: VideoFeedItemMetaData.video?.song?.id??'',
-        name: VideoFeedItemMetaData.video?.song?.name??'',
-        artist: VideoFeedItemMetaData.video?.song?.artist??'',
-        coverUrl: VideoFeedItemMetaData.video?.song?.coverUrl??''
-      );
+          id: VideoFeedItemMetaData.video?.song?.id ?? '',
+          name: VideoFeedItemMetaData.video?.song?.name ?? '',
+          artist: VideoFeedItemMetaData.video?.song?.artist ?? '',
+          coverUrl: VideoFeedItemMetaData.video?.song?.coverUrl ?? '');
       _shortLink.text = VideoFeedItemMetaData.video?.relatedVideoLink ?? '';
     }
 
@@ -173,8 +178,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       ApiKeys.lng: VideoFeedItemMetaData.video?.location?.lng ?? ''
     };
 
-    final List<dynamic> rawList = VideoFeedItemMetaData.video?.taggedUsers ??
-        [];
+    final List<dynamic> rawList =
+        VideoFeedItemMetaData.video?.taggedUsers ?? [];
 
     tagUsers = {
       for (final item in rawList)
@@ -203,7 +208,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           isLeading: true,
           title: (widget.videoId != null) ? 'Upload Post' : 'Create Post',
         ),
-
         body: Obx(() {
           if (reelUploadDetailsController.isVideoDetailsLoading.isFalse) {
             // if (widget.videoId != null) {
@@ -237,18 +241,21 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         child: Column(
                           children: [
                             Builder(builder: (context) {
-                              final height = (reelUploadDetailsController.video ==
-                                  Video.video)
-                                  ? SizeConfig.size220
-                                  : SizeConfig.size250;
-                              final width = (reelUploadDetailsController.video ==
-                                  Video.video)
-                                  ? SizeConfig.size320
-                                  : SizeConfig.size180;
-                              final addBtnWidth = (reelUploadDetailsController.video ==
-                                  Video.video)
-                                  ? SizeConfig.size220
-                                  : SizeConfig.size140;
+                              final height =
+                                  (reelUploadDetailsController.video ==
+                                          Video.video)
+                                      ? SizeConfig.size220
+                                      : SizeConfig.size250;
+                              final width =
+                                  (reelUploadDetailsController.video ==
+                                          Video.video)
+                                      ? SizeConfig.size320
+                                      : SizeConfig.size180;
+                              final addBtnWidth =
+                                  (reelUploadDetailsController.video ==
+                                          Video.video)
+                                      ? SizeConfig.size220
+                                      : SizeConfig.size140;
                               return Stack(
                                 clipBehavior: Clip.none,
                                 children: [
@@ -264,27 +271,29 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                           Radius.circular(SizeConfig.size18)),
                                     ),
                                     child: (_commonCoverImage != null)
-                                        ? isNetworkImage(_commonCoverImage) ?
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          SizeConfig.size18),
-                                      child: CachedNetworkImage(
-                                        imageUrl: _commonCoverImage!,
-                                        fit: BoxFit.cover,
-                                        height: height,
-                                        width: width,
-                                      ),
-                                    )
-                                        : ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          SizeConfig.size18),
-                                      child: Image.file(
-                                        File(_commonCoverImage!),
-                                        fit: BoxFit.cover,
-                                        height: height,
-                                        width: width,
-                                      ),
-                                    )
+                                        ? isNetworkImage(_commonCoverImage)
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        SizeConfig.size18),
+                                                child: CachedNetworkImage(
+                                                  imageUrl: _commonCoverImage!,
+                                                  fit: BoxFit.cover,
+                                                  height: height,
+                                                  width: width,
+                                                ),
+                                              )
+                                            : ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        SizeConfig.size18),
+                                                child: Image.file(
+                                                  File(_commonCoverImage!),
+                                                  fit: BoxFit.cover,
+                                                  height: height,
+                                                  width: width,
+                                                ),
+                                              )
                                         : SizedBox.shrink(),
                                   ),
                                   Positioned(
@@ -299,15 +308,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                             width: addBtnWidth,
                                             padding: EdgeInsets.all(8.0),
                                             decoration: BoxDecoration(
-                                              color: Colors.black.withValues(
-                                                  alpha: 0.6),
-                                              borderRadius: BorderRadius
-                                                  .circular(8),
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.6),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
-                                              mainAxisAlignment: MainAxisAlignment
-                                                  .center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 Icon(Icons.add,
                                                     size: SizeConfig.size20,
@@ -339,7 +348,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           maxLine: 1,
                           keyBoardType: TextInputType.text,
                           title: "Long Video Title",
-                          hintText: "Enter the full video title (max 50 characters)",
+                          hintText:
+                              "Enter the full video title (max 50 characters)",
                           isValidate: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -373,7 +383,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           maxLine: 4,
                           keyBoardType: TextInputType.text,
                           title: "Video Description",
-                          hintText: "Write a detailed description about the video content and hashtags... eg. Best day at the beach! #sunset#vibes",
+                          hintText:
+                              "Write a detailed description about the video content and hashtags... eg. Best day at the beach! #sunset#vibes",
                           isValidate: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -391,7 +402,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           maxLine: 3,
                           keyBoardType: TextInputType.text,
                           title: "Description",
-                          hintText: "Write your caption and add hashtags...eg. Best day at the beach! #sunset #vibes",
+                          hintText:
+                              "Write your caption and add hashtags...eg. Best day at the beach! #sunset #vibes",
                           isValidate: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -410,12 +422,10 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         afterLabelText: "(Optional)",
                         callBack: () async {
                           final result = await Navigator.pushNamed(
-                              context,
-                              RouteHelper.getTagPeopleScreenRoute(),
+                              context, RouteHelper.getTagPeopleScreenRoute(),
                               arguments: {
                                 ApiKeys.previouslySelectedItems: tagUsers
-                              }
-                          ) as Map<String, String>?;
+                              }) as Map<String, String>?;
 
                           if (result != null) {
                             setState(() {
@@ -443,29 +453,27 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                             context,
                             RouteHelper.getSearchLocationScreenRoute(),
                             arguments: {
-                              ApiKeys.onPlaceSelected: (double? lat,
-                                  double? lng, String? address) {
+                              ApiKeys.onPlaceSelected:
+                                  (double? lat, double? lng, String? address) {
                                 if (address != null) {
-                                  setState(() =>
-                                  selectedLocation = {
-                                    ApiKeys.name: address,
-                                    ApiKeys.lat: lat,
-                                    ApiKeys.lng: lng,
-                                  });
+                                  setState(() => selectedLocation = {
+                                        ApiKeys.name: address,
+                                        ApiKeys.lat: lat,
+                                        ApiKeys.lng: lng,
+                                      });
                                 }
                               },
                               ApiKeys.fromScreen: RouteConstant.CreateReelScreen
                             },
                           );
                         },
-                        chips: selectedLocation?[ApiKeys.name] != null ? [
-                          selectedLocation?[ApiKeys.name]
-                        ] : [],
+                        chips: selectedLocation?[ApiKeys.name] != null
+                            ? [selectedLocation?[ApiKeys.name]]
+                            : [],
                         onChipDelete: (value) {
                           setState(() => selectedLocation?.clear());
                         },
                       ),
-
 
                       if (reelUploadDetailsController.video == Video.short) ...[
                         SizedBox(height: SizeConfig.size20),
@@ -489,16 +497,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                               log("songData--> $songData");
                             }
                           },
-                          chips: songData?.name != null ? [
-                            songData?.name??''
-                          ] : [],
+                          chips: songData?.name != null
+                              ? [songData?.name ?? '']
+                              : [],
                           onChipDelete: (_) {
                             setState(() {
                               songData = null;
                             });
                           },
                         ),
-
                         SizedBox(height: SizeConfig.size20),
                         HttpsTextField(
                           controller: _shortLink,
@@ -589,7 +596,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         thumbColor: WidgetStateProperty.all(Colors.white),
                         inactiveTrackColor: AppColors.greyE6,
                       ),
-                      if(channelId != '')...[
+                      if (channelId != '') ...[
                         // if (reelUploadDetailsController.video == VideoType.short) ...[
                         //   SizedBox(height: SizeConfig.size10),
                         //   Align(
@@ -602,7 +609,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         //   ),
                         //   SizedBox(height: SizeConfig.size10),
                         // ],
-                       /* SwitchListTile(
+                        /* SwitchListTile(
                           visualDensity: VisualDensity(vertical: -2),
                           contentPadding: EdgeInsets.zero,
                           value: _acceptBookings,
@@ -889,59 +896,59 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           thumbColor: WidgetStateProperty.all(Colors.white),
                           inactiveTrackColor: AppColors.greyE6,
                         ),
-                        if(_isBrandPromotion)
-                          ...[
-                            SizedBox(height: SizeConfig.size15),
-                            HttpsTextField(
-                              controller: _brandPromotionLink,
-                              title: "Add brand promotion Link (Optional)",
-                              hintText: "Eg., https://...",
-                              isUrlValidate: _isBrandPromotion ? true : false,
-                            ),
-                          ]
+                        if (_isBrandPromotion) ...[
+                          SizedBox(height: SizeConfig.size15),
+                          HttpsTextField(
+                            controller: _brandPromotionLink,
+                            title: "Add brand promotion Link (Optional)",
+                            hintText: "Eg., https://...",
+                            isUrlValidate: _isBrandPromotion ? true : false,
+                          ),
+                        ]
                       ],
                       SizedBox(height: SizeConfig.size20),
 
-                      (widget.videoId != null) ?
-                      CustomBtn(
-                        onTap: () => updateVideoDetails(),
-                        height: SizeConfig.size40,
-                        width: SizeConfig.screenWidth,
-                        radius: 8,
-                        title: 'Update Post',
-                        borderColor: AppColors.primaryColor,
-                        bgColor: AppColors.primaryColor,
-                        textColor: AppColors.white,
-                      )
-                          : Row(
-                        children: [
-                          Expanded(
-                            child: CustomBtn(
-                              onTap: () => _onSubmit(visibleTo: 'unlisted'),
+                      (widget.videoId != null)
+                          ? CustomBtn(
+                              onTap: () => updateVideoDetails(),
                               height: SizeConfig.size40,
-                              width: SizeConfig.size140,
+                              width: SizeConfig.screenWidth,
                               radius: 8,
-                              title: 'Save as draft',
-                              borderColor: AppColors.primaryColor,
-                              bgColor: Colors.white,
-                              textColor: AppColors.primaryColor,
-                            ),
-                          ),
-                          SizedBox(width: SizeConfig.size10),
-                          Expanded(
-                            child: CustomBtn(
-                              onTap: () => _onSubmit(visibleTo: 'public'),
-                              height: SizeConfig.size40,
-                              width: SizeConfig.size290,
-                              radius: 8,
-                              title: 'Post Now',
+                              title: 'Update Post',
                               borderColor: AppColors.primaryColor,
                               bgColor: AppColors.primaryColor,
                               textColor: AppColors.white,
+                            )
+                          : Row(
+                              children: [
+                                Expanded(
+                                  child: CustomBtn(
+                                    onTap: () =>
+                                        _onSubmit(visibleTo: 'unlisted'),
+                                    height: SizeConfig.size40,
+                                    width: SizeConfig.size140,
+                                    radius: 8,
+                                    title: 'Save as draft',
+                                    borderColor: AppColors.primaryColor,
+                                    bgColor: Colors.white,
+                                    textColor: AppColors.primaryColor,
+                                  ),
+                                ),
+                                SizedBox(width: SizeConfig.size10),
+                                Expanded(
+                                  child: CustomBtn(
+                                    onTap: () => _onSubmit(visibleTo: 'public'),
+                                    height: SizeConfig.size40,
+                                    width: SizeConfig.size290,
+                                    radius: 8,
+                                    title: 'Post Now',
+                                    borderColor: AppColors.primaryColor,
+                                    bgColor: AppColors.primaryColor,
+                                    textColor: AppColors.white,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
                       SizedBox(height: SizeConfig.size10),
                     ],
                   ),
@@ -950,8 +957,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
             );
           }
           return Center(child: CircularProgressIndicator());
-        })
-    );
+        }));
   }
 
   Widget _tagPeopleTile({
@@ -967,11 +973,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           color: AppColors.white,
           boxShadow: [AppShadows.textFieldShadow],
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              width: 1,
-              color: AppColors.greyE5
-          )
-      ),
+          border: Border.all(width: 1, color: AppColors.greyE5)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1006,7 +1008,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
             ),
             onTap: (chips == null) ? callBack : null,
           ),
-
           if (chips != null && chips.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1023,13 +1024,14 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
                       return Chip(
                         label: Text(name),
-                        backgroundColor: AppColors.primaryColor.withValues(
-                            alpha: 0.1),
-                        labelStyle: TextStyle(color: AppColors.mainTextColor,
+                        backgroundColor:
+                            AppColors.primaryColor.withValues(alpha: 0.1),
+                        labelStyle: TextStyle(
+                            color: AppColors.mainTextColor,
                             fontWeight: FontWeight.w400,
                             fontSize: SizeConfig.large),
-                        deleteIcon: const Icon(Icons.close, size: 20,
-                            color: AppColors.mainTextColor),
+                        deleteIcon: const Icon(Icons.close,
+                            size: 20, color: AppColors.mainTextColor),
                         shape: RoundedRectangleBorder(
                           side: BorderSide(color: Colors.transparent),
                           borderRadius: BorderRadius.circular(8.0),
@@ -1048,10 +1050,12 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                     onPressed: callBack,
                     child: Row(
                       children: [
-                        LocalAssets(imagePath: AppIconAssets.addBlueIcon,
+                        LocalAssets(
+                            imagePath: AppIconAssets.addBlueIcon,
                             imgColor: AppColors.primaryColor),
                         SizedBox(width: SizeConfig.size1),
-                        CustomText('Add People', color: AppColors.primaryColor,
+                        CustomText('Add People',
+                            color: AppColors.primaryColor,
                             fontWeight: FontWeight.w400,
                             fontSize: SizeConfig.large),
                       ],
@@ -1064,7 +1068,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       ),
     );
   }
-
 
   Widget _optionTile({
     required String icon,
@@ -1080,11 +1083,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           color: AppColors.white,
           boxShadow: [AppShadows.textFieldShadow],
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              width: 1,
-              color: AppColors.greyE5
-          )
-      ),
+          border: Border.all(width: 1, color: AppColors.greyE5)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1119,10 +1118,10 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
             ),
             onTap: callBack,
           ),
-
           if (chips != null && chips.isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(left: SizeConfig.size15,
+              padding: EdgeInsets.only(
+                  left: SizeConfig.size15,
                   right: SizeConfig.size15,
                   bottom: SizeConfig.size10),
               child: Wrap(
@@ -1131,19 +1130,19 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                 children: chips.map((item) {
                   return Chip(
                     label: Text(item),
-                    backgroundColor: AppColors.primaryColor.withValues(
-                        alpha: 0.1),
-                    labelStyle: TextStyle(color: AppColors.mainTextColor,
+                    backgroundColor:
+                        AppColors.primaryColor.withValues(alpha: 0.1),
+                    labelStyle: TextStyle(
+                        color: AppColors.mainTextColor,
                         fontWeight: FontWeight.w400,
                         fontSize: SizeConfig.large),
-                    deleteIcon: const Icon(
-                        Icons.close, size: 20, color: AppColors.mainTextColor),
-                    shape: RoundedRectangleBorder(side: BorderSide(color: Colors
-                        .transparent),
+                    deleteIcon: const Icon(Icons.close,
+                        size: 20, color: AppColors.mainTextColor),
+                    shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(8.0)),
-                    onDeleted: onChipDelete != null
-                        ? () => onChipDelete(item)
-                        : null,
+                    onDeleted:
+                        onChipDelete != null ? () => onChipDelete(item) : null,
                   );
                 }).toList(),
               ),
@@ -1152,7 +1151,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       ),
     );
   }
-
 
   void selectImage(BuildContext context) async {
     final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
@@ -1167,12 +1165,12 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       }
     }
   }
+
   bool _isSubmitting = false;
 
   Future<void> _onSubmit({required String visibleTo}) async {
     if (_isSubmitting) return; // Prevent double-tap
     setState(() => _isSubmitting = true);
-
 
     visibility = visibleTo;
 
@@ -1183,9 +1181,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         return;
       }
 
-
       await uploadVideo();
-
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;
@@ -1351,7 +1347,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         reelUploadDetailsController.uploadFileToS3(
           file: videoFile,
           fileType: videoInfo['mimeType']!,
-          preSignedUrl: reelUploadDetailsController.uploadInitVideoFile?.uploadUrl ?? "",
+          preSignedUrl:
+              reelUploadDetailsController.uploadInitVideoFile?.uploadUrl ?? "",
           onProgress: (total) {
             videoProgress = total;
             updateCombinedProgress();
@@ -1360,7 +1357,9 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         reelUploadDetailsController.uploadFileToS3(
           file: coverFile,
           fileType: coverInfo['mimeType']!,
-          preSignedUrl: reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ?? "",
+          preSignedUrl:
+              reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ??
+                  "",
           onProgress: (total) {
             coverProgress = total;
             updateCombinedProgress();
@@ -1374,17 +1373,20 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       Map<String, dynamic> buildRequestData() {
         final baseData = <String, dynamic>{
           ApiKeys.videoUrl:
-          reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+              reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
           ApiKeys.videoKey:
-          reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+              reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
           ApiKeys.coverUrl:
-          reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
+              reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ??
+                  '',
           ApiKeys.visibility: visibility,
           if (widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
           if (tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
-          if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
+          if (selectedLocation != null &&
+              (selectedLocation?.isNotEmpty ?? false))
             ApiKeys.location: selectedLocation,
-          if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
+          if (_commonCategory != null)
+            ApiKeys.categories: [_commonCategory?.sId],
           if (_commonKeywords.text.isNotEmpty)
             ApiKeys.keywords: _commonKeywords.text
                 .split(',')
@@ -1409,7 +1411,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
             ApiKeys.type: 'short',
             ApiKeys.title: _shortDescription.text,
             if (songData != null) ApiKeys.song: jsonEncode(songData),
-            if (_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink.text,
+            if (_shortLink.text.isNotEmpty)
+              ApiKeys.relatedVideoLink: _shortLink.text,
           });
         }
 
@@ -1427,14 +1430,12 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         reqData: requestData,
         onProgress: (value) => updateProgress(value),
       );
-
     } catch (e) {
       /// ❌ On error also close dialog
       UploadProgressDialog.close();
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
 
   // Future<void> uploadVideoNewsync() async {
   //   double progress = 0.0;
@@ -1510,31 +1511,31 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     if (reelUploadDetailsController.video == Video.video) {
       requestData = {
         ApiKeys.type: 'long',
-        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
-            ?.publicUrl ?? '',
-        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile
-            ?.fileKey ?? '',
-        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile
-            ?.publicUrl ?? '',
+        ApiKeys.videoUrl:
+            reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+        ApiKeys.videoKey:
+            reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+        ApiKeys.coverUrl:
+            reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ??
+                '',
         ApiKeys.title: _videoTitle.text,
         ApiKeys.visibility: 'public',
-        if(channelId.isNotEmpty) ApiKeys.channelId: channelId,
-        if(_videoDescription.text.isNotEmpty) ApiKeys
-            .description: _videoDescription.text,
-        if(tagUsers != null) ApiKeys.taggedUsers: tagUsers?.keys.toList(),
-        if(selectedLocation != null &&
-            (selectedLocation?.isNotEmpty ?? false)) ApiKeys
-            .location: selectedLocation,
-        if(songData != null) ApiKeys.song: jsonEncode(songData),
-        if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
-            .text,
-        if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
-        if(_commonKeywords.text.isNotEmpty) ApiKeys.keywords: _commonKeywords
-            .text
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList(),
+        if (channelId.isNotEmpty) ApiKeys.channelId: channelId,
+        if (_videoDescription.text.isNotEmpty)
+          ApiKeys.description: _videoDescription.text,
+        if (tagUsers != null) ApiKeys.taggedUsers: tagUsers?.keys.toList(),
+        if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
+          ApiKeys.location: selectedLocation,
+        if (songData != null) ApiKeys.song: jsonEncode(songData),
+        if (_shortLink.text.isNotEmpty)
+          ApiKeys.relatedVideoLink: _shortLink.text,
+        if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
+        if (_commonKeywords.text.isNotEmpty)
+          ApiKeys.keywords: _commonKeywords.text
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
         ApiKeys.isMatureContent: _is18Plus,
         ApiKeys.allowComments: _showComments,
         ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
@@ -1547,30 +1548,30 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     } else {
       requestData = {
         ApiKeys.type: 'short',
-        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile
-            ?.fileKey ?? '',
-        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile
-            ?.publicUrl ?? '',
-        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile
-            ?.publicUrl ?? '',
+        ApiKeys.videoKey:
+            reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+        ApiKeys.videoUrl:
+            reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+        ApiKeys.coverUrl:
+            reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ??
+                '',
         ApiKeys.visibility: visibility,
         ApiKeys.title: _shortDescription.text,
         // if(channelId.isNotEmpty)
-        if(widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
-        if(tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
-        if(selectedLocation != null &&
-            (selectedLocation?.isNotEmpty ?? false)) ApiKeys
-            .location: selectedLocation,
-        if(songData != null) ApiKeys.song: jsonEncode(songData),
-        if(_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink
-            .text,
-        if(_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
-        if(_commonKeywords.text.isNotEmpty) ApiKeys.keywords: _commonKeywords
-            .text
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList(),
+        if (widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
+        if (tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
+        if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
+          ApiKeys.location: selectedLocation,
+        if (songData != null) ApiKeys.song: jsonEncode(songData),
+        if (_shortLink.text.isNotEmpty)
+          ApiKeys.relatedVideoLink: _shortLink.text,
+        if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
+        if (_commonKeywords.text.isNotEmpty)
+          ApiKeys.keywords: _commonKeywords.text
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
         ApiKeys.isMatureContent: _is18Plus,
         ApiKeys.allowComments: _showComments,
         ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
@@ -1585,124 +1586,116 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         videoId: widget.videoId ?? '', reqData: requestData);
   }
 
-  // late void Function(double) _updateProgressUI;
-  //
-  // void updateUploadingProgress(double progress) {
-  //   _updateProgressUI(progress);
-  // }
-  //
-  // void showUploadingProgressDialog({
-  //   required BuildContext context,
-  //   required double progress,
-  // }) {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (_) {
-  //       return AlertDialog(
-  //         title: const Text(
-  //           "Uploading...",
-  //           style: TextStyle(fontSize: 14),
-  //         ),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(SizeConfig.size10),
-  //         ),
-  //         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-  //         content: StatefulBuilder(
-  //           builder: (context, setState) {
-  //             _updateProgressUI = (double newProgress) {
-  //               setState(() {
-  //                 progress = newProgress;
-  //               });
-  //             };
-  //
-  //             return Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               crossAxisAlignment: CrossAxisAlignment.center,
-  //               children: [
-  //                 SizedBox(
-  //                   height: 8,
-  //                 ),
-  //                 LinearProgressIndicator(
-  //                   value: progress,
-  //                   minHeight: 6,
-  //                   backgroundColor: Colors.grey[300],
-  //                   color: Colors.blue,
-  //                 ),
-  //                 const SizedBox(height: 12),
-  //                 Text(
-  //                   "${(progress * 100).toStringAsFixed(0)}% completed",
-  //                   style: const TextStyle(fontSize: 14),
-  //                 ),
-  //               ],
-  //             );
-  //           },
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-
+// late void Function(double) _updateProgressUI;
+//
+// void updateUploadingProgress(double progress) {
+//   _updateProgressUI(progress);
+// }
+//
+// void showUploadingProgressDialog({
+//   required BuildContext context,
+//   required double progress,
+// }) {
+//   showDialog(
+//     context: context,
+//     barrierDismissible: false,
+//     builder: (_) {
+//       return AlertDialog(
+//         title: const Text(
+//           "Uploading...",
+//           style: TextStyle(fontSize: 14),
+//         ),
+//         shape: RoundedRectangleBorder(
+//           borderRadius: BorderRadius.circular(SizeConfig.size10),
+//         ),
+//         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+//         content: StatefulBuilder(
+//           builder: (context, setState) {
+//             _updateProgressUI = (double newProgress) {
+//               setState(() {
+//                 progress = newProgress;
+//               });
+//             };
+//
+//             return Column(
+//               mainAxisSize: MainAxisSize.min,
+//               crossAxisAlignment: CrossAxisAlignment.center,
+//               children: [
+//                 SizedBox(
+//                   height: 8,
+//                 ),
+//                 LinearProgressIndicator(
+//                   value: progress,
+//                   minHeight: 6,
+//                   backgroundColor: Colors.grey[300],
+//                   color: Colors.blue,
+//                 ),
+//                 const SizedBox(height: 12),
+//                 Text(
+//                   "${(progress * 100).toStringAsFixed(0)}% completed",
+//                   style: const TextStyle(fontSize: 14),
+//                 ),
+//               ],
+//             );
+//           },
+//         ),
+//       );
+//     },
+//   );
+// }
 
 // void videoUploadInBackground() {
-  //   Map<String, dynamic> _longPayload(Map<String, dynamic> d,
-  //       Map<String, dynamic> vInit,
-  //       Map<String, dynamic> cInit,) =>
-  //       {
-  //         ApiKeys.type: 'long',
-  //         'videoUrl': vInit['publicUrl'],
-  //         'videoKey': vInit['fileKey'],
-  //         'coverUrl': cInit['publicUrl'],
-  //         'title': d['title'],
-  //         'visibility': d['visibility'],
-  //         if (d['channelId']?.isNotEmpty == true) 'channelId': d['channelId'],
-  //         if (d['description']?.isNotEmpty ==
-  //             true) 'description': d['description'],
-  //         if (d['tagUsers'] != null) 'taggedUsers': d['tagUsers'],
-  //         if (d['location']?.isNotEmpty == true) 'location': d['location'],
-  //         if (d['categoryId'] != null) 'categories': [d['categoryId']],
-  //         if (d['keywords']?.isNotEmpty == true) 'keywords': d['keywords'],
-  //         'isMatureContent': d['is18Plus'],
-  //         'allowComments': d['showComments'],
-  //         'acceptBookingsOrEnquiries': d['acceptBookings'],
-  //         'isBrandPromotion': d['isBrandPromotion'],
-  //         if (d['isBrandPromotion'] == true &&
-  //             d['brandPromotionLink']?.isNotEmpty == true)
-  //           'brandPromotionLink': d['brandPromotionLink'],
-  //       };
-  //
-  //   Map<String, dynamic> _shortPayload(Map<String, dynamic> d,
-  //       Map<String, dynamic> vInit,
-  //       Map<String, dynamic> cInit,) =>
-  //       {
-  //         'type': 'short',
-  //         'videoUrl': vInit['publicUrl'],
-  //         'videoKey': vInit['fileKey'],
-  //         'coverUrl': cInit['publicUrl'],
-  //         'title': d['shortDescription'],
-  //         'visibility': d['visibility'],
-  //         if (d['channelId']?.isNotEmpty == true) 'channelId': d['channelId'],
-  //         if (d['tagUsers'] != null) 'taggedUsers': d['tagUsers'],
-  //         if (d['location']?.isNotEmpty == true) 'location': d['location'],
-  //         if (d['songData'] != null) 'song': d['songData'],
-  //         if (d['relatedVideoLink']?.isNotEmpty == true)
-  //           'relatedVideoLink': d['relatedVideoLink'],
-  //         if (d['categoryId'] != null) 'categories': [d['categoryId']],
-  //         if (d['keywords']?.isNotEmpty == true) 'keywords': d['keywords'],
-  //         'isMatureContent': d['is18Plus'],
-  //         'allowComments': d['showComments'],
-  //         'acceptBookingsOrEnquiries': d['acceptBookings'],
-  //         'isBrandPromotion': d['isBrandPromotion'],
-  //         if (d['isBrandPromotion'] == true &&
-  //             d['brandPromotionLink']?.isNotEmpty == true)
-  //           'brandPromotionLink': d['brandPromotionLink'],
-  //       };
-  // }
-
+//   Map<String, dynamic> _longPayload(Map<String, dynamic> d,
+//       Map<String, dynamic> vInit,
+//       Map<String, dynamic> cInit,) =>
+//       {
+//         ApiKeys.type: 'long',
+//         'videoUrl': vInit['publicUrl'],
+//         'videoKey': vInit['fileKey'],
+//         'coverUrl': cInit['publicUrl'],
+//         'title': d['title'],
+//         'visibility': d['visibility'],
+//         if (d['channelId']?.isNotEmpty == true) 'channelId': d['channelId'],
+//         if (d['description']?.isNotEmpty ==
+//             true) 'description': d['description'],
+//         if (d['tagUsers'] != null) 'taggedUsers': d['tagUsers'],
+//         if (d['location']?.isNotEmpty == true) 'location': d['location'],
+//         if (d['categoryId'] != null) 'categories': [d['categoryId']],
+//         if (d['keywords']?.isNotEmpty == true) 'keywords': d['keywords'],
+//         'isMatureContent': d['is18Plus'],
+//         'allowComments': d['showComments'],
+//         'acceptBookingsOrEnquiries': d['acceptBookings'],
+//         'isBrandPromotion': d['isBrandPromotion'],
+//         if (d['isBrandPromotion'] == true &&
+//             d['brandPromotionLink']?.isNotEmpty == true)
+//           'brandPromotionLink': d['brandPromotionLink'],
+//       };
+//
+//   Map<String, dynamic> _shortPayload(Map<String, dynamic> d,
+//       Map<String, dynamic> vInit,
+//       Map<String, dynamic> cInit,) =>
+//       {
+//         'type': 'short',
+//         'videoUrl': vInit['publicUrl'],
+//         'videoKey': vInit['fileKey'],
+//         'coverUrl': cInit['publicUrl'],
+//         'title': d['shortDescription'],
+//         'visibility': d['visibility'],
+//         if (d['channelId']?.isNotEmpty == true) 'channelId': d['channelId'],
+//         if (d['tagUsers'] != null) 'taggedUsers': d['tagUsers'],
+//         if (d['location']?.isNotEmpty == true) 'location': d['location'],
+//         if (d['songData'] != null) 'song': d['songData'],
+//         if (d['relatedVideoLink']?.isNotEmpty == true)
+//           'relatedVideoLink': d['relatedVideoLink'],
+//         if (d['categoryId'] != null) 'categories': [d['categoryId']],
+//         if (d['keywords']?.isNotEmpty == true) 'keywords': d['keywords'],
+//         'isMatureContent': d['is18Plus'],
+//         'allowComments': d['showComments'],
+//         'acceptBookingsOrEnquiries': d['acceptBookings'],
+//         'isBrandPromotion': d['isBrandPromotion'],
+//         if (d['isBrandPromotion'] == true &&
+//             d['brandPromotionLink']?.isNotEmpty == true)
+//           'brandPromotionLink': d['brandPromotionLink'],
+//       };
+// }
 }
-
-
-
-
-

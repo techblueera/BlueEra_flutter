@@ -180,13 +180,16 @@ class _CreateMessagePostScreenNewState
                     SizedBox(
                       height: SizeConfig.size10,
                     ),
+
+
+
                     // Message description input
                     CommonTextField(
                       textEditController: msgController.descriptionMessage
                           .value,
                       hintText:
                       "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
-                      title: "Your Message",
+                      title: "Your Lekha 𓂃✍︎",
                       maxLine: 5,
                       maxLength: 1000,
                       isValidate: false,

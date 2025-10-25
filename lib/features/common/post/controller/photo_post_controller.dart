@@ -21,7 +21,6 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/size_config.dart';
 
-
 enum SymbolDuration { hours24, days7 }
 
 class PhotoPostController extends GetxController {
@@ -60,51 +59,51 @@ class PhotoPostController extends GetxController {
     //   return;
     // }
 
-      final List<XFile>? images = await _picker.pickMultiImage();
+    final List<XFile>? images = await _picker.pickMultiImage();
 
-      if (images == null || images.isEmpty) return;
+    if (images == null || images.isEmpty) return;
 
-      int totalImage = selectedPhotos.length + images.length;
-      log('total images--> $totalImage');
-      if (totalImage > maxPhotos) {
-        commonSnackBar(
-          message: 'You can only upload up to $maxPhotos photos',
+    int totalImage = selectedPhotos.length + images.length;
+    log('total images--> $totalImage');
+    if (totalImage > maxPhotos) {
+      commonSnackBar(
+        message: 'You can only upload up to $maxPhotos photos',
+      );
+
+      return;
+    }
+
+    for (final image in images) {
+      if (totalImage > maxPhotos) break;
+
+      final originalSize = await File(image.path).length();
+
+      final compressedFile =
+          await SelectProfilePictureDialog.compressImage(File(image.path));
+
+      if (compressedFile != null) {
+        final newSize = await compressedFile.length();
+
+        // 📊 Calculate reduction
+        final reductionBytes = originalSize - newSize;
+        final reductionPercent =
+            (reductionBytes / originalSize * 100).toStringAsFixed(2);
+
+        print(
+          "✅ Image compressed successfully: "
+          "${_formatBytes(originalSize)} → ${_formatBytes(newSize)} "
+          "(${reductionPercent}% reduced)",
         );
 
-        return;
+        originalPhotos.add(compressedFile.path);
+        selectedPhotos.add(compressedFile.path);
+        selectedPhotoFiles.add(compressedFile);
+
+        log('selected Photos -- ${selectedPhotos.length}');
       }
+    }
 
-      for (final image in images) {
-        if (totalImage > maxPhotos) break;
-
-        final originalSize = await File(image.path).length();
-
-        final compressedFile = await SelectProfilePictureDialog.compressImage(File(image.path));
-
-        if (compressedFile != null) {
-          final newSize = await compressedFile.length();
-
-          // 📊 Calculate reduction
-          final reductionBytes = originalSize - newSize;
-          final reductionPercent = (reductionBytes / originalSize * 100).toStringAsFixed(2);
-
-          print(
-            "✅ Image compressed successfully: "
-                "${_formatBytes(originalSize)} → ${_formatBytes(newSize)} "
-                "(${reductionPercent}% reduced)",
-          );
-
-          originalPhotos.add(compressedFile.path);
-          selectedPhotos.add(compressedFile.path);
-          selectedPhotoFiles.add(compressedFile);
-
-          log('selected Photos -- ${selectedPhotos.length}');
-
-        }
-      }
-
-      updatePhotoAfterEditing();
-
+    updatePhotoAfterEditing();
   }
 
   /// Helper to format bytes into KB/MB
@@ -157,7 +156,7 @@ class PhotoPostController extends GetxController {
     updatePhotoPost();
   }
 
-  removeSong(){
+  removeSong() {
     songData.value = null;
     updatePhotoPost();
   }
@@ -177,6 +176,7 @@ class PhotoPostController extends GetxController {
       val?.symbol = selectedSymbol.value;
     });
   }
+
   late void Function(double) _updateProgressUI;
 
   Future submitPost(PostVia? postVia) async {
@@ -198,36 +198,35 @@ class PhotoPostController extends GetxController {
         position?.longitude ?? 0,
       );
 
-
       ResponseModel response = isPhotoPostEdit
           ? await PostRepo().updatePostRepo(
-        bodyReq: {
-          ApiKeys.type: AppConstants.PHOTO_POST,
-          ApiKeys.sub_title: description.value,
-          ApiKeys.nature_of_post: natureOfPost,
-          ApiKeys.tagged_users: Get.find<TagUserController>()
-              .selectedUsers
-              .map((user) => user.id.toString())
-              .join(','),
-          ApiKeys.latitude: position?.latitude.toString(),
-          ApiKeys.longitude: position?.longitude.toString(),
-        },
-        isMultiPartPost: true,
-        postId: postData?.value.id,
-      )
+              bodyReq: {
+                ApiKeys.type: AppConstants.PHOTO_POST,
+                ApiKeys.sub_title: description.value,
+                ApiKeys.nature_of_post: natureOfPost,
+                ApiKeys.tagged_users: Get.find<TagUserController>()
+                    .selectedUsers
+                    .map((user) => user.id.toString())
+                    .join(','),
+                ApiKeys.latitude: position?.latitude.toString(),
+                ApiKeys.longitude: position?.longitude.toString(),
+              },
+              isMultiPartPost: true,
+              postId: postData?.value.id,
+            )
           : await PostRepo().createPost(
-        photoPost.value,
-        selectedPhotoFiles,
-        latitude.value,
-        longitude.value,
-        postVia,
-        (progress) {
-          _updateProgressUI(progress);
-        },
-        natureOfPost.value,
-        songData.value,
-        (selectedSymbol == SymbolDuration.hours24) ? "1" : "7",
-      );
+              photoPost.value,
+              selectedPhotoFiles,
+              latitude.value,
+              longitude.value,
+              postVia,
+              (progress) {
+                _updateProgressUI(progress);
+              },
+              natureOfPost.value,
+              songData.value,
+              (selectedSymbol == SymbolDuration.hours24) ? "1" : "7",
+            );
 
       Navigator.of(Get.context!, rootNavigator: true).pop();
 
@@ -236,8 +235,11 @@ class PhotoPostController extends GetxController {
           message: response.response?.data?['message'] ??
               'Your photo post has been created!',
         );
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = true;
-        Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+            true;
+        Get.until((route) =>
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
         resetForm();
       } else {
         commonSnackBar(
@@ -251,6 +253,7 @@ class PhotoPostController extends GetxController {
       isLoading.value = false;
     }
   }
+
   void showUploadingProgressDialog({
     required BuildContext context,
     required double progress,
@@ -267,7 +270,8 @@ class PhotoPostController extends GetxController {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(SizeConfig.size10),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           content: StatefulBuilder(
             builder: (context, setState) {
               _updateProgressUI = (double newProgress) {
@@ -319,9 +323,8 @@ class PhotoPostController extends GetxController {
 
   Future<void> updatePhotoAfterEditing() async {
     // pass a fresh copy to editing screen
-    List<String> selectedEditPhotos = await Get.to(() =>
-        PhotoPostEditingScreen()
-    );
+    List<String> selectedEditPhotos =
+        await Get.to(() => PhotoPostEditingScreen());
 
     // ✅ Keep originals safe, only update working copies
     // originalPhotos =
@@ -330,6 +333,4 @@ class PhotoPostController extends GetxController {
 
     updatePhotoPost(); // refresh UI
   }
-
-
 }

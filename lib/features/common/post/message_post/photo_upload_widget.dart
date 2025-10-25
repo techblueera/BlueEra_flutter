@@ -81,7 +81,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                     ),
                   ),
                 ),
-              /*  SizedBox(height: 20,),
+                SizedBox(height: 20,),
                 InkWell(
                   onTap: () async {
                     if (msgController.imagesList.length < 4) {
@@ -124,7 +124,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       ),
                     ),
                   ),
-                ),*/
+                ),
               ],
               if (msgController.selectedType.value?.name ==
                   MediaType.image.name)
@@ -139,9 +139,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                         commonSnackBar(message: "Upload max 4 ");
                       }
                     }
-                    // Get.to(TwitterStyleMediaPicker());
-                    // _pickMedia();
-                    // msgController.pickImageFrom(context);
+
                   },
                   child: Container(
                     width: SizeConfig.screenWidth,
@@ -170,7 +168,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                     ),
                   ),
                 ),
-        /*      if (msgController.selectedType.value?.name ==
+              if (msgController.selectedType.value?.name ==
                   MediaType.video.name)
                 InkWell(
                   onTap: () async {
@@ -214,7 +212,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       ),
                     ),
                   ),
-                ),*/
+                ),
 
               SizedBox(height: SizeConfig.size10),
               msgController.imagesList.isNotEmpty
@@ -237,7 +235,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                             msgController.selectedType.value == MediaType.video;
 
                         return GestureDetector(
-                          onTap: isVideo ? () => _openVideoPreview(file) : null,
+                          onTap: isVideo ? () => openVideoPreview(file) : null,
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
@@ -371,10 +369,8 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
     );
   }
 
-  void _openVideoPreview(File file) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => VideoPreviewScreen(file: file)),
-    );
-  }
+
+}
+void openVideoPreview(File file) {
+  Get.to(VideoPreviewScreen(file: file));
 }

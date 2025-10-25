@@ -11,6 +11,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -23,6 +24,216 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../../../../core/api/apiService/api_keys.dart';
+
+class PostFeedAutoPlayVideoCard extends StatefulWidget {
+  final ShortFeedItem videoItem;
+  final ValueNotifier<bool>? globalMuteNotifier;
+  final VideoType videoType;
+  final VoidCallback onTapOption;
+
+  const PostFeedAutoPlayVideoCard({
+    super.key,
+    required this.videoItem,
+    this.globalMuteNotifier,
+    required this.videoType,
+    required this.onTapOption,
+  });
+
+  @override
+  State<PostFeedAutoPlayVideoCard> createState() =>
+      _PostFeedAutoPlayVideoCardState();
+}
+
+class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard> {
+  final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
+      ? Get.find<SimplePriorityVideoManager>()
+      : Get.put(SimplePriorityVideoManager());
+
+  @override
+  void dispose() {
+    // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
+    //     ? Get.find<SimplePriorityVideoManager>()
+    //     : Get.put(SimplePriorityVideoManager());
+    videoManager.removeVideo(widget.videoItem.videoId ?? '');
+    super.dispose();
+  }
+
+  void _handleVisibilityChange(VisibilityInfo info) {
+    String videoUrl;
+
+    videoUrl = widget.videoItem.video?.videoUrl ?? '';
+
+    videoManager.updateVideoVisibility(
+      widget.videoItem.videoId ?? '',
+      videoUrl,
+      info.visibleFraction,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 👇 only the video section
+    final mainContent = VisibilityDetector(
+      key: ValueKey(widget.videoItem.videoId),
+      onVisibilityChanged: _handleVisibilityChange,
+      child: Obx(() {
+        final isCurrent = videoManager.currentIndex.value ==
+            widget.videoItem.videoId.hashCode;
+        final controller = videoManager.controller;
+        final isScrolling = videoManager.isScrolling.value;
+
+        return Stack(
+          // fit: StackFit.expand,
+          children: [
+
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(8)),
+              child: widget.videoItem.video?.coverUrl != null &&
+                      isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
+                  ? CachedNetworkImage(
+                      imageUrl: widget.videoItem.video?.coverUrl ?? '',
+                      width: SizeConfig.screenWidth,
+                      height: SizeConfig.size170,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        width: SizeConfig.screenWidth,
+                        height: SizeConfig.size140,
+                        // color: Colors.grey[300],
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        width: SizeConfig.screenWidth,
+                        height: SizeConfig.size140,
+                        color: Colors.grey[300],
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                        ),
+                        // LocalAssets(imagePath: AppIconAssets.appIcon),
+                      ),
+                    )
+                  : widget.videoItem.video?.coverUrl != null
+                      ? Image.file(
+                          File(widget.videoItem.video?.coverUrl ?? ''),
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size170,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          width: SizeConfig.screenWidth,
+                          height: SizeConfig.size140,
+                          color: Colors.grey[300],
+                          child: LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover),
+                        ),
+            ),
+// Video (Adjust Aspect Like Twitter)
+            if (isCurrent && controller != null && controller.value.isInitialized)
+              Builder(
+                builder: (_) {
+                  final videoWidth = controller.value.size.width;
+                  final videoHeight = controller.value.size.height;
+                  final bool isLandscape = videoWidth > videoHeight;
+                  // Portrait or Square → Show as it is
+                  if (isLandscape) {
+                    return AspectRatio(
+                      aspectRatio: controller.value.aspectRatio,
+                      child: VideoPlayer(controller),
+                    );
+                  }
+
+                  // Landscape → Crop to Square (Twitter Style)
+                  return Center(
+                    child: AspectRatio(
+                      aspectRatio: 1, // Make display square
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: videoWidth,
+                          height: videoHeight,
+                          child: VideoPlayer(controller),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+            // // Video
+            // if (isCurrent &&
+            //     controller != null &&
+            //     controller.value.isInitialized)
+            //   AspectRatio(
+            //       // aspectRatio: 0.9,
+            //       aspectRatio: controller.value.aspectRatio,
+            //       child: VideoPlayer(controller)),
+
+            // Loading overlay
+            if (isScrolling && isCurrent)
+              Container(
+                color: Colors.black38,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+
+            // Mute button
+            if (isCurrent && controller != null)
+              Positioned(
+                top: SizeConfig.size12,
+                right: SizeConfig.size10,
+                child: GestureDetector(
+                  onTap: videoManager.toggleMute,
+                  child: Container(
+                    padding: EdgeInsets.all(SizeConfig.size6),
+                    decoration: BoxDecoration(
+                      color: AppColors.blackCC,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: videoManager.isMuted,
+                      builder: (_, isMuted, __) => Icon(
+                        isMuted ? Icons.volume_off : Icons.volume_up,
+                        color: AppColors.white,
+                        size: SizeConfig.size20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      }),
+    );
+
+    return SizedBox(
+      width: Get.width,
+      child: CommonVideoCard(
+        mainContent: mainContent,
+        videoItem: widget.videoItem,
+        videoType: widget.videoType,
+        onTapOption: widget.onTapOption,
+        onTapCard: () {
+          // Get.to(NetworkVideoPreviewScreen(
+          //   videoUrl: widget.videoItem.video?.videoUrl ?? "",
+          // ));
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getVideoPlayerScreenRoute(),
+            arguments: {
+              ApiKeys.videoItem: widget.videoItem,
+              ApiKeys.videoType: widget.videoType
+            },
+          );
+        },
+        isShowUser: false,
+      ),
+    );
+  }
+}
 
 class AutoPlayVideoCard extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -46,6 +257,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
   final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
       ? Get.find<SimplePriorityVideoManager>()
       : Get.put(SimplePriorityVideoManager());
+
   @override
   void dispose() {
     // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
@@ -70,9 +282,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
     //       widget.videoItem.video?.videoUrl ??
     //       '';
     // }
-    videoUrl =
-        widget.videoItem.video?.videoUrl ??
-            '';
+    videoUrl = widget.videoItem.video?.videoUrl ?? '';
 
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
@@ -117,15 +327,20 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                             width: SizeConfig.screenWidth,
                             height: SizeConfig.size140,
                             // color: Colors.grey[300],
-                            child:LocalAssets(imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover,
+                            ),
                           ),
                           errorWidget: (_, __, ___) => Container(
                             width: SizeConfig.screenWidth,
                             height: SizeConfig.size140,
                             color: Colors.grey[300],
-                            child:
-                                LocalAssets(imagePath:AppIconAssets.place_holder_image,boxFix: BoxFit.cover,),
-                                // LocalAssets(imagePath: AppIconAssets.appIcon),
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover,
+                            ),
+                            // LocalAssets(imagePath: AppIconAssets.appIcon),
                           ),
                         )
                       : widget.videoItem.video?.coverUrl != null
@@ -140,7 +355,8 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                               height: SizeConfig.size140,
                               color: Colors.grey[300],
                               child: LocalAssets(
-                                  imagePath: AppIconAssets.place_holder_image,boxFix: BoxFit.cover),
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.cover),
                             ),
                 ),
               ),
@@ -150,8 +366,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                   controller != null &&
                   controller.value.isInitialized)
                 AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: VideoPlayer(controller)),
+                    aspectRatio: 16 / 9, child: VideoPlayer(controller)),
 
               // Loading overlay
               if (isScrolling && isCurrent)
@@ -195,7 +410,8 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
                     Duration(seconds: widget.videoItem.video?.duration ?? 0),
                   ),
                   totalLikes:
-                      widget.videoItem.video?.stats?.likes.toString() ?? '0', videoType: widget.videoType,
+                      widget.videoItem.video?.stats?.likes.toString() ?? '0',
+                  videoType: widget.videoType,
                 ),
               ),
 
@@ -248,6 +464,7 @@ class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
           },
         );
       },
+      isShowUser: true,
     );
   }
 

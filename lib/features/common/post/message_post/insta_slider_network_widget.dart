@@ -1,14 +1,22 @@
+import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/chat/auth/model/Generate_Upload_Ulr_Model.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
+import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
+import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class InstaSliderNetwork extends StatefulWidget {
   const InstaSliderNetwork({
     super.key,
+    required this.post,
   });
+
+  final Post? post;
 
   @override
   State<InstaSliderNetwork> createState() => _InstaSliderNetworkState();
@@ -20,6 +28,57 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
 
   @override
   Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(10),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount:
+            widget.post?.media_types?.firstOrNull == "video/mp4" ? 1 : 2,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+      ),
+      itemCount: msgPostController.uploadImageList.length,
+      itemBuilder: (context, index) {
+        final file = msgPostController.uploadImageList[index];
+        final isVideo = widget.post?.media_types?.firstOrNull == "video/mp4";
+        final thumb = widget.post?.thumbnail;
+
+        return GestureDetector(
+          onTap: isVideo
+              ? () {
+                  Get.to(NetworkVideoPreviewScreen(
+                    videoUrl: widget.post?.media?.firstOrNull ?? "",
+                  ));
+                }
+              : null,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: isVideo
+                    ? (thumb != null
+                    ? Image.network(widget.post?.thumbnail ?? "",
+                    fit: BoxFit.cover)
+                    : Container(
+                  color: Colors.black12,
+                  child: const Center(
+                      child: CircularProgressIndicator()),
+                ))
+                    : Image.network(file, fit: BoxFit.cover),
+              ),
+              if (isVideo)
+                const Center(
+                  child: Icon(Icons.play_circle_fill,
+                      color: Colors.white, size: 40),
+                ),
+
+            ],
+          ),
+        );
+      },
+    );
     return Container(
       height: 300,
       // width: 300,

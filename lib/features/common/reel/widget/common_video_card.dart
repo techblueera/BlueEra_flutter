@@ -20,7 +20,6 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
-
 class CommonVideoCard extends StatelessWidget {
   final Widget mainContent; // AspectRatio part (thumbnail OR autoplay video)
   final ShortFeedItem videoItem;
@@ -28,6 +27,7 @@ class CommonVideoCard extends StatelessWidget {
   final VoidCallback onTapOption;
   final VoidCallback? onTapCard;
   final List<BoxShadow>? boxShadow;
+  final bool isShowUser;
 
   const CommonVideoCard({
     super.key,
@@ -37,6 +37,7 @@ class CommonVideoCard extends StatelessWidget {
     required this.onTapOption,
     this.onTapCard,
     this.boxShadow,
+    required this.isShowUser,
   });
 
   @override
@@ -48,7 +49,8 @@ class CommonVideoCard extends StatelessWidget {
         ? videoItem.channel?.logoUrl ?? ''
         : videoItem.author?.profileImage ?? '';
     final postedAgo = timeAgo(
-      DateTime.parse(videoItem.video?.createdAt ?? DateTime.now().toIso8601String()),
+      DateTime.parse(
+          videoItem.video?.createdAt ?? DateTime.now().toIso8601String()),
     );
 
     return GestureDetector(
@@ -62,90 +64,89 @@ class CommonVideoCard extends StatelessWidget {
         child: Container(
           // elevation: 0,
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: boxShadow
-          ),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: boxShadow),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Column(
               children: [
                 // 👇 main content (different per card type)
                 mainContent,
-        
-                // 👇 common footer
-                GestureDetector(
-                  onTap:(){
-                    if (isGuestUser()) {
-                      createProfileScreen();
-        
-                      return;
-                    }
-                    onTapOption();
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.size5,
-                      horizontal: SizeConfig.size10,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: () => navigatePushTo(
-                            context,
-                            ImageViewScreen(
-                              appBarTitle: '',
-                              imageUrls: [channelProfile],
-                              initialIndex: 0,
+                if (isShowUser)
+                  // 👇 common footer
+                  GestureDetector(
+                    onTap: () {
+                      if (isGuestUser()) {
+                        createProfileScreen();
+
+                        return;
+                      }
+                      onTapOption();
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size5,
+                        horizontal: SizeConfig.size10,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          InkWell(
+                            onTap: () => navigatePushTo(
+                              context,
+                              ImageViewScreen(
+                                appBarTitle: '',
+                                imageUrls: [channelProfile],
+                                initialIndex: 0,
+                              ),
+                            ),
+                            child: CachedAvatarWidget(
+                              imageUrl: channelProfile,
+                              size: SizeConfig.size40,
+                              borderRadius: SizeConfig.size20,
+                              borderColor: AppColors.primaryColor,
                             ),
                           ),
-                          child: CachedAvatarWidget(
-                            imageUrl: channelProfile,
-                            size: SizeConfig.size40,
-                            borderRadius: SizeConfig.size20,
-                            borderColor: AppColors.primaryColor,
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size8),
-                        Expanded(
-                          child: InkWell(
-                            onTap: ()=> _openProfile(context, videoItem),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  videoItem.video?.title ?? '',
-                                  color: AppColors.mainTextColor,
-                                  fontSize: SizeConfig.large,
-                                  fontWeight: FontWeight.w600,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                SizedBox(height: SizeConfig.size2),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: CustomText(
-                                        "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
-                                        fontSize: SizeConfig.small,
-                                        color: AppColors.secondaryTextColor,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        fontWeight: FontWeight.w400,
+                          SizedBox(width: SizeConfig.size8),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _openProfile(context, videoItem),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    videoItem.video?.title ?? '',
+                                    color: AppColors.mainTextColor,
+                                    fontSize: SizeConfig.large,
+                                    fontWeight: FontWeight.w600,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: SizeConfig.size2),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: CustomText(
+                                          "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.secondaryTextColor,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          fontWeight: FontWeight.w400,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                )
-                              ],
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        _buildOptions(videoItem),
-                      ],
+                          _buildOptions(videoItem),
+                        ],
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -159,7 +160,7 @@ class CommonVideoCard extends StatelessWidget {
     if (videoItem.channel?.id != null) {
       if (videoItem.channel?.id != channelId) {
         return IconButton(
-          onPressed:(){
+          onPressed: () {
             if (isGuestUser()) {
               createProfileScreen();
 
@@ -188,14 +189,15 @@ class CommonVideoCard extends StatelessWidget {
         );
       }
       return IconButton(
-        onPressed:(){
+        onPressed: () {
           if (isGuestUser()) {
             createProfileScreen();
 
             return;
           }
           onTapOption();
-        },        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+        },
+        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
       );
     }
 
@@ -210,14 +212,15 @@ class CommonVideoCard extends StatelessWidget {
         );
       }
       return IconButton(
-        onPressed:(){
+        onPressed: () {
           if (isGuestUser()) {
             createProfileScreen();
 
             return;
           }
           onTapOption();
-        },        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
+        },
+        icon: LocalAssets(imagePath: AppIconAssets.blockIcon),
       );
     }
 
@@ -241,12 +244,16 @@ class CommonVideoCard extends StatelessWidget {
     }
 
     // 2️⃣ If Individual account
-    if (videoItem.author?.accountType?.toUpperCase() == AppConstants.individual) {
+    if (videoItem.author?.accountType?.toUpperCase() ==
+        AppConstants.individual) {
       final isMyProfile = videoItem.author?.id == userId;
       if (isMyProfile) {
         navigatePushTo(context, PersonalProfileSetupScreen());
       } else {
-        Get.to(() => NewVisitProfileScreen(authorId: videoItem.author?.id ?? '', screenFromName: AppConstants.feedScreen,));
+        Get.to(() => NewVisitProfileScreen(
+              authorId: videoItem.author?.id ?? '',
+              screenFromName: AppConstants.feedScreen,
+            ));
       }
       return;
     }
@@ -257,10 +264,12 @@ class CommonVideoCard extends StatelessWidget {
       if (isMyBusiness) {
         navigatePushTo(context, BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfileNew(businessId: videoItem.author?.id ?? '', screenName:  AppConstants.feedScreen,));
+        Get.to(() => VisitBusinessProfileNew(
+              businessId: videoItem.author?.id ?? '',
+              screenName: AppConstants.feedScreen,
+            ));
       }
       return;
     }
   }
-
 }

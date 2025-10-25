@@ -144,7 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
-
   Future<void> getPackageData() async {
     if (!mounted) return;
     PackageInfo _packageInfo = await PackageManager.getPackageInfo();

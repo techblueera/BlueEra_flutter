@@ -96,9 +96,9 @@ class SimplePriorityVideoManager extends GetxController {
     } else {
       videoController = Get.put(VideoController());
     }
-    Future.delayed(const Duration(seconds: 5), () {
-      videoController?.videoView(videoId: videoId);
-    });
+    // Future.delayed(const Duration(seconds: 5), () {
+    //   videoController?.videoView(videoId: videoId);
+    // });
   }
   // _scheduleVideoView();
 
