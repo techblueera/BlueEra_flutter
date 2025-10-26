@@ -21,9 +21,7 @@ import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -33,7 +31,6 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';

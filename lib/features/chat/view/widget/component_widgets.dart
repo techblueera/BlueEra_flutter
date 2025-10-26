@@ -281,7 +281,7 @@ Widget ChatListTile({required Function onSelect,
                           Container(
                             height: 50,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
+                              color: Colors.black.withValues(alpha: 0.5),
                             ),
                             child: Row(
                               mainAxisAlignment:
@@ -1347,7 +1347,7 @@ void showMessageEditDialog(String userId,
               decoration: InputDecoration(
                 hintText: 'Type your message...',
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
+                fillColor: Colors.white.withValues(alpha: 0.05),
                 contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(

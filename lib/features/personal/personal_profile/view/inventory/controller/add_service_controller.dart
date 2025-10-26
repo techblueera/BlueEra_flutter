@@ -20,7 +20,6 @@ import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../../common/food/repo/food_ai_repo.dart';
 
 class LocalImage {
   final String path;

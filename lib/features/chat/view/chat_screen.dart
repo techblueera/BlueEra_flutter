@@ -10,7 +10,6 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';

@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../features/chat/auth/controller/chat_view_controller.dart';
-import '../../../features/chat/view/call_screen/widget/incoming_call_screen.dart';
 import 'model/OneSignalNotificationDetailsModel.dart';
 
 

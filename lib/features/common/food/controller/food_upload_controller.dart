@@ -11,7 +11,6 @@ import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
-import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../widgets/uploading_progressing_dialog.dart';
 import '../../../personal/personal_profile/view/inventory/add_food/add_food_screen.dart';

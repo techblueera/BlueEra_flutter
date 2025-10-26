@@ -83,7 +83,7 @@ void initState() {
                           focusNode: _searchFocusNode,
                           autofocus: false,
                           decoration: InputDecoration(
-                            fillColor: Colors.grey.withOpacity(0.1),
+                            fillColor: Colors.grey..withValues(alpha: 0.1),
                             hintText: 'Search Product...',
                             hintStyle: const TextStyle(
                               color: AppColors.grey9B,
@@ -193,7 +193,7 @@ void initState() {
         borderRadius: BorderRadius.circular(SizeConfig.size8),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -367,7 +367,7 @@ void initState() {
                               const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primaryColor.withOpacity(0.1)
+                                ? AppColors.primaryColor.withValues(alpha: 0.1)
                                 : AppColors.fillColor,
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(

@@ -1,11 +1,7 @@
-import 'dart:io';
 
-import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/features/chat/auth/model/Generate_Upload_Ulr_Model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
-import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -130,7 +126,7 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: CustomText(
@@ -274,7 +270,7 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
 //                         padding: const EdgeInsets.symmetric(
 //                             horizontal: 8, vertical: 4),
 //                         decoration: BoxDecoration(
-//                           color: Colors.black.withOpacity(0.6),
+//                           color: Colors.black.withValues(alpha: 0.6),
 //                           borderRadius: BorderRadius.circular(20),
 //                         ),
 //                         child: CustomText(

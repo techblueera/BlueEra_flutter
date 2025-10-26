@@ -26,7 +26,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.foodData["productName"].toString() ?? "Food Item",
+        title: widget.foodData["productName"].toString(),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -83,7 +83,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               SizedBox(height: SizeConfig.size16),
 //    🔹 Title + Category     
                  CustomText(
-                    widget.foodData["productName"].toString() ?? "",
+                    widget.foodData["productName"].toString(),
                     fontWeight: FontWeight.bold,
                     fontSize: SizeConfig.size22,
                   ),

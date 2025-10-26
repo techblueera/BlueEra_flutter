@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -9,14 +8,12 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_network_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_widget.dart';
-import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
@@ -27,7 +24,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/highlight_text_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';

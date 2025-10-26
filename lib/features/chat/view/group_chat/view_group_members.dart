@@ -1,10 +1,8 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +13,6 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/view_group_members_model.dart';
-import '../../contacts/view/be_available_contacts_list.dart';
 
 class ViewGroupMembers extends StatefulWidget {
   const ViewGroupMembers(
@@ -74,7 +71,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
+                                color: Colors.black.withValues(alpha: 0.2),
                                 spreadRadius: 0.5,
                                 blurRadius: 2,
                                 offset: Offset(0, 1),
@@ -214,7 +211,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           spreadRadius: 0.5,
                           blurRadius: 2,
                           offset: const Offset(0, 1),

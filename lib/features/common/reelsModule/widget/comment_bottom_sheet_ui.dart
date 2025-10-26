@@ -259,7 +259,7 @@
 //       decoration: BoxDecoration(
 //         borderRadius: BorderRadius.circular(30),
 //         color: AppColors.black28,
-//         border: Border.all(color: AppColors.colorBorder.withOpacity(0.6)),
+//         border: Border.all(color: AppColors.colorBorder.withValues(alpha: 0.6)),
 //       ),
 //       child: Row(
 //         crossAxisAlignment: CrossAxisAlignment.center,
@@ -271,7 +271,7 @@
 //           VerticalDivider(
 //             indent: 12,
 //             endIndent: 12,
-//             color: AppColors.coloGreyText.withOpacity(0.3),
+//             color: AppColors.coloGreyText.withValues(alpha: 0.3),
 //           ),
 //           Expanded(
 //             child: CommonTextField(

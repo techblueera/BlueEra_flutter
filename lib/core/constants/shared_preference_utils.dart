@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/map/controller/location_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';

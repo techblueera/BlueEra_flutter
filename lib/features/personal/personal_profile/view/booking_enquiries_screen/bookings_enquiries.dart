@@ -1,6 +1,5 @@
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_booking_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/set_availability_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

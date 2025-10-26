@@ -207,7 +207,6 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                   return VideoPlayerWidget(videoUrl: url);
                 } else {
                   final url = widget.mediaUrls[index];
-                  final orientation = _orientationCache[url] ?? "loading";
 
                   double height = 300;
                   double width = Get.width;/*      double height = Get.width * 0.5;
@@ -287,30 +286,9 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                       ),
                     ),
                   );
-                  ;
-                  return FutureBuilder<String>(
-                    future: _getImageOrientation(url),
-                    builder: (context, snapshot) {
-                      String orientation = snapshot.data ?? "loading";
-                    },
-                  );
                 }
               },
             ),
-            // widget.mediaUrls.length > 1 ? _buildIndicatorDots() : SizedBox(),
-            // if (widget.buildTranslationWidget != null) widget.buildTranslationWidget!(),
-            // _buildPostMetaInfo(),
-            // if (widget.taggedUser.isNotEmpty)
-            //   FeedTagButton(
-            //       onTap: () => showModalBottomSheet(
-            //             context: context,
-            //             isScrollControlled: true,
-            //             backgroundColor: Colors.transparent,
-            //             builder: (context) => FeedTagPeopleBottomSheet(
-            //                 taggedUser: widget.taggedUser),
-            //           )),
-
-            // Audio control button (bottom right)
             if (widget.audioUrl != null) _buildAudioControls(),
           ],
         ),

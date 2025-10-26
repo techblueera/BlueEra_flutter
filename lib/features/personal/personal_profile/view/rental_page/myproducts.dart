@@ -1,11 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_card_widget.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
-import 'package:flutter/material.dart';
 
 class MyProductsScreen extends StatefulWidget {
   const MyProductsScreen({super.key});
@@ -64,7 +62,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
                 scale: 0.8,
                 child: Switch(
                   value: isGoLive,
-                  activeColor: Colors.white,
+                  activeThumbColor: Colors.white,
                   activeTrackColor: Colors.blue,
                   inactiveTrackColor: Colors.grey.shade300,
                   onChanged: (v) => setState(() => isGoLive = v),

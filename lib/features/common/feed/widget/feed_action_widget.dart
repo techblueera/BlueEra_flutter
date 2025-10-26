@@ -3,12 +3,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
-import 'package:BlueEra/widgets/common_divider.dart';
-import 'package:BlueEra/widgets/common_icon_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
 import 'package:flutter/material.dart';
 
 class PostActionsBar extends StatefulWidget {
@@ -42,18 +38,12 @@ class PostActionsBar extends StatefulWidget {
 }
 
 class _PostActionsBarState extends State<PostActionsBar> {
-  late int _totalLikes;
-  late int _totalComment;
   late bool _isLiked;
-  late bool _isPostAlreadySaved;
 
   @override
   void initState() {
     super.initState();
-    _totalLikes = widget.totalLikes ?? 0;
-    _totalComment = widget.totalComment ?? 0;
     _isLiked = widget.isLiked;
-    _isPostAlreadySaved = widget.isPostAlreadySaved ?? false;
   }
 
   @override
@@ -65,10 +55,7 @@ class _PostActionsBarState extends State<PostActionsBar> {
         oldWidget.totalComment != widget.totalComment ||
         oldWidget.totalRepost != widget.totalRepost ||
         oldWidget.post != widget.post) {
-      _totalLikes = widget.totalLikes ?? 0;
-      _totalComment = widget.totalComment ?? 0;
       _isLiked = widget.isLiked;
-      _isPostAlreadySaved = widget.isPostAlreadySaved ?? false;
     }
   }
 

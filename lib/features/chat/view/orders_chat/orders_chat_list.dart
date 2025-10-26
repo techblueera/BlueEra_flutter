@@ -4,7 +4,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';

@@ -1,9 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';

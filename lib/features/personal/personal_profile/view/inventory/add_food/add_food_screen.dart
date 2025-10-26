@@ -388,7 +388,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
+                                          color: Colors.black.withValues(alpha: 0.5),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
@@ -495,8 +495,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.w500),
                             ),
-                            backgroundColor: AppColors.skyBlueDF.withOpacity(
-                                0.1),
+                            backgroundColor: AppColors.skyBlueDF..withValues(alpha: 0.1),
                             deleteIcon: const Icon(Icons.close, size: 18),
                             onDeleted: () {
                               controller.addOns.removeAt(index);
@@ -1182,7 +1181,7 @@ class _AddOnsPageState extends State<AddOnsPage> {
                         "${item['name']} (+₹${item['price']})",
                         style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                      backgroundColor: AppColors.skyBlueDF.withOpacity(0.1),
+                      backgroundColor: AppColors.skyBlueDF..withValues(alpha: 0.1),
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () => _removeAddOn(index),
                     );

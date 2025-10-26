@@ -1,7 +1,6 @@
 import 'package:BlueEra/features/personal/personal_profile/view/rental_page/rental_details.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 
 import '../../../../../widgets/horizontal_tab_selector.dart';
 import 'RentalServiceUploadScreen.dart';
@@ -15,7 +14,6 @@ class RentalScreen extends StatefulWidget {
 
 class _RentalScreenState extends State<RentalScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
 
   final List<String> topTabs = ["Services", "Stores", "Jobs", "Rental", "Events"];
   int selectedTopTab = 3; // Rental active
@@ -25,7 +23,6 @@ class _RentalScreenState extends State<RentalScreen>
 
   @override
   void initState() {
-    _tabController = TabController(length: subTabs.length, vsync: this);
     super.initState();
   }
 

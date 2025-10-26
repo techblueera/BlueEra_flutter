@@ -99,7 +99,7 @@ class AttributeRows extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(0.1),
+                color: AppColors.primaryColor..withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: AppColors.primaryColor, width: 0.5),
               ),

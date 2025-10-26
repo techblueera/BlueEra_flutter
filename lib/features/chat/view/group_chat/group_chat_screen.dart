@@ -91,7 +91,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
@@ -162,7 +162,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.5), // light color with 0.5 opacity
+                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: RichText(
@@ -312,7 +312,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 decoration: InputDecoration(
                   hintText: 'Type your message...',
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
+                  fillColor: Colors.white.withValues(alpha: 0.05),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),

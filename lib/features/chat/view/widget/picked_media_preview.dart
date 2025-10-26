@@ -158,7 +158,7 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
                         padding: EdgeInsets.all(2),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
-                            color: AppColors.greyA5.withOpacity(0.4)
+                            color: AppColors.greyA5..withValues(alpha: 0.4)
                         ),
                         child: !videoController.value.isPlaying
                             ? Icon(Icons.play_circle_fill,

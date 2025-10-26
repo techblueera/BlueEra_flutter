@@ -87,7 +87,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                     if (msgController.imagesList.length < 4) {
                       msgController.pickVideoMedia();
                     } else {
-                      if (msgController.selectedType?.value ==
+                      if (msgController.selectedType.value ==
                           MediaType.video) {
                         commonSnackBar(message: "Upload max 1 ");
                       } else {
@@ -175,7 +175,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                     if (msgController.imagesList.length < 4) {
                       msgController.pickVideoMedia();
                     } else {
-                      if (msgController.selectedType?.value ==
+                      if (msgController.selectedType.value ==
                           MediaType.video) {
                         commonSnackBar(message: "Upload max 1 ");
                       } else {
@@ -222,7 +222,7 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       padding: const EdgeInsets.all(10),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount:
-                            msgController.selectedType?.value == MediaType.video
+                            msgController.selectedType.value == MediaType.video
                                 ? 1
                                 : 2,
                         mainAxisSpacing: 8,

@@ -171,7 +171,7 @@
 //         borderRadius: BorderRadius.circular(12),
 //         boxShadow: [
 //           BoxShadow(
-//             color: Colors.black.withOpacity(0.05),
+//             color: Colors.black.withValues(alpha: 0.05),
 //             blurRadius: 8,
 //             offset: Offset(0, 2),
 //           ),
@@ -303,7 +303,7 @@
 //         borderRadius: BorderRadius.circular(12),
 //         boxShadow: [
 //           BoxShadow(
-//             color: Colors.black.withOpacity(0.05),
+//             color: Colors.black.withValues(alpha: 0.05),
 //             blurRadius: 8,
 //             offset: Offset(0, 2),
 //           ),
@@ -396,7 +396,7 @@
 //       width: 32,
 //       height: 32,
 //       decoration: BoxDecoration(
-//         color: color.withOpacity(0.1),
+//         color: color..withValues(alpha: 0.1),
 //         shape: BoxShape.circle,
 //       ),
 //       child: Material(

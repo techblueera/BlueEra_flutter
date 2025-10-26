@@ -81,7 +81,7 @@
 //                               padding: EdgeInsets.only(
 //                                   left: controller.isPlaying ? 0 : 2),
 //                               decoration: BoxDecoration(
-//                                   color: AppColors.black.withOpacity(0.2),
+//                                   color: AppColors.black.withValues(alpha: 0.2),
 //                                   shape: BoxShape.circle),
 //                               child: Center(
 //                                 child: controller.isPlaying
@@ -102,7 +102,7 @@
 //                   decoration: BoxDecoration(
 //                     gradient: LinearGradient(
 //                       colors: [
-//                         AppColors.black.withOpacity(0.7),
+//                         AppColors.black.withValues(alpha: 0.7),
 //                         AppColors.transparent
 //                       ],
 //                       begin: Alignment.topCenter,
@@ -120,7 +120,7 @@
 //                     gradient: LinearGradient(
 //                       colors: [
 //                         AppColors.transparent,
-//                         AppColors.black.withOpacity(0.7)
+//                         AppColors.black.withValues(alpha: 0.7)
 //                       ],
 //                       begin: Alignment.topCenter,
 //                       end: Alignment.bottomCenter,

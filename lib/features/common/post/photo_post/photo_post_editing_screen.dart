@@ -296,7 +296,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                             ),
                             if (index > 0)
                               Container(
-                                color: _filters[index]['color']?.withOpacity(0.4),
+                                color: _filters[index]['color']?..withValues(alpha: 0.4),
                               ),
                           ],
                         ),

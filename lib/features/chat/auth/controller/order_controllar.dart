@@ -66,7 +66,7 @@ class OrderNowController extends GetxController {
       {required Map<String,dynamic> params}) async {
     try {
       ResponseModel? response = await MakeOrderRepo().createOrder(params);
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(
@@ -80,7 +80,7 @@ class OrderNowController extends GetxController {
       {required Map<String,dynamic> params}) async {
     try {
       ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(

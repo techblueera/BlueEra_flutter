@@ -211,8 +211,8 @@ class _SingleShortStructureState extends State<SingleShortStructure> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.0), // Top transparent
-                      Colors.black.withOpacity(0.9), // Bottom dark
+                      Colors.black.withValues(alpha: 0.0), // Top transparent
+                      Colors.black.withValues(alpha: 0.9), // Bottom dark
                     ],
                   ),
                   borderRadius: BorderRadius.circular(5.0),

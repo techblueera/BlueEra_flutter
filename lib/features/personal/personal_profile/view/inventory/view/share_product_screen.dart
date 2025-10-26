@@ -8,7 +8,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/single_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

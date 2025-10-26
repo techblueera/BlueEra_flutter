@@ -154,7 +154,7 @@ Future<void> showHiveBottomSheet(BuildContext context,String userId,String conve
 
 
                Divider(
-                color: AppColors.greyA5.withOpacity(0.3),
+                color: AppColors.greyA5.withValues(alpha: 0.3),
               ),
 
               // Input + Plus Button

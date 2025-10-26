@@ -142,7 +142,7 @@ class _Step3SectionState extends State<Step3Section> {
                   //   decoration: BoxDecoration(
                   //       borderRadius: BorderRadius.circular(10),
                   //       border: Border.all(
-                  //           color: AppColors.secondaryTextColor.withOpacity(0.2))),
+                  //           color: AppColors.secondaryTextColor.withValues(alpha: 0.2))),
                   //   padding: EdgeInsets.all(8),
                   //   child: CustomText(
                   //     "Choose Category Folder",

@@ -36,7 +36,7 @@ class ResumeTemplateScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.15),
+                    color: Colors.grey.withValues(alpha: 0.15),
                     spreadRadius: 1,
                     blurRadius: 6,
                     offset: Offset(0, 3),
@@ -55,7 +55,7 @@ class ResumeTemplateScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         color: Colors.grey[100],
                         border: Border.all(
-                          color: Colors.grey.withOpacity(0.2),
+                          color: Colors.grey.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),

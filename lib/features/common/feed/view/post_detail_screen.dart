@@ -6,7 +6,6 @@ import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_state.dart';
 
 class PostDeatilPage extends StatelessWidget {
   const PostDeatilPage({super.key});

@@ -122,7 +122,7 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
                             padding: EdgeInsets.symmetric(horizontal: 4,vertical: 2),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
-                              color: AppColors.greyA5.withOpacity(0.4)
+                              color: AppColors.greyA5..withValues(alpha: 0.4)
                             ),
                             child: CustomText(
                                 "${chatViewController.VideoUploadProgress}%",color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold,),
@@ -134,7 +134,7 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
                       padding: EdgeInsets.all(2),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: AppColors.greyA5.withOpacity(0.4)
+                          color: AppColors.greyA5..withValues(alpha: 0.4)
                       ),
                       child: !_controller.value.isPlaying
                           ? Icon(Icons.play_circle_fill,

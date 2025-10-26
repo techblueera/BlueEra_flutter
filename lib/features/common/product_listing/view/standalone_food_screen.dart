@@ -2,13 +2,11 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/common/business_service/widget/service_card.dart';
 import 'package:BlueEra/features/common/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../widgets/product_card.dart';
 
 class StandaloneFoodScreen extends StatelessWidget {
   final String businessId;

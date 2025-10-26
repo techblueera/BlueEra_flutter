@@ -817,15 +817,13 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
     List<String> selectedPerks,
     Function(String) onSelectedPerks,
   ) {
-    bool showAll = false; // simple boolean flag
+// simple boolean flag
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Builder(builder: (context) {
-          final visiblePerks = showAll
-              ? perks
-              : perks.take(5).toList(); // show first 5 initially
+          final visiblePerks = perks.take(5).toList(); // show first 5 initially
 
           return Wrap(
             spacing: 10,

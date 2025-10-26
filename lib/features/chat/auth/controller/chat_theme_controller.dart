@@ -43,7 +43,7 @@ class ChatThemeController extends GetxController {
 
     // Pick next color from the list or random if needed
     final color = availableColors[senderColorMap.length % availableColors.length]
-        .withOpacity(1);
+        .withValues(alpha: 1);
 
     senderColorMap[senderId] = color;
     return color;

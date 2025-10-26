@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -121,8 +120,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           autovalidateMode: _autoValidate,
                           validator: (value) {
                             if (value?.length != 10) {
-                              return langController.tr('pleaseEnterValidMobile') ??
-                                  'Mobile number must be 10 digits';
+                              return langController.tr('pleaseEnterValidMobile');
                             }
                             return null;
                           },

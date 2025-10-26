@@ -140,10 +140,10 @@ class MyDocumentsScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.1),
+              color: AppColors.primaryColor..withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: AppColors.primaryColor.withOpacity(0.3),
+                color: AppColors.primaryColor.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -189,7 +189,7 @@ class MyDocumentsScreen extends StatelessWidget {
                   height: 32,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.red),
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red..withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -209,7 +209,7 @@ class MyDocumentsScreen extends StatelessWidget {
                   height: 32,
                   decoration: BoxDecoration(
                     border: Border.all(color: AppColors.primaryColor),
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.primaryColor..withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

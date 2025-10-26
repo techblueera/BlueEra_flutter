@@ -123,7 +123,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                 field.name.toLowerCase() == socialLink.platform.toLowerCase(),
           );
 
-          String url = socialLink.url ?? '';
+          String url = socialLink.url;
           if (url.isNotEmpty) {
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
               url = 'https://$url';
@@ -345,7 +345,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                                       BoxShadow(
                                           blurRadius: 6,
                                           spreadRadius: 0.5,
-                                          color: Colors.black.withOpacity(0.15))
+                                          color: Colors.black.withValues(alpha: 0.15))
                                     ]
                                   : null,
                             ),

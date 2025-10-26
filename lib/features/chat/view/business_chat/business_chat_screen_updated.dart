@@ -179,8 +179,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 15, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(
-                                      0.5), // light color with 0.5 opacity
+                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: RichText(
@@ -335,7 +334,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                 decoration: InputDecoration(
                   hintText: 'Type your message...',
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
+                  fillColor: Colors.white.withValues(alpha: 0.05),
                   contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(

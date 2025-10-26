@@ -266,7 +266,7 @@ class PaymentSettingScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: Offset(0, 2),
             ),
@@ -282,7 +282,7 @@ class PaymentSettingScreen extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: Color((Random().nextDouble() * 0xFFFFFF).toInt())
-                      .withOpacity(1.0),
+                      .withValues(alpha: 1.0),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -409,7 +409,7 @@ class PaymentSettingScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -511,7 +511,7 @@ class PaymentSettingScreen extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color..withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Material(

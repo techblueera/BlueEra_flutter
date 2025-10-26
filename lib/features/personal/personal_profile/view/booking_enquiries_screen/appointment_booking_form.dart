@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
@@ -28,8 +27,7 @@ class AppointmentBookingScreen extends StatefulWidget {
 }
 
 String? _selectedFromTime;
-String? _selectedToTime;
-List<String> _timeOfDay = [];
+
 
 
 class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
@@ -44,7 +42,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   void initState() {
     super.initState();
 
-    _timeOfDay = generate24HoursAmPm();
+    // _timeOfDay = generate24HoursAmPm();
     
     // Fetch calendar data when screen loads
     bookingController.getAvailabilityData(channelId: widget.channelId);
@@ -227,7 +225,6 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                               _selectedDay = value;
                               // Reset time selection when date changes
                               _selectedFromTime = null;
-                              _selectedToTime = null;
                             });
                           },
                           onMonthChanged: (value) {
@@ -236,7 +233,6 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                               // Reset day and time when month changes
                               _selectedDay = null;
                               _selectedFromTime = null;
-                              _selectedToTime = null;
                             });
                           },
                           onYearChanged: (value) {
@@ -246,7 +242,6 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                               _selectedMonth = null;
                               _selectedDay = null;
                               _selectedFromTime = null;
-                              _selectedToTime = null;
                             });
                           },
                         );

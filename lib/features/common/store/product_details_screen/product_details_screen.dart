@@ -245,19 +245,11 @@ class ProductDetailsScreen extends StatelessWidget {
                   width: double.infinity,
                   height: double.infinity,
                   decoration: BoxDecoration(
-                    color: controller.productImages[index] != null 
-                        ? Colors.transparent 
-                        : Colors.grey[200],
+                    color: Colors.transparent,
                   ),
-                  child: controller.productImages[index] != null
-                      ? Image.asset(
+                  child: Image.asset(
                           controller.productImages[index],
                           fit: BoxFit.contain,
-                        )
-                      : Icon(
-                          Icons.phone_android,
-                          size: 80,
-                          color: Colors.grey[600],
                         ),
                 );
               },
@@ -274,11 +266,11 @@ class ProductDetailsScreen extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black..withValues(alpha: 0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -346,7 +338,7 @@ class ProductDetailsScreen extends StatelessWidget {
                 vertical: SizeConfig.size8,
               ),
               decoration: BoxDecoration(
-                color: color['isSelected'] ? AppColors.primaryColor.withOpacity(0.1) : Colors.transparent,
+                color: color['isSelected'] ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: color['isSelected'] ? AppColors.primaryColor : AppColors.greyE5,
@@ -401,7 +393,7 @@ class ProductDetailsScreen extends StatelessWidget {
                 vertical: SizeConfig.size8,
               ),
               decoration: BoxDecoration(
-                color: storage['isSelected'] ? AppColors.primaryColor.withOpacity(0.1) : Colors.transparent,
+                color: storage['isSelected'] ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: storage['isSelected'] ? AppColors.primaryColor : AppColors.greyE5,
@@ -496,7 +488,7 @@ class ProductDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black..withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -571,7 +563,7 @@ class ProductDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black..withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -611,7 +603,7 @@ class ProductDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black..withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -764,7 +756,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: CustomText(
@@ -798,7 +790,7 @@ class ProductDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black..withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -948,7 +940,7 @@ class ProductDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black..withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -1096,7 +1088,7 @@ class ProductDetailsScreen extends StatelessWidget {
         color: AppColors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black..withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

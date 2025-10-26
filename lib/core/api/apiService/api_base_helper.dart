@@ -839,7 +839,7 @@ class DioExceptions implements Exception {
 
   DioExceptions.fromDioError(DioException? dioError) {
     logs("dioError!.type==== ${dioError!.type}");
-    switch (dioError!.type) {
+    switch (dioError.type) {
       case DioExceptionType.cancel:
         message = "Request to API server was cancelled";
         break;

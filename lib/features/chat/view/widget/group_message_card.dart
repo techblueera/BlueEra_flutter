@@ -239,7 +239,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                   color: chatThemeController
                       .myMessageBgColor
                       .value
-                      .withOpacity(0.4),
+                      ..withValues(alpha: 0.4),
                 ),
 
               ),
@@ -526,7 +526,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CircleAvatar(
-                          backgroundColor: theme.colorScheme.surface.withOpacity(0.8),
+                          backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
                           radius: 18,
                           child: Center(
                             child: Icon(
@@ -582,7 +582,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                             borderRadius: BorderRadius.circular(8),
                             color: (isReceiveMsg)
                                 ? theme.colorScheme.secondary
-                                : theme.colorScheme.secondary.withOpacity(0.6)),
+                                : theme.colorScheme.secondary.withValues(alpha: 0.6)),
                         child: Center(
                           child: CustomText(
                             "Save",

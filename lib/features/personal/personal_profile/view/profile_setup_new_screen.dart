@@ -203,10 +203,6 @@ class _PersonalProfileSetupNewScreenState
     }
   }
 
-  bool _shouldShowBioSection() {
-    final bio = viewProfileController.personalProfileDetails.value.user?.bio;
-    return bio != null && bio.trim().isNotEmpty;
-  }
 
   bool _hasAnyLinks() {
     // Check if any social link is not null and not empty

@@ -323,10 +323,10 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                 overlayColor: WidgetStateProperty.resolveWith<Color?>(
                                       (states) {
                                     if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey.withOpacity(0.4); // pressed
+                                      return Colors.grey..withValues(alpha: 0.4); // pressed
                                     }
                                     if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withOpacity(0.2); // hover
+                                      return Colors.grey.withValues(alpha: 0.2); // hover
                                     }
                                     return null;
                                   },
@@ -398,10 +398,10 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                 overlayColor: WidgetStateProperty.resolveWith<Color?>(
                                       (states) {
                                     if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey.withOpacity(0.4); // pressed
+                                      return Colors.grey..withValues(alpha: 0.4); // pressed
                                     }
                                     if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withOpacity(0.2); // hover
+                                      return Colors.grey.withValues(alpha: 0.2); // hover
                                     }
                                     return null;
                                   },
@@ -433,10 +433,10 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                 overlayColor: WidgetStateProperty.resolveWith<Color?>(
                                       (states) {
                                     if (states.contains(WidgetState.pressed)) {
-                                      return Colors.grey.withOpacity(0.4); // pressed
+                                      return Colors.grey..withValues(alpha: 0.4); // pressed
                                     }
                                     if (states.contains(WidgetState.hovered)) {
-                                      return Colors.grey.withOpacity(0.2); // hover
+                                      return Colors.grey.withValues(alpha: 0.2); // hover
                                     }
                                     return null;
                                   },
@@ -466,10 +466,10 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                           overlayColor: WidgetStateProperty.resolveWith<Color?>(
                                 (states) {
                               if (states.contains(WidgetState.pressed)) {
-                                return Colors.grey.withOpacity(0.4); // pressed
+                                return Colors.grey..withValues(alpha: 0.4); // pressed
                               }
                               if (states.contains(WidgetState.hovered)) {
-                                return Colors.grey.withOpacity(0.2); // hover
+                                return Colors.grey.withValues(alpha: 0.2); // hover
                               }
                               return null;
                             },

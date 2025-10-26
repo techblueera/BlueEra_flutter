@@ -69,7 +69,7 @@ class UploadRestrictionDialog extends StatelessWidget {
             CustomText(
               message,
               textAlign: TextAlign.center,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 15,
             ),
 

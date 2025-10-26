@@ -4,13 +4,11 @@ import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/custom_service_bottom_sheet.dart';
@@ -67,7 +65,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   final locationTextController = TextEditingController();
   Timer? _debounce;
   String? _currentAddress;
-  String? _currentCity;
   bool searchLocationShow = false;
 
   // Set<Marker> _placeMarkers = {};
@@ -153,7 +150,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       _currentAddress =
           address.where((e) => e != null && e.isNotEmpty).join(', ');
       searchController.text = _currentAddress ?? '';
-      _currentCity = address[1];
       isCurrentLocationMarkerShown = true;
 
       _updateLocationMarker(

@@ -152,8 +152,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
         if (didPop) return;
         commonConformationDialog(
           context: context,
-          text: langController.tr('exitConfirmation') ??
-              "Are you sure you want to exit the app?",
+          text: langController.tr('exitConfirmation'),
           confirmCallback: () async {
             await SharedPreferenceUtils.clearPreference();
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -228,8 +227,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         pinputAutovalidateMode: _autoValidate,
                         validator: (value) {
                           if (value == null || value.length != 6) {
-                            return langController.tr('pleaseEnterValidOtp') ??
-                                'Please enter a valid 6 digit OTP';
+                            return langController.tr('pleaseEnterValidOtp');
                           }
                           return null;
                         },

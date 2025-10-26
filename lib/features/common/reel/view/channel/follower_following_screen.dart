@@ -2,8 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -14,7 +12,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_p
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -134,8 +131,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                                         .followerResponse.value.status ==
                                     Status.COMPLETE &&
                                 (followFollowerController
-                                        .followerList.isNotEmpty ??
-                                    false))
+                                        .followerList.isNotEmpty))
                             ? RefreshIndicator(
                                 onRefresh: () async {
                                   apiCalling(1);

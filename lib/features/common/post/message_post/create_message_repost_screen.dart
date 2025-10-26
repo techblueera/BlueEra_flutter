@@ -243,7 +243,7 @@ class _CreateMessagePostScreenNewState
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                         color: AppColors.secondaryTextColor
-                                            .withOpacity(0.2)),
+                                            .withValues(alpha: 0.2)),
                                     color: AppColors.white, // light background
                                   ),
                                   child: Column(
@@ -384,7 +384,7 @@ class _CreateMessagePostScreenNewState
                                                     height: 90,
                                                     width: 90,
                                                     color: AppColors.secondaryTextColor
-                                                        .withOpacity(0.1),
+                                                        ..withValues(alpha: 0.1),
                                                     child: Icon(Icons.image,
                                                         color: AppColors
                                                             .secondaryTextColor),

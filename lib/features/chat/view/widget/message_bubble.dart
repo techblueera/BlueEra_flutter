@@ -80,7 +80,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                           topRight: Radius.circular(8),
                           bottomRight: Radius.circular(8),
                         ),
-                        color: AppColors.greyA5.withOpacity(0.4),
+                        color: AppColors.greyA5..withValues(alpha: 0.4),
                       ),
                       padding: EdgeInsets.only(right: 8),
                       child: Center(child: Row(
@@ -225,7 +225,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Scrollbar(

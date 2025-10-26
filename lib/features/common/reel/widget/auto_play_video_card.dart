@@ -11,7 +11,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

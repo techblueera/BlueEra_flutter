@@ -40,7 +40,6 @@ class PostRepo extends BaseService {
       isArrayReq: true,
       showProgress: false,
       onSendProgress: (sent, total) {
-        double progress = sent / total;
       },
     );
     return response;

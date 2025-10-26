@@ -130,7 +130,7 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
                 padding: EdgeInsets.all(SizeConfig.size10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
-                  color: AppColors.primaryColor.withOpacity(0.3),
+                  color: AppColors.primaryColor.withValues(alpha: 0.3),
                 ),
                 child: SvgPicture.asset(
                   value1,

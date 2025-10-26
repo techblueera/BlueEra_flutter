@@ -89,12 +89,9 @@ class SimplePriorityVideoManager extends GetxController {
 
 
   void _scheduleVideoView(String videoId) {
-    VideoController? videoController;
 
     if (Get.isRegistered<VideoController>()) {
-      videoController = Get.find<VideoController>();
     } else {
-      videoController = Get.put(VideoController());
     }
     // Future.delayed(const Duration(seconds: 5), () {
     //   videoController?.videoView(videoId: videoId);
@@ -119,7 +116,7 @@ class SimplePriorityVideoManager extends GetxController {
         _controller = null;
       }
 
-      final isHls = videoUrl.toLowerCase().endsWith('.m3u8');
+      videoUrl.toLowerCase().endsWith('.m3u8');
 
       // Create new controller
       _controller = VideoPlayerController.networkUrl(

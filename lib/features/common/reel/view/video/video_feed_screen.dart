@@ -157,8 +157,6 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
   }
 
   Widget _buildVideoList() {
-    const int videosPerAd = 9;
-    const int cycleSize = videosPerAd + 1;
 
     return setupScrollVisibilityNotification(
       controller: _scrollController,

@@ -1,8 +1,6 @@
 
 import 'dart:convert';
-import 'dart:developer';
 
-import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -15,7 +13,6 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
-import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/cupertino.dart';

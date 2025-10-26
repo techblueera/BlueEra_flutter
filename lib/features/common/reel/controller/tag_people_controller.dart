@@ -65,7 +65,7 @@ class TagPeopleController extends GetxController{
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e, s) {
+    } catch (e) {
       allUsersResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally{

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/foundation.dart' as foundationObj;
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
 // import 'package:google_maps_flutter/google_maps_flutter.dart';

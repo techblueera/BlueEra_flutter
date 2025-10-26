@@ -128,7 +128,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
-                            color: (serviceData?.vegType == "veg" ?? false)
+                            color: (serviceData?.vegType == "veg")
                                 ? Colors.green
                                 : Colors.red,
                             borderRadius: BorderRadius.circular(6),

@@ -8,7 +8,6 @@ import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.d
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 
 class StoreFoodServiceCard extends StatelessWidget {
   final GetFoodDetailsModel? foodDetailsData;

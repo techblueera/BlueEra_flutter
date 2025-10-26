@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
 import 'package:BlueEra/features/common/map/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
@@ -20,7 +19,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -298,11 +296,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                         };
                         chatViewController.newVisitContactApiResponse?.value;
                         await chatViewController.checkChatConnection(detas);
-                        List<Map<String, String>> urlList = serviceData
-                                .serviceMedia?.photos
-                                ?.map((e) => {"photos": e})
-                                .toList() ??
-                            [];
                         chatViewController.openAnyOneChatFunction(
                           isWithProductSend: false,
                           profileImage: serviceData.profileImage,

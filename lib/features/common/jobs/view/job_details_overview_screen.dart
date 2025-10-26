@@ -336,12 +336,12 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: controller.documentPath?.value.isNotEmpty == true
-                          ? AppColors.primaryColor.withOpacity(0.3)
+                          ? AppColors.primaryColor.withValues(alpha: 0.3)
                           : AppColors.whiteE9,
                     ),
                     borderRadius: BorderRadius.circular(10.0),
                     color: controller.documentPath?.value.isNotEmpty == true
-                        ? AppColors.primaryColor.withOpacity(0.05)
+                        ? AppColors.primaryColor.withValues(alpha: 0.05)
                         : Colors.transparent,
                   ),
                   child: Row(

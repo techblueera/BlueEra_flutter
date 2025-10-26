@@ -521,7 +521,7 @@ class _UpdateJourneyScreenState extends State<UpdateJourneyScreen> {
                               left: SizeConfig.size5, bottom: SizeConfig.size5),
                           padding: EdgeInsets.all(SizeConfig.size8),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withOpacity(0.1),
+                            color: AppColors.primaryColor..withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: LocalAssets(

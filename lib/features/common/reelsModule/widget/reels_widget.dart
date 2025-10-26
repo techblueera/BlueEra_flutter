@@ -330,7 +330,7 @@
 //                             height: 70,
 //                             width: 70,
 //                             padding: EdgeInsets.only(left: isPlaying.value ? 0 : 2),
-//                             decoration: BoxDecoration(color: AppColors.black.withOpacity(0.2), shape: BoxShape.circle),
+//                             decoration: BoxDecoration(color: AppColors.black.withValues(alpha: 0.2), shape: BoxShape.circle),
 //                             child: Center(
 //                               child: isPlaying.value
 //                                   ? Icon(Icons.pause_circle)
@@ -358,7 +358,7 @@
 //                       width: Get.width,
 //                       decoration: BoxDecoration(
 //                         gradient: LinearGradient(
-//                           colors: [AppColors.transparent, AppColors.black.withOpacity(0.7)],
+//                           colors: [AppColors.transparent, AppColors.black.withValues(alpha: 0.7)],
 //                           begin: Alignment.topCenter,
 //                           end: Alignment.bottomCenter,
 //                         ),
@@ -614,7 +614,7 @@
 //                                             child: Container(
 //                                               decoration: BoxDecoration(
 //                                                 borderRadius: BorderRadius.circular(50),
-//                                                 color: AppColors.white.withOpacity(0.3),
+//                                                 color: AppColors.white.withValues(alpha: 0.3),
 //                                               ),
 //                                               child: Offstage(),
 //                                             ),
@@ -693,7 +693,7 @@
 //                                             child: Container(
 //                                               decoration: BoxDecoration(
 //                                                 borderRadius: BorderRadius.circular(50),
-//                                                 color: AppColors.white.withOpacity(0.3),
+//                                                 color: AppColors.white.withValues(alpha: 0.3),
 //                                               ),
 //                                               child: Offstage(),
 //                                             ),

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -335,7 +334,7 @@ class _MessageCardState extends State<MessageCard>
                       bottomLeft: Radius.circular((isReceive) ? 0 : 12),
                     ),
                     color: chatThemeController.myMessageBgColor.value
-                        .withOpacity(0.4),
+                        ..withValues(alpha: 0.4),
                   ),
                 ),
               ))
@@ -1109,7 +1108,7 @@ class _MessageCardState extends State<MessageCard>
                   children: [
                     CircleAvatar(
                       backgroundColor:
-                          theme.colorScheme.surface.withOpacity(0.8),
+                          theme.colorScheme.surface.withValues(alpha: 0.8),
                       radius: 18,
                       child: Center(
                         child: Icon(
@@ -1167,7 +1166,7 @@ class _MessageCardState extends State<MessageCard>
                               color: (isReceiveMsg)
                                   ? theme.colorScheme.secondary
                                   : theme.colorScheme.secondary
-                                      .withOpacity(0.6)),
+                                      .withValues(alpha: 0.6)),
                           child: Center(
                             child: CustomText(
                               "Save",
@@ -1372,7 +1371,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
-                      color: (serviceData?.vegType == "veg" ?? false)
+                      color: (serviceData?.vegType == "veg")
                           ? Colors.green
                           : Colors.red,
                       borderRadius: BorderRadius.circular(6),
@@ -1545,7 +1544,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      OrderNowDialog.showDialogBox(widget.userId,widget.message.id??'',widget.conversationId);
 
                       // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
                     },
@@ -1816,7 +1815,7 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      OrderNowDialog.showDialogBox(widget.userId,widget.message.id??'',widget.conversationId);
 
                       // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
                     },

@@ -7,7 +7,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
-import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
@@ -20,7 +19,6 @@ import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 // import 'package:share_handler/share_handler.dart';
 
-import '../../../chat/contacts/view/be_available_contacts_list.dart';
 
 enum SavedFeedTab {
   posts,

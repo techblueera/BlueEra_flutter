@@ -120,7 +120,7 @@ class PermissionService {
       } else {
         final deviceInfo = DeviceInfoPlugin();
         final androidInfo = await deviceInfo.androidInfo;
-        final sdkInt = androidInfo.version.sdkInt ?? 0;
+        final sdkInt = androidInfo.version.sdkInt;
 
         if (sdkInt >= 33) {
           // Android 13+ (API 33+): granular media permission

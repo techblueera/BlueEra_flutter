@@ -5,7 +5,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:get/get.dart';
 
-import '../../../../../../core/api/apiService/api_keys.dart';
 
 class EarnWithBlueEraController extends GetxController{
   Rx<ApiResponse> ownProductsResponse =

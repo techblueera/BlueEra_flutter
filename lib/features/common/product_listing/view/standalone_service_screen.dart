@@ -7,7 +7,6 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../widgets/product_card.dart';
 
 class StandaloneServiceScreen extends StatelessWidget {
   final String businessId;

@@ -12,16 +12,13 @@ import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
-import 'package:BlueEra/features/common/feed/view/message_post_details_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
-import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
@@ -34,7 +31,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/feed_tag_people_bottom_sheet.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -289,7 +285,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                           color: AppColors.secondaryTextColor
-                                              .withOpacity(0.2)),
+                                              .withValues(alpha: 0.2)),
                                       color:
                                           AppColors.white, // light background
                                     ),
@@ -626,7 +622,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                           SizeConfig.size20),
                                                   InkWell(
                                                     onTap: () async {
-                                                      final msgController = Get.put(
+                                                      Get.put(
                                                           MessagePostController());
 
                                                       ///REPOST MESSAGE AND POLL POST...

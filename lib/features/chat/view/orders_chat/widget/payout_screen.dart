@@ -129,7 +129,7 @@ class _PayoutScreenState extends State<PayoutScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue..withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -290,7 +290,7 @@ class _PayoutScreenState extends State<PayoutScreen> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.grayText.withOpacity(0.1),
+                      backgroundColor: AppColors.grayText..withValues(alpha: 0.1),
                       padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -373,7 +373,7 @@ class _PayoutScreenState extends State<PayoutScreen> {
                         onPressed: () => selectOption("Pickup"),
                         style: OutlinedButton.styleFrom(
                           backgroundColor: selectedOption == "Pickup"
-                              ? AppColors.primaryColor.withOpacity(0.1)
+                              ? AppColors.primaryColor.withValues(alpha: 0.1)
                               : Colors.transparent,
                           side: BorderSide(
                             color: selectedOption == "Pickup"
@@ -398,7 +398,7 @@ class _PayoutScreenState extends State<PayoutScreen> {
                         onPressed: () => selectOption("Delivery"),
                         style: OutlinedButton.styleFrom(
                           backgroundColor: selectedOption == "Delivery"
-                              ? AppColors.primaryColor.withOpacity(0.1)
+                              ? AppColors.primaryColor.withValues(alpha: 0.1)
                               : Colors.transparent,
                           side: BorderSide(
                             color: selectedOption == "Delivery"

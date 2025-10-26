@@ -12,7 +12,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_sc
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
 import 'package:flutter/material.dart';
@@ -280,7 +279,7 @@ void postReportPopUp({required Post postData, required PostType postType}) {
                 'Spam or misleading': false,
                 'Legal issue': false,
               },
-              contentId: postData.id ?? '',
+              contentId: postData.id,
               otherUserId: postData.user?.id??"",
               reportCallback: (params) async {
                 if (isGuestUser()) {
@@ -289,7 +288,7 @@ void postReportPopUp({required Post postData, required PostType postType}) {
                   return;
                 }
                 Get.find<FeedController>().postReport(
-                    postId: postData.id ?? '', type: postType, params: params);
+                    postId: postData.id, type: postType, params: params);
               },
             ),
           ),

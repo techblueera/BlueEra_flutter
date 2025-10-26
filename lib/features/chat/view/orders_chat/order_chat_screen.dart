@@ -155,8 +155,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 15, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(
-                                      0.5), // light color with 0.5 opacity
+                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: RichText(

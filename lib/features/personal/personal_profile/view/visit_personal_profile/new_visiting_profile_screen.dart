@@ -18,7 +18,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../controller/profile_controller.dart';
@@ -316,18 +315,3 @@ class StatBlock extends StatelessWidget {
   }
 }
 
-class _SocialLink extends StatelessWidget {
-  final String text;
-
-  const _SocialLink({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomText(
-      text,
-      fontSize: SizeConfig.small,
-      color: AppColors.primaryColor,
-      fontWeight: FontWeight.w900,
-    );
-  }
-}

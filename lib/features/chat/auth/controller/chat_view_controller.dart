@@ -1346,7 +1346,7 @@ class ChatViewController extends GetxController {
       {required Map<String,dynamic> params}) async {
     try {
       ResponseModel? response = await ChatViewRepo().addGroupMembers(params);
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         commonSnackBar(message: "Group Member Added");
         Map<String, dynamic> data = {
           ApiKeys.conversation_id: params[ApiKeys.conversation_id]

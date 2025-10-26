@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -85,9 +84,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (channelModel?.data == null) return;
 
     final data = channelModel!.data;
-    channelId = data.id ?? '';
-    channelName = data.name ?? '';
-    channelOwner = data.ownership.claimedBy ?? '';
+    channelId = data.id;
+    channelName = data.name;
+    channelOwner = data.ownership.claimedBy;
 
     await Future.wait([
       SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.channel_Id, channelId),

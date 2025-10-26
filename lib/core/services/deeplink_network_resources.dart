@@ -7,7 +7,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
-import 'package:BlueEra/features/common/reel/view/video/deeplink_video_screen.dart';
 import 'package:get/get.dart';
 
 final deepLinkNetworkResources = DeepLinkNetworkResources();

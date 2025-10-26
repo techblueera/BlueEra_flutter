@@ -1,17 +1,13 @@
-import 'dart:developer';
 import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_product_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class BusinessServiceCard extends StatefulWidget {

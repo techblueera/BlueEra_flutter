@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +35,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -388,9 +387,4 @@ class NewProfileHeaderWidget extends StatelessWidget {
     );
   }
 
-  Widget _divider() => Container(
-    width: 1,
-    height: 20,
-    color: Colors.grey[400],
-  );
 }

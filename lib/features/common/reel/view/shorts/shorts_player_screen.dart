@@ -193,7 +193,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
       toCreate.add(i);
 
-      final masterUrl = item.video?.transcodedUrls?.master;
       final fallbackUrl = item.video?.videoUrl;
 
       // final controller = VideoPlayerController.networkUrl(
@@ -489,7 +488,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
               //   right: 20,
               //   child: FloatingActionButton(
               //     mini: true,
-              //     backgroundColor: Colors.red.withOpacity(0.7),
+              //     backgroundColor: Colors.red.withValues(alpha: 0.7),
               //     onPressed: debugCacheStatus,
               //     child: Icon(Icons.bug_report, color: Colors.white, size: 16),
               //   ),

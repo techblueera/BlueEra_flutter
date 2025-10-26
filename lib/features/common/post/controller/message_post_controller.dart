@@ -12,16 +12,12 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/generate_presigned_url.dart';
-import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
-import 'package:croppy/croppy.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
@@ -201,7 +197,7 @@ class MessagePostController extends GetxController {
 
     final files = result.paths.map((e) => File(e!)).toList();
     final firstExt = files.first.path.split('.').last.toLowerCase();
-    final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
+    ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
 
     // setState(() {
     // if (selectedType.value == null) {
@@ -231,8 +227,6 @@ class MessagePostController extends GetxController {
     if (result == null) return;
 
     final files = result.paths.map((e) => File(e!)).toList();
-    final firstExt = files.first.path.split('.').last.toLowerCase();
-    final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
 
     // setState(() {
     // if (selectedType.value == null) {

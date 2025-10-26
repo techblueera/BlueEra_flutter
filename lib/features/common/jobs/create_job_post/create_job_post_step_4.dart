@@ -246,7 +246,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                   child: Switch(
                     value: toggleValue.value,
                     onChanged: (val) => toggleValue.value = val,
-                    activeColor: Colors.white,
+                    activeThumbColor: Colors.white,
                     activeTrackColor: Color(0xFF2399F5),
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: Colors.grey,

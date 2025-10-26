@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 
@@ -76,7 +75,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       scale: 0.8,
                       child: Switch(
                         value: isGoLive,
-                        activeColor: Colors.white,
+                        activeThumbColor: Colors.white,
                         activeTrackColor: Colors.blue,
                         inactiveTrackColor: Colors.grey.shade300,
                         onChanged: (v) => setState(() => isGoLive = v),

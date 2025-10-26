@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
-import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -738,7 +737,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                                             blurRadius: 6,
                                             spreadRadius: 0.5,
                                             color:
-                                                Colors.black.withOpacity(0.15))
+                                                Colors.black.withValues(alpha: 0.15))
                                       ]
                                     : null,
                               ),
@@ -1031,7 +1030,7 @@ class UsernamePicker extends StatelessWidget {
                           BoxShadow(
                               blurRadius: 6,
                               spreadRadius: 0.5,
-                              color: Colors.black.withOpacity(0.15))
+                              color: Colors.black.withValues(alpha: 0.15))
                         ]
                       : null,
                 ),

@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -9,7 +8,6 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
-import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/features/common/store/view/store_food_service_card.dart';
@@ -116,8 +114,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> {
   @override
   Widget build(BuildContext context) {
     final width = SizeConfig.screenWidth;
-    final height = SizeConfig.screenHeight;
-    final isTablet = width > 600;
 
     double dynamicSize(double base) =>
         base * (width / 390); // Responsive scale base on 390px width

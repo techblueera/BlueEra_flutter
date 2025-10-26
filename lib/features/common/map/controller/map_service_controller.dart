@@ -156,7 +156,7 @@ class MapServiceController extends GetxController{
 
       if (designation == null || designation == 'OTHER') continue;
 
-        final key = designation ?? "Unknown";
+        final key = designation;
 
         // If profession already exists, add to existing list without duplicates
         if (result.containsKey(key)) {

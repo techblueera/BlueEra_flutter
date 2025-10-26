@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import '../../../business/auth/model/ReleatedStoresList.dart';
 import '../../map/model/food_service_model_response.dart';
 
 GetServiceModel getServiceModelFromJson(String str) =>

@@ -4,7 +4,6 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -17,7 +16,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/received_enquiry_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/video_booking_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/video_enquiry_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/repo/booking_enquiries_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -441,11 +439,9 @@ class BookingTabController extends GetxController {
     try {
       isLoading.value = true;
       final response = await BookingRepo().getReceivedBooking(channelId: channelId,videoId: videoId);
-      log("datares:${response.statusCode}");
       if (response.statusCode == 200) {
         final bookingResponse = ReceivedBookingList.fromJson(response.response!.data);
         receivedbookingList.value = bookingResponse.data;
-        log("Received booking data: ${receivedbookingList.value.length} items");
       } else {
         print("API failed with status: ${response.statusCode}");
         receivedbookingList.clear();
