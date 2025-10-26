@@ -18,7 +18,7 @@ import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
-import 'package:share_handler/share_handler.dart';
+// import 'package:share_handler/share_handler.dart';
 
 import '../../../chat/contacts/view/be_available_contacts_list.dart';
 
@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: selectedIndex);
 
-    initPlatformState();
+    // initPlatformState();
     getPackageData();
     searchController.addListener(() {
       setState(() {});
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 ///DO NOT DELETE THIS CODE.....
-  SharedMedia? sharedMedia;
+/*  SharedMedia? sharedMedia;
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     });
-  }
+  }*/
   Future<void> getPackageData() async {
     if (!mounted) return;
     PackageInfo _packageInfo = await PackageManager.getPackageInfo();

@@ -210,7 +210,7 @@ class SharedPreferenceUtils {
       userServiceCreatedStatusGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       // userServiceExistsKeyGlobal = 'false';
-      Get.put(LocationServiceProviderController()).stopLocationUpdates();
+      // Get.put(LocationServiceProviderController()).stopLocationUpdates();
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
     } on Exception {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
