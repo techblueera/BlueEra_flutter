@@ -20,12 +20,15 @@ import 'package:path_provider/path_provider.dart';
 Future<void> postVia(
     BuildContext context, PostCreationMenu postCreationMenu) async {
   log("account type--> $accountTypeGlobal");
+
   if (isIndividual()) {
-    if (postCreationMenu == PostCreationMenu.videos) {
+    showPostViaDialog(context, postCreationMenu);
+
+    /*  if (postCreationMenu == PostCreationMenu.videos) {
       postNavigations(context, postCreationMenu, PostVia.channel);
     } else {
       showPostViaDialog(context, postCreationMenu);
-    }
+    }*/
 
     // if(postCreationMenu == PostCreationMenu.videos){
     //   if (channelId.isEmpty) {
@@ -73,9 +76,9 @@ void postNavigations(
           arguments: {ApiKeys.argPostVia: postVia});
       break;
 
-    case PostCreationMenu.videos:
-      showVideosPickerDialog(context, type: postVia);
-      break;
+    // case PostCreationMenu.videos:
+    //   showVideosPickerDialog(context, type: postVia);
+    //   break;
 
     default:
       break;
@@ -221,6 +224,7 @@ Future<void> showPostViaDialog(
                       Expanded(
                         child: CustomBtn(
                           onTap: () async {
+                            Navigator.of(context).pop();
                             if (selected == 'profile') {
                               postNavigations(
                                   context, postCreationMenu, PostVia.profile);
@@ -266,14 +270,14 @@ Future<void> showCreateChannelDialog(
     confirmText: 'Create',
     cancelText: 'Skip',
     confirmCallback: () {
-      Navigator.of(context).pop(); // Close dialog first
-      Navigator.pushNamed(
-        context,
+      Get.back();
+
+      Get.toNamed(
         RouteHelper.getManageChannelScreenRoute(),
       );
     },
     cancelCallback: () {
-      Navigator.of(context).pop(); // Close dialog first
+      Get.back();
       onSkip();
     },
   );

@@ -299,4 +299,18 @@ class PostRepo extends BaseService {
     );
     return response;
   }
+
+
+  Future<ResponseModel> aiSocialPostGenerateRepo({Map<String, dynamic>? queryParam}) async {
+
+    final response = await ApiBaseHelper().postHTTP(
+      aiSocialPostGenerate,
+      params:queryParam,
+      isMultipart: true,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

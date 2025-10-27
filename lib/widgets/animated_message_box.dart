@@ -25,7 +25,7 @@ class _AnimatedMessageBoxState extends State<AnimatedMessageBox> with SingleTick
 
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3), // ⏱️ Adjust duration as needed
+      duration: const Duration(seconds: 4), // ⏱️ Adjust duration as needed
     )..addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         widget.controller.hide();

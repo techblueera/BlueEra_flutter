@@ -149,8 +149,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           if (user?.profession == SELF_EMPLOYED) 'Portfolio',
           'Posts',
           'Testimonials',
-          'Shorts',
-          'Videos'
+          // 'Shorts',
+          // 'Videos'
         ];
 
         return SingleChildScrollView(
@@ -181,10 +181,10 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                       labelBuilder: (label) => label,
                     ),
                   ),
-                  if (selectedIndex == postTab.indexOf('Shorts') ||
-                      selectedIndex == postTab.indexOf('Videos')) ...[
-                    _filterButtons(),
-                  ],
+                  // if (selectedIndex == postTab.indexOf('Shorts') ||
+                  //     selectedIndex == postTab.indexOf('Videos')) ...[
+                  //   _filterButtons(),
+                  // ],
                   SizedBox(height: SizeConfig.size16),
 
                   _buildTabContent(selectedIndex)
@@ -265,25 +265,25 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           isSelfTestimonial: false,
           screenFromName: widget.screenFromName,
         );
-      case 'Shorts':
-        return ShortsChannelSection(
-          isOwnShorts: false,
-          channelId: '',
-          authorId: widget.authorId,
-          showShortsInGrid: true,
-          sortBy: selectedFilter,
-          postVia: PostVia.profile,
-        );
-      case 'Videos':
-        return VideoChannelSection(
-          isOwnVideos: false,
-          channelId: '',
-          authorId: widget.authorId,
-          sortBy: selectedFilter,
-          padding: 0.0,
-          postVia: PostVia.profile,
-          isVisiting: true,
-        );
+      // case 'Shorts':
+      //   return ShortsChannelSection(
+      //     isOwnShorts: false,
+      //     channelId: '',
+      //     authorId: widget.authorId,
+      //     showShortsInGrid: true,
+      //     sortBy: selectedFilter,
+      //     postVia: PostVia.profile,
+      //   );
+      // case 'Videos':
+      //   return VideoChannelSection(
+      //     isOwnVideos: false,
+      //     channelId: '',
+      //     authorId: widget.authorId,
+      //     sortBy: selectedFilter,
+      //     padding: 0.0,
+      //     postVia: PostVia.profile,
+      //     isVisiting: true,
+      //   );
       default:
         return const Center(child: CustomText('Coming soon'));
     }

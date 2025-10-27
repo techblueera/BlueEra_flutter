@@ -592,7 +592,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.message,
     PostCreationMenu.poll,
     PostCreationMenu.photos,
-    if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
+    // if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
 
     /// for individual user if user has channel then only video section will shown
     if (isBusiness) PostCreationMenu.jobPost,
@@ -604,7 +604,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.message: AppIconAssets.message_post,
     PostCreationMenu.poll: AppIconAssets.qa_ask_questionOutlinedIcon,
     PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
-    PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
+    // PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
     PostCreationMenu.jobPost: AppIconAssets.uilSuitcaseOutlinedIcon,
     PostCreationMenu.place: AppIconAssets.locationOutlineIconGreyIcon,
     PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
@@ -614,7 +614,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.message: 'Lekha',
     PostCreationMenu.poll: 'Poll',
     PostCreationMenu.photos: 'Photos',
-    PostCreationMenu.videos: 'Videos',
+    // PostCreationMenu.videos: 'Videos',
     PostCreationMenu.jobPost: 'Job Post',
     PostCreationMenu.place: 'Place',
     PostCreationMenu.travel: 'Travel',
@@ -1918,4 +1918,15 @@ final List<String> bgAssetsForServices = [
   'assets/services_cards/blueera_aatmnirbhar_service_card13.jpeg',
   'assets/services_cards/blueera_aatmnirbhar_service_card14.jpeg',
   'assets/services_cards/blueera_aatmnirbhar_service_card15.jpeg',
+];
+var SUPPORTED_EMOTIONS = [
+  'Anger / Outrage', 'Pride / Patriotism', 'Happiness / Celebration', 'Sadness / Sympathy',
+  'Motivation / Hope', 'Protest / Rebellion', 'Empathy / Humanity', 'Humor / Sarcasm','Poetic/Storytelling',
+  'Latest/Update','Informative/Educational','Treding/Current Events','Political/Opinionated'
+
+];
+var SUPPORTED_LANGUAGES = [
+  'Bengali', 'Bhojpuri', 'Dogri', 'English','Gujarati', 'Hindi', 'Kannada', 'Kashmiri', 'Konkani',
+  'Malayalam', 'Manipuri (Meitei)', 'Marathi', 'Nepali', 'Odia', 'Punjabi', 'Sanskrit',
+  'Santali', 'Sindhi', 'Tamil', 'Telugu', 'Urdu', 'Marwadi', 'Haryanvi'
 ];

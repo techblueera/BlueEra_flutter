@@ -144,6 +144,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                   color: AppColors.mainTextColor,
                                   fontFamily: AppConstants.OpenSans,
                                   fontWeight: FontWeight.w400,
+                                  fontSize: SizeConfig.size15
                                 ),
                               ),
                             ),

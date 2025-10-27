@@ -1,5 +1,6 @@
 
 
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -48,10 +49,9 @@ class _VideoPreviewScreenState extends State<NetworkVideoPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: Colors.white,
+      appBar: CommonBackAppBar(
+
       ),
       body: Center(
         child: _controller.value.isInitialized

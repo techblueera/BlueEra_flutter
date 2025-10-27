@@ -272,6 +272,9 @@ class _MessagePostPreviewScreenNewState
                                         ),
                                       ),
                               ),
+
+
+
                             ],
                           ),
                         ),
@@ -287,39 +290,42 @@ class _MessagePostPreviewScreenNewState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              msgPostController.isMsgPostEdit
-                                  ? Column(
-                                      children: [
-                                        CustomText(
-                                          "Nature of Post",
-                                          fontSize: SizeConfig.medium,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.black,
-                                        ),
-                                        SizedBox(
-                                          height: SizeConfig.size10,
-                                        ),
-                                        CustomText(msgPostController
-                                                .natureOfPostController
-                                                .value
-                                                .text
-                                                .isNotEmpty
-                                            ? msgPostController
-                                                .natureOfPostController
-                                                .value
-                                                .text
-                                            : "Not available"),
-                                      ],
-                                    )
-                                  : CommonTextField(
-                                      title: "Nature of Post",
-                                      hintText: "Eg. Flower",
-                                      maxLength: 50,
-                                      isValidate: false,
-                                      readOnly: msgPostController.isMsgPostEdit,
-                                      textEditController: msgPostController
-                                          .natureOfPostController.value,
-                                    ),
+                              IgnorePointer(
+                                ignoring: true,
+                                child: msgPostController.isMsgPostEdit
+                                    ? Column(
+                                        children: [
+                                          CustomText(
+                                            "Nature of Post",
+                                            fontSize: SizeConfig.medium,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.black,
+                                          ),
+                                          SizedBox(
+                                            height: SizeConfig.size10,
+                                          ),
+                                          CustomText(msgPostController
+                                                  .natureOfPostController
+                                                  .value
+                                                  .text
+                                                  .isNotEmpty
+                                              ? msgPostController
+                                                  .natureOfPostController
+                                                  .value
+                                                  .text
+                                              : "Not available"),
+                                        ],
+                                      )
+                                    : CommonTextField(
+                                        title: "Nature of Post",
+                                        hintText: "Eg. Flower",
+                                        maxLength: 50,
+                                        isValidate: false,
+                                        readOnly: msgPostController.isMsgPostEdit,
+                                        textEditController: msgPostController
+                                            .natureOfPostController.value,
+                                      ),
+                              ),
                               SizedBox(height: SizeConfig.size30),
 
                               // Action buttons

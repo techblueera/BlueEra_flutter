@@ -402,5 +402,8 @@ class ApiKeys {
   static const contentTypeKey = 'contentType';
   static const filenameKey = 'filename';
   static const thumbnail = 'thumbnail';
+  static const language = 'language';
+  static const emotion = 'emotion';
+  static const image_topic = 'image_topic';
 
 }

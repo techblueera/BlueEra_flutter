@@ -43,17 +43,20 @@ class AiSuggestionField extends StatelessWidget {
               color: AppColors.black,
             ),
             InkWell(
-              onTap: () async {
-                await aiController.fetchSuggestions(
-                  bodyRequest: bodyRequest,
-                  apiType: apiType,
-                  targetController: textController,
-                  onSaved: onSaved,
-                );
-              },
-              child:LocalAssets(   height: 25,
-                width: 25,imagePath: AppIconAssets.ai_generative,imgColor: AppColors.primaryColor,)
-            ),
+                onTap: () async {
+                  await aiController.fetchSuggestions(
+                    bodyRequest: bodyRequest,
+                    apiType: apiType,
+                    targetController: textController,
+                    onSaved: onSaved,
+                  );
+                },
+                child: LocalAssets(
+                  height: 25,
+                  width: 25,
+                  imagePath: AppIconAssets.ai_generative,
+                  imgColor: AppColors.primaryColor,
+                )),
           ],
         ),
         const SizedBox(height: 10),
