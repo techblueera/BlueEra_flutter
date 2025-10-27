@@ -32,7 +32,8 @@ class AiSuggestionController extends GetxController {
         final key =
            'bio_suggestions';
         final data = response.response?.data[key] ?? [];
-        suggestions.value = List<String>.from(data);
+        // suggestions.value = List<String>.from(data);
+        setSuggestions(data);
 
         // Show dialog
         await showSuggestionDialog(
@@ -49,6 +50,16 @@ class AiSuggestionController extends GetxController {
     }
   }
 
+
+  void setSuggestions(dynamic json) {
+    final data = json as List<dynamic>;
+
+    suggestions.value = data.map((inner) {
+      return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+    }).toList();
+
+    selectedSuggestion.value = ""; // reset selection
+  }
   /// Show dialog for suggestions
   Future<void> showSuggestionDialog({
     required TextEditingController targetController,

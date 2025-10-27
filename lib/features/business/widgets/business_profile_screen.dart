@@ -26,12 +26,6 @@ import '../visit_business_profile/view/business_profile_header.dart';
 
 import '../visiting_card/view/business_details_edit_page_one.dart';
 
-
-
-
-
-
-
 class BusinessProfileScreen extends StatefulWidget {
   final int? selectedIndex;
   final SortBy? sortBy;
@@ -84,8 +78,13 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
           child: Column(
             children: [
-              BusinessProfileHeader(details: details, controller: viewBusinessDetailsController,),
-              SizedBox(height: SizeConfig.size22,),
+              BusinessProfileHeader(
+                details: details,
+                controller: viewBusinessDetailsController,
+              ),
+              SizedBox(
+                height: SizeConfig.size22,
+              ),
               HorizontalTabSelector(
                 tabs: postTab,
                 selectedIndex:
@@ -97,7 +96,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 labelBuilder: (label) => label,
               ),
               if (viewBusinessDetailsController.selectedIndex.value ==
-                  postTab.indexOf('Shorts') ||
+                      postTab.indexOf('Shorts') ||
                   viewBusinessDetailsController.selectedIndex.value ==
                       postTab.indexOf('Videos')) ...[
                 _filterButtons(),
@@ -196,9 +195,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
           ],
         ));
   }
-
-
 }
+
 void _showPopup(BuildContext context) {
   showDialog(
     context: context,
@@ -278,12 +276,14 @@ Widget _popupItem({
 class BusinessProfileHeader extends StatelessWidget {
   final BusinessProfileDetails? details;
   final ViewBusinessDetailsController controller;
-  const BusinessProfileHeader({super.key, required this.details, required this.controller});
+
+  const BusinessProfileHeader(
+      {super.key, required this.details, required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-     // margin: const EdgeInsets.all(8),
+      // margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -323,7 +323,7 @@ class BusinessProfileHeader extends StatelessWidget {
                 // Profile image overlapping banner bottom
                 Positioned(
                   left: 20,
-                  top: 100,// makes it overlap smoothly
+                  top: 100, // makes it overlap smoothly
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -335,52 +335,52 @@ class BusinessProfileHeader extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 32,
                       backgroundColor: Colors.white,
-                      child:  CircleAvatar(
+                      child: CircleAvatar(
                         radius: 30,
-                        backgroundImage: NetworkImage(  controller.imagePath?.value ?? "",),
+                        backgroundImage: NetworkImage(
+                          controller.imagePath?.value ?? "",
+                        ),
                       ),
                     ),
-
                   ),
                 ),
                 Positioned(
-                    right: 10,top: 8,
-
+                    right: 10,
+                    top: 8,
                     child: InkWell(
-                        onTap: ()async{
+                        onTap: () async {
                           final newPath =
-                          await SelectProfilePictureDialog.showLogoDialog(
+                              await SelectProfilePictureDialog.showLogoDialog(
                             context,
                             "Edit Cover Picture",
                             isOnlyCamera: true,
                             isGallery: true,
                           );
-                          dynamic dataImage = await multiPartImage(imagePath: newPath);
+                          dynamic dataImage =
+                              await multiPartImage(imagePath: newPath);
                           var reqProfile = {ApiKeys.profile_image: dataImage};
                           await controller.uploadLiveStoreImage(
-
-                             reqProfile, );
+                            reqProfile,
+                          );
                           // personalCreateProfileController.imagePath?.value = image;
                           // dynamic dataImage = await multiPartImage(imagePath: image);
                           // var reqProfile = {ApiKeys.profile_image: dataImage};
                           // await personalCreateProfileController.updateUserProfileDetails(
                           //     params: reqProfile, isFromProfileOnly: true);
                         },
-
                         child: Image.asset('assets/diwali_card/camera.png'))),
 
                 // Follow button & menu
 
                 Positioned(
-                right: 12,
-                top: 140,
+                  right: 12,
+                  top: 140,
                   child: Row(
                     children: [
                       InkWell(
-                onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => BusinessDetailsEditPageOne(),));
-
-                },
+                        onTap: () {
+                          // Navigator.push(context, MaterialPageRoute(builder: (context) => BusinessDetailsEditPageOne(),));
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 13, vertical: 4),
@@ -398,10 +398,12 @@ class BusinessProfileHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       const SizedBox(width: 6),
-                      const Icon(Icons.more_vert,
-                          color: AppColors.mainTextColor,size: 20,),
+                      const Icon(
+                        Icons.more_vert,
+                        color: AppColors.mainTextColor,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -409,8 +411,7 @@ class BusinessProfileHeader extends StatelessWidget {
             ),
           ),
 
-
-         // const SizedBox(height: 34),
+          // const SizedBox(height: 34),
 
           // Business name and buttons
           Padding(
@@ -418,53 +419,54 @@ class BusinessProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Text(
-                   "${details?.businessName ?? ''}",
+                Text(
+                  "${details?.businessName ?? ''}",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 24,
-
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Container(
-                      padding:EdgeInsets.symmetric(horizontal: 12,vertical: 4),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color:AppColors.secondaryTextColor, )
-                      ),
-                      child:const CustomText(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.secondaryTextColor,
+                          )),
+                      child: const CustomText(
                         "Shop",
                         color: AppColors.secondaryTextColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-
                     const SizedBox(width: 8),
                     Container(
-                      padding:EdgeInsets.symmetric(horizontal: 12,vertical: 4),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color:AppColors.red, )
-                      ),
-                      child:const CustomText(
+                          border: Border.all(
+                            color: AppColors.red,
+                          )),
+                      child: const CustomText(
                         "Close",
                         color: AppColors.red,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-
                   ],
                 ),
                 const SizedBox(height: 16),
-                 Text(
-                  "${details?.businessDescription }",
+                Text(
+                  "${details?.businessDescription}",
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.black87,
@@ -544,9 +546,9 @@ class BusinessProfileHeader extends StatelessWidget {
                               InkWell(
                                   onTap: () {
                                     Get.to(() => FollowersFollowingPage(
-                                      tabIndex: 1,
-                                      userID: details?.id ?? "",
-                                    ));
+                                          tabIndex: 1,
+                                          userID: details?.id ?? "",
+                                        ));
                                   },
                                   child: buildInfo("Followers",
                                       "${formatIndianNumber(details?.total_followers ?? 0)}")),
@@ -598,12 +600,8 @@ class BusinessProfileHeader extends StatelessWidget {
           ),
 
           // Stats Section
-
         ],
       ),
     );
   }
-
 }
-
-

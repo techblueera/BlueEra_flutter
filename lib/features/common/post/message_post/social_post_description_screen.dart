@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -84,23 +85,17 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                   ),
 
                   /// Nature of Post Dropdown (Your Existing Data)
-                  CustomText("Nature Of Post"),
-                  SizedBox(
-                    height: SizeConfig.size10,
-                  ),
-
-                  CommonDropdownDialog<VideoCategoryData>(
-                    items: reelUploadDetailsController.videoCategory,
-                    selectedValue: messageController.selectedNatureOfPost.value,
-                    title: "Select Nature Of Post",
-                    hintText: "Eg. Entertainment, News...",
-                    displayValue: (value) => value.name ?? '',
-                    onChanged: (value) {
-                      messageController.selectedNatureOfPost.value = value;
-                      messageController.onSelectionChanged();
+                  CommonTextField(
+                    title: "Topic describing what the images are about.",
+                    hintText: "Eg. Team celebrating project success",
+                    maxLength: 50,
+                    isValidate: false,
+                    textEditController:
+                        messageController.imageTopicsTextEditControllar.value,
+                    onChange: (text) {
+                      messageController.topicDescriptionText.value = text;
                     },
                   ),
-
                   SizedBox(
                     height: SizeConfig.size30,
                   ),
@@ -120,8 +115,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                     ),
                   ),
 
-
-                Obx(() {
+                  Obx(() {
                     if (messageController.suggestions.isEmpty)
                       return SizedBox();
                     final tempSelected =
@@ -134,7 +128,6 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                         CustomText("Suggestions:",
                             fontSize: 16, fontWeight: FontWeight.bold),
                         SizedBox(height: 10),
-
                         Column(
                           children: messageController.suggestions.map((sugg) {
                             final isSelected = tempSelected.value == sugg;
@@ -232,9 +225,6 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                                                   .value
                                                   ?.name ??
                                               "";
-
-                                          messageController
-                                              .isNatureOfPostShow.value = false;
 
                                           Get.back();
                                         }

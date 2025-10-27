@@ -238,9 +238,7 @@ class _CreateMessagePostScreenNewState
                         }
 
                         msgController.postText.value = newVal;
-                        if (newVal.isEmpty) {
-                          msgController.isNatureOfPostShow.value = true;
-                        }
+
                       },
                       validator: (val) {
                         if (val == null || val.trim().length < 30) {
@@ -313,7 +311,6 @@ class _CreateMessagePostScreenNewState
                       }
                       return SizedBox();
                     }),
-                    if (msgController.isNatureOfPostShow.value) ...[
                       SizedBox(height: SizeConfig.size15),
                       Align(
                         alignment: Alignment.centerLeft,
@@ -337,7 +334,6 @@ class _CreateMessagePostScreenNewState
                               value?.name ?? "";
                         },
                       ),
-                    ],
                     SizedBox(height: SizeConfig.size15),
 
                     Obx(() {

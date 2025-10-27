@@ -49,6 +49,7 @@ class MessagePostController extends GetxController {
   final postTextDataController = TextEditingController().obs;
   final descriptionMessage = TextEditingController().obs;
   final natureOfPostController = TextEditingController().obs;
+  final imageTopicsTextEditControllar = TextEditingController().obs;
   final referenceLinkController = TextEditingController().obs;
   bool isMsgPostEdit = false;
   String? postId;
@@ -518,6 +519,7 @@ class MessagePostController extends GetxController {
   // Dropdown Values
   RxString selectedLanguage = ''.obs;
   RxString selectedEmotion = ''.obs;
+  RxString topicDescriptionText = ''.obs;
   Rx<VideoCategoryData?> selectedNatureOfPost = Rx<VideoCategoryData?>(null);
 
   // Lists
@@ -528,7 +530,6 @@ class MessagePostController extends GetxController {
   // var suggestions = <String>[].obs;
 
   // RxString selectedSuggestion = ''.obs;
-  RxBool isNatureOfPostShow = true.obs;
   RxBool isGenerated = false.obs; // <--- NEW
 
   Future<void> generateSocialMediaContent() async {
@@ -553,7 +554,7 @@ class MessagePostController extends GetxController {
       Map<String, dynamic> reqParm = {
         ApiKeys.language: selectedLanguage.value,
         ApiKeys.emotion: selectedEmotion.value,
-        ApiKeys.image_topic: selectedNatureOfPost.value?.name ?? '',
+        ApiKeys.image_topic: imageTopicsTextEditControllar.value.text,
         ApiKeys.images: imageByPart,
       };
       ResponseModel responseModel =
@@ -591,6 +592,6 @@ class MessagePostController extends GetxController {
   bool get isFormValid =>
       selectedLanguage.value.isNotEmpty &&
       selectedEmotion.value.isNotEmpty &&
-      selectedNatureOfPost.value != null &&
+          topicDescriptionText.value.isNotEmpty &&
       !isGenerated.value; // <--- disable when generated
 }
