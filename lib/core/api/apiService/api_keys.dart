@@ -405,5 +405,6 @@ class ApiKeys {
   static const language = 'language';
   static const emotion = 'emotion';
   static const image_topic = 'image_topic';
+  static const isSelfEmployement = 'isSelfEmployement';
 
 }
