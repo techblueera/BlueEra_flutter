@@ -50,9 +50,6 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                         commonSnackBar(message: "Upload max 4 ");
                       }
                     }
-                    // Get.to(TwitterStyleMediaPicker());
-                    // _pickMedia();
-                    // msgController.pickImageFrom(context);
                   },
                   child: Container(
                     width: SizeConfig.screenWidth,
@@ -178,13 +175,8 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       if (msgController.selectedType.value ==
                           MediaType.video) {
                         commonSnackBar(message: "Upload max 1 ");
-                      } else {
-                        commonSnackBar(message: "Upload max 4 ");
                       }
                     }
-                    // Get.to(TwitterStyleMediaPicker());
-                    // _pickMedia();
-                    // msgController.pickImageFrom(context);
                   },
                   child: Container(
                     width: SizeConfig.screenWidth,

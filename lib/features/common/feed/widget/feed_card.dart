@@ -267,17 +267,20 @@ class _FeedCardState extends State<FeedCard> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => CommentBottomSheet(
-          id: _post?.id ?? '0',
-          totalComments: _post?.commentsCount ?? 0,
-          commentType: CommentType.post,
-          onNewCommentCount: (int newCommentCount) {
-            feedController.updateCommentCount(
-                postId: _post?.id ?? '0',
-                type: widget.postFilteredType,
-                sortBy: widget.sortBy,
-                newCommentCount: newCommentCount);
-          }),
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.8,
+        child: CommentBottomSheet(
+            id: _post?.id ?? '0',
+            totalComments: _post?.commentsCount ?? 0,
+            commentType: CommentType.post,
+            onNewCommentCount: (int newCommentCount) {
+              feedController.updateCommentCount(
+                  postId: _post?.id ?? '0',
+                  type: widget.postFilteredType,
+                  sortBy: widget.sortBy,
+                  newCommentCount: newCommentCount);
+            }),
+      ),
     );
   }
 

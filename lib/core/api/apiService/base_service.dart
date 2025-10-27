@@ -471,4 +471,6 @@ abstract class BaseService {
   final String initPostServiceUpload = "post-service/post/generate-presigned-url";
 
   String businessServicesById(String serviceId) => 'services-service/services/$serviceId';
+  final String aiSocialPostGenerate = "ai-service/api/ai-social-post/generate";
+
 }

@@ -187,7 +187,7 @@ class _CreateMessagePostScreenNewState
                           onChange: (val) {
                             // Replace multiple consecutive newlines with a single newline
                             String newVal =
-                                val.replaceAll(RegExp(r'\n{2,}'), '\n');
+                                val.replaceAll(RegExp(r'\n{3,}'), '\n');
 
                             // Block http/https
                             newVal = newVal.replaceAll(
@@ -204,6 +204,7 @@ class _CreateMessagePostScreenNewState
 
                             msgController.postText.value = newVal;
                           },
+
                           validator: (val) {
                             if (val == null || val.trim().length < 10) {
                               return "Message must be at least 10 characters long";

@@ -1020,37 +1020,6 @@ enum HobbyType {
   const HobbyType(this.label);
 }
 
-enum VideoCategoryType { Entertainment, Education, Other }
-
-extension VideoCategoryTypeExtension on VideoCategoryType {
-  /// Get display name for each enum
-  String get displayName {
-    switch (this) {
-      case VideoCategoryType.Entertainment:
-        return 'Entertainment';
-      case VideoCategoryType.Education:
-        return 'Education';
-      case VideoCategoryType.Other:
-        return 'Other';
-    }
-  }
-
-  /// Parse enum from string (case-insensitive, trimmed)
-  static VideoCategoryType fromString(String value) {
-    final normalized = value.trim().toLowerCase();
-    switch (normalized) {
-      case 'entertainment':
-        return VideoCategoryType.Entertainment;
-      case 'education':
-        return VideoCategoryType.Education;
-      case 'other':
-        return VideoCategoryType.Other;
-      default:
-        return VideoCategoryType.Other;
-
-    }
-  }
-}
 
 enum BlockedType {
   full('FULL'),
@@ -1221,7 +1190,7 @@ enum PostCreationMenu {
   message,
   poll,
   photos,
-  videos,
+  // videos,
   jobPost,
   place,
   travel;

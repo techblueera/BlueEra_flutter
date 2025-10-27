@@ -296,24 +296,24 @@ class _PersonalProfileSetupNewScreenState
           id: userId,
           isInParentScroll: true,
         );
-      case 'Shorts':
-        return ShortsChannelSection(
-          isOwnShorts: true,
-          channelId: '',
-          authorId: userId,
-          showShortsInGrid: true,
-          sortBy: selectedFilter,
-          postVia: PostVia.profile,
-        );
-      case 'Videos':
-        return VideoChannelSection(
-          isOwnVideos: true,
-          sortBy: selectedFilter,
-          channelId: '',
-          authorId: userId,
-          padding: 0.0,
-          postVia: PostVia.profile,
-        );
+      // case 'Shorts':
+      //   return ShortsChannelSection(
+      //     isOwnShorts: true,
+      //     channelId: '',
+      //     authorId: userId,
+      //     showShortsInGrid: true,
+      //     sortBy: selectedFilter,
+      //     postVia: PostVia.profile,
+      //   );
+      // case 'Videos':
+      //   return VideoChannelSection(
+      //     isOwnVideos: true,
+      //     sortBy: selectedFilter,
+      //     channelId: '',
+      //     authorId: userId,
+      //     padding: 0.0,
+      //     postVia: PostVia.profile,
+      //   );
       case 'Testimonials':
         return TestimonialsScreen(
           userName: "",

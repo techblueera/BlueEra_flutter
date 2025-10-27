@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -14,7 +15,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
+import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:BlueEra/features/common/reel/models/generate_presigned_url.dart';
+import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +28,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:http_parser/http_parser.dart' as htp;
 
 class MessagePostController extends GetxController {
   /// ADD MSG POST
@@ -213,10 +217,38 @@ class MessagePostController extends GetxController {
     // }
     // });
   }
-
   Future<void> pickVideoMedia() async {
-    // FileType fileType = FileType.media;
-    // if (selectedType.value == MediaType.image) fileType = FileType.image;
+    selectedType.value = MediaType.video;
+
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: false,
+        type: FileType.custom,
+        allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']);
+
+    if (result == null) return;
+
+    if (result.files.single.path != null) {
+      final path = result.files.single.path!;
+
+      final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
+
+      if (trimmedPath != null) {
+        print("✅ Trimmed Video Path: $trimmedPath");
+        // final files = result.paths.map((e) => File(e!)).toList();
+        final videoTriFile = File(trimmedPath);
+
+        selectedType.value = MediaType.video;
+
+        imagesList.value = [videoTriFile];
+        _generateThumbnail(videoTriFile);
+        // Upload / Save / Play trimmed video here
+      }
+    }
+    // <-- Add for video
+  }
+
+   /*Future<void> pickVideoMedia() async {
+
     selectedType.value = MediaType.video;
 
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -228,20 +260,13 @@ class MessagePostController extends GetxController {
 
     final files = result.paths.map((e) => File(e!)).toList();
 
-    // setState(() {
-    // if (selectedType.value == null) {
-    selectedType.value = MediaType.video;
-    // selectedType.value = isVideo ? MediaType.video : MediaType.image;
-    // }
 
-    // if (selectedType.value == MediaType.video) {
+    selectedType.value = MediaType.video;
+
     imagesList.value = [files.first];
     _generateThumbnail(files.first); // <-- Add for video
-    // } else {
-    //   imagesList.addAll(files);
-    // }
-    // });
-  }
+
+  }*/
 
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
 
@@ -489,20 +514,83 @@ class MessagePostController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
+  // Dropdown Values
+  RxString selectedLanguage = ''.obs;
+  RxString selectedEmotion = ''.obs;
+  Rx<VideoCategoryData?> selectedNatureOfPost = Rx<VideoCategoryData?>(null);
+
+  // Lists
+  late final languages = SUPPORTED_LANGUAGES;
+  late final emotions = SUPPORTED_EMOTIONS;
+  RxList<VideoCategoryData> natureOfPostList =
+      <VideoCategoryData>[].obs; // You already have this list
+  // var suggestions = <String>[].obs;
+
+  // RxString selectedSuggestion = ''.obs;
+  RxBool isNatureOfPostShow = true.obs;
+  RxBool isGenerated = false.obs; // <--- NEW
+
+  Future<void> generateSocialMediaContent() async {
+    try {
+      isGenerated.value = true; // <--- Disable button after API call
+      suggestions.clear();
+      // prepare images multipart
+      List<dio.MultipartFile> imageByPart = [];
+      for (final imageData in imagesList) {
+        final path = imageData.path;
+        final fileName = path.split('/').last;
+        final imageInfo = getFileInfo(File(path));
+        final mimeType = imageInfo['mimeType'];
+
+        imageByPart.add(await dio.MultipartFile.fromFile(
+          path,
+          filename: fileName,
+          contentType:
+              htp.MediaType.parse(mimeType ?? 'application/octet-stream'),
+        ));
+      }
+      Map<String, dynamic> reqParm = {
+        ApiKeys.language: selectedLanguage.value,
+        ApiKeys.emotion: selectedEmotion.value,
+        ApiKeys.image_topic: selectedNatureOfPost.value?.name ?? '',
+        ApiKeys.images: imageByPart,
+      };
+      ResponseModel responseModel =
+          await PostRepo().aiSocialPostGenerateRepo(queryParam: reqParm);
+      if (responseModel.isSuccess) {
+        // Convert List<List<String>> → List<String>
+        setSuggestions(responseModel.response?.data);
+        // suggestions.value = responseModel.response?.data["post_suggestions"].map((list) {
+        //   return (list as List<String>).join("\n"); // join lines as paragraph
+        // }).toList();
+        // suggestions.value = List<String>.from(
+        //     responseModel.response?.data["post_suggestions"] ?? []);
+      }
+    } catch (e) {
+      logs("ERROR $e");
+    }
+  }
+  var suggestions = <String>[].obs;
+  var selectedSuggestion = "".obs;
+
+  void setSuggestions(dynamic json) {
+    final data = json["post_suggestions"] as List<dynamic>;
+
+    suggestions.value = data.map((inner) {
+      return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+    }).toList();
+
+    selectedSuggestion.value = ""; // reset selection
+  }
+  // Call this whenever any selection changes
+  void onSelectionChanged() {
+    isGenerated.value = false; // Re-enable button
+  }
+
+  bool get isFormValid =>
+      selectedLanguage.value.isNotEmpty &&
+      selectedEmotion.value.isNotEmpty &&
+      selectedNatureOfPost.value != null &&
+      !isGenerated.value; // <--- disable when generated
 }
-//
-// class MessagePostImageModel {
-//   final int? id;
-//   final XFile? imageFile;
-//   final String? imgWidth;
-//   final String? imgHeight;
-//   final String? imgCropMode;
-//
-//   MessagePostImageModel({
-//     required this.id,
-//     required this.imageFile,
-//     this.imgWidth,
-//     this.imgHeight,
-//     this.imgCropMode,
-//   });
-// }

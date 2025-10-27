@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/chat/contacts/view/be_available_contacts_list.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
@@ -17,8 +18,7 @@ import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
-// import 'package:share_handler/share_handler.dart';
-
+import 'package:share_handler/share_handler.dart';
 
 enum SavedFeedTab {
   posts,
@@ -48,10 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
   double _headerHeight = 0;
   final List<String> postTab = [
     "All Posts",
-    "Videos",
-    "Shorts",
+    // "Videos",
+    // "Shorts",
     "Saved",
-    "My Cards"
+    if (isBusiness()) "My Cards"
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: selectedIndex);
 
-    // initPlatformState();
+    initPlatformState();
     getPackageData();
     searchController.addListener(() {
       setState(() {});
@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _calculateHeaderHeight();
-      if(isIndividual()){
+      if (isIndividual()) {
         await Future.delayed(Duration(seconds: 2));
         showEnableServiceDialog();
       }
@@ -88,8 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     super.dispose();
   }
-///DO NOT DELETE THIS CODE.....
-/*  SharedMedia? sharedMedia;
+
+  ///DO NOT DELETE THIS CODE.....
+  SharedMedia? sharedMedia;
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
@@ -141,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     });
-  }*/
+  }
+
   Future<void> getPackageData() async {
     if (!mounted) return;
     PackageInfo _packageInfo = await PackageManager.getPackageInfo();
@@ -186,8 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint("Error checking for update: $e");
     }
   }
-
-
 
   void _calculateHeaderHeight() {
     final renderBox =
@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         headerHeight: _headerHeight,
                         isInParentScroll: false,
                       ),
-                      VideoFeedScreen(
+                      /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
                           headerHeight: _headerHeight),
@@ -270,22 +270,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           query: searchController.text,
                           headerHeight: _headerHeight
                           // You can add _toggleAppBarAndBottomNav later if needed
-                          ),
+                          ),*/
                       SavedFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
                           selectedTab: _selectedSavedTab,
                           headerHeight: _headerHeight + SizeConfig.size30),
 
-                      isIndividual() ?
-                         Center(
-                           child: CustomText(
-                               'Coming Soon..'
-                           ),
-                         )
+                      isIndividual()
+                          ? Center(
+                              child: CustomText('Coming Soon..'),
+                            )
                           : InventoryBusinessCardsScreen(
-                        showBackAppBar: false,
-                      )
+                              showBackAppBar: false,
+                            )
                       // MoreCardsScreen(
                       //   isFromHomeScreen: true,
                       //   headerHeight: _headerHeight,
@@ -328,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           labelBuilder: (label) => label,
                         ),
                         SizedBox(height: SizeConfig.size10),
-                        if (selectedIndex == 3) ...[
+                        if (selectedIndex == 1) ...[
                           _filterButtons(),
                           SizedBox(height: SizeConfig.size10),
                         ]

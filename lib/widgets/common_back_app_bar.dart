@@ -374,11 +374,13 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onSelected: (value) async {
                   if (isGuestUser()) {
                     createProfileScreen();
-                  } else if (value == PostCreationMenu.videos ||
+                  } else if (/*value == PostCreationMenu.videos ||*/
                       value == PostCreationMenu.photos ||
                       value == PostCreationMenu.message ||
                       value == PostCreationMenu.poll) {
-                    if (value == PostCreationMenu.videos) {
+                    postVia(context, value);
+
+                 /*   if (value == PostCreationMenu.videos) {
                       final videoStatusController =
                           Get.put(VideoStatusController());
 
@@ -386,7 +388,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                           context, value);
                     } else {
                       postVia(context, value);
-                    }
+                    }*/
                   } else if (value == PostCreationMenu.place) {
                     Navigator.pushNamed(
                       context,

@@ -46,7 +46,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   late TabController _tabController;
   final controller = Get.put(ViewBusinessDetailsController());
   final controllerVisit = Get.put(VisitProfileController());
-  final chatViewController = Get.find<ChatViewController>();
+  final chatViewController = Get.put(ChatViewController());
 
   late VisitProfileController visitProfileController;
   List<String> tabs = [];

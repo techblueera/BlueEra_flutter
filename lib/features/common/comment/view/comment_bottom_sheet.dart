@@ -97,34 +97,53 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   ? CommentShimmerUi()
                   : Column(
                       children: [
-                        /// Header
-                        Padding(
-                          padding: EdgeInsets.only(
-                              right: SizeConfig.size10,
-                              top: SizeConfig.size5,
-                              bottom: SizeConfig.size5),
-                          child: Align(
-                              alignment: Alignment.centerRight,
-                              child: IconButton(
-                                  onPressed: () {
-                                    Get.back();
-                                  },
-                                  icon: Icon(Icons.close,
-                                      size: SizeConfig.size24))),
-                        ),
+                        // /// Header
+                        // Padding(
+                        //   padding: EdgeInsets.only(
+                        //       right: SizeConfig.size10,
+                        //       // top: SizeConfig.size5,
+                        //       bottom: SizeConfig.size5),
+                        //   child: Align(
+                        //       alignment: Alignment.centerRight,
+                        //       child: Container(
+                        //         color: Colors.red,
+                        //         height: 18,
+                        //         width: 18,
+                        //         margin: EdgeInsets.only(right: SizeConfig.size15),
+                        //         child: IconButton(
+                        //
+                        //             onPressed: () {
+                        //               Get.back();
+                        //             },
+                        //             icon: Icon(Icons.close,
+                        //                 size: SizeConfig.size24)),
+                        //       )),
+                        // ),
 
                         Obx(() {
                           return Padding(
                             padding: EdgeInsets.symmetric(
                                 horizontal: SizeConfig.size20),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: CustomText(
-                                "${commentController.totalCommentCount.value} Comments",
-                                fontSize: SizeConfig.large,
-                                color: AppColors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                CustomText(
+                                  "${formatNumberLikePost(commentController.totalCommentCount.value)} Comments",
+                                  fontSize: SizeConfig.large,
+                                  color: AppColors.black,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                InkWell(
+                                    onTap: () {
+                                      Get.back();
+                                    },
+                                    child: LocalAssets(
+                                      imagePath: AppIconAssets.close_black,
+                                      width: 18,
+                                      height: 18,
+                                    ))
+                              ],
                             ),
                           );
                         }),
@@ -153,7 +172,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                         //     print("Comment sent successfully!");
                         //   },
                         // )
-
                       ],
                     )),
             ),
