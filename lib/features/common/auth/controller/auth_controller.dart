@@ -494,11 +494,13 @@ class AuthController extends GetxController {
     } finally {}
   }
 
+  var isProfessionLoading = true.obs;
   List<ProfessionTypeData> professionTypeDataList = [];
   List<SubcategoriesFiledName> subcategoriesFiledNameList = [];
 
   Future<void> getAllProfessionController() async {
     try {
+      isProfessionLoading.value = true;
       professionTypeDataList.clear();
       subcategoriesFiledNameList.clear();
 
@@ -519,6 +521,8 @@ class AuthController extends GetxController {
     } catch (e) {
       professionListingResponse = ApiResponse.error('error');
       update();
+    }finally{
+      isProfessionLoading.value = false;
     }
   }
 clearSubCategoryData()

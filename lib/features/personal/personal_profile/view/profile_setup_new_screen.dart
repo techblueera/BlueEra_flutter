@@ -1692,11 +1692,16 @@ class _PersonalProfileSetupNewScreenState
           width: SizeConfig.size160,
           title: 'Let\'s Start Earing Now',
           onTap: () {
-            showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) => ConsultBottomSheet(),
-            );
+            if (viewProfileController
+                .personalProfileDetails.value.isProfileCreated ==
+                false) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CreateProfileScreen()));
+            } else {
+              Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+            }
           },
           bgColor: AppColors.primaryColor,
           textColor: AppColors.white,

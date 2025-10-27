@@ -644,7 +644,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             left: SizeConfig.size8,
             right: SizeConfig.size8,
             top: SizeConfig.size10,
-            bottom: SizeConfig.size5),
+            bottom: SizeConfig.size10
+        ),
         child: Column(children: [
           Row(
             children: [
@@ -662,7 +663,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               width: SizeConfig.size160,
               title: 'Let\'s Start Earning Now',
               onTap: () {
-                if (Get.find<ViewPersonalDetailsController>()
+                final ViewPersonalDetailsController viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>() ?
+                           Get.find<ViewPersonalDetailsController>() : Get.put(ViewPersonalDetailsController());
+                if (viewPersonalDetailsController
                         .personalProfileDetails
                         .value
                         .isProfileCreated ==
@@ -757,6 +760,7 @@ class FeedBlock {
 
   FeedBlock({required this.isGrid, required this.items});
 }
+
 /*class PostData {
   final int id;
   final String? title;

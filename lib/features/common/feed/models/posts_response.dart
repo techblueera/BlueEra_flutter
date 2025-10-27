@@ -313,13 +313,13 @@ class User {
     return User(
       id: json['_id'] ?? '',
       username: json['username'] ?? '',
-      profileImage: json['profile_image'],
-      designation: json['designation'],
-      accountType: json['account_type'],
-      name: json['name'],
-      businessName: json['business_name'],
-      business_id: json['business_id'],
-      categoryOfBusiness: json['categoryOfBusiness'],
+      profileImage: json['profile_image'] ?? '',
+      designation: json['designation'] ?? '',
+      accountType: json['account_type'] ?? '',
+      name: json['name'] ?? '',
+      businessName: json['business_name'] ?? '',
+      business_id: json['business_id'] ?? '',
+      categoryOfBusiness: json['categoryOfBusiness'] ?? '',
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -138,18 +139,24 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
                   child: AnimatedOpacity(
                     opacity: (controller?.value.isPlaying ?? false) ? 0.0 : 1.0,
                     duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.black45,
-                        shape: BoxShape.circle,
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Icon(
-                        (controller?.value.isPlaying ?? false)
-                            ? Icons.pause
-                            : Icons.play_arrow,
-                        color: Colors.white,
-                        size: 36,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.black45,
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: Icon(
+                            (controller?.value.isPlaying ?? false)
+                                ? Icons.pause
+                                : Icons.play_arrow,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
                       ),
                     ),
                   ),

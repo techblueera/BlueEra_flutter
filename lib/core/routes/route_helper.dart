@@ -897,13 +897,17 @@ class RouteHelper {
             settings: RouteSettings(name: getInventoryScreenRoute()));
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String? channelId = args[ApiKeys.channelId] as String?;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final bool? isSelfEmployement = args[ApiKeys.isSelfEmployement] as bool?;
+        final String? channelId = args[ApiKeys.channelId] as String?;
+        final String? workType = args[ApiKeys.designation] as String?;
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
-              channelId: channelId,
               providerType: providerType,
+              isSelfEmployement: isSelfEmployement,
+              channelId: channelId,
+              workType: workType,
             ),
             // builder: (_) => AddServicesScreen(),
             settings: RouteSettings(name: getAddServicesScreenRoute()));

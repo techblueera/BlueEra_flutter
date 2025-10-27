@@ -107,7 +107,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
           onPressed: () => showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
-            builder: (_) => ConsultBottomSheet(),
+            builder: (_) => EarnWithBlueEraBottomSheet(),
           ),
           backgroundColor: AppColors.primaryColor,
           foregroundColor: Colors.white,

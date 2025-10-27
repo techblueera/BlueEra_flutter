@@ -827,6 +827,7 @@ class FeedController extends GetxController {
     savedPosts.clear();
     List<Post> savedPostModels = HiveServices().getAllSavedPosts();
     savedPosts.addAll(savedPostModels);
+    isLoading.value = false;
   }
 
   /// LocalSearch

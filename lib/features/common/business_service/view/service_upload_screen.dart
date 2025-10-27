@@ -22,10 +22,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
-  final String? channelId;
   final ProductServiceProviderType providerType;
+  final bool? isSelfEmployement;
+  final String? channelId;
+  final String? workType;
 
-  ServiceUploadScreen({Key? key, this.channelId, required this.providerType})
+  ServiceUploadScreen({Key? key, required this.providerType, this.isSelfEmployement, this.workType, this.channelId})
       : super(key: key);
 
   @override
@@ -35,11 +37,15 @@ class ServiceUploadScreen extends StatefulWidget {
 class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
   final viewBusinessDetailsController =
-      Get.put(ViewBusinessDetailsController());
+  Get.put(ViewBusinessDetailsController());
+  bool isSelfEmployement = false;
 
   @override
   void initState() {
-    // TODO: implement initState
+    isSelfEmployement = widget.isSelfEmployement??false;
+    if(isSelfEmployement){
+      controller.serviceNameController.text = widget.workType ?? 'OTHER';
+    }
     viewBusinessDetailsController.getAllCategories();
     super.initState();
   }
@@ -107,7 +113,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        "$userProfessionGlobal",
+                                        (isSelfEmployement) ? SELF_EMPLOYED : "$userProfessionGlobal",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -127,7 +133,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        "$userWorkTypeGlobal ",
+                                        (isSelfEmployement)? widget.workType : "$userWorkTypeGlobal ",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -221,6 +227,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     // Service Name Field
                     CommonTextField(
                       title: 'Service Name',
+                      readOnly: isSelfEmployement,
                       textEditController: controller.serviceNameController,
                       hintText: 'E.g. Car washing....',
                       onChange: (value) {

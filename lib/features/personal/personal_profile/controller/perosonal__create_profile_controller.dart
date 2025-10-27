@@ -93,7 +93,7 @@ class PersonalCreateProfileController extends GetxController {
 
   Future<void> updateUserProfileDetails({
     required Map<String, dynamic> params,
-    bool isFromProfileOnly=false,
+    bool isFromProfileOnly = false,
   }) async {
     try {
       print("Params being sent to API: $params");
