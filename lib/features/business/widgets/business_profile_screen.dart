@@ -26,6 +26,8 @@ import '../auth/model/viewBusinessProfileModel.dart';
 import '../visit_business_profile/view/business_profile_header.dart';
 import 'package:dio/dio.dart' as dio;
 
+import '../visiting_card/view/business_details_edit_page_one.dart';
+
 
 
 
@@ -199,6 +201,81 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
 
 
 }
+void _showPopup(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black38, // dim background
+    builder: (context) {
+      return Center(
+        child: Container(
+          width: 172,
+          height: 210,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _popupItem(
+                icon: Icons.share_outlined,
+                text: "Share",
+                onTap: () {
+                  Navigator.pop(context);
+                  // your share logic
+                },
+              ),
+              Divider(height: 1, color: Colors.grey[300]),
+              _popupItem(
+                icon: Icons.block_outlined,
+                text: "Report",
+                onTap: () {
+                  Navigator.pop(context);
+                  // your report logic
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _popupItem({
+  required IconData icon,
+  required String text,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.black87, size: 20),
+          SizedBox(width: 10),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
 class BusinessProfileHeader extends StatelessWidget {
   final BusinessProfileDetails? details;
@@ -212,141 +289,130 @@ class BusinessProfileHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black12,
+        //     blurRadius: 5,
+        //     offset: const Offset(0, 2),
+        //   ),
+        // ],
       ),
       child: Column(
         children: [
           // Banner + Profile Image
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Banner Image
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                child: Container(
-                  child: Image.network(
-                    controller.imagePath?.value ?? "",
-                    width: double.infinity,
-                    height: 120,
-                    //height: 160,
-                    fit: BoxFit.cover,
+          Container(
+            height: 150,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Banner Image
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
                   ),
-                ),
-              ),
-
-              // Profile image overlapping banner bottom
-              Positioned(
-                left: 20,
-                bottom: -40, // makes it overlap smoothly
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 3,
+                  child: Container(
+                    child: Image.network(
+                      controller.imagePath?.value ?? "",
+                      width: double.infinity,
+                      height: 130,
+                      //height: 160,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  child: CircleAvatar(
-                    radius: 32,
-                    backgroundColor: Colors.white,
-                    child:  CircleAvatar(
-                      radius: 30,
-                      backgroundImage: NetworkImage(  controller.imagePath?.value ?? "",),
-                    ),
-                  ),
-                  // CommonProfileImage(
-                  //   imagePath: controller.imagePath?.value ?? "",
-                  //   onImageUpdate: (image) async {
-                  //     controller.imagePath?.value = image;
-                  //     dio.MultipartFile? imageByPart;
-                  //
-                  //     if (controller.imagePath?.value.isNotEmpty ?? false) {
-                  //       String fileName =
-                  //           controller.imagePath?.value.split('/').last ?? "";
-                  //       imageByPart = await dio.MultipartFile.fromFile(
-                  //         controller.imagePath?.value ?? "",
-                  //         filename: fileName,
-                  //       );
-                  //     }
-                  //
-                  //     dynamic reqData = {
-                  //       ApiKeys.businessId: businessId,
-                  //       ApiKeys.logo_image: imageByPart,
-                  //     };
-                  //
-                  //     await controller.updateBusinessDetails(reqData);
-                  //   },
-                  //   dialogTitle: 'Upload Business Logo',
-                  // ),
                 ),
-              ),
-              Positioned(
-                  right: 10,top: 8,
 
-                  child: InkWell(
-                      onTap: ()async{
-                        final newPath =
-                        await SelectProfilePictureDialog.showLogoDialog(
-                          context,
-                          "Edit Cover Picture",
-                          isOnlyCamera: true,
-                          isGallery: true,
-                        );
-                        dynamic dataImage = await multiPartImage(imagePath: newPath);
-                        var reqProfile = {ApiKeys.profile_image: dataImage};
-                        await controller.uploadLiveStoreImage(
-
-                           reqProfile, );
-                        // personalCreateProfileController.imagePath?.value = image;
-                        // dynamic dataImage = await multiPartImage(imagePath: image);
-                        // var reqProfile = {ApiKeys.profile_image: dataImage};
-                        // await personalCreateProfileController.updateUserProfileDetails(
-                        //     params: reqProfile, isFromProfileOnly: true);
-                      },
-
-                      child: Image.asset('assets/diwali_card/camera.png'))),
-
-              // Follow button & menu
-              Positioned(
-                right: 14,
-
-                bottom: -40,
-                child: Row(
-                  children: [
-                    Container(
-                      padding:EdgeInsets.symmetric(horizontal: 13,vertical: 7),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(10),
+                // Profile image overlapping banner bottom
+                Positioned(
+                  left: 20,
+                  top: 100,// makes it overlap smoothly
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 3,
                       ),
-                      child:const CustomText(
-                        "Follow",
-                        color: AppColors.appBackgroundColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                    ),
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.white,
+                      child:  CircleAvatar(
+                        radius: 30,
+                        backgroundImage: NetworkImage(  controller.imagePath?.value ?? "",),
                       ),
                     ),
 
-                    const SizedBox(width: 6),
-                    const Icon(Icons.more_vert,
-                        color: AppColors.mainTextColor,size: 20,),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                Positioned(
+                    right: 10,top: 8,
+
+                    child: InkWell(
+                        onTap: ()async{
+                          final newPath =
+                          await SelectProfilePictureDialog.showLogoDialog(
+                            context,
+                            "Edit Cover Picture",
+                            isOnlyCamera: true,
+                            isGallery: true,
+                          );
+                          dynamic dataImage = await multiPartImage(imagePath: newPath);
+                          var reqProfile = {ApiKeys.profile_image: dataImage};
+                          await controller.uploadLiveStoreImage(
+
+                             reqProfile, );
+                          // personalCreateProfileController.imagePath?.value = image;
+                          // dynamic dataImage = await multiPartImage(imagePath: image);
+                          // var reqProfile = {ApiKeys.profile_image: dataImage};
+                          // await personalCreateProfileController.updateUserProfileDetails(
+                          //     params: reqProfile, isFromProfileOnly: true);
+                        },
+
+                        child: Image.asset('assets/diwali_card/camera.png'))),
+
+                // Follow button & menu
+
+                Positioned(
+                right: 12,
+                top: 140,
+                  child: Row(
+                    children: [
+                      InkWell(
+                onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => BusinessDetailsEditPageOne(),));
+
+                },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 13, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.primaryColor,
+                              )),
+                          child: const CustomText(
+                            "Edit Profile",
+                            color: AppColors.primaryColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 6),
+                      const Icon(Icons.more_vert,
+                          color: AppColors.mainTextColor,size: 20,),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
 
 
-          const SizedBox(height: 34),
+         // const SizedBox(height: 34),
 
           // Business name and buttons
           Padding(
@@ -358,7 +424,7 @@ class BusinessProfileHeader extends StatelessWidget {
                    "${details?.businessName ?? ''}",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 20,
+                    fontSize: 24,
 
                   ),
                 ),

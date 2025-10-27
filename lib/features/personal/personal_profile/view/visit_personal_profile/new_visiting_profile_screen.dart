@@ -150,8 +150,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           if (user?.profession == SELF_EMPLOYED) 'Portfolio',
           'Posts',
           'Testimonials',
-          'Shorts',
-          'Videos'
+          // 'Shorts',
+          // 'Videos'
         ];
 
         return SingleChildScrollView(

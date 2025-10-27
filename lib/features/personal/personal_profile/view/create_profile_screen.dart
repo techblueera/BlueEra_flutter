@@ -127,7 +127,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     },
                     child: CommonTextField(
                       textEditController: locationController,
-                      hintText: "E.g., Rajiv Chowk, Delhi",
+                      hintText: "e.g., Rajiv Chowk, Delhi",
                       isValidate: false,
                       title: "Location",
                       readOnly: true,

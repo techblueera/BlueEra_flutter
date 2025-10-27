@@ -65,6 +65,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
   bool isProfileCreateStatus = false;
   final authController = Get.find<AuthController>();
+  AutovalidateMode _autoValidate = AutovalidateMode.always;
 
   clearTextFiled() {
     _artTypeController.clear();
@@ -323,7 +324,20 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                             hintText: "Enter your full name",
                             textEditController: nameController,
                             validationType: ValidationTypeEnum.name,
+                            autovalidateMode: _autoValidate,
+
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your name';
+                              } else if (value.trim().length < 6) {
+                                return 'Name must be at least 6 characters';
+                              } else if (value.trim().length > 30) {
+                                return 'Name must not exceed 30 characters';
+                              }
+                              return null;
+                            },
                           ),
+
                           SizedBox(height: SizeConfig.size18),
                           Align(
                             alignment: Alignment.centerLeft,

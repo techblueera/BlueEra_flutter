@@ -18,8 +18,8 @@ class PersonalChatProfileController extends GetxController
   final List<String> tabs = const [
     'Overview',
     'Testimonials',
-    'Posts',
-    'Shorts',
+    // 'Posts',
+    // 'Shorts',
     'Videos',
   ];
   
