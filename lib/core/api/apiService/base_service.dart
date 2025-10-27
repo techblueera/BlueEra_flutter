@@ -468,5 +468,6 @@ abstract class BaseService {
   final String serviceExistenceStatus = "services-service/services/all/check-existence";
   final String createOrderApi = "order-service/api/orders/create";
   final String verifyPaymentApi = "order-service/api/orders/verify-payment";
+  final String getAddressApi = "user-service/addresses";
 
 }

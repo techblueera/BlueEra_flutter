@@ -32,6 +32,7 @@ import '../../../common/food/model/get_food_details_model.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
+import '../orders_chat/widget/select_address_screen.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
@@ -99,7 +100,6 @@ class _MessageCardState extends State<MessageCard>
     final text = widget.message.message ?? '';
 
     bool isReceive;
-    print("lskdm;lkcm;sdclmsdc ${widget.message.messageType}");
 
     if (widget.message.myMessage != null) {
       isReceive = !(widget.message.myMessage ?? true);
@@ -141,7 +141,6 @@ class _MessageCardState extends State<MessageCard>
       case "video":
       case "image":
         messageWidget = VideoAndImageCardWidget(
-
           message: widget.message,
           time: time,
           isReceive: isReceive,
@@ -183,7 +182,6 @@ class _MessageCardState extends State<MessageCard>
 
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
       List<String> message=widget.message.message?.split('.')??[];
-
       if(message.isNotEmpty){
         messageWidget = FoodCardMessageCardBusiness(
           photos: url,
@@ -665,9 +663,9 @@ class _MessageCardState extends State<MessageCard>
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      orderNow(context,widget.userId??"",widget.message);
 
-                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
                     label:   CustomText(
@@ -684,6 +682,7 @@ class _MessageCardState extends State<MessageCard>
       ),
     );
   }
+
   void showProductDetailsBottomSheet(BuildContext context, ProductListing product) {
     showModalBottomSheet(
       context: context,
@@ -1545,9 +1544,8 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
-
-                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      orderNow(context,widget.userId??"",widget.message);
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
                     label:   CustomText(
@@ -1816,9 +1814,9 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
 
-                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                      orderNow(context,widget.userId??"",widget.message);
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
                     label:   CustomText(
@@ -1835,4 +1833,7 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
       ),
     );
   }
+}
+void orderNow(BuildContext context,String businessId,Messages message){
+  Navigator.push(context, MaterialPageRoute(builder: (context)=>AddressListScreen(message: message,businessId: businessId, businessName: '', businessNumber: '',)));
 }

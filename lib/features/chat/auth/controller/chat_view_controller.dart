@@ -194,7 +194,6 @@ class ChatViewController extends GetxController {
     chatSocket.listenEvent('messageReceived', (data) async {
       final parsedData = GetListOfMessageData.fromJson(data);
 
-
       // Ensure myMessage field is properly set for all messages
       if (parsedData.messages != null) {
         for (var message in parsedData.messages!) {
@@ -631,8 +630,10 @@ class ChatViewController extends GetxController {
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
           await ChatViewRepo().getConnectionsSync(params);
+      log("sdkmclksdmc ${responseModel.response?.data}");
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
+
 
         await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.saved_contacts,
