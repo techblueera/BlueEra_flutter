@@ -57,7 +57,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   void initState() {
     super.initState();
     setFilters();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Ensure your VisitPersonalProfileTabs updates
     });
@@ -92,8 +92,8 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
             final List<String> tabs = [
               'Overview',
               'Posts',
-              'Shorts',
-              'Video',
+              // 'Shorts',
+              // 'Video',
               if(isShowProduct.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Products',
               if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Service',
               if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Foods'
@@ -245,38 +245,38 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                     // jobsTab(),
 
                     // Shorts tab
-                    Column(
-                      children: [
-                        _filterButtons(),
-                        SizedBox(height: SizeConfig.size8),
-                        Expanded(
-                          child: ShortsChannelSection(
-                            // scrollController: _scrollController,
-                            isOwnShorts: false,
-                            showShortsInGrid: true,
-                            channelId: '',
-                            sortBy: selectedFilter,
-                            authorId: widget.businessId,
-                            postVia: PostVia.profile,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    Column(
-                      children: [
-                        _filterButtons(),
-                        SizedBox(height: SizeConfig.size8),
-                        VideoChannelSection(
-                          isOwnVideos: false,
-                          channelId: '',
-                          authorId: widget.businessId,
-                          // isScroll: false,
-                          sortBy: selectedFilter,
-                          postVia: PostVia.profile,
-                        ),
-                      ],
-                    ),
+                    // Column(
+                    //   children: [
+                    //     _filterButtons(),
+                    //     SizedBox(height: SizeConfig.size8),
+                    //     Expanded(
+                    //       child: ShortsChannelSection(
+                    //         // scrollController: _scrollController,
+                    //         isOwnShorts: false,
+                    //         showShortsInGrid: true,
+                    //         channelId: '',
+                    //         sortBy: selectedFilter,
+                    //         authorId: widget.businessId,
+                    //         postVia: PostVia.profile,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    //
+                    // Column(
+                    //   children: [
+                    //     _filterButtons(),
+                    //     SizedBox(height: SizeConfig.size8),
+                    //     VideoChannelSection(
+                    //       isOwnVideos: false,
+                    //       channelId: '',
+                    //       authorId: widget.businessId,
+                    //       // isScroll: false,
+                    //       sortBy: selectedFilter,
+                    //       postVia: PostVia.profile,
+                    //     ),
+                    //   ],
+                    // ),
 
                     if(isShowProduct.contains(businessData?.typeOfBusiness?.toLowerCase()))
                     StandaloneProductScreen(

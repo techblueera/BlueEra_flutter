@@ -632,7 +632,7 @@ extension ContactTypeExtension on ContactType {
 enum GenderType {
   Male,
   Female,
-  Transgender,
+  Others,
 }
 
 extension GenderTypeExtension on GenderType {
@@ -643,8 +643,8 @@ extension GenderTypeExtension on GenderType {
         return 'Male';
       case GenderType.Female:
         return 'Female';
-      case GenderType.Transgender:
-        return 'Transgender';
+      case GenderType.Others:
+        return 'Others';
     }
   }
 
@@ -655,8 +655,8 @@ extension GenderTypeExtension on GenderType {
         return GenderType.Male;
       case 'female':
         return GenderType.Female;
-      case 'transgender':
-        return GenderType.Transgender;
+      case 'Others':
+        return GenderType.Others;
       default:
         return GenderType.Male;
 

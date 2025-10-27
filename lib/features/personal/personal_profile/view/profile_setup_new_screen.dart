@@ -159,8 +159,8 @@ class _PersonalProfileSetupNewScreenState
       if (user?.profession == SELF_EMPLOYED) 'My Portfolio',
       'About Me',
       'Posts',
-      'Shorts',
-      'Videos',
+      // 'Shorts',
+      // 'Videos',
       'Testimonials'
     ];
 
@@ -707,7 +707,14 @@ class _PersonalProfileSetupNewScreenState
     );
   }
 
+
+
   Widget _buildHeaderSection() {
+    String _capitalizeFirstLetter(String text) {
+      if (text.isEmpty) return '';
+      return text[0].toUpperCase() + text.substring(1).toLowerCase();
+    }
+
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
@@ -882,13 +889,14 @@ class _PersonalProfileSetupNewScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    viewProfileController
-                            .personalProfileDetails.value.user?.name ??
-                        '',
-                    fontSize: SizeConfig.large18,
+                    _capitalizeFirstLetter(
+                      viewProfileController.personalProfileDetails.value.user?.name ?? '',
+                    ),
+                    fontSize: SizeConfig.size24,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
                   ),
+
                   const SizedBox(height: 6),
                   Row(
                     children: [
@@ -2441,3 +2449,4 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_CustomTabBarDelegate oldDelegate) => true;
 }
+

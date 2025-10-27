@@ -199,38 +199,56 @@ class BusinessProfileHeader extends StatelessWidget {
                                   height: 20,
                                   width: 20,
                                   margin: EdgeInsets.only(
-                                      top: SizeConfig.size8,
-                                      right: SizeConfig.size2),
+                                    top: SizeConfig.size8,
+                                    right: SizeConfig.size2,
+                                  ),
                                   child: PopupMenuButton<String>(
                                     padding: EdgeInsets.zero,
-                                    // offset: const Offset(-6, 36),
                                     color: AppColors.white,
-
-                                    elevation: 1,
+                                    elevation: 3,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                     onSelected: (value) async {
                                       if (value.toUpperCase() == "SHARE") {
-                                        final link = profileDeepLink(
-                                            userId:
-                                                businessProfileDetails.userId);
-                                        final message =
-                                            "See my profile on BlueEra:\n$link\n";
-                                        await SharePlus.instance
-                                            .share(ShareParams(
-                                          text: message,
-                                          subject: businessProfileDetails
-                                              .businessName,
-                                        ));
+                                        final link = profileDeepLink(userId: businessProfileDetails.userId);
+                                        final message = "See my profile on BlueEra:\n$link\n";
+                                        await SharePlus.instance.share(
+                                          ShareParams(
+                                            text: message,
+                                            subject: businessProfileDetails.businessName,
+                                          ),
+                                        );
+                                      } else if (value.toUpperCase() == "REPORT") {
+                                        // 👉 Handle report logic here
+                                        // e.g. open a dialog, send API call, etc.
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                            title: const Text("Report"),
+                                            content: const Text("Report this profile?"),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                  // Perform report action
+                                                },
+                                                child: const Text("Report"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
                                       }
                                     },
-                                    icon: LocalAssets(
-                                        imagePath: AppIconAssets.more_vertical),
-                                    itemBuilder: (context) =>
-                                        popupMenuVisitProfileItems(),
+                                    icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
+                                    itemBuilder: (context) => popupMenuVisitProfileItemss(),
                                   ),
-                                ),
+                                )
+
                               ],
                             ),
                           )
@@ -498,6 +516,76 @@ class BusinessProfileHeader extends StatelessWidget {
   }
 
 }
+List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
+  return [
+    PopupMenuItem<String>(
+      value: 'Share',
+      child: Row(
+        children: [
+          LocalAssets(
+            imagePath:  AppIconAssets.share_bold,
+            height: SizeConfig.size20,
+            width: SizeConfig.size20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Share',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    ),
+    const PopupMenuItem<String>(
+      enabled: false,
+      padding: EdgeInsets.zero,
+      height: 1,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        child: Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.greyE5,
+        ),
+      ),
+    ),
+    PopupMenuItem<String>(
+      value: 'Report',
+      child: Row(
+        children: [
+
+          const Icon(Icons.block_outlined, color: Colors.black54, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            'Report',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    ),
+    const PopupMenuItem<String>(
+      enabled: false,
+      padding: EdgeInsets.zero,
+      height: 1,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        child: Divider(
+          height: 1,
+          thickness: 1,
+          color: AppColors.greyE5,
+        ),
+      ),
+    ),
+  ];
+}
+
 Widget buildInfo(String title, String value) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
