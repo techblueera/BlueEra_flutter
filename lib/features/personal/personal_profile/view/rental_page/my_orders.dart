@@ -103,7 +103,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   children: [
                     _buildTab("My Products", 0),
                     const SizedBox(width: 40),
-                    _buildTab("My Orders", 1),
+                    _buildTab(" ", 1),
                   ],
                 ),
                 Container(

@@ -402,5 +402,6 @@ class ApiKeys {
   static const contentTypeKey = 'contentType';
   static const filenameKey = 'filename';
   static const thumbnail = 'thumbnail';
+  static const isSelfEmployement = 'isSelfEmployement';
 
 }

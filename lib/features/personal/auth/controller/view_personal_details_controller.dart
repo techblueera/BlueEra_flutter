@@ -237,7 +237,7 @@ class ViewPersonalDetailsController extends GetxController {
         );
         await getUserLoginData();
         if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
-            "SELF_EMPLOYED") {
+            SELF_EMPLOYED) {
           await getUserServiceCreatedStatusUtils();
           if (userServiceCreatedStatusGlobal.isEmpty ||
               userServiceCreatedStatusGlobal == "false") {
@@ -415,7 +415,9 @@ class ViewPersonalDetailsController extends GetxController {
             SharedPreferenceUtils.userServiceCreatedStatusKey, statusData);
         await getUserServiceCreatedStatusUtils();
         if (statusData == "false") {
-          Get.to(ServiceUploadScreen(providerType: ProductServiceProviderType.user,));
+          Get.to(()=> ServiceUploadScreen(
+              providerType: ProductServiceProviderType.user,
+          ));
         }
       } else {
         commonSnackBar(

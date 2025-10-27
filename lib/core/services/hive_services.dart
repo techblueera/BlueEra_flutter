@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -20,6 +23,7 @@ class HiveServices{
   }
 
   Future<bool> savePostJson(Post post) async {
+    log('post----> ${post.toJson()}');
     final box = Hive.box(_savedPosts);
     final String key = '${userId}_${post.id}';
     await box.put(key, post.toJson());
@@ -29,20 +33,32 @@ class HiveServices{
   List<Post> getAllSavedPosts() {
     final box = Hive.box(_savedPosts);
     final List<Post> posts = [];
+
     for (final dynamic key in box.keys) {
       if (key is String && key.startsWith('$userId\_')) {
         final dynamic value = box.get(key);
-        if (value is Map) {
-          try {
-            posts.add(Post.fromJson(Map<String, dynamic>.from(value)));
-          } catch (e, st) {
-            print("Hive -> Failed to parse Post: $st");
+
+        try {
+          if (value is Map) {
+            // Safely convert Hive's stored map into a clean JSON Map
+            final postMap = jsonDecode(jsonEncode(value)) as Map<String, dynamic>;
+            posts.add(Post.fromJson(postMap));
+          } else {
+            print('Hive -> Unexpected value type for key "$key": ${value.runtimeType}');
           }
+        } catch (e, st) {
+          print('Hive -> Failed to parse Post for key "$key"');
+          print('Error: $e');
+          print('StackTrace: $st');
+          print('Raw value: $value\n');
         }
       }
     }
+
     return posts;
   }
+
+
 
   Post? getPostById(String postId) {
     final box = Hive.box(_savedPosts);
@@ -50,7 +66,7 @@ class HiveServices{
     final dynamic value = box.get(key);
     if (value is Map) {
       try {
-        return Post.fromJson(Map<String, dynamic>.from(value));
+        return Post.fromJson(jsonDecode(jsonEncode(value)) as Map<String, dynamic>);
       } catch (_) {
         return null;
       }
@@ -84,11 +100,15 @@ class HiveServices{
     for (final dynamic key in box.keys) {
       if (key is String && key.startsWith('$userId\_')) {
         final dynamic value = box.get(key);
-        if (value is Map) {
+
           try {
-            videos.add(ShortFeedItem.fromJson(Map<String, dynamic>.from(value)));
+            if (value is Map) {
+              final postMap = jsonDecode(jsonEncode(value)) as Map<String, dynamic>;
+              videos.add(ShortFeedItem.fromJson(postMap));
+            }else{
+              print('Hive -> Unexpected value type for key "$key": ${value.runtimeType}');
+            }
           } catch (_) {}
-        }
       }
     }
     return videos;
@@ -100,7 +120,7 @@ class HiveServices{
     final dynamic value = box.get(key);
     if (value is Map) {
       try {
-        return ShortFeedItem.fromJson(Map<String, dynamic>.from(value));
+        return ShortFeedItem.fromJson(jsonDecode(jsonEncode(value)) as Map<String, dynamic>);
       } catch (_) {
         return null;
       }

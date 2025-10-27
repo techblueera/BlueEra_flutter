@@ -110,7 +110,6 @@ class SharedPreferenceUtils {
     required String getUserName,
   }) async {
     await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
-
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(authToken, autToken);

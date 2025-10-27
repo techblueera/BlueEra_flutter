@@ -29,21 +29,21 @@ class PermissionService {
         ));
       }
 
-      final galleryGranted = await _checkGalleryPermission();
-      if (!galleryGranted) {
-        missingPermissions.add(PermissionItem(
-          icon: Icons.photo_library,
-          label: 'Gallery',
-        ));
-      }
-
-      final cameraGranted = await _checkCameraPermission();
-      if (!cameraGranted) {
-        missingPermissions.add(PermissionItem(
-          icon: Icons.camera_alt,
-          label: 'Camera',
-        ));
-      }
+      // final galleryGranted = await _checkGalleryPermission();
+      // if (!galleryGranted) {
+      //   missingPermissions.add(PermissionItem(
+      //     icon: Icons.photo_library,
+      //     label: 'Gallery',
+      //   ));
+      // }
+      //
+      // final cameraGranted = await _checkCameraPermission();
+      // if (!cameraGranted) {
+      //   missingPermissions.add(PermissionItem(
+      //     icon: Icons.camera_alt,
+      //     label: 'Camera',
+      //   ));
+      // }
 
       final notificationGranted = await _checkNotificationPermission();
       if (!notificationGranted) {

@@ -382,12 +382,32 @@ class AppIconAssets {
   static String porter = "${AppConstants.baseIconAssetsPath}porter.png";
   static String rapido = "${AppConstants.baseIconAssetsPath}rapido.png";
   static String homeServiceIcon = "${iconPath}home_service_icon.svg";
-  static String selfWorkIcon = "${iconPath}self_work_icon.svg";
+  static String plumberIcon = "${iconPath}plumber_icon.svg";
   static String deliveryPartnerIcon = "${iconPath}delivery_partner_icon.svg";
   static String homeMadeProductIcon = "${iconPath}home_made_product_icon.svg";
   static String homeMadeFoodIcon = "${iconPath}home_made_food_icon.svg";
   static String rentalServiceIcon = "${iconPath}rental_service_icon.svg";
   static String consultingIcon = "${iconPath}consulting_icon.svg";
   static String teachingIcon = "${iconPath}teaching_icon.svg";
+  static String electricianIcon = "${iconPath}electrician_icon.svg";
+  static String technicianIcon = "${iconPath}technician_icon.svg";
+  static String mainCleanerIcon = "${iconPath}main_cleaner_icon.svg";
+  static String carpenterIcon = "${iconPath}carpenter_icon.svg";
+  static String taxiDriverIcon = "${iconPath}taxi_driver_icon.svg";
+  static String mechanicIcon = "${iconPath}mechanic_icon.svg";
+  static String mistryIcon = "${iconPath}mistry_icon.svg";
+  static String painterIcon = "${iconPath}painter_icon.svg";
+  static String gardenerIcon = "${iconPath}gardener_icon.svg";
+  static String securityPersonIcon = "${iconPath}security_person_icon.svg";
+  static String tiffinIcon = "${iconPath}tiffin_icon.svg";
+  static String bakeryIcon = "${iconPath}bakery_icon.svg";
+  static String sweetIcon = "${iconPath}sweet_icon.svg";
+  static String homeStayIcon = "${iconPath}home_stay_icon.svg";
+  static String roomIcon = "${iconPath}room_icon.svg";
+  static String vehicleIcon = "${iconPath}vehicle_icon.svg";
+  static String beautyServiceIcon = "${iconPath}beauty_service_icon.svg";
+  static String tailoringIcon = "${iconPath}tailoring_icon.svg";
+  static String digitalMarketingIcon = "${iconPath}digital_marketing_icon.svg";
+  static String interiorIcon = "${iconPath}interior_icon.svg";
 
 }
