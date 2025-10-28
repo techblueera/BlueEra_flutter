@@ -1930,3 +1930,31 @@ var SUPPORTED_LANGUAGES = [
   'Malayalam', 'Manipuri (Meitei)', 'Marathi', 'Nepali', 'Odia', 'Punjabi', 'Sanskrit',
   'Santali', 'Sindhi', 'Tamil', 'Telugu', 'Urdu', 'Marwadi', 'Haryanvi'
 ];
+
+bool isImageUrl(String? url) {
+  if (url == null || url.isEmpty) return false;
+  final lower = url.toLowerCase();
+  return lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.webp') ||
+      lower.endsWith('.bmp') ||
+      lower.endsWith('.gif') ||
+      lower.endsWith('.tiff') ||
+      lower.endsWith('.tif') ||
+      lower.endsWith('.heic') ||
+      lower.endsWith('.heif');
+}
+
+bool isVideoUrl(String? url) {
+  if (url == null || url.isEmpty) return false;
+  final lower = url.toLowerCase();
+  return lower.endsWith('.mp4') ||
+      lower.endsWith('.mov') ||
+      lower.endsWith('.webm') ||
+      lower.endsWith('.mkv') ||
+      lower.endsWith('.avi') ||
+      lower.endsWith('.flv') ||
+      lower.endsWith('.wmv') ||
+      lower.endsWith('.3gp');
+}
