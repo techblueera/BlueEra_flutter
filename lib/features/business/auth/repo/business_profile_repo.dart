@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 
 class BusinessProfileRepo extends BaseService {
   Future<ResponseModel> viewParticularBusinessProfile() async {
@@ -201,10 +202,11 @@ class BusinessProfileRepo extends BaseService {
     required String businessId,
     bool isDraft = false,
   }) async {
-    final response = await ApiBaseHelper().postHTTP(
+    final response = await ApiBaseHelper().getHTTP(
       "$getOwnDraftedAndPublicProducts",
       params: {
-        'businessId': businessId,
+        'ownerType': ProductServiceProviderType.business.title,
+        'ownerId': businessId,
         'DRAFT': isDraft,
       },
       onError: (error) {},

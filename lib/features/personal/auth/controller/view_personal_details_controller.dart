@@ -225,7 +225,7 @@ class ViewPersonalDetailsController extends GetxController {
         Get.find<AuthController>().imgPath.value =
             personalProfileDetails.value.user?.profileImage ?? "";
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
-        await SharedPreferenceUtils.userLoggedInIndivisualGuest(
+        await SharedPreferenceUtils.userLoggedInIndividualGuest(
           businesId: "",
           loginUserId_: "${personalProfileDetails.value.user?.id}",
           contactNo: "${personalProfileDetails.value.user?.contactNo}",

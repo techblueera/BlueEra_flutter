@@ -44,9 +44,10 @@ class _InventoryScreenState extends State<InventoryScreen>
     super.initState();
   }
 
-  Future<void> _initializeData() async {
-    final type = await getBusinessType();
-    final business = type.toLowerCase();
+  void _initializeData() {
+    // final type = businessTypeGlobal;
+    // // final type = await getBusinessType();
+    final business = businessTypeGlobal.toLowerCase();
 
     _businessType = business;
     _tabs = [];

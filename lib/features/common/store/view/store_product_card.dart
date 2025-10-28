@@ -184,7 +184,7 @@ class StoreProductCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(height: SizeConfig.size4),
+                    // SizedBox(height: SizeConfig.size4),
 
                     AttributeRows(attributeMap: uniqueAttributes),
 
@@ -220,7 +220,7 @@ class StoreProductCard extends StatelessWidget {
                       ),
                     ),
 
-                    SizedBox(height: SizeConfig.size12),
+                    SizedBox(height: SizeConfig.size10),
 
                     StoreKmAwayTextWidget(
                       lat: sellerClassification?.businessLocation?.latitude?.toDouble() ?? 0.0,

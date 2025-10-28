@@ -256,7 +256,8 @@ class _PersonalProfileSetupNewScreenState
                         ),
                         SliverPersistentHeader(
                           pinned: true,
-                          delegate: _CustomTabBarDelegate(_buildTabButtons(),
+                          delegate: _CustomTabBarDelegate(
+                              _buildTabButtons(),
                               hasFilters: filters != null),
                         ),
                       ],

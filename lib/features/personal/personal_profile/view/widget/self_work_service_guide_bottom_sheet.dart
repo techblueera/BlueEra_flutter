@@ -73,10 +73,10 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
         id: '68f8b41e0c46204861b3b312',
         bgColor: const Color(0xFFD7CCC8),
         labelColor: const Color(0xFF5B3F38)),
-    ServiceItem('Other', AppIconAssets.securityPersonIcon,
+    ServiceItem('Other', AppIconAssets.staggeredIcon,
         id: '68ad6204dafb4bca58cf55e5',
-        bgColor: const Color(0xFFD7CCC8),
-        labelColor: const Color(0xFF5B3F38)),
+        bgColor: const Color(0xFFCFD8DD),
+        labelColor: const Color(0xFF36444D)),
   ];
 
 

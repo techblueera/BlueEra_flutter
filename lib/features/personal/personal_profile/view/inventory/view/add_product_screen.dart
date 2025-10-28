@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -13,6 +15,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -275,21 +278,151 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   ),
               
                                   // Products
+                                  // controller.searchProductsList.isEmpty
+                                  //     ? Padding(
+                                  //   padding: EdgeInsets.symmetric(
+                                  //       vertical: SizeConfig.size20),
+                                  //   child: CustomText(
+                                  //       "No product Here, don’t worry you can create product manually ",
+                                  //       fontSize: SizeConfig.small,
+                                  //       fontWeight: FontWeight.w400,
+                                  //       color: AppColors.secondaryTextColor,
+                                  //       textAlign: TextAlign.center
+                                  //   ),
+                                  // )
+                                  //     : Padding(
+                                  //   padding: EdgeInsets.symmetric(
+                                  //       vertical: SizeConfig.size20),
+                                  //   child: Column(
+                                  //     crossAxisAlignment: CrossAxisAlignment
+                                  //         .start,
+                                  //     children: [
+                                  //       CustomText(
+                                  //         "Products",
+                                  //         fontSize: SizeConfig.small,
+                                  //         fontWeight: FontWeight.w600,
+                                  //         color: AppColors.secondaryTextColor,
+                                  //       ),
+                                  //       ListView.separated(
+                                  //         itemCount: controller.searchProductsList
+                                  //             .length,
+                                  //         padding: EdgeInsets.symmetric(
+                                  //             vertical: SizeConfig.size10),
+                                  //         physics: NeverScrollableScrollPhysics(),
+                                  //         shrinkWrap: true,
+                                  //         itemBuilder: (context, index) {
+                                  //           final products =
+                                  //           controller.searchProductsList[index];
+                                  //           return _buildProductItem(
+                                  //               controller,
+                                  //               products
+                                  //           );
+                                  //         },
+                                  //         separatorBuilder: (BuildContext context,
+                                  //             int index) {
+                                  //           return CommonHorizontalDivider(
+                                  //             color: AppColors.whiteE5,
+                                  //           );
+                                  //         },
+                                  //       ),
+                                  //       // PositiveCustomBtn(
+                                  //       //   onTap: () {
+                                  //       //
+                                  //       //   },
+                                  //       //   title: 'Next',
+                                  //       //   iconPath: AppIconAssets.shareIcon,
+                                  //       //   bgColor: AppColors.primaryColor,
+                                  //       //   borderColor: AppColors.primaryColor,
+                                  //       //   radius: 10.0,
+                                  //       // )
+                                  //     ],
+                                  //   ),
+                                  // ),
+
                                   controller.searchProductsList.isEmpty
                                       ? Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: SizeConfig.size20),
-                                    child: CustomText(
-                                        "No product Here, don’t worry you can create product manually ",
-                                        fontSize: SizeConfig.small,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppColors.secondaryTextColor,
-                                        textAlign: TextAlign.center
+                                    padding: EdgeInsets.only(
+                                        top: SizeConfig.size20),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Flexible(
+                                              child: CustomText(
+                                                  "No product Here, don’t worry you can create product manually ",
+                                                  fontSize: SizeConfig.small,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: AppColors.secondaryTextColor,
+                                                  textAlign: TextAlign.center
+                                              ),
+                                            ),
+                                            Transform.rotate(
+                                                angle: pi/2*3,
+                                                child: Icon(Icons.keyboard_backspace_sharp, color: AppColors.primaryColor))
+                                          ],
+                                        ),
+                                        SizedBox(height: SizeConfig.size15),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: AppColors.primaryColor), // White background
+                                            boxShadow: [AppShadows.textFieldShadow],
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: GestureDetector(
+                                              onTap: () {
+                                                Get.toNamed(
+                                                    RouteHelper.getAddProductViaAiStep1Route(),
+                                                    arguments: {
+                                                      ApiKeys.id: widget.id,
+                                                      ApiKeys.providerType: widget.providerType
+                                                    }
+                                                );
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: SizeConfig.size15,
+                                                    vertical: SizeConfig.size25),
+                                                decoration: BoxDecoration(
+                                                    color: AppColors.white,
+                                                    borderRadius: BorderRadius.circular(10)
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    LocalAssets(imagePath: AppIconAssets
+                                                        .pencilEditIcon), // Pencil icon
+                                                    const SizedBox(width: 15.0),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          CustomText(
+                                                            "Generate Product With AI Within 1 Min. ",
+                                                            fontSize: SizeConfig.medium15,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: AppColors.mainTextColor,
+                                                          ),
+                                                          SizedBox(height: 10.0),
+                                                          CustomText(
+                                                            "Open the full manual form\nto add detailed information section by section.",
+                                                            color: AppColors.secondaryTextColor,
+                                                            fontSize: SizeConfig.medium,
+                                                            fontWeight: FontWeight.w600,
+                                                            fontFamily: AppConstants.OpenSans,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )),
+                                        )
+                                      ],
                                     ),
                                   )
                                       : Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: SizeConfig.size20),
+                                    padding: EdgeInsets.only(
+                                        top: SizeConfig.size20),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment
                                           .start,
@@ -336,6 +469,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                     ),
                                   ),
 
+
+
                                   controller.isLoadingMore ? Padding(
                                     padding: const EdgeInsets.all(16.0),
                                     child: Center(
@@ -352,61 +487,62 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               )
 
                             ]
+
                         ],
                       ),
                     ),
               
-                    SizedBox(height: SizeConfig.size10),
-              
-                    (controller.searchProduct.isEmpty)
-                        ? GestureDetector(
-                        onTap: () {
-                          Get.toNamed(
-                            RouteHelper.getAddProductViaAiStep1Route(),
-                            arguments: {
-                              ApiKeys.id: widget.id,
-                              ApiKeys.providerType: widget.providerType
-                            }
-                          );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size15,
-                              vertical: SizeConfig.size25),
-                          decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(10)
-                          ),
-                          child: Row(
-                            children: [
-                              LocalAssets(imagePath: AppIconAssets
-                                  .pencilEditIcon), // Pencil icon
-                              const SizedBox(width: 15.0),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      "Generate Product With AI Within 1 Min. ",
-                                      fontSize: SizeConfig.medium15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.mainTextColor,
-                                    ),
-                                    SizedBox(height: 10.0),
-                                    CustomText(
-                                      "Open the full manual form\nto add detailed information section by section.",
-                                      color: AppColors.secondaryTextColor,
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: AppConstants.OpenSans,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ))
-                        : SizedBox(),
+                    // SizedBox(height: SizeConfig.size10),
+                    //
+                    // (controller.searchProduct.isEmpty)
+                    //     ? GestureDetector(
+                    //     onTap: () {
+                    //       Get.toNamed(
+                    //         RouteHelper.getAddProductViaAiStep1Route(),
+                    //         arguments: {
+                    //           ApiKeys.id: widget.id,
+                    //           ApiKeys.providerType: widget.providerType
+                    //         }
+                    //       );
+                    //     },
+                    //     child: Container(
+                    //       padding: EdgeInsets.symmetric(
+                    //           horizontal: SizeConfig.size15,
+                    //           vertical: SizeConfig.size25),
+                    //       decoration: BoxDecoration(
+                    //           color: AppColors.white,
+                    //           borderRadius: BorderRadius.circular(10)
+                    //       ),
+                    //       child: Row(
+                    //         children: [
+                    //           LocalAssets(imagePath: AppIconAssets
+                    //               .pencilEditIcon), // Pencil icon
+                    //           const SizedBox(width: 15.0),
+                    //           Expanded(
+                    //             child: Column(
+                    //               crossAxisAlignment: CrossAxisAlignment.start,
+                    //               children: [
+                    //                 CustomText(
+                    //                   "Generate Product With AI Within 1 Min. ",
+                    //                   fontSize: SizeConfig.medium15,
+                    //                   fontWeight: FontWeight.bold,
+                    //                   color: AppColors.mainTextColor,
+                    //                 ),
+                    //                 SizedBox(height: 10.0),
+                    //                 CustomText(
+                    //                   "Open the full manual form\nto add detailed information section by section.",
+                    //                   color: AppColors.secondaryTextColor,
+                    //                   fontSize: SizeConfig.medium,
+                    //                   fontWeight: FontWeight.w600,
+                    //                   fontFamily: AppConstants.OpenSans,
+                    //                 ),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ))
+                    //     : SizedBox(),
               
                   ],
                 ),

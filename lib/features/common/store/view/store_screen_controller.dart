@@ -561,9 +561,9 @@ class StoreScreenController extends GetxController {
   final GlobalKey headerKey = GlobalKey();
   final ScrollController scrollController = ScrollController();
   Function(bool isVisible)? onHeaderVisibilityChanged;
-  final RxDouble headerHeight = 0.0.obs;
   final RxBool isHeaderVisible = true.obs;
-  final RxDouble headerOffset = 0.0.obs;
+  // final RxDouble headerHeight = 0.0.obs;
+  // final RxDouble headerOffset = 0.0.obs;
   RxInt selectedStoreIndex = 0.obs;
   final List<String> storeTab = [
     "All",
@@ -572,6 +572,11 @@ class StoreScreenController extends GetxController {
     "Food",
     "Store"
   ];
+  final ScrollController nearbyFeedScroll = ScrollController();
+  final ScrollController productScroll = ScrollController();
+  final ScrollController serviceScroll = ScrollController();
+  final ScrollController foodScroll = ScrollController();
+  final ScrollController storeScroll = ScrollController();
 
   // Search Management
   final TextEditingController searchController = TextEditingController();
@@ -583,17 +588,45 @@ class StoreScreenController extends GetxController {
   // Stores Data
   final RxList<Map<String, dynamic>> stores = <Map<String, dynamic>>[].obs;
 
-  // @override
-  // void onInit() {
-  //   super.onInit();
-  //   _setupListeners();
-  //   _calculateHeaderHeight();
-  // }
+  @override
+  void onInit() {
+    super.onInit();
+    scrollController.addListener(_onScrollEnd);
+  }
+
+  void _onScrollEnd() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
+      switch (selectedStoreIndex.value) {
+        case 0:
+          getAllStoresFeedNearBy(isLoadMore: true);
+          break;
+        case 1:
+          getAllStoreProductNearBy(isLoadMore: true);
+          break;
+        case 2:
+          getAllServiceNearBy(isLoadMore: true);
+          break;
+        case 3:
+          getAllFoodService(isLoadMore: true);
+          break;
+        case 4:
+          getAllStoreNearBy(isLoadMore: true);
+          break;
+      }
+    }
+  }
+
 
   @override
   void onClose() {
     searchController.dispose();
     scrollController.dispose();
+    nearbyFeedScroll.dispose();
+    productScroll.dispose();
+    serviceScroll.dispose();
+    foodScroll.dispose();
+    storeScroll.dispose();
     super.onClose();
   }
 

@@ -41,9 +41,10 @@ class _InventoryBusinessCardsScreenState
     _initializeTabs();
   }
 
-  Future<void> _initializeTabs() async {
-    final type = await getBusinessType();
-    final business = type.toLowerCase();
+  Future<void> _initializeTabs()  async {
+    // final type = businessTypeGlobal;
+    // // final type = await getBusinessType();
+    final business = businessTypeGlobal.toLowerCase();
 
     _tabs = [];
     _tabTypes = [];
