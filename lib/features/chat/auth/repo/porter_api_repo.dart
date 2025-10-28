@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 
 class PorterApiService {
+
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: 'https://pfe-apigw-uat.porter.in/v1', // replace {porter_host} dynamically if needed
@@ -11,8 +12,8 @@ class PorterApiService {
         'X-API-KEY': '659d4aaf-3797-4186-b7c3-2c231f5d0e22',
         'Content-Type': 'application/json',
       },
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
     ),
   );
 
