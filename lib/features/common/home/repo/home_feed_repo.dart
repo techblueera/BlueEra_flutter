@@ -25,4 +25,15 @@ class HomeFeedRepo extends BaseService {
     );
     return response;
   }
+
+
+  Future<ResponseModel> userFeedServiceVideoRepo({required int pageNo}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${userFeedServiceVideo}page=$pageNo&limit=20",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

@@ -221,16 +221,20 @@ class MessagePostController extends GetxController {
   Future<void> pickVideoMedia() async {
     selectedType.value = MediaType.video;
 
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-        type: FileType.video,
-        // allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']
+    // FilePickerResult? result = await ImagePicker.platform.(
+    //     allowMultiple: false,
+    //     type: FileType.custom,
+    //     allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']
+    // );
+    final XFile? result = await picker.pickVideo(
+    source: ImageSource.gallery, // 🎞️ opens gallery view
     );
+
 
     if (result == null) return;
 
-    if (result.files.single.path != null) {
-      final path = result.files.single.path!;
+    if (result.path != null) {
+      final path = result.path!;
 
       final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
 

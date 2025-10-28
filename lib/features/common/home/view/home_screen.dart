@@ -22,6 +22,7 @@ import 'package:share_handler/share_handler.dart';
 // import 'package:share_handler/share_handler.dart';
 
 import '../../../chat/contacts/view/be_available_contacts_list.dart';
+import 'video_feed_listing/video_feed_screen.dart';
 
 enum SavedFeedTab {
   posts,
@@ -233,6 +234,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        // floatingActionButton: FloatingActionButton(onPressed: (){
+        //   Get.to(() => VideoFeedScreen1(initialIndex: 0, ));
+        //
+        // }),
         extendBodyBehindAppBar: true,
         body: Obx(() => Stack(
               children: [
