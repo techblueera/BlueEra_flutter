@@ -7,9 +7,9 @@ class PorterApiService {
 
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: 'https://pfe-apigw-uat.porter.in/v1', // replace {porter_host} dynamically if needed
+      baseUrl: 'https://pfe-apigw.porter.in/v1', // replace {porter_host} dynamically if needed
       headers: {
-        'X-API-KEY': '659d4aaf-3797-4186-b7c3-2c231f5d0e22',
+        'X-API-KEY': '59a65237-212c-4612-863b-22857612149d',
         'Content-Type': 'application/json',
       },
       connectTimeout: const Duration(seconds: 60),
@@ -26,19 +26,31 @@ class PorterApiService {
 
       if (response.statusCode == 200) {
         print("✅ Porter Quote Response: ${response.data}");
-        return response.data;
+        return {
+          "status":true,
+          "data":response.data
+        };
       } else {
-        print("⚠️ Unexpected status: ${response.statusCode}");
-        return null;
+        return {
+          "status":false,
+          "data":response.data
+        };
       }
     } on DioException catch (e) {
       if (e.response != null) {
         print("❌ Error response: ${e.response?.data}");
         print("Status code: ${e.response?.statusCode}");
+        return {
+          "status":false,
+          "data":e.response?.data
+        };
       } else {
-        print("❌ Network or parsing error: ${e.message}");
+        return {
+          "status":false,
+          "data":e.response?.data
+        };
       }
-      return null;
+
     } catch (e) {
       print("❌ Unexpected error: $e");
       return null;

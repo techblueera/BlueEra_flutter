@@ -40,6 +40,7 @@ class OrderNowController extends GetxController {
   Messages? openedMessage;
   Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getVehicleOptionResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> viewBusinessProfileResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> paymentResponse = ApiResponse.initial('Initial').obs;
   final porterApi = PorterApiService();
   Rx<TextEditingController> nameController    = TextEditingController().obs;
@@ -75,17 +76,16 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel responseModel =
       await BusinessProfileRepo().viewBusinessIdForLocation(userId);
-
+      logs("data=== ${responseModel.response?.data}");
       if (responseModel.response?.data['success']) {
         final data = responseModel.response?.data;
-        logs("data=== ${data}");
+
         address.value=data['data']['address'].toString();
         lat.value=data['data']['business_location']['lat'].toString();
         long.value=data['data']['business_location']['lon'].toString();
-
-
+        viewBusinessProfileResponse.value=ApiResponse.complete(long);
       }else{
-
+        viewBusinessProfileResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
       }
     }catch(e){
 
@@ -150,22 +150,30 @@ class OrderNowController extends GetxController {
     }
   }
 
-
-
   void fetchVehicleQuotes(
       Map<String,dynamic> params
       ) async {
+    getVehicleOptionResponse.value= ApiResponse.initial("Initial");
+
     final data = await porterApi.getQuote(params);
 
-    if (data != null) {
-      final vehicles = data['vehicles'];
-      getPorterVehicleOptionModel.value=GetPorterVehicleOptionModel.fromJson(data);
+    if (data != null&&data['status']) {
+
+
+      final vehicles = data['data']['vehicles'];
+      getPorterVehicleOptionModel.value=GetPorterVehicleOptionModel.fromJson(data['data']);
       getVehicleOptionResponse.value= ApiResponse.complete(getPorterVehicleOptionModel.value);
       print("🚚 Vehicles found: $vehicles");
     } else {
-      getVehicleOptionResponse.value= ApiResponse.error(AppStrings.somethingWentWrong);
+      if(data!=null){
+        final vehicles = data['data']['message'];
+        getVehicleOptionResponse.value= ApiResponse.error(vehicles??AppStrings.somethingWentWrong);
+        print("❌ Failed to fetch quotes");
+      }else{
+        getVehicleOptionResponse.value= ApiResponse.error(AppStrings.somethingWentWrong);
+        print("❌ Failed to fetch quotes");
+      }
 
-      print("❌ Failed to fetch quotes");
     }
   }
 
@@ -217,7 +225,7 @@ class OrderNowController extends GetxController {
       selectedAddress=addressList[selectedIndex?.value??0];
     }
     if(openedMessage!=null){
-      Map<String,dynamic> addressData=await getAddressFromLatLng(double.parse(lat.value),double.parse(long.value));
+      Map<String,dynamic> addressData=await getAddressFromLatLng(double.parse(lat.value.toString()),double.parse(long.value.toString()));
       Map<String,dynamic> params={
         "request_id": "${generateRequestId()}",
         // "delivery_instructions": {

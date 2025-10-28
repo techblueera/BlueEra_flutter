@@ -24,8 +24,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
   @override
   void initState() {
     super.initState();
-    orderController.createOrder();
-
+    Future.delayed(Duration.zero,(){orderController.createOrder();});
     _animationController =
         AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     _scaleAnimation =
@@ -41,17 +40,24 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Obx(() {
         if (orderController.paymentResponse.value.status == Status.COMPLETE) {
           PaymentResponseModel data = orderController.paymentResponseModel.value;
 
+          final timestamp = data.estimatedPickupTime;
+
+// safely handle nulls & seconds-based timestamps
           final pickupDateTime = DateTime.fromMillisecondsSinceEpoch(
-            (data.estimatedPickupTime ?? 0) * 1000,
+            (timestamp ?? 0) < 1000000000000 // if timestamp looks like seconds
+                ? (timestamp ?? 0) * 1000
+                : (timestamp ?? 0),
           );
+
           final formattedPickupTime =
           DateFormat('dd MMM yyyy • hh:mm a').format(pickupDateTime);
-
+          final amount =((data.estimatedFareDetails?.minorAmount ?? 0) / 100);
           return Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -129,9 +135,9 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                           const Divider(),
                           _buildDetailRow(
                               "Amount",
-                              "₹ ${data.estimatedFareDetails?.minorAmount}.00"),
+                              "₹ ${(amount+(amount * 0.10)).toStringAsFixed(2)}"),
                           const Divider(),
-                          _buildDetailRow("Pickup Time", formattedPickupTime),
+                          _buildDetailRow("Pickup At", formattedPickupTime),
                         ],
                       ),
                     ),

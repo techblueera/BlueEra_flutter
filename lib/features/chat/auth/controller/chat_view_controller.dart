@@ -189,6 +189,7 @@ class ChatViewController extends GetxController {
       getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
     });
     chatSocket.listenEvent('messageReceived', (data) async {
+      log("lskmclksdmcs ${data}");
       final parsedData = GetListOfMessageData.fromJson(data);
 
       // Ensure myMessage field is properly set for all messages
@@ -549,22 +550,22 @@ class ChatViewController extends GetxController {
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
 
-    if (event == "ChatList") {
-      final type = data[ApiKeys.type];
-
-
-      if (isFromInitial == true) {
-        List<ChatList> localChats =
-        await localStorageHelper.getChatListFromLocal(type);
-          loadChatListWithType(
-              chatListModel: GetChatListModel(
-                type: type,
-                success: true,
-                chatList: localChats,
-                archived: [],
-              ));
-      }
-    }
+    // if (event == "ChatList") {
+    //   final type = data[ApiKeys.type];
+    //
+    //
+    //   if (isFromInitial == true) {
+    //     List<ChatList> localChats =
+    //     await localStorageHelper.getChatListFromLocal(type);
+    //       loadChatListWithType(
+    //           chatListModel: GetChatListModel(
+    //             type: type,
+    //             success: true,
+    //             chatList: localChats,
+    //             archived: [],
+    //           ));
+    //   }
+    // }
 
     if (event == "messageReceived" &&
         (conversationId ?? "") != userOpenConversationId) {
