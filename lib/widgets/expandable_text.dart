@@ -73,12 +73,13 @@ class _ExpandableTextState extends State<ExpandableText> {
               }
             },
             child: CustomText(
-              'Read more',
+              'Read more\n',
               color: AppColors.primaryColor,
               fontWeight: FontWeight.w600,
               fontSize: SizeConfig.size13,
             ),
           ),
+
         ],
       );
     }

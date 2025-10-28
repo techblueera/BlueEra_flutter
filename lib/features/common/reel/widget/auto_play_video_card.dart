@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -11,7 +12,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/home/view/video_feed_listing/video_feed_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
+import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -85,55 +88,59 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard> {
         return Stack(
           // fit: StackFit.expand,
           children: [
-
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(8)),
-              child: widget.videoItem.video?.coverUrl != null &&
-                      isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
-                  ? CachedNetworkImage(
-                      imageUrl: widget.videoItem.video?.coverUrl ?? '',
-                      width: SizeConfig.screenWidth,
-                      height: SizeConfig.size170,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
+            AspectRatio(
+              aspectRatio: 1,
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(8)),
+                child: widget.videoItem.video?.coverUrl != null &&
+                        isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
+                    ? CachedNetworkImage(
+                        imageUrl: widget.videoItem.video?.coverUrl ?? '',
                         width: SizeConfig.screenWidth,
-                        height: SizeConfig.size140,
-                        // color: Colors.grey[300],
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image,
-                          boxFix: BoxFit.cover,
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        width: SizeConfig.screenWidth,
-                        height: SizeConfig.size140,
-                        color: Colors.grey[300],
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image,
-                          boxFix: BoxFit.cover,
-                        ),
-                        // LocalAssets(imagePath: AppIconAssets.appIcon),
-                      ),
-                    )
-                  : widget.videoItem.video?.coverUrl != null
-                      ? Image.file(
-                          File(widget.videoItem.video?.coverUrl ?? ''),
+                        height: SizeConfig.size170,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(
                           width: SizeConfig.screenWidth,
-                          height: SizeConfig.size170,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
+                          height: SizeConfig.size140,
+                          // color: Colors.grey[300],
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
                           width: SizeConfig.screenWidth,
                           height: SizeConfig.size140,
                           color: Colors.grey[300],
                           child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover),
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                          // LocalAssets(imagePath: AppIconAssets.appIcon),
                         ),
+                      )
+                    : widget.videoItem.video?.coverUrl != null
+                        ? Image.file(
+                            File(widget.videoItem.video?.coverUrl ?? ''),
+                            width: SizeConfig.screenWidth,
+                            height: SizeConfig.size170,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: SizeConfig.screenWidth,
+                            height: SizeConfig.size140,
+                            color: Colors.grey[300],
+                            child: LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.cover),
+                          ),
+              ),
             ),
 // Video (Adjust Aspect Like Twitter)
-            if (isCurrent && controller != null && controller.value.isInitialized)
+            if (isCurrent &&
+                controller != null &&
+                controller.value.isInitialized)
               Builder(
                 builder: (_) {
                   final videoWidth = controller.value.size.width;
@@ -217,9 +224,23 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard> {
         videoType: widget.videoType,
         onTapOption: widget.onTapOption,
         onTapCard: () {
-          Get.to(NetworkVideoPreviewScreen(
-            videoUrl: widget.videoItem.video?.videoUrl ?? "",
-          ));
+          Get.to(() => VideoFeedScreenNew(
+              videoData: VideoPost(
+                  id: '${widget.videoItem.video?.id}',
+                  title: '${widget.videoItem.video?.title}',
+                  subTitle: '${widget.videoItem.video?.description}',
+                  videoUrl: '${widget.videoItem.video?.videoUrl}',
+                  thumbnail: '',
+                  aspectRatio: '',
+                  authorName: '${widget.videoItem.author?.name}',
+                  authorUsername: '${widget.videoItem.author?.username}',
+                  avatar: '${widget.videoItem.author?.profileImage}',
+                  designation: '${widget.videoItem.author?.designation}',
+                  business_category: '')));
+
+          // Get.to(NetworkVideoPreviewScreen(
+          //   videoUrl: widget.videoItem.video?.videoUrl ?? "",
+          // ));
           // Navigator.pushNamed(
           //   context,
           //   RouteHelper.getVideoPlayerScreenRoute(),

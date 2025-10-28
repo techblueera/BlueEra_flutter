@@ -19,25 +19,27 @@ class ChannelProfileHeader extends StatelessWidget {
   final double avatarSize;
   final Color? titleColor;
   final Color? subTitleColor;
+  final Color? userNameColor;
   final VoidCallback? onTapAvatar;
   final Color? borderColor;
   final bool? isVerifiedTickShow;
   final String? postedAgo;
 
-  const ChannelProfileHeader({
-    Key? key,
-    required this.imageUrl,
-    required this.title,
-    required this.subtitle,
-    this.onTapAvatar,
-    this.userName,
-    this.avatarSize = 42.0,
-    this.titleColor,
-    this.subTitleColor,
-    this.borderColor,
-    this.isVerifiedTickShow = false,
-    this.postedAgo
-  }) : super(key: key);
+  const ChannelProfileHeader(
+      {Key? key,
+      required this.imageUrl,
+      required this.title,
+      required this.subtitle,
+      this.onTapAvatar,
+      this.userName,
+      this.avatarSize = 42.0,
+      this.titleColor,
+      this.subTitleColor,
+      this.userNameColor,
+      this.borderColor,
+      this.isVerifiedTickShow = false,
+      this.postedAgo})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -46,22 +48,26 @@ class ChannelProfileHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          InkWell(
-            onTap: onTapAvatar ??
-                () {
-                  navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: AppLocalizations.of(context)!.imageViewer,
-                      // imageUrls: [post?.author.profileImage ?? ''],
-                      imageUrls: [imageUrl],
-                      initialIndex: 0,
-                    ),
-                  );
-                },
-            child: CachedAvatarWidget(
-                imageUrl: imageUrl, size: avatarSize, borderColor: borderColor,borderRadius: 25),
-          ),
+          if (imageUrl.isNotEmpty)
+            InkWell(
+              onTap: onTapAvatar ??
+                  () {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                        // imageUrls: [post?.author.profileImage ?? ''],
+                        imageUrls: [imageUrl],
+                        initialIndex: 0,
+                      ),
+                    );
+                  },
+              child: CachedAvatarWidget(
+                  imageUrl: imageUrl,
+                  size: avatarSize,
+                  borderColor: borderColor,
+                  borderRadius: 25),
+            ),
           SizedBox(width: SizeConfig.size8),
           Expanded(
             child: Column(
@@ -76,7 +82,7 @@ class ChannelProfileHeader extends StatelessWidget {
                     children: [
                       Flexible(
                         child: CustomText(
-                          title ,
+                          title,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.w600,
                           maxLines: 1,
@@ -93,7 +99,7 @@ class ChannelProfileHeader extends StatelessWidget {
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w600,
                               overflow: TextOverflow.ellipsis,
-                              color: AppColors.shadowColor,
+                              color: userNameColor??AppColors.shadowColor,
                             ),
                           ),
                         ),
@@ -116,16 +122,13 @@ class ChannelProfileHeader extends StatelessWidget {
                       fontWeight: FontWeight.w400,
                       color: subTitleColor ?? AppColors.secondaryTextColor,
                     ),
-
-                    if(postedAgo?.isNotEmpty??false)
-                    ...[
+                    if (postedAgo?.isNotEmpty ?? false) ...[
                       SizedBox(width: SizeConfig.size8),
                       PostMetaInfo(
                         timeAgoText: postedAgo!,
                         fontSize: SizeConfig.extraSmall,
                       ),
                     ]
-
                   ],
                 ),
 

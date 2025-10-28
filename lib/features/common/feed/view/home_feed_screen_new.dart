@@ -541,6 +541,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
         final content = RefreshIndicator(
           notificationPredicate: (notification) {
+            Get.isRegistered<HomeScreenController>()
+                ? Get.find<HomeScreenController>()
+                : Get.put(HomeScreenController());
             return Get.find<HomeScreenController>().headerOffset.value == 0.0 &&
                 notification.metrics.pixels <=
                     notification.metrics.minScrollExtent;
