@@ -2,7 +2,8 @@
 
 class GetPorterVehicleOptionModel {
   GetPorterVehicleOptionModel({
-      this.vehicles,});
+    this.vehicles,
+  });
 
   GetPorterVehicleOptionModel.fromJson(dynamic json) {
     if (json['vehicles'] != null) {
@@ -10,8 +11,11 @@ class GetPorterVehicleOptionModel {
       json['vehicles'].forEach((v) {
         vehicles?.add(Vehicles.fromJson(v));
       });
+    } else {
+      vehicles = [];
     }
   }
+
   List<Vehicles>? vehicles;
 
   Map<String, dynamic> toJson() {
@@ -21,7 +25,6 @@ class GetPorterVehicleOptionModel {
     }
     return map;
   }
-
 }
 
 /// type : "Tata 407"
@@ -32,19 +35,21 @@ class GetPorterVehicleOptionModel {
 
 class Vehicles {
   Vehicles({
-      this.type, 
-      this.eta, 
-      this.fare, 
-      this.capacity, 
-      this.size,});
+    this.type,
+    this.eta,
+    this.fare,
+    this.capacity,
+    this.size,
+  });
 
   Vehicles.fromJson(dynamic json) {
-    type = json['type'];
-    eta = json['eta'];
-    fare = json['fare'] != null ? Fare.fromJson(json['fare']) : null;
-    capacity = json['capacity'] != null ? Capacity.fromJson(json['capacity']) : null;
-    size = json['size'] != null ? Size.fromJson(json['size']) : null;
+    type = json['type'] ?? "-";
+    eta = json['eta'] ?? "-";
+    fare = json['fare'] != null ? Fare.fromJson(json['fare']) : Fare.fromJson({});
+    capacity = json['capacity'] != null ? Capacity.fromJson(json['capacity']) : Capacity.fromJson({});
+    size = json['size'] != null ? Size.fromJson(json['size']) : Size.fromJson({});
   }
+
   String? type;
   dynamic eta;
   Fare? fare;
@@ -66,7 +71,57 @@ class Vehicles {
     }
     return map;
   }
+}
 
+/// currency : "INR"
+/// minor_amount : 84621
+
+class Fare {
+  Fare({
+    this.currency,
+    this.minorAmount,
+  });
+
+  Fare.fromJson(dynamic json) {
+    currency = json['currency'] ?? "-";
+    minorAmount = json['minor_amount'] ?? 0.0;
+  }
+
+
+  String? currency;
+  num? minorAmount;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['currency'] = currency;
+    map['minor_amount'] = minorAmount;
+    return map;
+  }
+}
+
+/// value : 2500.0
+/// unit : "kg"
+
+class Capacity {
+  Capacity({
+    this.value,
+    this.unit,
+  });
+
+  Capacity.fromJson(dynamic json) {
+    value = json['value']?.toString() ?? "-";
+    unit = json['unit'] ?? "-";
+  }
+
+  String? value;
+  String? unit;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['value'] = value;
+    map['unit'] = unit;
+    return map;
+  }
 }
 
 /// length : {"value":9.0,"unit":"ft"}
@@ -75,15 +130,17 @@ class Vehicles {
 
 class Size {
   Size({
-      this.length, 
-      this.breadth, 
-      this.height,});
+    this.length,
+    this.breadth,
+    this.height,
+  });
 
   Size.fromJson(dynamic json) {
-    length = json['length'] != null ? Length.fromJson(json['length']) : null;
-    breadth = json['breadth'] != null ? Breadth.fromJson(json['breadth']) : null;
-    height = json['height'] != null ? Height.fromJson(json['height']) : null;
+    length = json['length'] != null ? Length.fromJson(json['length']) : Length.fromJson({});
+    breadth = json['breadth'] != null ? Breadth.fromJson(json['breadth']) : Breadth.fromJson({});
+    height = json['height'] != null ? Height.fromJson(json['height']) : Height.fromJson({});
   }
+
   Length? length;
   Breadth? breadth;
   Height? height;
@@ -101,55 +158,6 @@ class Size {
     }
     return map;
   }
-
-}
-
-/// value : 6.0
-/// unit : "ft"
-
-class Height {
-  Height({
-      this.value, 
-      this.unit,});
-
-  Height.fromJson(dynamic json) {
-    value = json['value'];
-    unit = json['unit'];
-  }
-  num? value;
-  String? unit;
-
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    map['value'] = value;
-    map['unit'] = unit;
-    return map;
-  }
-
-}
-
-/// value : 5.5
-/// unit : "ft"
-
-class Breadth {
-  Breadth({
-      this.value, 
-      this.unit,});
-
-  Breadth.fromJson(dynamic json) {
-    value = json['value'];
-    unit = json['unit'];
-  }
-  num? value;
-  String? unit;
-
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    map['value'] = value;
-    map['unit'] = unit;
-    return map;
-  }
-
 }
 
 /// value : 9.0
@@ -157,14 +165,16 @@ class Breadth {
 
 class Length {
   Length({
-      this.value, 
-      this.unit,});
+    this.value,
+    this.unit,
+  });
 
   Length.fromJson(dynamic json) {
-    value = json['value'];
-    unit = json['unit'];
+    value = json['value']?.toString() ?? "-";
+    unit = json['unit'] ?? "-";
   }
-  num? value;
+
+  String? value;
   String? unit;
 
   Map<String, dynamic> toJson() {
@@ -173,22 +183,23 @@ class Length {
     map['unit'] = unit;
     return map;
   }
-
 }
 
-/// value : 2500.0
-/// unit : "kg"
+/// value : 5.5
+/// unit : "ft"
 
-class Capacity {
-  Capacity({
-      this.value, 
-      this.unit,});
+class Breadth {
+  Breadth({
+    this.value,
+    this.unit,
+  });
 
-  Capacity.fromJson(dynamic json) {
-    value = json['value'];
-    unit = json['unit'];
+  Breadth.fromJson(dynamic json) {
+    value = json['value']?.toString() ?? "-";
+    unit = json['unit'] ?? "-";
   }
-  num? value;
+
+  String? value;
   String? unit;
 
   Map<String, dynamic> toJson() {
@@ -197,29 +208,29 @@ class Capacity {
     map['unit'] = unit;
     return map;
   }
-
 }
 
-/// currency : "INR"
-/// minor_amount : 84621
+/// value : 6.0
+/// unit : "ft"
 
-class Fare {
-  Fare({
-      this.currency, 
-      this.minorAmount,});
+class Height {
+  Height({
+    this.value,
+    this.unit,
+  });
 
-  Fare.fromJson(dynamic json) {
-    currency = json['currency'];
-    minorAmount = json['minor_amount'];
+  Height.fromJson(dynamic json) {
+    value = json['value']?.toString() ?? "-";
+    unit = json['unit'] ?? "-";
   }
-  String? currency;
-  num? minorAmount;
+
+  String? value;
+  String? unit;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['currency'] = currency;
-    map['minor_amount'] = minorAmount;
+    map['value'] = value;
+    map['unit'] = unit;
     return map;
   }
-
 }

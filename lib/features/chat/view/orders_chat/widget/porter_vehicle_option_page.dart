@@ -1,4 +1,8 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -40,6 +44,7 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
       ),
 
       body: Obx(() {
+
         if (orderController.getVehicleOptionResponse.value.status ==
             Status.COMPLETE) {
           List<Vehicles> vehicleList =
@@ -52,7 +57,7 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
             itemBuilder: (context, index) {
               final vehicle = vehicleList[index];
               final isSelected = selectedIndex == index;
-
+              final amount=(vehicle.fare?.minorAmount ?? 0) / 100;
               return GestureDetector(
                 onTap: () {
                   setState(() => selectedIndex = index);
@@ -81,57 +86,71 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                     children: [
                       // Vehicle Type and Fare
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
                         children: [
-                          Text(
-                            vehicle.type ?? '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
+                          LocalAssets(imagePath: AppIconAssets.motorcycle,height: 140,width: 140,),
+                          const SizedBox(width: 12,),
+                          Column(crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                vehicle.type ?? '',
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppColors.whiteE0
+                                  ),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
+
+                                child: CustomText(
+                                  "Pay : ₹ ${((amount)+(amount * 0.10)).toStringAsFixed(2)}",
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            "₹ ${vehicle.fare?.minorAmount}",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blue,
-                            ),
-                          ),
+
                         ],
                       ),
-                      const SizedBox(height: 8),
+
                       Divider(color: Colors.grey.shade300, height: 1),
-                      const SizedBox(height: 8),
+                      // const SizedBox(height: 8),
 
                       // Capacity
-                      Row(
+                      (vehicle.capacity?.value=='-')?SizedBox():Row(
                         children: [
                           const Icon(
                               Icons.local_shipping, size: 18,
                               color: Colors.grey),
                           const SizedBox(width: 6),
-                          Text(
+                          CustomText(
                             "Capacity: ${vehicle.capacity?.value} ${vehicle
                                 .capacity?.unit}",
-                            style: const TextStyle(fontSize: 14),
+                           fontSize: 14,
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
 
                       // Size
-                      Row(
+                      (vehicle.size?.length?.value=='-')?SizedBox():Row(
                         children: [
                           const Icon(
                               Icons.straighten, size: 18, color: Colors.grey),
                           const SizedBox(width: 6),
-                          Text(
-                            "Size: ${vehicle.size?.length?.value}×${vehicle.size
-                                ?.breadth?.value}×${vehicle.size?.height
+                          CustomText(
+                            "Size: ${vehicle.size?.length?.value} × ${vehicle.size
+                                ?.breadth?.value} × ${vehicle.size?.height
                                 ?.value} ft",
-                            style: const TextStyle(fontSize: 14),
+                           fontSize: 14,
                           ),
                         ],
                       ),
@@ -141,7 +160,46 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
               );
             },
           );
-        } else {
+        } else if(orderController.getVehicleOptionResponse.value.status ==
+            Status.ERROR){
+          String message=orderController.getVehicleOptionResponse.value.message??'';
+
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.coloGreyText,
+                  size: 50,
+                ),
+                 SizedBox(height: SizeConfig.size16),
+                CustomText(
+                  message.isNotEmpty ? message : "Something went wrong!",
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: SizeConfig.size30),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  label: const CustomText(
+                    "Go Back",
+                    color: Colors.white, fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }else{
           return Center(child: CircularProgressIndicator());
         }
       }),
@@ -165,10 +223,10 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
 
                   final razorpayController = Get.put(RazorpayController());
                   razorpayController.openCheckout(
-                    amount: (selectedVehicle.fare?.minorAmount ?? 0).toDouble(),
+                    amount: double.parse((selectedVehicle.fare?.minorAmount ?? 0/100).toString()),
                     customerName: "${widget.userName}", // Replace with logged user name
                     contact: "${widget.userNum}",    // Replace with user contact
-                    email: "boopathi9092@gmail.com", // Replace with user email
+                    email: "admin@bluecs.in", // Replace with user email
                   );
                 }
                     : null,

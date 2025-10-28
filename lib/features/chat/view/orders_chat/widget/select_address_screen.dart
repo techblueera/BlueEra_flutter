@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/porter_vehicle_option_page.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -38,22 +39,15 @@ class _AddressListScreenState extends State<AddressListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          "Address",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        foregroundColor: Colors.black,
+      appBar: CommonBackAppBar(
+       title: "Address",
       ),
-
       body: SafeArea(
         child: Column(
           children: [
             Obx(() {
               if (orderController.getAddressResponse.value.status ==
+                  Status.COMPLETE&&orderController.viewBusinessProfileResponse.value.status ==
                   Status.COMPLETE) {
                 List<AddressDetails>? addresses =
                     orderController.getAddressDetails.value.data;
@@ -148,7 +142,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
             }),
 
             // Add address button
-            Spacer(),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: OutlinedButton.icon(
@@ -182,9 +176,9 @@ class _AddressListScreenState extends State<AddressListScreen> {
                   });
                 },
                 icon: const Icon(Icons.add, color: Colors.blue),
-                label: const Text(
+                label: const CustomText(
                   "Add Address",
-                  style: TextStyle(color: Colors.blue),
+                      color: Colors.blue
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.blue),
@@ -230,10 +224,11 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     },
                   },
                 };
-                print("SLDKCMSLKsdkjcnksjdcn ${payload}");
+
                 orderController.fetchVehicleQuotes(payload);
                Get.off(()=>PorterVehicleListScreen(userName: selectedAddress?.name,userNum: selectedAddress?.phone,));
               }
+
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor:
@@ -242,13 +237,11 @@ class _AddressListScreenState extends State<AddressListScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: const CustomText(
                 "Next",
-                style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                ),
               ),
             ),
           ),
