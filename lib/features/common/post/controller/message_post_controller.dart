@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -22,11 +21,12 @@ import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_thumbnail_video/index.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
 
@@ -223,8 +223,9 @@ class MessagePostController extends GetxController {
 
     FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: false,
-        type: FileType.custom,
-        allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']);
+        type: FileType.video,
+        // allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']
+    );
 
     if (result == null) return;
 
@@ -282,7 +283,7 @@ class MessagePostController extends GetxController {
     );
 
     if (thumbPath != null) {
-      videoThumbnails[videoFile.path] = File(thumbPath);
+      videoThumbnails[videoFile.path] = File(thumbPath.path);
     }
   }
 

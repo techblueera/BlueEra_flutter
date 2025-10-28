@@ -32,8 +32,9 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:get_thumbnail_video/index.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 
 enum Video { video, short }
 
@@ -132,7 +133,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
         if (thumbnailPath != null) {
           setState(() {
-            _commonCoverImage = thumbnailPath;
+            _commonCoverImage = thumbnailPath.path;
           });
           print("Thumbnail generated at: $_commonCoverImage");
         } else {
