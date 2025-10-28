@@ -228,6 +228,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
                 ),
+                const SizedBox(height: 8),
+
                 Row(
                   children: [
                     if (user?.username != null && user!.username!.isNotEmpty)
@@ -246,7 +248,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         ),
                       ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
                       child: Column(
 
                         children: [
@@ -256,7 +258,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                             Container(
                               padding: EdgeInsets.symmetric(
                                   horizontal: SizeConfig.size10,
-                                  vertical: SizeConfig.size3),
+                                  vertical: SizeConfig.size4),
                               decoration: BoxDecoration(
                                 border: Border.all(color: AppColors.secondaryTextColor),
                                 borderRadius: BorderRadius.circular(15),
@@ -394,7 +396,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 8),
+         // const SizedBox(height: 8),
 
 
 
@@ -431,7 +433,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
           //   ),
           // ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
         ],
       ),
     );
@@ -442,15 +444,15 @@ class NewProfileHeaderWidget extends StatelessWidget {
       children: [
         CustomText(
           count,
-          fontSize: SizeConfig.size15,
+          fontSize: SizeConfig.size14,
           fontWeight: FontWeight.w700,
           color: AppColors.mainTextColor,
         ),
         const SizedBox(width: 4,),
         CustomText(
           label,
-          fontSize: SizeConfig.size12,
-          color: Colors.grey[600],
+          fontSize: SizeConfig.size14,
+          color: AppColors.secondaryTextColor,
         ),
       ],
     );
