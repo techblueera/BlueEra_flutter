@@ -1,28 +1,63 @@
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:math' hide log;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
+import '../model/GetListOfMessageData.dart';
+import '../model/get_adress_details_model.dart';
+import '../model/get_porter_vechile_option_model.dart';
+import '../model/payment_success_model.dart';
 import '../repo/make_order_repo.dart';
+import '../repo/porter_api_repo.dart';
 import 'chat_view_controller.dart';
 
 class OrderNowController extends GetxController {
+  var address = "".obs;
   var lat = "".obs;
   var long = "".obs;
 
+  Messages? openedMessage;
+  Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getVehicleOptionResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> paymentResponse = ApiResponse.initial('Initial').obs;
+  final porterApi = PorterApiService();
+  Rx<TextEditingController> nameController    = TextEditingController().obs;
+  Rx<TextEditingController> phoneController    = TextEditingController().obs;
+  Rx<TextEditingController> fullAddress        = TextEditingController().obs;
+  Rx<TextEditingController> houseNoController  = TextEditingController().obs;
+  Rx<TextEditingController> streetController   = TextEditingController().obs;
+  Rx<TextEditingController> landmarkController = TextEditingController().obs;
+  Rx<TextEditingController> cityController     = TextEditingController().obs;
+  Rx<TextEditingController> stateController    = TextEditingController().obs;
+  Rx<TextEditingController> zipController      = TextEditingController().obs;
+  Rx<TextEditingController> noteController     = TextEditingController().obs;
+  Rx<TextEditingController> typeController      = TextEditingController().obs;
+  Rx<GetAdressDetailsModel> getAddressDetails=GetAdressDetailsModel().obs;
+  Rx<GetPorterVehicleOptionModel> getPorterVehicleOptionModel=GetPorterVehicleOptionModel().obs;
+  Rx<PaymentResponseModel> paymentResponseModel=PaymentResponseModel().obs;
+  RxBool isDefault = false.obs;
+  RxInt? selectedIndex;
   void copyLat() {
     Clipboard.setData(ClipboardData(text: lat.value));
     commonSnackBar(message: "Copied Store Lat");
@@ -31,7 +66,12 @@ class OrderNowController extends GetxController {
     Clipboard.setData(ClipboardData(text: long.value));
     commonSnackBar(message: "Copied Store Long");
   }
+  void setMessageDetails(Messages msg){
+    openedMessage=msg;
+
+  }
   Future<void> viewBusinessForLocation(String userId) async {
+
     try {
       ResponseModel responseModel =
       await BusinessProfileRepo().viewBusinessIdForLocation(userId);
@@ -39,7 +79,10 @@ class OrderNowController extends GetxController {
       if (responseModel.response?.data['success']) {
         final data = responseModel.response?.data;
         logs("data=== ${data}");
-        lat.value=data['data']['address'].toString();
+        address.value=data['data']['address'].toString();
+        lat.value=data['data']['business_location']['lat'].toString();
+        long.value=data['data']['business_location']['lon'].toString();
+
 
       }else{
 
@@ -49,28 +92,29 @@ class OrderNowController extends GetxController {
     }
   }
   Future<void> updateOrderStatus(Map<String,dynamic> params) async {
-    // try {
+    try {
       ResponseModel responseModel =
       await BusinessProfileRepo().updateMsgOrderStatus(params);
 
       if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
 
       }else{
 
       }
-    // }catch(e){
-    //
-    // }
+    }catch(e){
+
+    }
   }
   Future<void> CreateOrder(
       {required Map<String,dynamic> params}) async {
     try {
       ResponseModel? response = await MakeOrderRepo().createOrder(params);
-      if (response.isSuccess) {
+      if (response.isSuccess ?? false) {
         print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+            message: response?.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -80,11 +124,219 @@ class OrderNowController extends GetxController {
       {required Map<String,dynamic> params}) async {
     try {
       ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
-      if (response.isSuccess) {
+      if (response.isSuccess ?? false) {
         print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getAddressApi() async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().getAddress();
+      if (response.isSuccess ?? false) {
+        getAddressDetails.value=GetAdressDetailsModel.fromJson(response.response?.data);
+        getAddressResponse.value= ApiResponse.complete(getAddressDetails.value);
+      } else {
+        commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        getAddressResponse.value= ApiResponse.error( response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+
+
+  void fetchVehicleQuotes(
+      Map<String,dynamic> params
+      ) async {
+    final data = await porterApi.getQuote(params);
+
+    if (data != null) {
+      final vehicles = data['vehicles'];
+      getPorterVehicleOptionModel.value=GetPorterVehicleOptionModel.fromJson(data);
+      getVehicleOptionResponse.value= ApiResponse.complete(getPorterVehicleOptionModel.value);
+      print("🚚 Vehicles found: $vehicles");
+    } else {
+      getVehicleOptionResponse.value= ApiResponse.error(AppStrings.somethingWentWrong);
+
+      print("❌ Failed to fetch quotes");
+    }
+  }
+
+  String generateRequestId() {
+
+    final random = Random();
+
+    // Generate a random 7-digit number
+    final randomNumber = random.nextInt(9999999).toString().padLeft(7, '0');
+
+    // Generate a UUID (version 1)
+
+
+    // Combine in your format
+    return "TEST_0_${randomNumber}${userId}";
+  }
+
+  Future<Map<String, String>> getAddressFromLatLng(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+
+        final city = place.locality ?? '';
+        final state = place.administrativeArea ?? '';
+        final pincode = place.postalCode ?? '';
+
+
+        return {
+          "city": city,
+          "state": state,
+          "pincode": pincode,
+        };
+      } else {
+        print("⚠️ No address found for this location");
+        return {};
+      }
+    } catch (e) {
+      print("❌ Error while getting address: $e");
+      return {};
+    }
+  }
+
+  void createOrder() async {
+    List<AddressDetails>? addressList=getAddressDetails.value.data;
+    AddressDetails? selectedAddress;
+    if(addressList!=null){
+      selectedAddress=addressList[selectedIndex?.value??0];
+    }
+    if(openedMessage!=null){
+      Map<String,dynamic> addressData=await getAddressFromLatLng(double.parse(lat.value),double.parse(long.value));
+      Map<String,dynamic> params={
+        "request_id": "${generateRequestId()}",
+        // "delivery_instructions": {
+        //   "instructions_list": [
+        //     {
+        //       "type": "text",
+        //       "description": "handle with care"
+        //     }
+        //   ]
+        // },
+        "pickup_details": {
+          "address": {
+            "apartment_address": "",
+            "street_address1": "${(openedMessage?.seller?.location=='')?"N/A":openedMessage?.seller?.location??'N/A'}",
+            // // "street_address2": "Krishna Nagar Industrial Area",
+            "landmark": "N/A",
+            "city": "${addressData['city']}",
+            "state": "${addressData['state']}",
+            "pincode": "${addressData['pincode']}",
+            "country": "India",
+            "lat":double.parse(lat.value),
+            "lng": double.parse(long.value),
+            "contact_details": {
+              "name": "${openedMessage?.seller?.name}",
+              "phone_number": "${openedMessage?.seller?.contact}"
+            }
+          }
+        },
+        "drop_details": {
+          "address": {
+            "apartment_address": "${selectedAddress?.houseNo}",
+            "street_address1": "${selectedAddress?.street}",
+            // "street_address2": "This is My Order ID",
+            "landmark": "${selectedAddress?.landmark}",
+            "city": "${selectedAddress?.city}",
+            "state": "${selectedAddress?.state}",
+            "pincode": "${selectedAddress?.zipCode}",
+            "country": "${selectedAddress?.country}",
+            "lat": selectedAddress?.lat,
+            "lng": selectedAddress?.lng,
+            "contact_details": {
+              "name": "${selectedAddress?.name}",
+              "phone_number": "+91${selectedAddress?.phone}"
+            }
+          }
+        },
+        "additional_comments": ""
+      };
+
+      final data = await porterApi.createOrder(params);
+      if (data != null) {
+        paymentResponseModel.value=PaymentResponseModel.fromJson(data);
+        paymentResponse.value= ApiResponse.complete(paymentResponseModel.value);
+        final chatViewController = Get.find<ChatViewController>();
+
+
+        Map<String,dynamic>datadd={
+          "messageId": "${openedMessage?.id}",
+          "order_status": true
+        };
+        await  updateOrderStatus(datadd);
+        chatViewController. emitEvent("messageReceived", {
+          ApiKeys.conversation_id: openedMessage?.conversationId??openedMessage?.sender?.id,
+          ApiKeys.page: 1,
+          ApiKeys.is_online_user: businessId,
+          ApiKeys.per_page_message: 30,
+        });
+
+      } else {
+
+        print("❌ Failed to fetch quotes");
+      }
+    }else{
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+
+  }
+
+  Future<void> addAddressApi(double? lat,double? long) async {
+    try {
+      final addressData = {
+        "name": nameController.value.text.trim(),
+        "phone": phoneController.value.text.trim(),
+        "house_no": houseNoController.value.text.trim(),
+        "street": streetController.value.text.trim(),
+        "landmark": landmarkController.value.text.trim(),
+        "city": cityController.value.text.trim(),
+        "state": stateController.value.text.trim(),
+        "zip_code": zipController.value.text.trim(),
+        "note": noteController.value.text.trim(),
+        "country": "India",
+        "type": "Home",
+        "is_default": isDefault.value,
+
+        "lat": lat,
+        "lng": long,
+      };
+      ResponseModel? response = await MakeOrderRepo().addAddress(addressData);
+      if (response.isSuccess ?? false) {
+
+        nameController.value.clear();
+        phoneController.value.clear();
+        fullAddress.value.clear();
+        houseNoController.value.clear();
+        streetController.value.clear();
+        landmarkController.value.clear();
+        cityController.value.clear();
+        stateController.value.clear();
+        zipController.value.clear();
+        noteController.value.clear();
+        typeController.value.clear();
+
+        commonSnackBar(
+            message: response?.message);
+        Get.back();
+        getAddressApi();
+      } else {
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -96,8 +348,7 @@ class OrderNowController extends GetxController {
 
 class OrderNowDialog {
   static void showDialogBox(String businessId,String messageId,String conversationId) async {
-    // final viewProfileController = await Get.put(ViewBusinessDetailsController());
-    //   // ..viewBusinessProfileById(businessId);
+
     final controller = Get.put(OrderNowController())..viewBusinessForLocation(businessId);
     final chatViewController = Get.find<ChatViewController>();
     Get.dialog(
