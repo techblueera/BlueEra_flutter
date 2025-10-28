@@ -472,5 +472,6 @@ abstract class BaseService {
 
   String businessServicesById(String serviceId) => 'services-service/services/$serviceId';
   final String aiSocialPostGenerate = "ai-service/api/ai-social-post/generate";
+  final String getAddressApi = "user-service/addresses";
 
 }

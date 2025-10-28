@@ -101,7 +101,10 @@ class Messages {
       this.isSaveMessage, 
       this.myMessage, 
       this.sendLoadingFile,
-      this.sender,});
+      this.sender,
+      this.seller,
+      this.buyer,
+  });
 
   Messages.fromJson(dynamic json) {
     if (json['url'] != null) {
@@ -153,6 +156,8 @@ class Messages {
     replies_count = json['replies_count'].toString();
     is_liked = json['is_liked'];
     sender = json['sender'] != null ? Sender.fromJson(json['sender']) : null;
+    seller = json['seller'] != null ? SellerDetails.fromJson(json['seller']) : null;
+    buyer = json['buyer'] != null ? BuyerDetails.fromJson(json['buyer']) : null;
     if (json['sendLoadingFile'] != null) {
       sendLoadingFile = [];
       json['sendLoadingFile'].forEach((v) {
@@ -200,6 +205,8 @@ class Messages {
   bool? isSaveMessage;
   bool? myMessage;
   Sender? sender;
+  SellerDetails? seller;
+  BuyerDetails? buyer;
   List<File>? sendLoadingFile;
   ReplyParentMessage? replyParentMessage;
   Conversation? conversation;
@@ -255,6 +262,10 @@ class Messages {
     }
     if (sender != null) {
       map['sender'] = sender?.toJson();
+    }if (seller != null) {
+      map['seller'] = seller?.toJson();
+    }if (buyer != null) {
+      map['buyer'] = buyer?.toJson();
     }
     if (metadata != null) {
       map['metadata'] = metadata!.toJson();
@@ -263,6 +274,95 @@ class Messages {
   }
 
 }
+class SellerDetails {
+  String? id;
+  String? accountType;
+  String? name;
+  String? contact;
+  String? businessId;
+  String? profileImage;
+  String? email;
+  String? location;
+
+  SellerDetails(
+      {this.id,
+        this.accountType,
+        this.name,
+        this.contact,
+        this.businessId,
+        this.profileImage,
+        this.email,
+        this.location});
+
+  SellerDetails.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    accountType = json['account_type'];
+    name = json['name'];
+    contact = json['contact'];
+    businessId = json['business_id'];
+    profileImage = json['profile_image'];
+    email = json['email'];
+    location = json['location'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['account_type'] = this.accountType;
+    data['name'] = this.name;
+    data['contact'] = this.contact;
+    data['business_id'] = this.businessId;
+    data['profile_image'] = this.profileImage;
+    data['email'] = this.email;
+    data['location'] = this.location;
+    return data;
+  }
+}
+class BuyerDetails {
+  String? id;
+  String? accountType;
+  String? name;
+  String? contact;
+  String? businessId;
+  String? profileImage;
+  String? email;
+  String? location;
+
+  BuyerDetails(
+      {this.id,
+        this.accountType,
+        this.name,
+        this.contact,
+        this.businessId,
+        this.profileImage,
+        this.email,
+        this.location});
+
+  BuyerDetails.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    accountType = json['account_type'];
+    name = json['name'];
+    contact = json['contact'];
+    businessId = json['business_id'];
+    profileImage = json['profile_image'];
+    email = json['email'];
+    location = json['location'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['account_type'] = this.accountType;
+    data['name'] = this.name;
+    data['contact'] = this.contact;
+    data['business_id'] = this.businessId;
+    data['profile_image'] = this.profileImage;
+    data['email'] = this.email;
+    data['location'] = this.location;
+    return data;
+  }
+}
+
 class MessageMetadata {
   String? foodId;
   String? productId;

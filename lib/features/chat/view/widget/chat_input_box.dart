@@ -13,6 +13,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_svg/svg.dart';
@@ -353,6 +354,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                             ),
                             Expanded(
                               child: TextFormField(
+
                                 scrollController: _scrollController,
                                 keyboardType: TextInputType.text,
                                 textCapitalization: TextCapitalization.words,
@@ -388,7 +390,18 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   enabledBorder: InputBorder.none,
                                   focusedBorder: InputBorder.none,
                                   disabledBorder: InputBorder.none,
+
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a URL';
+                                  }
+                                  final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
+                                  if (!httpsUrlRegex.hasMatch(value)) {
+                                  return 'Only HTTPS URLs are allowed';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
 
