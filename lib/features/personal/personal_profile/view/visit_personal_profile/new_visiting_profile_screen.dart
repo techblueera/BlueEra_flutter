@@ -149,6 +149,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
          // if (user?.profession == SELF_EMPLOYED) 'Portfolio',
           'Posts',
           'Testimonials',
+          'Channel',
           // 'Shorts',
           // 'Videos'
         ];
@@ -167,7 +168,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                   ),
 
                   SizedBox(
-                    height: SizeConfig.size16,
+                    height: SizeConfig.size12,
                   ),
                   Padding(
                     padding:
@@ -260,6 +261,12 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
       // case 'Achievements':
       // return AchievementsWidget();
       case 'Testimonials':
+        return TestimonialsScreen(
+          userName: controller.userData.value?.user?.name ?? 'N/A',
+          visitUserID: widget.authorId,
+          isSelfTestimonial: false,
+          screenFromName: widget.screenFromName,
+        );case 'Channel':
         return TestimonialsScreen(
           userName: controller.userData.value?.user?.name ?? 'N/A',
           visitUserID: widget.authorId,
