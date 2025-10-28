@@ -61,6 +61,13 @@ class AiSuggestionField extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         CommonTextField(
+          validator: (value){
+            if(value!.isEmpty){
+              return "Please Enter Your Bio" ;
+            }else{
+              return null;
+            }
+          },
           hintText: "Write your $title...",
           textEditController: textController,
           maxLine: 3,

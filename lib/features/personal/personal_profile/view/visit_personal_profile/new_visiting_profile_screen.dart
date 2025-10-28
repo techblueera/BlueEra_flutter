@@ -145,8 +145,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         }
 
         postTab = [
-          "Overview",
-          if (user?.profession == SELF_EMPLOYED) 'Portfolio',
+         // "Overview",
+         // if (user?.profession == SELF_EMPLOYED) 'Portfolio',
           'Posts',
           'Testimonials',
           // 'Shorts',
@@ -165,6 +165,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                     user: user,
                     screenFromName: widget.screenFromName,
                   ),
+
                   SizedBox(
                     height: SizeConfig.size16,
                   ),
@@ -238,17 +239,17 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
   Widget _buildTabContent(int index) {
     switch (postTab[index]) {
-      case 'Overview':
-        return PersonalOverviewScreen(
-          userId: widget.authorId,
-          // channelId: widget.channelId,
-          videoType: VideoType.latest.name,
-          screenFromName: widget.screenFromName,
-        );
-      case 'Portfolio':
-        return PortfolioWidget(
-          isSelfPortfolio: false,
-        );
+      // case 'Overview':
+      //   return PersonalOverviewScreen(
+      //     userId: widget.authorId,
+      //     // channelId: widget.channelId,
+      //     videoType: VideoType.latest.name,
+      //     screenFromName: widget.screenFromName,
+      //   );
+      // case 'Portfolio':
+      //   return PortfolioWidget(
+      //     isSelfPortfolio: false,
+      //   );
 
       case 'Posts':
         return FeedScreen(

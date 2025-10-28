@@ -12,8 +12,10 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/gestures.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
+import '../../../../../../widgets/highlight_text_widget.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
   final User? user;
@@ -25,7 +27,48 @@ class NewProfileHeaderWidget extends StatelessWidget {
     required this.user,
     required this.screenFromName,
   });
-
+  void _showFullTextDialog(BuildContext context,String text) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          padding: EdgeInsets.all(SizeConfig.size20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: SingleChildScrollView(
+                  child: HighlightText(
+                      text: text,
+                      style: TextStyle(
+                        color: AppColors.mainTextColor,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: AppConstants.OpenSans,
+                      )
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: Navigator.of(context).pop,
+                  child: const CustomText('Close', fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -33,13 +76,13 @@ class NewProfileHeaderWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withValues(alpha: 0.08),
+        //     blurRadius: 6,
+        //     offset: const Offset(0, 3),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,86 +224,98 @@ class NewProfileHeaderWidget extends StatelessWidget {
               children: [
                 CustomText(
                   user?.name ?? '',
-                  fontSize: SizeConfig.large18,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
                 ),
-                if (user?.username != null && user!.username!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: CustomText(
-                      "@${user?.username}",
-                      fontSize: SizeConfig.medium,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          /// ==== Profession or Channel ====
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (user?.profession != null &&
-                    user?.profession != "null" &&
-                    (user?.profession?.isNotEmpty ?? false))
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size10,
-                        vertical: SizeConfig.size4),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.secondaryTextColor),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: CustomText(
-                      "${user?.profession}",
-                      color: AppColors.secondaryTextColor,
-                      fontSize: SizeConfig.extraSmall,
-                    ),
-                  ),
-                const SizedBox(height: 4),
-                Obx(() {
-                  return (controller.channelUserName?.value.isNotEmpty ?? false)
-                      ? Row(
-                    children: [
-                      CustomText(
-                        "Visit my channel: ",
-                        fontSize: SizeConfig.size12,
-                      ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            RouteHelper.getChannelScreenRoute(),
-                            arguments: {
-                              ApiKeys.argAccountType: user?.accountType,
-                              ApiKeys.channelId:
-                              controller.channelUserId?.value,
-                              ApiKeys.authorId: user?.id,
-                            },
-                          );
-                        },
+                Row(
+                  children: [
+                    if (user?.username != null && user!.username!.isNotEmpty)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size10,
+                            vertical: SizeConfig.size4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.secondaryTextColor),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                         child: CustomText(
-                          "@${controller.channelName?.value}",
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColors.primaryColor,
-                          fontSize: SizeConfig.size12,
+                          "@${user?.username}",
+                          fontSize: SizeConfig.extraSmall,
+                          color: Colors.grey[600],
                         ),
                       ),
-                    ],
-                  )
-                      : const SizedBox();
-                }),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                      child: Column(
+
+                        children: [
+                          if (user?.profession != null &&
+                              user?.profession != "null" &&
+                              (user?.profession?.isNotEmpty ?? false))
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size10,
+                                  vertical: SizeConfig.size3),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.secondaryTextColor),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: CustomText(
+                                "${user?.profession}",
+                                color: AppColors.secondaryTextColor,
+                                fontSize: SizeConfig.extraSmall,
+                              ),
+                            ),
+                          //const SizedBox(height: 4),
+                          Obx(() {
+                            return (controller.channelUserName?.value.isNotEmpty ?? false)
+                                ? Row(
+                              children: [
+                                CustomText(
+                                  "Visit my channel: ",
+                                  fontSize: SizeConfig.size12,
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteHelper.getChannelScreenRoute(),
+                                      arguments: {
+                                        ApiKeys.argAccountType: user?.accountType,
+                                        ApiKeys.channelId:
+                                        controller.channelUserId?.value,
+                                        ApiKeys.authorId: user?.id,
+                                      },
+                                    );
+                                  },
+                                  child: CustomText(
+                                    "@${controller.channelName?.value}",
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColors.primaryColor,
+                                    fontSize: SizeConfig.size12,
+                                  ),
+                                ),
+                              ],
+                            )
+                                : const SizedBox();
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
               ],
             ),
           ),
+
+         // const SizedBox(height: 10),
+
+          /// ==== Profession or Channel ====
+
 
           const SizedBox(height: 12),
 
@@ -306,28 +361,42 @@ class NewProfileHeaderWidget extends StatelessWidget {
 
           /// ==== Bio ====
          // if ((user?.bio ?? '').trim().isNotEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-              child: CustomText(
-                user?.bio ?? 'Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis',
-                fontSize: SizeConfig.size14,
-                color: AppColors.mainTextColor,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: user?.bio != null && user!.bio!.isNotEmpty
+                        ? user!.bio!
+                        : 'No bio available',
+                    style: TextStyle(
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '   Read More',
+                    style: TextStyle(
+                      fontSize: SizeConfig.size12,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        _showFullTextDialog(context,user?.bio??'');
+                      },
+                  ),
+                ],
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
+          ),
 
           const SizedBox(height: 8),
 
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-            child: CustomText(
-              "Read More",
-              color: AppColors.primaryColor,
-              fontSize: SizeConfig.size12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+
 
         //  const SizedBox(height: 16),
 

@@ -156,12 +156,14 @@ class _PersonalProfileSetupNewScreenState
   void _initializeTabController() {
     final user = viewProfileController.personalProfileDetails.value.user;
     postTab = [
-      if (user?.profession == SELF_EMPLOYED) 'My Portfolio',
+      //if (user?.profession == SELF_EMPLOYED) 'My Portfolio',
+
       'About Me',
       'Posts',
       // 'Shorts',
       // 'Videos',
-      'Testimonials'
+      'Testimonials',
+      'My Store'
     ];
 
     if (_tabController == null || _tabController!.length != postTab.length) {
@@ -283,7 +285,7 @@ class _PersonalProfileSetupNewScreenState
 
   Widget _buildTabContent(int index) {
     switch (postTab[index]) {
-      case 'My Portfolio':
+      case 'My Store':
         return PortfolioWidget(
           isSelfPortfolio: true,
         );
@@ -377,26 +379,33 @@ class _PersonalProfileSetupNewScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTitleWidget('Add Web Links'),
+                    Row(
+                      children: [
+                        _buildCircleIcon(AppIconAssets.link),
+                        SizedBox(width: SizeConfig.size6),
+
+                        _buildTitleWidget('Links'),
+                      ],
+                    ),
                     SizedBox(height: SizeConfig.size16),
                     Padding(
                       padding: EdgeInsets.only(bottom: SizeConfig.size14),
                       child: HttpsTextField(
                         controller: youtubeController,
                         isYoutubeValidation: true,
-                        pIcon: Container(
-                          width: 40,
-                          child: Center(
-                            child: SvgPicture.asset(
-                              "assets/svg/youtube_grey.svg",
-                              height: SizeConfig.size24,
-                              width: SizeConfig.size24,
-                              fit: BoxFit.fitHeight,
-                            ),
-                          ),
-                        ),
+                        // pIcon: Container(
+                        //   width: 40,
+                        //   child: Center(
+                        //     child: SvgPicture.asset(
+                        //       "assets/svg/youtube_grey.svg",
+                        //       height: SizeConfig.size24,
+                        //       width: SizeConfig.size24,
+                        //       fit: BoxFit.fitHeight,
+                        //     ),
+                        //   ),
+                        // ),
                         // hintText: "Your your URL here",
-                        hintText: "Your Youtube URL here",
+                        hintText: "e.g. https://addlinkhere.com",
 
                         onChange: (value) {
                           viewProfileController.isYoutubeEdit.value = value;
@@ -1520,9 +1529,9 @@ class _PersonalProfileSetupNewScreenState
                             : AppColors.secondaryTextColor,
                       ),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size2),
-                    minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
-                    maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
+                    padding: EdgeInsets.only(left: 8,right: 8),
+                   // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
+                   // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                   ),
                   child: Text('${postTab[index]}'),
                 ),
@@ -1944,7 +1953,7 @@ class _PersonalProfileSetupNewScreenState
           children: [
             _buildCircleIcon(AppIconAssets.bookingEnquiries),
             SizedBox(width: SizeConfig.size6),
-            _buildTitleWidget('Availability & Bookings'),
+            _buildTitleWidget('My Availability & Bookings'),
             if (viewProfileController.availabilityDetails.value != null) ...[
               Spacer(),
               InkWell(

@@ -244,19 +244,26 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     title: 'Highest Education',
                     textEditController: educationController,
                     hintText: 'e.g., 12th, B.A, M.A, PhD',
+                    maxLength: 16,
                     // sIcon: Icon(Icons.arrow_drop_down),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your education';
+                      } else if (value.trim().length < 2) {
+                        return 'Education must be at least 2 characters';
+                      } else if (value.trim().length > 16) {
+                        return 'Education must not exceed 16 characters';
                       }
                       return null;
                     },
+
                   ),
                   SizedBox(height: SizeConfig.size18),
                   AiSuggestionField(
                     title: "About Me / Bio",
                     apiType: "bio",
                     textController: bioController,
+
                     bodyRequest: {
                       ApiKeys.profession:  viewPersonalDetailsController.personalProfileDetails.value.user?.profession,
                       ApiKeys.designation: viewPersonalDetailsController.personalProfileDetails.value.user?.designation,
@@ -271,6 +278,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       ApiKeys.gender: personalCreateProfileController
                           .selectedGender.value?.name
                     },
+
 
                     // onSaved: filedValidation,
                     // call your validation here

@@ -650,7 +650,7 @@ extension GenderTypeExtension on GenderType {
 
   // Get enum from string
   static GenderType fromString(String value) {
-    switch (value.toLowerCase()) {
+    switch (value) {
       case 'male':
         return GenderType.Male;
       case 'female':

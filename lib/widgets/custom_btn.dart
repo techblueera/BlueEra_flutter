@@ -5,6 +5,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
+import 'common_box_shadow.dart';
+
 class CustomBtn extends StatelessWidget {
   final VoidCallback? onTap;
   final String? title;
@@ -113,9 +115,13 @@ class PositiveCustomBtn extends StatelessWidget {
   final double? fontSize;
   final bool? isDownloadFile;
   final IconData? leading;
+  final bool? isLeadingShow;
+  final bool? isShadowAvailable;
   final Color? iconColor;
+  final Color? leadingIconColor;
   final bool? toLowerCase;
   final String? iconPath;
+  final String? leadingIconPath;
   final FontWeight? fontWeight;
   final EdgeInsetsGeometry? padding;
   final TextAlign? textAlign;
@@ -128,6 +134,10 @@ class PositiveCustomBtn extends StatelessWidget {
       this.radius,
       this.toLowerCase = false,
       this.fontWeight,
+      this.isLeadingShow,
+      this.leadingIconPath,
+      this.leadingIconColor,
+      this.isShadowAvailable,
       this.align,
       this.borderColor,
       this.height,
@@ -159,6 +169,9 @@ class PositiveCustomBtn extends StatelessWidget {
             color: bgColor ?? theme.colorScheme.primary,
             border: Border.all(color: borderColor ?? theme.colorScheme.primary),
             borderRadius: BorderRadius.circular(radius ?? 5),
+            boxShadow: isShadowAvailable==true?[
+              AppShadows.textFieldShadow
+            ]:null,
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -166,6 +179,10 @@ class PositiveCustomBtn extends StatelessWidget {
               alignment: align ?? Alignment.center,
               child: Row(
                 children: [
+                  if(isLeadingShow!=null) Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: LocalAssets(imagePath: leadingIconPath!, imgColor: leadingIconColor,height: 18,width: 18,),
+                  ),
                   CustomText(
                     (title ?? ""),
                     // toLowerCase == true ?( title ?? ""):( title?.toUpperCase() ?? ""),
