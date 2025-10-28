@@ -36,6 +36,7 @@ class OrderNowController extends GetxController {
   var address = "".obs;
   var lat = "".obs;
   var long = "".obs;
+
   Messages? openedMessage;
   Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getVehicleOptionResponse = ApiResponse.initial('Initial').obs;
@@ -91,7 +92,7 @@ class OrderNowController extends GetxController {
     }
   }
   Future<void> updateOrderStatus(Map<String,dynamic> params) async {
-    // try {
+    try {
       ResponseModel responseModel =
       await BusinessProfileRepo().updateMsgOrderStatus(params);
 
@@ -101,9 +102,9 @@ class OrderNowController extends GetxController {
       }else{
 
       }
-    // }catch(e){
-    //
-    // }
+    }catch(e){
+
+    }
   }
   Future<void> CreateOrder(
       {required Map<String,dynamic> params}) async {
