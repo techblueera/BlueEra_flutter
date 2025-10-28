@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/food/view/widget/food_product_card.dart'
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class StandaloneFoodScreen extends StatelessWidget {
@@ -60,21 +61,33 @@ class StandaloneFoodScreen extends StatelessWidget {
 
   // Grid view (2x2)
   Widget _buildGridView(ViewBusinessDetailsController controller) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.712,
-        crossAxisSpacing: 6.0,
-        mainAxisSpacing: 6.0,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const crossAxisCount = 2;
+        const crossSpacing = 6.0;
+        const mainSpacing = 6.0;
 
-      ),
-      itemCount: controller.foods.length,
-      itemBuilder: (context, index) {
-        return FoodCardBusiness(
-          serviceData: controller.foods[index],
-          isGridView: true,
-          businessData: businessData,
+        final itemWidth =
+            (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
+                crossAxisCount;
+
+        return MasonryGridView.count(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: crossSpacing,
+          mainAxisSpacing: mainSpacing,
+          itemCount: controller.foods.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 20),
+          itemBuilder: (context, index) {
+            final food = controller.foods[index];
+            return FoodCardBusiness(
+              serviceData: food,
+              isGridView: true,
+              businessData: businessData,
+              width: itemWidth,
+            );
+          },
         );
       },
     );

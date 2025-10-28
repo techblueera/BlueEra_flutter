@@ -6,11 +6,11 @@ import 'package:BlueEra/features/common/business_service/widget/service_card.dar
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class StandaloneServiceScreen extends StatelessWidget {
   final String businessId;
-
   final bool isGrid;
   final BusinessProfileDetails? businessData;
 
@@ -30,7 +30,7 @@ class StandaloneServiceScreen extends StatelessWidget {
         return const Center(child: CircularProgressIndicator());
       }
 
-      if (controller.products.isEmpty) {
+      if (controller.services.isEmpty) {
         return const Center(child: CustomText('No service found'));
       }
 
@@ -60,25 +60,36 @@ class StandaloneServiceScreen extends StatelessWidget {
 
   // Grid view (2x2)
   Widget _buildGridView(ViewBusinessDetailsController controller) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.712,
-        crossAxisSpacing: 6.0,
-        mainAxisSpacing: 6.0,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const crossAxisCount = 2;
+        const crossSpacing = 6.0;
+        const mainSpacing = 6.0;
 
-      ),
-      itemCount: controller.services.length,
-      itemBuilder: (context, index) {
-        return ServiceCardBusiness(
-          serviceData: controller.services[index],
-          isGridView: true,
-          businessData: businessData,
+        final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) / crossAxisCount;
+
+        return MasonryGridView.count(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: crossSpacing,
+          mainAxisSpacing: mainSpacing,
+          itemCount: controller.services.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 20),
+          itemBuilder: (context, index) {
+            final service = controller.services[index];
+            return ServiceCardBusiness(
+              serviceData: service,
+              isGridView: true,
+              businessData: businessData,
+              width: itemWidth,
+            );
+          },
         );
       },
     );
   }
+
 
   // Horizontal list view
   Widget _buildHorizontalView(ViewBusinessDetailsController controller) {

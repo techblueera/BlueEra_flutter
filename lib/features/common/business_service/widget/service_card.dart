@@ -14,10 +14,10 @@ class ServiceCardBusiness extends StatefulWidget {
   final bool isGridView;
   final bool isShowChat;
   final bool isFromChatCard;
-
   final bool isShowKM;
   final bool isShowBusinessInfo;
   final BusinessProfileDetails? businessData;
+  final double? width;
 
   const ServiceCardBusiness({
     Key? key,
@@ -28,6 +28,7 @@ class ServiceCardBusiness extends StatefulWidget {
     this.isShowKM = false,
     this.isShowBusinessInfo = false,
     this.businessData,
+    this.width,
   }) : super(key: key);
 
   @override
@@ -66,8 +67,9 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
 
       },
       child: Container(
-        margin: EdgeInsets.only(right: widget.isFromChatCard? 0:20),
-        width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
+        width: widget.width,
+        // margin: EdgeInsets.only(right: widget.isFromChatCard? 0:20),
+        // width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
         // responsive width
         decoration: BoxDecoration(
           color: Colors.white,

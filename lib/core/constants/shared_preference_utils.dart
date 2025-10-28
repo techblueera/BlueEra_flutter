@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +32,7 @@ String businessOwnerAddressGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
 String userServiceCreatedStatusGlobal = '';
+String businessTypeGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -76,7 +76,7 @@ class SharedPreferenceUtils {
   static const userServiceExistsKey = 'userServiceExistsKey';
   static const businessType = 'businessType';
 
-  static Future<void> userLoggedInIndivisualGuest({
+  static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
     required String businesId,
     required String contactNo,
@@ -206,6 +206,7 @@ class SharedPreferenceUtils {
       userNameAtGlobal = '';
       serviceProviderStatusGlobal = '';
       userServiceCreatedStatusGlobal = '';
+      businessTypeGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       // userServiceExistsKeyGlobal = 'false';
       // Get.put(LocationServiceProviderController()).stopLocationUpdates();
@@ -264,11 +265,11 @@ Future<String> getUserServiceExistsKey() async {
       'false';
 }
 
-Future<String> getBusinessType() async {
-  return await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessType) ??
-      BusinessType.Product.name;
-}
+// Future<String> getBusinessType() async {
+//   return await SharedPreferenceUtils.getSecureValue(
+//       SharedPreferenceUtils.businessType) ??
+//       BusinessType.Product.name;
+// }
 
 
 ///GET USER DATA....
@@ -328,6 +329,10 @@ getUserLoginData() async {
   businessSubCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.businessSubCategory) ??
       "";
+
+  businessTypeGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.businessType) ??
+      "OTHER";
 }
 
 ///GET USER DATA....

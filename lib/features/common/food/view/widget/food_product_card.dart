@@ -18,6 +18,7 @@ class FoodCardBusiness extends StatefulWidget {
   final bool isFromChatCard;
   final bool isShowBusinessInfo;
   final BusinessProfileDetails? businessData;
+  final double? width;
 
   const FoodCardBusiness({
     Key? key,
@@ -28,6 +29,7 @@ class FoodCardBusiness extends StatefulWidget {
     this.isFromChatCard= false,
     this.isShowBusinessInfo = false,
     this.businessData,
+    this.width,
   }) : super(key: key);
 
   @override
@@ -71,8 +73,9 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
         }
       },
       child: Container(
-        margin: EdgeInsets.only(right:widget.isFromChatCard? 0:20),
-        width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
+        width: widget.width,
+        // margin: EdgeInsets.only(right:widget.isFromChatCard? 0:20),
+        // width: widget.isFromChatCard?SizeConfig.screenWidth*0.68:MediaQuery.of(context).size.width * 0.45,
         // height: 310,
         // responsive width
         decoration: BoxDecoration(

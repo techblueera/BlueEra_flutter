@@ -16,20 +16,20 @@ import 'package:get/get.dart';
 
 class ProductCardBusiness extends StatefulWidget {
   final GetProductData productData;
-  final bool isGridView;
   final bool isShowChat;
   final bool isShowKM;
   final bool isShowBusinessInfo;
   final BusinessProfileDetails? businessData;
+  final double? width;
 
   const ProductCardBusiness({
     Key? key,
     required this.productData,
-    this.isGridView = false,
     this.isShowChat = true,
     this.isShowKM = false,
     this.isShowBusinessInfo = false,
     this.businessData,
+    this.width,
   }) : super(key: key);
 
   @override
@@ -66,9 +66,8 @@ class _ProductCardState extends State<ProductCardBusiness> {
         );
       },
       child: Container(
-        height: 170,
-        margin: EdgeInsets.only(right: 20),
-        width: MediaQuery.of(context).size.width * 0.45,
+        // margin: EdgeInsets.only(right: 10),
+        width: widget.width,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -91,7 +90,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
               child: CustomImageSlideshow(
                 isLoading: false,
                 width: double.infinity,
-                height: 170,
+                height: SizeConfig.size170,
                 imagePaths: product.details?.media ?? [],
                 borderRadius: BorderRadius.zero,
               ),

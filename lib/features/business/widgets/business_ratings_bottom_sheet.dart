@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -94,7 +95,7 @@ class _BusinessRatingsBottomSheetState extends State<BusinessRatingsBottomSheet>
                   ),
                   SizedBox(height: SizeConfig.size20),
                   Expanded(
-                    child: ListView.builder(
+                    child: ratings.isNotEmpty ? ListView.builder(
                       controller: _scrollController,
                       itemCount: ratings.length + (controller.isBusinessRatingsLoadingMore.value ? 1 : 0),
                       itemBuilder: (context, index) {
@@ -129,6 +130,8 @@ class _BusinessRatingsBottomSheetState extends State<BusinessRatingsBottomSheet>
                           comment: review.comment ?? ''
                         );
                       },
+                    ) : EmptyStateWidget(
+                        message: 'No ratings found.'
                     ),
                   ),
                 ],
