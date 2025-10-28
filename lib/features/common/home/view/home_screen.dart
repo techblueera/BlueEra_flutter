@@ -18,7 +18,9 @@ import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
-import 'package:share_handler/share_handler.dart';
+// import 'package:share_handler/share_handler.dart';
+
+import '../../../chat/contacts/view/be_available_contacts_list.dart';
 
 enum SavedFeedTab {
   posts,
