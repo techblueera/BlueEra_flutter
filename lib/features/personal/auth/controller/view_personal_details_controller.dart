@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/introducti
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -558,32 +560,33 @@ class ViewPersonalDetailsController extends GetxController {
 
                   /// Buttons
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          if (formKey.currentState?.validate() ?? false) {
-                            final email = emailController.text.trim();
-                            Navigator.pop(context); // Close dialog
-                            final emailVerificationController = Get.isRegistered<EmailVerificationController>()
-                                ? Get.find<EmailVerificationController>()
-                                : Get.put(EmailVerificationController());
+                      Expanded(
+                        child: CustomBtn(
+                          title: 'Get Verify',
+                          height: SizeConfig.size40,
+                          bgColor: AppColors.primaryColor,
+                          radius: 10.0,
+                          onTap: () {
+                            if (formKey.currentState?.validate() ?? false) {
+                              final email = emailController.text.trim();
+                              Navigator.pop(context); // Close dialog
+                              final emailVerificationController = Get.isRegistered<EmailVerificationController>()
+                                  ? Get.find<EmailVerificationController>()
+                                  : Get.put(EmailVerificationController());
 
-                            emailVerificationController.verifyEmail(email);
-                          }
-                        },
-                        child: const Text('Get Verify'),
+                              emailVerificationController.verifyEmail(email);
+                            }
+                          },
+
+                        ),
                       ),
                     ],
                   ),
