@@ -31,7 +31,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     earnWithBlueEraController.fetchOwnProducts();
     // if(Get.isRegistered<InventoryController>()){
     //   inventoryController = Get.find<InventoryController>();
@@ -96,8 +96,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
             indicatorWeight: 2,
             labelStyle: TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'My Products'),
-              Tab(text: 'My Orders'),
+              Tab(text: 'My Order'),
+              Tab(text: 'My Store'),
+              Tab(text: 'Business Cards'),
             ],
           ),
         ),
@@ -123,8 +124,13 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
      body: TabBarView(
          controller: _tabController,
          children: [
-           _buildOwnUserProductsAndServices(),
            _buildOwnUserOrders(),
+           _buildOwnUserProductsAndServices(),
+           SizedBox(
+             child: CustomText(
+                 'Coming soon.'
+             ),
+           ),
          ]),
     );
   }
@@ -148,7 +154,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
         ),
         // SizedBox(height: SizeConfig.size8),
         Expanded(
-            child: _buildProductsServicesTab()
+            child: _buildEarnWithBlueEraTab()
         )
       ],
      )
@@ -184,7 +190,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     }
   }
 
-  Widget _buildProductsServicesTab() {
+  Widget _buildEarnWithBlueEraTab() {
     return Obx(() {
       final selectedTab = earnWithBlueEraController.selectedProductsServicesTabIndex.value;
 

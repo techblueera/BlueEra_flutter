@@ -18,12 +18,15 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
@@ -82,52 +85,35 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     final width = SizeConfig.screenWidth;
 
     double dynamicSize(double base) =>
-        base * (width / 390); // Responsive scale base on 390px width
+        base * (width / 390);
 
     return SafeArea(
       child: Scaffold(
         body: setupScrollVisibilityNotification(
-            controller: controller.scrollController,
-            onVisibilityChanged: (visible, offset) {
-              // final currentOffset = controller.headerOffset.value;
-              //
-              // // Linear animation step (same speed up/down)
-              // const step = 0.25;
-              //
-              // double newOffset = currentOffset;
-              // if (visible) {
-              //   // show header
-              //   newOffset = (currentOffset - step).clamp(0.0, 1.0);
-              // } else {
-              //   // hide header
-              //   newOffset = (currentOffset + step).clamp(0.0, 1.0);
-              // }
-              //
-              // controller.headerOffset.value = newOffset;
-              controller.isHeaderVisible.value = visible;
-              widget.onHeaderVisibilityChanged?.call(visible);
-            },
-            child: DefaultTabController(
-              length: controller.storeTab.length,
-              child: CustomScrollView(
-                controller: controller.scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: _buildHeaderSection(dynamicSize),
+          controller: controller.scrollController,
+          onVisibilityChanged: (visible, offset) {
+            controller.isHeaderVisible.value = visible;
+            widget.onHeaderVisibilityChanged?.call(visible);
+          },
+          child: DefaultTabController(
+            length: controller.storeTab.length,
+            child: CustomScrollView(
+              controller: controller.scrollController,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _buildHeaderSection(dynamicSize),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _CustomTabBarDelegate(
+                    _buildTabButtons(dynamicSize),
                   ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _CustomTabBarDelegate(
-                      _buildTabButtons(dynamicSize),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _buildStoreTab(dynamicSize), // NO SingleChildScrollView here
-                  ),
-                ]
-              ),
+                ),
+                _buildStoreTab(dynamicSize),
+              ],
             ),
           ),
+        ),
       ),
     );
   }
@@ -142,7 +128,9 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
         children: [
           Expanded(
             child: InkWell(
-              onTap: ()=> Get.to(()=> BusinessOwnProfileScreen()),
+              onTap: ()=> isIndividual()
+                  ? Get.to(()=> PersonalProfileSetupNewScreen())
+                  : Get.to(()=> BusinessOwnProfileScreen()),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -242,324 +230,382 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
   }
 
   Widget _buildStoreTab(double Function(double) ds) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-      child: Obx(() {
-        final selectedTab = controller.selectedStoreIndex.value;
+    return Obx(() {
+      final selectedTab = controller.selectedStoreIndex.value;
 
-        if (controller.isAllStoreFeedFirstLoading.value) {
-          return Center(
+      if (controller.isAllStoreFeedFirstLoading.value) {
+        return SliverToBoxAdapter(
+          child: Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.primaryColor,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
               ),
             ),
-          );
-        }
+          ),
+        );
+      }
 
-        Widget tabContent;
+      switch (selectedTab) {
+        case 0: // All Stores
+          return _buildAllStoresSliverList(ds);
 
-        switch (selectedTab) {
-          case 0:
-            final items = controller.allNearByStoresFeed;
+        case 1: // Products
+          return _buildProductsSliverList(ds);
 
-            if (items.isEmpty) {
-              tabContent = EmptyStateWidget(message: 'No store found');
-              break;
-            }
+        case 2: // Services
+          return _buildServicesSliverList(ds);
 
-            // Group consecutive food items into pairs
-            List<List<AllStoresFeedData>> groupedStoreFeed = [];
-            List<AllStoresFeedData> tempStoreFeed = [];
+        case 3: // Food
+          return _buildFoodSliverList(ds);
 
-            for (var item in items) {
-              final type = StoreTypeExtension.fromString(item.type);
+        case 4: // Business
+          return _buildBusinessSliverList(ds);
 
-              if (type == StoreType.food) {
-                tempStoreFeed.add(item);
-                if (tempStoreFeed.length == 2) {
-                  groupedStoreFeed.add(List.from(tempStoreFeed));
-                  tempStoreFeed.clear();
-                }
-              } else {
-                if (tempStoreFeed.isNotEmpty) {
-                  groupedStoreFeed.add(List.from(tempStoreFeed));
-                  tempStoreFeed.clear();
-                }
-                groupedStoreFeed.add([item]); // non-food item as its own block
-              }
-            }
-            if (tempStoreFeed.isNotEmpty) groupedStoreFeed.add(List.from(tempStoreFeed));
+        default:
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
+    });
+  }
 
-            tabContent = ListView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.symmetric(vertical: ds(10)),
-               physics: const NeverScrollableScrollPhysics(),
-              itemCount: groupedStoreFeed.length + (controller.isAllStoreFeedLoadingMore.value ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= groupedStoreFeed.length) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+// Case 0: All Stores Feed
+  Widget _buildAllStoresSliverList(double Function(double) ds) {
+    final items = List<AllStoresFeedData>.from(controller.allNearByStoresFeed);
 
-                final block = groupedStoreFeed[index];
-                final first = block.first;
-                final type = StoreTypeExtension.fromString(first.type);
+    if (items.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: EmptyStateWidget(message: 'No store found'),
+      );
+    }
 
-                // 🔹 FOOD type
-                if (type == StoreType.food) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount = block.length;
-                        final crossSpacing = 10.0;
-                        final itemWidth = (constraints.maxWidth -
-                            ((crossAxisCount - 1) * crossSpacing)) /
-                            crossAxisCount;
+    final groupedStoreFeed = _groupStoreFeed(items);
 
-                        List<Widget> rowChildren = [];
-                        for (int i = 0; i < block.length; i++) {
-                          rowChildren.add(
-                            SizedBox(
-                              width: itemWidth,
-                              child: StoreFoodServiceCard(
-                                foodDetailsData: block[i].foodData ?? GetFoodDetailsModel(),
-                                isShowVerticalUi: true,
-                              ),
-                            ),
-                          );
-
-                          if (i != block.length - 1) {
-                            rowChildren.add(SizedBox(width: crossSpacing));
-                          }
-                        }
-
-                        return Row(
-                          children: rowChildren,
-                        );
-                      },
-                    ),
-                  );
-                }
-
-                // 🔹 BUSINESS type
-                else if (type == StoreType.business) {
-                  trackBusinessStoreView(first.businessData?.id??'');
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: BusinessStoreCard(
-                      ds: ds,
-                      getAllStoreResData: first.businessData ?? GetAllStoreResModel(),
-                    ),
-                  );
-                }
-
-                // 🔹 SERVICE type
-                else if (type == StoreType.service) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: StoreServicesCard(
-                      serviceData: first.servicesData ?? GetServiceModel(),
-                    ),
-                  );
-                }
-
-                // 🔹 INVENTORY type
-                else if (type == StoreType.inventory) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: ds(10)),
-                    child: StoreProductCard(
-                      productStore:
-                      first.inventoryData?.product ?? ProductStore(),
-                    ),
-                  );
-                }
-
-                else {
-                  return const SizedBox.shrink();
-                }
-              },
-            );
-            break;
-
-          case 1:
-            final productList = controller.storeProductDataList;
-
-            if (controller.isStoreProductDataFirstLoading.value) {
-              tabContent = const Center(child: Padding(
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+              (context, index) {
+            // Loading indicator at bottom
+            if (index >= groupedStoreFeed.length) {
+              return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
-                child: CircularProgressIndicator(),
-              ));
-              break;
+                child: Center(child: CircularProgressIndicator()),
+              );
             }
 
-            if (productList.isEmpty) {
-              tabContent = const EmptyStateWidget(message: 'No products found');
-              break;
-            }
+            final block = groupedStoreFeed[index];
+            if (block.isEmpty) return const SizedBox.shrink();
 
-            tabContent = ListView.builder(
-              controller: controller.productScroll,
-              shrinkWrap: true,
-              padding: EdgeInsets.symmetric(vertical: ds(10)),
-              itemCount: productList.length +
-                  (controller.isStoreProductDataLoadingMore.value ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= productList.length) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
+            final first = block.first;
+            final type = StoreTypeExtension.fromString(first.type);
 
-                final productData = productList[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: ds(10)),
-                  child: StoreProductCard(
-                    productStore: productData.product,
-                  ),
-                );
-              },
-            );
-            break;
-
-
-          case 2:
-                final serviceList = controller.serviceDataList;
-
-                if (controller.isServiceDataFirstLoading.value) {
-                  tabContent = const Center(child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: CircularProgressIndicator(),
-                  ));
-                  break;
-                }
-
-                if (serviceList.isEmpty) {
-                  tabContent = const EmptyStateWidget(message: 'No services found');
-                  break;
-                }
-
-              tabContent = ListView.builder(
-                  controller: controller.serviceScroll,
-                  shrinkWrap: true,
-                  padding: EdgeInsets.symmetric(vertical: ds(10)),
-                  itemCount:
-                  serviceList.length + (controller.isServiceDataLoadingMore.value ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index >= serviceList.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-
-                    final serviceData = serviceList[index];
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: ds(10)),
-                      child: StoreServicesCard(serviceData: serviceData),
-                    );
-                  },
-                );
-                break;
-
-              case 3:
-                final foodList = controller.foodDataList;
-
-                if (controller.isFoodDataFirstLoading.value) {
-                  tabContent = const Center(child: CircularProgressIndicator());
-                  break;
-                }
-
-                if (foodList.isEmpty) {
-                  tabContent = const EmptyStateWidget(message: 'No food items found');
-                  break;
-                }
-
-                tabContent = ListView.builder(
-                  controller: controller.foodScroll,
-                  shrinkWrap: true,
-                  padding: EdgeInsets.symmetric(vertical: ds(10)),
-                  itemCount:
-                  foodList.length + (controller.isFoodDataLoadingMore.value ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index >= foodList.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-
-                    final foodItem = foodList[index];
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: ds(10)),
-                      child: StoreFoodServiceCard(
-                        foodDetailsData: foodItem,
-                        isShowVerticalUi: false,
-                      ),
-                    );
-                  },
-                );
-                break;
-
-              case 4:
-                final storeList = controller.allStore;
-
-                if (controller.isAllStoreFirstLoading.value) {
-                  tabContent = const Center(child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: CircularProgressIndicator(),
-                  ));
-                  break;
-                }
-
-                if (storeList.isEmpty) {
-                  tabContent = const EmptyStateWidget(message: 'No stores found');
-                  break;
-                }
-
-                tabContent = ListView.builder(
-                  controller: controller.storeScroll,
-                  shrinkWrap: true,
-                  padding: EdgeInsets.symmetric(vertical: ds(10)),
-                  itemCount:
-                  storeList.length + (controller.isAllStoreLoadingMore.value ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    // Loader at bottom
-                    if (index >= storeList.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-
-                    final storeData = storeList[index];
-                    // trackBusinessStoreView(storeData.id??'');
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: ds(10)),
-                      child: BusinessStoreCard(
-                        ds: ds,
-                        getAllStoreResData: storeData,
-                      ),
-                    );
-                  },
-                );
-                break;
-
-
-          default:
-            tabContent = const SizedBox.shrink();
-        }
-
-        return tabContent;
-      }),
+            return _buildStoreBlock(context, type, block, first, ds);
+          },
+          childCount: groupedStoreFeed.length +
+              (controller.isAllStoreFeedLoadingMore.value ? 1 : 0),
+        ),
+      ),
     );
+  }
+
+// Case 1: Products
+  Widget _buildProductsSliverList(double Function(double) ds) {
+    final productList = List<GetProductData>.from(controller.storeProductDataList);
+
+    if (controller.isStoreProductDataFirstLoading.value) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
+    if (productList.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: EmptyStateWidget(message: 'No products found'),
+      );
+    }
+
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+              (context, index) {
+            if (index >= productList.length) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final productData = productList[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: ds(10)),
+              child: StoreProductCard(productStore: productData.product),
+            );
+          },
+          childCount: productList.length +
+              (controller.isStoreProductDataLoadingMore.value ? 1 : 0),
+        ),
+      ),
+    );
+  }
+
+// Case 2: Services
+  Widget _buildServicesSliverList(double Function(double) ds) {
+    final serviceList = List<GetServiceModel>.from(controller.serviceDataList);
+
+    if (controller.isServiceDataFirstLoading.value) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
+    if (serviceList.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: EmptyStateWidget(message: 'No services found'),
+      );
+    }
+
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+              (context, index) {
+            if (index >= serviceList.length) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final serviceData = serviceList[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: ds(10)),
+              child: StoreServicesCard(serviceData: serviceData),
+            );
+          },
+          childCount: serviceList.length +
+              (controller.isServiceDataLoadingMore.value ? 1 : 0),
+        ),
+      ),
+    );
+  }
+
+// Case 3: Food
+  Widget _buildFoodSliverList(double Function(double) ds) {
+    final foodList = List<GetFoodDetailsModel>.from(controller.foodDataList);
+
+    if (controller.isFoodDataFirstLoading.value) {
+      return const SliverToBoxAdapter(
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (foodList.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: EmptyStateWidget(message: 'No food items found'),
+      );
+    }
+
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+              (context, index) {
+            if (index >= foodList.length) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final foodItem = foodList[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: ds(10)),
+              child: StoreFoodServiceCard(
+                foodDetailsData: foodItem,
+                isShowVerticalUi: false,
+              ),
+            );
+          },
+          childCount: foodList.length +
+              (controller.isFoodDataLoadingMore.value ? 1 : 0),
+        ),
+      ),
+    );
+  }
+
+// Case 4: Business
+  Widget _buildBusinessSliverList(double Function(double) ds) {
+    final storeList = List<GetAllStoreResModel>.from(controller.allStore);
+
+    if (controller.isAllStoreFirstLoading.value) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
+    if (storeList.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: EmptyStateWidget(message: 'No stores found'),
+      );
+    }
+
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+              (context, index) {
+            if (index >= storeList.length) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final storeData = storeList[index];
+            final String businessId = storeData.id ?? '';
+            return VisibilityDetector(
+              key: Key('business_$businessId'),
+              onVisibilityChanged: (info) {
+                // Trigger API when 50% or more of the card is visible
+                if (info.visibleFraction >= 0.5 && businessId.isNotEmpty) {
+                  trackBusinessStoreView(businessId);
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.only(bottom: ds(10)),
+                child: BusinessStoreCard(
+                  ds: ds,
+                  getAllStoreResData: storeData,
+                ),
+              ),
+            );
+          },
+          childCount: storeList.length +
+              (controller.isAllStoreLoadingMore.value ? 1 : 0),
+        ),
+      ),
+    );
+  }
+
+  List<List<AllStoresFeedData>> _groupStoreFeed(List<AllStoresFeedData> items) {
+    final List<List<AllStoresFeedData>> grouped = [];
+    final List<AllStoresFeedData> tempFood = [];
+
+    for (var item in items) {
+      final type = StoreTypeExtension.fromString(item.type);
+
+      if (type == StoreType.food) {
+        tempFood.add(item);
+        if (tempFood.length == 2) {
+          grouped.add(List.from(tempFood));
+          tempFood.clear();
+        }
+      } else {
+        if (tempFood.isNotEmpty) {
+          grouped.add(List.from(tempFood));
+          tempFood.clear();
+        }
+        grouped.add([item]);
+      }
+    }
+
+    if (tempFood.isNotEmpty) {
+      grouped.add(List.from(tempFood));
+    }
+
+    return grouped;
+  }
+
+  Widget _buildStoreBlock(
+      BuildContext context,
+      StoreType type,
+      List<AllStoresFeedData> block,
+      AllStoresFeedData first,
+      double Function(double) ds
+      ) {
+    final padding = EdgeInsets.only(bottom: ds(10));
+
+    switch (type) {
+      case StoreType.food:
+        return Padding(
+          padding: padding,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = block.length;
+              final crossSpacing = 10.0;
+              final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) / crossAxisCount;
+
+              return Row(
+                children: [
+                  for (int i = 0; i < block.length; i++) ...[
+                    SizedBox(
+                      width: itemWidth,
+                      child: StoreFoodServiceCard(
+                        foodDetailsData: block[i].foodData ?? GetFoodDetailsModel(),
+                        isShowVerticalUi: true,
+                      ),
+                    ),
+                    if (i != block.length - 1) SizedBox(width: crossSpacing),
+                  ]
+                ],
+              );
+            },
+          ),
+        );
+
+      case StoreType.business:
+        final businessId = first.businessData?.id ?? '';
+
+        return VisibilityDetector(
+          key: Key('business_$businessId'),
+          onVisibilityChanged: (info) {
+            // Trigger API when 50% or more of the card is visible
+            if (info.visibleFraction >= 0.5 && businessId.isNotEmpty) {
+              trackBusinessStoreView(businessId);
+            }
+          },
+          child: Padding(
+            padding: padding,
+            child: BusinessStoreCard(
+              ds: ds,
+              getAllStoreResData: first.businessData ?? GetAllStoreResModel(),
+            ),
+          ),
+        );
+
+      case StoreType.service:
+        return Padding(
+          padding: padding,
+          child: StoreServicesCard(
+            serviceData: first.servicesData ?? GetServiceModel(),
+          ),
+        );
+
+      case StoreType.inventory:
+        return Padding(
+          padding: padding,
+          child: StoreProductCard(
+            productStore: first.inventoryData?.product ?? ProductStore(),
+          ),
+        );
+
+      }
   }
 
   // Widget _buildTabButtons() {

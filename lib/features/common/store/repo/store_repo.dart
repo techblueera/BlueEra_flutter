@@ -82,4 +82,15 @@ class StoreRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> businessByViewCountIDApi({required String businessId}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      businessViews(businessId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
 }

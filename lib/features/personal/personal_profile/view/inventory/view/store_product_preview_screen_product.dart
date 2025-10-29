@@ -10,13 +10,16 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -191,33 +194,44 @@ class _StoreProductPreviewScreenProductState
                                   },
                                 ),
                                 itemBuilder: (context, index, realIdx) {
-                                  return !isNetworkImage(
-                                          controller.step2Images[index])
-                                      ? Image.file(
-                                          File(controller.step2Images[index]),
-                                          fit: BoxFit.contain,
-                                          width: double.infinity,
-                                        )
-                                      : CachedNetworkImage(
-                                          imageUrl:
-                                              controller.step2Images[index],
-                                          fit: BoxFit.contain,
-                                          width: double.infinity,
-                                          placeholder: (context, url) =>
-                                              Container(
-                                            color: Colors.grey[200],
-                                            child: const Center(
-                                              child: CircularProgressIndicator(
-                                                  strokeWidth: 2),
-                                            ),
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              Container(
-                                            color: Colors.grey[200],
-                                            child:
-                                                const Icon(Icons.broken_image),
-                                          ),
-                                        );
+                                  final imagePath = controller.step2Images[index];
+                                  final isNetwork = isNetworkImage(imagePath);
+
+                                  return InkWell(
+                                    onTap: () {
+                                      navigatePushTo(
+                                        Get.context!,
+                                        ImageViewScreen(
+                                          subTitle: '',
+                                          appBarTitle: widget.productStore?.business_name?.capitalizeFirst ?? '',
+                                          imageUrls: controller.step2Images,
+                                          initialIndex: realIdx,
+                                        ),
+                                      );
+                                    },
+                                    child: isNetwork
+                                        ? CachedNetworkImage(
+                                      imageUrl: imagePath,
+                                      fit: BoxFit.contain,
+                                      width: double.infinity,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.broken_image),
+                                      ),
+                                    )
+                                        : Image.file(
+                                      File(imagePath),
+                                      fit: BoxFit.contain,
+                                      width: double.infinity,
+                                    ),
+                                  );
+
                                 },
                               ),
                               (controller.step2Images.length > 1)
@@ -280,66 +294,91 @@ class _StoreProductPreviewScreenProductState
                   if (widget.productStore != null &&
                       widget.productStore?.business_name != null &&
                       widget.productStore?.user_id != null)
-                    CustomFormCard(
-                      margin: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          top: SizeConfig.size15),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.grey,
-                            backgroundImage: widget
-                                        .productStore?.business_logo !=
-                                    null
-                                ? NetworkImage(
-                                    widget.productStore?.business_logo ??
-                                        "")
-                                : null,
-                            child: widget.productStore?.business_logo ==
-                                    null
-                                ? CustomText(
-                                    getInitials(widget
-                                        .productStore?.business_name),
-                                    fontSize: SizeConfig.size18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(left: SizeConfig.size10),
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      widget.productStore?.business_name
-                                              ?.capitalizeFirst ??
-                                          "NA",
-                                      fontSize: SizeConfig.large18,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.mainTextColor,
-                                      maxLines: 2,
-                                    ),
-                                    // SizedBox(
-                                    //   height: SizeConfig.size5,
-                                    // ),
-                                    CustomText(
-                                      widget.productStore?.category ??
-                                          "NA",
-                                      fontSize: SizeConfig.large,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.mainTextColor,
-                                      maxLines: 1,
-                                    ),
-                                  ]),
+                    InkWell(
+                      onTap: (){
+                        final owner = widget.productStore?.sellerClassification?.owner;
+                        final ownerId = owner?.id ?? '';
+                        final screen = AppConstants.storeFeedScreen;
+
+                        if (owner == null) return;
+
+                        final isBusiness = owner.type == ProductServiceProviderType.business.title;
+
+                        final destination = isBusiness
+                            ? VisitBusinessProfileNew(
+                          businessId: ownerId,
+                          screenName: screen,
+                        )
+                            : NewVisitProfileScreen(
+                          authorId: ownerId,
+                          screenFromName: screen,
+                        );
+
+                        Get.to(() => destination);
+
+                      },
+                      child: CustomFormCard(
+                        margin: EdgeInsets.only(
+                            left: SizeConfig.size15,
+                            right: SizeConfig.size15,
+                            top: SizeConfig.size15),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.grey,
+                              backgroundImage: widget
+                                          .productStore?.business_logo !=
+                                      null
+                                  ? NetworkImage(
+                                      widget.productStore?.business_logo ??
+                                          "")
+                                  : null,
+                              child: widget.productStore?.business_logo ==
+                                      null
+                                  ? CustomText(
+                                      getInitials(widget
+                                          .productStore?.business_name),
+                                      fontSize: SizeConfig.size18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    )
+                                  : null,
                             ),
-                          ),
-                        ],
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(left: SizeConfig.size10),
+                                child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        widget.productStore?.business_name
+                                                ?.capitalizeFirst ??
+                                            "NA",
+                                        fontSize: SizeConfig.large18,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.mainTextColor,
+                                        maxLines: 2,
+                                      ),
+                                      // SizedBox(
+                                      //   height: SizeConfig.size5,
+                                      // ),
+                                      CustomText(
+                                        widget.productStore?.category ??
+                                            "NA",
+                                        fontSize: SizeConfig.large,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.mainTextColor,
+                                        maxLines: 1,
+                                      ),
+                                    ]),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+
                 if (widget.productStore != null)
                   if (controller.listedProducts.isNotEmpty)
                     _buildListedProducts(),

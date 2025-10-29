@@ -9,6 +9,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reel_video_popup_menu.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -156,7 +157,7 @@ class CommonVideoCard extends StatelessWidget {
   }
 
   Widget _buildOptions(ShortFeedItem videoItem) {
-    // 1️⃣ If channel exists
+    // If channel exists
     if (videoItem.channel?.id != null) {
       if (videoItem.channel?.id != channelId) {
         return IconButton(
@@ -178,7 +179,7 @@ class CommonVideoCard extends StatelessWidget {
       );
     }
 
-    // 2️⃣ If Individual account
+    //  If Individual account
     if (videoItem.author?.accountType == AppConstants.individual) {
       final isMyProfile = videoItem.author?.id == userId;
       if (isMyProfile) {
@@ -201,7 +202,7 @@ class CommonVideoCard extends StatelessWidget {
       );
     }
 
-    // 3️⃣ If Business account
+    // If Business account
     if (videoItem.author?.accountType == AppConstants.business) {
       final isMyBusiness = videoItem.author?.id == userId;
       if (isMyBusiness) {
@@ -224,12 +225,12 @@ class CommonVideoCard extends StatelessWidget {
       );
     }
 
-    // 4️⃣ Fallback
+    //  Fallback
     return const SizedBox.shrink();
   }
 
   void _openProfile(BuildContext context, ShortFeedItem videoItem) {
-    // 1️⃣ If channel exists → open channel screen
+    // If channel exists → open channel screen
     if (videoItem.channel?.id != null) {
       Navigator.pushNamed(
         context,
@@ -243,12 +244,12 @@ class CommonVideoCard extends StatelessWidget {
       return;
     }
 
-    // 2️⃣ If Individual account
+    // If Individual account
     if (videoItem.author?.accountType?.toUpperCase() ==
         AppConstants.individual) {
       final isMyProfile = videoItem.author?.id == userId;
       if (isMyProfile) {
-        navigatePushTo(context, PersonalProfileSetupScreen());
+        navigatePushTo(context, PersonalProfileSetupNewScreen());
       } else {
         Get.to(() => NewVisitProfileScreen(
               authorId: videoItem.author?.id ?? '',

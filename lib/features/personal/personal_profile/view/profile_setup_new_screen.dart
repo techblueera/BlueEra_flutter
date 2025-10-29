@@ -278,7 +278,16 @@ class _PersonalProfileSetupNewScreenState
                   ),
                 );
               } else {
-                return SizedBox();
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 40, top: 20),
+                    child: SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                );
               }
             }),
     );
@@ -671,40 +680,55 @@ class _PersonalProfileSetupNewScreenState
                         spacing: SizeConfig.size12,
                         runSpacing: SizeConfig.size8,
                         children: viewProfileController.fields.map((item) {
-                          return SizedBox(
-                            width: itemWidth,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  item.isCompleted
-                                      ? Icons.check_circle
-                                      : Icons.error,
-                                  color: item.isCompleted
-                                      ? Colors.blue
-                                      : Colors.red,
-                                  size: 16,
-                                ),
-                                SizedBox(width: 2),
-                                Expanded(
-                                  child: CustomText(
-                                    item.title,
-                                    fontSize: 11,
-                                    color: AppColors.mainTextColor,
-                                    fontWeight: FontWeight.w600,
+                          return GestureDetector(
+                            onTap: () {
+                              viewProfileController.onFieldTap(item);
+                            },
+                            child: SizedBox(
+                              width: itemWidth,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    item.isCompleted
+                                        ? Icons.check_circle
+                                        : Icons.error,
+                                    color: item.isCompleted
+                                        ? Colors.blue
+                                        : Colors.red,
+                                    size: 16,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 2),
+                                  Expanded(
+                                    child: CustomText(
+                                      item.title,
+                                      fontSize: 11,
+                                      color: AppColors.mainTextColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }).toList(),
                       ),
-                      SizedBox(height: SizeConfig.size12),
-                      CustomText(
-                        "2 actions pending",
-                        fontWeight: FontWeight.w600,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.yellow00,
+                      SizedBox(height: SizeConfig.size15),
+                      Builder(
+                        builder: (_) {
+                          final pendingCount = viewProfileController.fields
+                              .where((item) => item.isCompleted == false)
+                              .length;
+
+                          return CustomText(
+                            "$pendingCount action${pendingCount != 1 ? 's' : ''} pending",
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.small,
+                            color: pendingCount == 0
+                                ? AppColors.green7F
+                                : AppColors.yellow00,
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -716,8 +740,6 @@ class _PersonalProfileSetupNewScreenState
       ),
     );
   }
-
-
 
   Widget _buildHeaderSection() {
     String _capitalizeFirstLetter(String text) {

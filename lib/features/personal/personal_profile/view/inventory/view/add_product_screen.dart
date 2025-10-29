@@ -253,6 +253,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                                 'Error',
                                                 "Please enter selling price for all selected variants",
                                                 snackPosition: SnackPosition.TOP,
+                                                backgroundColor: AppColors.red,
+                                                colorText: AppColors.white
                                               );
                                               return;
                                             }

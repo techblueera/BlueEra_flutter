@@ -8,6 +8,7 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -682,7 +683,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     final accountType = targetUser.accountType?.toUpperCase();
     if (accountType == AppConstants.individual) {
       if (isSelf) {
-        navigatePushTo(context, PersonalProfileSetupScreen());
+        navigatePushTo(context, PersonalProfileSetupNewScreen());
       } else {
         Get.to(() => NewVisitProfileScreen(
               authorId: targetUser.sId ?? '',

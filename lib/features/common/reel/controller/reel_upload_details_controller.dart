@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/reel/models/video_category_response.dart
 import 'package:BlueEra/features/common/reel/models/video_meta_data_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:get/get.dart';
@@ -62,7 +63,7 @@ class ReelUploadDetailsController extends GetxController {
     } else {
       // No channel → go to profile
       if (accountTypeGlobal == AppConstants.individual) {
-        Get.to(() => PersonalProfileSetupScreen());
+        Get.to(() => PersonalProfileSetupNewScreen());
       } else {
         Get.to(() => BusinessOwnProfileScreen());
       }
@@ -198,7 +199,7 @@ class ReelUploadDetailsController extends GetxController {
           );
         } else {
           if (isIndividualUser()) {
-            Get.to(() => PersonalProfileSetupScreen(
+            Get.to(() => PersonalProfileSetupNewScreen(
                 selectedIndex: (video == Video.short) ? 3 : 4,
                 sortBy: SortBy.UnderProgress,
             ));

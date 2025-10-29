@@ -22,6 +22,7 @@ import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
@@ -250,7 +251,7 @@ redirectToProfileScreen(
   // logs("user.accountType?=== ${user.accountType}");
   if (accountType.toUpperCase() == AppConstants.individual) {
     if (userId == profileId) {
-      Get.to(PersonalProfileSetupScreen());
+      Get.to(()=> PersonalProfileSetupNewScreen());
     } else {
       Get.to(() => NewVisitProfileScreen(
             authorId: profileId,
@@ -519,7 +520,7 @@ openBusinessProfile({required String? businessUserId}) {
 
 openPersonalProfile({required String? userID}) {
   if (userId == userID) {
-    Get.to(PersonalProfileSetupScreen());
+    Get.to(()=> PersonalProfileSetupNewScreen());
   } else {
     // Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: '', channelId: channelId,));
     Get.to(() => NewVisitProfileScreen(
@@ -1854,7 +1855,7 @@ double _deg2rad(double deg) {
   return deg * pi / 180;
 }
 
-List<String> isTempList = [];
+Set<String> isTempList = {};
 
 void trackPostView(String postID) {
   if (kReleaseMode) {
@@ -1863,7 +1864,7 @@ void trackPostView(String postID) {
       try {
         if (!isTempList.contains(postID)) {
           isTempList.add(postID);
-          // StoreRepo().storeByViewCountIDApi(id: postID);
+          PostRepo().postByViewCountIDApi(id: postID);
         }
       } catch (e) {
         print("Failed to track view: $e");
@@ -1872,16 +1873,16 @@ void trackPostView(String postID) {
   }
 }
 
-List<String> isTempStoreList = [];
+final Set<String> _viewedBusinessIds = {};
 
 void trackBusinessStoreView(String storeId) {
   if (kReleaseMode) {
     // call API asynchronously without blocking UI
     Future.microtask(() async {
       try {
-        if (!isTempStoreList.contains(storeId)) {
-          isTempStoreList.add(storeId);
-          // PostRepo().postByViewCountIDApi(id: postID);
+        if (!_viewedBusinessIds.contains(storeId)) {
+          _viewedBusinessIds.add(storeId);
+          StoreRepo().businessByViewCountIDApi(businessId: storeId);
         }
       } catch (e) {
         print("Failed to track view: $e");

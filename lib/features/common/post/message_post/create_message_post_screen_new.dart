@@ -214,7 +214,7 @@ class _CreateMessagePostScreenNewState
                           "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
                       title: "",
                       maxLine: 5,
-                      maxLength: 1000,
+                      maxLength: 1800,
                       isValidate: false,
                       keyBoardType: TextInputType.multiline,
                       textInputAction: TextInputAction.newline,

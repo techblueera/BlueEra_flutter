@@ -22,6 +22,7 @@ import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_sectio
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -914,7 +915,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
     String authorId = widget.authorId;
     if (accountType.toUpperCase() == AppConstants.individual.toUpperCase()) {
       if (authorId == userId) {
-        Get.to(() => PersonalProfileSetupScreen());
+        Get.to(() => PersonalProfileSetupNewScreen());
       } else {
         Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
       }

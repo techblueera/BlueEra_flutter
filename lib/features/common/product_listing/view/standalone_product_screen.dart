@@ -84,6 +84,7 @@ class StandaloneProductScreen extends StatelessWidget {
               productData: product,
               businessData: businessData,
               width: itemWidth,
+              isShowKM: true
             );
           },
         );
@@ -107,6 +108,7 @@ class StandaloneProductScreen extends StatelessWidget {
               productData: controller.products[index],
               businessData: businessData,
               width: SizeConfig.screenWidth * 0.4,
+                isShowKM: true
             ),
           );
         },

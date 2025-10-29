@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
@@ -15,9 +17,12 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/repo/map_service_repo.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
@@ -25,11 +30,17 @@ import '../../../../core/constants/shared_preference_utils.dart';
 import '../repo/personal_profile_repo.dart';
 
 class _ProfileFieldStatus {
+  final int id; // unique identifier
   final String title;
   final bool isCompleted;
 
-  _ProfileFieldStatus(this.title, this.isCompleted);
+  const _ProfileFieldStatus({
+    required this.id,
+    required this.title,
+    required this.isCompleted,
+  });
 }
+
 
 class ViewPersonalDetailsController extends GetxController {
 
@@ -182,16 +193,39 @@ class ViewPersonalDetailsController extends GetxController {
         if (user != null) {
           fields = [
             _ProfileFieldStatus(
-                'Profile video', user.introVideo?.isNotEmpty ?? false),
-            _ProfileFieldStatus('Bio', user.bio?.isNotEmpty ?? false),
+              id: 1,
+              title: 'Profile video',
+              isCompleted: user.introVideo?.isNotEmpty ?? false,
+            ),
             _ProfileFieldStatus(
-                'Designation', user.designation?.isNotEmpty ?? false),
+              id: 2,
+              title: 'Bio',
+              isCompleted: user.bio?.isNotEmpty ?? false,
+            ),
             _ProfileFieldStatus(
-                'Phone number', user.contactNo?.isNotEmpty ?? false),
+              id: 3,
+              title: 'Designation',
+              isCompleted: user.designation?.isNotEmpty ?? false,
+            ),
             _ProfileFieldStatus(
-                'Organization', user.currentOrganisation?.isNotEmpty ?? false),
-            _ProfileFieldStatus('Email (Unverified)', false),
+              id: 4,
+              title: 'Phone number',
+              isCompleted: user.contactNo?.isNotEmpty ?? false,
+            ),
+            _ProfileFieldStatus(
+              id: 5,
+              title: 'Organization',
+              isCompleted: user.currentOrganisation?.isNotEmpty ?? false,
+            ),
+            _ProfileFieldStatus(
+              id: 6,
+              title: (user.emailVerified == true)
+                  ? 'Email (verified)'
+                  : 'Email (unverified)',
+              isCompleted: user.emailVerified ?? false,
+            ),
           ];
+
 
           final int totalFields = fields.length;
           final int completedFields = fields.where((e) => e.isCompleted).length;
@@ -449,4 +483,120 @@ class ViewPersonalDetailsController extends GetxController {
       return 'false';
     }
   }
+
+  void onFieldTap(_ProfileFieldStatus item) {
+    switch (item.id) {
+      case 1:
+        // Get.toNamed(RouteHelper.getProfileVideoScreenRoute());
+        break;
+      case 2:
+        // Get.toNamed(RouteHelper.getEditBioScreenRoute());
+        break;
+      case 3:
+        // Get.toNamed(RouteHelper.getEditDesignationScreenRoute());
+        break;
+      case 4:
+        // Get.toNamed(RouteHelper.getEditPhoneNumberScreenRoute());
+        break;
+      case 5:
+        // Get.toNamed(RouteHelper.getEditOrganizationScreenRoute());
+        break;
+      case 6:
+        if (!item.isCompleted) {
+          showEmailVerificationDialog();
+        } else {
+          commonSnackBar(message: 'Email, Your email is already verified.');
+        }
+        break;
+      default:
+        Get.snackbar('Action', 'Tapped on ${item.title}');
+    }
+  }
+
+
+  void showEmailVerificationDialog() {
+    final formKey = GlobalKey<FormState>();
+    final emailController = TextEditingController(
+      text: personalProfileDetails.value.user?.email ?? '',
+    );
+
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false, // prevent accidental dismiss
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Verify Your Email',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  /// Email Field
+                  CommonTextField(
+                    title: "Email",
+                    hintText: "Enter your email address",
+                    textEditController: emailController,
+                    validationType: ValidationTypeEnum.email,
+                    validator: ValidationMethod.validateEmail,
+                  ),
+                  const SizedBox(height: 16),
+
+                  /// Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (formKey.currentState?.validate() ?? false) {
+                            final email = emailController.text.trim();
+                            Navigator.pop(context); // Close dialog
+                            final emailVerificationController = Get.isRegistered<EmailVerificationController>()
+                                ? Get.find<EmailVerificationController>()
+                                : Get.put(EmailVerificationController());
+
+                            emailVerificationController.verifyEmail(email);
+                          }
+                        },
+                        child: const Text('Get Verify'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
+
+
 }

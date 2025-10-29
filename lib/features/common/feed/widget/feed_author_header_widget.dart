@@ -8,6 +8,7 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
@@ -82,7 +83,7 @@ class PostAuthorHeader extends StatelessWidget {
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
                   if (userId == authorId) {
-                    navigatePushTo(context, PersonalProfileSetupScreen());
+                    navigatePushTo(context, PersonalProfileSetupNewScreen());
                   } else {
                     Get.to(() => NewVisitProfileScreen(
                           authorId: authorId,

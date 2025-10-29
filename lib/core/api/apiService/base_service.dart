@@ -475,5 +475,6 @@ abstract class BaseService {
   final String getAddressApi = "user-service/addresses";
   final String userFeedServiceVideo = "userfeed-service/feed/videos?";
   String videoCategories = "post-service/nature-of-posts";
+  String businessViews(String businessId) => "user-service//business/$businessId/view";
 
 }

@@ -53,6 +53,12 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   }
 
   @override
+  void dispose() {
+    Get.delete<ServiceController>();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     AppLocalizations.of(context);
 

@@ -461,7 +461,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               ),
                               SizedBox(height: SizeConfig.size18),
 
-                                  CommonTextField(
+                              CommonTextField(
                                     title: "Email",
                                     hintText: "Enter your email address",
                                     textEditController: emailController,

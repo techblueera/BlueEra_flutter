@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/map/controller/map_service_controller.da
 import 'package:BlueEra/features/common/map/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -202,7 +203,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
     return InkWell(
       onTap: () {
         if (userId == serviceData.id) {
-          Get.to(() => PersonalProfileSetupScreen());
+          Get.to(() => PersonalProfileSetupNewScreen());
         } else {
           Get.to(() => NewVisitProfileScreen(
                 authorId: serviceData.id ?? '',
