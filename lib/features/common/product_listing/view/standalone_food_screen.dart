@@ -103,11 +103,14 @@ class StandaloneFoodScreen extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         itemCount: controller.foods.length,
         itemBuilder: (context, index) {
-          return FoodCardBusiness(
-            serviceData: controller.foods[index],
-            isGridView: false,
-            businessData: businessData,
-
+          return Padding(
+            padding: EdgeInsets.only(right: SizeConfig.size10),
+            child: FoodCardBusiness(
+              serviceData: controller.foods[index],
+              isGridView: false,
+              businessData: businessData,
+              width: SizeConfig.screenWidth * 0.4,
+            ),
           );
         },
       ),

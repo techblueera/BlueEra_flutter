@@ -7,7 +7,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import '../widgets/product_card.dart';
+import '../widgets/product_card_business.dart';
 
 class StandaloneProductScreen extends StatelessWidget {
   final String businessId;
@@ -43,7 +43,8 @@ class StandaloneProductScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText("Products",
+              CustomText(
+                  "Products",
                   fontWeight: FontWeight.w600,
                   fontSize: SizeConfig.medium15,
                   color: AppColors.secondaryTextColor),
@@ -100,9 +101,13 @@ class StandaloneProductScreen extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         itemCount: controller.products.length,
         itemBuilder: (context, index) {
-          return ProductCardBusiness(
-            productData: controller.products[index],
-            businessData: businessData,
+          return Padding(
+            padding: EdgeInsets.only(right: SizeConfig.size10),
+            child: ProductCardBusiness(
+              productData: controller.products[index],
+              businessData: businessData,
+              width: SizeConfig.screenWidth * 0.4,
+            ),
           );
         },
       ),

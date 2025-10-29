@@ -70,7 +70,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/a
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/create_varient_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen_product.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/store_product_preview_screen_product.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
@@ -328,8 +328,8 @@ class RouteHelper {
   static String getCreateVariantScreenRoute() =>
       RouteConstant.createVariantScreen;
 
-  static String getProductPreviewScreenProductRoute() =>
-      RouteConstant.productPreviewScreenProduct;
+  static String getStoreProductPreviewScreenProductRoute() =>
+      RouteConstant.storeProductPreviewScreenProduct;
 
   static String getStoreFeedScreenRoute() =>
       RouteConstant.storeFeedScreen;
@@ -965,23 +965,23 @@ class RouteHelper {
                 providerType: providerType,
             ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
-      case RouteConstant.productPreviewScreenProduct:
+      case RouteConstant.storeProductPreviewScreenProduct:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductStore? productStore =
             args[ApiKeys.argProductData] as ProductStore?;
-        final bool? productDataBool = args["isShowBusinessInfo"] as bool?;
+        // final bool? productDataBool = args["isShowBusinessInfo"] as bool?;
         final String id = args[ApiKeys.id] as String;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
-            builder: (_) => ProductPreviewScreenProduct(
+            builder: (_) => StoreProductPreviewScreenProduct(
                   productStore: productStore,
-                  isShowBusinessInfo: productDataBool,
+                  // isShowBusinessInfo: productDataBool,
                   id: id,
                   providerType: providerType
                 ),
             settings:
-                RouteSettings(name: getProductPreviewScreenProductRoute()));
+                RouteSettings(name: getStoreProductPreviewScreenProductRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =

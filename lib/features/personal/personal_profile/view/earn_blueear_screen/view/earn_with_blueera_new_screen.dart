@@ -217,7 +217,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
                   final productData = productList[index];
 
                   return Padding(
-                    padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                    padding: EdgeInsets.only(bottom: SizeConfig.size8),
                     child: OwnProductCard(
                       product: productData,
                       isGridShow: false,

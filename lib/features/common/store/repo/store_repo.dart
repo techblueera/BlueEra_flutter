@@ -9,10 +9,17 @@ class StoreRepo extends BaseService {
   Future<ResponseModel> getStore({required int page, required String? lat, String? long}) async {
     String? url = getStoreListing;
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
-      url = "$getStoreListing?lat=$lat&lng=$long&radius=$kmRadius1000";
+      url = "$getStoreListing?page=$page&lat=$lat&lng=$long&radius=$kmRadius1000";
     } else {
-      url = "$getStoreListing?radius=$kmRadius1000";
+      url = "$getStoreListing?page=$page&radius=$kmRadius1000";
     }
+
+    // if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
+    //   url = "$getStoreListing?page=$page&lat=$lat&lng=$long";
+    // } else {
+    //   url = "$getStoreListing?page=$page";
+    // }
+
     final response = await ApiBaseHelper().getHTTP(
       url,
       showProgress: false,

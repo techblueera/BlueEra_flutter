@@ -61,26 +61,12 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     controller = Get.put(StoreScreenController());
     controller.onHeaderVisibilityChanged = widget.onHeaderVisibilityChanged;
     controller.checkAndFetchAllStoresFeed();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _calculateHeaderHeight();
-    });
   }
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
     controller.onStoreTabChanged(_tabController.index);
     setState(() {});
-  }
-
-  void _calculateHeaderHeight() {
-    final renderBox =
-        controller.headerKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null && mounted) {
-      // controller.headerHeight.value = renderBox.size.height;
-      // log('header height-- ${controller.headerHeight.value}');
-      headerHeight = renderBox.size.height;
-     setState(() {});
-    }
   }
 
   @override
@@ -102,8 +88,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
       child: Scaffold(
         body: setupScrollVisibilityNotification(
             controller: controller.scrollController,
-            headerHeight: headerHeight,
-            // headerHeight: controller.headerHeight.value,
             onVisibilityChanged: (visible, offset) {
               // final currentOffset = controller.headerOffset.value;
               //
@@ -123,8 +107,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
               controller.isHeaderVisible.value = visible;
               widget.onHeaderVisibilityChanged?.call(visible);
             },
-            child:
-        DefaultTabController(
+            child: DefaultTabController(
               length: controller.storeTab.length,
               child: CustomScrollView(
                 controller: controller.scrollController,
@@ -394,7 +377,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                     child: StoreProductCard(
                       productStore:
                       first.inventoryData?.product ?? ProductStore(),
-                      isShowBusinessInfo: true,
                     ),
                   );
                 }
@@ -441,7 +423,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                   padding: EdgeInsets.only(bottom: ds(10)),
                   child: StoreProductCard(
                     productStore: productData.product,
-                    isShowBusinessInfo: true,
                   ),
                 );
               },

@@ -306,6 +306,7 @@ class SellerClassification {
   final List<Variant> variants;
   final bool isActive;
   BusinessLocation? businessLocation;
+  Owner? owner;
 
   SellerClassification({
     required this.id,
@@ -313,7 +314,7 @@ class SellerClassification {
     required this.variants,
     required this.isActive,
     this.businessLocation,
-
+    this.owner,
   });
 
   factory SellerClassification.fromJson(Map<String, dynamic> json) {
@@ -327,6 +328,9 @@ class SellerClassification {
       businessLocation: json['business_location'] != null
           ? BusinessLocation.fromJson(json['business_location'])
           : null,
+      owner: json['owner'] != null
+          ? Owner.fromJson(json['owner'])
+          : null,
     );
   }
 
@@ -337,6 +341,31 @@ class SellerClassification {
       'variants': variants.map((e) => e.toJson()).toList(),
       'isActive': isActive,
       'business_location': businessLocation?.toJson(),
+      'owner': owner?.toJson(),
+    };
+  }
+}
+
+class Owner {
+  final String id;
+  final String type;
+
+  Owner({
+    required this.id,
+    required this.type,
+  });
+
+  factory Owner.fromJson(Map<String, dynamic> json) {
+    return Owner(
+      id: json['id'] ?? '',
+      type: json['type'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type
     };
   }
 }

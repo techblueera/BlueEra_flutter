@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -56,12 +57,12 @@ class _ProductCardState extends State<ProductCardBusiness> {
     return InkWell(
       onTap: () {
         Get.toNamed(
-          RouteHelper.getProductPreviewScreenProductRoute(),
+          RouteHelper.getStoreProductPreviewScreenProductRoute(),
           arguments: {
             ApiKeys.argProductData: widget.productData,
-            "isShowBusinessInfo": widget.isShowBusinessInfo,
-            ApiKeys.id: businessId,
-            ApiKeys.providerType: 'Business'
+            // "isShowBusinessInfo": widget.isShowBusinessInfo,
+            ApiKeys.id: widget.productData.product.sellerClassification?.owner?.id,
+            ApiKeys.providerType: ProductServiceProviderType.business.title
           },
         );
       },

@@ -4,7 +4,7 @@
 Widget setupScrollVisibilityNotification({
   required ScrollController? controller,
   required Widget child,
-  required double headerHeight,
+  double? headerHeight,
   void Function(bool, double)? onVisibilityChanged,
 }) {
   double _lastScrollPosition = 0.0;

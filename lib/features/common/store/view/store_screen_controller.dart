@@ -554,7 +554,7 @@ class StoreScreenController extends GetxController {
     allStore.refresh();
     allNearByStoresFeed.refresh();
 
-    log('✅ Store rating count updated for businessId: $businessId');
+    log('Store rating count updated for businessId: $businessId');
   }
 
   // Scroll and Header Management

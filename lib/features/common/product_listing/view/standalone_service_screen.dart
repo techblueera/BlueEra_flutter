@@ -101,10 +101,14 @@ class StandaloneServiceScreen extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         itemCount: controller.services.length,
         itemBuilder: (context, index) {
-          return ServiceCardBusiness(
-            serviceData: controller.services[index],
-            isGridView: false,
-            businessData: businessData,
+          return Padding(
+            padding: EdgeInsets.only(right: SizeConfig.size10),
+            child: ServiceCardBusiness(
+              serviceData: controller.services[index],
+              isGridView: false,
+              businessData: businessData,
+              width: SizeConfig.screenWidth * 0.4,
+            ),
           );
         },
       ),

@@ -24,22 +24,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class ProductPreviewScreenProduct extends StatefulWidget {
+class StoreProductPreviewScreenProduct extends StatefulWidget {
   final ProductStore? productStore;
-  final bool? isShowBusinessInfo;
+  // final bool? isShowBusinessInfo;
   final String? id;
   final ProductServiceProviderType? providerType;
 
-  const ProductPreviewScreenProduct(
-      {super.key, required this.productStore, this.isShowBusinessInfo, this.id, this.providerType});
+  const StoreProductPreviewScreenProduct(
+      { super.key,
+        required this.productStore,
+        // this.isShowBusinessInfo,
+        this.id,
+        this.providerType});
 
   @override
-  State<ProductPreviewScreenProduct> createState() =>
-      _ProductPreviewScreenProductState();
+  State<StoreProductPreviewScreenProduct> createState() =>
+      _StoreProductPreviewScreenProductState();
 }
 
-class _ProductPreviewScreenProductState
-    extends State<ProductPreviewScreenProduct> {
+class _StoreProductPreviewScreenProductState
+    extends State<StoreProductPreviewScreenProduct> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
   final ProductController controller = Get.put(ProductController());
@@ -272,7 +276,7 @@ class _ProductPreviewScreenProductState
                     ),
                   ],
                 ),
-                if (widget.isShowBusinessInfo ?? false)
+                // if (widget.isShowBusinessInfo ?? false)
                   if (widget.productStore != null &&
                       widget.productStore?.business_name != null &&
                       widget.productStore?.user_id != null)
@@ -1363,7 +1367,7 @@ class _ProductPreviewScreenProductState
                             ''
                         : null,
                     businessId: widget
-                        .productStore?.businessId,
+                        .productStore?.sellerClassification?.owner?.id,
                     type: "business",
                     isInitialMessage: (chatViewController
                                     .newVisitContactApiResponse

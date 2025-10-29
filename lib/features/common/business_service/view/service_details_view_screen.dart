@@ -184,7 +184,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                                 ?.value?.data?.otherUserId ??
                                 ''
                                 : null,
-                            businessId: service.business?.id,
+                            businessId: service.business?.id ,
                             type: "business",
                             isInitialMessage: (chatViewController
                                 .newVisitContactApiResponse

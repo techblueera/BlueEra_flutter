@@ -1616,7 +1616,7 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
     return InkWell(
       onTap: () {
         if(widget.isFromChatCard==false){
-          Get.to(ServiceDetailsScreen(
+          Get.to(()=> ServiceDetailsScreen(
             service: serviceData ?? GetServiceModel(),
           ));
         }

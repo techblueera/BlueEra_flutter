@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -10,6 +12,7 @@ import 'package:BlueEra/features/business/visit_business_profile/view/visit_busi
 import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +20,7 @@ import 'package:get/get.dart';
 
 class StoreProductCard extends StatelessWidget {
   final ProductStore? productStore;
-  final bool isShowBusinessInfo;
-  const StoreProductCard({Key? key, this.productStore, required this.isShowBusinessInfo}) : super(key: key);
+  const StoreProductCard({Key? key, this.productStore}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -77,15 +79,23 @@ class StoreProductCard extends StatelessWidget {
 
     return InkWell(
      onTap: (){
+       final owner = product?.sellerClassification?.owner;
+       final type = owner?.type ?? ProductServiceProviderType.business.title;
+
+       final providerType = ProductServiceProviderType.values.firstWhere(
+             (e) => e.title == type,
+         orElse: () => ProductServiceProviderType.business,
+       );
+
        Get.toNamed(
-         RouteHelper.getProductPreviewScreenProductRoute(),
+         RouteHelper.getStoreProductPreviewScreenProductRoute(),
          arguments: {
            ApiKeys.argProductData: product,
-           "isShowBusinessInfo": isShowBusinessInfo,
-           ApiKeys.id: product?.businessId ?? "",
-           ApiKeys.providerType: ProductServiceProviderType.business
+           ApiKeys.id: owner?.id ?? '',
+           ApiKeys.providerType: providerType
          },
        );
+
      },
       child: Container(
         height: SizeConfig.size200,
@@ -193,10 +203,26 @@ class StoreProductCard extends StatelessWidget {
                     /// Shop + Location Row
                     InkWell(
                       onTap: (){
-                        Get.to(() => VisitBusinessProfileNew(
-                          businessId: product?.businessId ?? "",
-                          screenName: AppConstants.storeFeedScreen,
-                        ));
+                        final owner = product?.sellerClassification?.owner;
+                        final ownerId = owner?.id ?? '';
+                        final screen = AppConstants.storeFeedScreen;
+
+                        if (owner == null) return;
+
+                        final isBusiness = owner.type == ProductServiceProviderType.business.title;
+
+                        final destination = isBusiness
+                            ? VisitBusinessProfileNew(
+                          businessId: ownerId,
+                          screenName: screen,
+                        )
+                            : NewVisitProfileScreen(
+                          authorId: ownerId,
+                          screenFromName: screen,
+                        );
+
+                        Get.to(() => destination);
+
                       },
                       child: Row(
                         children: [
@@ -204,6 +230,7 @@ class StoreProductCard extends StatelessWidget {
                             imageUrl: product?.business_logo,
                             size: SizeConfig.size26,
                             borderRadius: SizeConfig.size13,
+                            showProfileOnFullScreen: false,
                           ),
                           const SizedBox(width: 6),
                           Flexible(

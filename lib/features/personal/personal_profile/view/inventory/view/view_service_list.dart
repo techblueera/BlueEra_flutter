@@ -72,7 +72,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                     padding: const EdgeInsets.only(top: 10.0),
                     child: InkWell(
                       onTap: () {
-                        Get.to(
+                        Get.to(()=>
                             ServiceDetailsScreen(
                           service: serviceData,
                         ));
