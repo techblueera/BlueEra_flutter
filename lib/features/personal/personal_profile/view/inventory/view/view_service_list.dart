@@ -69,7 +69,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                 itemBuilder: (context, index) {
                   GetServiceModel? serviceData = serviceController.serviceDataList[index];
                   return Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
+                    padding: const EdgeInsets.only(bottom: 8.0),
                     child: InkWell(
                       onTap: () {
                         Get.to(()=>

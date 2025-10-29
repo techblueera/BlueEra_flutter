@@ -122,9 +122,13 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                   return;
                 }
 
-                Get.off(() => FoodUploadScreen(
-                  providerType: ProductServiceProviderType.user,
-                ));
+                Get.offNamedUntil(
+                  RouteHelper.getFoodUploadScreenRoute(),
+                  ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+                  arguments: {
+                    ApiKeys.providerType: ProductServiceProviderType.user,
+                  },
+                );
               },
               bgColor: AppColors.primaryColor,
               textColor: AppColors.white,

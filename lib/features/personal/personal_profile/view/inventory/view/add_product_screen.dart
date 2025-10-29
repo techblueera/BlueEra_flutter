@@ -577,121 +577,92 @@ class _AddProductScreenState extends State<AddProductScreen> {
       return Container(
         margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
         padding: EdgeInsets.all(SizeConfig.size4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
           children: [
-            // Checkbox
-            GestureDetector(
-              onTap: () => controller.toggleVariant(
-                  productVariants.finalVariant.id
-                ),
-              child: Container(
-                width: 20,
-                height: 20,
-                margin: EdgeInsets.only(top: 3.0),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryColor : AppColors.white,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: isSelected ? AppColors.primaryColor : AppColors
-                        .greyE5,
-                    width: 1,
-                  ),
-                ),
-                child: isSelected
-                    ? const Icon(Icons.check, color: AppColors.white, size: 14)
-                    : null,
-              ),
-            ),
-
-            SizedBox(width: SizeConfig.size12),
-
-            // Product Image
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.fillColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.greyE5, width: 1),
-              ),
-              child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: productVariants.finalVariant.mediaRelatedToVarient
-                        .isNotEmpty ? productVariants.finalVariant
-                        .mediaRelatedToVarient[0] : '',
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                    errorWidget: (context, url, error) =>
-                        Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image),
-                        ),
-                  )
-              ),
-            ),
-
-            SizedBox(width: SizeConfig.size12),
-
-            // Product Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    productFullNameWithVariants,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.mainTextColor,
-                    fontWeight: FontWeight.w400,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  SizedBox(height: SizeConfig.size8),
-
-                  // Selling Price Input (only shown when selected)
-                  if (isSelected) ...[
-                    SizedBox(height: SizeConfig.size12),
-                    Row(
-                      children: [
-                        CustomText(
-                          'Selling price',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        SizedBox(width: SizeConfig.size8),
-                        Expanded(
-                          child: CommonTextField(
-                            onChange: (value) =>
-                                controller
-                                    .updateSellingPrice(
-                                    productVariants.finalVariant.id,
-                                    value),
-                            hintText: sellingPrice ??
-                                productVariants.finalVariant.sellingPrice
-                                    .toString(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            SizedBox(width: SizeConfig.size12),
-
-            // Action Icons
-            Column(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Checkbox
+                GestureDetector(
+                  onTap: () => controller.toggleVariant(
+                      productVariants.finalVariant.id
+                    ),
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    margin: EdgeInsets.only(top: 3.0),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primaryColor : AppColors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primaryColor : AppColors
+                            .greyE5,
+                        width: 1,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, color: AppColors.white, size: 14)
+                        : null,
+                  ),
+                ),
+
+                SizedBox(width: SizeConfig.size12),
+
+                // Product Image
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.fillColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.greyE5, width: 1),
+                  ),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: CachedNetworkImage(
+                        imageUrl: productVariants.finalVariant.mediaRelatedToVarient
+                            .isNotEmpty ? productVariants.finalVariant
+                            .mediaRelatedToVarient[0] : '',
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) =>
+                            Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                        errorWidget: (context, url, error) =>
+                            Container(
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.broken_image),
+                            ),
+                      )
+                  ),
+                ),
+
+                SizedBox(width: SizeConfig.size12),
+
+                // Product Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        productFullNameWithVariants,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w400,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                    ],
+                  ),
+                ),
+
+                SizedBox(width: SizeConfig.size12),
+
+                // Action Icons
                 InkWell(
                   onTap: () {
                     ProductPreviewArgs productPreviewArgs = mapProductDataToPreviewArgs(
@@ -719,28 +690,58 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: SizeConfig.size8),
-                if (isSelected)
-                  GestureDetector(
-                    onTap: () => controller.toggleVariant(
-                        productVariants.finalVariant.id
-                    ),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: AppColors.primaryColor,
-                        size: 14,
-                      ),
-                    ),
-                  ),
               ],
             ),
+
+            SizedBox(height: SizeConfig.size8),
+
+            // Selling Price Input (only shown when selected)
+            if (isSelected) ...[
+              SizedBox(height: SizeConfig.size12),
+              Row(
+                children: [
+                  CustomText(
+                    'Selling price',
+                    fontSize: SizeConfig.small,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Expanded(
+                    child: CommonTextField(
+                      onChange: (value) =>
+                          controller
+                              .updateSellingPrice(
+                              productVariants.finalVariant.id,
+                              value),
+                      hintText: sellingPrice ??
+                          productVariants.finalVariant.sellingPrice
+                              .toString(),
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  if (isSelected)
+                    GestureDetector(
+                      onTap: () => controller.toggleVariant(
+                          productVariants.finalVariant.id
+                      ),
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: AppColors.primaryColor,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       );

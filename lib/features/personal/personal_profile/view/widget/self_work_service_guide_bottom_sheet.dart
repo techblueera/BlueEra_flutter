@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -202,30 +204,31 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                 await showCommonDialog(
                 context: context,
                 text: 'Your profession and work type will be changed. Continue?',
-                confirmText: 'Confirm',
+                confirmText: 'Update',
                 cancelText: 'Cancel',
                 confirmCallback: () async {
                   final personalCreateProfileController = Get.isRegistered<PersonalCreateProfileController>()
                     ? Get.find<PersonalCreateProfileController>()
                      : Get.put(PersonalCreateProfileController());
 
-                  await personalCreateProfileController
-                      .updateUserProfileDetails(
+                  personalCreateProfileController
+                      .updateUserProfileProfessionDesignation(
                     params: {
                       ApiKeys.profession: SELF_EMPLOYED,
                       ApiKeys.designation: selectedService?.label
                     },
-                    isFromProfileOnly: true
-                  );
-
-                  Get.offNamed(
+                  ).then((value){
+                    log('navigate');
+                    Get.offNamedUntil(
                       RouteHelper.getAddServicesScreenRoute(),
+                      ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
                       arguments: {
                         ApiKeys.providerType: ProductServiceProviderType.user,
                         ApiKeys.isSelfEmployement: true,
-                        ApiKeys.designation: selectedService?.label
-                      }
-                  );
+                        ApiKeys.designation: selectedService?.label,
+                      },
+                    );
+                  });
 
                 },
                 cancelCallback: () {

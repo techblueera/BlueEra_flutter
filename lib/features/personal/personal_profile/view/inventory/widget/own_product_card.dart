@@ -92,7 +92,8 @@ class OwnProductCard extends StatelessWidget {
         );
       },
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.antiAlias,
         child: (isGridShow) ? Container(
           width: width,

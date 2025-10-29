@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step2.dart';
@@ -339,6 +340,9 @@ class RouteHelper {
 
   static String getInventoryBusinessCardsScreenRoute() =>
       RouteConstant.inventoryBusinessCardsScreen;
+
+  static String getFoodUploadScreenRoute() =>
+      RouteConstant.foodUploadScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1016,6 +1020,15 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => InventoryBusinessCardsScreen(),
             settings: RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
+      case RouteConstant.foodUploadScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+
+        return MaterialPageRoute(
+            builder: (_) => FoodUploadScreen(
+                providerType: providerType
+            ),
+            settings: RouteSettings(name: getFoodUploadScreenRoute()));
 
       default:
         return MaterialPageRoute(

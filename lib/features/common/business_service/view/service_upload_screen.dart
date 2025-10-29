@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -45,6 +46,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
     isSelfEmployement = widget.isSelfEmployement??false;
     if(isSelfEmployement){
       controller.serviceNameController.text = widget.workType ?? 'OTHER';
+      controller.serviceName.value = controller.serviceNameController.text ;
     }
     viewBusinessDetailsController.getAllCategories();
     super.initState();
@@ -415,6 +417,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   }
 
   isPersonalServiceValidate() {
+    log('selectedImage-- ${controller.serviceName.value.isNotEmpty}');
     return (controller.selectedImage.value != null &&
         controller.serviceName.value.isNotEmpty);
   }

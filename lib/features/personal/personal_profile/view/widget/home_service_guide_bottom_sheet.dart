@@ -122,13 +122,15 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                   return;
                 }
 
-                Get.offNamed(
-                    RouteHelper.getAddServicesScreenRoute(),
-                    arguments: {
-                      ApiKeys.providerType: ProductServiceProviderType.user,
-                      ApiKeys.service_name: selectedService?.label
-                    }
+                Get.offNamedUntil(
+                  RouteHelper.getAddServicesScreenRoute(),
+                  ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+                  arguments: {
+                    ApiKeys.providerType: ProductServiceProviderType.user,
+                    ApiKeys.service_name: selectedService?.label
+                  },
                 );
+
               },
               bgColor: AppColors.primaryColor,
               textColor: AppColors.white,

@@ -61,8 +61,9 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             height: SizeConfig.size40,
             title: 'Start Listing Now',
             onTap: () {
-              Get.offNamed(
+              Get.offNamedUntil(
                 RouteHelper.getAddProductScreenRoute(),
+                ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
                 arguments: {
                   ApiKeys.id: userId,
                   ApiKeys.providerType: ProductServiceProviderType.user,

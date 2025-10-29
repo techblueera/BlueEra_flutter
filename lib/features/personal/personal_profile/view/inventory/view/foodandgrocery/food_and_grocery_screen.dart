@@ -140,11 +140,13 @@ class FoodItemCard extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2.0, top: 2, left: 8, right: 8),
+      padding: const EdgeInsets.only(bottom: 2.0, left: 8, right: 8),
       child: InkWell(
         onTap: (){
           Get.to(()=> FoodDetailsViewScreen(
-            productPriceFormat:(foodData.priceType == "single")?"${foodData.singlePrice ?? "0"}": "$priceText",
+            productPriceFormat:(foodData.priceType == "single")
+                ? "${foodData.singlePrice ?? "0"}"
+                : "$priceText",
             data: foodData,
           ));
         },

@@ -97,4 +97,5 @@ class RouteConstant {
   static const String storeFeedScreen = "/StoreFeedScreen";
   static const String earnWithBlueEraNewScreen = "/EarnWithBlueEraNewScreen";
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
+  static const String foodUploadScreen = "/FoodUploadScreen";
 }

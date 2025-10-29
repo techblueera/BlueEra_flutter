@@ -130,29 +130,28 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
   }
 
   Widget _buildOwnUserProductsAndServices() {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Obx(()=> Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: SizeConfig.size15),
-          HorizontalTabSelector(
+    return Obx(()=> Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: SizeConfig.size15),
+        Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: HorizontalTabSelector(
             tabs: earnWithBlueEraController.productsServicesTab,
-            selectedIndex:
-            earnWithBlueEraController.selectedProductsServicesTabIndex.value,
+            selectedIndex: earnWithBlueEraController.selectedProductsServicesTabIndex.value,
             horizontalMargin: 0.0,
             onTabSelected: (index, value) {
               onProductsServicesTabChanged(index);
             },
             labelBuilder: (label) => label,
           ),
-          SizedBox(height: SizeConfig.size15),
-          Expanded(
-              child: _buildProductsServicesTab()
-          )
-        ],
-      )
-      ),
+        ),
+        // SizedBox(height: SizeConfig.size8),
+        Expanded(
+            child: _buildProductsServicesTab()
+        )
+      ],
+     )
     );
   }
 
@@ -217,7 +216,11 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
                   final productData = productList[index];
 
                   return Padding(
-                    padding: EdgeInsets.only(bottom: SizeConfig.size8),
+                    padding: EdgeInsets.only(
+                        bottom: SizeConfig.size8,
+                        left: SizeConfig.size8,
+                        right: SizeConfig.size8
+                    ),
                     child: OwnProductCard(
                       product: productData,
                       isGridShow: false,
