@@ -195,28 +195,17 @@ class MessagePostController extends GetxController {
 
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
-      type: fileType,
+      type: fileType,compressionQuality: 80
     );
 
     if (result == null) return;
 
     final files = result.paths.map((e) => File(e!)).toList();
-    final firstExt = files.first.path.split('.').last.toLowerCase();
-    ['mp4', 'mov', 'avi', 'mkv'].contains(firstExt);
 
-    // setState(() {
-    // if (selectedType.value == null) {
-    //   selectedType.value = isVideo ? MediaType.video : MediaType.image;
-    // }
     selectedType.value = MediaType.image;
 
-    // if (selectedType.value == MediaType.video) {
-    //   imagesList.value = [files.first];
-    //   _generateThumbnail(files.first); // <-- Add for video
-    // } else {
     imagesList.addAll(files);
-    // }
-    // });
+
   }
   Future<void> pickVideoMedia() async {
     selectedType.value = MediaType.video;
@@ -543,7 +532,12 @@ class MessagePostController extends GetxController {
       suggestions.clear();
       // prepare images multipart
       List<dio.MultipartFile> imageByPart = [];
-      for (final imageData in imagesList) {
+      // Limit to first 3 images if there are more
+      final limitedImages = imagesList.length > 3
+          ? imagesList.take(3).toList()
+          : imagesList;
+
+      for (final imageData in limitedImages) {
         final path = imageData.path;
         final fileName = path.split('/').last;
         final imageInfo = getFileInfo(File(path));

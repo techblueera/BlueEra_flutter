@@ -5,10 +5,8 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
-import 'package:encrypt/encrypt.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -25,7 +23,6 @@ logs(String logMsg) {
   // }
 }
 
-// https://be-user-bck.s3.ap-south-1.amazonaws.com/user/temp/profile/guest8024173s
 ///UN FOCUS KEYBOARD
 unFocus() {
   FocusManager.instance.primaryFocus?.unfocus();
@@ -206,38 +203,6 @@ String foodServiceDeepLink({String? productId}) {
   return 'https://blueera.ai/app/product/${productId ?? ""}';
 }
 
-// String staticDeepLink() {
-//   return "https://dart.dev/tools/pub/publishing";
-//   // return "https://www.myntra.com/apparel-set/gosriki/gosriki-women-kurta-with-trousers-&-dupatta-set/31079027/buy?utm_source=social_share_pdp&utm_medium=deeplink&utm_campaign=social_share_pdp_deeplink";
-// }
-
-String encryptString(String rawString) {
-  // 16-byte key and IV, same as your example
-  final key = Key.fromUtf8('8080808080808080');
-  final iv = IV.fromUtf8('8080808080808080');
-
-  final encrypter = Encrypter(
-    AES(key, mode: AESMode.cbc),
-  );
-
-  // Encrypt the raw string
-  final encrypted = encrypter.encrypt(rawString, iv: iv);
-
-  return encrypted.base64;
-}
-
-String decryptString(String encryptedBase64) {
-  final key = Key.fromUtf8('8080808080808080');
-  final iv = IV.fromUtf8('8080808080808080');
-
-  final encrypter = Encrypter(
-    AES(key, mode: AESMode.cbc),
-  );
-
-  final decrypted = encrypter.decrypt64(encryptedBase64, iv: iv);
-
-  return decrypted;
-}
 
 /// Generate "5 days ago" or something similar
 String timeAgo(DateTime date) {

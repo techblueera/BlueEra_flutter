@@ -10,6 +10,7 @@ class VideoPost {
   final String avatar;
   final String designation;
   final String business_category;
+  final String account_type;
 
   VideoPost({
     required this.id,
@@ -23,6 +24,7 @@ class VideoPost {
     required this.avatar,
     required this.designation,
     required this.business_category,
+    required this.account_type,
   });
 
   factory VideoPost.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class VideoPost {
       avatar: json["author"]?["avatar"] ?? "",
       designation: json["author"]?["designation"] ?? "",
       business_category: json["author"]?["business_category"] ?? "",
+      account_type: json["author"]?["account_type"] ?? "",
     );
   }
 }

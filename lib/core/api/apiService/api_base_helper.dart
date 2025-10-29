@@ -62,18 +62,10 @@ class ApiBaseHelper {
               ProgressDialog.showProgressDialog(true, apiPath: options.path);
             // // Increment the request count and show the loader
             final isFormData = options.data is FormData;
-            final method = options.method.toUpperCase();
-            final url = options.uri.toString();
+
 
             if(kDebugMode){
               // ====== 🌟 Beautified Request Log ======
-              log("\x1B[36m==================== API REQUEST [$method] ====================\x1B[0m");
-              log("🔹 URL: $url");
-              log("🔹 Headers: ${jsonEncode(options.headers)}");
-
-              if (options.queryParameters.isNotEmpty) {
-                log("🔹 Query Params: ${jsonEncode(options.queryParameters)}");
-              }
 
               if (isFormData) {
                 final formData = options.data as FormData;

@@ -236,19 +236,9 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard> {
                   authorUsername: '${widget.videoItem.author?.username}',
                   avatar: '${widget.videoItem.author?.profileImage}',
                   designation: '${widget.videoItem.author?.designation}',
-                  business_category: '')));
+                  business_category: '',
+                  account_type: '${widget.videoItem.author?.accountType}')));
 
-          // Get.to(NetworkVideoPreviewScreen(
-          //   videoUrl: widget.videoItem.video?.videoUrl ?? "",
-          // ));
-          // Navigator.pushNamed(
-          //   context,
-          //   RouteHelper.getVideoPlayerScreenRoute(),
-          //   arguments: {
-          //     ApiKeys.videoItem: widget.videoItem,
-          //     ApiKeys.videoType: widget.videoType
-          //   },
-          // );
         },
         isShowUser: false,
       ),

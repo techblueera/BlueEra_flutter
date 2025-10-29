@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/feed_video_preview_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -39,173 +38,18 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       : "Upload Photo or Video (at least 1 media required)")),
               SizedBox(height: SizeConfig.size10),
               if (msgController.selectedType.value == null) ...[
-                InkWell(
-                  onTap: () async {
-                    if (msgController.imagesList.length < 4) {
-                      msgController.pickMedia();
-                    } else {
-                      if (msgController.selectedType.value == MediaType.video) {
-                        commonSnackBar(message: "Upload max 1 ");
-                      } else {
-                        commonSnackBar(message: "Upload max 4 ");
-                      }
-                    }
-                  },
-                  child: Container(
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.size50 + 2,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      // White background
-                      borderRadius: BorderRadius.circular(10.0),
-                      // Rounded corners
-                      border: Border.all(width: 1, color: AppColors.greyE5),
-                      boxShadow: [AppShadows.textFieldShadow],
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LocalAssets(imagePath: AppIconAssets.black_gallery),
-                          SizedBox(width: SizeConfig.size8),
-                          CustomText(
-                            "Add Photo ",
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium15,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                addPhotoWidget(),
+                SizedBox(
+                  height: 20,
                 ),
-                SizedBox(height: 20,),
-                InkWell(
-                  onTap: () async {
-                    if (msgController.imagesList.length < 4) {
-                      msgController.pickVideoMedia();
-                    } else {
-                      if (msgController.selectedType.value ==
-                          MediaType.video) {
-                        commonSnackBar(message: "Upload max 1 ");
-                      } else {
-                        commonSnackBar(message: "Upload max 4 ");
-                      }
-                    }
-                    // Get.to(TwitterStyleMediaPicker());
-                    // _pickMedia();
-                    // msgController.pickImageFrom(context);
-                  },
-                  child: Container(
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.size50 + 2,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      // White background
-                      borderRadius: BorderRadius.circular(10.0),
-                      // Rounded corners
-                      border: Border.all(width: 1, color: AppColors.greyE5),
-                      boxShadow: [AppShadows.textFieldShadow],
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LocalAssets(imagePath: AppIconAssets.black_gallery),
-                          SizedBox(width: SizeConfig.size8),
-                          CustomText(
-                            "Add Video ",
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium15,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                addVideoWidget()
               ],
               if (msgController.selectedType.value?.name ==
                   MediaType.image.name)
-                InkWell(
-                  onTap: () async {
-                    if (msgController.imagesList.length < 4) {
-                      msgController.pickMedia();
-                    } else {
-                      if (msgController.selectedType.value == MediaType.video) {
-                        commonSnackBar(message: "Upload max 1 ");
-                      } else {
-                        commonSnackBar(message: "Upload max 4 ");
-                      }
-                    }
-
-                  },
-                  child: Container(
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.size50 + 2,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      // White background
-                      borderRadius: BorderRadius.circular(10.0),
-                      // Rounded corners
-                      border: Border.all(width: 1, color: AppColors.greyE5),
-                      boxShadow: [AppShadows.textFieldShadow],
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LocalAssets(imagePath: AppIconAssets.black_gallery),
-                          SizedBox(width: SizeConfig.size8),
-                          CustomText(
-                            "Add Photo ",
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium15,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                addPhotoWidget(),
               if (msgController.selectedType.value?.name ==
                   MediaType.video.name)
-                InkWell(
-                  onTap: () async {
-                    if (msgController.imagesList.length < 4) {
-                      msgController.pickVideoMedia();
-                    } else {
-                      if (msgController.selectedType.value ==
-                          MediaType.video) {
-                        commonSnackBar(message: "Upload max 1 ");
-                      }
-                    }
-                  },
-                  child: Container(
-                    width: SizeConfig.screenWidth,
-                    height: SizeConfig.size50 + 2,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      // White background
-                      borderRadius: BorderRadius.circular(10.0),
-                      // Rounded corners
-                      border: Border.all(width: 1, color: AppColors.greyE5),
-                      boxShadow: [AppShadows.textFieldShadow],
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LocalAssets(imagePath: AppIconAssets.black_gallery),
-                          SizedBox(width: SizeConfig.size8),
-                          CustomText(
-                            "Add Video ",
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium15,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
+                addVideoWidget(),
               SizedBox(height: SizeConfig.size10),
               msgController.imagesList.isNotEmpty
                   ? GridView.builder(
@@ -276,84 +120,6 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
                       },
                     )
                   : SizedBox.shrink(),
-
-              ///OLD CODE....
-              /*  SizedBox(height: SizeConfig.size15),
-              ListView.builder(
-                shrinkWrap: true,
-                padding: EdgeInsets.all(SizeConfig.size1),
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: msgController.imagesList.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: Stack(
-                      children: [
-                        Center(
-                          child: Container(
-                            // width:300 ,
-                            height: 300,
-                            // height: Get.width * 0.5,
-                            // // height: Get.width * 0.5,
-                            // width: msgController
-                            //             .imagesList[index].imgCropMode ==
-                            //     AppConstants.Square
-                            //     ? Get.width * 0.5
-                            //     : double.parse(
-                            //         msgController.imagesList[index].imgWidth ??
-                            //             Get.width.toString()),
-                            decoration: BoxDecoration(
-                              // borderRadius: BorderRadius.circular(
-                              //     msgController.imagesList[index].imgCropMode ==
-                              //         AppConstants.Square
-                              //         ? 0
-                              //         : 12),
-                              image: DecorationImage(
-                                image: FileImage(File(msgController
-                                        .imagesList[index].imageFile?.path ??
-                                    "")),
-                                fit: BoxFit.fitWidth,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () => msgController.removePhoto(index),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // --- Crop button ---------------------------
-                        // Positioned(
-                        //   bottom: 6,
-                        //   right: 6,
-                        //   child: _photoPhotoPopUpMenu(index),
-                        // ),
-                      ],
-                    ),
-                  );
-                },
-              ),*/
             ],
           ),
         );
@@ -361,8 +127,75 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
     );
   }
 
+  Widget addPhotoWidget() {
+    return InkWell(
+      onTap: () async {
+        if (msgController.imagesList.length < 4) {
+          msgController.pickMedia();
+        }
+      },
+      child: Container(
+        width: SizeConfig.screenWidth,
+        height: SizeConfig.size50 + 2,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          // White background
+          borderRadius: BorderRadius.circular(10.0),
+          // Rounded corners
+          border: Border.all(width: 1, color: AppColors.greyE5),
+          boxShadow: [AppShadows.textFieldShadow],
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LocalAssets(imagePath: AppIconAssets.black_gallery),
+              SizedBox(width: SizeConfig.size8),
+              CustomText(
+                "Add Photo ",
+                color: AppColors.secondaryTextColor,
+                fontSize: SizeConfig.medium15,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
+  Widget addVideoWidget() {
+    return InkWell(
+      onTap: () async {
+        msgController.pickVideoMedia();
+      },
+      child: Container(
+        width: SizeConfig.screenWidth,
+        height: SizeConfig.size50 + 2,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(width: 1, color: AppColors.greyE5),
+          boxShadow: [AppShadows.textFieldShadow],
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LocalAssets(imagePath: AppIconAssets.black_gallery),
+              SizedBox(width: SizeConfig.size8),
+              CustomText(
+                "Add Video ",
+                color: AppColors.secondaryTextColor,
+                fontSize: SizeConfig.medium15,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+
 void openVideoPreview(File file) {
   Get.to(VideoPreviewScreen(file: file));
 }
