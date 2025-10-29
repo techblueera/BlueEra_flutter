@@ -54,7 +54,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     try {
       // ✅ Use your custom cache manager to get the controller
       _controller =
-      await VideoCacheManager().getController(widget.video.videoUrl);
+          await VideoCacheManager().getController(widget.video.videoUrl);
 
       if (mounted && _controller != null) {
         _duration = _controller!.value.duration;
@@ -134,15 +134,27 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       child: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: SizeConfig.size10,),
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
             //
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 children: [
                   // LocalAssets(imagePath: AppIconAssets.back_arrow),
-                  InkWell(onTap: (){Get.back();},child: Icon(Icons.arrow_back_ios,color: Colors.white,size: 20,)),
-                  SizedBox(width: SizeConfig.size10,),
+                  InkWell(
+                      onTap: () {
+                        Get.back();
+                      },
+                      child: Icon(
+                        Icons.arrow_back_ios,
+                        color: Colors.white,
+                        size: 20,
+                      )),
+                  SizedBox(
+                    width: SizeConfig.size10,
+                  ),
                   Expanded(
                     child: SizedBox(
                       width: Get.width,
@@ -151,18 +163,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         children: [
                           if (widget.video.avatar.isNotEmpty)
                             InkWell(
-                              onTap:
-                                      () {
-                                    navigatePushTo(
-                                      context,
-                                      ImageViewScreen(
-                                        appBarTitle: AppLocalizations.of(context)!.imageViewer,
-                                        // imageUrls: [post?.author.profileImage ?? ''],
-                                        imageUrls: [widget.video.avatar],
-                                        initialIndex: 0,
-                                      ),
-                                    );
-                                  },
+                              onTap: () {
+                                navigatePushTo(
+                                  context,
+                                  ImageViewScreen(
+                                    appBarTitle: AppLocalizations.of(context)!
+                                        .imageViewer,
+                                    // imageUrls: [post?.author.profileImage ?? ''],
+                                    imageUrls: [widget.video.avatar],
+                                    initialIndex: 0,
+                                  ),
+                                );
+                              },
                               child: CachedAvatarWidget(
                                   imageUrl: widget.video.avatar,
                                   size: 40,
@@ -178,7 +190,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                 SizedBox(
                                   width: Get.width,
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Flexible(
@@ -190,7 +203,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                           color: AppColors.white,
                                         ),
                                       ),
-                                      if (widget.video.authorUsername != null && (widget.video.authorUsername.isNotEmpty ?? false))
+                                      if (widget.video.authorUsername != null &&
+                                          (widget.video.authorUsername
+                                                  .isNotEmpty ??
+                                              false))
                                         Expanded(
                                           child: Padding(
                                             padding: EdgeInsets.only(top: 3),
@@ -202,13 +218,15 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                             ),
                                           ),
                                         ),
-
                                     ],
                                   ),
                                 ),
                                 SizedBox(height: SizeConfig.size2),
                                 CustomText(
-                                  widget.video.designation,
+                                  widget.video.account_type.toUpperCase() ==
+                                          AppConstants.business
+                                      ? widget.video.business_category
+                                      : widget.video.designation,
                                   fontWeight: FontWeight.w600,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -240,16 +258,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 children: [
                   // 🖼️ Video display
                   Center(
-                    child: _controller != null && _controller!.value.isInitialized
+                    child: _controller != null &&
+                            _controller!.value.isInitialized
                         ? AspectRatio(
-                      aspectRatio: _controller!.value.aspectRatio,
-                      child: VideoPlayer(_controller!),
-                    )
+                            aspectRatio: _controller!.value.aspectRatio,
+                            child: VideoPlayer(_controller!),
+                          )
                         : const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
+                            child:
+                                CircularProgressIndicator(color: Colors.white),
+                          ),
                   ),
-        
+
                   // ▶️ Play/Pause button (center)
                   if (_controller != null && _controller!.value.isInitialized)
                     GestureDetector(
@@ -271,9 +291,9 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         ),
                       ),
                     ),
-        
+
                   // 🔇 Mute button + Duration overlay (bottom-right)
-        
+
                   Positioned(
                     bottom: 10,
                     left: 16,
@@ -336,7 +356,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         // 📄 Title or Caption (bottom left)
                         if (widget.video.title.isNotEmpty)
                           ExpandableText(
-                            text: "Would you like me to extend this so that it preloads the next 1–2 videos automatically using VideoCacheManager?That would make scrolling totally seamless with no buffer delay.",
+                            text:
+                                "Would you like me to extend this so that it preloads the next 1–2 videos automatically using VideoCacheManager?That would make scrolling totally seamless with no buffer delay.",
                             // text: widget.video.title ?? '',
                             trimLines: 2,
                             expandMode: ExpandMode.dialog,
@@ -371,7 +392,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       ),
     );
   }
-  /*  @override
+/*  @override
   Widget build(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
       return const Center(child: CircularProgressIndicator());
@@ -431,9 +452,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     );
   }*/
 }
-
-
-
 
 /*
 class VideoPlayerItem extends StatefulWidget {

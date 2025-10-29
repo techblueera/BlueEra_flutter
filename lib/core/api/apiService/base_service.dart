@@ -204,7 +204,7 @@ abstract class BaseService {
   final String feedHome = "videofeed-service/feeds/home";
   String postLikeUnlike(String id) => "video-service/likes/$id/like";
   String videoView(String id) => "video-service/videos/metadata/$id";
-  String videoCategories = "video-service/categories";
+  // String videoCategories = "video-service/categories";
   String videosShare(String videoId) => "video-service/share/videos/$videoId";
 
   /// Post service
@@ -474,5 +474,6 @@ abstract class BaseService {
   final String aiSocialPostGenerate = "ai-service/api/ai-social-post/generate";
   final String getAddressApi = "user-service/addresses";
   final String userFeedServiceVideo = "userfeed-service/feed/videos?";
+  String videoCategories = "post-service/nature-of-posts";
 
 }

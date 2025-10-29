@@ -190,7 +190,17 @@ class _CreateMessagePostScreenNewState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText("Your Lekha 𓂃✍︎"),
-
+                        InkWell(
+                          onTap: () {
+                            Get.to(SocialPostDescriptionScreen());
+                          },
+                          child: LocalAssets(
+                            height: 25,
+                            width: 25,
+                            imagePath: AppIconAssets.ai_generative,
+                            imgColor: AppColors.primaryColor,
+                          ),
+                        )
                       ],
                     ),
                     SizedBox(
