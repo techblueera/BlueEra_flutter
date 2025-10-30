@@ -1142,7 +1142,9 @@ enum PostType {
   saved,
   latest,
   popular,
-  oldest
+  oldest,
+  otherChannelPosts
+
 
   // ownChannelPosts,
   // visitingChannelPosts

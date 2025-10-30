@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/contacts/view/be_available_contacts_list.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _headerHeight = 0;
   final List<String> postTab = [
     "All Posts",
+    "Channel",
     // "Videos",
     // "Shorts",
     "Saved",
@@ -259,17 +261,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         selectedIndex = index;
                       });
                     },
-                    children: [
-                      HomeFeedScreenNew(
-                        key: ValueKey('feedScreen_all'),
-                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                        postFilterType: PostType.all,
-                        query: searchController.text.isEmpty
-                            ? null
-                            : searchController.text,
-                        headerHeight: _headerHeight,
-                        isInParentScroll: false,
-                      ),
+                    children:  isIndividual()? [
+
+                    HomeFeedScreenNew(
+                      key: ValueKey('feedScreen_all'),
+                      onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                      postFilterType: PostType.all,
+                      query: searchController.text.isEmpty
+                          ? null
+                          : searchController.text,
+                      headerHeight: _headerHeight,
+                      isInParentScroll: false,
+                    ),
+                      ChannelFeedScreen(),
                       /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
@@ -280,16 +284,42 @@ class _HomeScreenState extends State<HomeScreen> {
                           // You can add _toggleAppBarAndBottomNav later if needed
                           ),*/
                       SavedFeedScreen(
-                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                          onHeaderVisibilityChanged:
+                          _toggleAppBarAndBottomNav,
                           query: searchController.text,
                           selectedTab: _selectedSavedTab,
                           headerHeight: _headerHeight + SizeConfig.size30),
 
-                      isIndividual()
-                          ? Center(
-                              child: CustomText('Coming Soon..'),
-                            )
-                          : InventoryBusinessCardsScreen(
+                      ]: [
+
+                        HomeFeedScreenNew(
+                          key: ValueKey('feedScreen_all'),
+                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                          postFilterType: PostType.all,
+                          query: searchController.text.isEmpty
+                              ? null
+                              : searchController.text,
+                          headerHeight: _headerHeight,
+                          isInParentScroll: false,
+                        ),
+                        ChannelFeedScreen(),
+                      /*  VideoFeedScreen(
+                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                          query: searchController.text,
+                          headerHeight: _headerHeight),
+                      ShortsFeedScreen(
+                          query: searchController.text,
+                          headerHeight: _headerHeight
+                          // You can add _toggleAppBarAndBottomNav later if needed
+                          ),*/
+                        SavedFeedScreen(
+                            onHeaderVisibilityChanged:
+                                _toggleAppBarAndBottomNav,
+                            query: searchController.text,
+                            selectedTab: _selectedSavedTab,
+                            headerHeight: _headerHeight + SizeConfig.size30),
+
+                      InventoryBusinessCardsScreen(
                               showBackAppBar: false,
                             )
                       // MoreCardsScreen(
@@ -334,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           labelBuilder: (label) => label,
                         ),
                         SizedBox(height: SizeConfig.size10),
-                        if (selectedIndex == 1) ...[
+                        if (postTab[selectedIndex] == "Saved") ...[
                           _filterButtons(),
                           SizedBox(height: SizeConfig.size10),
                         ]

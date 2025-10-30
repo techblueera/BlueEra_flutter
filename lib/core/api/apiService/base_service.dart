@@ -424,7 +424,6 @@ abstract class BaseService {
   final String userFeedReport = "userfeed-service/report/add-reports";
   final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
-  final String socialLinksUpdate = "channel-service/channels/social-links/";
   final String getCountRating="user-service/business/getCountOfRating/";
   String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
   String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
@@ -475,5 +474,6 @@ abstract class BaseService {
   final String getAddressApi = "user-service/addresses";
   final String userFeedServiceVideo = "userfeed-service/feed/videos?";
   String videoCategories = "post-service/nature-of-posts";
+  String channelFollowingMe = "channel-service/follower/following/me";
 
 }

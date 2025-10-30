@@ -87,8 +87,8 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
     // Set tabs based on channel ownership
     if (!isOwnChannel) {
       _tabsList = [
-        ChannelTab.shorts,
-        ChannelTab.videos,
+        // ChannelTab.shorts,
+        // ChannelTab.videos,
         ChannelTab.posts,
         ChannelTab.product,
       ];
