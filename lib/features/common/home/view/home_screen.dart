@@ -26,9 +26,9 @@ import '../../../chat/contacts/view/be_available_contacts_list.dart';
 import 'video_feed_listing/video_feed_screen.dart';
 
 enum SavedFeedTab {
-  posts,
-  videos,
-  shorts;
+  posts;
+  // videos,
+  // shorts;
 
   /// Human-readable title (capitalised)
   String get title => name[0].toUpperCase() + name.substring(1);

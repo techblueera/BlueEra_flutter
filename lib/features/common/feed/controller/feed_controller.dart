@@ -357,7 +357,7 @@ class FeedController extends GetxController {
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: page,
       ApiKeys.limit: isInitialLoad ? initialFetchLimit : displayLimit,
-      ApiKeys.filter: postFilterType
+      ApiKeys.filter: postFilterType,
     };
 
     if (query == null) {
@@ -383,6 +383,8 @@ class FeedController extends GetxController {
         break;
       case PostType.otherChannelPosts:
         queryParams[ApiKeys.filter] = 'latest';
+        queryParams[ApiKeys.authorId] = id;
+
         response =
             await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
 

@@ -110,9 +110,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         position.pixels >= position.maxScrollExtent - 100; // 100px threshold
 
     if (isAtBottom) {
-      print('is At Bottom');
       final feedController = Get.find<FeedController>();
-      log('Posts pagination check - hasMoreData: ${feedController.isTargetHasMoreData.value}, isLoading: ${feedController.isLoading.value}');
       if (feedController.isTargetHasMoreData.isTrue &&
           feedController.isLoading.isFalse) {
         feedController.getPostsByType(

@@ -6,9 +6,12 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -16,14 +19,18 @@ import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
+import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
+import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/channel_setting_screen/channel_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/new_profile_header_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
@@ -31,17 +38,20 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/highlight_text_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:share_plus/share_plus.dart';
+import '../../../../../core/api/model/user_profile_res.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
-
 enum ChannelTab {
-  shorts,
-  videos,
+  // shorts,
+  // videos,
   posts,
   drafts,
   saved,
@@ -70,7 +80,8 @@ class ChannelScreen extends StatefulWidget {
   State<ChannelScreen> createState() => _ChannelScreenState();
 }
 
-class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProviderStateMixin {
+class _ChannelScreenState extends State<ChannelScreen>
+    with SingleTickerProviderStateMixin {
   ChannelController channelController = Get.put(ChannelController());
   final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
@@ -78,6 +89,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
 
   bool isOwnChannel = false;
   List<SortBy>? filters;
+  final controller = Get.put(VisitProfileController());
 
   @override
   void initState() {
@@ -116,13 +128,8 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
 
     if (currentTab == ChannelTab.posts) {
       filters = SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
-    } else if (currentTab == ChannelTab.videos || currentTab == ChannelTab.shorts) {
-      if (isOwnChannel) {
-        filters = SortBy.values.toList();
-      } else {
-        filters = SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
-      }
-    } else {
+    }
+    else {
       filters = null;
     }
   }
@@ -160,25 +167,22 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
         position.pixels >= position.maxScrollExtent - 100; // 100px threshold
 
     if (isAtBottom) {
-      print('is At Bottom');
       // Trigger pagination based on current tab
       switch (_tabController.index) {
         case 0:
-        // Trigger pagination for ShortsChannelSection
+          // Trigger pagination for ShortsChannelSection
           final shortsController = Get.find<ShortsController>();
           final shorts = _getShortsType();
           if (shortsController.isHasMoreData(shorts) &&
               shortsController.isMoreDataLoading(shorts).isFalse) {
             shortsController.isMoreDataLoading(shorts).value = true;
             shortsController.getShortsByType(
-                shorts, widget.channelId,
-                widget.authorId,
-                postVia: PostVia.channel
-            );
+                shorts, widget.channelId, widget.authorId,
+                postVia: PostVia.channel);
           }
           break;
         case 1:
-        // Trigger pagination for VideoChannelSection
+          // Trigger pagination for VideoChannelSection
           final videosController = Get.find<VideoController>();
           final videos = _getVideosType();
           if (videosController.isMoreDataAvailable &&
@@ -191,16 +195,16 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           }
           break;
         case 2:
-        // Trigger pagination for FeedScreen
+          // Trigger pagination for FeedScreen
           final feedController = Get.find<FeedController>();
           final postType = _getPostType();
-          log('Posts pagination check - hasMoreData: ${feedController.isTargetHasMoreData.value}, isLoading: ${feedController.isLoading.value}');
           if (feedController.isTargetHasMoreData.isTrue &&
               feedController.isLoading.isFalse) {
             feedController.getPostsByType(
               postType,
               isInitialLoad: false,
-              id: widget.authorId, screenName: '',
+              id: widget.authorId,
+              screenName: '',
             );
           }
           break;
@@ -294,236 +298,362 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildHeaderSection() {
-    return Container(
-      margin: EdgeInsets.all(8),
-      padding:  EdgeInsets.all(12),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(6),
-        color: Colors.white,
-
-
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+  void _showFullTextDialog(BuildContext context, String text) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          padding: EdgeInsets.all(SizeConfig.size20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: EdgeInsets.only(
-                    right: SizeConfig.size18,
-                    top: SizeConfig.size4
-                ),
-                child: CommonProfileImage(
-                  imagePath: channelController.channelLogo.value,
-                  onImageUpdate: (image) async {
-                    if (!isOwnChannel) return;
-
-                    final manageChannelController = Get.put(ManageChannelController());
-                    channelController.channelLogo.value = image;
-
-                    dio.MultipartFile? imageByPart;
-                    String fileName = image.split('/').last;
-                    imageByPart = await dio.MultipartFile.fromFile(
-                        image,
-                        filename: fileName
-                    );
-
-                    Map<String, dynamic> requestData = {
-                      ApiKeys.name: channelController.channelData.value?.name,
-                    };
-                    requestData[ApiKeys.logo] = imageByPart;
-
-                    await manageChannelController.updateChannel(
-                      reqData: requestData,
-                    );
-                  },
-                  dialogTitle: 'Upload Channel Logo',
-                  isOwnProfile: isOwnChannel,
+              Flexible(
+                child: SingleChildScrollView(
+                  child: HighlightText(
+                      text: text,
+                      style: TextStyle(
+                        color: AppColors.mainTextColor,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: AppConstants.OpenSans,
+                      )),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.size6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              channelController.channelData.value?.name ?? "",
-                              fontSize: SizeConfig.extraLarge,
-                              fontWeight: FontWeight.w700,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          SizedBox(width: SizeConfig.size5),
-                          if (channelController.channelData.value?.verification.isVerified ?? false)
-                            Padding(
-                              padding: EdgeInsets.only(top: SizeConfig.size4),
-                              child: LocalAssets(
-                                  imagePath: AppIconAssets.verifiedIcon
-                              ),
-                            ),
-                          SizedBox(width: SizeConfig.size10),
-                          if (!isOwnChannel)
-                            _buildVisitingChannelPopUpMenu(
-                              onReport: () {
-                                showReportDialog(
-                                    context: context,
-                                    onConfirm: (value) {
-                                      channelController.reportChannel(
-                                          channelId: channelId,
-                                          reason: value
-                                      );
-                                    }
-                                );
-                              },
-                              onMute: () {
-                                showMuteUnMuteDialog();
-                              },
-                              onOwnership: () {
-                                navigateToProfileSection();
-                              },
-                            )
-                          else
-                            _buildOwnChannelPopUpMenu(
-                              onChannelEdit: () async {
-                                final result = await Navigator.pushNamed(
-                                  context,
-                                  RouteHelper.getManageChannelScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.channelData: channelController.channelData.value,
-                                  },
-                                );
-                                if (result == true) {
-                                  channelController.getChannelDetails(
-                                      channelOrUserId: isOwnChannel ? widget.authorId : widget.channelId
-                                  );
-                                }
-                              },
-                              onChannelSetting: () {
-                                Get.to(() => ChannelSettingScreen());
-                              },
-                              onAddVideo: () {
-                                showVideosPickerDialog(context, type: PostVia.channel);
-                              },
-                              onAddProduct: () async {
-                                await Get.toNamed(
-                                    RouteHelper.getAddProductScreenRoute(),
-                                    arguments: {
-                                      ApiKeys.id: channelId,
-                                      ApiKeys.providerType: ProductServiceProviderType.channel
-                                    }
-                                );
-                              },
-                              onAddService: () {
-                                log('on service tap');
-                                Get.toNamed(
-                                    RouteHelper.getAddServicesScreenRoute(),
-                                    arguments: {
-                                      ApiKeys.channelId: channelId,
-                                      ApiKeys.providerType: ProductServiceProviderType.channel,
-                                    }
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.size2),
-                      CustomText(
-                        channelController.channelData.value?.username ?? "",
-                        color: AppColors.grey4C,
-                        fontSize: SizeConfig.small,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      Row(
-                        //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          buildStatBlock(
-                            channelController.channelStats.value?.posts.toString() ?? "0",
-                            "Posts",
-                          ),
-                          const SizedBox(width: 19,),
-                          GestureDetector(
-                            onTap: () {},
-                            child: buildStatBlock(
-                              channelController.channelStats.value?.followers.toString() ?? "0",
-                              "Followers",
-                            ),
-                          ),
-                          const SizedBox(width: 19,),
-
-                          GestureDetector(
-                            onTap: () {},
-                            child: buildStatBlock(
-                              channelController.channelStats.value?.following.toString() ?? "0",
-                              "Following",
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              SizedBox(height: SizeConfig.size8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: Navigator.of(context).pop,
+                  child: const CustomText('Close', fontWeight: FontWeight.w600),
                 ),
               ),
             ],
           ),
-          SizedBox(height: SizeConfig.size10),
-          CustomText(
-            channelController.channelData.value?.bio ?? "",
-            fontSize: SizeConfig.small,
-          ),
-          SizedBox(height: SizeConfig.size8),
-          Wrap(
-            spacing: 12,
-            children: channelController.channelData.value?.socialLinks
-                .map((link) {
-              final platform = link.platform.toLowerCase();
-              final url = link.url;
+        ),
+      ),
+    );
+  }
 
-              if (url.isEmpty) return const SizedBox();
+  Widget _buildHeaderSection() {
+    ChannelData? channelData = channelController.channelData.value;
+    String channelLogo = channelData?.logoUrl ?? "";
+    logs("channelData?.logoUrl ${channelData?.logoUrl}");
 
-              return InkWell(
-                onTap: () {
-                  channelController.launchSmartUrl(url);
-                },
-                child: LocalAssets(
-                  imagePath: _getIconForPlatform(platform),
-                  height: SizeConfig.size22,
-                ),
-              );
-            }).toList() ?? [],
-          ),
-          SizedBox(height: SizeConfig.size8),
-          if (!isOwnChannel) ...[
-            SizedBox(height: SizeConfig.size8),
-            Obx(()=> commonButtonWithIcon(
-              height: SizeConfig.size36,
-              width: SizeConfig.screenWidth,
-              onTap: () {
-                if (isGuestUser()) {
-                  createProfileScreen();
-                  return;
-                }
-                channelController.followUnfollowChannel(
-                  channelId: widget.channelId,
-                  isFollowing: channelController.isChannelFollow.value,
-                );
-              },
-              title: channelController.isChannelFollow.isTrue ? "Following" : "Follow",
-              icon: AppIconAssets.personFollowIcon,
-              iconColor: AppColors.white,
-              bgColor: AppColors.primaryColor,
-              isPrefix: false,
-              radius: SizeConfig.size8,
-            )),
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
+
+      child: CustomFormCard(
+        padding: EdgeInsets.zero,
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            /// ==== Banner ====
+            Container(
+              height: 180,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    height: 130,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8DD0F7),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                      image: ((channelLogo.isNotEmpty))
+                          ? DecorationImage(
+                              image: NetworkImage(channelLogo),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                  ),
+
+                  /// ==== Profile Image ====
+                  Positioned(
+                    left: 20,
+                    top: 90,
+                    child: CircleAvatar(
+                      radius: 38,
+                      backgroundColor: AppColors.white,
+                      child: CircleAvatar(
+                        radius: 35,
+                        backgroundImage: (channelLogo.isNotEmpty)
+                            ? NetworkImage(channelLogo)
+                            : null,
+                        backgroundColor: AppColors.primaryColor,
+                        child: (channelLogo.isEmpty)
+                            ? CustomText(
+                                getInitials(channelData?.name),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: SizeConfig.size20,
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+
+                  /// ==== Follow Button + Menu ====
+                  Positioned(
+                    right: 14,
+                    top: 140,
+                    child: Row(
+                      children: [
+                        if  (!isOwnChannel)
+                          Obx(() {
+                            return GestureDetector(
+                              onTap: () async {
+                                if (isGuestUser()) {
+                                  createProfileScreen();
+                                } else {
+                                  if (controller.isFollow.value) {
+                                    await controller.unFollowUserController(
+                                        candidateResumeId: channelData?.id);
+                                  } else {
+                                    await controller.followUserController(
+                                        candidateResumeId: channelData?.id);
+                                  }
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 13, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: controller.isFollow.value
+                                      ? AppColors.colorTextDarkGrey
+                                      : AppColors.primaryColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CustomText(
+                                      controller.isFollow.value ? "Unjoin" : "Join",
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: SizeConfig.size10,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Icon(
+                                      Icons.person_add_alt,
+                                      color: Colors.white,
+                                      size: 14,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        (!isOwnChannel)
+                            ? _buildVisitingChannelPopUpMenu(onReport: () {
+                                showReportDialog(
+                                    context: context,
+                                    onConfirm: (value) {
+                                      channelController.reportChannel(
+                                          channelId: channelId, reason: value);
+                                    });
+                              },
+                                // onBlock: (){
+                                //   showBlockUnBlockDialog();
+                                // },
+                                onMute: () {
+                                showMuteUnMuteDialog();
+                              }, onOwnership: () {
+                                navigateToProfileSection();
+                              })
+                            : _buildOwnChannelPopUpMenu(
+                                onChannelEdit: () async {
+                                  final result = await Navigator.pushNamed(
+                                    context,
+                                    RouteHelper.getManageChannelScreenRoute(),
+                                    arguments: {
+                                      ApiKeys.channelData:
+                                          channelController.channelData.value,
+                                    },
+                                  );
+                                  if (result == true) {
+                                    channelController.getChannelDetails(
+                                        channelOrUserId: isOwnChannel
+                                            ? widget.authorId
+                                            : widget.channelId);
+                                  }
+                                },
+                                // onchannelSetting: () {
+                                //   Get.to(() => ChannelSettingScreen());
+                                // },
+                                onAddVideo: () {
+                                  showVideosPickerDialog(context,
+                                      type: PostVia.channel);
+                                },
+                                onAddProduct: () {
+                                  Get.toNamed(
+                                      RouteHelper.getAddUpdateProductScreenRoute(),
+                                      arguments: {
+                                        ApiKeys.channelId: widget.channelId,
+                                      });
+                                },
+                              ),
+
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // const SizedBox(height: 45),
+
+            /// ==== Name + Username ====
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    channelData?.name ?? '',
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (channelData?.username != null &&
+                          (channelData?.username?.isNotEmpty ?? false))
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size10,
+                              vertical: SizeConfig.size4),
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: AppColors.secondaryTextColor),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: CustomText(
+                            "@${channelData?.username}",
+                            fontSize: SizeConfig.extraSmall,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            /// ==== Stats Row ====
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  statBlock("Post",
+                      channelController.channelStats.value?.posts.toString() ?? "0"),
+                  const SizedBox(width: 20),
+
+                  //  _divider(),
+                  InkWell(
+                    onTap: () {
+                      Get.to(() => FollowersFollowingPage(
+                          tabIndex: 0,
+                          userID: channelData?.id??""));
+                    },
+                    child: statBlock(
+                        "Following",
+                        channelController.channelStats.value?.following.toString() ??
+                            "0"),
+                  ),
+                  const SizedBox(width: 20),
+
+                  //  _divider(),
+                  InkWell(
+                    onTap: () {
+                      Get.to(() => FollowersFollowingPage(
+                          tabIndex: 1,
+                          userID:channelData?.id??""));
+                    },
+                    child: statBlock(
+                        "Followers",  channelController.channelStats.value?.followers.toString()??"0"),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            /// ==== Bio ====
+            // if ((user?.bio ?? '').trim().isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+              child: RichText(
+                text: TextSpan(children: [
+                  TextSpan(
+                    text: channelData?.bio != null &&
+                            (channelData?.bio.isNotEmpty ?? false)
+                        ? (channelData?.bio ?? "")
+                        : 'No bio available',
+                    style: TextStyle(
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '   Read More',
+                    style: TextStyle(
+                      fontSize: SizeConfig.size12,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        _showFullTextDialog(context, channelData?.bio ?? '');
+                      },
+                  ),
+                ]),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+            // if (!isOwnChannel) ...[
+            //   SizedBox(height: SizeConfig.size8),
+            //   Obx(() => commonButtonWithIcon(
+            //         height: SizeConfig.size36,
+            //         width: SizeConfig.screenWidth,
+            //         onTap: () {
+            //           if (isGuestUser()) {
+            //             createProfileScreen();
+            //             return;
+            //           }
+            //           channelController.followUnfollowChannel(
+            //             channelId: widget.channelId,
+            //             isFollowing: channelController.isChannelFollow.value,
+            //           );
+            //         },
+            //         title: channelController.isChannelFollow.isTrue
+            //             ? "Following"
+            //             : "Follow",
+            //         icon: AppIconAssets.personFollowIcon,
+            //         iconColor: AppColors.white,
+            //         bgColor: AppColors.primaryColor,
+            //         isPrefix: false,
+            //         radius: SizeConfig.size8,
+            //       )),
+            // ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -548,12 +678,13 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     foregroundColor: isSelected ? Colors.white : Colors.black54,
-                    backgroundColor: isSelected ? AppColors.primaryColor : Colors.white,
+                    backgroundColor:
+                        isSelected ? AppColors.primaryColor : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(SizeConfig.size10),
                       side: BorderSide(
-                          color: isSelected ? Colors.blue.shade100 : Colors.grey
-                      ),
+                          color:
+                              isSelected ? Colors.blue.shade100 : Colors.grey),
                     ),
                     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size2),
                     minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
@@ -609,7 +740,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
 
   Widget _buildTabContent(ChannelTab tab) {
     switch (tab) {
-      case ChannelTab.shorts:
+/*      case ChannelTab.shorts:
         return ShortsChannelSection(
           isOwnShorts: isOwnChannel,
           sortBy: channelController.selectedFilter,
@@ -625,10 +756,11 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           channelId: isOwnChannel ? '' : widget.channelId,
           authorId: widget.authorId,
           postVia: PostVia.channel,
-        );
+        );*/
       case ChannelTab.posts:
         return FeedScreen(
-          key: ValueKey(isOwnChannel ? 'own_channel_posts' : 'visiting_channel_posts'),
+          key: ValueKey(
+              isOwnChannel ? 'own_channel_posts' : 'visiting_channel_posts'),
           id: widget.authorId,
           postFilterType: _getPostType(),
           isInParentScroll: true,
@@ -657,7 +789,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           channelId: channelId,
           providerType: ProductServiceProviderType.channel,
         );
-        // return ProductScreen();
+      // return ProductScreen();
     }
   }
 
@@ -679,11 +811,10 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildVisitingChannelPopUpMenu({
-    VoidCallback? onReport,
-    VoidCallback? onMute,
-    VoidCallback? onOwnership
-  }) {
+  Widget _buildVisitingChannelPopUpMenu(
+      {VoidCallback? onReport,
+      VoidCallback? onMute,
+      VoidCallback? onOwnership}) {
     return PopupMenuButton<VisitingChannelMenuAction>(
       padding: EdgeInsets.zero,
       color: AppColors.white,
@@ -710,17 +841,20 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
         PopupMenuItem(
           value: VisitingChannelMenuAction.reportChannel,
           child: Text("Report Channel",
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ),
         PopupMenuItem(
           value: VisitingChannelMenuAction.muteAccount,
           child: Text("Mute Account",
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ),
         PopupMenuItem(
           value: VisitingChannelMenuAction.ownership,
           child: Text("Ownership",
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ),
       ],
       child: Padding(
@@ -828,7 +962,8 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
       builder: (context) {
         return Dialog(
           backgroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
@@ -843,7 +978,8 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
                       Container(
                         width: double.infinity,
                         alignment: Alignment.center,
-                        padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(vertical: SizeConfig.size10),
                         child: CustomText(
                           "Report Content",
                           fontSize: SizeConfig.large,
@@ -905,8 +1041,7 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
           Navigator.of(context).pop();
         },
         confirmText: 'Confirm',
-        cancelText: 'Cancel'
-    );
+        cancelText: 'Cancel');
   }
 
   void navigateToProfileSection() {
@@ -916,13 +1051,19 @@ class _ChannelScreenState extends State<ChannelScreen> with SingleTickerProvider
       if (authorId == userId) {
         Get.to(() => PersonalProfileSetupScreen());
       } else {
-        Get.to(() => NewVisitProfileScreen(authorId: authorId, screenFromName: AppConstants.feedScreen,));
+        Get.to(() => NewVisitProfileScreen(
+              authorId: authorId,
+              screenFromName: AppConstants.feedScreen,
+            ));
       }
     } else {
       if (authorId == userId) {
         Get.to(() => BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfileNew(businessId: authorId, screenName:  AppConstants.feedScreen,));
+        Get.to(() => VisitBusinessProfileNew(
+              businessId: authorId,
+              screenName: AppConstants.feedScreen,
+            ));
       }
     }
   }
@@ -941,7 +1082,8 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => hasFilters ? 90.0 : 50.0;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 12),
       padding: EdgeInsets.only(top: 8),

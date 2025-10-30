@@ -90,6 +90,8 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
 
                   return InkWell(
                     onTap: (){
+                      final channelData =
+                      channelFeedController.channelDataList[index];
                       Get.to(() => ChannelFeedPostListingScreen(
                       channelData: channelData,
                       ));

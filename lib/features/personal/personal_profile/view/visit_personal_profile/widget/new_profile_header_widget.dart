@@ -327,7 +327,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                _statBlock(
+                statBlock(
                     "Post",
                     controller.userData.value?.totalPosts?.toString() ??
                         "0"),
@@ -339,7 +339,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     Get.to(() => FollowersFollowingPage(
                         tabIndex: 0, userID: user?.id ?? ""));
                   },
-                  child: _statBlock(
+                  child: statBlock(
                       "Following",
                       controller.userData.value?.followingCount?.toString() ??
                           "0"),
@@ -352,7 +352,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     Get.to(() => FollowersFollowingPage(
                         tabIndex: 1, userID: user?.id ?? ""));
                   },
-                  child: _statBlock("Followers",
+                  child: statBlock("Followers",
                       controller.followerCount.value.toString()),
                 ),
               ],
@@ -439,23 +439,23 @@ class NewProfileHeaderWidget extends StatelessWidget {
     );
   }
 
-  Widget _statBlock(String label, String count) {
-    return Row(
-      children: [
-        CustomText(
-          count,
-          fontSize: SizeConfig.size14,
-          fontWeight: FontWeight.w700,
-          color: AppColors.mainTextColor,
-        ),
-        const SizedBox(width: 4,),
-        CustomText(
-          label,
-          fontSize: SizeConfig.size14,
-          color: AppColors.secondaryTextColor,
-        ),
-      ],
-    );
-  }
 
+}
+Widget statBlock(String label, String count) {
+  return Row(
+    children: [
+      CustomText(
+        count,
+        fontSize: SizeConfig.size14,
+        fontWeight: FontWeight.w700,
+        color: AppColors.mainTextColor,
+      ),
+      const SizedBox(width: 4,),
+      CustomText(
+        label,
+        fontSize: SizeConfig.size14,
+        color: AppColors.secondaryTextColor,
+      ),
+    ],
+  );
 }
