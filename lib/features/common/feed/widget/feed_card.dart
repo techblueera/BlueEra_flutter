@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -107,44 +108,56 @@ class _FeedCardState extends State<FeedCard> {
     return buildPostWidget();
   }
 
-  // onTap: (widget.isFromDetailsScreen ?? false)
-  // ? null
-  //     : () {
-  // Get.to(MessagePostDetailsScreen(
-  // post: _post,
-  // postType: widget.postFilteredType,
-  // ));
-  // },
   Widget buildPostWidget() {
     FeedType? feedType = FeedType.fromValue(_post?.type?.toUpperCase());
     switch (feedType) {
       case FeedType.messagePost || FeedType.photoPost:
-        return MessagePostWidget(
-          horizontalPadding: widget.horizontalPadding,
-          bottomPadding: widget.bottomPadding,
-          post: _post,
-          isRepost: widget.isRepost,
-          isShowOnlyDetails: widget.isFromDetailsScreen,
-          authorSection: () => IgnorePointer(
-            ignoring: widget.isRepost == true ? true : false,
-            child: PostAuthorHeader(
-              post: _post,
-              isRepost: widget.isRepost,
-              authorId: _post?.user?.id ?? '0',
-              postType: widget.postFilteredType,
-              onTapAvatar: _shouldShowProfileNavigation()
-                  ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
-                  : null,
-            ),
-          ),
-          commentView: () => _onCommentPressed(),
-          buildActions:SizedBox.shrink, likeFeed: () {
-          _onLikeDislikePressed();
-        }, onShareButtonPressed: () {
-          onShareButtonPressed(_post);
+        return widget.postFilteredType == PostType.otherChannelPosts
+            ? ChannelFeedMessagePostWidget(
+                horizontalPadding: widget.horizontalPadding,
+                bottomPadding: widget.bottomPadding,
+                post: _post,
+                isRepost: false,
+                isShowOnlyDetails: widget.isFromDetailsScreen,
+                authorSection: () => SizedBox.shrink(),
+                commentView: () => _onCommentPressed(),
+                buildActions: SizedBox.shrink,
+                likeFeed: () {
+                  _onLikeDislikePressed();
+                },
+                onShareButtonPressed: () {
+                  onShareButtonPressed(_post);
+                },
 
-        }  ,
-          /*buildActions: (widget.isRepost ?? false)
+              )
+            : MessagePostWidget(
+                horizontalPadding: widget.horizontalPadding,
+                bottomPadding: widget.bottomPadding,
+                post: _post,
+                isRepost: widget.isRepost,
+                isShowOnlyDetails: widget.isFromDetailsScreen,
+                authorSection: () => IgnorePointer(
+                  ignoring: widget.isRepost == true ? true : false,
+                  child: PostAuthorHeader(
+                    post: _post,
+                    isRepost: widget.isRepost,
+                    authorId: _post?.user?.id ?? '0',
+                    postType: widget.postFilteredType,
+                    onTapAvatar: _shouldShowProfileNavigation()
+                        ? () =>
+                            _navigateToProfile(authorId: _post?.user?.id ?? '0')
+                        : null,
+                  ),
+                ),
+                commentView: () => _onCommentPressed(),
+                buildActions: SizedBox.shrink,
+                likeFeed: () {
+                  _onLikeDislikePressed();
+                },
+                onShareButtonPressed: () {
+                  onShareButtonPressed(_post);
+                },
+                /*buildActions: (widget.isRepost ?? false)
               ? SizedBox.shrink
               : () => PostActionsBar(
                     post: _post,
@@ -166,7 +179,7 @@ class _FeedCardState extends State<FeedCard> {
                       onShareButtonPressed(_post);
                     },
                   ),*/
-        );
+              );
 
       case FeedType.qaPost:
         return QaPostWidget(

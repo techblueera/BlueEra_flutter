@@ -46,8 +46,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     'My Products',
     'Subscription',
     'My Posts',
-    'Shorts',
-    'Videos',
+    // 'Shorts',
+    // 'Videos',
   ];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;

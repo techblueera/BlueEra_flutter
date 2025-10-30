@@ -356,10 +356,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         // 📄 Title or Caption (bottom left)
                         if (widget.video.title.isNotEmpty)
                           ExpandableText(
-                            text:
-                                "Would you like me to extend this so that it preloads the next 1–2 videos automatically using VideoCacheManager?That would make scrolling totally seamless with no buffer delay.",
-                            // text: widget.video.title ?? '',
-                            trimLines: 2,
+                            text: widget.video.title ?? '',
+                            trimLines: 2,isReadMoreNewLine: true,
                             expandMode: ExpandMode.dialog,
                             style: TextStyle(
                               color: AppColors.white,

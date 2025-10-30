@@ -198,7 +198,14 @@ String formatIndianNumber(num number) {
     return number.toString();
   }
 }
-
+String formatTime(String utcString) {
+  try {
+    final date = DateTime.parse(utcString).toLocal(); // convert to local timezone
+    return DateFormat('hh:mm a').format(date); // e.g., 11:40 AM
+  } catch (e) {
+    return '';
+  }
+}
 String formatNumberLikePost(int number) {
   if (number >= 10000000) {
     return '${(number / 10000000).toStringAsFixed((number % 10000000 == 0) ? 0 : 1)}M';
