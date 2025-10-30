@@ -21,13 +21,13 @@ class PermissionService {
         ));
       }
 
-      final contactGranted = await _checkContactPermission();
-      if (!contactGranted) {
-        missingPermissions.add(PermissionItem(
-          icon: Icons.contacts,
-          label: 'Contacts',
-        ));
-      }
+      // final contactGranted = await _checkContactPermission();
+      // if (!contactGranted) {
+      //   missingPermissions.add(PermissionItem(
+      //     icon: Icons.contacts,
+      //     label: 'Contacts',
+      //   ));
+      // }
 
       // final galleryGranted = await _checkGalleryPermission();
       // if (!galleryGranted) {

@@ -513,4 +513,14 @@ double calculateDiscount(String priceText, String mrpText) {
   return double.parse(formatted);
 }
 
+Map<String, dynamic> normalizeMap(dynamic value) {
+  if (value is Map) {
+    return value.map(
+          (key, val) => MapEntry(key.toString(), normalizeMap(val)),
+    );
+  } else {
+    return value;
+  }
+}
+
 

@@ -1,19 +1,34 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:hive/hive.dart';
 
 class HiveServices{
   static const String _savedPosts = 'savedPosts';
   static const String _savedVideos = 'savedVideos';
+  static const String _savedAllNearByStoreFeed = 'savedAllNearByStoreFeed';
+  static const String _savedAllNearByStore = 'savedAllNearByStore';
+  static const String _savedAllNearByStoreProduct = 'savedAllNearByStoreProduct';
+  static const String _savedAllNearByStoreService = 'savedAllNearByStoreService';
+  static const String _savedAllNearByStoresFoodServices = 'savedAllNearByStoresFoodServices';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
     await Hive.openBox(_savedPosts);
     await Hive.openBox(_savedVideos);
+    await Hive.openBox(_savedAllNearByStoreFeed);
+    await Hive.openBox(_savedAllNearByStore);
+    await Hive.openBox(_savedAllNearByStoreProduct);
+    await Hive.openBox(_savedAllNearByStoreService);
+    await Hive.openBox(_savedAllNearByStoresFoodServices);
   }
 
   bool isPostSaved(String id) {
@@ -58,8 +73,6 @@ class HiveServices{
     return posts;
   }
 
-
-
   Post? getPostById(String postId) {
     final box = Hive.box(_savedPosts);
     final String key = '${userId}_$postId';
@@ -79,7 +92,6 @@ class HiveServices{
     final String key = '${userId}_$postId';
     await box.delete(key);
   }
-
 
   bool isVideoSaved(String id) {
     final box = Hive.box(_savedVideos);
@@ -152,5 +164,262 @@ class HiveServices{
   // Future<void> deleteConversation(String userId, String convoId) async {
   //   await box.delete('${userId}_$convoId');
   // }
+
+  /// Store Feed
+  Future<bool> saveAllStoresFeeds(
+      List<AllStoresFeedData> allStoresFeedData,
+      String userId,
+      ) async {
+    try {
+      final box = Hive.box(_savedAllNearByStoreFeed);
+      final String key = 'user_$userId'; // Better key naming
+
+      // Convert all items to JSON list
+      final List<Map<String, dynamic>> jsonList =
+      allStoresFeedData.map((item) => item.toJson()).toList();
+
+      await box.put(key, jsonList);
+
+      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      return true;
+    } catch (e) {
+      print('Error saving stores feed: $e');
+      return false;
+    }
+  }
+
+  Future<List<AllStoresFeedData>?> getAllStoresFeeds(String userId) async {
+    try {
+      final box = Hive.box(_savedAllNearByStoreFeed);
+      final String key = 'user_$userId';
+
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached stores feed found for user: $userId');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<AllStoresFeedData> feedList = data
+          .map((json) => AllStoresFeedData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${feedList.length} stores feed items for user: $userId');
+      return feedList;
+    } catch (e) {
+      print('Error loading stores feed: $e');
+      return null;
+    }
+  }
+
+  /// All Stores
+  Future<bool> saveAllStore(
+      List<GetAllStoreResModel> allStoresData,
+      String userId,
+      ) async {
+    try {
+      final box = Hive.box(_savedAllNearByStore);
+      final String key = 'user_$userId'; // Better key naming
+
+      // Convert all items to JSON list
+      final List<Map<String, dynamic>> jsonList =
+      allStoresData.map((item) => item.toJson()).toList();
+
+      await box.put(key, jsonList);
+
+      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      return true;
+    } catch (e) {
+      print('Error saving stores feed: $e');
+      return false;
+    }
+  }
+
+  Future<List<GetAllStoreResModel>?> getAllStore(String userId) async {
+    try {
+      final box = Hive.box(_savedAllNearByStore);
+      final String key = 'user_$userId';
+
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached stores feed found for user: $userId');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<GetAllStoreResModel> storesList = data
+          .map((json) => GetAllStoreResModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${storesList.length} stores feed items for user: $userId');
+      return storesList;
+    } catch (e) {
+      print('Error loading stores feed: $e');
+      return null;
+    }
+  }
+
+  /// All Stores Products
+  Future<bool> saveAllStoreProduct(
+      List<GetProductData> allStoresProductsData,
+      String userId,
+      ) async {
+    try {
+      final box = Hive.box(_savedAllNearByStoreProduct);
+      final String key = 'user_$userId';
+
+      final List<Map<String, dynamic>> jsonList =
+      allStoresProductsData.map((item) => item.toJson()).toList();
+
+      await box.put(key, jsonList);
+
+      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      return true;
+    } catch (e) {
+      print('Error saving stores feed: $e');
+      return false;
+    }
+  }
+
+  Future<List<GetProductData>?> getAllStoreProduct(String userId) async {
+    try {
+      final box = Hive.box(_savedAllNearByStoreProduct);
+      final String key = 'user_$userId';
+
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached stores feed found for user: $userId');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<GetProductData> storesProductsList = data
+          .map((json) => GetProductData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${storesProductsList.length} stores feed items for user: $userId');
+      return storesProductsList;
+    } catch (e) {
+      print('Error loading stores feed: $e');
+      return null;
+    }
+  }
+
+  /// All Stores Services
+  Future<bool> saveAllStoreServices(
+      List<GetServiceModel> allStoresServicesData,
+      String userId,
+      ) async {
+    try {
+      final box = Hive.box(_savedAllNearByStoreService);
+      final String key = 'user_$userId';
+
+      final List<Map<String, dynamic>> jsonList =
+      allStoresServicesData.map((item) => item.toJson()).toList();
+
+      await box.put(key, jsonList);
+
+      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      return true;
+    } catch (e) {
+      print('Error saving stores feed: $e');
+      return false;
+    }
+  }
+
+  Future<List<GetServiceModel>?> getAllStoreServices(String userId) async {
+    try {
+      final box = Hive.box(_savedAllNearByStoreService);
+      final String key = 'user_$userId';
+
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached stores feed found for user: $userId');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<GetServiceModel> storesServicesList = data
+          .map((json) => GetServiceModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${storesServicesList.length} stores feed items for user: $userId');
+      return storesServicesList;
+    } catch (e) {
+      print('Error loading stores feed: $e');
+      return null;
+    }
+  }
+
+  /// All Stores Food Services
+  Future<bool> saveAllStoreFoodServices(
+        List<GetFoodDetailsModel> allStoresFoodServicesData,
+        String userId,
+        ) async {
+      try {
+        final box = Hive.box(_savedAllNearByStoresFoodServices);
+        final String key = 'user_$userId';
+
+        final List<Map<String, dynamic>> jsonList =
+        allStoresFoodServicesData.map((item) => item.toJson()).toList();
+
+        await box.put(key, jsonList);
+
+        print('Saved ${jsonList.length} stores feed items for user: $userId');
+        return true;
+      } catch (e) {
+        print('Error saving stores feed: $e');
+        return false;
+      }
+    }
+
+    Future<List<GetFoodDetailsModel>?> getAllStoreFoodServices(String userId) async {
+      try {
+        final box = Hive.box(_savedAllNearByStoresFoodServices);
+        final String key = 'user_$userId';
+
+        final data = box.get(key);
+
+        if (data == null) {
+          print('No cached stores feed found for user: $userId');
+          return null;
+        }
+
+        if (data is! List) {
+          print('Invalid data type in Hive: ${data.runtimeType}');
+          return null;
+        }
+
+        final List<GetFoodDetailsModel> storesFoodServicesList = data
+            .map((json) => GetFoodDetailsModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+            .toList();
+
+        print('Loaded ${storesFoodServicesList.length} stores feed items for user: $userId');
+        return storesFoodServicesList;
+      } catch (e) {
+        print('Error loading stores feed: $e');
+        return null;
+      }
+    }
 
 }

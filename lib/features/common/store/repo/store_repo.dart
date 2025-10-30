@@ -7,11 +7,12 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 class StoreRepo extends BaseService {
   ///GET STORE......
   Future<ResponseModel> getStore({required int page, required String? lat, String? long}) async {
+    int limit = 40;
     String? url = getStoreListing;
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
-      url = "$getStoreListing?page=$page&lat=$lat&lng=$long&radius=$kmRadius1000";
+      url = "$getStoreListing?page=$page&limit=$limit&lat=$lat&lng=$long&radius=$kmRadius1000";
     } else {
-      url = "$getStoreListing?page=$page&radius=$kmRadius1000";
+      url = "$getStoreListing?page=$page&limit=$limit&radius=$kmRadius1000";
     }
 
     // if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
@@ -44,12 +45,13 @@ class StoreRepo extends BaseService {
 
   Future<ResponseModel> homePageProductRepo(
       {required int page, required String? lat, required String? long}) async {
+    int limit = 40;
     String? url;
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
       url =
-          "$homePageProduct?${ApiKeys.page}=$page&${ApiKeys.latitude}=$lat&${ApiKeys.longitude}=$long&${ApiKeys.maxDistance}=$kmRadius1000";
+          "$homePageProduct?${ApiKeys.page}=$page&${ApiKeys.limit}=$limit&${ApiKeys.latitude}=$lat&${ApiKeys.longitude}=$long&${ApiKeys.maxDistance}=$kmRadius1000";
     } else {
-      url = "$homePageProduct?${ApiKeys.page}=$page&${ApiKeys.maxDistance}=$kmRadius1000";
+      url = "$homePageProduct?${ApiKeys.page}=$page&${ApiKeys.limit}=$limit&${ApiKeys.maxDistance}=$kmRadius1000";
     }
     final response = await ApiBaseHelper().getHTTP(
       url,
@@ -60,7 +62,7 @@ class StoreRepo extends BaseService {
     return response;
   }
 
-  ///GET STORE......
+  ///GET STORE FEED(PRODUCTS, SERVICE , STORES)......
   Future<ResponseModel> getAllStoresFeed({required int page, String? lat, String? long}) async {
     Map<String, dynamic> queryParams = {};
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {

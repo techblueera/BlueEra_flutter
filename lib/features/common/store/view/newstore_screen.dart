@@ -233,19 +233,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     return Obx(() {
       final selectedTab = controller.selectedStoreIndex.value;
 
-      if (controller.isAllStoreFeedFirstLoading.value) {
-        return SliverToBoxAdapter(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-              ),
-            ),
-          ),
-        );
-      }
-
       switch (selectedTab) {
         case 0: // All Stores
           return _buildAllStoresSliverList(ds);
@@ -271,6 +258,19 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 // Case 0: All Stores Feed
   Widget _buildAllStoresSliverList(double Function(double) ds) {
     final items = List<AllStoresFeedData>.from(controller.allNearByStoresFeed);
+
+    if (controller.isAllStoreFeedFirstLoading.value) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (items.isEmpty) {
       return const SliverToBoxAdapter(
@@ -406,7 +406,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
     if (controller.isFoodDataFirstLoading.value) {
       return const SliverToBoxAdapter(
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(
+            child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: CircularProgressIndicator(),
+        )),
       );
     }
 

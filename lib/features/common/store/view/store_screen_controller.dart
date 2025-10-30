@@ -5,7 +5,9 @@ import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
@@ -16,6 +18,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../food/model/get_food_details_model.dart';
 import '../../food/repo/food_ai_repo.dart';
@@ -76,49 +79,27 @@ class StoreScreenController extends GetxController {
     try {
       isAllStoreFeedFirstLoading.value = true;
 
+      // Try to load cached feed first
+      final cachedFeed = await HiveServices().getAllStoresFeeds(userId);
+      if (cachedFeed != null && cachedFeed.isNotEmpty) {
+        allNearByStoresFeed.assignAll(cachedFeed);
+        isAllStoreFeedFirstLoading.value = false;
+      }else{
+        allNearByStoresFeed.clear();
+      }
+
       final locationData = await LocationService.fetchLocation(
         isPermissionRequired: true,
       );
 
-      if (locationData != null) {
-        // Permission granted and GPS enabled → fetch stores
-        await getAllStoresFeedNearBy();
-      } else {
-        // Permission or GPS not enabled
+      if (locationData == null) {
         print("Location not granted or GPS not enabled");
-
         Get.find<BottomBarController>().currentIndex.value = 0;
-
-        // Show a dialog and retry after user action
-        // await Get.dialog(
-        //   AlertDialog(
-        //     backgroundColor: AppColors.white,
-        //     title: CustomText(
-        //       "Location Required",
-        //       color: AppColors.black28,
-        //       fontWeight: FontWeight.w700,
-        //     ),
-        //     content: CustomText(
-        //       "This feature requires location access. Please enable location and try again.",
-        //       color: AppColors.black28,
-        //     ),
-        //     actions: [
-        //       TextButton(
-        //         onPressed: () {
-        //           Get.back(); // close dialog
-        //           checkAndFetchAllStoresFeed(); // retry
-        //         },
-        //         child: CustomText(
-        //           "OK",
-        //           color: AppColors.primaryColor,
-        //           fontWeight: FontWeight.w600,
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        //   barrierDismissible: false,
-        // );
+        return;
       }
+
+       // Then fetch latest in background
+       await getAllStoresFeedNearBy();
     } catch (e) {
       getAllStoreFeedResponse.value = ApiResponse.error('error');
     } finally {
@@ -133,10 +114,8 @@ class StoreScreenController extends GetxController {
       if (isAllStoreFeedLoadingMore.value || !allStoreFeedHasMore) return;
       isAllStoreFeedLoadingMore.value = true;
     } else {
-      isAllStoreFeedFirstLoading.value = true;
       allStoreFeedPage = 1;
       allStoreFeedHasMore = true;
-      allNearByStoresFeed.clear();
     }
     try {
       final response = await StoreRepo().getAllStoresFeed(
@@ -159,6 +138,7 @@ class StoreScreenController extends GetxController {
             allNearByStoresFeed.addAll(newData);
           } else {
             allNearByStoresFeed.assignAll(newData);
+            await HiveServices().saveAllStoresFeeds(allNearByStoresFeed, userId);
           }
           allStoreFeedPage++;
         }
@@ -181,9 +161,15 @@ class StoreScreenController extends GetxController {
       isFoodDataLoadingMore.value = true;
     } else {
       isFoodDataFirstLoading.value = true;
+      final cachedFood = await HiveServices().getAllStoreFoodServices(userId);
+      if (cachedFood != null && cachedFood.isNotEmpty) {
+        foodDataList.assignAll(cachedFood);
+        isFoodDataFirstLoading.value = false;
+      } else {
+        foodDataList.clear();
+      }
       foodDataPage = 1;
       foodDataHasMore = true;
-      foodDataList.clear();
     }
 
     try {
@@ -191,7 +177,8 @@ class StoreScreenController extends GetxController {
       ApiKeys.page: foodDataPage,
       ApiKeys.all: true,
       "type": "food",
-      "radius": kmRadius1000
+      "radius": kmRadius1000,
+      'limit': 40
     };
     ResponseModel responseModel =
         await FoodAiRepo().getFoodService(queryParam: params);
@@ -218,6 +205,7 @@ class StoreScreenController extends GetxController {
           foodDataList.addAll(newItems);
         } else {
           foodDataList.assignAll(newItems);
+          await HiveServices().saveAllStoreFoodServices(newItems, userId);
         }
 
         foodDataPage++;
@@ -248,9 +236,15 @@ class StoreScreenController extends GetxController {
       isAllStoreLoadingMore.value = true;
     } else {
       isAllStoreFirstLoading.value = true;
+      final cachedFood = await HiveServices().getAllStore(userId);
+      if (cachedFood != null && cachedFood.isNotEmpty) {
+        allStore.assignAll(cachedFood);
+        isAllStoreFirstLoading.value = false; // show instantly
+      } else {
+        allStore.clear();
+      }
       allStorePage = 1;
       allStoreHasMore = true;
-      allStore.clear();
     }
 
     try {
@@ -284,6 +278,7 @@ class StoreScreenController extends GetxController {
             allStore.addAll(newStores);
           } else {
             allStore.assignAll(newStores);
+            await HiveServices().saveAllStore(allStore, userId);
           }
 
           allStorePage++;
@@ -317,13 +312,19 @@ class StoreScreenController extends GetxController {
       isStoreProductDataLoadingMore.value = true;
     } else {
       isStoreProductDataFirstLoading.value = true;
+      final cachedFood = await HiveServices().getAllStoreProduct(userId);
+      if (cachedFood != null && cachedFood.isNotEmpty) {
+        storeProductDataList.assignAll(cachedFood);
+        isStoreProductDataFirstLoading.value = false;
+      } else {
+        storeProductDataList.clear();
+      }
+
       storeProductDataPage = 1;
       storeProductDataHasMore = true;
-      storeProductDataList.clear();
     }
 
     try {
-
       final response = await StoreRepo().homePageProductRepo(
           page: storeProductDataPage,
           lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
@@ -343,6 +344,8 @@ class StoreScreenController extends GetxController {
             storeProductDataList.addAll(newData);
           } else {
             storeProductDataList.assignAll(newData);
+            await HiveServices().saveAllStoreProduct(storeProductDataList, userId);
+
           }
           storeProductDataPage++;
         }
@@ -369,9 +372,16 @@ class StoreScreenController extends GetxController {
       isServiceDataLoadingMore.value = true;
     } else {
       isServiceDataFirstLoading.value = true;
+      final cachedFood = await HiveServices().getAllStoreServices(userId);
+      if (cachedFood != null && cachedFood.isNotEmpty) {
+        serviceDataList.assignAll(cachedFood);
+        isServiceDataFirstLoading.value = false;
+      } else {
+        serviceDataList.clear();
+      }
+
       serviceDataPage = 1;
       serviceDataHasMore = true;
-      serviceDataList.clear();
     }
 
     try {
@@ -379,7 +389,7 @@ class StoreScreenController extends GetxController {
         queryParams: {
           ApiKeys.page: serviceDataPage,
           ApiKeys.all: true,
-          // "limit": 10,
+          "limit": 40,
           "radius": kmRadius1000,
           "type": "service",
         },
@@ -405,6 +415,7 @@ class StoreScreenController extends GetxController {
             serviceDataList.addAll(newServices);
           } else {
             serviceDataList.assignAll(newServices);
+            await HiveServices().saveAllStoreServices(serviceDataList, userId);
           }
 
           serviceDataPage++;
