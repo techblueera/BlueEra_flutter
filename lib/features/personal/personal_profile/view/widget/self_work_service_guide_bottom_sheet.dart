@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -218,7 +219,6 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                       ApiKeys.designation: selectedService?.label
                     },
                   ).then((value){
-                    log('navigate');
                     Get.offNamedUntil(
                       RouteHelper.getAddServicesScreenRoute(),
                       ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
@@ -226,6 +226,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                         ApiKeys.providerType: ProductServiceProviderType.user,
                         ApiKeys.isSelfEmployement: true,
                         ApiKeys.designation: selectedService?.label,
+                        ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
                       },
                     );
                   });

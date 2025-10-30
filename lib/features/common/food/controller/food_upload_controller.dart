@@ -8,6 +8,8 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
@@ -153,7 +155,9 @@ class FoodUploadController extends GetxController {
   // Show image picker dialog
   Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
   // Generate food data
-  Future<void> generateFood(ProductServiceProviderType providerType) async {
+  Future<void> generateFood(
+      ProductServiceProviderType providerType,
+      {EarnWithBlueEraServiceTypes? serviceSubType}) async {
     try {
       String fileName = selectedImage.value?.path.split('/').last ?? "";
       dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
@@ -170,8 +174,9 @@ class FoodUploadController extends GetxController {
         }),
         ApiKeys.images: imageByPart,
       };
-      ResponseModel responseModel =
-      await FoodAiRepo().aiFoodGenerateRepo(queryParam: reqParm);
+
+      final ResponseModel responseModel = await FoodAiRepo().aiFoodGenerateRepo(params: reqParm); ;
+
       if (responseModel.isSuccess) {
         foodAiResponseModel.value =
             FoodAiResModel.fromJson(responseModel.response?.data);
@@ -180,9 +185,11 @@ class FoodUploadController extends GetxController {
 
         Get.to(()=> SubmitFoodProductPage(
           providerType: providerType,
+          serviceSubType: serviceSubType,
           categoryTag:selectedFoodType1.value ,
           subCategory:selectedFoodType2.value ,
-          foodDatas:  foodAiResponseModel.value, foodData: responseModel.response?.data,
+          foodDatas:  foodAiResponseModel.value,
+          foodData: responseModel.response?.data,
           imagePath:  selectedImage.value?.path ?? "",
         ));
         foodAiResponse.value = ApiResponse.complete(foodAiResponseModel);
@@ -258,13 +265,21 @@ class FoodUploadController extends GetxController {
     return body;
   }
 
-  Future<void> addFoodServices(Map<String,dynamic> foodData, ProductServiceProviderType providerType) async {
+  Future<void> addFoodServices(Map<String,dynamic> foodData, ProductServiceProviderType providerType, {EarnWithBlueEraServiceTypes? serviceSubType}) async {
     try {
-
       foodData[ApiKeys.providerType] = providerType.title;
-      Map<String,dynamic> data=await buildRequestBody(foodData);
-      ResponseModel responseModel =
-      await FoodAiRepo().addFoodService(queryParam: data);
+      if (serviceSubType != null) foodData[ApiKeys.subType] = serviceSubType.label;
+      Map<String, dynamic> data = await buildRequestBody(foodData);
+
+      final ResponseModel responseModel;
+      if (providerType == ProductServiceProviderType.user) {
+        responseModel =
+        await EarnWithBlueEraRepo().addServiceRepo(params: data);
+      } else {
+        responseModel = await FoodAiRepo().addFoodService(queryParam: data);
+      }
+
+
       if (responseModel.isSuccess) {
         UploadFoodLoadUrlModel data = UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
 
@@ -368,7 +383,7 @@ class FoodUploadController extends GetxController {
   bool foodDataHasMore = true;
 
   /// fetch food services
-  Future<void> getFoodService(Map<String, dynamic> queryParams, {bool isLoadMore = false}) async {
+  Future<void> getFoodService(Map<String, dynamic> queryParams, {bool isFromEarnWithBlueEra = false, bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isFoodDataLoadingMore.value || !foodDataHasMore) return;
       isFoodDataLoadingMore.value = true;
@@ -380,8 +395,12 @@ class FoodUploadController extends GetxController {
     }
 
      try {
-      ResponseModel responseModel =
-      await FoodAiRepo().getFoodService(queryParam: queryParams);
+       ResponseModel responseModel;
+       if(!isFromEarnWithBlueEra){
+         responseModel = await FoodAiRepo().getFoodService(queryParam: queryParams);
+       }else{
+         responseModel = await EarnWithBlueEraRepo().getServiceRepo(queryParams: queryParams);
+       }
 
       if (responseModel.isSuccess) {
         getFoodServiceResponse.value = ApiResponse.complete(responseModel);
@@ -431,12 +450,17 @@ class FoodUploadController extends GetxController {
 
   RxBool isDeleteServiceLoading = false.obs;
 
-  Future<void> deleteFoodService({required String serviceId}) async {
+  Future<void> deleteFoodService({required String serviceId, required bool isFromEarnWithBlueEra}) async {
     isDeleteServiceLoading.value = true;
 
     try {
-      ResponseModel response =
-      await FoodAiRepo().deleteFoodServiceRepo(serviceId: serviceId);
+
+      ResponseModel response;
+      if(!isFromEarnWithBlueEra){
+        response = await FoodAiRepo().deleteFoodServiceRepo(serviceId: serviceId);
+      }else{
+        response = await EarnWithBlueEraRepo().deleteServiceRepo(serviceId: serviceId);
+      }
 
       if (response.isSuccess) {
         deleteServiceResponse.value = ApiResponse.complete(response);

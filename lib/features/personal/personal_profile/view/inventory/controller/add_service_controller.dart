@@ -10,7 +10,10 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
@@ -252,7 +255,7 @@ class AddServiceController extends GetxController {
     return true;
   }
 
-  Future<void> createServiceApi({String? channelId, required ProductServiceProviderType providerType}) async {
+  Future<void> createServiceApi({String? channelId, required ProductServiceProviderType providerType, EarnWithBlueEraServiceTypes? serviceSubType}) async {
 
     /// Provider Type
     // Business --> userId
@@ -282,9 +285,8 @@ class AddServiceController extends GetxController {
         // if (detailsList.isNotEmpty)
         //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
       };
-      if(channelId!=null){
-        params[ApiKeys.channelId] = channelId;
-      }
+      if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType.label;
+      if(channelId!=null) params[ApiKeys.channelId] = channelId;
 
       if (isRange.isTrue) {
         params[ApiKeys.priceType] = 'range';
@@ -313,7 +315,13 @@ class AddServiceController extends GetxController {
       }
 
       // Call API once
-      final responseModel = await InventoryRepo().addService(params: params);
+      final ResponseModel responseModel;
+      if(providerType == ProductServiceProviderType.user){
+        responseModel = await EarnWithBlueEraRepo().addServiceRepo(params: params);
+      }else{
+        responseModel = await ServiceAiRepo().addService(params: params);
+      }
+
       if (responseModel.isSuccess) {
         createServiceResponse.value = ApiResponse.complete(responseModel);
 

@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -27,8 +28,15 @@ class ServiceUploadScreen extends StatefulWidget {
   final bool? isSelfEmployement;
   final String? channelId;
   final String? workType;
+  final EarnWithBlueEraServiceTypes? serviceSubType;
 
-  ServiceUploadScreen({Key? key, required this.providerType, this.isSelfEmployement, this.workType, this.channelId})
+  ServiceUploadScreen({
+    Key? key,
+    required this.providerType,
+    this.isSelfEmployement,
+    this.workType,
+    this.channelId,
+    this.serviceSubType})
       : super(key: key);
 
   @override
@@ -71,8 +79,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
           child: Padding(
             padding: EdgeInsets.all(SizeConfig.size10),
             child: CommonCardWidget(
-              child: Padding(
-                padding: EdgeInsets.all(0),
+              child:  Obx(()=> AbsorbPointer(
+                absorbing: controller.isGenerateAiServiceLoading.value,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -266,7 +274,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     SizedBox(height: SizeConfig.size30),
                   ],
                 ),
-              ),
+              )),
             ),
           ),
         ),
@@ -350,11 +358,16 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                 controller.shortDescriptionName.value,
                         },
                         providerType: widget.providerType,
+                        serviceSubType: widget.serviceSubType
                       );
                     }
                   }
                 : null,
-            title: "Generate");
+            title: controller.isGenerateAiServiceLoading.value
+                ? null // hide text
+                : 'Generate',
+            isLoading: controller.isGenerateAiServiceLoading.value
+        );
       else
         // return CustomBtn(
         //     isValidate: isValidate(),
@@ -378,6 +391,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
         //     title: "Generate");
         return CustomBtn(
             isValidate: isValidate(),
+
             onTap: isValidate()
                 ? () async {
                     if (isValidate()) {
@@ -399,11 +413,16 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                 .shortDescriptionName.value.isNotEmpty)
                               ApiKeys.short_description:
                                   controller.shortDescriptionName.value,
-                          });
+                          },
+                      );
                     }
                   }
                 : null,
-            title: "Generate");
+            title: controller.isGenerateAiServiceLoading.value
+                ? null // hide text
+                : 'Generate',
+            isLoading: controller.isGenerateAiServiceLoading.value
+        );
     });
   }
 

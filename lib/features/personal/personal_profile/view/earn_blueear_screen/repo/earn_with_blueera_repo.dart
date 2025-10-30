@@ -2,13 +2,13 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
-class ServiceAiRepo extends BaseService {
-  Future<ResponseModel> aiServiceGenerateRepo(
-      {Map<String, dynamic>? queryParam}) async {
+class EarnWithBlueEraRepo extends BaseService{
+
+  /// Earn Services
+  Future<ResponseModel> addServiceRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      aiServiceGenerateContent,
-      params: queryParam,
-      isMultipart: true,
+      earnServices,
+      params: params,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -16,21 +16,10 @@ class ServiceAiRepo extends BaseService {
     return response;
   }
 
-  ///Add Product...
-  Future<ResponseModel> addService({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      createService,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///GET SERVICES....
+  /// Get Earn Services
   Future<ResponseModel> getServiceRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      businessServices,
+      earnServices,
       params: queryParams,
       showProgress: false,
       onError: (error) {},
@@ -39,14 +28,15 @@ class ServiceAiRepo extends BaseService {
     return response;
   }
 
-  ///DELETE SERVICES....
+  ///DELETE Earn SERVICE....
   Future<ResponseModel> deleteServiceRepo({required String serviceId}) async {
     final response = await ApiBaseHelper().deleteHTTP(
-      businessServicesById(serviceId),
+      earnServicesById(serviceId),
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
   }
+
 }

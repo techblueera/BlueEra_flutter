@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -165,6 +166,7 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                           ApiKeys.providerType: ProductServiceProviderType.user,
                           ApiKeys.isSelfEmployement: true,
                           ApiKeys.designation: selectedService?.label,
+                          ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
                         },
                       );
                     });

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -20,15 +21,25 @@ import '../widget/add_services_screen.dart';
 
 
 class SubmitFoodProductPage extends StatefulWidget {
-  SubmitFoodProductPage(
-      {Key? key, required this.providerType, required this.foodData, required this.foodDatas, required this.imagePath, required this.categoryTag, required this.subCategory})
-      : super(key: key);
-  ProductServiceProviderType providerType;
+  final ProductServiceProviderType providerType;
+  final EarnWithBlueEraServiceTypes? serviceSubType;
   final FoodAiResModel foodDatas;
   final Map<String, dynamic> foodData;
   final String imagePath;
   final String categoryTag;
   final String subCategory;
+
+  SubmitFoodProductPage(
+      { Key? key,
+        required this.providerType,
+        required this.foodData,
+        required this.foodDatas,
+        required this.imagePath,
+        required this.categoryTag,
+        required this.subCategory,
+        this.serviceSubType,
+      })
+      : super(key: key);
 
   @override
   State<SubmitFoodProductPage> createState() => _SubmitFoodProductPageState();
@@ -931,9 +942,11 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                               vertical: SizeConfig.paddingM),
                         ),
 
-                        onPressed: () async {
-
-                          controller.addFoodServices(widget.foodData, widget.providerType);
+                        onPressed: ()  {
+                          controller.addFoodServices(
+                              widget.foodData,
+                              widget.providerType,
+                              serviceSubType: widget.serviceSubType);
                         },
                         child: const CustomText(
                           "Post Food",

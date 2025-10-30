@@ -12,10 +12,14 @@ class EarnWithBlueEraController extends GetxController{
 
   RxInt selectedProductsServicesTabIndex = 0.obs;
   final List<String> productsServicesTab = [
+    "Self Work",
+    "Delivery Partner",
     "Product",
     "Food",
     "Home Services",
     "Rental Services",
+    "Counselling/Consulting",
+    "Tuition Classes",
   ];
   RxBool showGoLiveEnabled = false.obs;
 

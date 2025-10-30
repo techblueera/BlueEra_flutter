@@ -4,16 +4,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class InventoryRepo extends BaseService {
 
-  ///Add Product...
-  Future<ResponseModel> addService({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      createService,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
+
 
   ///Add Product...
   Future<ResponseModel> generateAiProductContent({required Map<String, dynamic> params}) async {

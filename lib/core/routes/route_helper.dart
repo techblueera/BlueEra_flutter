@@ -903,8 +903,9 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
         final bool? isSelfEmployement = args[ApiKeys.isSelfEmployement] as bool?;
-        final String? channelId = args[ApiKeys.channelId] as String?;
         final String? workType = args[ApiKeys.designation] as String?;
+        final EarnWithBlueEraServiceTypes? serviceSubType = args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final String? channelId = args[ApiKeys.channelId] as String?;
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
@@ -912,6 +913,7 @@ class RouteHelper {
               isSelfEmployement: isSelfEmployement,
               channelId: channelId,
               workType: workType,
+              serviceSubType: serviceSubType,
             ),
             // builder: (_) => AddServicesScreen(),
             settings: RouteSettings(name: getAddServicesScreenRoute()));
@@ -1023,10 +1025,12 @@ class RouteHelper {
       case RouteConstant.foodUploadScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final EarnWithBlueEraServiceTypes? serviceSubType = args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
 
         return MaterialPageRoute(
             builder: (_) => FoodUploadScreen(
-                providerType: providerType
+                providerType: providerType,
+                serviceSubType: serviceSubType
             ),
             settings: RouteSettings(name: getFoodUploadScreenRoute()));
 

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +15,9 @@ import '../../../../../../common/food/model/get_food_details_model.dart';
 
 class FoodAndGroceryScreen extends StatefulWidget {
   final ProductServiceProviderType providerType;
+  final EarnWithBlueEraServiceTypes? serviceSubType;
 
-  const FoodAndGroceryScreen({super.key, required this.providerType});
+  const FoodAndGroceryScreen({super.key, required this.providerType, this.serviceSubType});
 
   @override
   State<FoodAndGroceryScreen> createState() => _FoodAndGroceryScreenState();
@@ -26,10 +28,12 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
   final controller = Get.put(FoodUploadController());
   final ScrollController scrollController = ScrollController();
   late Map<String, dynamic> queryParams;
+  late bool isFromEarnWithBlueEra;
 
   @override
   void initState() {
-    super.initState();
+
+    isFromEarnWithBlueEra = widget.providerType == ProductServiceProviderType.user;
 
     queryParams = {
       ApiKeys.all: false,
@@ -37,18 +41,21 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
       ApiKeys.providerType: widget.providerType.title,
     };
 
+    if(isFromEarnWithBlueEra) queryParams[ApiKeys.subType] = widget.serviceSubType?.label;
+
     // Only call API if first load or list is empty
     if (controller.foodDataList.isEmpty) {
-      controller.getFoodService(queryParams);
+      controller.getFoodService(queryParams, isFromEarnWithBlueEra: isFromEarnWithBlueEra);
     }
 
     scrollController.addListener(_scrollListener);
+    super.initState();
   }
 
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200) {
-      controller.getFoodService(queryParams, isLoadMore: true);
+      controller.getFoodService(queryParams, isFromEarnWithBlueEra: isFromEarnWithBlueEra, isLoadMore: true);
     }
   }
 
@@ -71,7 +78,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
   @override
   void didPopNext() {
     if (controller.shouldRefresh) {
-      controller.getFoodService(queryParams);
+      controller.getFoodService(queryParams, isFromEarnWithBlueEra: isFromEarnWithBlueEra);
       controller.shouldRefresh = false;
     }
   }
@@ -97,6 +104,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
                     return FoodItemCard(
                       controller: controller,
                       foodData: food,
+                      isFromEarnWithBlueEra: isFromEarnWithBlueEra
                     ); // ✅ dynamic card
                   },
                 ),
@@ -118,10 +126,11 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
 }
 
 class FoodItemCard extends StatelessWidget {
-  const FoodItemCard({super.key, required this.controller, required this.foodData});
+  const FoodItemCard({super.key, required this.controller, required this.foodData, required this.isFromEarnWithBlueEra});
 
   final GetFoodDetailsModel foodData;
   final FoodUploadController controller;
+  final bool isFromEarnWithBlueEra;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +223,10 @@ class FoodItemCard extends StatelessWidget {
                                 confirmText: 'Delete',
                                 cancelText: 'Cancel',
                                 confirmCallback: () {
-                                  controller.deleteFoodService(serviceId: foodData.id ?? '');
+                                  controller.deleteFoodService(
+                                      serviceId: foodData.id ?? '',
+                                      isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                                  );
                                 },
                                 cancelCallback: () {
                                   Get.back();

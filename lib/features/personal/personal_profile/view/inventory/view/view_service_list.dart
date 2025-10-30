@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,8 +14,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 
 class ViewServiceList extends StatefulWidget {
   final ProductServiceProviderType providerType;
+  final EarnWithBlueEraServiceTypes? serviceSubType;
   final String? channelId;
-  const ViewServiceList({super.key, required this.providerType, this.channelId});
+
+  const ViewServiceList({super.key, required this.providerType, this.serviceSubType, this.channelId});
 
   @override
   State<ViewServiceList> createState() => _ViewServiceListState();
@@ -24,19 +27,24 @@ class _ViewServiceListState extends State<ViewServiceList> {
   ServiceController serviceController = Get.put(ServiceController());
   final ScrollController scrollController = ScrollController();
   late Map<String, dynamic> queryParams;
+  late bool isFromEarnWithBlueEra;
 
   @override
   void initState() {
+    isFromEarnWithBlueEra = widget.providerType == ProductServiceProviderType.user;
+
     queryParams = {
       ApiKeys.all: false,
       ApiKeys.type: "service",
       ApiKeys.providerType: widget.providerType.title,
     };
-    if(widget.channelId!=null) {
-      queryParams[ApiKeys.channelId] = widget.channelId;
-    }
+    if(isFromEarnWithBlueEra) queryParams[ApiKeys.subType] = widget.serviceSubType?.label;
+    if(widget.channelId!=null) queryParams[ApiKeys.channelId] = widget.channelId;
 
-    serviceController.getServices(queryParams);
+    serviceController.getServices(
+        queryParams,
+        isFromEarnWithBlueEra: isFromEarnWithBlueEra);
+
     scrollController.addListener(_scrollListener);
     super.initState();
   }
@@ -44,7 +52,10 @@ class _ViewServiceListState extends State<ViewServiceList> {
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200) {
-      serviceController.getServices(queryParams, isLoadMore: true);
+      serviceController.getServices(
+          queryParams,
+          isFromEarnWithBlueEra: isFromEarnWithBlueEra,
+          isLoadMore: true);
     }
   }
 
@@ -136,7 +147,10 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                                 confirmText: 'Delete',
                                                 cancelText: 'Cancel',
                                                 confirmCallback: () {
-                                                  serviceController.deleteService(serviceId: serviceData.id ?? '');
+                                                  serviceController.deleteService(
+                                                      serviceId: serviceData.id ?? '',
+                                                      isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                                                  );
                                                 },
                                                 cancelCallback: () {
                                                   Get.back();
@@ -172,50 +186,53 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 2,
                                         ),
-                                        SizedBox(height: SizeConfig.size8),
-                                        Row(
-                                          children: [
-                                            CustomText(
-                                              "Open :",
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: AppColors.green39,
+                                        if(serviceData.timings?.isNotEmpty ?? false)
+                                        ...[
+                                          SizedBox(height: SizeConfig.size8),
+                                          Row(
+                                            children: [
+                                              CustomText(
+                                                "Open :",
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: AppColors.green39,
 
-                                            ),
-                                            CustomText(
-                                              "${serviceData.timings?[0].start}",
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: AppColors.grayText,
-                                              maxLines: 1,
-                                            ),
-                                            CustomText(
+                                              ),
+                                              CustomText(
+                                                "${serviceData.timings?[0].start}",
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: AppColors.grayText,
+                                                maxLines: 1,
+                                              ),
+                                              CustomText(
                                                 ' | ',
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              color: AppColors.grayText,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            CustomText(
-                                              "Close :",
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: AppColors.red,
-                                              maxLines: 1,
-                                            ),
-                                            CustomText(
-                                              "${serviceData.timings?[0].end}",
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400,
-                                              color: AppColors.grayText,
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            ),
-                                          ],
-                                        ),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400,
+                                                color: AppColors.grayText,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              CustomText(
+                                                "Close :",
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: AppColors.red,
+                                                maxLines: 1,
+                                              ),
+                                              CustomText(
+                                                "${serviceData.timings?[0].end}",
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400,
+                                                color: AppColors.grayText,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                            ],
+                                          ),
+                                        ]
                                       ],
                                     ),
                                   ),

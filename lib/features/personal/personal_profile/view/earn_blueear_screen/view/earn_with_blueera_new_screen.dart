@@ -15,6 +15,30 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+enum EarnWithBlueEraServiceTypes {
+  homeMadeFood('homeMadeFood'),
+  businessFood('businessFood'),
+  businessService('businessService'),
+  tuitionService('tuitionService'),
+  consultingService('consultingService'),
+  selfWork('selfWork'),
+  homeService('homeService');
+
+  final String label;
+  const EarnWithBlueEraServiceTypes(this.label);
+
+  static EarnWithBlueEraServiceTypes? fromLabel(String value) {
+    return EarnWithBlueEraServiceTypes.values.firstWhere(
+          (e) => e.label.toLowerCase() == value.toLowerCase(),
+      orElse: () => EarnWithBlueEraServiceTypes.selfWork, // default if not matched
+    );
+  }
+
+  static List<String> get labels =>
+      EarnWithBlueEraServiceTypes.values.map((e) => e.label).toList();
+}
+
+
 class EarnWithBlueEraNewScreen extends StatefulWidget {
   const EarnWithBlueEraNewScreen({super.key});
 
@@ -125,7 +149,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
          controller: _tabController,
          children: [
            _buildOwnUserOrders(),
-           _buildOwnUserProductsAndServices(),
+           _buildEarnWithBlueEraStore(),
            SizedBox(
              child: CustomText(
                  'Coming soon.'
@@ -135,7 +159,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     );
   }
 
-  Widget _buildOwnUserProductsAndServices() {
+  Widget _buildEarnWithBlueEraStore() {
     return Obx(()=> Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -154,7 +178,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
         ),
         // SizedBox(height: SizeConfig.size8),
         Expanded(
-            child: _buildEarnWithBlueEraTab()
+            child: _buildEarnWithBlueEraStoreTab()
         )
       ],
      )
@@ -162,7 +186,13 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
   }
 
   Widget _buildOwnUserOrders(){
-    return SizedBox();
+    return SizedBox(
+      child: Center(
+        child: CustomText(
+            'Coming soon.'
+        ),
+      ),
+    );
   }
 
   void onProductsServicesTabChanged(int index) async {
@@ -190,7 +220,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     }
   }
 
-  Widget _buildEarnWithBlueEraTab() {
+  Widget _buildEarnWithBlueEraStoreTab() {
     return Obx(() {
       final selectedTab = earnWithBlueEraController.selectedProductsServicesTabIndex.value;
 
@@ -198,6 +228,21 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
       switch (selectedTab) {
         case 0:
+          tabContent = ViewServiceList(
+            providerType: ProductServiceProviderType.user,
+            serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
+          );
+          break;
+
+        case 1:
+          tabContent = Center(
+            child: CustomText(
+                'Coming Soon..'
+            ),
+          );
+          break;
+
+        case 2:
           final productList = earnWithBlueEraController.ownProductDataList;
 
           if (earnWithBlueEraController.isOwnProductDataFirstLoading.value) {
@@ -214,28 +259,30 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
           tabContent = Column(
             children: [
-              ListView.builder(
-                // physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: productList.length,
-                itemBuilder: (context, index) {
-                  final productData = productList[index];
+              Expanded(
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: productList.length,
+                  itemBuilder: (context, index) {
+                    final productData = productList[index];
 
-                  return Padding(
-                    padding: EdgeInsets.only(
-                        bottom: SizeConfig.size8,
-                        left: SizeConfig.size8,
-                        right: SizeConfig.size8
-                    ),
-                    child: OwnProductCard(
-                      product: productData,
-                      isGridShow: false,
-                      deleteProductApi: (){
-                        // earnWithBlueEraController.deleteProduct();
-                      },
-                    ),
-                  );
-                },
+                    return Padding(
+                      padding: EdgeInsets.only(
+                          bottom: SizeConfig.size8,
+                          left: SizeConfig.size8,
+                          right: SizeConfig.size8
+                      ),
+                      child: OwnProductCard(
+                        product: productData,
+                        isGridShow: false,
+                        deleteProductApi: (){
+                          // earnWithBlueEraController.deleteProduct();
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
 
               if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
@@ -248,21 +295,41 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
           break;
 
 
-        case 1:
+        case 3:
           tabContent = FoodAndGroceryScreen(
              providerType: ProductServiceProviderType.user,
+            serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
           );
           break;
 
-        case 2:
+        case 4:
           tabContent = ViewServiceList(
             providerType: ProductServiceProviderType.user,
+            serviceSubType: EarnWithBlueEraServiceTypes.homeService,
           );
           break;
 
 
-        case 3:
-          tabContent = SizedBox();
+        case 5:
+          tabContent = Center(
+            child: CustomText(
+                'Coming Soon..'
+            ),
+          );
+          break;
+
+        case 6:
+          tabContent = ViewServiceList(
+            providerType: ProductServiceProviderType.user,
+            serviceSubType: EarnWithBlueEraServiceTypes.consultingService,
+          );
+          break;
+
+        case 7:
+          tabContent = ViewServiceList(
+            providerType: ProductServiceProviderType.user,
+            serviceSubType: EarnWithBlueEraServiceTypes.tuitionService,
+          );
           break;
 
         default:

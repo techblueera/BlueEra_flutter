@@ -9,6 +9,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/service_ai_generate_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -29,8 +30,14 @@ class AddServicesScreenNew extends StatefulWidget {
   final String? channelId;
   final ProductServiceProviderType providerType;
   final ServiceAiGenerateModel? service;
+  final EarnWithBlueEraServiceTypes? serviceSubType;
 
-  const AddServicesScreenNew({Key? key, this.channelId, required this.providerType, this.service}) : super(key: key);
+  const AddServicesScreenNew({
+    Key? key,
+    this.channelId,
+    required this.providerType,
+    this.service,
+    this.serviceSubType}) : super(key: key);
 
   @override
   State<AddServicesScreenNew> createState() => _AddServicesScreenState();
@@ -659,7 +666,11 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       SizedBox(height: SizeConfig.size30),
                       CustomBtn(
                         title: 'Post Service',
-                        onTap: () => addServiceController.createServiceApi(channelId: widget.channelId, providerType: widget.providerType),
+                        onTap: () => addServiceController.createServiceApi(
+                            channelId: widget.channelId,
+                            providerType: widget.providerType,
+                            serviceSubType: widget.serviceSubType
+                        ),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

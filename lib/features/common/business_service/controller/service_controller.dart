@@ -9,6 +9,8 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/model/service_ai_generate_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -42,14 +44,17 @@ class ServiceController extends GetxController {
   // Show image picker dialog
   // Generate food data
   Rx<ServiceAiGenerateModel> serviceAiResModel = ServiceAiGenerateModel().obs;
+  RxBool isGenerateAiServiceLoading = false.obs;
 
   Future<void> generateServiceAiController(
       {
         String? channelId,
         required ProductServiceProviderType providerType,
-        required Map<String, dynamic> serviceDetailsReq
+        required Map<String, dynamic> serviceDetailsReq,
+        EarnWithBlueEraServiceTypes? serviceSubType
       }) async {
     try {
+      isGenerateAiServiceLoading.value = true;
       log('provider type-- ${providerType.title}');
       String fileName = selectedImage.value?.path.split('/').last ?? "";
       dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
@@ -73,6 +78,7 @@ class ServiceController extends GetxController {
           channelId: channelId,
           providerType: providerType,
           service: serviceAiResModel.value,
+          serviceSubType: serviceSubType,
         ));/*    Get.to(ServiceDetailScreen(
           service: serviceAiResModel.value,
         ));*/
@@ -84,6 +90,8 @@ class ServiceController extends GetxController {
     } catch (e) {
       logs("ERROR===== ${e}");
       serviceAiResponse.value = ApiResponse.error(e.toString());
+    }finally{
+      isGenerateAiServiceLoading.value = true;
     }
   }
 
@@ -95,7 +103,7 @@ class ServiceController extends GetxController {
   bool serviceDataHasMore = true;
 
   /// fetch services
-  Future<void> getServices(Map<String, dynamic> queryParams, {bool isLoadMore = false}) async {
+  Future<void> getServices(Map<String, dynamic> queryParams,  {bool isFromEarnWithBlueEra = false, bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isServiceDataLoadingMore.value || !serviceDataHasMore) return;
       isServiceDataLoadingMore.value = true;
@@ -108,8 +116,12 @@ class ServiceController extends GetxController {
     queryParams[ApiKeys.page] = serviceDataPage;
 
     try {
-      ResponseModel response =
-      await ServiceAiRepo().getServiceRepo(queryParams: queryParams);
+      ResponseModel response;
+      if(!isFromEarnWithBlueEra){
+         response = await ServiceAiRepo().getServiceRepo(queryParams: queryParams);
+      }else{
+        response = await EarnWithBlueEraRepo().getServiceRepo(queryParams: queryParams);
+      }
 
       if (response.isSuccess) {
         final responseData = response.response?.data;
@@ -157,12 +169,16 @@ class ServiceController extends GetxController {
 
   RxBool isDeleteServiceLoading = false.obs;
 
-  Future<void> deleteService({required String serviceId}) async {
+  Future<void> deleteService({required String serviceId, required bool isFromEarnWithBlueEra}) async {
     isDeleteServiceLoading.value = true;
 
     try {
-      ResponseModel response =
-      await ServiceAiRepo().deleteServiceRepo(serviceId: serviceId);
+      ResponseModel response;
+      if(!isFromEarnWithBlueEra){
+        response = await ServiceAiRepo().deleteServiceRepo(serviceId: serviceId);
+      }else{
+        response = await EarnWithBlueEraRepo().deleteServiceRepo(serviceId: serviceId);
+      }
 
       if (response.isSuccess) {
         deleteServiceResponse.value = ApiResponse.complete(response);

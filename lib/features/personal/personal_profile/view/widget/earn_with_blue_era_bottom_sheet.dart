@@ -1,6 +1,10 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/home_service_guide_bottom_sheet.dart';
@@ -10,19 +14,44 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/self_work
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class EarnWithBlueEraBottomSheet extends StatelessWidget {
   EarnWithBlueEraBottomSheet({Key? key}) : super(key: key);
 
   final List<ServiceItem> _services = [
-    ServiceItem('Self Work',  AppIconAssets.plumberIcon, bgColor: Color(0xFFCBEAFC), labelColor: Color(0xFF004E7C)),
-    ServiceItem('Delivery\nPartner', AppIconAssets.deliveryPartnerIcon, bgColor: Color(0xFFDAEDCF), labelColor: Color(0xFF204A08)),
-    ServiceItem('Home Mad\nProducts', AppIconAssets.homeMadeProductIcon, bgColor: Color(0xFFFDD5A4), labelColor: Color(0xFF8C4D00)),
-    ServiceItem('Home Made\nFood Items', AppIconAssets.homeMadeFoodIcon, bgColor: Color(0xFFFEF2B6), labelColor: Color(0xFF856F00)),
-    ServiceItem('Home\nServices', AppIconAssets.homeServiceIcon, bgColor: Color(0xFFDBD5F7), labelColor: Color(0xFF140074)),
-    ServiceItem('Rental\nServices', AppIconAssets.rentalServiceIcon, bgColor: Color(0xFFFAD7D3), labelColor: Color(0xFF740C00)),
-    ServiceItem('Counselling /\nConsulting', AppIconAssets.consultingIcon, bgColor: Color(0xFFBCEEE2), labelColor: Color(0xFF006950)),
-    ServiceItem('Tuition Classes\nOnline/Offline', AppIconAssets.teachingIcon, bgColor: Color(0xFFEEBCE7), labelColor: Color(0xFF8B0077)),
+    ServiceItem('Self Work',
+        AppIconAssets.plumberIcon,
+        bgColor: Color(0xFFCBEAFC),
+        labelColor: Color(0xFF004E7C)),
+    ServiceItem('Delivery\nPartner',
+        AppIconAssets.deliveryPartnerIcon,
+        bgColor: Color(0xFFDAEDCF),
+        labelColor: Color(0xFF204A08)),
+    ServiceItem('Home Mad\nProducts',
+        AppIconAssets.homeMadeProductIcon,
+        bgColor: Color(0xFFFDD5A4),
+        labelColor: Color(0xFF8C4D00)),
+    ServiceItem('Home Made\nFood Items',
+        AppIconAssets.homeMadeFoodIcon,
+        bgColor: Color(0xFFFEF2B6),
+        labelColor: Color(0xFF856F00)),
+    ServiceItem('Home\nServices',
+        AppIconAssets.homeServiceIcon,
+        bgColor: Color(0xFFDBD5F7),
+        labelColor: Color(0xFF140074)),
+    ServiceItem('Rental\nServices',
+        AppIconAssets.rentalServiceIcon,
+        bgColor: Color(0xFFFAD7D3),
+        labelColor: Color(0xFF740C00)),
+    ServiceItem('Counselling /\nConsulting',
+        AppIconAssets.consultingIcon,
+        bgColor: Color(0xFFBCEEE2),
+        labelColor: Color(0xFF006950)),
+    ServiceItem('Tuition Classes\nOnline/Offline',
+        AppIconAssets.teachingIcon,
+        bgColor: Color(0xFFEEBCE7),
+        labelColor: Color(0xFF8B0077)),
   ];
 
   @override
@@ -93,8 +122,10 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
           builder: (_) => SelfWorkServiceGuideBottomSheet(),
         );
         break;
+
       case 'Delivery\nPartner':
         break;
+
       case 'Home Mad\nProducts':
         showModalBottomSheet(
           context: context,
@@ -132,6 +163,14 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         break;
 
       case 'Counselling /\nConsulting':
+        Get.offNamedUntil(
+          RouteHelper.getAddServicesScreenRoute(),
+          ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+          arguments: {
+            ApiKeys.providerType: ProductServiceProviderType.user,
+            ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.consultingService,
+          },
+        );
       // await Get.toNamed(
       //   RouteHelper.getAddProductScreenRoute(),
       //   arguments: {
@@ -142,6 +181,14 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         break;
 
       case 'Tuition Classes\nOnline/Offline':
+        Get.offNamedUntil(
+          RouteHelper.getAddServicesScreenRoute(),
+          ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+          arguments: {
+            ApiKeys.providerType: ProductServiceProviderType.user,
+            ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.tuitionService,
+          },
+        );
       // await Get.toNamed(
       //   RouteHelper.getAddProductScreenRoute(),
       //   arguments: {
