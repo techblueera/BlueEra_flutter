@@ -375,4 +375,17 @@ print("url=== ${url}");
     );
     return response;
   }
+
+
+  ///GET CHANNEL FOLLOWING ME ...
+  Future<ResponseModel> getChannelFollowingMeRepo({  required int page,
+    required int limit,}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${channelFollowingMe}?page=$page&limit=$limit",
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

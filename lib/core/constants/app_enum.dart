@@ -679,6 +679,15 @@ enum FeedType {
   const FeedType(this.label);
 
   static FeedType? fromValue(String? label) {
+    if (label == null) return null;
+
+    try {
+      return FeedType.values.firstWhere(
+            (e) => e.label.toUpperCase() == label.toUpperCase(),
+      );
+    } catch (_) {
+      return null;
+    }
     return FeedType.values.firstWhere(
       (e) => e.label.toUpperCase() == label?.toUpperCase(),
       // orElse: () => null, // or null
@@ -1142,7 +1151,9 @@ enum PostType {
   saved,
   latest,
   popular,
-  oldest
+  oldest,
+  otherChannelPosts
+
 
   // ownChannelPosts,
   // visitingChannelPosts

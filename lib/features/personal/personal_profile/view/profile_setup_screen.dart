@@ -164,8 +164,8 @@ class _PersonalProfileSetupScreenState
                     'My Portfolio',
                   'About Me',
                   'Posts',
-                  'Shorts',
-                  'Videos',
+                  // 'Shorts',
+                  // 'Videos',
                   'Testimonials'
                 ];
                 return SafeArea(

@@ -76,7 +76,6 @@ class _FeedScreenState extends State<FeedScreen> {
         position.pixels >= position.maxScrollExtent - 200; // 100px threshold
 
     if (isAtBottom) {
-      print('at bottom');
       feedController.handleScrollToBottom(widget.postFilterType);
     }
   }

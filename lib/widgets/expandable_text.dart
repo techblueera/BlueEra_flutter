@@ -14,6 +14,7 @@ class ExpandableText extends StatefulWidget {
   final ValueChanged<double>? onHeightChanged;
   final ExpandMode expandMode;
   final String? dialogTitle;
+  final bool? isReadMoreNewLine;
 
   const ExpandableText({
     Key? key,
@@ -23,6 +24,7 @@ class ExpandableText extends StatefulWidget {
     this.onHeightChanged,
     this.expandMode = ExpandMode.expandable,
     this.dialogTitle,
+    this.isReadMoreNewLine = false,
   }) : super(key: key);
 
   @override
@@ -31,7 +33,6 @@ class ExpandableText extends StatefulWidget {
 
 class _ExpandableTextState extends State<ExpandableText> {
   bool _readMore = true;
-
 
   bool get _isLong {
     if (widget.text.isEmpty) return false;
@@ -56,7 +57,6 @@ class _ExpandableTextState extends State<ExpandableText> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-
           HighlightText(
             text: widget.text,
             style: style,
@@ -73,13 +73,12 @@ class _ExpandableTextState extends State<ExpandableText> {
               }
             },
             child: CustomText(
-              'Read more\n',
+              (widget.isReadMoreNewLine ?? false) ? "Read more\n" : 'Read more',
               color: AppColors.primaryColor,
               fontWeight: FontWeight.w600,
               fontSize: SizeConfig.size13,
             ),
           ),
-
         ],
       );
     }
@@ -98,7 +97,6 @@ class _ExpandableTextState extends State<ExpandableText> {
             // fontSize: SizeConfig.medium15,
             fontWeight: FontWeight.w600,
             fontSize: SizeConfig.size13,
-
           ),
         ),
       ],
@@ -122,22 +120,21 @@ class _ExpandableTextState extends State<ExpandableText> {
             children: [
               CustomText(
                 widget.dialogTitle ?? 'Description',
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mainTextColor,
+                fontSize: SizeConfig.large18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.mainTextColor,
               ),
               SizedBox(height: SizeConfig.size8),
               Flexible(
                 child: SingleChildScrollView(
                   child: HighlightText(
                       text: widget.text,
-                    style: TextStyle(
-                      color: AppColors.mainTextColor,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppConstants.OpenSans,
-                    )
-                  ),
+                      style: TextStyle(
+                        color: AppColors.mainTextColor,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: AppConstants.OpenSans,
+                      )),
                 ),
               ),
               SizedBox(height: SizeConfig.size8),

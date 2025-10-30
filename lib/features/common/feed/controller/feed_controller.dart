@@ -40,6 +40,7 @@ class FeedController extends GetxController {
   RxList<Post> latestPosts = <Post>[].obs;
   RxList<Post> popularPosts = <Post>[].obs;
   RxList<Post> oldestPosts = <Post>[].obs;
+  RxList<Post> otherChannelPosts = <Post>[].obs;
   RxBool isLoading = true.obs;
   RxBool isTargetHasMoreData = true.obs;
   RxBool isTargetMoreDataLoading = false.obs;
@@ -48,7 +49,8 @@ class FeedController extends GetxController {
       otherPage = 1,
       latestPostsPage = 1,
       popularPostsPage = 1,
-      oldestPostsPage = 1;
+      oldestPostsPage = 1,
+      otherChannelPostsPage = 1;
   var postFilterType = "latest";
 
   // New variables for enhanced pagination
@@ -147,7 +149,40 @@ class FeedController extends GetxController {
       case PostType.saved:
         getAllSavedPost();
         break;
+      case PostType.otherChannelPosts:
+        // TODO: Handle this case.
+        await _fetchPostsWithEnhancedPagination(
+          page: otherChannelPostsPage,
+          type: type,
+          isInitialLoad: isInitialLoad,
+          targetList: otherChannelPosts,
+          onPageReset: () => otherChannelPostsPage = 1,
+          onPageIncrement: () => otherChannelPostsPage++,
+          refresh: refresh,
+          id: id,
+        );
+        break;
     }
+  }
+
+  Future<void> getChannelPostsByType(
+    PostType type, {
+    bool isInitialLoad = false,
+    bool refresh = false,
+    String? id,
+    String? query,
+    required String? screenName,
+  }) async {
+    _fetchPostsChannelWithEnhancedPagination(
+      page: otherPage,
+      type: type,
+      isInitialLoad: isInitialLoad,
+      targetList: otherPosts,
+      onPageReset: () => otherPage = 1,
+      onPageIncrement: () => otherPage++,
+      refresh: refresh,
+      id: id,
+    );
   }
 
   /// Enhanced fetch with cache integration for All Posts tab
@@ -322,7 +357,7 @@ class FeedController extends GetxController {
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: page,
       ApiKeys.limit: isInitialLoad ? initialFetchLimit : displayLimit,
-      ApiKeys.filter: postFilterType
+      ApiKeys.filter: postFilterType,
     };
 
     if (query == null) {
@@ -346,6 +381,14 @@ class FeedController extends GetxController {
         if (id != null) queryParams[ApiKeys.authorId] = id;
         response = await FeedRepo().getAllOtherPosts(queryParams: queryParams);
         break;
+      case PostType.otherChannelPosts:
+        queryParams[ApiKeys.filter] = 'latest';
+        queryParams[ApiKeys.authorId] = id;
+
+        response =
+            await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
+
+        break;
       case PostType.latest || PostType.popular || PostType.oldest:
         if (id != null) queryParams[ApiKeys.authorId] = id;
         queryParams[ApiKeys.filter] = (type == PostType.latest)
@@ -359,6 +402,126 @@ class FeedController extends GetxController {
       default:
         return;
     }
+
+    try {
+      if (response.isSuccess) {
+        postsResponse.value = ApiResponse.complete(response);
+        final postResponse = PostResponse.fromJson(response.response?.data);
+
+        if (page == 1) {
+          targetList.clear();
+          // Initial load: cache all data, display first batch
+          _cachedPosts[type] = List.from(postResponse.data);
+          _displayedCounts[type] =
+              displayLimit.clamp(0, postResponse.data.length);
+
+          // Display only first batch
+          targetList.value = postResponse.data.take(displayLimit).toList();
+
+          print(
+              '📦 Initial enhanced load: Fetched ${postResponse.data.length}, Displaying ${targetList.length}, Cached ${_cachedPosts[type]!.length}');
+
+          // Update cache service for All Posts tab
+          if (type == PostType.all && postResponse.data.isNotEmpty) {
+            await HomeCacheService()
+                .cachePosts(postResponse.data.take(displayLimit).toList());
+            print(
+                '💾 Updated cache service with ${displayLimit} posts for All Posts tab');
+          }
+        } else {
+          // Subsequent loads: add new data to cache
+          _cachedPosts[type]!.addAll(postResponse.data);
+          print(
+              '📦 Added ${postResponse.data.length} new posts to cache. Total cached: ${_cachedPosts[type]!.length}');
+        }
+
+        // Check if we have more data available from server
+        final expectedLimit = isInitialLoad ? initialFetchLimit : displayLimit;
+        final hasServerMore = postResponse.data.length >= expectedLimit;
+        final hasCacheMore = _hasMoreCachedData(type);
+
+        if (!hasServerMore && !hasCacheMore) {
+          print('📄 No more data (server + cache exhausted)');
+          isTargetHasMoreData.value = false;
+        } else {
+          print('📄 More data available (cache or server)');
+          isTargetHasMoreData.value = true;
+
+          // Only increment page if server had more
+          if (hasServerMore) onPageIncrement();
+        }
+      } else {
+        postsResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      postsResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isLoading.value = false;
+      isTargetMoreDataLoading.value = false;
+    }
+  }
+
+  Future<void> _fetchPostsChannelWithEnhancedPagination(
+      {required int page,
+      required PostType type,
+      required bool isInitialLoad,
+      required RxList<Post> targetList,
+      required VoidCallback onPageIncrement,
+      required VoidCallback onPageReset,
+      required bool refresh,
+      String? id,
+      String? query}) async {
+    print(
+        '🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+
+    if (isInitialLoad) {
+      page = 1;
+      onPageReset.call();
+      isTargetHasMoreData.value = true;
+      isTargetMoreDataLoading.value = false;
+      _cachedPosts[type] = [];
+      _displayedCounts[type] = 0;
+    }
+    print('otherPage $otherPage');
+
+    print(
+        'isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
+    if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
+
+    print('isInitialLoad: $isInitialLoad');
+    if (!isInitialLoad) {
+      isTargetMoreDataLoading.value = true;
+    }
+
+    // Check if we have cached data to display first
+    if (_hasMoreCachedData(type) && !isInitialLoad) {
+      _displayMoreCachedData(type, targetList);
+      print(
+          '_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
+    }
+
+    // ✅ Only show loader if last id is different
+    log('last fetched id-->  $_lastFetchedId');
+    if (_lastFetchedId != id) {
+      isLoading.value = true;
+    }
+    _lastFetchedId = id;
+
+    final Map<String, dynamic> queryParams = {
+      ApiKeys.page: page,
+      ApiKeys.limit: isInitialLoad ? initialFetchLimit : displayLimit,
+      ApiKeys.filter: postFilterType
+    };
+
+    if (query == null) {
+      queryParams[ApiKeys.refresh] = refresh;
+    }
+
+    ResponseModel response;
+    response = await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
 
     try {
       if (response.isSuccess) {
@@ -518,6 +681,7 @@ class FeedController extends GetxController {
       PostType.latest => latestPosts,
       PostType.popular => popularPosts,
       PostType.oldest => oldestPosts,
+      PostType.otherChannelPosts => otherChannelPosts,
     };
 
     // hydrate local flag only once (if not already done)
@@ -770,8 +934,7 @@ class FeedController extends GetxController {
           final post = list[postIndex];
           final options = post..poll?.options;
 
-          if (optionId >= 0 &&
-              optionId < (options.poll?.options.length ?? 0)) {
+          if (optionId >= 0 && optionId < (options.poll?.options.length ?? 0)) {
             final selectedOption = options.poll?.options[optionId];
             selectedOption?.votes ??= [];
 
@@ -906,9 +1069,11 @@ class FeedController extends GetxController {
   RxBool hasMoreData = true.obs;
   final int limit = 40;
   dynamic currentLat, currentLong;
+
   // RxList<ShortFeedItem> shortFeedItem = <ShortFeedItem>[].obs;
   // RxList<ShortFeedItem> latestShortsPosts = <ShortFeedItem>[].obs;
   late ShortsController? shortsController;
+
   Future<void> getFeed({bool refresh = false}) async {
     if (Get.isRegistered<ShortsController>()) {
       shortsController = Get.find<ShortsController>();
