@@ -15,6 +15,7 @@ class ExpandableText extends StatefulWidget {
   final ValueChanged<double>? onHeightChanged;
   final ExpandMode expandMode;
   final String? dialogTitle;
+  final bool? isReadMoreNewLine;
 
   const ExpandableText({
     Key? key,
@@ -24,6 +25,7 @@ class ExpandableText extends StatefulWidget {
     this.onHeightChanged,
     this.expandMode = ExpandMode.expandable,
     this.dialogTitle,
+    this.isReadMoreNewLine = false,
   }) : super(key: key);
 
   @override
@@ -79,7 +81,7 @@ class _ExpandableTextState extends State<ExpandableText> {
                   : widget.text,
             ),
             TextSpan(
-              text: 'Read more',
+              text: (widget.isReadMoreNewLine ?? false) ? "Read more\n" : 'Read more',
               style: style.copyWith(
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,
