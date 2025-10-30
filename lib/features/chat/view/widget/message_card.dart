@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -42,6 +45,7 @@ class MessageCard extends StatefulWidget {
       {super.key,
       required this.message,
       this.conversationId,
+      this.isFromOrderTab,
       this.userId,
       this.profileImage,
       this.name,
@@ -54,6 +58,7 @@ class MessageCard extends StatefulWidget {
   final String? profileImage;
   final String? name;
   final bool isInitialMessage;
+  final bool? isFromOrderTab;
   final String? contactNo;
 
   @override
@@ -178,26 +183,27 @@ class _MessageCardState extends State<MessageCard>
         );
       case "food":
       List<String> url=[];
-
+      print("sdjcnksjncsdc ${widget.message.metadata?.order?.toJson()}");
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
       List<String> message=widget.message.message?.split('.')??[];
       if(message.isNotEmpty){
         messageWidget = FoodCardMessageCardBusiness(
+          isFromOrderTab: widget.isFromOrderTab??false,
           photos: url,
           conversationId: widget.conversationId??'',
           userId: widget.userId??'',
           message: widget.message,
           isFromChatCard: true,
           serviceData: GetFoodDetailsModel(
-              subCategory: message[2],
+              subCategory: widget.message.metadata?.subCategory,
               id: widget.message.metadata?.foodId,
               userId: widget.userId,
-              type: "food",
-              title: message.first,
+              type: AppConstants.food,
+              title: widget.message.metadata?.title,
               priceType: "single",
               singlePrice: widget.message.metadata?.price,
               photos:url,
-              vegType: message[1],
+              vegType:widget.message.metadata?.vegType,
               nutritionalSummaryPer100g: NutritionalSummaryPer100g(
                   caloriesKcal: message.last
               )
@@ -1253,6 +1259,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
   final bool isShowChat;
   final Messages message;
   final String userId;
+  final  bool isFromOrderTab;
   final String conversationId;
   final List<String> photos;
   final bool isShowKM;
@@ -1263,6 +1270,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
   const FoodCardMessageCardBusiness({
     Key? key,
     required this.serviceData,
+    required this.isFromOrderTab,
     this.isGridView = false,
     this.isShowChat = true,
     this.isShowKM = false,
@@ -1523,7 +1531,103 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                   ),
                 ),
               ],
+            ):(widget.isFromOrderTab)?
+            (widget.message.metadata?.is_cancelled??false)? Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.close, color: Colors.red,),
+                    label:  CustomText(
+                      'Canceled',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+
+
+              ],
             ):
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.warning_amber_rounded,
+                                      color: Colors.red, size: 60),
+                                  const SizedBox(height: 15),
+                                  CustomText(
+                                    'Are you sure you want to cancel the order?',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 25),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Expanded(
+                                        child:  CustomBtn(
+                                            bgColor: AppColors.primaryColor,
+                                            onTap: ()async{
+                                              final controller = Get.put(OrderNowController());
+                                             bool? res=await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
+                                              }, title: "Yes"),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: CustomBtn(onTap: (){
+                                        Get.back();
+                                        }, title: "No"),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.close, color: Colors.red),
+                    label: CustomText(
+                      'Cancel',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      orderNow(context,widget.userId??"",widget.message);
+                    },
+                    icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                    label:   CustomText(
+                      'Track Order',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            )   :
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(

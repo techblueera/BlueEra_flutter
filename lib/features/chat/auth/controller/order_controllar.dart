@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -22,7 +21,6 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/get_adress_details_model.dart';
@@ -106,12 +104,13 @@ class OrderNowController extends GetxController {
 
     }
   }
-  Future<void> CreateOrder(
-      {required Map<String,dynamic> params}) async {
+  Future<void> sendMessageToOrderTab(
+      {required Map<String,dynamic> params})
+  async {
     try {
-      ResponseModel? response = await MakeOrderRepo().createOrder(params);
+      ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
       if (response.isSuccess ?? false) {
-        print("Create Order Response :: ${response.response?.data}");
+        log("Message Added Order Tab ${response.response?.data}");
       } else {
         commonSnackBar(
             message: response?.message ?? AppStrings.somethingWentWrong);
@@ -239,7 +238,7 @@ class OrderNowController extends GetxController {
         "pickup_details": {
           "address": {
             "apartment_address": "",
-            "street_address1": "${(openedMessage?.seller?.location=='')?"N/A":openedMessage?.seller?.location??'N/A'}",
+            "street_address1": "${(openedMessage?.seller?.location==''||openedMessage?.seller?.location==null)?"N/A":openedMessage?.seller?.location}",
             // // "street_address2": "Krishna Nagar Industrial Area",
             "landmark": "N/A",
             "city": "${addressData['city']}",
@@ -279,12 +278,17 @@ class OrderNowController extends GetxController {
       if (data != null) {
         paymentResponseModel.value=PaymentResponseModel.fromJson(data);
         paymentResponse.value= ApiResponse.complete(paymentResponseModel.value);
+        Map<String,dynamic> addOrderTabParams={
+          ApiKeys.message_id: "${openedMessage?.id}",
+          ApiKeys.other_user_id : openedMessage?.seller?.id,
+          ApiKeys.order : data
+        };
+        sendMessageToOrderTab(params: addOrderTabParams);
         final chatViewController = Get.find<ChatViewController>();
 
-
         Map<String,dynamic>datadd={
-          "messageId": "${openedMessage?.id}",
-          "order_status": true
+          ApiKeys.messageId: "${openedMessage?.id}",
+          ApiKeys.order_status : true
         };
         await  updateOrderStatus(datadd);
         chatViewController. emitEvent("messageReceived", {
@@ -303,6 +307,38 @@ class OrderNowController extends GetxController {
     }
 
   }
+
+    Future<bool?> cancelOrderApi(String orderId,String conversationId) async {
+
+
+      final data = await porterApi.cancelOrder(orderId);
+      if (data != null&&data) {
+
+        final chatViewController = Get.find<ChatViewController>();
+
+        Map<String,dynamic>datadd={
+          ApiKeys.messageId: "${openedMessage?.id}",
+          ApiKeys.order_status : true
+        };
+        await  updateOrderStatus(datadd);
+        chatViewController. emitEvent("messageReceived", {
+          ApiKeys.conversation_id: conversationId,
+          ApiKeys.page: 1,
+          ApiKeys.is_online_user: businessId,
+          ApiKeys.per_page_message: 30,
+        });
+      return data;
+      } else {
+        print("❌ Failed to fetch quotes");
+
+
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+      return null;
+
+
+  }
+
 
   Future<void> addAddressApi(double? lat,double? long) async {
     try {
