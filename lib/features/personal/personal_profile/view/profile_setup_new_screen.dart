@@ -350,8 +350,8 @@ class _PersonalProfileSetupNewScreenState
           SizedBox(height: SizeConfig.size10),
           _buildEarnWithBlueEraWidget(),
 
-          SizedBox(height: SizeConfig.size10),
-          _buildBookingAndaAvailabilityWidget(),
+          // SizedBox(height: SizeConfig.size10),
+          // _buildBookingAndaAvailabilityWidget(),
 
           SizedBox(height: SizeConfig.size10),
           _buildPaymentAccountWidget(),
@@ -749,7 +749,7 @@ class _PersonalProfileSetupNewScreenState
 
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size15),
       child: CustomFormCard(
         padding: EdgeInsets.zero,
         child: Column(
@@ -794,6 +794,7 @@ class _PersonalProfileSetupNewScreenState
                     top: 90,
                     child: Obx(() {
                       return CommonProfileImage(
+
                         imagePath:
                             personalCreateProfileController.imagePath?.value ??
                                 "",
@@ -907,7 +908,10 @@ class _PersonalProfileSetupNewScreenState
                             // await personalCreateProfileController.updateUserProfileDetails(
                             //     params: reqProfile, isFromProfileOnly: true);
                           },
-                          child: Image.asset('assets/diwali_card/camera.png')))
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.black.withOpacity(0.3),
+                            child: Image.asset('assets/diwali_card/image.png'),
+                          )))
                 ],
               ),
             ),
@@ -929,7 +933,7 @@ class _PersonalProfileSetupNewScreenState
                     color: AppColors.mainTextColor,
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       (viewProfileController
@@ -938,10 +942,10 @@ class _PersonalProfileSetupNewScreenState
                           ? SizedBox()
                           : Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                                  horizontal: 14, vertical: 4),
                               decoration: BoxDecoration(
                                   color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(20),
                                   border: BoxBorder.all(
                                     color: AppColors.secondaryTextColor,
                                   )),
@@ -951,7 +955,7 @@ class _PersonalProfileSetupNewScreenState
                                     '',
                                 color: AppColors.secondaryTextColor,
                                 fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                       const SizedBox(
@@ -959,20 +963,20 @@ class _PersonalProfileSetupNewScreenState
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                            horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
                             color: AppColors.white,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(20),
                             border: BoxBorder.all(
                               color: AppColors.secondaryTextColor,
                             )),
                         child: CustomText(
                           viewProfileController.personalProfileDetails.value
                                   .user?.profession ??
-                              'UI/UX Designer',
+                              '',
                           color: AppColors.secondaryTextColor,
                           fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -1023,7 +1027,7 @@ class _PersonalProfileSetupNewScreenState
               );
             }),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
 
             // === Bio Section ===
             // if (_shouldShowBioSection())
@@ -1033,23 +1037,30 @@ class _PersonalProfileSetupNewScreenState
                 text: viewProfileController
                         .personalProfileDetails.value.user?.bio ??
                     "",
-                trimLines: 2,
+                trimLines: 3,
                 style: TextStyle(
                   color: AppColors.mainTextColor,
                   fontSize: 14,
+                  wordSpacing: 0.4,
+                  letterSpacing: 0.2,
                   fontWeight: FontWeight.w400,
+                  height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
                 ),
                 expandMode: ExpandMode.dialog,
                 dialogTitle: 'Bio',
               ),
             ),
 
-            const SizedBox(height: 12),
+        //
+            //
+            //
+              const SizedBox(height: 12),
 
             // === Buttons Row ===
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size15, vertical: SizeConfig.size10),
+              padding: EdgeInsets.only(
+                  left: SizeConfig.size15,  right: SizeConfig.size15,
+                  bottom:  SizeConfig.size12),
               child: Row(
                 children: [
                   Expanded(
@@ -1556,7 +1567,7 @@ class _PersonalProfileSetupNewScreenState
                    // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
                    // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                   ),
-                  child: Text('${postTab[index]}'),
+                  child: CustomText('${postTab[index]}',color: isSelected?AppColors.white:AppColors.black,),
                 ),
               );
             },

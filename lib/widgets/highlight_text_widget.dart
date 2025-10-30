@@ -72,6 +72,8 @@ class HighlightText extends StatelessWidget {
         style:  style ?? const TextStyle(
           color: Colors.black,
           fontFamily: AppConstants.OpenSans,
+          wordSpacing: 1,
+
         ),
       ));
     }

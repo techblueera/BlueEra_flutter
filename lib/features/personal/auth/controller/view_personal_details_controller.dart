@@ -135,6 +135,7 @@ class ViewPersonalDetailsController extends GetxController {
   final RxInt postsCount = 0.obs;
   final RxInt followingCount = 0.obs;
   final RxInt followersCount = 0.obs;
+
   Rx<ApiResponse> changeShopStatusResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewPersonalResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getFollowerViewCountResponse =

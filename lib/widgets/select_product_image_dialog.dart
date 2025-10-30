@@ -14,6 +14,8 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../core/constants/snackbar_helper.dart';
+
 class SelectProductImageDialog {
   static final Map<int, CroppableImageData?> _data = {};
 
@@ -23,6 +25,7 @@ class SelectProductImageDialog {
     String title, {
     bool? isOnlyCamera = true,
     bool? isGallery = true,
+        int? maxImages,
     CropAspectRatio? cropAspectRatio,
   }) async {
     final appLocalizations = AppLocalizations.of(context);
@@ -71,6 +74,7 @@ class SelectProductImageDialog {
                                 final paths = await pickFromGallery(
                                   context,
                                   cropAspectRatio: cropAspectRatio,
+                                    maxImages:maxImages
                                 );
                                 Navigator.pop(context, paths);
                               },
@@ -110,16 +114,29 @@ class SelectProductImageDialog {
 
   /// Gallery picker (multi-select)
   static Future<List<String>?> pickFromGallery(
-    BuildContext context, {
-    CropAspectRatio? cropAspectRatio,
-  }) async {
+      BuildContext context, {
+        CropAspectRatio? cropAspectRatio,
+        int? maxImages, // ✅ Optional parameter
+      }) async {
     final picker = ImagePicker();
     final pickedFiles = await picker.pickMultiImage();
+
     if (pickedFiles.isEmpty) return null;
 
+    // ✅ If limit is provided, enforce it
+    final limitedFiles = (maxImages != null)
+        ? pickedFiles.take(maxImages).toList()
+        : pickedFiles;
+
+    if (maxImages != null && pickedFiles.length > maxImages) {
+      commonSnackBar(
+          message: "You can select up to $maxImages images only.");
+
+    }
+
     List<String> results = [];
-    for (int i = 0; i < pickedFiles.length; i++) {
-      final file = File(pickedFiles[i].path);
+    for (int i = 0; i < limitedFiles.length; i++) {
+      final file = File(limitedFiles[i].path);
       final processed = await _processImage(
         context,
         file,
@@ -130,8 +147,10 @@ class SelectProductImageDialog {
         results.add(processed);
       }
     }
+
     return results;
   }
+
 
   /// Process (compress + crop)
   static Future<String?> _processImage(

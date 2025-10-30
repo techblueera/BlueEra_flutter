@@ -106,4 +106,5 @@ class AppColors {
   static const  darkBrown = Color(0xff5A1900);
   static const  orangeOut = Color(0xffFE7B2E);
   static const  purpleOut = Color(0xffC7017C);
+  static const  backgroundBlur = Color(0xff0000004D);
 }

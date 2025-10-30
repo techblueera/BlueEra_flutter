@@ -61,18 +61,23 @@ class AiSuggestionField extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         CommonTextField(
-          validator: (value){
-            if(value!.isEmpty){
-              return "Please Enter Your Bio" ;
-            }else{
-              return null;
+          maxLength: 900,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your Bio';
+            } else if (value.trim().length < 50) {
+              return 'Bio must be at least 50 characters';
+            } else if (value.trim().length > 900) {
+              return 'Bio must not exceed 900 characters';
             }
+            return null;
           },
           hintText: "Write your $title...",
           textEditController: textController,
           maxLine: 3,
-          maxLength: 250,
+
           onChange: (val) => onChange?.call(),
+
         ),
       ],
     );

@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
+import '../../../../core/constants/snackbar_helper.dart';
+
 class SearchPlaceList extends StatefulWidget {
   final String query;
   final double lat;
@@ -22,6 +24,7 @@ class SearchPlaceList extends StatefulWidget {
   final String currentAddress;
   final String fromScreen;
   final Function(double?, double?, String?)? onPlaceSelected;
+  final Function()? onRefresh;
 
   const SearchPlaceList({
     super.key,
@@ -30,7 +33,7 @@ class SearchPlaceList extends StatefulWidget {
     required this.lng,
     required this.currentAddress,
     required this.fromScreen,
-    this.onPlaceSelected,
+    this.onPlaceSelected, this.onRefresh,
   });
 
   @override
@@ -136,29 +139,32 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   }
 
   Future<void> _handleCurrentLocationTap() async {
+    print("lsdkslkdmcsdlkcm ");
     setState(() {
       isGettingCurrentLocation = true;
+    });
+    if(widget.onRefresh!=null){
+      widget.onRefresh;
+    }
+    Future.delayed(Duration(seconds: 1),(){
+      setState(() {
+        isGettingCurrentLocation = false;
+      });
     });
     try {
     } catch (e) {
       // Handle location error
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: CustomText(
-              'Failed to get location: ${e.toString()}',
-              color: AppColors.white,
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        commonSnackBar(
+            message: "Failed to get location: ${e.toString()}");
+
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          isGettingCurrentLocation = false;
-        });
-      }
+      // if (mounted) {
+      //   setState(() {
+      //     isGettingCurrentLocation = false;
+      //   });
+      // }
     }
   }
   Future<void> _showMarkerAndZoom() async {
@@ -183,7 +189,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   }
   @override
   Widget build(BuildContext context) {
-    print("sdkcslklsdkcm ${widget.lng}__ ${widget.lat}");
+
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,16 +272,11 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                     Icon(Icons.refresh),
                     SizedBox(width: SizeConfig.size15),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            "Refresh Location",
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.black,
-                          ),
-                        ],
+                      child: CustomText(
+                        "Refresh Location",
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
                       ),
                     ),
                   ],

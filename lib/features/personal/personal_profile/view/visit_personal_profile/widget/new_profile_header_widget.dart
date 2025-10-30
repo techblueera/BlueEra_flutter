@@ -15,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter/gestures.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
+import '../../../../../../widgets/expandable_text.dart';
 import '../../../../../../widgets/highlight_text_widget.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
@@ -72,7 +73,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(SizeConfig.size10),
+      margin: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -234,12 +235,11 @@ class NewProfileHeaderWidget extends StatelessWidget {
                   children: [
                     if (user?.username != null && user!.username!.isNotEmpty)
                       Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size10,
-                            vertical: SizeConfig.size4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
                           border: Border.all(color: AppColors.secondaryTextColor),
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: CustomText(
                           "@${user?.username}",
@@ -274,32 +274,32 @@ class NewProfileHeaderWidget extends StatelessWidget {
                             return (controller.channelUserName?.value.isNotEmpty ?? false)
                                 ? Row(
                               children: [
-                                CustomText(
-                                  "Visit my channel: ",
-                                  fontSize: SizeConfig.size12,
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      RouteHelper.getChannelScreenRoute(),
-                                      arguments: {
-                                        ApiKeys.argAccountType: user?.accountType,
-                                        ApiKeys.channelId:
-                                        controller.channelUserId?.value,
-                                        ApiKeys.authorId: user?.id,
-                                      },
-                                    );
-                                  },
-                                  child: CustomText(
-                                    "@${controller.channelName?.value}",
-                                    color: AppColors.primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: AppColors.primaryColor,
-                                    fontSize: SizeConfig.size12,
-                                  ),
-                                ),
+                                // CustomText(
+                                //   "Visit my channel: ",
+                                //   fontSize: SizeConfig.size12,
+                                // ),
+                                // InkWell(
+                                //   onTap: () {
+                                //     Navigator.pushNamed(
+                                //       context,
+                                //       RouteHelper.getChannelScreenRoute(),
+                                //       arguments: {
+                                //         ApiKeys.argAccountType: user?.accountType,
+                                //         ApiKeys.channelId:
+                                //         controller.channelUserId?.value,
+                                //         ApiKeys.authorId: user?.id,
+                                //       },
+                                //     );
+                                //   },
+                                //   child: CustomText(
+                                //     "@${controller.channelName?.value}",
+                                //     color: AppColors.primaryColor,
+                                //     fontWeight: FontWeight.w600,
+                                //     decoration: TextDecoration.underline,
+                                //     decorationColor: AppColors.primaryColor,
+                                //     fontSize: SizeConfig.size12,
+                                //   ),
+                                // ),
                               ],
                             )
                                 : const SizedBox();
@@ -359,42 +359,44 @@ class NewProfileHeaderWidget extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
 
           /// ==== Bio ====
          // if ((user?.bio ?? '').trim().isNotEmpty)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: user?.bio != null && user!.bio!.isNotEmpty
-                        ? user!.bio!
-                        : 'No bio available',
-                    style: TextStyle(
-                      fontSize: SizeConfig.size14,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                  TextSpan(
-                    text: '   Read More',
-                    style: TextStyle(
-                      fontSize: SizeConfig.size12,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        _showFullTextDialog(context,user?.bio??'');
-                      },
-                  ),
-                ],
+            child: ExpandableText(
+              text: user?.bio??'',
+              trimLines: 3,
+              style: TextStyle(
+                color: AppColors.mainTextColor,
+                fontSize: 14,
+                wordSpacing: 0.4,
+                letterSpacing: 0.2,
+                fontWeight: FontWeight.w400,
+                height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              expandMode: ExpandMode.dialog,
+              dialogTitle: 'Bio',
             ),
           ),
+        //ExpandableText(
+        //                 text: viewProfileController
+        //                         .personalProfileDetails.value.user?.bio ??
+        //                     "",
+        //                 trimLines: 3,
+        //                 style: TextStyle(
+        //                   color: AppColors.mainTextColor,
+        //                   fontSize: 14,
+        //                   wordSpacing: 0.4,
+        //                   letterSpacing: 0.2,
+        //                   fontWeight: FontWeight.w400,
+        //                   height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+        //                 ),
+        //                 expandMode: ExpandMode.dialog,
+        //                 dialogTitle: 'Bio',
+        //               )
+
 
          // const SizedBox(height: 8),
 

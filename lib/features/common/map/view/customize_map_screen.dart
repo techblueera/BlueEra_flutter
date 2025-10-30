@@ -515,7 +515,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                 buildBottomSheet(),
 
                 searchLocationShow
-                    ? SearchPlaceList(
+                    ? SearchPlaceList(onRefresh: (){
+                  _initializeLocationAndMarkers(context);
+                },
                         query: _currentSearchQuery,
                         lat: _currentPosition.latitude,
                         lng: _currentPosition.longitude,

@@ -120,7 +120,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           autovalidateMode: _autoValidate,
                           validator: (value) {
                             if (value?.length != 10) {
-                              return langController.tr('pleaseEnterValidMobile');
+                              return langController.tr('Please enter valid mobile number');
                             }
                             return null;
                           },

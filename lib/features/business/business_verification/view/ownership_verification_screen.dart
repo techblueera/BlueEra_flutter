@@ -15,6 +15,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 
@@ -55,9 +56,9 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
       viewBusinessDetailsController.postVerifyOwnerBusinessDocs(data);
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please provide the required information')),
-      );
+      commonSnackBar(
+          message: "Please provide the required information");
+
     }
   }
   @override

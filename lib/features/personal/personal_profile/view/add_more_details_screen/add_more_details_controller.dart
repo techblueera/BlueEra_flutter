@@ -70,19 +70,19 @@ class AddMoreDetailsController extends GetxController {
 
       clearForm();
 
-      print('Saving details: $details');
 
       if(fromScreen == RouteConstant.addProductViaAiStep2) {
         final detailItem = ProductMoreDetails(
-          title: titleController.text.trim(),
-          details: detailController.text.trim(),
+          title: details['title'].toString(),
+          details: details['detail'].toString(),
         );
         Get.find<ProductController>().addDetail(detailItem);
       }else if(fromScreen == RouteConstant.addServicesScreen){
         final detailItem = DetailItem(
-          title: titleController.text.trim(),
-          details: detailController.text.trim(),
+          title: details['title'].toString(),
+          details: details['detail'].toString(),
         );
+
         Get.find<AddServiceController>().addDetail(detailItem);
       }
 

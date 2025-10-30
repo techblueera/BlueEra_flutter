@@ -80,7 +80,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
       await authController.getAllProfessionController();
     });
   }
-
+bool crBtnLoading=false;
   clearTextFiled() {
     _CourseTextController.clear();
     _artTypeController.clear();
@@ -662,6 +662,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
                     height: SizeConfig.size20,
                   ),
                 ],
+
                 if ((_selectedProfession == POLITICIAN) ||
                     (_selectedProfession == GOVTPSU) ||
                     (_selectedProfession == CONTENT_CREATOR) ||
@@ -849,6 +850,7 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
               bottom: SizeConfig.size20,
               top: SizeConfig.size10),
           child: CustomBtn(
+            isLoading: crBtnLoading,
             onTap: () => _onSubmitPressed(),
             title: appLocalizations?.submit,
             isValidate: true,
@@ -891,6 +893,9 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
       // final position = await getCurrentLocation();
       final locationData = await locationController.checkPermissionAndSetData();
       if (locationData != null) {
+        setState(() {
+          crBtnLoading=true;
+        });
         final imageFile = (UserSession().imagePath != null)
             ? File(UserSession().imagePath!)
             : null;
@@ -980,6 +985,9 @@ class _PersonalAccountScreenState extends State<PersonalAccountScreen> {
         };
         logs("requestData PERSONAL ==== ${requestData}");
         await authController.addIndivisualUser(reqData: requestData);
+        setState(() {
+          crBtnLoading=false;
+        });
       }
       else{
         commonSnackBar(
