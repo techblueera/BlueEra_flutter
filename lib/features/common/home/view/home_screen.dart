@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _headerHeight = 0;
   final List<String> postTab = [
     "All Posts",
-    "Channel",
+    // "Channel",
     // "Videos",
     // "Shorts",
     "Saved",
@@ -273,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       headerHeight: _headerHeight,
                       isInParentScroll: false,
                     ),
-                      ChannelFeedScreen(),
+                      // ChannelFeedScreen(),
                       /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
