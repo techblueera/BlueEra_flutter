@@ -152,7 +152,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
         if (didPop) return;
         commonConformationDialog(
           context: context,
-          text: langController.tr('exitConfirmation'),
+          text: langController.tr('Exit Confirmation'),
           confirmCallback: () async {
             await SharedPreferenceUtils.clearPreference();
             Navigator.of(context).pushNamedAndRemoveUntil(

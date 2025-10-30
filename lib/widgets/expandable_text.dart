@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/highlight_text_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 enum ExpandMode { expandable, dialog }
 
@@ -14,7 +15,6 @@ class ExpandableText extends StatefulWidget {
   final ValueChanged<double>? onHeightChanged;
   final ExpandMode expandMode;
   final String? dialogTitle;
-  final bool? isReadMoreNewLine;
 
   const ExpandableText({
     Key? key,
@@ -24,7 +24,6 @@ class ExpandableText extends StatefulWidget {
     this.onHeightChanged,
     this.expandMode = ExpandMode.expandable,
     this.dialogTitle,
-    this.isReadMoreNewLine = false,
   }) : super(key: key);
 
   @override
@@ -34,12 +33,28 @@ class ExpandableText extends StatefulWidget {
 class _ExpandableTextState extends State<ExpandableText> {
   bool _readMore = true;
 
+
   bool get _isLong {
     if (widget.text.isEmpty) return false;
-    final newLines = '\n'.allMatches(widget.text).length + 1;
-    final roughChars = widget.text.length;
-    return newLines > widget.trimLines || roughChars > widget.trimLines * 60;
+
+    final textSpan = TextSpan(
+      text: widget.text,
+      style: widget.style ?? const TextStyle(color: AppColors.black28),
+    );
+
+    final tp = TextPainter(
+      text: textSpan,
+      maxLines: widget.trimLines,
+      textDirection: TextDirection.ltr,
+    );
+
+    // subtract your padding (15 left & right)
+    tp.layout(maxWidth: MediaQuery.of(context).size.width - (SizeConfig.size15 * 2));
+
+    return tp.didExceedMaxLines;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,34 +68,36 @@ class _ExpandableTextState extends State<ExpandableText> {
     }
 
     if (_readMore) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          HighlightText(
-            text: widget.text,
-            style: style,
-            maxLines: widget.trimLines,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          GestureDetector(
-            onTap: () {
-              if (widget.expandMode == ExpandMode.dialog) {
-                _showFullTextDialog(context, style);
-              } else {
-                setState(() => _readMore = false);
-              }
-            },
-            child: CustomText(
-              (widget.isReadMoreNewLine ?? false) ? "Read more\n" : 'Read more',
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-              fontSize: SizeConfig.size13,
+      return RichText(
+        text: TextSpan(
+
+          children: [
+            TextSpan(
+             style: widget.style ?? const TextStyle(color: AppColors.black28),
+              text: widget.text.length > 120
+                  ? '${widget.text.substring(0, 120)}... '
+                  : widget.text,
             ),
-          ),
-        ],
+            TextSpan(
+              text: 'Read more',
+              style: style.copyWith(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  if (widget.expandMode == ExpandMode.dialog) {
+                    _showFullTextDialog(context, style);
+                  } else {
+                    setState(() => _readMore = false);
+                  }
+                },
+            ),
+          ],
+        ),
       );
+
+
     }
 
     return Column(
@@ -97,6 +114,7 @@ class _ExpandableTextState extends State<ExpandableText> {
             // fontSize: SizeConfig.medium15,
             fontWeight: FontWeight.w600,
             fontSize: SizeConfig.size13,
+
           ),
         ),
       ],
@@ -120,21 +138,22 @@ class _ExpandableTextState extends State<ExpandableText> {
             children: [
               CustomText(
                 widget.dialogTitle ?? 'Description',
-                fontSize: SizeConfig.large18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.mainTextColor,
+                  fontSize: SizeConfig.large18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.mainTextColor,
               ),
               SizedBox(height: SizeConfig.size8),
               Flexible(
                 child: SingleChildScrollView(
                   child: HighlightText(
                       text: widget.text,
-                      style: TextStyle(
-                        color: AppColors.mainTextColor,
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: AppConstants.OpenSans,
-                      )),
+                    style: TextStyle(
+                      color: AppColors.mainTextColor,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: AppConstants.OpenSans,
+                    )
+                  ),
                 ),
               ),
               SizedBox(height: SizeConfig.size8),

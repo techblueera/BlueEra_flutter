@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart'; // for compute
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_btn.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/contactListModel.dart';
@@ -191,9 +192,8 @@ class _ContactsPageState extends State<ContactsPage> {
       } else if (newStatus.isPermanentlyDenied) {
         _showPermissionDialog();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Permission denied")),
-        );
+        commonSnackBar(
+            message: "Permission denied");
       }
     }
   }

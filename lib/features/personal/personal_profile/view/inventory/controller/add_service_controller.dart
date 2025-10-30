@@ -136,10 +136,10 @@ class AddServiceController extends GetxController {
     return null;
   }
 
-  Future<void> pickImages(BuildContext context) async {
+  Future<void> pickImages(BuildContext context,[int? maxImages]) async {
     try {
       final List<String>? selected =
-          await SelectProductImageDialog.showLogoDialog(
+          await SelectProductImageDialog.showLogoDialog(maxImages: maxImages,
         context,
         accountTypeGlobal==AppConstants.individual?"Service Image":'Product Image',
       );
@@ -188,6 +188,7 @@ class AddServiceController extends GetxController {
   }
 
   void addDetail(DetailItem detail) {
+
     detailsList.add(detail);
   }
 

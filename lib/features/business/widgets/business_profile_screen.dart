@@ -323,7 +323,7 @@ class BusinessProfileHeader extends StatelessWidget {
                 // Profile image overlapping banner bottom
                 Positioned(
                   left: 20,
-                  top: 100, // makes it overlap smoothly
+                  top: 90, // makes it overlap smoothly
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -333,10 +333,10 @@ class BusinessProfileHeader extends StatelessWidget {
                       ),
                     ),
                     child: CircleAvatar(
-                      radius: 32,
+                      radius: 38,
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
-                        radius: 30,
+                        radius: 36,
                         backgroundImage: NetworkImage(
                           controller.imagePath?.value ?? "",
                         ),
@@ -411,7 +411,7 @@ class BusinessProfileHeader extends StatelessWidget {
             ),
           ),
 
-          // const SizedBox(height: 34),
+           const SizedBox(height: 4),
 
           // Business name and buttons
           Padding(

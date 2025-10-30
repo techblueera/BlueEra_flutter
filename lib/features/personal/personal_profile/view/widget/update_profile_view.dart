@@ -60,7 +60,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   // final userNameController = TextEditingController();
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
-
+bool updateBtnLoading=false;
   final personalCreateProfileController =
       Get.find<PersonalCreateProfileController>();
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
@@ -249,6 +249,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               name: selectedProfession?.toLowerCase());
     });
     tempImgPath = personalCreateProfileController.imagePath?.value;
+    Future.delayed(Duration(seconds: 1),(){
+      setState(() {
+
+      });
+    });
     super.initState();
   }
  bool onChangedEmail=false;
@@ -259,9 +264,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     return emailRegex.hasMatch(email);
   }
 
+
   @override
   Widget build(BuildContext context) {
-    print("✅ Gender from profile: ${viewProfileController.personalProfileDetails.value.user?.emailVerified}");
 
     return WillPopScope(
       onWillPop: () async {
@@ -576,7 +581,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                         .selectedProfessionObj.value = value;
                                     logs(
                                         " profession.name==== ${personalCreateProfileController.selectedProfessionObj.value?.name}");
-
+                                    selectedProfession=value?.name;
                                     authController.subcategoriesFiledNameList
                                         .addAll(
                                             value?.subcategoriesFiledName ?? []);
@@ -591,6 +596,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   // },
                                 );
                               }),
+
                               SizedBox(height: SizeConfig.size18),
 
                               if (personalCreateProfileController
@@ -905,6 +911,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 SizedBox(height: SizeConfig.size18),
                               ],
                               AiSuggestionField(
+
                                 title: "About Me / Bio",
                                 apiType: "bio",
                                 textController: addBio,
@@ -923,6 +930,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       .selectedGender.value?.name
                                 },
                                 onSaved: filedValidation,
+
                                 // call your validation here
                                 onChange:
                                     filedValidation, // when user edits manually
@@ -958,13 +966,18 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                             SizedBox(width: SizeConfig.size16),
                             Expanded(
                                 child: CustomBtn(
+                                    isLoading: updateBtnLoading,
                                     radius: 10,
 
                                     isValidate: filedValidation(),
                                     onTap: filedValidation()
                                         ? () async {
+
                                       if(viewProfileController.personalProfileDetails
                                           .value.user?.emailVerified==true){
+                                      setState(() {
+                                        updateBtnLoading=!updateBtnLoading;
+                                      });
                                         if (selectedProfession == ARTIST) {
                                           if (personalCreateProfileController
                                               .selectedSubProfessionObj
@@ -1091,6 +1104,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                           personalCreateProfileController
                                               .selectedYear,
 
+
                                           ///SKILL WORKER..
                                           if (selectedProfession ==
                                               SKILLED_WORKER)
@@ -1133,6 +1147,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                             .updateUserProfileDetails(
                                           params: params,
                                         );
+                                      setState(() {
+                                        updateBtnLoading=!updateBtnLoading;
+                                      });
                                       }else{
                                         showDialog(
                                           context: context,

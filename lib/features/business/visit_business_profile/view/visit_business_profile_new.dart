@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
 import '../../auth/controller/view_business_details_controller.dart';
@@ -436,12 +437,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             context,
                             (rating, review) async {
                               if (rating == 0) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please select a rating'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
+                                commonSnackBar(
+                                    message: "Please select a rating");
+
                                 return;
                               }
                             },

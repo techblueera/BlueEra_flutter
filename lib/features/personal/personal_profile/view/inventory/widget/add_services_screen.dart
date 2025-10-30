@@ -9,6 +9,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/service_ai_generate_model.dart';
+import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -252,6 +253,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                             final imgIdx = index;
                             return GestureDetector(
                               key: ValueKey('img_$imgIdx'),
+
                               onTap: () {
                                 if (addServiceController
                                         .imageLocalPaths.length >=
@@ -261,7 +263,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                         'Limit reached\nYou can upload up to 5 images only.',
                                   );
                                 } else {
-                                  addServiceController.pickImages(context);
+                                  addServiceController.pickImages(context,5-addServiceController
+                                      .imageLocalPaths.length);
                                 }
                               },
                               onLongPress: () {
@@ -502,6 +505,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
+                        maxLength: 8,
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                         title: "Minimum booking Amount",
@@ -520,6 +524,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 (index) {
                                   final item =
                                       addServiceController.detailsList[index];
+
                                   return Padding(
                                     padding: EdgeInsets.only(
                                         bottom: SizeConfig.size15),
@@ -657,9 +662,28 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                         ],
                       ),
                       SizedBox(height: SizeConfig.size30),
+                     //
                       CustomBtn(
                         title: 'Post Service',
-                        onTap: () => addServiceController.createServiceApi(channelId: widget.channelId, providerType: widget.providerType),
+                        onTap: () {
+                          final count = addServiceController.imageLocalPaths.length;
+
+                          if (count < 2) {
+                            commonSnackBar(
+                                message: "Please select at least 2 product images");
+
+                            return;
+                          }
+
+                          if (count > 5) {
+                            commonSnackBar(
+                                message: "You can upload a maximum of 5 product images");
+                            return;
+                          }
+
+                          addServiceController.createServiceApi(channelId: widget.channelId, providerType: widget.providerType);
+                        },
+
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,
@@ -736,13 +760,35 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
             SizedBox(width: SizeConfig.size10),
             Expanded(
               child: Obx(() => _buildDropdown(
-                    hint: "End Time",
-                    value: addServiceController.endTime.value,
-                    items: addServiceController.timeSlots,
-                    onChanged: (val) =>
-                        addServiceController.endTime.value = val!,
-                  )),
+                hint: "End Time",
+                value: addServiceController.endTime.value,
+                items: addServiceController.timeSlots,
+                onChanged: (val) {
+                  final start = addServiceController.startTime.value;
+                  final end = val!;
+
+                  if (start.isEmpty) {
+                    // allow selection if start not selected yet
+                    addServiceController.endTime.value = end;
+                    return;
+                  }
+
+                  // Compare time index
+                  final startIndex = addServiceController.timeSlots.indexOf(start);
+                  final endIndex = addServiceController.timeSlots.indexOf(end);
+
+                  if (endIndex <= startIndex) {
+                    commonSnackBar(
+                        message: "End time must be after start time");
+
+                    return; // ❌ block invalid selection
+                  }
+
+                  addServiceController.endTime.value = end; // ✅ valid
+                },
+              )),
             ),
+
           ],
         ),
       ],

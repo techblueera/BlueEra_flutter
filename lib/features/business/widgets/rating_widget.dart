@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_icon_assets.dart';
+import '../../../core/constants/snackbar_helper.dart';
 import '../auth/controller/view_business_details_controller.dart';
 
 class RatingFeedbackDialog extends StatefulWidget {
@@ -189,12 +190,10 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
 
   void _submitFeedback(String ratingFrom) async {
     if (selectedRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a rating'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      commonSnackBar(
+          message: "Please select a rating");
+
+
       return;
     }
 

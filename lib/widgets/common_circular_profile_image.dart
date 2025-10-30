@@ -45,7 +45,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
             // padding: EdgeInsets.all(SizeConfig.size2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: (widget.showProfileBorder) ? Border.all(color: AppColors.primaryColor, width: 1.6) : null,
+              border: (widget.showProfileBorder) ? Border.all(color: AppColors.white, width: 4) : null,
             ),
             child: CircleAvatar(
               radius: 40,
@@ -75,13 +75,21 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primaryColor,
+                border: (widget.showProfileBorder) ? Border.all(color: AppColors.white, width: 2) : null,
               ),
-              child: LocalAssets(
-                imagePath: AppIconAssets.profile_pen_tool,
-                height: SizeConfig.size26,
-                width: SizeConfig.size26,
-                imgColor: Colors.white,
+              child: Container(
+
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor,
+                ),
+                child: LocalAssets(
+                  imagePath: AppIconAssets.editIcon,
+                  height: SizeConfig.size14,
+                  width: SizeConfig.size14,
+                  imgColor: Colors.white,
+                ),
               ),
             ),
           ),

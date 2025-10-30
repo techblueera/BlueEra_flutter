@@ -25,7 +25,7 @@ class PersonalCreateProfileController extends GetxController {
   // Rx<ArtistCategory?> selectedArtistCategory = Rx<ArtistCategory?>(null);
 
   Rx<GenderType?> selectedGender = Rx<GenderType?>(null);
-
+  final RxBool updateBtnLoading = false.obs;
   RxString? imagePath = "".obs;
   RxBool isImageUpdated = false.obs;
 
@@ -96,6 +96,7 @@ class PersonalCreateProfileController extends GetxController {
     bool isFromProfileOnly = false,
   }) async {
     try {
+      updateBtnLoading.value=true;
       print("Params being sent to API: $params");
       ResponseModel responseModel = await PersonalProfileRepo().updateUser(
         formData: params,
@@ -117,7 +118,9 @@ class PersonalCreateProfileController extends GetxController {
           message: responseModel.message ?? AppStrings.somethingWentWrong,
         );
       }
+      updateBtnLoading.value=false;
     } catch (e) {
+      updateBtnLoading.value=false;
       updateUserProfileResponse = ApiResponse.error('Update failed');
     }
   }

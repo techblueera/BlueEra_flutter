@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/size_config.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
@@ -78,9 +79,9 @@ class _BusinessVerificationState extends State<BusinessVerification> {
       viewBusinessDetailsController.postVerifyBusinessDocs(data);
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please provide the required information')),
-      );
+      commonSnackBar(
+          message: "Please provide the required information");
+
     }
   }
 
