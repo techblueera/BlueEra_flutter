@@ -24,7 +24,7 @@ class RazorpayController extends GetxController {
     required String email,
   }) {
     var options = {
-      'key': 'rzp_live_RYv0tzupV710iQ', // 🔑 Replace with your Razorpay key
+      'key': 'rzp_test_ohzYMNmUvD1Vxg', // 🔑 Replace with your Razorpay key
       'amount': (amount + (amount * 0.10)).toInt(), // Razorpay takes amount in paise
       'name': customerName,
       'description': 'Porter Vehicle Booking',

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 
 import 'Conversation.dart';
@@ -371,8 +372,19 @@ class MessageMetadata {
   String? discount;
   bool? missedCall;
   bool? orderStatus;
+  bool? is_cancelled;
   bool? callAccept;
   bool? callDecline;
+
+  String? title;
+  String? vegType;
+  String? subCategory;
+  String? calories;
+  String? variant;
+  String? mrp;
+
+  // 🔹 Added nested model
+  PaymentResponseModel? order;
 
   MessageMetadata({
     this.foodId,
@@ -381,9 +393,17 @@ class MessageMetadata {
     this.price,
     this.discount,
     this.orderStatus,
+    this.is_cancelled,
     this.missedCall,
     this.callAccept,
     this.callDecline,
+    this.title,
+    this.vegType,
+    this.subCategory,
+    this.calories,
+    this.variant,
+    this.mrp,
+    this.order,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -392,11 +412,21 @@ class MessageMetadata {
       productId: json['product_id']?.toString(),
       serviceId: json['service_id']?.toString(),
       price: json['price']?.toString(),
-      orderStatus: json['order_status']??false,
       discount: json['discount']?.toString(),
+      orderStatus: json['order_status'] ?? false,
+      is_cancelled: json['is_cancelled'] ?? false,
       missedCall: json['missed_call'] ?? false,
       callAccept: json['call_accept'] ?? false,
       callDecline: json['call_decline'] ?? false,
+      title: json['title']?.toString(),
+      vegType: json['veg_type']?.toString(),
+      subCategory: json['sub_category']?.toString(),
+      calories: json['calories']?.toString(),
+      variant: json['variant']?.toString(),
+      mrp: json['mrp']?.toString(),
+      order: json['order'] != null
+          ? PaymentResponseModel.fromJson(json['order'])
+          : null,
     );
   }
 
@@ -410,10 +440,18 @@ class MessageMetadata {
       'missed_call': missedCall,
       'call_accept': callAccept,
       'call_decline': callDecline,
+      'order_status': orderStatus,
+      'is_cancelled': is_cancelled,
+      'title': title,
+      'veg_type': vegType,
+      'sub_category': subCategory,
+      'calories': calories,
+      'variant': variant,
+      'mrp': mrp,
+      'order': order?.toJson(), // ✅ nested model serialization
     };
   }
 }
-
 /// profile_image : ""
 /// _id : 0
 /// username : ""

@@ -189,8 +189,8 @@ class ChatViewController extends GetxController {
       getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
     });
     chatSocket.listenEvent('messageReceived', (data) async {
-
       final parsedData = GetListOfMessageData.fromJson(data);
+
 
       // Ensure myMessage field is properly set for all messages
       if (parsedData.messages != null) {
@@ -628,7 +628,6 @@ class ChatViewController extends GetxController {
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
           await ChatViewRepo().getConnectionsSync(params);
-      log("sdkmclksdmc ${responseModel.response?.data}");
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 

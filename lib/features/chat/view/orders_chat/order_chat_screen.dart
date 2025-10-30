@@ -205,6 +205,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                                         MainAxisAlignment.end,
                                         children: messages.map((message) {
                                           return MessageCard(
+                                            isFromOrderTab: true,
                                             message: message,
                                             isInitialMessage:
                                            false,

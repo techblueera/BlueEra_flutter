@@ -140,11 +140,11 @@ class FoodDetailsViewScreen extends StatelessWidget {
                           chatViewController.newVisitContactApiResponse?.value;
                           await chatViewController.checkChatConnection(detas);
                           List<Map<String, String>> urlList =
-                              photos.map((e) => {"url": e}).toList();
+                              photos.map((e) => { ApiKeys.url: e}).toList();
                           Map<String, dynamic> data = {
                            ApiKeys.food_id: "${item.id}",
-                            "price": "${productPriceFormat}",
-                            "discount": "",
+                            ApiKeys.price: "${productPriceFormat}",
+                            ApiKeys.discount : "",
                             if ((chatViewController.newVisitContactApiResponse
                                         ?.value?.data?.conversationId ==
                                     '' ||
@@ -164,10 +164,16 @@ class FoodDetailsViewScreen extends StatelessWidget {
                                       ?.data
                                       ?.conversationId ??
                                   ''),
-                            "message":
-                                "${item.title}.${item.vegType}.${item.subCategory}.${item.nutritionalSummaryPer100g?.caloriesKcal}",
-                            "message_type": "food",
-                            "url": urlList,
+                            ApiKeys.message :
+                                "${item.title}",
+                            ApiKeys.message_type : AppConstants.food,
+                            ApiKeys.title: item.title,
+                            ApiKeys.veg_type :item.vegType,
+                            ApiKeys.sub_category : item.subCategory,
+                            ApiKeys.calories: item.nutritionalSummaryPer100g?.caloriesKcal,
+                            // ApiKeys.variant : "string",
+                            // ApiKeys.mrp : "string"
+                            ApiKeys.url: urlList,
                           };
                           chatViewController.openAnyOneChatFunction(
                             shareProductParams: data,
@@ -185,7 +191,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                                     ''
                                 : null,
                             businessId: business?.id,
-                            type: "business",
+                            type: AppConstants.chatMsgBusinessType,
                             isInitialMessage: (chatViewController
                                             .newVisitContactApiResponse
                                             ?.value

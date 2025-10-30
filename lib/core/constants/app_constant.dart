@@ -159,6 +159,10 @@ class AppConstants {
   static const String chatScreen = "chatScreen";
   static const String feedScreen = "feedScreen";
   static const String storeFeedScreen = "storeFeedScreen";
+  static const String food = "food";
+  static const String product = "product";
+  static const String service = "service";
+  static const String chatMsgBusinessType = "business";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =

@@ -408,5 +408,12 @@ class ApiKeys {
   static const isSelfEmployement = 'isSelfEmployement';
   static const subType = 'subType';
   static const serviceSubType = 'serviceSubType';
+  static const discount = 'discount';
+  static const veg_type = 'veg_type';
+  static const calories = 'calories';
+  static const variant = 'variant';
+  static const messageId = 'messageId';
+  static const order_status = 'order_status';
+  static const order = 'order';
 
 }

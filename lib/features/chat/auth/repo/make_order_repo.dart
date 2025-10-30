@@ -4,9 +4,9 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class MakeOrderRepo extends BaseService {
-  Future<ResponseModel> createOrder(Map<String, dynamic> params) async {
+  Future<ResponseModel> messageToOrder(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
-        createOrderApi,
+        messageToOrderTab,
         isMultipart: false,
         showProgress: false,
         params: params, onError: (error) {}, onSuccess: (data) {});
