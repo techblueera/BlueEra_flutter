@@ -144,7 +144,7 @@ class AddServiceController extends GetxController {
       final List<String>? selected =
           await SelectProductImageDialog.showLogoDialog(maxImages: maxImages,
         context,
-        accountTypeGlobal==AppConstants.individual?"Service Image":'Product Image',
+        accountTypeGlobal==AppConstants.individual? "Service Image":'Product Image',
       );
 
       if (selected != null) {

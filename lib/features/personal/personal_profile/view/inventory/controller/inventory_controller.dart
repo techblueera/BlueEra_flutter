@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -272,31 +273,61 @@ class InventoryController extends GetxController {
     }
   }
 
-  bool validateSelectedVariants(List<VariantData> allVariants) {
+  List<String> validateSelectedVariants(List<VariantData> allVariants) {
+    final missingPriceIds = <String>[];
+
     for (final entry in variantSelection.entries) {
       if (entry.value) {
         final variantId = entry.key;
         final sellingPriceStr = variantSellingPrice[variantId];
-
         if (sellingPriceStr == null || sellingPriceStr.trim().isEmpty) {
-          // no price filled
-          return false;
+          missingPriceIds.add(variantId);
         }
       }
     }
-    return true;
+    return missingPriceIds;
+  }
+
+
+  void fillMissingSellingPricesWithDefaults(
+      List<VariantData> allVariants, List<String> missingPriceIds) {
+    for (final variantId in missingPriceIds) {
+      final variantData = allVariants.firstWhere(
+            (v) => v.finalVariant.id == variantId,
+        orElse: () => throw Exception("Variant not found: $variantId"),
+      );
+
+     updateSellingPrice(variantId, variantData.finalVariant.sellingPrice.toString());
+
+    }
+
+    // refresh();
+
   }
 
   Future<void> cloneProductVariantApi() async {
     cloneProductVariantLoading.value = true;
     try {
-      final params = buildSelectedVariantsPayload(
-        searchProductVariantsList,
-      );
+      final clones = _buildSelectedVariantsPayload(searchProductVariantsList);
 
-      print("Final Payload: $params");
+      if (clones.isEmpty) {
+        print("No variants selected — skipping API call");
+        return;
+      }
 
-      final responseModel = await InventoryRepo().cloneProductVariantApi(params: params);
+      // Construct body
+      final body = {
+        ApiKeys.owner: {
+          ApiKeys.id: businessId,
+          ApiKeys.type: ProductServiceProviderType.business.title,
+        },
+        ApiKeys.clones: clones,
+        //  'clones': jsonEncode(clones),
+      };
+
+      print("Final Clone Payload: $body");
+
+      final responseModel = await InventoryRepo().cloneProductVariantApi(params: body);
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
@@ -318,32 +349,32 @@ class InventoryController extends GetxController {
     }
   }
 
-  List<Map<String, dynamic>> buildSelectedVariantsPayload(
-      List<VariantData> allVariants) {
-    final payload = <Map<String, dynamic>>[];
+    List<Map<String, dynamic>> _buildSelectedVariantsPayload(
+        List<VariantData> allVariants) {
+      final payload = <Map<String, dynamic>>[];
 
-    variantSelection.forEach((variantId, isSelected) {
-      if (isSelected) {
-        final variantData = allVariants.firstWhere(
-              (v) => v.finalVariant.id == variantId,
-          orElse: () => throw Exception("Variant not found: $variantId"),
-        );
+      variantSelection.forEach((variantId, isSelected) {
+        if (isSelected) {
+          final variantData = allVariants.firstWhere(
+                (v) => v.finalVariant.id == variantId,
+            orElse: () => throw Exception("Variant not found: $variantId"),
+          );
 
-        // get selling price from controller OR fallback to default
-        final sellingPriceStr = variantSellingPrice[variantId];
-        final sellingPrice = double.tryParse(sellingPriceStr ?? '') ??
-            variantData.finalVariant.sellingPrice;
+          // get selling price from controller OR fallback to default
+          final sellingPriceStr = variantSellingPrice[variantId];
+          final sellingPrice = double.tryParse(sellingPriceStr ?? '') ??
+              variantData.finalVariant.sellingPrice;
 
-        payload.add({
-          "product_id": variantData.productInformation.id,
-          "variantId": variantId,
-          "sellingPrice": sellingPrice,
-        });
-      }
-    });
+          payload.add({
+            "product_id": variantData.productInformation.id,
+            "variantId": variantId,
+            "sellingPrice": sellingPrice,
+          });
+        }
+      });
 
-    return payload;
-  }
+      return payload;
+    }
 
   void loadCategories() {
     // Simulate API call for categories

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -252,7 +253,7 @@ class SelectProfilePictureDialog {
   }
 
   /// Compression
-  static Future<File?> compressImage(File rawFile, {int quality = 85}) async {
+  static Future<File?> compressImage(File rawFile, {int quality = 70}) async {
     final dir = await getTemporaryDirectory();
     final targetPath =
         '${dir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -261,7 +262,7 @@ class SelectProfilePictureDialog {
       rawFile.absolute.path,
       targetPath,
       quality: quality,
-      minWidth: 1080,
+      minWidth: 1920,
       minHeight: 1080,
     );
 
@@ -276,10 +277,14 @@ class SelectProfilePictureDialog {
       return;
     }
     if (newSize < originalSize) {
-      final reduction =
-      ((originalSize - newSize) / originalSize * 80).toStringAsFixed(2);
+      final reductionPercent =
+      ((originalSize - newSize) / originalSize * 100).toStringAsFixed(2);
+
       print(
-          "✅ Image compressed successfully: $originalSize → $newSize bytes (Reduced $reduction%)");
+        "✅ Image compressed successfully: "
+            "${formatBytesToMB(originalSize)} MB → ${formatBytesToMB(newSize)} MB "
+            "(Reduced $reductionPercent%)",
+      );
     } else {
       print("⚠️ Compression attempted but size did not reduce");
     }

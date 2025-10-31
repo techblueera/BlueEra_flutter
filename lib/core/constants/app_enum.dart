@@ -1242,7 +1242,6 @@ extension StoreTypeExtension on StoreType {
           return StoreType.inventory;
       }
     }
-
 }
 
 enum ProductServiceProviderType {
@@ -1253,6 +1252,17 @@ enum ProductServiceProviderType {
   String get title => name[0].toUpperCase() + name.substring(1);
 }
 
+enum ChargesTypes {
+  Hourly('Hourly'),
+  Daily('Daily'),
+  Weekly('Weekly'),
+  Monthly('Monthly'),
+  Yearly('Yearly');
+
+  final String label;
+
+  const ChargesTypes(this.label);
+}
 
 
 

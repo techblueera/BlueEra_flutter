@@ -414,5 +414,7 @@ class AppIconAssets {
   static String threeWheeler = "${iconPath}3_wheeler.svg";
   static String ace_helper = "${iconPath}ace_helper.svg";
   static String tata_407 = "${iconPath}tata_407.svg";
+  static String motorcycle = "${iconPath}motorcycle.svg";
+  static String tagIcon = "${iconPath}tag_icon.svg";
 
 }

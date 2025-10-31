@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/routes/route_constant.dart';
+import 'package:BlueEra/features/common/rental/controller/rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
@@ -67,9 +68,7 @@ class AddMoreDetailsController extends GetxController {
         'detail': detailController.text.trim(),
       };
 
-
       clearForm();
-
 
       if(fromScreen == RouteConstant.addProductViaAiStep2) {
         final detailItem = ProductMoreDetails(
@@ -84,6 +83,13 @@ class AddMoreDetailsController extends GetxController {
         );
 
         Get.find<AddServiceController>().addDetail(detailItem);
+      }else if(fromScreen == RouteConstant.addFlatRoomRentalServiceScreen){
+        final detailItem = DetailItem(
+          title: details['title'].toString(),
+          details: details['detail'].toString(),
+        );
+
+        Get.find<RentalServiceController>().addDetail(detailItem);
       }
 
       Get.back();

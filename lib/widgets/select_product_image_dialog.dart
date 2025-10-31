@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -251,7 +253,7 @@ class SelectProductImageDialog {
       rawFile.absolute.path,
       targetPath,
       quality: quality,
-      minWidth: 1080,
+      minWidth: 1920,
       minHeight: 1080,
     );
 
@@ -260,22 +262,28 @@ class SelectProductImageDialog {
 
   /// Compression stats
   static void _printCompressionStats(
-    int originalSize,
-    int newSize,
-    bool attempted,
-  ) {
+      int originalSize,
+      int newSize,
+      bool attempted,
+      ) {
     if (!attempted) {
       print("❌ Compression failed or skipped (using original image)");
       return;
     }
+
     if (newSize < originalSize) {
-      final reduction =
-          ((originalSize - newSize) / originalSize * 100).toStringAsFixed(2);
+      final reductionPercent =
+      ((originalSize - newSize) / originalSize * 100).toStringAsFixed(2);
+
       print(
-        "✅ Image compressed successfully: $originalSize → $newSize bytes (Reduced $reduction%)",
+        "✅ Image compressed successfully: "
+            "${formatBytesToMB(originalSize)} MB → ${formatBytesToMB(newSize)} MB "
+            "(Reduced $reductionPercent%)",
       );
     } else {
       print("⚠️ Compression attempted but size did not reduce");
     }
   }
+
 }
+
