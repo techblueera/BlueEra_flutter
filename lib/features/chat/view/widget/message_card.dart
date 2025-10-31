@@ -1934,5 +1934,5 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
   }
 }
 void orderNow(BuildContext context,String businessId,Messages message){
-  Navigator.push(context, MaterialPageRoute(builder: (context)=>AddressListScreen(message: message,businessId: businessId, businessName: '', businessNumber: '',)));
+  Navigator.push(context, MaterialPageRoute(builder: (context)=>AddressListScreen(message: message,businessId: businessId)));
 }

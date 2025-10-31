@@ -102,7 +102,7 @@ class BusinessProfileRepo extends BaseService {
   }
   Future<ResponseModel> viewBusinessIdForLocation(String userId) async {
     final response = await ApiBaseHelper().getHTTP(
-      "$businessIdViewForLocation/$userId",
+      "$getUserByIdUrlForAddress/$userId",
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
