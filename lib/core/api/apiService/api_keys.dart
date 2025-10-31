@@ -415,5 +415,6 @@ class ApiKeys {
   static const messageId = 'messageId';
   static const order_status = 'order_status';
   static const order = 'order';
+  static const clones = 'clones';
 
 }

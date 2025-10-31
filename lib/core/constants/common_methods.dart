@@ -523,4 +523,8 @@ Map<String, dynamic> normalizeMap(dynamic value) {
   }
 }
 
+String formatBytesToMB(int bytes) {
+  double mb = bytes / (1024 * 1024);
+  return mb.toStringAsFixed(2);
+}
 

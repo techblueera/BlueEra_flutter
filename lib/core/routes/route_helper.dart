@@ -53,6 +53,7 @@ import 'package:BlueEra/features/common/reel/view/tag_people_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/full_video_preview_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
+import 'package:BlueEra/features/common/rental/view/add_flat_room_rental_service_screen.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
@@ -343,6 +344,9 @@ class RouteHelper {
 
   static String getFoodUploadScreenRoute() =>
       RouteConstant.foodUploadScreen;
+
+  static String getAddFlatRoomRentalServiceScreenRoute() =>
+      RouteConstant.addFlatRoomRentalServiceScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1033,6 +1037,10 @@ class RouteHelper {
                 serviceSubType: serviceSubType
             ),
             settings: RouteSettings(name: getFoodUploadScreenRoute()));
+      case RouteConstant.addFlatRoomRentalServiceScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddFlatRoomRentalServiceScreen(),
+            settings: RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
 
       default:
         return MaterialPageRoute(

@@ -242,26 +242,63 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           },
                                         ),
                                         CustomBtn(
-                                          onTap: controller.hasAnySelected()
-                                              ? () {
-                                            final isValid = controller.validateSelectedVariants(
-                                              controller.searchProductVariantsList,
-                                            );
-              
-                                            if (!isValid) {
-                                              Get.snackbar(
-                                                'Error',
-                                                "Please enter selling price for all selected variants",
-                                                snackPosition: SnackPosition.TOP,
-                                                backgroundColor: AppColors.red,
-                                                colorText: AppColors.white
+                                            onTap: controller.hasAnySelected()
+                                                ? () async {
+                                              final missingPriceIds = controller.validateSelectedVariants(
+                                                controller.searchProductVariantsList,
                                               );
-                                              return;
+
+                                              if (missingPriceIds.isNotEmpty) {
+                                                // Ask confirmation
+                                                final proceed = await showDialog<bool>(
+                                                  context: Get.context!,
+                                                  barrierDismissible: false,
+                                                  builder: (context) {
+                                                    return AlertDialog(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                      title: const CustomText(
+                                                        "Use Listed Prices?",
+                                                        fontWeight: FontWeight.bold
+                                                      ),
+                                                      content: const Text(
+                                                        "Some selected variants don’t have a selling price entered.\n\n"
+                                                            "Would you like to use their listed prices instead?",
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () => Navigator.of(context).pop(false),
+                                                          child: const Text("Cancel"),
+                                                        ),
+                                                        ElevatedButton(
+                                                          style: ElevatedButton.styleFrom(
+                                                            backgroundColor: AppColors.primaryColor,
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                            ),
+                                                          ),
+                                                          onPressed: () => Navigator.of(context).pop(true),
+                                                          child: const Text("Continue", style: TextStyle(color: AppColors.white)),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+
+                                                if (proceed != true) return;
+
+                                                // Fill missing prices with default (listed) ones
+                                                controller.fillMissingSellingPricesWithDefaults(
+                                                  controller.searchProductVariantsList,
+                                                  missingPriceIds,
+                                                );
+                                              }
+
+                                              // Now all variants have prices, safe to proceed
+                                              controller.cloneProductVariantApi();
                                             }
-              
-                                            controller.cloneProductVariantApi();
-                                          }
-                                              : null,
+                                                : null,
                                           title: controller.cloneProductVariantLoading.value
                                               ? null // hide text
                                               : 'Publish',
@@ -711,11 +748,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   SizedBox(width: SizeConfig.size8),
                   Expanded(
                     child: CommonTextField(
-                      onChange: (value) =>
-                          controller
-                              .updateSellingPrice(
+                      onChange: (value) {
+                        controller.updateSellingPrice(
                               productVariants.finalVariant.id,
-                              value),
+                              value);
+                      },
                       hintText: sellingPrice ??
                           productVariants.finalVariant.sellingPrice
                               .toString(),

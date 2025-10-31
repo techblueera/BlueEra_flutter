@@ -135,7 +135,7 @@ class CommonTextField extends StatelessWidget {
                     title ?? '',
                     fontSize: fontSize ?? SizeConfig.medium,
                     fontWeight: fontWeight ?? FontWeight.w400,
-                    color: titleColor ?? AppColors.black,
+                    color: titleColor ?? AppColors.mainTextColor,
                   ),
                   // if (isOptionalFiled) const OptionalTextWidget(),
                 ],
