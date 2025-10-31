@@ -18,8 +18,6 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
-import 'package:BlueEra/features/common/more/widget/greeting_card_dialog.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -27,7 +25,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/create_profile_s
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -620,18 +617,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     );
   }
 
-  Widget _buildSocialCard() {
-    return (Get.find<MoreCardsScreenController>().dayCards.isNotEmpty)
-        ? Padding(
-            padding: EdgeInsets.only(
-                left: SizeConfig.size8,
-                right: SizeConfig.size8,
-                top: SizeConfig.size8),
-            child: GreetingCardDialog(
-                cards: Get.find<MoreCardsScreenController>().dayCards),
-          )
-        : SizedBox.shrink();
-  }
 
   Widget _buildEarnWithBlueEraWidget() {
     return Container(
