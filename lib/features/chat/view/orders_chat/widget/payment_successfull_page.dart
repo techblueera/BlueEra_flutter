@@ -3,7 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
+import '../../../../../core/routes/route_helper.dart';
+import '../../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
+import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/payment_success_model.dart';
 import '../../../../../core/api/apiService/api_response.dart';
@@ -20,6 +24,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
   final orderController = Get.find<OrderNowController>();
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  final chatViewController = Get.find<ChatViewController>();
+  final bottomBarController = Get.find<BottomBarController>();
 
   @override
   void initState() {
@@ -146,13 +152,15 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                     // Track order button
                     ElevatedButton.icon(
                       onPressed: () async {
-                        final url = Uri.parse(data.trackingUrl ?? '');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                        }
+                        chatViewController.emitEvent(
+                            "ChatList", {ApiKeys.type: "order"}, true);
+                        chatViewController.onSelectChatTab(3);
+                        bottomBarController.onChangeIndex(4);
+                        Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
+
                       },
-                      icon: const Icon(Icons.location_on_outlined),
-                      label: const Text("Track My Order"),
+                      // icon: const Icon(Icons.location_on_outlined),
+                      label: const Text("View My Order"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF2F80ED),

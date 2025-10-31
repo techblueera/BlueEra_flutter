@@ -107,16 +107,11 @@ class _MessageCardState extends State<MessageCard>
 
     if (widget.message.myMessage != null) {
       isReceive = !(widget.message.myMessage ?? true);
-      print(
-          'MessageCard: Using myMessage field - myMessage: ${widget.message.myMessage}, isReceive: $isReceive');
-    } else {
+   } else {
       final currentUserId = widget.userId;
-
       final senderId = widget.message.senderId;
       isReceive = currentUserId != senderId;
-      print(
-          'MessageCard: Using fallback logic - currentUserId: "$currentUserId", senderId: "$senderId", isReceive: $isReceive');
-    }
+   }
 
     final time = formatChatTime(widget.message.createdAt ?? '');
 
@@ -183,7 +178,6 @@ class _MessageCardState extends State<MessageCard>
         );
       case "food":
       List<String> url=[];
-      print("sdjcnksjncsdc ${widget.message.metadata?.order?.toJson()}");
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
       List<String> message=widget.message.message?.split('.')??[];
       if(message.isNotEmpty){
@@ -1500,37 +1494,6 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                   ),
                 ),
               ],
-            ):(widget.message.metadata?.orderStatus??false)?
-            Row(mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Expanded(
-                //   child: TextButton.icon(
-                //     onPressed: () {},
-                //     icon: const Icon(Icons.close, color: Colors.red,),
-                //     label:  CustomText(
-                //       'Cancel',
-                //       color: Colors.red,
-                //       fontWeight: FontWeight.w900,
-                //     ),
-                //   ),
-                // ),
-                // const VerticalDivider(width: 1,color: Colors.grey,),
-
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-
-                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
-                    },
-                    icon: Icon(Icons.check,color: Colors.green,),
-                    label:   CustomText(
-                      'Order Placed',
-                      color: Colors.green,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
             ):(widget.isFromOrderTab)?
             (widget.message.metadata?.is_cancelled??false)? Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1584,13 +1547,14 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                             bgColor: AppColors.primaryColor,
                                             onTap: ()async{
                                               final controller = Get.put(OrderNowController());
-                                             bool? res=await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
-                                              }, title: "Yes"),
+                                              bool? res=await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
+                                              Get.back();
+                                            }, title: "Yes"),
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: CustomBtn(onTap: (){
-                                        Get.back();
+                                          Get.back();
                                         }, title: "No"),
                                       ),
                                     ],
@@ -1614,9 +1578,11 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
 
                 Expanded(
                   child: TextButton.icon(
-                    onPressed: () {
-                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
-                      orderNow(context,widget.userId??"",widget.message);
+                    onPressed: () async{
+                      final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
                     label:   CustomText(
@@ -1627,7 +1593,38 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                   ),
                 ),
               ],
-            )   :
+            ) :(widget.message.metadata?.orderStatus??false)?
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Expanded(
+                //   child: TextButton.icon(
+                //     onPressed: () {},
+                //     icon: const Icon(Icons.close, color: Colors.red,),
+                //     label:  CustomText(
+                //       'Cancel',
+                //       color: Colors.red,
+                //       fontWeight: FontWeight.w900,
+                //     ),
+                //   ),
+                // ),
+                // const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+
+                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
+                    },
+                    icon: Icon(Icons.check,color: Colors.green,),
+                    label:   CustomText(
+                      'Order Placed',
+                      color: Colors.green,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            )  :
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(

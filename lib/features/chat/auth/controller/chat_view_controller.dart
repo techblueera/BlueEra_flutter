@@ -91,7 +91,8 @@ class ChatViewController extends GetxController {
   }
 
   void onSelectChatTab(int index) {
-    selectedChatTabIndex.value = index;
+    chatMainTabController.animateTo(index);
+
   }
 
   void isChatFromBusinessProfile(bool value) {
@@ -426,6 +427,9 @@ class ChatViewController extends GetxController {
               ));
         }
 
+        if (chatFromBusinessProfile.value) {
+          canPopBusiness.value = true;
+        }
         scrollDown();
 
         clearMessageControllerCommon();
@@ -436,7 +440,8 @@ class ChatViewController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print("Error ==> $e");
+      commonSnackBar(
+          message: e.toString());
     }
     return null;
   }
@@ -550,22 +555,22 @@ class ChatViewController extends GetxController {
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
 
-    // if (event == "ChatList") {
-    //   final type = data[ApiKeys.type];
-    //
-    //
-    //   if (isFromInitial == true) {
-    //     List<ChatList> localChats =
-    //     await localStorageHelper.getChatListFromLocal(type);
-    //       loadChatListWithType(
-    //           chatListModel: GetChatListModel(
-    //             type: type,
-    //             success: true,
-    //             chatList: localChats,
-    //             archived: [],
-    //           ));
-    //   }
-    // }
+    if (event == "ChatList") {
+      final type = data[ApiKeys.type];
+
+
+      if (isFromInitial == true) {
+        List<ChatList> localChats =
+        await localStorageHelper.getChatListFromLocal(type);
+          loadChatListWithType(
+              chatListModel: GetChatListModel(
+                type: type,
+                success: true,
+                chatList: localChats,
+                archived: [],
+              ));
+      }
+    }
 
     if (event == "messageReceived" &&
         (conversationId ?? "") != userOpenConversationId) {

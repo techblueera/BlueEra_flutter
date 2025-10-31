@@ -1,11 +1,8 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:math' hide log;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -74,7 +71,6 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel responseModel =
       await BusinessProfileRepo().viewBusinessIdForLocation(userId);
-      logs("data=== ${responseModel.response?.data}");
       if (responseModel.response?.data['success']) {
         final data = responseModel.response?.data;
 
@@ -110,7 +106,6 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
       if (response.isSuccess ?? false) {
-        log("Message Added Order Tab ${response.response?.data}");
       } else {
         commonSnackBar(
             message: response?.message ?? AppStrings.somethingWentWrong);
@@ -124,7 +119,6 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
       if (response.isSuccess ?? false) {
-        print("Create Order Response :: ${response.response?.data}");
       } else {
         commonSnackBar(
             message: response?.message ?? AppStrings.somethingWentWrong);
@@ -162,15 +156,12 @@ class OrderNowController extends GetxController {
       final vehicles = data['data']['vehicles'];
       getPorterVehicleOptionModel.value=GetPorterVehicleOptionModel.fromJson(data['data']);
       getVehicleOptionResponse.value= ApiResponse.complete(getPorterVehicleOptionModel.value);
-      print("🚚 Vehicles found: $vehicles");
     } else {
       if(data!=null){
         final vehicles = data['data']['message'];
         getVehicleOptionResponse.value= ApiResponse.error(vehicles??AppStrings.somethingWentWrong);
-        print("❌ Failed to fetch quotes");
       }else{
         getVehicleOptionResponse.value= ApiResponse.error(AppStrings.somethingWentWrong);
-        print("❌ Failed to fetch quotes");
       }
 
     }
@@ -208,11 +199,9 @@ class OrderNowController extends GetxController {
           "pincode": pincode,
         };
       } else {
-        print("⚠️ No address found for this location");
         return {};
       }
     } catch (e) {
-      print("❌ Error while getting address: $e");
       return {};
     }
   }
@@ -300,7 +289,6 @@ class OrderNowController extends GetxController {
 
       } else {
 
-        print("❌ Failed to fetch quotes");
       }
     }else{
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -313,14 +301,9 @@ class OrderNowController extends GetxController {
 
       final data = await porterApi.cancelOrder(orderId);
       if (data != null&&data) {
-
+        commonSnackBar(message: "Order Deleted Successfully");
         final chatViewController = Get.find<ChatViewController>();
 
-        Map<String,dynamic>datadd={
-          ApiKeys.messageId: "${openedMessage?.id}",
-          ApiKeys.order_status : true
-        };
-        await  updateOrderStatus(datadd);
         chatViewController. emitEvent("messageReceived", {
           ApiKeys.conversation_id: conversationId,
           ApiKeys.page: 1,
@@ -329,7 +312,6 @@ class OrderNowController extends GetxController {
         });
       return data;
       } else {
-        print("❌ Failed to fetch quotes");
 
 
         commonSnackBar(message: AppStrings.somethingWentWrong);

@@ -102,7 +102,9 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
               type: widget.type,
               name: widget.name,
               contactNo: widget.contactNo)
-              : getChatTitleAppBar(context,
+              : getChatTitleAppBar(
+              context,
+
               userId: widget.userId,
               type: widget.type,
               name: widget.name,

@@ -410,6 +410,9 @@ class AppIconAssets {
   static String digitalMarketingIcon = "${iconPath}digital_marketing_icon.svg";
   static String interiorIcon = "${iconPath}interior_icon.svg";
   static String staggeredIcon = "${iconPath}staggered_icon.svg";
-  static String motorcycle = "${iconPath}motorcycle.svg";
+  static String twoWheeler = "${iconPath}2_wheeler.svg";
+  static String threeWheeler = "${iconPath}3_wheeler.svg";
+  static String ace_helper = "${iconPath}ace_helper.svg";
+  static String tata_407 = "${iconPath}tata_407.svg";
 
 }

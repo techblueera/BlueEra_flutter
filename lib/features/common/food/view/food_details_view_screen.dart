@@ -175,6 +175,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                             // ApiKeys.mrp : "string"
                             ApiKeys.url: urlList,
                           };
+                          chatViewController.isChatFromBusinessProfile(true);
                           chatViewController.openAnyOneChatFunction(
                             shareProductParams: data,
                             isWithProductSend: true,

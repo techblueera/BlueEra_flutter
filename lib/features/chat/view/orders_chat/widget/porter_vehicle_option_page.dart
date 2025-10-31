@@ -58,6 +58,8 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
               final vehicle = vehicleList[index];
               final isSelected = selectedIndex == index;
               final amount=(vehicle.fare?.minorAmount ?? 0) / 100;
+              print("Data  ___ ${vehicle.type}");
+
               return GestureDetector(
                 onTap: () {
                   setState(() => selectedIndex = index);
@@ -65,7 +67,7 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -81,50 +83,54 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                       ),
                     ],
                   ),
-                  child: Column(
+                  child: Column(mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Vehicle Type and Fare
                       Row(
-
                         children: [
-                          LocalAssets(imagePath: AppIconAssets.motorcycle,height: 140,width: 140,),
+                          Expanded(
+                            child: LocalAssets(imagePath: vehicle.type=="2 Wheeler"?AppIconAssets.twoWheeler:vehicle.type=="3 Wheeler"?
+                            AppIconAssets.threeWheeler:vehicle.type=="Ace (Helper + 1 Labour)"?AppIconAssets.ace_helper:vehicle.type=="Tata 407"?AppIconAssets.tata_407:'',height: vehicle.type=="Ace (Helper + 1 Labour)"?70:100,width:vehicle.type=="Ace (Helper + 1 Labour)"?70: 90,),
+                          ),
                           const SizedBox(width: 12,),
-                          Column(crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                vehicle.type ?? '',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.black,
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  vehicle.type ?? '',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
 
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: AppColors.whiteE0
+                                ),
+                                SizedBox(height: 4,),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: AppColors.whiteE0
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
+
+                                  child: CustomText(
+                                    "Pay : ₹ ${((amount)+(amount * 0.10)).toStringAsFixed(2)}",
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue,
                                   ),
                                 ),
-                                padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
-
-                                child: CustomText(
-                                  "Pay : ₹ ${((amount)+(amount * 0.10)).toStringAsFixed(2)}",
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
 
                         ],
                       ),
-
+                      const SizedBox(height: 12),
                       Divider(color: Colors.grey.shade300, height: 1),
-                      // const SizedBox(height: 8),
+                       const SizedBox(height: 8),
 
-                      // Capacity
                       (vehicle.capacity?.value=='-')?SizedBox():Row(
                         children: [
                           const Icon(
@@ -138,22 +144,23 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
 
-                      // Size
-                      (vehicle.size?.length?.value=='-')?SizedBox():Row(
-                        children: [
-                          const Icon(
-                              Icons.straighten, size: 18, color: Colors.grey),
-                          const SizedBox(width: 6),
-                          CustomText(
-                            "Size: ${vehicle.size?.length?.value} × ${vehicle.size
-                                ?.breadth?.value} × ${vehicle.size?.height
-                                ?.value} ft",
-                           fontSize: 14,
-                          ),
-                        ],
-                      ),
+                      // const SizedBox(height: 4),
+                      //
+                      // // Size
+                      // (vehicle.size?.length?.value=='-')?SizedBox():Row(
+                      //   children: [
+                      //     const Icon(
+                      //         Icons.straighten, size: 18, color: Colors.grey),
+                      //     const SizedBox(width: 6),
+                      //     CustomText(
+                      //       "Size: ${vehicle.size?.length?.value} × ${vehicle.size
+                      //           ?.breadth?.value} × ${vehicle.size?.height
+                      //           ?.value} ft",
+                      //      fontSize: 14,
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),
