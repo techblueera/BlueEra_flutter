@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -8,14 +7,11 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_food_screen.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_service_screen.dart';
-import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
@@ -767,44 +763,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
           );
   }
 
-  Widget _filterButtons() {
-    return SingleChildScrollView(
-        padding:
-            EdgeInsets.only(top: SizeConfig.size20, bottom: SizeConfig.size10,left: SizeConfig.size10,right: SizeConfig.size10),
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-            SizedBox(width: SizeConfig.size10),
-            Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: Row(
-                children: filters?.map((filter) {
-                      final isSelected = selectedFilter == filter;
-                      return Padding(
-                        padding: EdgeInsets.only(right: SizeConfig.size14),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedFilter = filter;
-                            });
-                          },
-                          child: CustomText(
-                            filter.label,
-                            decoration: TextDecoration.underline,
-                            color: isSelected ? Colors.blue : Colors.black54,
-                            decorationColor:
-                                isSelected ? Colors.blue : Colors.black54,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
-                    }).toList() ??
-                    [],
-              ),
-            )
-          ],
-        ));
-  }
 
   Widget postsTab({BusinessProfileDetails? data}) {
     return FeedScreen(

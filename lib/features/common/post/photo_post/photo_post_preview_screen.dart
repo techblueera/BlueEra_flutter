@@ -29,7 +29,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Photo Post',
+        title: 'Symbol Post',
       ),
       body: SafeArea(
         child: SingleChildScrollView(

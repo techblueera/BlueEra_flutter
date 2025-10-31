@@ -44,7 +44,6 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
   @override
   void initState() {
     controller.isPhotoPostEdit = widget.isEdit;
-    logs("controller.isPhotoPostEdit==== ${controller.isPhotoPostEdit}");
     if (widget.isEdit) {
       controller.postData?.value = widget.post ?? Post(id: '');
       controller.selectedPhotos.addAll(widget.post?.media ?? []);
@@ -77,7 +76,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Photo Post',
+        title: 'Symbol Post',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -171,7 +170,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                     LocalAssets(imagePath: AppIconAssets.black_gallery),
                     SizedBox(width: SizeConfig.size8),
                     CustomText(
-                      'Upload Photos',
+                      'Select Photos',
                       color: AppColors.secondaryTextColor,
                       fontSize: SizeConfig.large,
                     ),

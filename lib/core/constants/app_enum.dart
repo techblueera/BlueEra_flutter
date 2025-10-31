@@ -688,10 +688,6 @@ enum FeedType {
     } catch (_) {
       return null;
     }
-    return FeedType.values.firstWhere(
-      (e) => e.label.toUpperCase() == label?.toUpperCase(),
-      // orElse: () => null, // or null
-    );
   }
 }
 
@@ -1203,7 +1199,7 @@ enum PostCreationMenu {
   photos,
   // videos,
   jobPost,
-  place,
+  // place,
   travel;
 }
 

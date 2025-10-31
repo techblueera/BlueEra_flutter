@@ -32,8 +32,7 @@ class _InstaSliderState extends State<InstaSlider> {
       gridDelegate:
       SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount:
-        msgPostController.selectedType.value ==
-            MediaType.video
+        msgPostController.imagesList.length==1
             ? 1
             : 2,
         mainAxisSpacing: 8,

@@ -233,7 +233,7 @@ class PhotoPostController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
           message: response.response?.data?['message'] ??
-              'Your photo post has been created!',
+              'Your Symbol Post has been created!',
         );
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
             true;

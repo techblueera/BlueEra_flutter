@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_join_list_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:get/get.dart';
 
@@ -44,5 +47,28 @@ class ChannelFeedController extends GetxController {
       _page++;
     }
     isLoading.value = false;
+  }
+
+
+
+  Rx<ApiResponse> followerResponse = ApiResponse.initial('Initial').obs;
+  RxList<UserChannelData> userChannelList = <UserChannelData>[].obs;
+
+  ///GET CHANNEL DETAILS...
+  Future<void> getChannelMembersController({required String userID}) async {
+
+    try {
+      ResponseModel response = await ChannelRepo().getChannelJoinedUserRepo(userId: userID);
+
+      if (response.isSuccess) {
+        followerResponse.value = ApiResponse.complete(response);
+        ChannelJoinListModel followerResModel = ChannelJoinListModel.fromJson(response.response?.data);
+        userChannelList.value = followerResModel.data ?? [];
+      }
+    } catch (e) {
+      followerResponse.value = ApiResponse.error('error');
+    }finally{
+      // isFollowerLoading.value = false;
+    }
   }
 }

@@ -24,7 +24,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Photo Post',
+        title: 'Symbol Post',
       ),
       body: Obx(() => controller.isLoading.value
           ? const Center(child: CircularProgressIndicator())

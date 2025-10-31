@@ -13,6 +13,8 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_compress/video_compress.dart';
+import 'package:video_player/video_player.dart';
 
 import 'app_colors.dart';
 
@@ -203,7 +205,6 @@ String foodServiceDeepLink({String? productId}) {
   return 'https://blueera.ai/app/product/${productId ?? ""}';
 }
 
-
 /// Generate "5 days ago" or something similar
 String timeAgo(DateTime date) {
   final now = DateTime.now();
@@ -388,6 +389,20 @@ String formatDuration(Duration duration) {
   return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 }
 
+Future<Size?> getVideoDimensions(String videoPath) async {
+  final controller = VideoPlayerController.file(File(videoPath));
+  await controller.initialize();
+  final size = controller.value.size;
+  controller.dispose();
+  return size;
+}
+
+Future<Size> getImageDimensions(File imageFile) async {
+  final data = await imageFile.readAsBytes();
+  final image = await decodeImageFromList(data);
+  return Size(image.width.toDouble(), image.height.toDouble());
+}
+
 Map<String, String?> getFileInfo(File file) {
   String fileName = path.basename(file.path); // e.g., "video123.mp4"
 
@@ -480,13 +495,13 @@ Color hexToColor(String hexString) {
 
 // Hex without alpha: #RRGGBB
 String colorToHex(Color color) {
-  final r = color.r* 255.0;
-  final g = color.g* 255.0;
-  final b = color.b* 255.0;
+  final r = color.r * 255.0;
+  final g = color.g * 255.0;
+  final b = color.b * 255.0;
   final hex = '#'
-      '${r.toInt().toRadixString(16).padLeft(2, '0')}'
-      '${g.toInt().toRadixString(16).padLeft(2, '0')}'
-      '${b.toInt().toRadixString(16).padLeft(2, '0')}'
+          '${r.toInt().toRadixString(16).padLeft(2, '0')}'
+          '${g.toInt().toRadixString(16).padLeft(2, '0')}'
+          '${b.toInt().toRadixString(16).padLeft(2, '0')}'
       .toUpperCase();
 
   return hex;
@@ -516,11 +531,41 @@ double calculateDiscount(String priceText, String mrpText) {
 Map<String, dynamic> normalizeMap(dynamic value) {
   if (value is Map) {
     return value.map(
-          (key, val) => MapEntry(key.toString(), normalizeMap(val)),
+      (key, val) => MapEntry(key.toString(), normalizeMap(val)),
     );
   } else {
     return value;
   }
 }
 
+Future<String?> compressVideo(File videoFile) async {
+  String? videoPath;
+  try {
+    // 1. Start the compression process
+    final MediaInfo? info = await VideoCompress.compressVideo(
+      videoFile.path,
+      quality: VideoQuality.LowQuality,
+      // Choose quality: Low, Medium, High, Default
+      deleteOrigin: false,
+      // Set to true to delete the original file after compression
+      // Optional: set a callback to listen to the progress
+      includeAudio: true,
+      startTime: 0,
+      duration: 0,
+    );
 
+    if (info != null) {
+      videoPath = info.path;
+      print('✅ Compression completed!');
+      print('Original Size: ${videoFile.lengthSync() / (1024 * 1024)} MB');
+      print('Compressed Path: ${info.path}');
+      print('Compressed Size: ${info.filesize! / (1024 * 1024)} MB');
+      // You can now use the compressed video file at info.path
+      // The MediaInfo object also contains other metadata like duration, thumbnail path, etc.
+    }
+    return videoPath;
+  } catch (e) {
+    print('❌ Compression failed: $e');
+  }
+  return null;
+}

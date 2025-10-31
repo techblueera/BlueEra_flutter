@@ -9,8 +9,6 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.da
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
-import 'package:BlueEra/features/common/reel/view/shorts/shorts_feed_screen.dart';
-import 'package:BlueEra/features/common/reel/view/video/video_feed_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -22,8 +20,6 @@ import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 // import 'package:share_handler/share_handler.dart';
 
-import '../../../chat/contacts/view/be_available_contacts_list.dart';
-import 'video_feed_listing/video_feed_screen.dart';
 
 enum SavedFeedTab {
   posts;
@@ -53,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _headerHeight = 0;
   final List<String> postTab = [
     "All Posts",
-    // "Channel",
+    "Channel",
     // "Videos",
     // "Shorts",
     "Saved",
@@ -273,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       headerHeight: _headerHeight,
                       isInParentScroll: false,
                     ),
-                      // ChannelFeedScreen(),
+                      ChannelFeedScreen(),
                       /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,

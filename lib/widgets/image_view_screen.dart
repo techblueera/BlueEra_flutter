@@ -64,154 +64,157 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.black,
-        body: Stack(
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-
-                widget.imageUrls.isEmpty ||
-                        (widget.imageUrls.isNotEmpty &&
-                            widget.imageUrls[0] == 'N/A')
-                    ? Expanded(
-                        child: Center(
-                          child: CustomText(
-                            'Not able to download',
-                              fontSize: SizeConfig.screenWidth * 0.05,
-                              color: AppColors.red,
-                              fontWeight: FontWeight.w600,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+          
+                  widget.imageUrls.isEmpty ||
+                          (widget.imageUrls.isNotEmpty &&
+                              widget.imageUrls[0] == 'N/A')
+                      ? Expanded(
+                          child: Center(
+                            child: CustomText(
+                              'Not able to download',
+                                fontSize: SizeConfig.screenWidth * 0.05,
+                                color: AppColors.red,
+                                fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
+                      : Flexible(
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: widget.imageUrls.length,
+                            itemBuilder: (context, index) {
+                              final imageUrl = widget.imageUrls[index];
+          
+                              return InteractiveViewer(
+                                panEnabled: true,
+                                transformationController:
+                                    _transformationController,
+                                // minScale: 1.0,
+                                // maxScale: 5.0,
+                                child: CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  scale: 1,
+                                  fit: BoxFit.fitWidth,
+                                  placeholder: (context, url) => LocalAssets(
+                                      imagePath: AppIconAssets
+                                          .place_holder_image) /*const CircularProgressIndicator()*/,
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      )
-                    : Flexible(
-                        child: PageView.builder(
-                          controller: _pageController,
-                          itemCount: widget.imageUrls.length,
-                          itemBuilder: (context, index) {
-                            final imageUrl = widget.imageUrls[index];
-
-                            return InteractiveViewer(
-                              panEnabled: true,
-                              transformationController:
-                                  _transformationController,
-                              // minScale: 1.0,
-                              // maxScale: 5.0,
-                              child: CachedNetworkImage(
-                                imageUrl: imageUrl,
-                                scale: 1,
-                                fit: BoxFit.fitWidth,
-                                placeholder: (context, url) => LocalAssets(
-                                    imagePath: AppIconAssets
-                                        .place_holder_image) /*const CircularProgressIndicator()*/,
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.error),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-
-              ],
-            ),
-
-            // Back Button
-            Positioned(
-              top: SizeConfig.size25,
-              left: SizeConfig.size15,
-              child: SafeArea(
-                child: IconButton(
-                  icon: Icon(Icons.chevron_left,
-                      color: Colors.white, size: SizeConfig.size40),
-                  onPressed: () {
-                    Get.back();
-                  },
-                ),
+          
+          
+                ],
               ),
-            ),
-
-            if (widget.postData?.type?.toLowerCase()=="image_post"&&widget.postData?.user?.id != userId)
+          
+              // Back Button
               Positioned(
                 top: SizeConfig.size25,
-                right: SizeConfig.size15,
+                left: SizeConfig.size15,
                 child: SafeArea(
-                  child: PopupMenuButton<String>(
-                    padding: EdgeInsets.zero,
-                    // offset: const Offset(-6, 36),
-                    color: AppColors.white,
-
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    onSelected: (value) async {
-                      logs("value $value");
-                      if (value.toUpperCase() == "BLOCK USER") {
-                        if (isGuestUser()) {
-                          createProfileScreen();
-                        } else {
-                          blockUserPopUp(
-                              postType: PostType.all,
-                              postData: widget.postData ?? Post(id: ''));
-                        }
-                      }
-                      if (value.toUpperCase() == "REPORT POST") {
-                        if (isGuestUser()) {
-                          createProfileScreen();
-                        } else {
-                          postReportPopUp(
-                              postData: widget.postData ?? Post(id: ''),
-                              postType: PostType.all);
-                        }
-                      }
+                  child: IconButton(
+                    icon: Icon(Icons.chevron_left,
+                        color: Colors.white, size: SizeConfig.size40),
+                    onPressed: () {
+                      Get.back();
                     },
-                    icon: IconButton(
-                        onPressed: null,
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: AppColors.white,
-                        )),
-                    itemBuilder: (context) => popupMenuVisitProfileActionItems(
-                        isShowSaveOption: false),
                   ),
                 ),
               ),
-
-            // Subtitle at bottom
-            if (_showSubtitle)
-              Positioned(
-                bottom: SizeConfig.size20,
-                left: SizeConfig.size10,
-                right: SizeConfig.size10,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ExpandableText(
-                    text: widget.subTitle ?? '',
-                    trimLines: 4,
-                    expandMode: ExpandMode.dialog,
-                    style: TextStyle(
+          
+              if (widget.postData?.type?.toLowerCase()=="image_post"&&widget.postData?.user?.id != userId)
+                Positioned(
+                  top: SizeConfig.size25,
+                  right: SizeConfig.size15,
+                  child: SafeArea(
+                    child: PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      // offset: const Offset(-6, 36),
                       color: AppColors.white,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppConstants.OpenSans,
+          
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      onSelected: (value) async {
+                        logs("value $value");
+                        if (value.toUpperCase() == "BLOCK USER") {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+                          } else {
+                            blockUserPopUp(
+                                postType: PostType.all,
+                                postData: widget.postData ?? Post(id: ''));
+                          }
+                        }
+                        if (value.toUpperCase() == "REPORT POST") {
+                          if (isGuestUser()) {
+                            createProfileScreen();
+                          } else {
+                            postReportPopUp(
+                                postData: widget.postData ?? Post(id: ''),
+                                postType: PostType.all);
+                          }
+                        }
+                      },
+                      icon: IconButton(
+                          onPressed: null,
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: AppColors.white,
+                          )),
+                      itemBuilder: (context) => popupMenuVisitProfileActionItems(
+                          isShowSaveOption: false),
                     ),
                   ),
-                  // child: Text(
-                  //   widget.subTitle ?? '',
-                  //   textAlign: TextAlign.left,
-                  //   style: TextStyle(
-                  //     color: Colors.white,
-                  //     fontSize: SizeConfig.screenWidth * 0.045,
-                  //     fontWeight: FontWeight.w500,
-                  //   ),
-                  // ),
                 ),
-              ),
-          ],
+          
+              // Subtitle at bottom
+              if (_showSubtitle)
+                Positioned(
+                  bottom: SizeConfig.size20,
+                  left: SizeConfig.size10,
+                  right: SizeConfig.size10,
+                  child: Container(
+                    margin: EdgeInsets.only(bottom: SizeConfig.size20),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ExpandableText(
+                      text: widget.subTitle ?? '',
+                      trimLines: 4,isReadMoreNewLine: true,
+                      expandMode: ExpandMode.dialog,
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: AppConstants.OpenSans,
+                      ),
+                    ),
+                    // child: Text(
+                    //   widget.subTitle ?? '',
+                    //   textAlign: TextAlign.left,
+                    //   style: TextStyle(
+                    //     color: Colors.white,
+                    //     fontSize: SizeConfig.screenWidth * 0.045,
+                    //     fontWeight: FontWeight.w500,
+                    //   ),
+                    // ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

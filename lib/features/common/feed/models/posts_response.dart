@@ -83,6 +83,8 @@ class Post {
   final Channel? channel;
   final bool? is_reposted;
   final Post? children_post;
+  final num? media_height;
+  final num? media_width;
 
   Post({
     required this.id,
@@ -120,6 +122,8 @@ class Post {
     this.thumbnail,
     this.duration,
     this.channel,
+    this.media_width,
+    this.media_height,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -167,6 +171,8 @@ class Post {
       videoUrl: json['video_url']?.toString().trim(),
       thumbnail: json['thumbnail']?.toString().trim(),
       duration: json['duration'],
+      media_height: json['media_height'],
+      media_width: json['media_width'],
       channel: json['channel'] != null ? Channel.fromJson(json['channel']) : null,
       children_post: json['children_post'] != null ? Post.fromJson(json['children_post']) : null,
 
@@ -209,6 +215,8 @@ class Post {
       'video_url': videoUrl,
       'thumbnail': thumbnail,
       'duration': duration,
+      'media_width': media_width,
+      'media_height': media_height,
       'channel': channel?.toJson(),
       'children_post': children_post?.toJson(),
 
@@ -249,6 +257,8 @@ class Post {
     Channel? channel,
     Post? children_post,
     bool? is_reposted,
+    num? media_height,
+    num? media_width,
   }) {
     return Post(
       id: id ?? this.id,
@@ -282,6 +292,8 @@ class Post {
       channel: channel ?? this.channel,
       children_post: children_post ?? this.children_post,
       visibilityDuration: visibilityDuration ?? this.visibilityDuration,
+      media_width: media_width ?? this.media_width,
+      media_height: media_height ?? this.media_height,
     );
   }
 }
