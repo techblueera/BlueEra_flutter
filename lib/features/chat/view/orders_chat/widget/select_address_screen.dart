@@ -33,9 +33,10 @@ class _AddressListScreenState extends State<AddressListScreen> {
     super.initState();
     orderController.getAddressApi();
     orderController.viewBusinessForLocation(
-        widget.businessId, widget.message.seller?.accountType ?? '');
+        widget.businessId, (widget.message.seller?.accountType=="INDIVIDUAL")?widget.message.seller?.accountType ?? '':widget.businessId);
     orderController.setMessageDetails(widget.message);
   }
+
 
   @override
   Widget build(BuildContext context) {
