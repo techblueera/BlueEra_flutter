@@ -553,10 +553,6 @@ Future<String?> compressVideo(File videoFile) async {
       startTime: 0,
       duration: 0,
     );
-String formatBytesToMB(int bytes) {
-  double mb = bytes / (1024 * 1024);
-  return mb.toStringAsFixed(2);
-}
 
     if (info != null) {
       videoPath = info.path;
@@ -572,4 +568,9 @@ String formatBytesToMB(int bytes) {
     print('❌ Compression failed: $e');
   }
   return null;
+}
+
+String formatBytesToMB(int bytes) {
+  double mb = bytes / (1024 * 1024);
+  return mb.toStringAsFixed(2);
 }

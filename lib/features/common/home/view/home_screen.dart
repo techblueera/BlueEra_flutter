@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
                   padding: EdgeInsets.only(
-                      top: (selectedIndex == 3
+                      top: (selectedIndex == 2
                           ? _headerHeight *
                                   (1 -
                                       homeScreenController.headerOffset.value) +
