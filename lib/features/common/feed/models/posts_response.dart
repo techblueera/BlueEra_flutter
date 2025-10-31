@@ -50,8 +50,8 @@ class Post {
   final String id;
   final String? message;
   final String? location;
-  final double? latitude;
-  final double? longitude;
+  final num? latitude;
+  final num? longitude;
   final String? title;
   final String? subTitle;
   final String? type;

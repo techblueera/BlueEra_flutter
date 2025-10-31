@@ -248,8 +248,8 @@ class LatestPost {
   String? subTitle;
   String? natureOfPost;
   String? location;
-  double? latitude;
-  double? longitude;
+  num? latitude;
+  num? longitude;
   dynamic locationMetadata;
   String? mediaAspectRatio;
   String? postVia;
