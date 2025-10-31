@@ -2,25 +2,19 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../reel/models/create_channel_model.dart';
-// https://be.blueera.ai/api/post-service/post/channel-posts-filtered?page=1&limit=40&filter=latest&refresh=true&authorId=689df0cb7e62ed576245195f
-// https://be.blueera.ai/api/post-service/post/channel-posts-filtered?page=1&limit=40&filter=latest&refresh=true&authorId=68ccf0ad28492e584c3656ca
 
 
 class ChannelFeedPostListingScreen extends StatefulWidget {
@@ -71,9 +65,7 @@ class _ChannelFeedPostListingScreenState
                             ApiKeys.argAccountType: accountTypeGlobal,
                             ApiKeys.channelId: widget.channelData?.id,
                             ApiKeys.authorId:
-                                (accountTypeGlobal == AppConstants.individual)
-                                    ? userId
-                                    : businessId
+                                widget.channelData?.ownership?.claimedBy,
                           },
                         );
                       },
@@ -82,26 +74,29 @@ class _ChannelFeedPostListingScreenState
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            /*   if (channelData.ownership.isNotEmpty)
-                            InkWell(
-                              onTap: () {
-                                navigatePushTo(
-                                  context,
-                                  ImageViewScreen(
-                                    appBarTitle: AppLocalizations.of(context)!
-                                        .imageViewer,
-                                    // imageUrls: [post?.author.profileImage ?? ''],
-                                    imageUrls: [],
-                                    initialIndex: 0,
-                                  ),
-                                );
-                              },
-                              child: CachedAvatarWidget(
-                                  imageUrl: widget.video.avatar,
-                                  size: 40,
-                                  borderColor: Colors.white,
-                                  borderRadius: 25),
-                            ),*/
+                            if (widget.channelData?.logoUrl?.isNotEmpty ??
+                                false)
+                              InkWell(
+                                onTap: () {
+                                  navigatePushTo(
+                                    context,
+                                    ImageViewScreen(
+                                      appBarTitle: AppLocalizations.of(context)!
+                                          .imageViewer,
+                                      // imageUrls: [post?.author.profileImage ?? ''],
+                                      imageUrls: [
+                                        widget.channelData?.logoUrl ?? ""
+                                      ],
+                                      initialIndex: 0,
+                                    ),
+                                  );
+                                },
+                                child: CachedAvatarWidget(
+                                    imageUrl: widget.channelData?.logoUrl,
+                                    size: 40,
+                                    borderColor: Colors.white,
+                                    borderRadius: 25),
+                              ),
                             SizedBox(width: SizeConfig.size8),
                             Expanded(
                               child: Column(
@@ -125,35 +120,35 @@ class _ChannelFeedPostListingScreenState
                                             color: AppColors.black,
                                           ),
                                         ),
-                                        /*  if (widget.video.authorUsername != null &&
-                                          (widget.video.authorUsername
-                                              .isNotEmpty ??
-                                              false))
-                                        Expanded(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(top: 3),
-                                            child: CustomText(
-                                              " @${widget.video.authorUsername}",
-                                              fontWeight: FontWeight.w600,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: AppColors.white,
+                                        if (widget.channelData?.username !=
+                                                null &&
+                                            (widget.channelData?.username
+                                                    ?.isNotEmpty ??
+                                                false))
+                                          Expanded(
+                                            child: Padding(
+                                              padding: EdgeInsets.only(top: 3),
+                                              child: CustomText(
+                                                " @${widget.channelData?.username}",
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: AppColors.white,
+                                              ),
                                             ),
                                           ),
-                                        ),*/
                                       ],
                                     ),
                                   ),
                                   SizedBox(height: SizeConfig.size2),
-                                  /*  CustomText(
-                                  widget.video.account_type.toUpperCase() ==
-                                      AppConstants.business
-                                      ? widget.video.business_category
-                                      : widget.video.designation,
-                                  fontWeight: FontWeight.w600,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  color: AppColors.white,
-                                )*/
+                                  CustomText(
+                                    "${formatNumberLikePost(widget.channelData?.followers ?? 0)} Members",
+                                    fontWeight: FontWeight.w600,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    // color: AppColors.white,
+                                  ),
+                                  SizedBox(height: SizeConfig.size5),
+
                                   // Add optional follower/follow section if needed
                                 ],
                               ),

@@ -478,5 +478,6 @@ abstract class BaseService {
   String earnServices = "earn-service/services";
   String earnServicesById(String serviceId) => 'earn-service/services/$serviceId';
   String channelFollowingMe = "channel-service/follower/following/me";
+  String channel_service_follower = "channel-service/follower/";
 
 }

@@ -388,4 +388,18 @@ print("url=== ${url}");
     );
     return response;
   }
+
+
+  ///GET FOLLOWER LIST...
+  Future<ResponseModel> getChannelJoinedUserRepo({
+    required String userId,
+  }) async {
+    ResponseModel response = await ApiBaseHelper().getHTTP(
+      "${channel_service_follower}${userId}/followers",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

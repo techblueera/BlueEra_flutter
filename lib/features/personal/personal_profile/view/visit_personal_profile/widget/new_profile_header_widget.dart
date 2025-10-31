@@ -28,48 +28,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
     required this.user,
     required this.screenFromName,
   });
-  void _showFullTextDialog(BuildContext context,String text) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          padding: EdgeInsets.all(SizeConfig.size20),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                child: SingleChildScrollView(
-                  child: HighlightText(
-                      text: text,
-                      style: TextStyle(
-                        color: AppColors.mainTextColor,
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: AppConstants.OpenSans,
-                      )
-                  ),
-                ),
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: const CustomText('Close', fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -77,13 +36,6 @@ class NewProfileHeaderWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withValues(alpha: 0.08),
-        //     blurRadius: 6,
-        //     offset: const Offset(0, 3),
-        //   ),
-        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,11 +54,11 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     topRight: Radius.circular(12),
                   ),
                   image: (user?.profileImage != null &&
-                      user!.profileImage!.isNotEmpty)
+                          (user?.profileImage?.isNotEmpty ?? false))
                       ? DecorationImage(
-                    image: NetworkImage(user!.profileImage!),
-                    fit: BoxFit.cover,
-                  )
+                          image: NetworkImage(user?.profileImage ?? ""),
+                          fit: BoxFit.cover,
+                        )
                       : null,
                 ),
               ),
@@ -121,18 +73,18 @@ class NewProfileHeaderWidget extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 35,
                     backgroundImage: (user?.profileImage != null &&
-                        user!.profileImage!.isNotEmpty)
-                        ? NetworkImage(user!.profileImage!)
+                            (user?.profileImage?.isNotEmpty ?? false))
+                        ? NetworkImage(user?.profileImage ?? "")
                         : null,
                     backgroundColor: AppColors.primaryColor,
                     child: (user?.profileImage == null ||
-                        user!.profileImage!.isEmpty)
+                            (user?.profileImage?.isEmpty ?? false))
                         ? CustomText(
-                      getInitials(user?.name),
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: SizeConfig.size20,
-                    )
+                            getInitials(user?.name),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: SizeConfig.size20,
+                          )
                         : null,
                   ),
                 ),
@@ -179,15 +131,18 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                   fontWeight: FontWeight.w700,
                                   fontSize: SizeConfig.size10,
                                 ),
-                                 const SizedBox(width: 6),
-
-                                Icon(Icons.person_add_alt,color: Colors.white,size: 14,)
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.person_add_alt,
+                                  color: Colors.white,
+                                  size: 14,
+                                )
                               ],
                             ),
                           ),
                         );
                       }),
-                   // const SizedBox(width: 6),
+                    // const SizedBox(width: 6),
                     PopupMenuButton<String>(
                       padding: EdgeInsets.zero,
                       color: AppColors.white,
@@ -198,15 +153,13 @@ class NewProfileHeaderWidget extends StatelessWidget {
                       onSelected: (value) async {
                         if (value.toUpperCase() == "SHARE") {
                           final link = profileDeepLink(userId: user?.id);
-                          final message =
-                              "See my profile on BlueEra:\n$link\n";
+                          final message = "See my profile on BlueEra:\n$link\n";
                           await SharePlus.instance.share(
                             ShareParams(text: message, subject: user?.name),
                           );
                         }
                       },
-                      icon: LocalAssets(
-                          imagePath: AppIconAssets.more_vertical),
+                      icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
                       itemBuilder: (context) => popupMenuVisitProfileItems(),
                     ),
                   ],
@@ -230,7 +183,6 @@ class NewProfileHeaderWidget extends StatelessWidget {
                   color: AppColors.mainTextColor,
                 ),
                 const SizedBox(height: 8),
-
                 Row(
                   children: [
                     if (user?.username != null && user!.username!.isNotEmpty)
@@ -238,7 +190,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.secondaryTextColor),
+                          border:
+                              Border.all(color: AppColors.secondaryTextColor),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: CustomText(
@@ -248,9 +201,9 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         ),
                       ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size6),
                       child: Column(
-
                         children: [
                           if (user?.profession != null &&
                               user?.profession != "null" &&
@@ -260,7 +213,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                   horizontal: SizeConfig.size10,
                                   vertical: SizeConfig.size4),
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.secondaryTextColor),
+                                border: Border.all(
+                                    color: AppColors.secondaryTextColor),
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: CustomText(
@@ -271,37 +225,39 @@ class NewProfileHeaderWidget extends StatelessWidget {
                             ),
                           //const SizedBox(height: 4),
                           Obx(() {
-                            return (controller.channelUserName?.value.isNotEmpty ?? false)
+                            return (controller
+                                        .channelUserName?.value.isNotEmpty ??
+                                    false)
                                 ? Row(
-                              children: [
-                                // CustomText(
-                                //   "Visit my channel: ",
-                                //   fontSize: SizeConfig.size12,
-                                // ),
-                                // InkWell(
-                                //   onTap: () {
-                                //     Navigator.pushNamed(
-                                //       context,
-                                //       RouteHelper.getChannelScreenRoute(),
-                                //       arguments: {
-                                //         ApiKeys.argAccountType: user?.accountType,
-                                //         ApiKeys.channelId:
-                                //         controller.channelUserId?.value,
-                                //         ApiKeys.authorId: user?.id,
-                                //       },
-                                //     );
-                                //   },
-                                //   child: CustomText(
-                                //     "@${controller.channelName?.value}",
-                                //     color: AppColors.primaryColor,
-                                //     fontWeight: FontWeight.w600,
-                                //     decoration: TextDecoration.underline,
-                                //     decorationColor: AppColors.primaryColor,
-                                //     fontSize: SizeConfig.size12,
-                                //   ),
-                                // ),
-                              ],
-                            )
+                                    children: [
+                                      // CustomText(
+                                      //   "Visit my channel: ",
+                                      //   fontSize: SizeConfig.size12,
+                                      // ),
+                                      // InkWell(
+                                      //   onTap: () {
+                                      //     Navigator.pushNamed(
+                                      //       context,
+                                      //       RouteHelper.getChannelScreenRoute(),
+                                      //       arguments: {
+                                      //         ApiKeys.argAccountType: user?.accountType,
+                                      //         ApiKeys.channelId:
+                                      //         controller.channelUserId?.value,
+                                      //         ApiKeys.authorId: user?.id,
+                                      //       },
+                                      //     );
+                                      //   },
+                                      //   child: CustomText(
+                                      //     "@${controller.channelName?.value}",
+                                      //     color: AppColors.primaryColor,
+                                      //     fontWeight: FontWeight.w600,
+                                      //     decoration: TextDecoration.underline,
+                                      //     decorationColor: AppColors.primaryColor,
+                                      //     fontSize: SizeConfig.size12,
+                                      //   ),
+                                      // ),
+                                    ],
+                                  )
                                 : const SizedBox();
                           }),
                         ],
@@ -309,15 +265,13 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-
               ],
             ),
           ),
 
-         // const SizedBox(height: 10),
+          // const SizedBox(height: 10),
 
           /// ==== Profession or Channel ====
-
 
           const SizedBox(height: 12),
 
@@ -327,10 +281,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                statBlock(
-                    "Post",
-                    controller.userData.value?.totalPosts?.toString() ??
-                        "0"),
+                statBlock("Post",
+                    controller.userData.value?.totalPosts?.toString() ?? "0"),
                 const SizedBox(width: 20),
 
                 //  _divider(),
@@ -352,8 +304,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     Get.to(() => FollowersFollowingPage(
                         tabIndex: 1, userID: user?.id ?? ""));
                   },
-                  child: statBlock("Followers",
-                      controller.followerCount.value.toString()),
+                  child: statBlock(
+                      "Followers", controller.followerCount.value.toString()),
                 ),
               ],
             ),
@@ -362,11 +314,11 @@ class NewProfileHeaderWidget extends StatelessWidget {
           const SizedBox(height: 4),
 
           /// ==== Bio ====
-         // if ((user?.bio ?? '').trim().isNotEmpty)
+          // if ((user?.bio ?? '').trim().isNotEmpty)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
             child: ExpandableText(
-              text: user?.bio??'',
+              text: user?.bio ?? '',
               trimLines: 3,
               style: TextStyle(
                 color: AppColors.mainTextColor,
@@ -374,35 +326,33 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 wordSpacing: 0.4,
                 letterSpacing: 0.2,
                 fontWeight: FontWeight.w400,
-                height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+                height:
+                    1.5, // 👈 increases vertical gap between lines (default is ~1.0)
               ),
               expandMode: ExpandMode.dialog,
               dialogTitle: 'Bio',
             ),
           ),
-        //ExpandableText(
-        //                 text: viewProfileController
-        //                         .personalProfileDetails.value.user?.bio ??
-        //                     "",
-        //                 trimLines: 3,
-        //                 style: TextStyle(
-        //                   color: AppColors.mainTextColor,
-        //                   fontSize: 14,
-        //                   wordSpacing: 0.4,
-        //                   letterSpacing: 0.2,
-        //                   fontWeight: FontWeight.w400,
-        //                   height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
-        //                 ),
-        //                 expandMode: ExpandMode.dialog,
-        //                 dialogTitle: 'Bio',
-        //               )
+          //ExpandableText(
+          //                 text: viewProfileController
+          //                         .personalProfileDetails.value.user?.bio ??
+          //                     "",
+          //                 trimLines: 3,
+          //                 style: TextStyle(
+          //                   color: AppColors.mainTextColor,
+          //                   fontSize: 14,
+          //                   wordSpacing: 0.4,
+          //                   letterSpacing: 0.2,
+          //                   fontWeight: FontWeight.w400,
+          //                   height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+          //                 ),
+          //                 expandMode: ExpandMode.dialog,
+          //                 dialogTitle: 'Bio',
+          //               )
 
+          // const SizedBox(height: 8),
 
-         // const SizedBox(height: 8),
-
-
-
-        //  const SizedBox(height: 16),
+          //  const SizedBox(height: 16),
 
           /// ==== Location + Join Date ====
           // Padding(
@@ -440,19 +390,20 @@ class NewProfileHeaderWidget extends StatelessWidget {
       ),
     );
   }
-
-
 }
+
 Widget statBlock(String label, String count) {
   return Row(
     children: [
       CustomText(
-        count,
+        formatNumberLikePost(int.tryParse(count) ?? 0),
         fontSize: SizeConfig.size14,
         fontWeight: FontWeight.w700,
         color: AppColors.mainTextColor,
       ),
-      const SizedBox(width: 4,),
+      const SizedBox(
+        width: 4,
+      ),
       CustomText(
         label,
         fontSize: SizeConfig.size14,

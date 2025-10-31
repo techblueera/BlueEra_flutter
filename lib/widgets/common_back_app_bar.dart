@@ -389,12 +389,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     } else {
                       postVia(context, value);
                     }*/
-                  } else if (value == PostCreationMenu.place) {
+                  } /*else if (value == PostCreationMenu.place) {
                     Navigator.pushNamed(
                       context,
                       RouteHelper.getAddPlaceStepOneScreenRoute(),
                     );
-                  } else if (value == PostCreationMenu.jobPost) {
+                  }*/ else if (value == PostCreationMenu.jobPost) {
                     Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
                         arguments: {
                           'isEditMode': false,

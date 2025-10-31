@@ -23,14 +23,12 @@ import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_wid
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
-import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/feed_tag_people_bottom_sheet.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -154,7 +152,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                         isImageUrl(_post.media?.firstOrNull))
                       SocialImageGrid(
                         imageUrls: _post.media ?? [],
-                        subTitle: _post.subTitle ?? "",
+                        subTitle: _post.subTitle ?? "", postData: _post,
                       ),
                   ],
                   Column(

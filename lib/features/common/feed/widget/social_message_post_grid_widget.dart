@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -10,9 +11,13 @@ import 'package:get/get.dart';
 class SocialImageGrid extends StatelessWidget {
   final List<String> imageUrls;
   final subTitle;
+  final Post postData;
 
   const SocialImageGrid(
-      {super.key, required this.imageUrls, required this.subTitle});
+      {super.key,
+      required this.imageUrls,
+      required this.subTitle,
+      required this.postData});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,8 @@ class SocialImageGrid extends StatelessWidget {
     if (count == 1) {
       return ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: netWorkImage(urlLink: imageUrls[0], index: 0, heightImg: 300));
+          child: singleNetworkImage(
+              urlLink: imageUrls[0], index: 0, postData: postData));
     }
     // Four images → 2x2 grid
     if (count == 2) {
@@ -200,17 +206,15 @@ class SocialImageGrid extends StatelessWidget {
           return ClipRRect(
               borderRadius: index == 0
                   ? BorderRadius.only(
-                topLeft: Radius.circular(12),
-              )
+                      topLeft: Radius.circular(12),
+                    )
                   : index == 1
-                  ? BorderRadius.only(
-                topRight: Radius.circular(12),
-              )
-                  : index == 2
-                  ? BorderRadius.only(
-                  bottomLeft: Radius.circular(12))
-                  : BorderRadius.only(
-                  bottomRight: Radius.circular(12)),
+                      ? BorderRadius.only(
+                          topRight: Radius.circular(12),
+                        )
+                      : index == 2
+                          ? BorderRadius.only(bottomLeft: Radius.circular(12))
+                          : BorderRadius.only(bottomRight: Radius.circular(12)),
               child: netWorkImage(
                   urlLink: imageUrls[index], index: index, heightImg: 0));
         },
@@ -219,6 +223,141 @@ class SocialImageGrid extends StatelessWidget {
 
     return const SizedBox();
   }
+  Widget singleNetworkImage({
+    required String urlLink,
+    required int index,
+    Post? postData,
+  }) {
+    final double screenWidth = Get.width;
+    const double borderRadiusValue = 12.0;
+    const double portraitHeight = 300.0;
+
+    final double mediaWidth = postData?.media_width?.toDouble() ?? 0;
+    final double mediaHeight = postData?.media_height?.toDouble() ?? 0;
+
+    final bool hasValidSize = mediaWidth > 0 && mediaHeight > 0;
+    final bool isLandscape = hasValidSize && mediaWidth > mediaHeight;
+
+    // Choose height and aspect ratio based on orientation
+    final double imageHeight = isLandscape
+        ? screenWidth * (mediaHeight / mediaWidth)
+        : portraitHeight;
+
+    final double aspectRatio = hasValidSize
+        ? (mediaWidth / mediaHeight)
+        : 1.0;
+
+    return InkWell(
+      onTap: () => onTapImage(indexOfImage: index),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadiusValue),
+        child: AspectRatio(
+          aspectRatio: isLandscape ? aspectRatio : screenWidth / portraitHeight,
+          child: CachedNetworkImage(
+            imageUrl: urlLink,
+            width: screenWidth,
+            height: imageHeight,
+            fit: BoxFit.cover,
+            placeholder: (context, _) => Container(
+              color: Colors.grey[200],
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            ),
+            errorWidget: (context, _, __) => Container(
+              color: Colors.grey[300],
+              alignment: Alignment.center,
+              child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /*Widget singleNetworkImage({
+    required String urlLink,
+    required int index,
+    Post? postData,
+  }) {
+    final double screenWidth = Get.width;
+    double borderRadiusValue = 12.0;
+
+    final double mediaWidth = postData?.media_width?.toDouble() ?? 0;
+    final double mediaHeight = postData?.media_height?.toDouble() ?? 0;
+
+    // Determine height dynamically
+    double heightImg;
+    if (mediaWidth > 0 && mediaHeight > 0) {
+      if (mediaWidth > mediaHeight) {
+        // Landscape image — full-width preview
+        heightImg = screenWidth * (mediaHeight / mediaWidth);
+        return InkWell(
+          onTap: () => onTapImage(indexOfImage: index),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(borderRadiusValue),
+            child: AspectRatio(
+              aspectRatio: (mediaWidth > 0 && mediaHeight > 0)
+                  ? mediaWidth / mediaHeight
+                  : 1,
+              child: CachedNetworkImage(
+                imageUrl: urlLink,
+                width: screenWidth,
+                height: heightImg,
+                fit: BoxFit.cover,
+                // 👈 Ensures image fills box, no padding
+                placeholder: (context, _) => Container(
+                  color: Colors.grey[200],
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (context, _, __) => Container(
+                  color: Colors.grey[300],
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.broken_image_outlined,
+                      color: Colors.grey),
+                ),
+              ),
+            ),
+          ),
+        );
+      } else {
+        return portRateImage(screenWidth, urlLink);
+      }
+    } else {
+      return portRateImage(screenWidth, urlLink);
+    }
+  }
+
+  portRateImage(
+    double screenWidth,
+    String urlLink,
+  ) {
+    double borderRadiusValue = 12.0;
+
+    return InkWell(
+      onTap: () => onTapImage(indexOfImage: 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadiusValue),
+        child: CachedNetworkImage(
+          imageUrl: urlLink,
+          width: screenWidth,
+          height: 300,
+          fit: BoxFit.cover,
+          // 👈 Ensures image fills box, no padding
+          placeholder: (context, _) => Container(
+            color: Colors.grey[200],
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          ),
+          errorWidget: (context, _, __) => Container(
+            color: Colors.grey[300],
+            alignment: Alignment.center,
+            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      ),
+    );
+  }*/
 
   netWorkImage(
       {required String urlLink, required int index, double? heightImg}) {

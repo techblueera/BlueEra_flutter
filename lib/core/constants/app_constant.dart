@@ -609,7 +609,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
 
     /// for individual user if user has channel then only video section will shown
     if (isBusiness) PostCreationMenu.jobPost,
-    PostCreationMenu.place,
+    // PostCreationMenu.place,
     // PostCreationMenu.travel,
   ];
 
@@ -619,17 +619,17 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
     PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
     // PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
     PostCreationMenu.jobPost: AppIconAssets.uilSuitcaseOutlinedIcon,
-    PostCreationMenu.place: AppIconAssets.locationOutlineIconGreyIcon,
+    // PostCreationMenu.place: AppIconAssets.locationOutlineIconGreyIcon,
     PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
   };
 
   const titleMap = {
     PostCreationMenu.message: 'Lekha',
     PostCreationMenu.poll: 'Poll',
-    PostCreationMenu.photos: 'Photos',
+    PostCreationMenu.photos: 'Symbol',
     // PostCreationMenu.videos: 'Videos',
     PostCreationMenu.jobPost: 'Job Post',
-    PostCreationMenu.place: 'Place',
+    // PostCreationMenu.place: 'Place',
     PostCreationMenu.travel: 'Travel',
   };
 

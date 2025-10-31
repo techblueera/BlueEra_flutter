@@ -26,6 +26,7 @@ import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
@@ -193,10 +194,8 @@ class MessagePostController extends GetxController {
     fileType = FileType.image;
     // if (selectedType.value == MediaType.video) fileType = FileType.video;
 
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: fileType,compressionQuality: 80
-    );
+    FilePickerResult? result = await FilePicker.platform
+        .pickFiles(allowMultiple: true, type: fileType, compressionQuality: 80);
 
     if (result == null) return;
 
@@ -205,8 +204,8 @@ class MessagePostController extends GetxController {
     selectedType.value = MediaType.image;
 
     imagesList.addAll(files);
-
   }
+
   Future<void> pickVideoMedia() async {
     selectedType.value = MediaType.video;
 
@@ -216,9 +215,8 @@ class MessagePostController extends GetxController {
     //     allowedExtensions: ['mp4', 'mov', 'avi', 'mkv']
     // );
     final XFile? result = await picker.pickVideo(
-    source: ImageSource.gallery, // 🎞️ opens gallery view
+      source: ImageSource.gallery, // 🎞️ opens gallery view
     );
-
 
     if (result == null) return;
 
@@ -236,13 +234,14 @@ class MessagePostController extends GetxController {
 
         imagesList.value = [videoTriFile];
         _generateThumbnail(videoTriFile);
+
         // Upload / Save / Play trimmed video here
       }
     }
     // <-- Add for video
   }
 
-   /*Future<void> pickVideoMedia() async {
+  /*Future<void> pickVideoMedia() async {
 
     selectedType.value = MediaType.video;
 
@@ -281,174 +280,195 @@ class MessagePostController extends GetxController {
   }
 
   Future<void> uploadMessagePost({required PostVia? postVia}) async {
-    try {
-      dio.FormData formData = dio.FormData();
-      if (imagesList.length > 4) {
-        commonSnackBar(message: "Max 4 image are allowed");
-        return;
+    // try {
+    dio.FormData formData = dio.FormData();
+    if (imagesList.length > 4) {
+      commonSnackBar(message: "Max 4 image are allowed");
+      return;
+    }
+    if (selectedType.value == MediaType.video) {
+      double progress = 0.0;
+
+      void updateProgress(double value) {
+        progress = value.clamp(0.0, 1.0);
+        UploadProgressDialog.update(progress);
       }
-      if (selectedType.value == MediaType.video) {
-        double progress = 0.0;
 
-        void updateProgress(double value) {
-          progress = value.clamp(0.0, 1.0);
-          UploadProgressDialog.update(progress);
-        }
+      // ✅ Show the dialog (GetX version, no context needed)
+      UploadProgressDialog.show(initialProgress: progress);
+      final videoFile = File(imagesList.firstOrNull?.path ?? "");
+      final coverFile = File(videoThumbnails[videoFile.path]?.path ?? "");
 
-        // ✅ Show the dialog (GetX version, no context needed)
-        UploadProgressDialog.show(initialProgress: progress);
+// final tempCoverProfile=File(imagesList.firstOrNull?.path ?? "");
+//         final tempVideoFile =
+//             await compressVideo(File(imagesList.firstOrNull?.path ?? ""));
+//         final videoFile = tempVideoFile != null && tempVideoFile.isNotEmpty
+//             ? File(tempVideoFile ?? "")
+//             : File(imagesList.firstOrNull?.path ?? "");
+//
+//         final coverFile = File(videoThumbnails[tempCoverProfile]?.path ?? "");
 
-        final videoFile = File(imagesList.firstOrNull?.path ?? "");
-        final coverFile = File(videoThumbnails[videoFile.path]?.path ?? "");
+      final videoInfo = getFileInfo(videoFile);
+      final coverInfo = getFileInfo(coverFile);
 
-        final videoInfo = getFileInfo(videoFile);
-        final coverInfo = getFileInfo(coverFile);
+      // 1. Init both uploads (20%)
+      await Future.wait([
+        uploadInit(
+          queryParams: {
+            ApiKeys.filenameKey: videoInfo['fileName'],
+            ApiKeys.contentTypeKey: videoInfo['mimeType']
+          },
+          isVideoUpload: true,
+        ),
+        uploadInit(
+          queryParams: {
+            ApiKeys.filenameKey: coverInfo['fileName'],
+            ApiKeys.contentTypeKey: coverInfo['mimeType']
+          },
+          isVideoUpload: false,
+        ),
+      ]);
+      updateProgress(0.2);
 
-        // 1. Init both uploads (20%)
+      // 2. Upload files with combined progress (20% → 90%)
+      double videoProgress = 0.0;
+      double coverProgress = 0.0;
+
+      void updateCombinedProgress() {
+        // 20% init + 70% file uploads
+        final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
+        updateProgress(combined);
+      }
+
+      if (uploadInitVideoFile?.success ?? false) {
         await Future.wait([
-          uploadInit(
-            queryParams: {
-              ApiKeys.filenameKey: videoInfo['fileName'],
-              ApiKeys.contentTypeKey: videoInfo['mimeType']
+          uploadFileToS3(
+            file: videoFile,
+            fileType: videoInfo['mimeType']!,
+            preSignedUrl: uploadInitVideoFile?.data?.uploadUrl ?? "",
+            onProgress: (total) {
+              videoProgress = total;
+              updateCombinedProgress();
             },
-            isVideoUpload: true,
           ),
-          uploadInit(
-            queryParams: {
-              ApiKeys.filenameKey: coverInfo['fileName'],
-              ApiKeys.contentTypeKey: coverInfo['mimeType']
+          uploadFileToS3(
+            file: coverFile,
+            fileType: coverInfo['mimeType']!,
+            preSignedUrl: uploadInitCoverImageFile?.data?.uploadUrl ?? "",
+            onProgress: (total) {
+              coverProgress = total;
+              updateCombinedProgress();
             },
-            isVideoUpload: false,
           ),
         ]);
-        updateProgress(0.2);
+        formData.fields.add(MapEntry(ApiKeys.media_types, "video/mp4"));
+        formData.fields.add(MapEntry(ApiKeys.thumbnail,
+            uploadInitCoverImageFile?.data?.publicUrl ?? ""));
 
-        // 2. Upload files with combined progress (20% → 90%)
-        double videoProgress = 0.0;
-        double coverProgress = 0.0;
-
-        void updateCombinedProgress() {
-          // 20% init + 70% file uploads
-          final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
-          updateProgress(combined);
-        }
-
-        if (uploadInitVideoFile?.success ?? false) {
-          await Future.wait([
-            uploadFileToS3(
-              file: videoFile,
-              fileType: videoInfo['mimeType']!,
-              preSignedUrl: uploadInitVideoFile?.data?.uploadUrl ?? "",
-              onProgress: (total) {
-                videoProgress = total;
-                updateCombinedProgress();
-              },
-            ),
-            uploadFileToS3(
-              file: coverFile,
-              fileType: coverInfo['mimeType']!,
-              preSignedUrl: uploadInitCoverImageFile?.data?.uploadUrl ?? "",
-              onProgress: (total) {
-                coverProgress = total;
-                updateCombinedProgress();
-              },
-            ),
-          ]);
-          formData.fields.add(MapEntry(ApiKeys.media_types, "video/mp4"));
-          formData.fields.add(MapEntry(ApiKeys.thumbnail,
-              uploadInitCoverImageFile?.data?.publicUrl ?? ""));
-
-          formData.fields.add(MapEntry(
-              ApiKeys.media, uploadInitVideoFile?.data?.publicUrl ?? ""));
-        }
-
-        updateProgress(0.9);
+        formData.fields.add(MapEntry(
+            ApiKeys.media, uploadInitVideoFile?.data?.publicUrl ?? ""));
       }
-      if ((uploadInitVideoFile?.success == false ||
-              uploadInitVideoFile?.success == null) &&
-          (selectedType.value == MediaType.video)) {
-        return;
-      }
-      final position = await getCurrentLocation();
-      final tagUserController = Get.find<TagUserController>();
-
-      String? tagUserIds = tagUserController.selectedUsers
-          .map((user) => user.id.toString())
-          .join(',');
-      if (selectedType.value == MediaType.image) {
-        /// Add media files
-        for (int i = 0; i < (imagesList.length); i++) {
-          final data = imagesList[i];
-
-          File processed = File(data.path);
-
-          String fileName = processed.path.split('/').last;
-          formData.files.add(
-            MapEntry(
-              ApiKeys.media,
-              await dio.MultipartFile.fromFile(
-                processed.path,
-                filename: fileName,
-              ),
-            ),
-          );
-          formData.fields.add(MapEntry(ApiKeys.media_types, "image/jpeg"));
-        }
-      }
-
-      ///POST VIA TYPE...
+      final size = await getVideoDimensions(videoFile.path);
+      print('Width: ${size?.width}, Height: ${size?.height}');
       formData.fields
-          .add(MapEntry(ApiKeys.postVia, postVia?.name ?? "profile"));
-
-      ///TITLE...
-      if (postTitleController.value.text.isNotEmpty)
-        formData.fields
-            .add(MapEntry(ApiKeys.title, postTitleController.value.text));
-
-      ///DESCRIPTION...
-      if (descriptionMessage.value.text.isNotEmpty)
-        formData.fields
-            .add(MapEntry(ApiKeys.sub_title, descriptionMessage.value.text));
-
-      ///NATURE OF POST...
-      if (natureOfPostController.value.text.isNotEmpty)
-        formData.fields.add(MapEntry(
-            ApiKeys.nature_of_post, natureOfPostController.value.text));
-
-      ///REFERENCE LINK...
-      if (referenceLinkController.value.text.isNotEmpty)
-        formData.fields.add(MapEntry(
-          ApiKeys.reference_link,
-          referenceLinkController.value.text.isNotEmpty
-              ? referenceLinkController.value.text
-              : "",
-        ));
-
-      /// Add location if available
-      if (position?.latitude != null && position?.longitude != null) {
-        formData.fields.add(
-            MapEntry(ApiKeys.latitude, position?.latitude.toString() ?? ""));
-        formData.fields.add(
-            MapEntry(ApiKeys.longitude, position?.longitude.toString() ?? ""));
-      }
-
-      ///POST TYPE....
-      formData.fields.add(MapEntry(ApiKeys.type, AppConstants.MESSAGE_POST));
-
-      ///TAG IDS...
-      if (tagUserIds.isNotEmpty)
-        formData.fields.add(MapEntry(ApiKeys.tagged_users, tagUserIds));
-      await addMsgPostControllerNew(
-        bodyReq: formData,
-      );
-    } catch (e) {
-      logs("errorr === $e");
-
-      /// ❌ On error also close dialog
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      UploadProgressDialog.close();
+          .add(MapEntry(ApiKeys.media_width, size?.width.toString() ?? ""));
+      formData.fields
+          .add(MapEntry(ApiKeys.media_height, size?.height.toString() ?? ""));
+      updateProgress(0.9);
     }
+    if ((uploadInitVideoFile?.success == false ||
+            uploadInitVideoFile?.success == null) &&
+        (selectedType.value == MediaType.video)) {
+      return;
+    }
+    final position = await getCurrentLocation();
+    final tagUserController = Get.find<TagUserController>();
+
+    String? tagUserIds = tagUserController.selectedUsers
+        .map((user) => user.id.toString())
+        .join(',');
+    if (selectedType.value == MediaType.image) {
+      /// Add media files
+      for (int i = 0; i < (imagesList.length); i++) {
+        final data = imagesList[i];
+
+        File processed = File(data.path);
+
+        String fileName = processed.path.split('/').last;
+        formData.files.add(
+          MapEntry(
+            ApiKeys.media,
+            await dio.MultipartFile.fromFile(
+              processed.path,
+              filename: fileName,
+            ),
+          ),
+        );
+        formData.fields.add(MapEntry(ApiKeys.media_types, "image/jpeg"));
+      }
+      if (imagesList.length == 1) {
+        final size =
+            await getImageDimensions(File(imagesList.firstOrNull?.path ?? ""));
+        print('Width: ${size.width}, Height: ${size.height}');
+        formData.fields
+            .add(MapEntry(ApiKeys.media_width, size.width.toString()));
+        formData.fields
+            .add(MapEntry(ApiKeys.media_height, size.height.toString()));
+      }
+    }
+
+    ///POST VIA TYPE...
+    formData.fields.add(MapEntry(ApiKeys.postVia, postVia?.name ?? "profile"));
+
+    ///TITLE...
+    if (postTitleController.value.text.isNotEmpty)
+      formData.fields
+          .add(MapEntry(ApiKeys.title, postTitleController.value.text));
+
+    ///DESCRIPTION...
+    if (descriptionMessage.value.text.isNotEmpty)
+      formData.fields
+          .add(MapEntry(ApiKeys.sub_title, descriptionMessage.value.text));
+
+    ///NATURE OF POST...
+    if (natureOfPostController.value.text.isNotEmpty)
+      formData.fields.add(
+          MapEntry(ApiKeys.nature_of_post, natureOfPostController.value.text));
+
+    ///REFERENCE LINK...
+    if (referenceLinkController.value.text.isNotEmpty)
+      formData.fields.add(MapEntry(
+        ApiKeys.reference_link,
+        referenceLinkController.value.text.isNotEmpty
+            ? referenceLinkController.value.text
+            : "",
+      ));
+
+    /// Add location if available
+    if (position?.latitude != null && position?.longitude != null) {
+      formData.fields
+          .add(MapEntry(ApiKeys.latitude, position?.latitude.toString() ?? ""));
+      formData.fields.add(
+          MapEntry(ApiKeys.longitude, position?.longitude.toString() ?? ""));
+    }
+
+    ///POST TYPE....
+    formData.fields.add(MapEntry(ApiKeys.type, AppConstants.MESSAGE_POST));
+
+    ///TAG IDS...
+    if (tagUserIds.isNotEmpty)
+      formData.fields.add(MapEntry(ApiKeys.tagged_users, tagUserIds));
+    await addMsgPostControllerNew(
+      bodyReq: formData,
+    );
+    // } catch (e) {
+    //   logs("errorr === $e");
+    //
+    //   /// ❌ On error also close dialog
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    // } finally {
+    //   UploadProgressDialog.close();
+    // }
   }
 
   ApiResponse uploadInitResponse = ApiResponse.initial('Initial');
@@ -530,25 +550,42 @@ class MessagePostController extends GetxController {
     try {
       isGenerated.value = true; // <--- Disable button after API call
       suggestions.clear();
+
       // prepare images multipart
       List<dio.MultipartFile> imageByPart = [];
       // Limit to first 3 images if there are more
-      final limitedImages = imagesList.length > 3
-          ? imagesList.take(3).toList()
-          : imagesList;
+      final limitedImages =
+          imagesList.length > 3 ? imagesList.take(3).toList() : imagesList;
 
       for (final imageData in limitedImages) {
         final path = imageData.path;
-        final fileName = path.split('/').last;
         final imageInfo = getFileInfo(File(path));
-        final mimeType = imageInfo['mimeType'];
+        final isVideo = selectedType.value == MediaType.video;
 
-        imageByPart.add(await dio.MultipartFile.fromFile(
-          path,
-          filename: fileName,
-          contentType:
-              htp.MediaType.parse(mimeType ?? 'application/octet-stream'),
-        ));
+        ///IF VIDEO IS THERE THEN SEND VIDEO THUMBNAIL INSTEAD OF VIDE FILE FOR GENERATE VIDEO AI DESCRIPTION....
+        if (isVideo) {
+          final file = imagesList.first;
+          final thumb = videoThumbnails[file.path];
+          final fileName = thumb?.path.split('/').last;
+          final imageInfo = getFileInfo(File(thumb?.path ?? ""));
+          final mimeType = imageInfo['mimeType'];
+
+          imageByPart.add(await dio.MultipartFile.fromFile(
+            thumb?.path ?? "",
+            filename: fileName,
+            contentType:
+                htp.MediaType.parse(mimeType ?? 'application/octet-stream'),
+          ));
+        } else {
+          final mimeType = imageInfo['mimeType'];
+          final fileName = path.split('/').last;
+          imageByPart.add(await dio.MultipartFile.fromFile(
+            path,
+            filename: fileName,
+            contentType:
+                htp.MediaType.parse(mimeType ?? 'application/octet-stream'),
+          ));
+        }
       }
       Map<String, dynamic> reqParm = {
         ApiKeys.language: selectedLanguage.value,
@@ -559,18 +596,13 @@ class MessagePostController extends GetxController {
       ResponseModel responseModel =
           await PostRepo().aiSocialPostGenerateRepo(queryParam: reqParm);
       if (responseModel.isSuccess) {
-        // Convert List<List<String>> → List<String>
         setSuggestions(responseModel.response?.data);
-        // suggestions.value = responseModel.response?.data["post_suggestions"].map((list) {
-        //   return (list as List<String>).join("\n"); // join lines as paragraph
-        // }).toList();
-        // suggestions.value = List<String>.from(
-        //     responseModel.response?.data["post_suggestions"] ?? []);
       }
     } catch (e) {
       logs("ERROR $e");
     }
   }
+
   var suggestions = <String>[].obs;
   var selectedSuggestion = "".obs;
 
@@ -583,6 +615,7 @@ class MessagePostController extends GetxController {
 
     selectedSuggestion.value = ""; // reset selection
   }
+
   // Call this whenever any selection changes
   void onSelectionChanged() {
     isGenerated.value = false; // Re-enable button
@@ -591,6 +624,6 @@ class MessagePostController extends GetxController {
   bool get isFormValid =>
       selectedLanguage.value.isNotEmpty &&
       selectedEmotion.value.isNotEmpty &&
-          topicDescriptionText.value.isNotEmpty &&
+      topicDescriptionText.value.isNotEmpty &&
       !isGenerated.value; // <--- disable when generated
 }

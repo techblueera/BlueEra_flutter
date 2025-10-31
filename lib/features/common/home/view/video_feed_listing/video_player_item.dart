@@ -1,15 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -18,11 +14,7 @@ import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_cache_manager.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 
-import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 
 class VideoPlayerItem extends StatefulWidget {
   final VideoPost video;
@@ -125,13 +117,13 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   @override
   Widget build(BuildContext context) {
-    return VisibilityDetector(
-      key: Key(widget.video.id),
-      onVisibilityChanged: (info) {
-        // _visible = info.visibleFraction > 0.6;
-        _playPauseBasedOnVisibility();
-      },
-      child: SafeArea(
+    return SafeArea(
+      child: VisibilityDetector(
+        key: Key(widget.video.id),
+        onVisibilityChanged: (info) {
+          // _visible = info.visibleFraction > 0.6;
+          _playPauseBasedOnVisibility();
+        },
         child: Column(
           children: [
             SizedBox(
@@ -192,7 +184,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.start,
                                     children: [
                                       Flexible(
                                         child: CustomText(
@@ -203,7 +196,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                           color: AppColors.white,
                                         ),
                                       ),
-                                      if (widget.video.authorUsername != null &&
+                                      if (widget.video.authorUsername !=
+                                              null &&
                                           (widget.video.authorUsername
                                                   .isNotEmpty ??
                                               false))
@@ -265,8 +259,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                             child: VideoPlayer(_controller!),
                           )
                         : const Center(
-                            child:
-                                CircularProgressIndicator(color: Colors.white),
+                            child: CircularProgressIndicator(
+                                color: Colors.white),
                           ),
                   ),
 
@@ -355,30 +349,23 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         ),
                         // 📄 Title or Caption (bottom left)
                         if (widget.video.title.isNotEmpty)
-                          ExpandableText(
-                            text: widget.video.title ?? '',
-                            trimLines: 2,isReadMoreNewLine: true,
-                            expandMode: ExpandMode.dialog,
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppConstants.OpenSans,
+                          SafeArea(
+                            child: ExpandableText(
+                              text: widget.video.title,
+                              trimLines: 2,
+                              isReadMoreNewLine: true,
+                              expandMode: ExpandMode.dialog,
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: SizeConfig.large,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: AppConstants.OpenSans,
+                              ),
                             ),
-                          )
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //   children: [
-                        //     Text(
-                        //       _formatDuration(_currentPosition),
-                        //       style: const TextStyle(color: Colors.white, fontSize: 12),
-                        //     ),
-                        //     Text(
-                        //       _formatDuration(_totalDuration),
-                        //       style: const TextStyle(color: Colors.white, fontSize: 12),
-                        //     ),
-                        //   ],
-                        // ),
+                          ),
+
+
+                       SizedBox(height: SizeConfig.size30,),
                       ],
                     ),
                   ),

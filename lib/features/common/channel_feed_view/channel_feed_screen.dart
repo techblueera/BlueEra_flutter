@@ -1,18 +1,17 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/l10n/app_localizations.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../reel/controller/channel_controller.dart';
 
 class ChannelFeedScreen extends StatefulWidget {
   ChannelFeedScreen({super.key});
@@ -63,7 +62,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    "Joined ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total??0)} Channels",
+                    "Joined ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total ?? 0)} Channels",
                     fontWeight: FontWeight.w500,
                     fontSize: SizeConfig.size16,
                     color: AppColors.mainTextColor,
@@ -81,20 +80,19 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               child: ListView.builder(
                 controller: scrollController,
                 padding: const EdgeInsets.all(10),
-                itemCount: channelFeedController.channelDataList.length ,
+                itemCount: channelFeedController.channelDataList.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
-
                   final channelData =
                       channelFeedController.channelDataList[index];
 
                   return InkWell(
-                    onTap: (){
+                    onTap: () {
                       final channelData =
-                      channelFeedController.channelDataList[index];
+                          channelFeedController.channelDataList[index];
                       Get.to(() => ChannelFeedPostListingScreen(
-                      channelData: channelData,
-                      ));
+                            channelData: channelData,
+                          ));
                     },
                     child: TravelCard(
                       channelModel: channelData,
@@ -129,21 +127,40 @@ class TravelCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: const Color(0xFFCCE5FF),
-              child: LocalAssets(imagePath: AppIconAssets.userNew),
-            ),
-            /*CircleAvatar(
-              radius: 28,
-              backgroundColor: const Color(0xFFCCE5FF),
-              child: Image.asset(
-                'assets/traveler.png', // Replace with your image asset
-                height: 36,
-                fit: BoxFit.contain,
+            // // Avatar
+            // CircleAvatar(
+            //   radius: 28,
+            //   backgroundColor: const Color(0xFFCCE5FF),
+            //   child: LocalAssets(imagePath: AppIconAssets.userNew),
+            // ),
+            // /*CircleAvatar(
+            //   radius: 28,
+            //   backgroundColor: const Color(0xFFCCE5FF),
+            //   child: Image.asset(
+            //     'assets/traveler.png', // Replace with your image asset
+            //     height: 36,
+            //     fit: BoxFit.contain,
+            //   ),
+            // ),*/
+            if (channelModel.logoUrl?.isNotEmpty ?? false)
+              InkWell(
+                onTap: () {
+                  navigatePushTo(
+                    context,
+                    ImageViewScreen(
+                      appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                      // imageUrls: [post?.author.profileImage ?? ''],
+                      imageUrls: [channelModel.logoUrl ?? ""],
+                      initialIndex: 0,
+                    ),
+                  );
+                },
+                child: CachedAvatarWidget(
+                    imageUrl: channelModel.logoUrl,
+                    size: 40,
+                    borderColor: Colors.white,
+                    borderRadius: 25),
               ),
-            ),*/
             const SizedBox(width: 12),
 
             // Text content
@@ -156,19 +173,20 @@ class TravelCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: SizeConfig.large,
                     maxLines: 1,
+                    color: AppColors.secondaryTextColor,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   ExpandableText(
-                    text:
-                        "Would you like me to extend this so that it preloads the next 1–2 videos automatically using VideoCacheManager?That would make scrolling totally seamless with no buffer delay.",
+                    text: channelModel.latestPost?.subTitle ?? "",
                     trimLines: 2,
                     expandMode: ExpandMode.dialog,
                     isReadMoreNewLine: false,
                     style: TextStyle(
-                      color: AppColors.black,
+                      color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w400,
                       fontFamily: AppConstants.OpenSans,
+                      fontSize: SizeConfig.small
                     ),
                   ),
                 ],
@@ -181,9 +199,9 @@ class TravelCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 CustomText(
-                  formatTime(channelModel.ownership?.claimedAt??""),
-                    fontSize: SizeConfig.small,
-                    color: Colors.grey.shade600,
+                  formatTime(channelModel.ownership?.claimedAt ?? ""),
+                  fontSize: SizeConfig.small,
+                  color: Colors.grey.shade600,
                 ),
                 const SizedBox(height: 6),
                 // Container(

@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart';
 
 // controllers/video_feed_controller.dart
 import 'package:BlueEra/core/api/model/video_post_model.dart' show VideoPost;
-import 'package:get/get.dart';
 import 'video_cache_manager.dart';
 
 class VideoFeedController extends GetxController {
