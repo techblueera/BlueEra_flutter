@@ -555,22 +555,22 @@ class ChatViewController extends GetxController {
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
 
-    if (event == "ChatList") {
-      final type = data[ApiKeys.type];
-
-
-      if (isFromInitial == true) {
-        List<ChatList> localChats =
-        await localStorageHelper.getChatListFromLocal(type);
-          loadChatListWithType(
-              chatListModel: GetChatListModel(
-                type: type,
-                success: true,
-                chatList: localChats,
-                archived: [],
-              ));
-      }
-    }
+    // if (event == "ChatList") {
+    //   final type = data[ApiKeys.type];
+    //
+    //
+    //   if (isFromInitial == true) {
+    //     List<ChatList> localChats =
+    //     await localStorageHelper.getChatListFromLocal(type);
+    //       loadChatListWithType(
+    //           chatListModel: GetChatListModel(
+    //             type: type,
+    //             success: true,
+    //             chatList: localChats,
+    //             archived: [],
+    //           ));
+    //   }
+    // }
 
     if (event == "messageReceived" &&
         (conversationId ?? "") != userOpenConversationId) {
