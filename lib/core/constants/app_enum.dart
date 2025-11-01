@@ -1264,6 +1264,129 @@ enum ChargesTypes {
   const ChargesTypes(this.label);
 }
 
+enum VehicleRegistrationType {
+  Personal,
+  Commercial
+}
+
+extension VehicleRegistrationTypeExtension on VehicleRegistrationType {
+  // Get display name
+  String get displayName {
+    switch (this) {
+      case VehicleRegistrationType.Personal:
+        return 'Personal';
+      case VehicleRegistrationType.Commercial:
+        return 'Commercial';
+    }
+  }
+
+  // Get enum from string
+  static VehicleRegistrationType fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'personal':
+        return VehicleRegistrationType.Personal;
+      case 'commercial':
+        return VehicleRegistrationType.Commercial;
+      default:
+        return VehicleRegistrationType.Personal;
+    }
+  }
+}
+
+
+enum VehicleType {
+  TwoWheeler,
+  ThreeWheeler,
+  FourWheeler,
+  HeavyVehicle,
+}
+
+extension VehicleTypeExtension on VehicleType {
+  // Get display name
+  String get displayName {
+    switch (this) {
+      case VehicleType.TwoWheeler:
+        return 'Two Wheeler';
+      case VehicleType.ThreeWheeler:
+        return 'Three Wheeler';
+      case VehicleType.FourWheeler:
+        return 'Four Wheeler';
+      case VehicleType.HeavyVehicle:
+        return 'Heavy Vehicle';
+    }
+  }
+
+  // Get enum from string
+  static VehicleType fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'twowheeler':
+      case 'two_wheeler':
+        return VehicleType.TwoWheeler;
+      case 'threewheeler':
+      case 'three_wheeler':
+        return VehicleType.ThreeWheeler;
+      case 'fourwheeler':
+      case 'four_wheeler':
+        return VehicleType.FourWheeler;
+      case 'heavyvehicle':
+      case 'heavy_vehicle':
+        return VehicleType.HeavyVehicle;
+      default:
+        return VehicleType.FourWheeler; // default fallback
+    }
+  }
+}
+
+enum FuelType {
+  Petrol,
+  Diesel,
+  Electric,
+  Hybrid,
+  CNG,
+  LPG,
+}
+
+extension FuelTypeExtension on FuelType {
+  // Get display name
+  String get displayName {
+    switch (this) {
+      case FuelType.Petrol:
+        return 'Petrol';
+      case FuelType.Diesel:
+        return 'Diesel';
+      case FuelType.Electric:
+        return 'Electric';
+      case FuelType.Hybrid:
+        return 'Hybrid';
+      case FuelType.CNG:
+        return 'CNG';
+      case FuelType.LPG:
+        return 'LPG';
+    }
+  }
+
+  // Get enum from string
+  static FuelType fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'petrol':
+        return FuelType.Petrol;
+      case 'diesel':
+        return FuelType.Diesel;
+      case 'electric':
+        return FuelType.Electric;
+      case 'hybrid':
+        return FuelType.Hybrid;
+      case 'cng':
+        return FuelType.CNG;
+      case 'lpg':
+        return FuelType.LPG;
+      default:
+        return FuelType.Petrol; // default fallback
+    }
+  }
+}
+
+
 
 
 

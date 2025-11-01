@@ -51,7 +51,8 @@ class ServiceController extends GetxController {
         String? channelId,
         required ProductServiceProviderType providerType,
         required Map<String, dynamic> serviceDetailsReq,
-        EarnWithBlueEraServiceTypes? serviceSubType
+        EarnWithBlueEraServiceTypes? serviceSubType,
+        required String category
       }) async {
     try {
       isGenerateAiServiceLoading.value = true;
@@ -79,6 +80,7 @@ class ServiceController extends GetxController {
           providerType: providerType,
           service: serviceAiResModel.value,
           serviceSubType: serviceSubType,
+          category: category
         ));/*    Get.to(ServiceDetailScreen(
           service: serviceAiResModel.value,
         ));*/

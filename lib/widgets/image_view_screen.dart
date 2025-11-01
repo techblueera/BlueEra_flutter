@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -89,6 +90,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                             itemCount: widget.imageUrls.length,
                             itemBuilder: (context, index) {
                               final imageUrl = widget.imageUrls[index];
+                              final isNetworkUrl = isNetworkImage(imageUrl);
 
                               return InteractiveViewer(
                                 panEnabled: true,
@@ -96,7 +98,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                                     _transformationController,
                                 // minScale: 1.0,
                                 // maxScale: 5.0,
-                                child: CachedNetworkImage(
+                                child: isNetworkUrl ? CachedNetworkImage(
                                   imageUrl: imageUrl,
                                   scale: 1,
                                   fit: BoxFit.fitWidth,
@@ -105,7 +107,10 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                                           .place_holder_image) /*const CircularProgressIndicator()*/,
                                   errorWidget: (context, url, error) =>
                                       const Icon(Icons.error),
-                                ),
+                                ) :  Image.file(
+                                  File(imageUrl),
+                                  scale: 1,
+                                  fit: BoxFit.fitWidth,),
                               );
                             },
                           ),

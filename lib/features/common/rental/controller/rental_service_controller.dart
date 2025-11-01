@@ -30,17 +30,9 @@ class RentalServiceController extends GetxController {
   ContactType? selectedType = ContactType.Mobile;
   final selectedChargesTypes = Rxn<ChargesTypes>();
 
-  final ScrollController scrollController = ScrollController();
-  final LayerLink layerLink = LayerLink();
-  final GlobalKey textFieldKey = GlobalKey();
-  OverlayEntry? overlayEntry;
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
   double longitude = 0.0;
-  final isSearchPlaceLoading = false.obs;
-  final errorMessage = ''.obs;
-  final predictions = <PlacePrediction>[].obs;
-  Timer? debounce;
 
   final RxList<String> arrHighlights = <String>[].obs;
   RxList<DetailItem> arrMoreDetails = <DetailItem>[].obs;
@@ -107,43 +99,6 @@ class RentalServiceController extends GetxController {
     if (currentStep.value > 0) currentStep.value--;
   }
 
-  void onSearchChanged(String query) {
-    location.text = query;
-    currentAddress.value = location.text;
-    if (debounce?.isActive ?? false) debounce!.cancel();
-    debounce = Timer(const Duration(milliseconds: 500), () {
-      fetchPredictions(query);
-    });
-  }
-
-  // Fetch predictions from your API
-  Future<void> fetchPredictions(String query) async {
-    if (query.trim().isEmpty) {
-      predictions.clear();
-      return;
-    }
-
-    isSearchPlaceLoading.value = true;
-    errorMessage.value = '';
-    try {
-      final responseModel = await PlaceRepo().autoCompleteSearch(query: query);
-
-      if (responseModel.statusCode == 200) {
-        final data = responseModel.response?.data;
-        final predictionsJson = data?['predictions'] as List? ?? [];
-        predictions.assignAll(PlacePrediction.fromList(predictionsJson));
-        log('total prediction-- ${predictions.length}');
-      } else {
-        errorMessage.value =
-            responseModel.data['error_message'] ?? 'Something went wrong';
-      }
-    } catch (e) {
-      errorMessage.value = e.toString();
-    } finally {
-      isSearchPlaceLoading.value = false;
-    }
-  }
-
   void addHighlights() {
     if(arrHighlights.length == 10){
       commonSnackBar(message: 'You can\'t add more than 10 highlights');
@@ -169,7 +124,7 @@ class RentalServiceController extends GetxController {
     arrMoreDetails.removeAt(index);
   }
 
-  /// Pick images for Step 1
+  /// Pick images
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
       Get.context!,

@@ -351,14 +351,15 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                       await controller.generateServiceAiController(
                         serviceDetailsReq: {
                           ApiKeys.service_name: controller.serviceName.value,
-                          ApiKeys.category: userProfessionGlobal,
+                          ApiKeys.category: controller.serviceName.value,
                           ApiKeys.sub_category: userWorkTypeGlobal,
                           if (controller.shortDescriptionName.value.isNotEmpty)
                             ApiKeys.short_description:
                                 controller.shortDescriptionName.value,
                         },
                         providerType: widget.providerType,
-                        serviceSubType: widget.serviceSubType
+                        serviceSubType: widget.serviceSubType,
+                        category: controller.serviceName.value
                       );
                     }
                   }
@@ -414,6 +415,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                               ApiKeys.short_description:
                                   controller.shortDescriptionName.value,
                           },
+                          category: viewBusinessDetailsController
+                              .selectedCategoryOfBusiness.value?.name ?? '',
                       );
                     }
                   }
