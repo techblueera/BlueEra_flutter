@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -135,11 +136,11 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
+                                    CustomText(
                                       pilot["name"],
-                                      style: const TextStyle(
+
                                           fontSize: 14,
-                                          fontWeight: FontWeight.w600),
+                                          fontWeight: FontWeight.w600
                                     ),
                                     const SizedBox(height: 4),
                                     Row(
@@ -147,12 +148,11 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                         const Icon(CupertinoIcons.location,
                                             size: 14, color: Colors.grey),
                                         const SizedBox(width: 4),
-                                        Text(
+                                        CustomText(
                                           pilot["distance"],
-                                          style: const TextStyle(
+
                                               color: Colors.grey,
                                               fontSize: 12),
-                                        ),
                                       ],
                                     ),
                                     SizedBox(height: SizeConfig.size4),
@@ -160,18 +160,19 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                       children: [
                                         const Icon(Icons.star,
                                             color: Colors.orange, size: 14),
-                                        Text(
+                                        CustomText(
                                           " ${pilot["rating"]} (${pilot["reviews"]} reviews)",
-                                          style: const TextStyle(
-                                              color: Colors.grey, fontSize: 12),
+
+                                              color: Colors.grey, fontSize: 12
+
                                         ),
                                       ],
                                     ),
                                     SizedBox(height: SizeConfig.size4),
-                                    Text(
+                                    CustomText(
                                       pilot["orders"],
-                                      style: const TextStyle(
-                                          fontSize: 12, color: Colors.grey),
+                                      // style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey
                                     ),
                                   ],
                                 ),
