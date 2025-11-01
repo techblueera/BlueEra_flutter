@@ -31,13 +31,15 @@ class AddServicesScreenNew extends StatefulWidget {
   final ProductServiceProviderType providerType;
   final ServiceAiGenerateModel? service;
   final EarnWithBlueEraServiceTypes? serviceSubType;
+  final String category;
 
   const AddServicesScreenNew({
     Key? key,
     this.channelId,
     required this.providerType,
     this.service,
-    this.serviceSubType}) : super(key: key);
+    this.serviceSubType,
+    required this.category}) : super(key: key);
 
   @override
   State<AddServicesScreenNew> createState() => _AddServicesScreenState();
@@ -65,6 +67,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
         .addAll(serviceData?.serviceFacilities ?? []);
     addServiceController.imageLocalPaths
         .add(serviceController.selectedImage.value?.path ?? "");
+
+    addServiceController.category = widget.category;
   }
 
   @override
@@ -669,7 +673,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                         onTap: () => addServiceController.createServiceApi(
                             channelId: widget.channelId,
                             providerType: widget.providerType,
-                            serviceSubType: widget.serviceSubType
+                            serviceSubType: widget.serviceSubType,
                         ),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,

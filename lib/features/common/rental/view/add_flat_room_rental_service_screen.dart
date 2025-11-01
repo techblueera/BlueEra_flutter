@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -18,6 +17,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -37,140 +37,12 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
   @override
   void initState() {
     super.initState();
-    ever(controller.predictions, (_) => _updateOverlay());
-    ever(controller.isSearchPlaceLoading, (_) => _updateOverlay());
-    ever(controller.errorMessage, (_) => _updateOverlay());
   }
 
   @override
   void dispose() {
-    controller.debounce?.cancel();
-    controller.scrollController.dispose();
-    _removeOverlay();
     Get.delete<RentalServiceController>();
     super.dispose();
-  }
-
-
-  void _updateOverlay() {
-    if (controller.location.text.isNotEmpty ||
-        controller.isSearchPlaceLoading.value ||
-        controller.predictions.isNotEmpty ||
-        controller.errorMessage.isNotEmpty) {
-      _showOverlay();
-    } else {
-      _removeOverlay();
-    }
-  }
-
-  void _showOverlay() {
-    final renderBox = controller.textFieldKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    final size = renderBox.size;
-    final offset = renderBox.localToGlobal(Offset.zero);
-
-    if (controller.overlayEntry == null) {
-      controller.overlayEntry = OverlayEntry(
-        builder: (context) => Positioned(
-          left: offset.dx,
-          top: offset.dy + size.height + 10,
-          width: size.width,
-          child: CompositedTransformFollower(
-            link: controller.layerLink,
-            showWhenUnlinked: false,
-            offset: Offset(0, size.height + 10),
-            child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                constraints: const BoxConstraints(maxHeight: 300),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: AppColors.white,
-                ),
-               child: Obx(() {
-                  if (controller.isSearchPlaceLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (controller.errorMessage.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16),
-                      child:
-                      CustomText(
-                        controller.errorMessage.value,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.red,
-                      ),
-                    );
-                  } else if (controller.predictions.isEmpty &&
-                      controller.location.text.isNotEmpty) {
-                    return Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CustomText(
-                        "No results found",
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
-                      ),
-                    );
-                  } else if (controller.predictions.isNotEmpty) {
-                    return Scrollbar(
-                      controller: controller.scrollController,
-                      thumbVisibility: true,
-                      trackVisibility: true,
-                      thickness: 4,
-                      radius: const Radius.circular(4),
-                      child: SizedBox(
-                        height: 300,
-                        child: ListView.builder(
-                          controller: controller.scrollController,
-                          itemCount: controller.predictions.length,
-                          padding: EdgeInsets.zero,
-                          itemBuilder: (context, index) {
-                            final prediction = controller.predictions[index];
-                            return ListTile(
-                              leading: const Icon(
-                                Icons.location_on_outlined,
-                                color: AppColors.mainTextColor,
-                              ),
-                              title: CustomText(
-                                prediction.description ?? '',
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.mainTextColor,
-                              ),
-                              onTap: () {
-                                controller.location.text = prediction.description ?? '';
-                                controller.currentAddress.value = controller.location.text;
-                                controller.latitude = prediction.lat ?? 0.0;
-                                controller.longitude = prediction.lng ?? 0.0;
-                                controller.predictions.clear();
-                                _removeOverlay();
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    );
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                }),
-              ),
-            ),
-          ),
-        ),
-      );
-      Overlay.of(context).insert(controller.overlayEntry!);
-    } else {
-      controller.overlayEntry!.markNeedsBuild();
-    }
-  }
-
-  void _removeOverlay() {
-    controller.overlayEntry?.remove();
-    controller.overlayEntry = null;
   }
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
@@ -273,28 +145,16 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     isValidate: true,
                   ),
                   SizedBox(height: SizeConfig.size15),
-                  CompositedTransformTarget(
-                      link: controller.layerLink,
-                      child: CommonTextField(
-                          key: controller.textFieldKey,
-                          autoFocus: false,
-                          pIcon: Icon(Icons.search, color: AppColors.primaryColor),
-                          title: 'Property Location',
-                          hintText: "E.g. Lucknow, Gomti Nagar...",
-                          textEditController: controller.location,
-                          onChange: controller.onSearchChanged,
-                          sIcon: controller.currentAddress.isNotEmpty
-                              ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              controller.location.clear();
-                              controller.currentAddress.value = '';
-                              controller.predictions.clear();
-                              _removeOverlay();
-                            },
-                          ) : null,
-                        isValidate: true,
-                      )
+                  CommonLocationSearchField(
+                    controller: controller.location,
+                    title: "Property Location",
+                    hintText: "E.g. Lucknow, Gomti Nagar...",
+                    onSelected: (lat, lng, address) {
+                      controller.location.text = address;
+                      controller.currentAddress.value = address;
+                      controller.latitude = lat;
+                      controller.longitude = lng;
+                    },
                   ),
                   SizedBox(height: SizeConfig.size15),
                   CommonTextField(
@@ -869,8 +729,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               );
             },
           )
-
-
         ],
       ),
     );

@@ -64,6 +64,8 @@ class AddServiceController extends GetxController {
   RxBool isSpecial = false.obs;
   RxBool isRange = true.obs;
 
+  String? category;
+
   // Generate 24-hour railway times (00:00 → 23:30)
   final List<String> timeSlots = List.generate(
     48,
@@ -286,6 +288,7 @@ class AddServiceController extends GetxController {
         // if (detailsList.isNotEmpty)
         //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
       };
+      if(category!=null) params[ApiKeys.category]= category;
       if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType.label;
       if(channelId!=null) params[ApiKeys.channelId] = channelId;
 

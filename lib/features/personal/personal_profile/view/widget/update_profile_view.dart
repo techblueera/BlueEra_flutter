@@ -259,11 +259,6 @@ bool updateBtnLoading=false;
  bool onChangedEmail=false;
   String? selectedProfession;
   String? tempImgPath;
-  bool validateEmail(String email) {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +476,6 @@ bool updateBtnLoading=false;
                                       color: AppColors.green39,
                                     )
                                         : null,
-
                                   ),
 
                               Padding(
