@@ -22,7 +22,9 @@ class VideoResponse {
       data: json['data'] != null ? VideoFeedData.fromJson(json['data']) : null,
       timestamp: json['timestamp'],
       version: json['version'],
-      pagination: json['pagination'] != null ? Pagination.fromJson(json['pagination']) : null,
+      pagination: json['pagination'] != null
+          ? Pagination.fromJson(json['pagination'])
+          : null,
     );
   }
 
@@ -62,8 +64,11 @@ class VideoFeedData {
     return VideoFeedData(
       success: json['success'],
       feedType: json['feedType'],
-      videos: (json['videos'] as List?)?.map((e) => ShortFeedItem.fromJson(e)).toList(),
-      metadata: json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
+      videos: (json['videos'] as List?)
+          ?.map((e) => ShortFeedItem.fromJson(e))
+          .toList(),
+      metadata:
+          json['metadata'] != null ? Metadata.fromJson(json['metadata']) : null,
     );
   }
 
@@ -93,7 +98,18 @@ class ShortFeedItem {
   final Interactions? interactions;
   final VideoItemMetadata? metadata;
 
+  final int? commentsCount;
+  final int? likesCount;
+  final int? repostCount;
+  final int? viewsCount;
+  final int? sharesCount;
+
   ShortFeedItem({
+    this.commentsCount,
+    this.likesCount,
+    this.repostCount,
+    this.viewsCount,
+    this.sharesCount,
     this.videoId,
     this.position,
     this.score,
@@ -113,23 +129,28 @@ class ShortFeedItem {
       reason: json['reason'],
       video: json['video'] != null ? VideoData.fromJson(json['video']) : null,
       author: json['author'] != null ? Author.fromJson(json['author']) : null,
-      channel: json['channel'] != null ? Channel.fromJson(json['channel']) : null,
-      interactions: json['interactions'] != null ? Interactions.fromJson(json['interactions']) : null,
-      metadata: json['metadata'] != null ? VideoItemMetadata.fromJson(json['metadata']) : null,
+      channel:
+          json['channel'] != null ? Channel.fromJson(json['channel']) : null,
+      interactions: json['interactions'] != null
+          ? Interactions.fromJson(json['interactions'])
+          : null,
+      metadata: json['metadata'] != null
+          ? VideoItemMetadata.fromJson(json['metadata'])
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'videoId': videoId,
-    'position': position,
-    'score': score,
-    'reason': reason,
-    'video': video?.toJson(),
-    'author': author?.toJson(),
-    'channel': channel?.toJson(),
-    'interactions': interactions?.toJson(),
-    'metadata': metadata?.toJson(),
-  };
+        'videoId': videoId,
+        'position': position,
+        'score': score,
+        'reason': reason,
+        'video': video?.toJson(),
+        'author': author?.toJson(),
+        'channel': channel?.toJson(),
+        'interactions': interactions?.toJson(),
+        'metadata': metadata?.toJson(),
+      };
 
   ShortFeedItem copyWith({
     String? videoId,
@@ -141,6 +162,11 @@ class ShortFeedItem {
     Channel? channel,
     Interactions? interactions,
     VideoItemMetadata? metadata,
+    int? commentsCount,
+    int? likesCount,
+    int? repostCount,
+    int? viewsCount,
+    int? sharesCount,
   }) {
     return ShortFeedItem(
       videoId: videoId ?? this.videoId,
@@ -152,6 +178,7 @@ class ShortFeedItem {
       channel: channel ?? this.channel,
       interactions: interactions ?? this.interactions,
       metadata: metadata ?? this.metadata,
+      likesCount: likesCount ?? this.likesCount,
     );
   }
 }
@@ -236,17 +263,22 @@ class VideoData {
       videoUrl: json['videoUrl'],
       duration: json['duration'],
       transcodedUrls: json['transcodedUrls'] != null
-            ? TranscodedUrls.fromJson(json['transcodedUrls'])
-            : null,
+          ? TranscodedUrls.fromJson(json['transcodedUrls'])
+          : null,
       tags: (json['tags'] as List?)?.cast<String>(),
       keywords: (json['keywords'] as List?)?.cast<String>(),
-      categories: (json['categories'] as List?)?.map((e) => Categories.fromJson(e)).toList(),
-      location: json['location'] != null ? Location.fromJson(json['location']) : null,
+      categories: (json['categories'] as List?)
+          ?.map((e) => Categories.fromJson(e))
+          .toList(),
+      location:
+          json['location'] != null ? Location.fromJson(json['location']) : null,
       song: json['song'] != null ? Song.fromJson(json['song']) : null,
       isCollaboration: json['isCollaboration'],
       allowComments: json['allowComments'],
       allowGifting: json['allowGifting'],
-      taggedUsers: (json['taggedUsers'] as List?)?.map((e) => TaggedUser.fromJson(e)).toList(),
+      taggedUsers: (json['taggedUsers'] as List?)
+          ?.map((e) => TaggedUser.fromJson(e))
+          .toList(),
       isMatureContent: json['isMatureContent'],
       relatedVideoLink: json['relatedVideoLink'],
       acceptBookingsOrEnquiries: json['acceptBookingsOrEnquiries'],
@@ -259,37 +291,37 @@ class VideoData {
   }
 
   Map<String, dynamic> toJson() => {
-    '_id': id,
-    'userId': userId,
-    'channelId': channelId,
-    'type': type,
-    'status': status,
-    'title': title,
-    'subheading': subheading,
-    'description': description,
-    'caption': caption,
-    'coverUrl': coverUrl,
-    'videoUrl': videoUrl,
-    'duration': duration,
-    'transcodedUrls': transcodedUrls?.toJson(),
-    'tags': tags,
-    'keywords': keywords,
-    'categories': categories?.map((c) => c.toJson()).toList(),
-    'location': location?.toJson(),
-    'song': song?.toJson(),
-    'isCollaboration': isCollaboration,
-    'allowComments': allowComments,
-    'allowGifting': allowGifting,
-    'taggedUsers': taggedUsers?.map((c) => c.toJson()).toList(),
-    'isMatureContent': isMatureContent,
-    'relatedVideoLink': relatedVideoLink,
-    'acceptBookingsOrEnquiries': acceptBookingsOrEnquiries,
-    'isBrandPromotion': isBrandPromotion,
-    'brandPromotionLink': brandPromotionLink,
-    'stats': stats?.toJson(),
-    'createdAt': createdAt,
-    'updatedAt': updatedAt,
-  };
+        '_id': id,
+        'userId': userId,
+        'channelId': channelId,
+        'type': type,
+        'status': status,
+        'title': title,
+        'subheading': subheading,
+        'description': description,
+        'caption': caption,
+        'coverUrl': coverUrl,
+        'videoUrl': videoUrl,
+        'duration': duration,
+        'transcodedUrls': transcodedUrls?.toJson(),
+        'tags': tags,
+        'keywords': keywords,
+        'categories': categories?.map((c) => c.toJson()).toList(),
+        'location': location?.toJson(),
+        'song': song?.toJson(),
+        'isCollaboration': isCollaboration,
+        'allowComments': allowComments,
+        'allowGifting': allowGifting,
+        'taggedUsers': taggedUsers?.map((c) => c.toJson()).toList(),
+        'isMatureContent': isMatureContent,
+        'relatedVideoLink': relatedVideoLink,
+        'acceptBookingsOrEnquiries': acceptBookingsOrEnquiries,
+        'isBrandPromotion': isBrandPromotion,
+        'brandPromotionLink': brandPromotionLink,
+        'stats': stats?.toJson(),
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+      };
 
   VideoData copyWith({
     String? id,
@@ -348,7 +380,8 @@ class VideoData {
       taggedUsers: taggedUsers ?? this.taggedUsers,
       isMatureContent: isMatureContent ?? this.isMatureContent,
       relatedVideoLink: relatedVideoLink ?? this.relatedVideoLink,
-      acceptBookingsOrEnquiries: acceptBookingsOrEnquiries ?? this.acceptBookingsOrEnquiries,
+      acceptBookingsOrEnquiries:
+          acceptBookingsOrEnquiries ?? this.acceptBookingsOrEnquiries,
       isBrandPromotion: isBrandPromotion ?? this.isBrandPromotion,
       brandPromotionLink: brandPromotionLink ?? this.brandPromotionLink,
       stats: stats ?? this.stats,
@@ -428,7 +461,6 @@ class TranscodedUrls {
   }
 }
 
-
 class Categories {
   final String? id;
   final String? name;
@@ -436,27 +468,27 @@ class Categories {
   final String? description;
 
   const Categories({
-     this.id,
-     this.name,
-     this.slug,
+    this.id,
+    this.name,
+    this.slug,
     this.description,
   });
 
   /* ---------- fromJson ---------- */
   factory Categories.fromJson(Map<String, dynamic> json) => Categories(
-    id: json['_id'] as String?,
-    name: json['name'] as String?,
-    slug: json['slug'] as String?,
-    description: json['description'] as String?,
-  );
+        id: json['_id'] as String?,
+        name: json['name'] as String?,
+        slug: json['slug'] as String?,
+        description: json['description'] as String?,
+      );
 
   /* ---------- toJson ---------- */
   Map<String, dynamic> toJson() => {
-    '_id': id,
-    'name': name,
-    'slug': slug,
-    'description': description,
-  };
+        '_id': id,
+        'name': name,
+        'slug': slug,
+        'description': description,
+      };
 
   /* ---------- copyWith ---------- */
   Categories copyWith({
@@ -484,14 +516,14 @@ class TaggedUser {
   final int? followersCount;
 
   TaggedUser({
-     this.id,
-     this.username,
-     this.accountType,
-     this.profileImage,
-     this.name,
-     this.designation,
-     this.isVerified,
-     this.followersCount,
+    this.id,
+    this.username,
+    this.accountType,
+    this.profileImage,
+    this.name,
+    this.designation,
+    this.isVerified,
+    this.followersCount,
   });
 
   factory TaggedUser.fromJson(Map<String, dynamic> json) {
@@ -582,7 +614,6 @@ class Location {
     );
   }
 }
-
 
 class Song {
   final String? id;
@@ -678,13 +709,13 @@ class Stats {
 }
 
 /// author.dart
-class Author{
-  final String? id;                 // Common id for both business and personal accounts
+class Author {
+  final String? id; // Common id for both business and personal accounts
   final String? accountType;
   final String? username;
-  final String? profileImage;       // Common profile image
-  final String? name;               // Common name
-  final String? designation;        // Common designation
+  final String? profileImage; // Common profile image
+  final String? name; // Common name
+  final String? designation; // Common designation
   final bool? isVerified;
   final int? followersCount;
 
@@ -700,26 +731,26 @@ class Author{
   });
 
   factory Author.fromJson(Map<String, dynamic> json) => Author(
-    id: json['_id'] as String?,
-    accountType: json['account_type'] as String?,
-    username: json['username'] as String?,
-    profileImage: json['profile_image'] as String?,
-    name: json['name'] as String? ?? '',
-    designation: json['designation'] as String?,
-    isVerified: json['isVerified'] as bool?,
-    followersCount: json['followersCount'] as int?,
-  );
+        id: json['_id'] as String?,
+        accountType: json['account_type'] as String?,
+        username: json['username'] as String?,
+        profileImage: json['profile_image'] as String?,
+        name: json['name'] as String? ?? '',
+        designation: json['designation'] as String?,
+        isVerified: json['isVerified'] as bool?,
+        followersCount: json['followersCount'] as int?,
+      );
 
   Map<String, dynamic> toJson() => {
-    '_id': id,
-    'account_type': accountType,
-    'username': username,
-    'profile_image': profileImage,
-    'name': name,
-    'designation': designation,
-    'isVerified': isVerified,
-    'followersCount': followersCount,
-  };
+        '_id': id,
+        'account_type': accountType,
+        'username': username,
+        'profile_image': profileImage,
+        'name': name,
+        'designation': designation,
+        'isVerified': isVerified,
+        'followersCount': followersCount,
+      };
 
   Author copyWith({
     String? id,
@@ -742,7 +773,6 @@ class Author{
       followersCount: followersCount ?? this.followersCount,
     );
   }
-
 }
 
 class Channel {
@@ -798,21 +828,21 @@ class Channel {
   }
 
   Map<String, dynamic> toJson() => {
-    'websites': websites,
-    '_id': id,
-    'name': name,
-    'username': username,
-    'bio': bio,
-    'logoUrl': logoUrl,
-    'coverImageUrl': coverImageUrl,
-    'category': category,
-    'gstCode': gstCode,
-    'isVerified': isVerified,
-    'claimedBy': claimedBy,
-    'createdAt': createdAt,
-    'updatedAt': updatedAt,
-    'isFollowing': isFollowing,
-  };
+        'websites': websites,
+        '_id': id,
+        'name': name,
+        'username': username,
+        'bio': bio,
+        'logoUrl': logoUrl,
+        'coverImageUrl': coverImageUrl,
+        'category': category,
+        'gstCode': gstCode,
+        'isVerified': isVerified,
+        'claimedBy': claimedBy,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+        'isFollowing': isFollowing,
+      };
 
   Channel copyWith({
     List<String>? websites,
@@ -954,7 +984,9 @@ class Metadata {
       algorithm: json['algorithm'],
       lastUpdated: json['lastUpdated'],
       version: json['version'],
-      composition: json['composition'] != null ? Composition.fromJson(json['composition']) : null,
+      composition: json['composition'] != null
+          ? Composition.fromJson(json['composition'])
+          : null,
       page: json['page'],
       limit: json['limit'],
     );
@@ -1046,4 +1078,3 @@ class Pagination {
     );
   }
 }
-

@@ -70,7 +70,6 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-          
                   widget.imageUrls.isEmpty ||
                           (widget.imageUrls.isNotEmpty &&
                               widget.imageUrls[0] == 'N/A')
@@ -78,9 +77,9 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                           child: Center(
                             child: CustomText(
                               'Not able to download',
-                                fontSize: SizeConfig.screenWidth * 0.05,
-                                color: AppColors.red,
-                                fontWeight: FontWeight.w600,
+                              fontSize: SizeConfig.screenWidth * 0.05,
+                              color: AppColors.red,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         )
@@ -90,7 +89,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                             itemCount: widget.imageUrls.length,
                             itemBuilder: (context, index) {
                               final imageUrl = widget.imageUrls[index];
-          
+
                               return InteractiveViewer(
                                 panEnabled: true,
                                 transformationController:
@@ -111,11 +110,9 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                             },
                           ),
                         ),
-          
-          
                 ],
               ),
-          
+
               // Back Button
               Positioned(
                 top: SizeConfig.size25,
@@ -130,8 +127,9 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                   ),
                 ),
               ),
-          
-              if (widget.postData?.type?.toLowerCase()=="image_post"&&widget.postData?.user?.id != userId)
+
+              if (widget.postData?.type?.toLowerCase() == "image_post" &&
+                  widget.postData?.user?.id != userId)
                 Positioned(
                   top: SizeConfig.size25,
                   right: SizeConfig.size15,
@@ -140,7 +138,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                       padding: EdgeInsets.zero,
                       // offset: const Offset(-6, 36),
                       color: AppColors.white,
-          
+
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
@@ -171,12 +169,13 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                             Icons.more_vert,
                             color: AppColors.white,
                           )),
-                      itemBuilder: (context) => popupMenuVisitProfileActionItems(
-                          isShowSaveOption: false),
+                      itemBuilder: (context) =>
+                          popupMenuVisitProfileActionItems(
+                              isShowSaveOption: false),
                     ),
                   ),
                 ),
-          
+
               // Subtitle at bottom
               if (_showSubtitle)
                 Positioned(
@@ -188,12 +187,13 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                     padding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
+                      color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ExpandableText(
                       text: widget.subTitle ?? '',
-                      trimLines: 4,isReadMoreNewLine: true,
+                      trimLines: 4,
+                      isReadMoreNewLine: true,
                       expandMode: ExpandMode.dialog,
                       style: TextStyle(
                         color: AppColors.white,

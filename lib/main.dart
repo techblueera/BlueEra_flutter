@@ -137,7 +137,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initDeepLinks();
+    // _initDeepLinks();
   }
 
   void _initDeepLinks() {

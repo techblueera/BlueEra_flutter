@@ -62,7 +62,7 @@ class VideoFeedController extends GetxController {
 
   @override
   void onClose() {
-    VideoCacheManager().disposeAll();
+    // VideoCacheManager().disposeAll();
     super.onClose();
   }
 }

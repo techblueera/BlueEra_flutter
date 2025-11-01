@@ -31,6 +31,8 @@ class FeedCard extends StatefulWidget {
   final double? bottomPadding;
   final bool? isFromDetailsScreen;
   final bool? isRepost;
+  final VoidCallback? likeFeed;
+
 
   const FeedCard(
       {super.key,
@@ -40,7 +42,9 @@ class FeedCard extends StatefulWidget {
       this.sortBy,
       this.horizontalPadding,
       this.bottomPadding,
+      this.likeFeed,
       this.isFromDetailsScreen = false,
+
       this.isRepost = false});
 
   @override
@@ -128,7 +132,6 @@ class _FeedCardState extends State<FeedCard> {
                 onShareButtonPressed: () {
                   onShareButtonPressed(_post);
                 },
-
               )
             : MessagePostWidget(
                 horizontalPadding: widget.horizontalPadding,
@@ -151,39 +154,17 @@ class _FeedCardState extends State<FeedCard> {
                 ),
                 commentView: () => _onCommentPressed(),
                 buildActions: SizedBox.shrink,
-                likeFeed: () {
+                likeFeed:widget.likeFeed?? () {
                   _onLikeDislikePressed();
                 },
                 onShareButtonPressed: () {
                   onShareButtonPressed(_post);
                 },
-                /*buildActions: (widget.isRepost ?? false)
-              ? SizedBox.shrink
-              : () => PostActionsBar(
-                    post: _post,
-                    isLiked: _post?.isLiked ?? false,
-                    totalLikes: _post?.likesCount ?? 0,
-                    totalComment: _post?.commentsCount ?? 0,
-                    totalRepost: _post?.repostCount ?? 0,
-                    isPostAlreadySaved: _post?.isPostSavedLocal ?? false,
-                    onLikeDislikePressed: () {
-                      _onLikeDislikePressed();
-                    },
-                    onCommentButtonPressed: () {
-                      _onCommentPressed();
-                    },
-                    onSavedUnSavedButtonPressed: () {
-                      _onSavedUnSavedButtonPressed();
-                    },
-                    onShareButtonPressed: () async {
-                      onShareButtonPressed(_post);
-                    },
-                  ),*/
               );
 
       case FeedType.qaPost:
         return QaPostWidget(
-          post: _post,
+          post: _post, horizontalPaddingChannel: widget.horizontalPadding,
           bottomPadding: widget.bottomPadding,
           postId: _post?.id ?? "0",
           poll: Poll(
@@ -208,7 +189,7 @@ class _FeedCardState extends State<FeedCard> {
             // postedAgo: timeAgo(
             //     _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           ),
-          buildActions: () => PostActionsBar(
+          /*  buildActions: () => PostActionsBar(
             post: _post,
             isLiked: _post?.isLiked ?? false,
             totalLikes: _post?.likesCount ?? 0,
@@ -231,8 +212,12 @@ class _FeedCardState extends State<FeedCard> {
                 print("feed card share failed $e");
               }
             },
-          ),
+          ),*/
           postFilteredType: widget.postFilteredType,
+          buildActions: () => SizedBox.shrink(),
+          likeFeed: () {
+            _onLikeDislikePressed();
+          },
         );
 
       case FeedType.shorts:

@@ -58,7 +58,7 @@ class Post {
   final String? natureOfPost;
   final String? referenceLink;
   final int? commentsCount;
-  final int? likesCount;
+   int? likesCount;
   final int? repostCount;
   final int? viewsCount;
   final int? sharesCount;
@@ -72,7 +72,7 @@ class Post {
 
   // final LocationMetadata? locationMetadata;
   final Poll? poll;
-  final bool? isLiked;
+   bool? isLiked;
   final User? user;
   final bool? isPostSavedLocal;
   final Song? song;
@@ -289,6 +289,7 @@ class Post {
       user: user ?? this.user,
       isPostSavedLocal: isPostSavedLocal ?? this.isPostSavedLocal,
       song: song ?? this.song,
+      thumbnail: thumbnail ?? this.thumbnail,
       channel: channel ?? this.channel,
       children_post: children_post ?? this.children_post,
       visibilityDuration: visibilityDuration ?? this.visibilityDuration,

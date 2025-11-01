@@ -278,7 +278,7 @@ abstract class BaseService {
       "map-service/api/stores/$storeId";
   String getPlaceByLat(double lat,double lng) =>
       "map-service/api/places?lat=$lat&lng=$lng&radius=25";
-  final String servicesByLatLng = "map-service/api/services/live";
+  // final String servicesByLatLng = "map-service/api/services/live";
   // final String servicesByLatLng = "map-service/api/services";
   final String foodServicesByLatLng = "map-service/api/services/food-services";
   String getServiceProfileByUserId(String userId) =>
@@ -480,5 +480,6 @@ abstract class BaseService {
   String earnServicesById(String serviceId) => 'earn-service/services/$serviceId';
   String channelFollowingMe = "channel-service/follower/following/me";
   String channel_service_follower = "channel-service/follower/";
+  final String servicesByLatLng = "earn-service/services/all/map";
 
 }

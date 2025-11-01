@@ -100,16 +100,15 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
     return IgnorePointer(
       ignoring: widget.isRepost == true ? true : false,
       child: FeedCardWidget(
-          horizontalPadding: SizeConfig.size10,
-          bottomPadding: widget.bottomPadding,
+          horizontalPadding: 0,
+          bottomPadding: 20,
           childWidget: Column(
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (_post.media?.isNotEmpty ?? false) ...[
-                    if ((_post.media_types?.firstOrNull
-                                ?.startsWith("video/") ??
+                    if ((_post.media_types?.firstOrNull?.startsWith("video/") ??
                             false) ||
                         isVideoUrl(_post.media?.firstOrNull)) ...[
                       // if ((videoData.video?.duration ?? 0) > 0)
@@ -129,11 +128,9 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                 userId: videoData?.video?.userId ?? '',
                                 contentId: videoData?.video?.id ?? '',
                                 userBlockVoidCallback: () async {
-                                  await Get.find<VideoController>()
-                                      .userBlocked(
+                                  await Get.find<VideoController>().userBlocked(
                                     videoType: VideoType.videoFeed,
-                                    otherUserId:
-                                        videoData?.video?.userId ?? '',
+                                    otherUserId: videoData?.video?.userId ?? '',
                                   );
                                 },
                                 reportCallback: (params) {
@@ -146,21 +143,22 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                         ),
                       ),
                     ],
-                    if ((_post.media_types?.firstOrNull
-                                ?.startsWith("image/") ??
+                    if ((_post.media_types?.firstOrNull?.startsWith("image/") ??
                             false) ||
                         isImageUrl(_post.media?.firstOrNull))
                       SocialImageGrid(
                         imageUrls: _post.media ?? [],
-                        subTitle: _post.subTitle ?? "", postData: _post,
+                        subTitle: _post.subTitle ?? "",
+                        postData: _post,
                       ),
                   ],
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       if (_post.title?.isNotEmpty ?? false) ...[
-                        SizedBox(height: SizeConfig.size5,),
+                        SizedBox(
+                          height: SizeConfig.size5,
+                        ),
                         Padding(
                           padding: EdgeInsets.only(
                             left: SizeConfig.size15,
@@ -175,8 +173,9 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                         ),
                       ],
                       if (subTitle.isNotEmpty) ...[
-                        SizedBox(height: SizeConfig.size5,),
-
+                        SizedBox(
+                          height: SizeConfig.size5,
+                        ),
                         Container(
                           child: Padding(
                             padding: EdgeInsets.only(
@@ -185,7 +184,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                             ),
                             child: ExpandableText(
                               text: subTitle.trim(),
-                              trimLines: 5,
+                              trimLines: 3,
                               expandMode: ExpandMode.dialog,
                               style: TextStyle(
                                   color: AppColors.mainTextColor,
@@ -210,247 +209,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                           top: SizeConfig.size5),
                       child: ClickableLinkText(url: _post.referenceLink!),
                     ),
-                  if (!(widget.isShowOnlyDetails ?? true)) ...[
-                    if (widget.post?.is_reposted ?? false) ...[
-                      // if (widget.isRepost ?? false) ...[
-                      ((widget.post?.children_post?.media?.isNotEmpty ??
-                              false))
-                          ? Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size15,
-                                vertical: SizeConfig.size8,
-                              ),
-                              child: InkWell(
-                                onTap: () {
-                                  // Get.to(MessagePostDetailsScreen(
-                                  //   post: _post,
-                                  //   postType: PostType.all
-                                  //   ,
-                                  // ));
-                                  openProfileToClickUser();
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                        color: AppColors.secondaryTextColor
-                                            .withValues(alpha: 0.2)),
-                                    color:
-                                        AppColors.white, // light background
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.only(
-                                            top: SizeConfig.size10,
-                                            left: SizeConfig.size10),
-                                        child: Row(
-                                          children: [
-                                            CachedAvatarWidget(
-                                                imageUrl: widget
-                                                    .post
-                                                    ?.children_post
-                                                    ?.user
-                                                    ?.profileImage,
-                                                size: 30.0,
-                                                borderRadius: 25),
-                                            SizedBox(
-                                              width: SizeConfig.size10,
-                                            ),
-                                            Expanded(
-                                              child: SizedBox(
-                                                width: Get.width,
-                                                child: Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .center,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    Flexible(
-                                                      child: CustomText(
-                                                        widget
-                                                            .post
-                                                            ?.children_post
-                                                            ?.user
-                                                            ?.name,
-                                                        fontSize:
-                                                            SizeConfig.large,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        color: AppColors
-                                                            .secondaryTextColor,
-                                                      ),
-                                                    ),
-                                                    if (widget
-                                                                .post
-                                                                ?.children_post
-                                                                ?.user
-                                                                ?.username !=
-                                                            null &&
-                                                        (widget
-                                                                .post
-                                                                ?.children_post
-                                                                ?.user
-                                                                ?.username
-                                                                ?.isNotEmpty ??
-                                                            false))
-                                                      Expanded(
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                                  top: 0),
-                                                          child: CustomText(
-                                                            " @${widget.post?.children_post?.user?.username}",
-                                                            fontSize:
-                                                                SizeConfig
-                                                                    .medium,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w600,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            color: AppColors
-                                                                .shadowColor,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: SizeConfig.size10,
-                                      ),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: 110,
-                                            height: 110,
-                                            child: Padding(
-                                              padding:
-                                                  EdgeInsets.only(left: 8.0),
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                child: Container(
-                                                  color: Colors.black,
-                                                  child: CachedNetworkImage(
-                                                    imageUrl: widget
-                                                            .post
-                                                            ?.children_post
-                                                            ?.media
-                                                            ?.first ??
-                                                        "",
-                                                    width: 110,
-                                                    height: 110,
-                                                    fit: BoxFit.cover,
-                                                    placeholder:
-                                                        (context, url) =>
-                                                            Container(
-                                                      width: 110,
-                                                      height: 110,
-                                                      color: Colors.grey[300],
-                                                      // child: const Center(child: CircularProgressIndicator(strokeWidth: 1.5)),
-                                                    ),
-                                                    errorWidget: (context,
-                                                            url, error) =>
-                                                        Icon(Icons.person,
-                                                            size: 42 / 2),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
 
-                                          // RIGHT: Text Section
-                                          Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: SizeConfig.size10,
-                                                  right: SizeConfig.size10),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  if ((widget
-                                                          .post
-                                                          ?.children_post
-                                                          ?.title
-                                                          ?.isNotEmpty ??
-                                                      false))
-                                                    CustomText(
-                                                      widget
-                                                              .post
-                                                              ?.children_post
-                                                              ?.title ??
-                                                          "",
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow
-                                                          .ellipsis,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: AppColors
-                                                          .mainTextColor,
-                                                    ),
-                                                  SizedBox(height: 4),
-                                                  CustomText(
-                                                    widget.post?.children_post
-                                                            ?.subTitle ??
-                                                        "",
-                                                    maxLines: 4,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    color: AppColors
-                                                        .secondaryTextColor,
-                                                    fontSize:
-                                                        SizeConfig.size13,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: SizeConfig.size10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )
-                          : InkWell(
-                              onTap: () {
-                                openProfileToClickUser();
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  left: SizeConfig.size15,
-                                ),
-                                child: FeedCard(
-                                    post: widget.post?.children_post,
-                                    index: 0,
-                                    postFilteredType: PostType.otherPosts,
-                                    horizontalPadding: 0,
-                                    isRepost: true),
-                              ),
-                            ),
-                    ],
-                  ],
                   if (widget.isRepost == false) ...[
                     SizedBox(
                       height: SizeConfig.size5,
@@ -520,8 +279,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                     width: SizeConfig.size5,
                                   ),
                                   CustomText(
-                                    formatNumberLikePost(
-                                        _post.likesCount ?? 0),
+                                    formatNumberLikePost(_post.likesCount ?? 0),
                                     color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.size10,
                                   ),
@@ -554,21 +312,18 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                           borderRadius:
                                               BorderRadius.circular(12)),
                                       child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                         child: ConstrainedBox(
                                           constraints:
                                               BoxConstraints(maxWidth: 800),
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
-                                                horizontal:
-                                                    SizeConfig.size15),
+                                                horizontal: SizeConfig.size15),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 SizedBox(
-                                                    height:
-                                                        SizeConfig.size20),
+                                                    height: SizeConfig.size20),
                                                 InkWell(
                                                   onTap: () async {
                                                     Get.put(
@@ -599,8 +354,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                           .shouldRefreshBottomBar
                                                           .value = true;
                                                       Get.until((route) =>
-                                                          route.settings
-                                                              .name ==
+                                                          route.settings.name ==
                                                           RouteHelper
                                                               .getBottomNavigationBarScreenRoute());
                                                     } else {
@@ -623,10 +377,10 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                           imagePath:
                                                               AppIconAssets
                                                                   .repost_new,
-                                                          width: SizeConfig
-                                                              .size30,
-                                                          height: SizeConfig
-                                                              .size30,
+                                                          width:
+                                                              SizeConfig.size30,
+                                                          height:
+                                                              SizeConfig.size30,
                                                         ),
                                                       ),
                                                       Expanded(
@@ -636,12 +390,12 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                                   .start,
                                                           children: [
                                                             Padding(
-                                                              padding: EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      SizeConfig
-                                                                          .size10),
-                                                              child:
-                                                                  CustomText(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
                                                                 "Repost",
                                                                 textAlign:
                                                                     TextAlign
@@ -655,12 +409,12 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                               ),
                                                             ),
                                                             Padding(
-                                                              padding: EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      SizeConfig
-                                                                          .size10),
-                                                              child:
-                                                                  CustomText(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
                                                                 "Share this post with your followers",
                                                                 textAlign:
                                                                     TextAlign
@@ -711,10 +465,10 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                           imagePath:
                                                               AppIconAssets
                                                                   .pencilIcon,
-                                                          width: SizeConfig
-                                                              .size20,
-                                                          height: SizeConfig
-                                                              .size20,
+                                                          width:
+                                                              SizeConfig.size20,
+                                                          height:
+                                                              SizeConfig.size20,
                                                           // imgColor: AppColors.secondaryTextColor,
                                                         ),
                                                       ),
@@ -726,12 +480,12 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                                   .start,
                                                           children: [
                                                             Padding(
-                                                              padding: EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      SizeConfig
-                                                                          .size10),
-                                                              child:
-                                                                  CustomText(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
                                                                 "Add your things",
                                                                 textAlign:
                                                                     TextAlign
@@ -745,12 +499,12 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                               ),
                                                             ),
                                                             Padding(
-                                                              padding: EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      SizeConfig
-                                                                          .size10),
-                                                              child:
-                                                                  CustomText(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
                                                                 "Add a comment ,photo before you share this post",
                                                                 textAlign:
                                                                     TextAlign
@@ -769,8 +523,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                   ),
                                                 ),
                                                 SizedBox(
-                                                    height:
-                                                        SizeConfig.size20),
+                                                    height: SizeConfig.size20),
                                               ],
                                             ),
                                           ),
@@ -801,7 +554,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                     SizedBox(
                       height: SizeConfig.size5,
                     ),
-                    widget.buildActions(),
+                    // widget.buildActions(),
                     // SizedBox(
                     //   height: SizeConfig.size10,
                     // ),

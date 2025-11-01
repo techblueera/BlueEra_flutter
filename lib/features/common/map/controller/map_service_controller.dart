@@ -93,11 +93,16 @@ class MapServiceController extends GetxController{
   }) async {
 
     final Map<String, dynamic> queryParams = {
+      ApiKeys.type:"service" ,
+      ApiKeys.subType: "selfWork",
+      ApiKeys.page: 1,
+      ApiKeys.limit: 20,
+    };/*   final Map<String, dynamic> queryParams = {
       ApiKeys.lat: lat.toStringAsFixed(4),
       ApiKeys.lng: lng.toStringAsFixed(4),
       ApiKeys.radius: 1000,
-    };
-
+    };*/
+    // all=true&type=service&subType=selfWork&page=1&limit=10
     ResponseModel response = await MapServiceRepo().fetchAllHomeServices(queryParams: queryParams);
 
     try {

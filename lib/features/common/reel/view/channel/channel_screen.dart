@@ -156,32 +156,32 @@ class _ChannelScreenState extends State<ChannelScreen>
     if (isAtBottom) {
       // Trigger pagination based on current tab
       switch (_tabController.index) {
+        // case 0:
+        //   // Trigger pagination for ShortsChannelSection
+        //   final shortsController = Get.find<ShortsController>();
+        //   final shorts = _getShortsType();
+        //   if (shortsController.isHasMoreData(shorts) &&
+        //       shortsController.isMoreDataLoading(shorts).isFalse) {
+        //     shortsController.isMoreDataLoading(shorts).value = true;
+        //     shortsController.getShortsByType(
+        //         shorts, widget.channelId, widget.authorId,
+        //         postVia: PostVia.channel);
+        //   }
+        //   break;
+        // case 1:
+        //   // Trigger pagination for VideoChannelSection
+        //   final videosController = Get.find<VideoController>();
+        //   final videos = _getVideosType();
+        //   if (videosController.isMoreDataAvailable &&
+        //       videosController.isLoading.isFalse) {
+        //     videosController.getVideosByType(
+        //       videos,
+        //       widget.channelId,
+        //       widget.authorId,
+        //     );
+        //   }
+        //   break;
         case 0:
-          // Trigger pagination for ShortsChannelSection
-          final shortsController = Get.find<ShortsController>();
-          final shorts = _getShortsType();
-          if (shortsController.isHasMoreData(shorts) &&
-              shortsController.isMoreDataLoading(shorts).isFalse) {
-            shortsController.isMoreDataLoading(shorts).value = true;
-            shortsController.getShortsByType(
-                shorts, widget.channelId, widget.authorId,
-                postVia: PostVia.channel);
-          }
-          break;
-        case 1:
-          // Trigger pagination for VideoChannelSection
-          final videosController = Get.find<VideoController>();
-          final videos = _getVideosType();
-          if (videosController.isMoreDataAvailable &&
-              videosController.isLoading.isFalse) {
-            videosController.getVideosByType(
-              videos,
-              widget.channelId,
-              widget.authorId,
-            );
-          }
-          break;
-        case 2:
           // Trigger pagination for FeedScreen
           final feedController = Get.find<FeedController>();
           final postType = _getPostType();
@@ -737,8 +737,9 @@ class _ChannelScreenState extends State<ChannelScreen>
         return FeedScreen(
           key: ValueKey(
               isOwnChannel ? 'own_channel_posts' : 'visiting_channel_posts'),
-          id: widget.authorId,
-          postFilterType: _getPostType(),
+          id: widget.authorId, horizontalPaddingChannel: 20,
+          postFilterType: PostType.latest,
+          // postFilterType: _getPostType(),
           isInParentScroll: true,
         );
       // case ChannelTab.product:

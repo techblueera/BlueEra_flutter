@@ -24,6 +24,8 @@ class FeedScreen extends StatefulWidget {
   final String? query;
   final Function(bool)? onHeaderVisibilityChanged;
   final double? headerHeight;
+  final double? bottomPaddingChannel;
+  final double? horizontalPaddingChannel;
   final bool isInParentScroll; // Flag to indicate if used in parent scroll view
 
   const FeedScreen({
@@ -33,6 +35,8 @@ class FeedScreen extends StatefulWidget {
     this.query,
     this.onHeaderVisibilityChanged,
     this.headerHeight,
+    this.bottomPaddingChannel,
+    this.horizontalPaddingChannel,
     this.isInParentScroll = false, // Default to false for individual page
   });
 
@@ -153,7 +157,6 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Widget _buildListItem(int index, List<Post> posts) {
-
     int postIndex = index;
     // Loader at the end
     if (postIndex >= posts.length) {
@@ -177,6 +180,8 @@ class _FeedScreenState extends State<FeedScreen> {
         post: posts[postIndex],
         index: postIndex,
         postFilteredType: widget.postFilterType,
+        bottomPadding: widget.bottomPaddingChannel,
+        horizontalPadding: widget.horizontalPaddingChannel,
       ),
     );
   }
@@ -199,8 +204,6 @@ class _FeedScreenState extends State<FeedScreen> {
               ),
             );
           }
-
-
 
           // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
           final content = RefreshIndicator(

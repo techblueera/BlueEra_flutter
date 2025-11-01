@@ -38,8 +38,8 @@ class PostDeatilPage extends StatelessWidget {
                     ? FeedCard(
                         index: 0,
                         post: controller.post,
-                        postFilteredType: PostType
-                            .otherPosts, //controller.postByIdResponseModalClass.data.type,
+                        postFilteredType: PostType.otherPosts,
+                        likeFeed: controller.onLikeDislikePressed,
                       )
                     : Center(
                         child: CircularProgressIndicator(),

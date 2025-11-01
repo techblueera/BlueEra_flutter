@@ -225,20 +225,27 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard> {
         onTapOption: widget.onTapOption,
         onTapCard: () {
           Get.to(() => VideoFeedScreenNew(
-              videoData: VideoPost(
-                  id: '${widget.videoItem.video?.id}',
-                  title: '${widget.videoItem.video?.title}',
-                  subTitle: '${widget.videoItem.video?.description}',
-                  videoUrl: '${widget.videoItem.video?.videoUrl}',
-                  thumbnail: '',
-                  aspectRatio: '',
-                  authorName: '${widget.videoItem.author?.name}',
-                  authorUsername: '${widget.videoItem.author?.username}',
-                  avatar: '${widget.videoItem.author?.profileImage}',
-                  designation: '${widget.videoItem.author?.designation}',
-                  business_category: '',
-                  account_type: '${widget.videoItem.author?.accountType}')));
-
+                  videoData: VideoPost(
+                id: '${widget.videoItem.video?.id}',
+                title: '${widget.videoItem.video?.title}',
+                subTitle: '${widget.videoItem.video?.description}',
+                videoUrl: '${widget.videoItem.video?.videoUrl}',
+                thumbnail: '',
+                aspectRatio: '',
+                authorName: '${widget.videoItem.author?.name}',
+                authorUsername: '${widget.videoItem.author?.username}',
+                avatar: '${widget.videoItem.author?.profileImage}',
+                designation: '${widget.videoItem.author?.designation}',
+                business_category: '',
+                account_type: '${widget.videoItem.author?.accountType}',
+                createdAt: widget.videoItem.video?.createdAt ?? "",
+                comments_count:widget.videoItem.commentsCount ?? 0,
+                repost_count: widget.videoItem.repostCount ?? 0,
+                type: widget.videoItem.video?.type ?? "",
+                views_count: widget.videoItem.viewsCount ?? 0,
+                isLiked: widget.videoItem.interactions?.isLiked ?? false,
+                likes_count: widget.videoItem.likesCount ?? 0,
+              )));
         },
         isShowUser: false,
       ),

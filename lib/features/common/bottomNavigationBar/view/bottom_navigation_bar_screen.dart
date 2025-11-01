@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
+import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
@@ -205,6 +206,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
+      // floatingActionButton: FloatingActionButton(onPressed: (){
+      //   Get.to(()=>PostDeatilPage(),
+      //       arguments: {"postId": "69059707a091ab27258f1e47"});
+      //       // arguments: {"postId": (uri.toString().split("/").last)});
+      // }),
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {

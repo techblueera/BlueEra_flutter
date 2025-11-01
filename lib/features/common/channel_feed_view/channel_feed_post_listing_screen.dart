@@ -15,8 +15,6 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
-
 class ChannelFeedPostListingScreen extends StatefulWidget {
   ChannelFeedPostListingScreen({super.key, required this.channelData});
 
@@ -174,12 +172,13 @@ class _ChannelFeedPostListingScreenState
             height: SizeConfig.screenHeight,
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.only(
+                top: 8.0, left: 20, right: 20, bottom: 20),
             child: FeedScreen(
                 key: ValueKey(
                     'feedScreen_user_posts_${widget.channelData?.ownership?.claimedBy}'),
                 postFilterType: PostType.otherChannelPosts,
-                isInParentScroll: false,
+                isInParentScroll: false,bottomPaddingChannel: 20,
                 id: widget.channelData?.ownership?.claimedBy),
           ),
         ],
