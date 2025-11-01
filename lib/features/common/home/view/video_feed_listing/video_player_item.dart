@@ -1,11 +1,26 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
+import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
+import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
+import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
@@ -19,7 +34,6 @@ import 'package:visibility_detector/visibility_detector.dart';
 class VideoPlayerItem extends StatefulWidget {
   final VideoPost video;
   final bool isActive;
-
   const VideoPlayerItem({
     Key? key,
     required this.video,
@@ -114,7 +128,9 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     final sec = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$min:$sec";
   }
-
+  final feedController = Get.isRegistered<FeedController>()
+      ? Get.find<FeedController>()
+      : Get.put(FeedController());
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -232,16 +248,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                           ),
                         ],
                       ),
-                    ), /*ChannelProfileHeader(
-                        imageUrl: "${widget.video.avatar}",
-                        title: '${widget.video.authorName}',
-                        userName: '${widget.video.authorUsername}',
-                        subtitle: "${widget.video.designation}",
-                        avatarSize: 35,
-                        borderColor: AppColors.shadowColor,
-                        titleColor: Colors.white,subTitleColor: Colors.white,
-                        userNameColor: Colors.white,
-                        postedAgo: "")*/
+                    ),
                   ),
                 ],
               ),
@@ -350,16 +357,25 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         // 📄 Title or Caption (bottom left)
                         if (widget.video.title.isNotEmpty)
                           SafeArea(
-                            child: ExpandableText(
-                              text: widget.video.title,
-                              trimLines: 2,
-                              isReadMoreNewLine: true,
-                              expandMode: ExpandMode.dialog,
-                              style: TextStyle(
-                                color: AppColors.white,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: AppConstants.OpenSans,
+                            child: Container(
+                              margin: EdgeInsets.only(top: 5),
+                              padding:
+                              const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ExpandableText(
+                                text: widget.video.title,
+                                trimLines: 2,
+                                isReadMoreNewLine: true,
+                                expandMode: ExpandMode.dialog,
+                                style: TextStyle(
+                                  color: AppColors.white,
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppConstants.OpenSans,
+                                ),
                               ),
                             ),
                           ),
@@ -372,8 +388,369 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 ],
               ),
             ),
+            /*Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size15,
+                  vertical: SizeConfig.size5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ViewFeedActionWidget(
+                      iconPath: AppIconAssets.clock_new,
+                      data: timeAgo(DateTime.parse(widget.video.createdAt))),
+                  ViewFeedActionWidget(
+                    iconPath: AppIconAssets.eye_new,
+                    data: formatNumberLikePost(widget.video.views_count),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (isGuestUser()) {
+                        createProfileScreen();
+                      } else {
+                        // widget.commentView();
+                      }
+                    },
+                    child: ViewFeedActionWidget(
+                        iconPath: AppIconAssets.comment_new,
+                        data: formatNumberLikePost(
+                            widget.video.comments_count)),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (isGuestUser()) {
+                        createProfileScreen();
+                      } else {
+                        _onLikeDislikePressed();
+                        // widget.likeFeed();
+                      }
+
+                    },
+                    child: Padding(
+                      padding:
+                      EdgeInsets.only(right: SizeConfig.size10),
+                      child: Row(
+                        children: [
+                          LocalAssets(
+                            imagePath: AppIconAssets.like_new,
+                            width: SizeConfig.size18,
+                            height: SizeConfig.size18,
+                            imgColor: (widget.video.isLiked ?? false)
+                                ? AppColors.primaryColor
+                                : AppColors.secondaryTextColor,
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size5,
+                          ),
+                          CustomText(
+                            formatNumberLikePost(
+                                widget.video.likes_count ?? 0),
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.size10,
+                          ),
+                        ],
+                      ),
+                    )
+                    ,
+                  ),
+                  if (widget.video.type.toLowerCase() ==
+                      "message_post")
+                    InkWell(
+                      onTap: () {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+
+                          return;
+                        }
+                        showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (context) {
+                            return Dialog(
+                              insetPadding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size20),
+                              backgroundColor: AppColors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(12)),
+                              child: ClipRRect(
+                                borderRadius:
+                                BorderRadius.circular(12),
+                                child: ConstrainedBox(
+                                  constraints:
+                                  BoxConstraints(maxWidth: 800),
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                        SizeConfig.size15),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                            height:
+                                            SizeConfig.size20),
+                                        InkWell(
+                                          onTap: () async {
+                                            Get.put(
+                                                MessagePostController());
+
+                                            ///REPOST MESSAGE AND POLL POST...
+                                            Get.back();
+                                            ResponseModel
+                                            responseModel =
+                                            await PostRepo()
+                                                .addRePostNewRepo(
+                                              reqDataData: {
+                                                ApiKeys.type:
+                                                AppConstants
+                                                    .MESSAGE_POST,
+                                                ApiKeys.repostId:
+                                                widget.video?.id ??
+                                                    ""
+                                              },
+                                            );
+                                            if (responseModel
+                                                .isSuccess) {
+                                              commonSnackBar(
+                                                  message:
+                                                  "Reposted successfully");
+                                              Get.find<
+                                                  NavigationHelperController>()
+                                                  .shouldRefreshBottomBar
+                                                  .value = true;
+                                              Get.until((route) =>
+                                              route.settings
+                                                  .name ==
+                                                  RouteHelper
+                                                      .getBottomNavigationBarScreenRoute());
+                                            } else {
+                                              commonSnackBar(
+                                                  message:
+                                                  "You have already reposted this post");
+                                            }
+                                          },
+                                          child: Row(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                            children: [
+                                              Container(
+                                                width:
+                                                SizeConfig.size30,
+                                                height:
+                                                SizeConfig.size30,
+                                                child: LocalAssets(
+                                                  imagePath:
+                                                  AppIconAssets
+                                                      .repost_new,
+                                                  width: SizeConfig
+                                                      .size30,
+                                                  height: SizeConfig
+                                                      .size30,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment
+                                                      .start,
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.symmetric(
+                                                          horizontal:
+                                                          SizeConfig
+                                                              .size10),
+                                                      child:
+                                                      CustomText(
+                                                        "Repost",
+                                                        textAlign:
+                                                        TextAlign
+                                                            .left,
+                                                        fontWeight:
+                                                        FontWeight
+                                                            .bold,
+                                                        fontSize:
+                                                        SizeConfig
+                                                            .size16,
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: EdgeInsets.symmetric(
+                                                          horizontal:
+                                                          SizeConfig
+                                                              .size10),
+                                                      child:
+                                                      CustomText(
+                                                        "Share this post with your followers",
+                                                        textAlign:
+                                                        TextAlign
+                                                            .left,
+                                                        color: AppColors
+                                                            .secondaryTextColor,
+                                                        fontSize:
+                                                        SizeConfig
+                                                            .size13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                              top: SizeConfig.size10,
+                                              bottom:
+                                              SizeConfig.size10),
+                                          child: Divider(
+                                            color: AppColors
+                                                .secondaryTextColor,
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            Get.back();
+                                            // Get.to(
+                                            //     CreateMessagePostScreenRepost(
+                                            //       isEdit: false,
+                                            //       post: widget.video,
+                                            //     ));
+                                          },
+                                          child: Row(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                            children: [
+                                              Container(
+                                                width:
+                                                SizeConfig.size30,
+                                                height:
+                                                SizeConfig.size30,
+                                                child: LocalAssets(
+                                                  imagePath:
+                                                  AppIconAssets
+                                                      .pencilIcon,
+                                                  width: SizeConfig
+                                                      .size20,
+                                                  height: SizeConfig
+                                                      .size20,
+                                                  // imgColor: AppColors.secondaryTextColor,
+                                                ),
+                                              ),
+                                              Flexible(
+                                                flex: 2,
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment
+                                                      .start,
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.symmetric(
+                                                          horizontal:
+                                                          SizeConfig
+                                                              .size10),
+                                                      child:
+                                                      CustomText(
+                                                        "Add your things",
+                                                        textAlign:
+                                                        TextAlign
+                                                            .left,
+                                                        fontWeight:
+                                                        FontWeight
+                                                            .bold,
+                                                        fontSize:
+                                                        SizeConfig
+                                                            .size16,
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: EdgeInsets.symmetric(
+                                                          horizontal:
+                                                          SizeConfig
+                                                              .size10),
+                                                      child:
+                                                      CustomText(
+                                                        "Add a comment ,photo before you share this post",
+                                                        textAlign:
+                                                        TextAlign
+                                                            .left,
+                                                        color: AppColors
+                                                            .secondaryTextColor,
+                                                        fontSize:
+                                                        SizeConfig
+                                                            .size13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(
+                                            height:
+                                            SizeConfig.size20),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: ViewFeedActionWidget(
+                          iconPath: AppIconAssets.repost_new,
+                          data: formatNumberLikePost(
+                              widget.video.repost_count)),
+                    ),
+                  // Padding(
+                  //   padding: EdgeInsets.only(left: SizeConfig.size5),
+                  //   child: InkWell(
+                  //     onTap: () => widget.onShareButtonPressed(),
+                  //     child: LocalAssets(
+                  //       imagePath: AppIconAssets.share_bold,
+                  //       imgColor: AppColors.secondaryTextColor,
+                  //     ),
+                  //   ),
+                  // ),
+                ],
+              ),
+            ),*/
+
           ],
         ),
+      ),
+    );
+  }
+
+
+  void _onLikeDislikePressed() {
+    feedController.postLikeDislike(
+        postId:  widget.video.id ?? '0',
+        type: PostType.otherChannelPosts,
+        sortBy: SortBy.Latest);
+  }
+
+  void _onCommentPressed() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.8,
+        child: CommentBottomSheet(
+            id: widget.video.id ?? '0',
+            totalComments: widget.video.comments_count ?? 0,
+            commentType: CommentType.post,
+            onNewCommentCount: (int newCommentCount) {
+              feedController.updateCommentCount(
+                  postId: widget.video.id ,
+                  type:PostType.otherChannelPosts,
+                  sortBy: SortBy.Latest,
+                  newCommentCount: newCommentCount);
+            }),
       ),
     );
   }

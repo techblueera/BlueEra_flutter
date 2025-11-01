@@ -717,8 +717,6 @@ class FeedController extends GetxController {
 
     final post = list[index];
     // 🔹 Calculate new state
-    // https://api.blueera.ai/api/post-service/post/others-user-posts?page=1&limit=1&filter=latest&authorId=68b5aac66035315bde08fe93
-    // https://api.blueera.ai/api/post-service/post/others-user-posts?page=1&limit=40&filter=latest&refresh=true&authorId=68b5aac66035315bde08fe93
 
     final newIsLiked = !(post.isLiked ?? false);
     final newLikesCount = (post.likesCount ?? 0) + (newIsLiked ? 1 : -1);

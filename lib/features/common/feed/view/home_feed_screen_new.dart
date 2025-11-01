@@ -213,8 +213,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               return isIndividual()
                   ? _buildEarnWithBlueEraWidget()
                   : (inventoryController.allProducts.isNotEmpty)
-                  ? _buildProductCard()
-                  : SizedBox.shrink();
+                      ? _buildProductCard()
+                      : SizedBox.shrink();
             }
             int index = indexFeed - 1;
             final block = blocks[index];
@@ -617,7 +617,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     );
   }
 
-
   Widget _buildEarnWithBlueEraWidget() {
     return Container(
       margin: EdgeInsets.only(
@@ -633,8 +632,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             left: SizeConfig.size8,
             right: SizeConfig.size8,
             top: SizeConfig.size10,
-            bottom: SizeConfig.size10
-        ),
+            bottom: SizeConfig.size10),
         child: Column(children: [
           Row(
             children: [
@@ -652,12 +650,13 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               width: SizeConfig.size160,
               title: 'Let\'s Start Earning Now',
               onTap: () {
-                final ViewPersonalDetailsController viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>() ?
-                           Get.find<ViewPersonalDetailsController>() : Get.put(ViewPersonalDetailsController());
+                final ViewPersonalDetailsController
+                    viewPersonalDetailsController =
+                    Get.isRegistered<ViewPersonalDetailsController>()
+                        ? Get.find<ViewPersonalDetailsController>()
+                        : Get.put(ViewPersonalDetailsController());
                 if (viewPersonalDetailsController
-                        .personalProfileDetails
-                        .value
-                        .isProfileCreated ==
+                        .personalProfileDetails.value.isProfileCreated ==
                     false) {
                   Navigator.push(
                       context,
@@ -708,6 +707,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 ShortFeedItem getVideoData(Post video) {
   return ShortFeedItem(
       videoId: video.id,
+      likesCount: video.likesCount,
+      commentsCount: video.commentsCount,
+      repostCount: video.repostCount,
+      sharesCount: video.sharesCount,
+      viewsCount: video.viewsCount,
       author: Author(
         name: video.user?.name,
         username: video.user?.username,

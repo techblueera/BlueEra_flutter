@@ -154,6 +154,20 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                                 _selectedSubCategory != null
                                     ? professionMap[_selectedSubCategory] ?? []
                                     : [];
+                            return GridView.builder(
+                              controller: scrollController,
+                              itemCount: serviceData.length,
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.only(top: 12, bottom: 24),
+                              physics: const BouncingScrollPhysics(),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.80, // 🔹 slightly increased to give more height
+                                crossAxisSpacing: 8.0,
+                                mainAxisSpacing: 8.0,
+                              ),
+                              itemBuilder: (context, index) => _buildServiceCard(serviceData[index]),
+                            );
 
                             return GridView.builder(
                               controller: scrollController,
@@ -164,7 +178,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.67,
+                                childAspectRatio: 0.70,
                                 // childAspectRatio: 0.712,
                                 crossAxisSpacing: 6.0,
                                 mainAxisSpacing: 6.0,
@@ -199,156 +213,140 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
     );
   }
 
-  Widget _buildServiceCard(ServiceData serviceData) {
-    return InkWell(
-      onTap: () {
-        if (userId == serviceData.id) {
-          Get.to(() => PersonalProfileSetupNewScreen());
-        } else {
-          Get.to(() => NewVisitProfileScreen(
-                authorId: serviceData.id ?? '',
-                screenFromName: AppConstants.feedScreen,
-              ));
-        }
-        // showModalBottomSheet(
-        //   context: context,
-        //   isScrollControlled: true,
-        //   backgroundColor: Colors.transparent, // keep map visible under radius
-        //   builder: (_) =>
-        //       CommonDraggableBottomSheet(
-        //         builder: (scrollController) =>
-        //             OtherProfileDetailsBottomSheet(
-        //               scrollController: scrollController,
-        //               isUserProfile: true,
-        //               isPlaceService: false,
-        //               placeId: ''
-        //             ),
-        //       ),
-        // );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: AppColors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  child: CustomImageSlideshow(
-                    isLoading: false,
-                    width: double.infinity,
-                    height: 210,
-                    imagePaths: [
-                      serviceData.serviceMedia?.photos?.firstOrNull ?? ""
+    Widget _buildServiceCard(ServiceData serviceData) {
+      return InkWell(
+        onTap: () {
+          if (userId == serviceData.id) {
+            Get.to(() => PersonalProfileSetupNewScreen());
+          } else {
+            Get.to(() => NewVisitProfileScreen(
+              authorId: serviceData.id ?? '',
+              screenFromName: AppConstants.feedScreen,
+            ));
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+
+            children: [
+              /// ✅ Make image flexible — not fixed 190
+              AspectRatio(
+                aspectRatio: 1.4, // controls image height dynamically
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Stack(
+                    children: [
+                      CustomImageSlideshow(
+                        isLoading: false,
+                        width: double.infinity,
+                        height: double.infinity,
+                        imagePaths: [
+                          serviceData.serviceMedia?.photos?.firstOrNull ?? "",
+                        ],
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      if (serviceData.priceData?.priceRange?.min != null)
+                        Positioned(
+                          right: 6,
+                          bottom: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.blackD4,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CustomText(
+                              (serviceData.priceData?.priceRange?.min ?? 0) > 1000000
+                                  ? "INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
+                                  : 'INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
+                              fontSize: SizeConfig.extraSmall,
+                              color: AppColors.white,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
                     ],
-                    borderRadius: BorderRadius.zero,
                   ),
                 ),
-                if (serviceData.priceData?.priceRange?.min != null)
-                  Positioned(
-                    right: 4,
-                    bottom: 5,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: AppColors.blackD4,
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: CustomText(
-                                  (serviceData.priceData?.priceRange?.min ?? 0) >
-                                  1000000
-                              ? "INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
-                              : 'INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
-                          fontSize: SizeConfig.extraSmall,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  )
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: SizeConfig.size10, horizontal: SizeConfig.size8),
-              child: ProfileSummaryCard(
-                name: serviceData.name ?? '',
-                imageUrl: serviceData.profileImage ?? '',
-                rating: (serviceData.rating ?? 0).toDouble(),
-                reviews: serviceData.reviewCount ?? 0,
-                distance: "${serviceData.distance ?? 0} km",
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CommonIconContainerButton(
-                      onTap: () async {
-                        final chatViewController =
-                            Get.find<ChatViewController>();
-                        Map<String, dynamic> detas = {
-                          ApiKeys.user_id: serviceData.id
-                        };
-                        chatViewController.newVisitContactApiResponse?.value;
-                        await chatViewController.checkChatConnection(detas);
-                        chatViewController.openAnyOneChatFunction(
-                          isWithProductSend: false,
-                          profileImage: serviceData.profileImage,
-                          otherUserId: (chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.conversationId ??
-                                      '') ==
-                                  ""
-                              ? chatViewController.newVisitContactApiResponse
-                                      ?.value?.data?.otherUserId ??
-                                  ''
-                              : null,
-                          businessId: "",
-                          type: "personal",
-                          isInitialMessage: (chatViewController
-                                          .newVisitContactApiResponse
-                                          ?.value
-                                          ?.data
-                                          ?.conversationId ??
-                                      '') ==
-                                  ""
-                              ? true
-                              : false,
-                          userId: serviceData.id,
-                          conversationId: (chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.conversationId ??
-                              ''),
-                          contactName: serviceData.name,
-                          contactNo: "",
-                        );
-                      },
-                      icon: LocalAssets(
-                          imagePath: AppIconAssets.quillChatIcon,
-                          imgColor: AppColors.white),
-                      label: "Chat",
-                      backgroundColor: AppColors.primaryColor,
-                      height: SizeConfig.size30,
-                      fontSize: SizeConfig.size12,
-                      textColor: AppColors.white,
-                    ),
+
+              /// ✅ Rest of info area flexible
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 2,),
+                      ProfileSummaryCard(
+                        name: serviceData.name ?? '',
+                        imageUrl: serviceData.profileImage ?? '',
+                        rating: (serviceData.rating ?? 0).toDouble(),
+                        reviews: serviceData.reviewCount ?? 0,
+                        distance: "${serviceData.distance ?? 0} km",
+                      ),
+                      SizedBox(height: 2,),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CommonIconContainerButton(
+                              onTap: () async {
+                                final chatViewController = Get.put(ChatViewController());
+                                await chatViewController.checkChatConnection({ApiKeys.user_id: serviceData.id});
+
+                                final chatData = chatViewController.newVisitContactApiResponse?.value?.data;
+                                final hasExisting = (chatData?.conversationId?.isNotEmpty ?? false);
+
+                                chatViewController.openAnyOneChatFunction(
+                                  isWithProductSend: false,
+                                  profileImage: serviceData.profileImage ?? '',
+                                  otherUserId: hasExisting ? null : chatData?.otherUserId ?? '',
+                                  businessId: "",
+                                  type: "personal",
+                                  isInitialMessage: !hasExisting,
+                                  userId: serviceData.id ?? '',
+                                  conversationId: chatData?.conversationId ?? '',
+                                  contactName: serviceData.name ?? '',
+                                  contactNo: "",
+                                );
+                              },
+                              icon: LocalAssets(
+                                imagePath: AppIconAssets.quillChatIcon,
+                                imgColor: AppColors.white,
+                              ),
+                              label: "Chat",
+                              backgroundColor: AppColors.primaryColor,
+                              height: 28,
+                              fontSize: SizeConfig.size12,
+                              textColor: AppColors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
+
 }
