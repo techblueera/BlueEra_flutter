@@ -110,6 +110,16 @@ class BusinessProfileRepo extends BaseService {
     );
     return response;
   }
+  Future<ResponseModel> getNearByRiders(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getNearByRiderApi,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
   Future<ResponseModel> updateMsgOrderStatus(Map<String,dynamic> params) async {
     final response = await ApiBaseHelper().putHTTP(
       "$updateMessageOrderStatus",

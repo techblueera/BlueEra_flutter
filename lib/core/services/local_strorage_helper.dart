@@ -275,6 +275,7 @@ class LocalStorageHelper {
 
     // try {
       final List<dynamic> jsonList = jsonDecode(jsonString);
+
       return jsonList.map((item) => Messages.fromJson(item)).toList();
     // } catch (e) {
     //   print("Error decoding messages: $e");
