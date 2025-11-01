@@ -225,11 +225,11 @@ class LocationPermissionHandler {
 
   /// Open app settings for manual permission grant
   static Future<void> openAppSettings() async {
-    try {
-      await openAppSettings();
-    } catch (e) {
-      log("Error opening app settings: $e");
-    }
+    // try {
+    //   await openAppSettings();
+    // } catch (e) {
+    //   log("Error opening app settings: $e");
+    // }
   }
 
   /// Open device location settings

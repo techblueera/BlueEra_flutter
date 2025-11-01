@@ -46,13 +46,13 @@ class PermissionService {
       //   ));
       // }
 
-      final notificationGranted = await _checkNotificationPermission();
-      if (!notificationGranted) {
-        missingPermissions.add(PermissionItem(
-          icon: Icons.notifications,
-          label: 'Notifications',
-        ));
-      }
+      // final notificationGranted = await _checkNotificationPermission();
+      // if (!notificationGranted) {
+      //   missingPermissions.add(PermissionItem(
+      //     icon: Icons.notifications,
+      //     label: 'Notifications',
+      //   ));
+      // }
 
       return (missingPermissions.isEmpty, missingPermissions);
     } catch (e) {
@@ -80,12 +80,12 @@ class PermissionService {
         }
       }
 
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        await Geolocator.openLocationSettings();
-        serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) return false;
-      }
+      // bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      // if (!serviceEnabled) {
+      //   await Geolocator.openLocationSettings();
+      //   serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      //   if (!serviceEnabled) return false;
+      // }
 
       await Geolocator.getCurrentPosition(
         locationSettings:
@@ -181,7 +181,7 @@ class PermissionService {
   // }
 
   // ---------------- NOTIFICATION ----------------
-  static Future<bool> _checkNotificationPermission() async {
+  static Future<bool> _checkNotificationPermission_() async {
     try {
       // Request notification permission via Firebase Messaging
       NotificationSettings settings = await FirebaseMessaging.instance
@@ -205,6 +205,39 @@ class PermissionService {
       return false;
     }
   }
+
+  static Future<bool> _checkNotificationPermission() async {
+    try {
+      // Check existing permission without triggering dialog
+      NotificationSettings settings = await FirebaseMessaging.instance.getNotificationSettings();
+
+      // Already granted
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        return true;
+      }
+
+      // // Not yet determined — safe to request permission
+      // if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+      //   NotificationSettings newSettings = await FirebaseMessaging.instance.requestPermission(
+      //     alert: true,
+      //     badge: true,
+      //     sound: true,
+      //   );
+      //
+      //   return newSettings.authorizationStatus == AuthorizationStatus.authorized ||
+      //       newSettings.authorizationStatus == AuthorizationStatus.provisional;
+      // }
+
+      // If denied or restricted, do NOT call requestPermission again
+      // (this avoids triggering the "Open Settings" system dialog)
+      return false;
+    } catch (e) {
+      print("Notification permission error: $e");
+      return false;
+    }
+  }
+
 }
 
 /// Model to represent a permission visually

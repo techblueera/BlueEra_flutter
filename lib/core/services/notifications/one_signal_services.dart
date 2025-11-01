@@ -16,25 +16,25 @@ class OnesignalService {
     // OneSignal.initialize("6cc2a225-b303-4818-9d30-4f6113708187");
     OneSignal.initialize("0f8a3218-2a6a-4811-b352-cb1c8c2b58d7");
     // Request notification permission
-    final bool granted = await OneSignal.Notifications.requestPermission(true);
-    print("🔔 Notification permission granted: $granted");
+    // final bool granted = await OneSignal.Notifications.requestPermission(true);
+    // print("🔔 Notification permission granted: $granted");
 
     OneSignal.User.pushSubscription.token;
 
 
     // Only initialize if permission was granted
-    if (granted) {
-      OneSignal.User.pushSubscription.addObserver((state) {
-        print("✅ PushSubscription optedIn: ${OneSignal.User.pushSubscription.optedIn}");
-        print("✅ PushSubscription ID: ${OneSignal.User.pushSubscription.id}");
-        print("✅ PushSubscription Token: ${OneSignal.User.pushSubscription.token}");
-        print("✅ PushSubscription JSON: ${state.current.jsonRepresentation()}");
-      });
-
-      print("✅ OneSignal initialized successfully after permission granted.");
-    } else {
-      print("❌ Notification permission denied. OneSignal not initialized.");
-    }
+    // if (granted) {
+    //   OneSignal.User.pushSubscription.addObserver((state) {
+    //     print("✅ PushSubscription optedIn: ${OneSignal.User.pushSubscription.optedIn}");
+    //     print("✅ PushSubscription ID: ${OneSignal.User.pushSubscription.id}");
+    //     print("✅ PushSubscription Token: ${OneSignal.User.pushSubscription.token}");
+    //     print("✅ PushSubscription JSON: ${state.current.jsonRepresentation()}");
+    //   });
+    //
+    //   print("✅ OneSignal initialized successfully after permission granted.");
+    // } else {
+    //   print("❌ Notification permission denied. OneSignal not initialized.");
+    // }
   }
   static Future<void> setOneSignalUserIdentity(String userName) async {
     try {

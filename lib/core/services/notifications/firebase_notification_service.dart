@@ -90,7 +90,7 @@ class FirebaseNotificationService {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
 
-    await _requestPermission();
+    // await _requestPermission();
 
 
     await _initLocalNotifications();
