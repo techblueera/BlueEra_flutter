@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/porter_vehicle_option_page.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/widget/select_blueera_pilot.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -206,32 +207,34 @@ class _AddressListScreenState extends State<AddressListScreen> {
             child: ElevatedButton(
               onPressed: selectedIndex != null
                   ? () {
-                      orderController.selectedIndex?.value = selectedIndex ?? 0;
-                      final selectedAddress = orderController
-                          .getAddressDetails.value.data?[selectedIndex!];
-
-                      final Map<String, dynamic> payload = {
-                        "pickup_details": {
-                          "lat": orderController.lat.value,
-                          "lng": orderController.long.value,
-                        },
-                        "drop_details": {
-                          "lat": selectedAddress?.lat,
-                          "lng": selectedAddress?.lng,
-                        },
-                        "customer": {
-                          "name": "${selectedAddress?.name}",
-                          "mobile": {
-                            "country_code": "+91",
-                            "number": "${selectedAddress?.phone}",
-                          },
-                        },
-                      };
-
-                      orderController.fetchVehicleQuotes(payload);
-                      Get.off(() => PorterVehicleListScreen(
-                            userName: selectedAddress?.name,
-                            userNum: selectedAddress?.phone,
+                      // orderController.selectedIndex?.value = selectedIndex ?? 0;
+                      // final selectedAddress = orderController
+                      //     .getAddressDetails.value.data?[selectedIndex!];
+                      //
+                      // final Map<String, dynamic> payload = {
+                      //   "pickup_details": {
+                      //     "lat": orderController.lat.value,
+                      //     "lng": orderController.long.value,
+                      //   },
+                      //   "drop_details": {
+                      //     "lat": selectedAddress?.lat,
+                      //     "lng": selectedAddress?.lng,
+                      //   },
+                      //   "customer": {
+                      //     "name": "${selectedAddress?.name}",
+                      //     "mobile": {
+                      //       "country_code": "+91",
+                      //       "number": "${selectedAddress?.phone}",
+                      //     },
+                      //   },
+                      // };
+                      //
+                      // orderController.fetchVehicleQuotes(payload);
+                      // Get.off(() => PorterVehicleListScreen(
+                      //       userName: selectedAddress?.name,
+                      //       userNum: selectedAddress?.phone,
+                      //     ));
+                Get.off(() => DeliveryPilotScreen(
                           ));
                     }
                   : null,

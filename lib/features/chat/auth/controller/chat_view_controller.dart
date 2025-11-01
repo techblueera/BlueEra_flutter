@@ -693,25 +693,6 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<void> sendRequestForChat(Map<String, dynamic> params) async {
-    try {
-      ResponseModel responseModel =
-          await ChatViewRepo().sendRequestForChat(params);
-      if (responseModel.isSuccess) {
-        if (paramsData != null) {
-          uploadContacts(paramsData!);
-        }
-        viewContactsListResponse.value = ApiResponse.complete(responseModel);
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      viewContactsListResponse.value = ApiResponse.error('error');
-    }
-  }
 
   Future<void> getLatestChat() async {
     try {

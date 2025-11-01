@@ -151,12 +151,13 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         };
       }).toList();
 
-      // Compute in isolate
-      List<Map<String, String>> formattedContacts =
-          await formatContactsInIsolate(rawContacts);
-      // await compute(formatContactsInIsolate, rawContacts);
 
-      chatViewController.uploadContacts(formattedContacts);
+      if(rawContacts.isNotEmpty){
+        List<Map<String, String>> formattedContacts =
+        await formatContactsInIsolate(rawContacts);
+        chatViewController.uploadContacts(formattedContacts);
+      }
+
     } else {
       PermissionStatus newStatus = await Permission.contacts.request();
       if (newStatus.isGranted) {
