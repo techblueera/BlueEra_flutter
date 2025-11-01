@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -7,11 +8,14 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/common_methods.dart';
 import '../../../../common/map/view/searchLocationScreen.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../../auth/model/get_adress_details_model.dart';
+import '../../../auth/model/get_blueera_piolot_model.dart';
 import 'add_address_screen.dart';
 
 class AddressListScreen extends StatefulWidget {
@@ -206,36 +210,52 @@ class _AddressListScreenState extends State<AddressListScreen> {
             height: 50,
             child: ElevatedButton(
               onPressed: selectedIndex != null
-                  ? () {
-                      // orderController.selectedIndex?.value = selectedIndex ?? 0;
-                      // final selectedAddress = orderController
-                      //     .getAddressDetails.value.data?[selectedIndex!];
-                      //
-                      // final Map<String, dynamic> payload = {
-                      //   "pickup_details": {
-                      //     "lat": orderController.lat.value,
-                      //     "lng": orderController.long.value,
-                      //   },
-                      //   "drop_details": {
-                      //     "lat": selectedAddress?.lat,
-                      //     "lng": selectedAddress?.lng,
-                      //   },
-                      //   "customer": {
-                      //     "name": "${selectedAddress?.name}",
-                      //     "mobile": {
-                      //       "country_code": "+91",
-                      //       "number": "${selectedAddress?.phone}",
-                      //     },
-                      //   },
-                      // };
-                      //
-                      // orderController.fetchVehicleQuotes(payload);
-                      // Get.off(() => PorterVehicleListScreen(
-                      //       userName: selectedAddress?.name,
-                      //       userNum: selectedAddress?.phone,
-                      //     ));
-                Get.off(() => DeliveryPilotScreen(
-                          ));
+                  ? () async{
+
+                showFindingRiderDialog(context);
+                Map<String, dynamic> params = {
+                  ApiKeys.latitude: double.parse(orderController.lat.value),
+                  ApiKeys.longitude: double.parse(orderController.long.value)
+                };
+                List<Riders>? riders= await orderController.getRidersNearByShop(params);
+                Future.delayed(Duration(seconds: 4),(){
+                  if(riders!=null&&riders.isNotEmpty){
+                    Get.off(() => DeliveryPilotScreen(shopName: widget.message.seller?.name??'',
+                      lat: double.parse(orderController.lat.value),
+                      long:   double.parse(orderController.long.value),
+                    ));
+                  }else{
+                    orderController.selectedIndex?.value = selectedIndex ?? 0;
+                    final selectedAddress = orderController
+                        .getAddressDetails.value.data?[selectedIndex!];
+
+                    final Map<String, dynamic> payload = {
+                      "pickup_details": {
+                        "lat": orderController.lat.value,
+                        "lng": orderController.long.value,
+                      },
+                      "drop_details": {
+                        "lat": selectedAddress?.lat,
+                        "lng": selectedAddress?.lng,
+                      },
+                      "customer": {
+                        "name": "${selectedAddress?.name}",
+                        "mobile": {
+                          "country_code": "+91",
+                          "number": "${selectedAddress?.phone}",
+                        },
+                      },
+                    };
+
+                    orderController.fetchVehicleQuotes(payload);
+                    Get.off(() => PorterVehicleListScreen(
+                      userName: selectedAddress?.name,
+                      userNum: selectedAddress?.phone,
+                    ));
+                  }
+                });
+
+
                     }
                   : null,
               style: ElevatedButton.styleFrom(
@@ -257,4 +277,76 @@ class _AddressListScreenState extends State<AddressListScreen> {
       ),
     );
   }
+  void showFindingRiderDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // ❌ cannot close manually
+      barrierColor: Colors.black.withOpacity(0.4), // dim background
+      builder: (BuildContext context) {
+        int remainingSeconds = 30;
+        ValueNotifier<int> timerNotifier = ValueNotifier(remainingSeconds);
+
+        // ⏱ Start 30s timer
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (remainingSeconds <= 1) {
+            timer.cancel();
+            Navigator.of(context, rootNavigator: true).pop(); // close dialog
+          } else {
+            remainingSeconds--;
+            timerNotifier.value = remainingSeconds;
+          }
+        });
+
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: staggeredDotsWaveLoading(
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const CustomText(
+                  "Finding best rider for you...",
+                  textAlign: TextAlign.center,
+                  // style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  // ),
+                ),
+                const SizedBox(height: 12),
+                ValueListenableBuilder<int>(
+                  valueListenable: timerNotifier,
+                  builder: (context, seconds, _) {
+                    return CustomText(
+                      "Finding in $seconds seconds",
+                      // style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                      // ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 }

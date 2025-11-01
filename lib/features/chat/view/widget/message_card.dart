@@ -100,6 +100,7 @@ class _MessageCardState extends State<MessageCard>
 
   @override
   Widget build(BuildContext context) {
+    print("sdjcnjsdc ${widget.userId}");
     final theme = Theme.of(context);
     final text = widget.message.message ?? '';
 

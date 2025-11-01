@@ -139,7 +139,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   }
 
   Future<void> _handleCurrentLocationTap() async {
-    print("lsdkslkdmcsdlkcm ");
+
     setState(() {
       isGettingCurrentLocation = true;
     });

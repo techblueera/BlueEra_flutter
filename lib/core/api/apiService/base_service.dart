@@ -480,5 +480,6 @@ abstract class BaseService {
   String earnServicesById(String serviceId) => 'earn-service/services/$serviceId';
   String channelFollowingMe = "channel-service/follower/following/me";
   String channel_service_follower = "channel-service/follower/";
+  String getNearByRiderApi = "rider-service/riders/nearby";
 
 }

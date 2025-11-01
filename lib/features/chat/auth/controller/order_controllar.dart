@@ -21,6 +21,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/get_adress_details_model.dart';
+import '../model/get_blueera_piolot_model.dart';
 import '../model/get_porter_vechile_option_model.dart';
 import '../model/payment_success_model.dart';
 import '../repo/make_order_repo.dart';
@@ -36,6 +37,7 @@ class OrderNowController extends GetxController {
   Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getVehicleOptionResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewBusinessProfileResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getRidersListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> paymentResponse = ApiResponse.initial('Initial').obs;
   final porterApi = PorterApiService();
   Rx<TextEditingController> nameController    = TextEditingController().obs;
@@ -50,6 +52,7 @@ class OrderNowController extends GetxController {
   Rx<TextEditingController> noteController     = TextEditingController().obs;
   Rx<TextEditingController> typeController      = TextEditingController().obs;
   Rx<GetAdressDetailsModel> getAddressDetails=GetAdressDetailsModel().obs;
+  Rx<GetBlueeraPiolotModel> getBlueeraPiolotModel=GetBlueeraPiolotModel().obs;
   Rx<GetPorterVehicleOptionModel> getPorterVehicleOptionModel=GetPorterVehicleOptionModel().obs;
   Rx<PaymentResponseModel> paymentResponseModel=PaymentResponseModel().obs;
   RxBool isDefault = false.obs;
@@ -68,7 +71,7 @@ class OrderNowController extends GetxController {
   }
   Future<void> viewBusinessForLocation(String userId,String userType) async {
 
-    // try {
+    try {
       ResponseModel responseModel =
       await BusinessProfileRepo().viewBusinessIdForLocation(userId,userType);
       if ((userType=='INDIVIDUAL')?(responseModel.response?.data['status']):(responseModel.response?.data['success'])) {
@@ -87,9 +90,28 @@ class OrderNowController extends GetxController {
       }else{
         viewBusinessProfileResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
       }
-    // }catch(e){
-    //
-    // }
+    }catch(e){
+      viewBusinessProfileResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+
+    }
+  }
+  Future<List<Riders>?> getRidersNearByShop(Map<String,dynamic> params) async {
+    try {
+      ResponseModel responseModel =
+      await BusinessProfileRepo().getNearByRiders(params);
+      if (responseModel.response?.data!=null) {
+        final data = responseModel.response?.data;
+        getBlueeraPiolotModel.value=GetBlueeraPiolotModel.fromJson(data);
+        getRidersListResponse.value=ApiResponse.complete(getBlueeraPiolotModel);
+        return getBlueeraPiolotModel.value.users;
+      }else{
+        getRidersListResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+     return null;
+      }
+    }catch(e){
+      getRidersListResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+      return null;
+    }
   }
   Future<void> updateOrderStatus(Map<String,dynamic> params) async {
     try {
