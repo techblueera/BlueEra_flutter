@@ -104,18 +104,18 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
           logs("detailsResponse====== $detailsData");
 
           final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-          final location = placeDetails.result.geometry.location;
+          final location = placeDetails.result?.geometry?.location;
 
           final distance = Geolocator.distanceBetween(
             widget.lat,
             widget.lng,
-            location.lat,
-            location.lng,
+            location?.lat ?? 0.0,
+            location?.lng ?? 0.0,
           ) /
               1000;
 
-          prediction.lat = location.lat;
-          prediction.lng = location.lng;
+          prediction.lat = location?.lat ?? 0.0;
+          prediction.lng = location?.lng ?? 0.0;
           prediction.distanceInKm = "${distance.toStringAsFixed(2)} km";
         }
 

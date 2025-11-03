@@ -28,7 +28,7 @@ class SelectProductImageDialog {
     bool? isOnlyCamera = true,
     bool? isGallery = true,
         int? maxImages,
-    CropAspectRatio? cropAspectRatio,
+    CropAspectRatio cropAspectRatio = const CropAspectRatio(width: 9, height: 16),
   }) async {
     final appLocalizations = AppLocalizations.of(context);
 
@@ -76,7 +76,7 @@ class SelectProductImageDialog {
                                 final paths = await pickFromGallery(
                                   context,
                                   cropAspectRatio: cropAspectRatio,
-                                    maxImages:maxImages
+                                  maxImages:maxImages
                                 );
                                 Navigator.pop(context, paths);
                               },

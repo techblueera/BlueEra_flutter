@@ -13,7 +13,7 @@ class CommonLocationSearchField extends StatefulWidget {
   final TextEditingController controller;
   final String title;
   final String hintText;
-  final Function(double lat, double lng, String address)? onSelected;
+  final Function(String placeId, double lat, double lng, String address)? onSelected;
 
   const CommonLocationSearchField({
     super.key,
@@ -37,11 +37,11 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   final isLoading = false.obs;
   final errorMessage = ''.obs;
   final predictions = <PlacePrediction>[].obs;
-  RxString currentAddress = ''.obs;
-
   Timer? debounce;
-  double latitude = 0.0;
-  double longitude = 0.0;
+
+  // RxString currentAddress = ''.obs;
+  // double latitude = 0.0;
+  // double longitude = 0.0;
 
   @override
   void dispose() {
@@ -182,12 +182,12 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                 fontWeight: FontWeight.w700,
               ),
               onTap: () {
-                widget.controller.text = item.description ?? '';
-                currentAddress.value = item.description ?? '';
-                latitude = item.lat ?? 0.0;
-                longitude = item.lng ?? 0.0;
+                String placeId = item.placeId ?? '';
+                String currentAddress = item.description ?? '';
+                double latitude = item.lat ?? 0.0;
+                double longitude = item.lng ?? 0.0;
                 predictions.clear();
-                widget.onSelected?.call(latitude, longitude, currentAddress.value);
+                widget.onSelected?.call(placeId, latitude, longitude, currentAddress);
                 _removeOverlay();
               },
             );
@@ -215,12 +215,11 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         pIcon: Icon(Icons.search, color: AppColors.primaryColor),
         textEditController: widget.controller,
         onChange: onSearchChanged,
-        sIcon: Obx(() => currentAddress.isNotEmpty
+        sIcon: Obx(() => predictions.isNotEmpty
             ? IconButton(
           icon: const Icon(Icons.clear),
           onPressed: () {
             widget.controller.clear();
-            currentAddress.value = '';
             predictions.clear();
             _removeOverlay();
           },

@@ -1,61 +1,74 @@
 class PlaceDetailsResponse {
-  final PlaceResult result;
-  final String status;
+  final Result? result;
 
-  PlaceDetailsResponse({
-    required this.result,
-    required this.status,
-  });
+  PlaceDetailsResponse({this.result});
 
   factory PlaceDetailsResponse.fromJson(Map<String, dynamic> json) {
     return PlaceDetailsResponse(
-      result: PlaceResult.fromJson(json['result']),
-      status: json['status'] ?? '',
+      result: json['result'] != null ? Result.fromJson(json['result']) : null,
     );
   }
 }
 
-class PlaceResult {
-  final Geometry geometry;
+class Result {
+  final List<AddressComponent>? addressComponents;
+  final Geometry? geometry;
+  final String? formattedAddress;
 
-  PlaceResult({
-    required this.geometry,
-  });
+  Result({this.addressComponents, this.geometry, this.formattedAddress});
 
-  factory PlaceResult.fromJson(Map<String, dynamic> json) {
-    return PlaceResult(
-      geometry: Geometry.fromJson(json['geometry']),
+  factory Result.fromJson(Map<String, dynamic> json) {
+    return Result(
+      addressComponents: (json['address_components'] as List?)
+          ?.map((e) => AddressComponent.fromJson(e))
+          .toList(),
+      geometry: json['geometry'] != null
+          ? Geometry.fromJson(json['geometry'])
+          : null,
+      formattedAddress: json['formatted_address'],
+    );
+  }
+}
+
+class AddressComponent {
+  final String? longName;
+  final String? shortName;
+  final List<String>? types;
+
+  AddressComponent({this.longName, this.shortName, this.types});
+
+  factory AddressComponent.fromJson(Map<String, dynamic> json) {
+    return AddressComponent(
+      longName: json['long_name'],
+      shortName: json['short_name'],
+      types: (json['types'] as List?)?.map((e) => e.toString()).toList(),
     );
   }
 }
 
 class Geometry {
-  final Location location;
+  final Location? location;
 
-  Geometry({
-    required this.location,
-  });
+  Geometry({this.location});
 
   factory Geometry.fromJson(Map<String, dynamic> json) {
     return Geometry(
-      location: Location.fromJson(json['location']),
+      location:
+      json['location'] != null ? Location.fromJson(json['location']) : null,
     );
   }
 }
 
 class Location {
-  final double lat;
-  final double lng;
+  final double? lat;
+  final double? lng;
 
-  Location({
-    required this.lat,
-    required this.lng,
-  });
+  Location({this.lat, this.lng});
 
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
     );
   }
 }

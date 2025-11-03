@@ -149,7 +149,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     controller: controller.location,
                     title: "Property Location",
                     hintText: "E.g. Lucknow, Gomti Nagar...",
-                    onSelected: (lat, lng, address) {
+                    onSelected: (PlaceId, lat, lng, address) {
                       controller.location.text = address;
                       controller.currentAddress.value = address;
                       controller.latitude = lat;

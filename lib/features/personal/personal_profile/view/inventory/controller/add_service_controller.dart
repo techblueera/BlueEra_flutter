@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/upload_s3_image_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -22,25 +23,6 @@ import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-
-class LocalImage {
-  final String path;
-  final String mimeType;
-  String? preSignedUrl;
-
-  LocalImage({
-    required this.path,
-    required this.mimeType,
-    this.preSignedUrl,
-  });
-
-  Map<String, dynamic> toJson() => {
-        "path": path,
-        "mimeType": mimeType,
-        "preSignedUrl": preSignedUrl,
-      };
-}
 
 class AddServiceController extends GetxController {
   Rx<ApiResponse> createServiceResponse = ApiResponse.initial('Initial').obs;
@@ -303,12 +285,12 @@ class AddServiceController extends GetxController {
       }
 
       // Prepare images
-      List<LocalImage> images = [];
+      List<UploadS3ImageModel> images = [];
       for (var imagePath in imageLocalPaths) {
         final imageInfo = getFileInfo(File(imagePath));
         if (imageInfo.isNotEmpty) {
           images.add(
-            LocalImage(path: imagePath, mimeType: imageInfo['mimeType']!),
+            UploadS3ImageModel(path: imagePath, mimeType: imageInfo['mimeType']!),
           );
         }
       }
@@ -367,7 +349,7 @@ class AddServiceController extends GetxController {
     }
   }
 
-  Future<void> uploadAllImages(List<LocalImage> images) async {
+  Future<void> uploadAllImages(List<UploadS3ImageModel> images) async {
     if (images.isEmpty) return;
 
     final totalImages = images.length;

@@ -198,6 +198,7 @@ class AuthRepo extends BaseService {
   Future<ResponseModel> getServiceExistsStatusRepo() async {
     final response = await ApiBaseHelper().getHTTP(
       "${serviceExistsStatus}",
+      showProgress: false,
       params: {ApiKeys.type: "service"},
       onError: (error) {},
       onSuccess: (data) {},
