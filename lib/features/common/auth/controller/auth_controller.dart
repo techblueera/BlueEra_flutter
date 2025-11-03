@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
@@ -89,7 +90,10 @@ class AuthController extends GetxController {
   Future<void> verifyOTP({required String? otp}) async {
     String? token = "";
     try {
-      token = await FirebaseMessaging.instance.getToken();
+      // token = await FirebaseMessaging.instance.getToken();
+      // AppNotificationHandler.getFcmToken();
+      token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
+
     } catch (e) {}
     try {
       Map<String, dynamic> requestData = {
@@ -112,8 +116,8 @@ class AuthController extends GetxController {
           commonSnackBar(message: response.message ?? AppStrings.success);
 
           if (data.token != null && (data.token?.isNotEmpty ?? false)) {
-            OnesignalService.setOneSignalUserIdentity(
-                data.data?.username ?? '');
+            // OnesignalService.setOneSignalUserIdentity(
+            //     data.data?.username ?? '');
             if (data.data?.accountType?.toUpperCase() ==
                 AppConstants.business) {
               await SharedPreferenceUtils.setSecureValue(

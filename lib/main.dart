@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/notifications/one_signal_services.dart';
@@ -20,9 +21,11 @@ import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:app_links/app_links.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
 import 'package:croppy/croppy.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -56,8 +59,20 @@ firebaseInitializeApp() async {
   }
 }
 
+final AudioPlayer audioPlayer = AudioPlayer();
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  ///INIT FIREBASE NOTIFICATION...
+  await firebaseInitializeApp();
+  if (message.notification != null) {
+    await AppNotificationHandler().playCustomSound();
+  }
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ///SET YOUR API CALLING ENV.
+  await projectKeys(environmentType: AppConstants.prod);
   await firebaseInitializeApp();
   clearSecureStorageIfFreshInstall();
   Get.put(AuthController());
@@ -74,11 +89,11 @@ Future<void> main() async {
   Get.put(GlobalMessageService());
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
-  FirebaseNotificationService().init();
+  // FirebaseNotificationService().init();
 
-  ///SET YOUR API CALLING ENV.
-  await projectKeys(environmentType: AppConstants.prod);
 
+  ///INIT FIREBASE NOTIFICATION...
+  await AppNotificationHandler().firebaseNotificationSetup();
   ///APP ORIENTATIONS....
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -100,7 +115,7 @@ Future<void> main() async {
   /// initializeMappls Map
   await initializeMappls();
 
-  await OnesignalService().initialize();
+  // await OnesignalService().initialize();
 
   cameras = await availableCameras();
   await Hive.initFlutter();

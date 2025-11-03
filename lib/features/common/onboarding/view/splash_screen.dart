@@ -15,7 +15,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
+// import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -149,46 +149,77 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: Future.wait([
-        Future.value(OneSignal.User.pushSubscription.optedIn),
-        Future.value(OneSignal.User.pushSubscription.id),
-        Future.value(OneSignal.User.pushSubscription.token),
-      ]),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return CircularProgressIndicator();
-
-        return Material(
-          color: AppColors.white,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Spacer(flex: 3),
-              CustomText(
-                "🇮🇳  MADE IN INDIA",
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-              ),
-              Spacer(flex: 10),
-              LocalAssets(
-                imagePath: AppIconAssets.blueEraIcon,
-                height: SizeConfig.size100,
-              ),
-              Spacer(flex: 10),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
-                child: LocalAssets(
-                  imagePath: AppImageAssets.splashBgImage,
-                  height: SizeConfig.size70,
-                ),
-              ),
-              Spacer(flex: 1),
-            ],
+    return Material(
+      color: AppColors.white,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Spacer(flex: 3),
+          CustomText(
+            "🇮🇳  MADE IN INDIA",
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
           ),
-        );
-      },
+          Spacer(flex: 10),
+          LocalAssets(
+            imagePath: AppIconAssets.blueEraIcon,
+            height: SizeConfig.size100,
+          ),
+          Spacer(flex: 10),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
+            child: LocalAssets(
+              imagePath: AppImageAssets.splashBgImage,
+              height: SizeConfig.size70,
+            ),
+          ),
+          Spacer(flex: 1),
+        ],
+      ),
     );
+    //
+    // return FutureBuilder(
+    //   future: Future.wait([
+    //     Future.value(OneSignal.User.pushSubscription.optedIn),
+    //     Future.value(OneSignal.User.pushSubscription.id),
+    //     Future.value(OneSignal.User.pushSubscription.token),
+    //   ]),
+    //   builder: (context, snapshot) {
+    //     if (!snapshot.hasData) return CircularProgressIndicator();
+    //
+    //     return Material(
+    //       color: AppColors.white,
+    //       child: Column(
+    //         mainAxisSize: MainAxisSize.max,
+    //         mainAxisAlignment: MainAxisAlignment.start,
+    //         crossAxisAlignment: CrossAxisAlignment.center,
+    //         children: [
+    //           Spacer(flex: 3),
+    //           CustomText(
+    //             "🇮🇳  MADE IN INDIA",
+    //             fontSize: SizeConfig.medium,
+    //             fontWeight: FontWeight.w600,
+    //           ),
+    //           Spacer(flex: 10),
+    //           LocalAssets(
+    //             imagePath: AppIconAssets.blueEraIcon,
+    //             height: SizeConfig.size100,
+    //           ),
+    //           Spacer(flex: 10),
+    //           Padding(
+    //             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
+    //             child: LocalAssets(
+    //               imagePath: AppImageAssets.splashBgImage,
+    //               height: SizeConfig.size70,
+    //             ),
+    //           ),
+    //           Spacer(flex: 1),
+    //         ],
+    //       ),
+    //     );
+    //   },
+    // );
   }
 }

@@ -13,7 +13,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:video_compress/video_compress.dart';
+// import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 
 import 'app_colors.dart';
@@ -538,37 +538,37 @@ Map<String, dynamic> normalizeMap(dynamic value) {
   }
 }
 
-Future<String?> compressVideo(File videoFile) async {
-  String? videoPath;
-  try {
-    // 1. Start the compression process
-    final MediaInfo? info = await VideoCompress.compressVideo(
-      videoFile.path,
-      quality: VideoQuality.LowQuality,
-      // Choose quality: Low, Medium, High, Default
-      deleteOrigin: false,
-      // Set to true to delete the original file after compression
-      // Optional: set a callback to listen to the progress
-      includeAudio: true,
-      startTime: 0,
-      duration: 0,
-    );
-
-    if (info != null) {
-      videoPath = info.path;
-      print('✅ Compression completed!');
-      print('Original Size: ${videoFile.lengthSync() / (1024 * 1024)} MB');
-      print('Compressed Path: ${info.path}');
-      print('Compressed Size: ${info.filesize! / (1024 * 1024)} MB');
-      // You can now use the compressed video file at info.path
-      // The MediaInfo object also contains other metadata like duration, thumbnail path, etc.
-    }
-    return videoPath;
-  } catch (e) {
-    print('❌ Compression failed: $e');
-  }
-  return null;
-}
+// Future<String?> compressVideo(File videoFile) async {
+//   String? videoPath;
+//   try {
+//     // 1. Start the compression process
+//     final MediaInfo? info = await VideoCompress.compressVideo(
+//       videoFile.path,
+//       quality: VideoQuality.LowQuality,
+//       // Choose quality: Low, Medium, High, Default
+//       deleteOrigin: false,
+//       // Set to true to delete the original file after compression
+//       // Optional: set a callback to listen to the progress
+//       includeAudio: true,
+//       startTime: 0,
+//       duration: 0,
+//     );
+//
+//     if (info != null) {
+//       videoPath = info.path;
+//       print('✅ Compression completed!');
+//       print('Original Size: ${videoFile.lengthSync() / (1024 * 1024)} MB');
+//       print('Compressed Path: ${info.path}');
+//       print('Compressed Size: ${info.filesize! / (1024 * 1024)} MB');
+//       // You can now use the compressed video file at info.path
+//       // The MediaInfo object also contains other metadata like duration, thumbnail path, etc.
+//     }
+//     return videoPath;
+//   } catch (e) {
+//     print('❌ Compression failed: $e');
+//   }
+//   return null;
+// }
 
 String formatBytesToMB(int bytes) {
   double mb = bytes / (1024 * 1024);

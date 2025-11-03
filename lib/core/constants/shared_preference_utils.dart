@@ -1,5 +1,7 @@
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
@@ -75,6 +77,7 @@ class SharedPreferenceUtils {
   static const userServiceCreatedStatusKey = 'userServiceCreatedStatusKey';
   static const userServiceExistsKey = 'userServiceExistsKey';
   static const businessType = 'businessType';
+  static const notificationDeviceToken = 'notificationDeviceToken';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
@@ -185,6 +188,8 @@ class SharedPreferenceUtils {
   ///CLEAR DATA...
   static Future<void> clearPreference() async {
     try {
+      await FirebaseMessaging.instance.deleteToken();
+
       final workManagerBaseUrl =
           await SharedPreferenceUtils.getBaseUrlSecureValue();
       await _secureStorage.deleteAll();
@@ -208,9 +213,9 @@ class SharedPreferenceUtils {
       userServiceCreatedStatusGlobal = '';
       businessTypeGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
-      // userServiceExistsKeyGlobal = 'false';
-      // Get.put(LocationServiceProviderController()).stopLocationUpdates();
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
+      AppNotificationHandler.getFcmToken();
+
     } on Exception {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
     }
@@ -373,6 +378,7 @@ getChannelData() async {
 
 Future<void> clearSecureStorageIfFreshInstall() async {
   final prefs = await SharedPreferences.getInstance();
+
   final hasInstalledBefore = prefs.getBool('hasInstalledBefore') ?? false;
 
   if (!hasInstalledBefore) {

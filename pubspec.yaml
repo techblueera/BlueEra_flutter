@@ -43,7 +43,7 @@ dependencies:
   hive_flutter: ^1.1.0
   socket_io_client: ^3.1.2
   dotted_border: 2.1.0
-  onesignal_flutter: ^5.3.4
+#  onesignal_flutter: ^5.3.4
   mime: ^2.0.0
   video_player: ^2.10.0
   file_picker: ^10.2.0
@@ -77,7 +77,11 @@ dependencies:
   shared_preferences: ^2.5.3
   video_trimmer: ^5.0.0
   get_thumbnail_video: ^0.7.3
-  video_compress: ^3.1.4
+#  video_compress: ^3.1.4
+#  googleapis_auth: ^2.0.0
+#  googleapis: ^15.0.0
+  vibration: ^2.0.1
+
 
 dependency_overrides:
   intl: ^0.19.0
@@ -104,6 +108,8 @@ flutter:
     - assets/store/
     - assets/products_cards/
     - assets/services_cards/
+    - assets/sound/
+
 
   fonts:
     - family: OpenSans

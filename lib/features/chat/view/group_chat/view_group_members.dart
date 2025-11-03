@@ -248,7 +248,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   //   context,
                                   //   MaterialPageRoute(builder: (_) => ),
                                   // );
-                                  // Get.to(()=>BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,));
+                                  Get.to(()=>BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,));
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
