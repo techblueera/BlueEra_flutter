@@ -237,7 +237,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -272,7 +272,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -306,7 +306,7 @@ class ApiBaseHelper {
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
       logs("ERROR IN HELPER ${e}");
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -486,7 +486,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -534,7 +534,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -558,7 +558,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     }
   }
 
@@ -610,7 +610,7 @@ class ApiBaseHelper {
     } on DioException catch (e) {
       print("❌ Error DioException uploading video: $e");
 
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     } catch (e) {
       print("❌ Error uploading video: $e");
       // return handleError(e, onError!, onSuccess!);
@@ -644,7 +644,7 @@ class ApiBaseHelper {
       return handleResponse(
           response, onError ?? (error) {}, onSuccess ?? (res) {});
     } on DioException catch (e) {
-      return handleError(e, onError!, onSuccess!);
+      return handleError(e, onError ?? (error) {}, onSuccess ?? (res) {});
     } catch (e) {
       print("❌ Error uploading video: $e");
       // return handleError(e, onError!, onSuccess!);

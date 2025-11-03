@@ -8,15 +8,32 @@
 
 class OneSignalNotificationDetailsModel {
   OneSignalNotificationDetailsModel({
-      this.conversationType, 
-      this.conversationId, 
-      this.senderUser, 
-      this.messageId, 
-      this.messageType, 
-      this.message, 
+      this.conversationType,
+      this.conversationId,
+      this.senderUser,
+      this.messageId,
+      this.messageType,
+      this.message,
       this.operation,});
-
   OneSignalNotificationDetailsModel.fromJson(dynamic json) {
+    conversationType = json['conversation_type'];
+    conversationId = json['conversation_id'];
+
+    final senderData = json['sender_user'];
+    if (senderData is Map) {
+      senderUser = SenderUser.fromJson(senderData);
+    } else if (senderData is String) {
+      // if only an ID is sent, still store it
+      senderUser = SenderUser(id: senderData);
+    }
+
+    messageId = json['message_id'] ?? json['comment_id']; // fallback if needed
+    messageType = json['message_type'];
+    message = json['message'];
+    operation = json['operation'];
+  }
+
+ /* OneSignalNotificationDetailsModel.fromJson(dynamic json) {
     conversationType = json['conversation_type'];
     conversationId = json['conversation_id'];
     senderUser = json['sender_user'] != null ? SenderUser.fromJson(json['sender_user']) : null;
@@ -24,7 +41,7 @@ class OneSignalNotificationDetailsModel {
     messageType = json['message_type'];
     message = json['message'];
     operation = json['operation'];
-  }
+  }*/
   String? conversationType;
   String? conversationId;
   SenderUser? senderUser;
@@ -54,7 +71,7 @@ class OneSignalNotificationDetailsModel {
 
 class SenderUser {
   SenderUser({
-      this.contact, 
+      this.contact,
       this.id,
       this.name,});
 

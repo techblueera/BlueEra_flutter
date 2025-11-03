@@ -5,22 +5,29 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/services/notifications/model/OneSignalNotificationDetailsModel.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/main.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:vibration/vibration.dart';
 
- String notificationSound = 'sound/notification_sound.wav';
+String notificationSound = 'sound/iphone_tone.mp3';
+// String notificationSound = 'sound/notification_sound.wav';
 
 class AppNotificationHandler {
-  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      new FlutterLocalNotificationsPlugin();
 
   /// FIREBASE NOTIFICATION SETUP
   Future<void> firebaseNotificationSetup() async {
-    final NotificationAppLaunchDetails? notificationAppLaunchDetails = await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    final NotificationAppLaunchDetails? notificationAppLaunchDetails =
+        await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
     if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-      final payLoad = notificationAppLaunchDetails!.notificationResponse?.payload;
+      final payLoad =
+          notificationAppLaunchDetails!.notificationResponse?.payload;
     }
 
     ///firebase initiallize
@@ -35,14 +42,27 @@ class AppNotificationHandler {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
 
     ///IOS Setup
-    DarwinInitializationSettings initializationSettings = const DarwinInitializationSettings(requestAlertPermission: true, requestSoundPermission: true, requestBadgePermission: true);
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.initialize(
+    DarwinInitializationSettings initializationSettings =
+        const DarwinInitializationSettings(
+            requestAlertPermission: true,
+            requestSoundPermission: true,
+            requestBadgePermission: true);
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.initialize(
           initializationSettings,
         );
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
@@ -50,7 +70,8 @@ class AppNotificationHandler {
 
     /// Update the iOS foreground notification presentation options to allow
     /// heads up notifications.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
@@ -61,37 +82,44 @@ class AppNotificationHandler {
   }
 
   ///background notification handler..
- //  @pragma('vm:entry-point')
- //  Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
- // // playCustomSound();
- //    // callUnreadCount();
- //  }
+  //  @pragma('vm:entry-point')
+  //  Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // // playCustomSound();
+  //    // callUnreadCount();
+  //  }
 
-  static AndroidNotificationDetails androidPlatformChannelSpecifics = const AndroidNotificationDetails(
-    AppStrings.appName, // id
-    'High Importance Notifications', // title
-    importance: Importance.high,
-    playSound: true,enableVibration: true
-  );
+  static AndroidNotificationDetails androidPlatformChannelSpecifics =
+      const AndroidNotificationDetails(
+          AppStrings.appName, // id
+          'High Importance Notifications', // title
+          importance: Importance.high,
+          playSound: true,
+          enableVibration: true);
 
-  static DarwinNotificationDetails iOSPlatformChannelSpecificsForNewOrder({String? sound}) => DarwinNotificationDetails(
+  static DarwinNotificationDetails iOSPlatformChannelSpecificsForNewOrder(
+          {String? sound}) =>
+      DarwinNotificationDetails(
         sound: sound,
       );
 
-  static NotificationDetails platformChannelSpecificsForNewOrder(String sound) => NotificationDetails(
+  static NotificationDetails platformChannelSpecificsForNewOrder(
+          String sound) =>
+      NotificationDetails(
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecificsForNewOrder(sound: sound),
       );
 
   ///get fcm token
   static Future<void> getFcmToken() async {
-    final fcmToken=await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
-logs("fcmToken==== $fcmToken");
-    if (fcmToken== null || fcmToken.toString().isEmpty||fcmToken==0) {
+    final fcmToken = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.notificationDeviceToken);
+    logs("fcmToken==== $fcmToken");
+    if (fcmToken == null || fcmToken.toString().isEmpty || fcmToken == 0) {
       FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
       try {
         String? newFcmToken = await firebaseMessaging.getToken();
-        await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.notificationDeviceToken, newFcmToken);
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.notificationDeviceToken, newFcmToken);
         print("=========fcm-token===$newFcmToken =====END ");
       } catch (e) {
         print("=========fcm- Error :$e");
@@ -113,11 +141,10 @@ logs("fcmToken==== $fcmToken");
         );
       }
     });
-
   }
 
   ///show notification msg
-   void showMsg(RemoteMessage message) {
+  void showMsg(RemoteMessage message) {
     // callUnreadCount();
 
     ///FOR GROUND....
@@ -125,10 +152,9 @@ logs("fcmToken==== $fcmToken");
     showNotification(message);
   }
 
-   void showNotification(
+  void showNotification(
     RemoteMessage notification,
   ) {
-
     flutterLocalNotificationsPlugin.show(
       notification.hashCode,
       notification.notification?.title ?? "",
@@ -137,7 +163,8 @@ logs("fcmToken==== $fcmToken");
           android: AndroidNotificationDetails(
             AppStrings.appName, // id
             'High Importance Notifications', // title
-            channelDescription: '',enableVibration: true,
+            channelDescription: '',
+            enableVibration: true,
             // description
             importance: Importance.high,
             icon: '@drawable/ic_stat',
@@ -150,7 +177,6 @@ logs("fcmToken==== $fcmToken");
           )),
       payload: jsonEncode(notification.data),
     );
-
   }
 
   ///call when click on notification
@@ -158,7 +184,8 @@ logs("fcmToken==== $fcmToken");
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
-     ///FOR APP IS IN FOR GROUND....
+
+      ///FOR APP IS IN FOR GROUND....
 
       ///IOS LOCAL NOTIFICATION IS TRIGGER BY SELF & ANDROID NOT HANDLE
       if (notification != null && Platform.isAndroid) {
@@ -167,6 +194,7 @@ logs("fcmToken==== $fcmToken");
       } else if (Platform.isIOS) {
         Vibration.vibrate(duration: 1000);
         print("IOS CALL");
+
         ///FOR IOS....
         // callUnreadCount();
       }
@@ -180,7 +208,9 @@ logs("fcmToken==== $fcmToken");
     });
 
     /// when app is in terminated and user tap on it.
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) async {
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) async {
       if (message != null && message.data != null) {
         _onTapNotificationFromStatusBar(message.data);
       }
@@ -193,13 +223,31 @@ logs("fcmToken==== $fcmToken");
   }
 
   static Future<void> _onTapNotificationFromStatusBar(
-    Map<String, dynamic> data,
+    Map<String, dynamic> dataNotificationResponse,
   ) async {
+    if (dataNotificationResponse['sender_user'] is String) {
+      dataNotificationResponse['sender_user'] = jsonDecode(dataNotificationResponse['sender_user']);
+    }
+    OneSignalNotificationDetailsModel data =
+        OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
+    if (data.operation == "sent_message") {
+      final chatViewController = Get.put(ChatViewController());
+      chatViewController.connectSocket();
+
+      chatViewController.openAnyOneChatFunction(
+        type: data.conversationType ?? '',
+        conversationId: data.conversationId ?? '',
+        userId: data.senderUser?.id,
+        contactName: data.senderUser?.name,
+        contactNo: "",
+        // contactNo: data.senderUser?.contact,
+        isInitialMessage: false,
+      );
+    }
 
     ///CLEAR ALL NOTIFICATION...
     flutterLocalNotificationsPlugin.cancelAll();
   }
-
 
   ///SET AUDIO SOUND....
   Future<void> playCustomSound() async {
@@ -212,9 +260,5 @@ logs("fcmToken==== $fcmToken");
       logs("SOUND ERROR====${e.toString()}");
       // TODO
     }
-
   }
-
-
-
 }

@@ -10,6 +10,7 @@ import 'package:BlueEra/core/api/model/photo_post_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
@@ -40,7 +41,9 @@ class PostRepo extends BaseService {
       isArrayReq: true,
       showProgress: false,
       onSendProgress: (sent, total) {
-      },
+      },onError: (e){
+        commonSnackBar(message: "${e}");
+    }
     );
     return response;
   }

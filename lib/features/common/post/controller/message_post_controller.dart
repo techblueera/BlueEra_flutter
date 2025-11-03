@@ -86,7 +86,7 @@ class MessagePostController extends GetxController {
             message: data['message'] ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      logs("ERROR ${e.toString()}");
+      logs("ERROR 89 ${e.toString()}");
       addPostMessage.value = ApiResponse.error('error');
     }
   }
@@ -100,7 +100,6 @@ class MessagePostController extends GetxController {
         formData: bodyReq,
       );
       final data = responseModel.response?.data;
-      clearData();
       if (responseModel.isSuccess) {
         commonSnackBar(message: data['message'] ?? AppStrings.success);
         Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
@@ -109,14 +108,18 @@ class MessagePostController extends GetxController {
             route.settings.name ==
             RouteHelper.getBottomNavigationBarScreenRoute());
         addPostMessage.value = ApiResponse.complete(responseModel);
+        clearData();
+
       } else {
         commonSnackBar(
             message: data['message'] ?? AppStrings.somethingWentWrong);
       }
+
     } catch (e) {
-      logs("ERROR ${e.toString()}");
+      logs("ERROR 117 ${e.toString()}");
       addPostMessage.value = ApiResponse.error('error');
     }
+
   }
 
   ///RePost  MESSAGE POST...
@@ -142,7 +145,7 @@ class MessagePostController extends GetxController {
             message: data['message'] ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      logs("ERROR ${e.toString()}");
+      logs("ERROR 145${e.toString()}");
       addPostMessage.value = ApiResponse.error('error');
     }
   }
@@ -280,7 +283,7 @@ class MessagePostController extends GetxController {
   }
 
   Future<void> uploadMessagePost({required PostVia? postVia}) async {
-    // try {
+    try {
     dio.FormData formData = dio.FormData();
     if (imagesList.length > 4) {
       commonSnackBar(message: "Max 4 image are allowed");
@@ -298,15 +301,6 @@ class MessagePostController extends GetxController {
       UploadProgressDialog.show(initialProgress: progress);
       final videoFile = File(imagesList.firstOrNull?.path ?? "");
       final coverFile = File(videoThumbnails[videoFile.path]?.path ?? "");
-
-// final tempCoverProfile=File(imagesList.firstOrNull?.path ?? "");
-//         final tempVideoFile =
-//             await compressVideo(File(imagesList.firstOrNull?.path ?? ""));
-//         final videoFile = tempVideoFile != null && tempVideoFile.isNotEmpty
-//             ? File(tempVideoFile ?? "")
-//             : File(imagesList.firstOrNull?.path ?? "");
-//
-//         final coverFile = File(videoThumbnails[tempCoverProfile]?.path ?? "");
 
       final videoInfo = getFileInfo(videoFile);
       final coverInfo = getFileInfo(coverFile);
@@ -426,9 +420,9 @@ class MessagePostController extends GetxController {
           .add(MapEntry(ApiKeys.title, postTitleController.value.text));
 
     ///DESCRIPTION...
-    if (descriptionMessage.value.text.isNotEmpty)
+    if (postText.value.isNotEmpty)
       formData.fields
-          .add(MapEntry(ApiKeys.sub_title, descriptionMessage.value.text));
+          .add(MapEntry(ApiKeys.sub_title, postText.value));
 
     ///NATURE OF POST...
     if (natureOfPostController.value.text.isNotEmpty)
@@ -461,14 +455,14 @@ class MessagePostController extends GetxController {
     await addMsgPostControllerNew(
       bodyReq: formData,
     );
-    // } catch (e) {
-    //   logs("errorr === $e");
-    //
-    //   /// ❌ On error also close dialog
-    //   commonSnackBar(message: AppStrings.somethingWentWrong);
-    // } finally {
-    //   UploadProgressDialog.close();
-    // }
+    } catch (e) {
+      logs("errorr === $e");
+
+      /// ❌ On error also close dialog
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      UploadProgressDialog.close();
+    }
   }
 
   ApiResponse uploadInitResponse = ApiResponse.initial('Initial');
@@ -479,7 +473,7 @@ class MessagePostController extends GetxController {
   Future<void> uploadInit(
       {required Map<String, dynamic> queryParams,
       required bool isVideoUpload}) async {
-    try {
+    // try {
       ResponseModel? response = await PostRepo().uploadMessagePostVideoRepo(
         queryParams: queryParams,
       );
@@ -498,10 +492,10 @@ class MessagePostController extends GetxController {
         commonSnackBar(
             message: response?.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      uploadInitResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
+    // } catch (e) {
+    //   uploadInitResponse = ApiResponse.error('error');
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    // }
   }
 
   Future<void> uploadFileToS3({
@@ -599,7 +593,7 @@ class MessagePostController extends GetxController {
         setSuggestions(responseModel.response?.data);
       }
     } catch (e) {
-      logs("ERROR $e");
+      logs("ERROR 593$e");
     }
   }
 
