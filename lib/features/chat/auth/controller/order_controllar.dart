@@ -19,9 +19,10 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
+import '../model/GetBlueeraPiolotModel.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/get_adress_details_model.dart';
-import '../model/get_blueera_piolot_model.dart';
+
 import '../model/get_porter_vechile_option_model.dart';
 import '../model/payment_success_model.dart';
 import '../repo/make_order_repo.dart';
@@ -70,7 +71,8 @@ class OrderNowController extends GetxController {
 
   }
   Future<void> viewBusinessForLocation(String userId,String userType) async {
-
+    lat.value='0.0';
+    long.value='0.0';
     try {
       ResponseModel responseModel =
       await BusinessProfileRepo().viewBusinessIdForLocation(userId,userType);
@@ -101,7 +103,14 @@ class OrderNowController extends GetxController {
       await BusinessProfileRepo().getNearByRiders(params);
       if (responseModel.response?.data!=null) {
         final data = responseModel.response?.data;
-        getBlueeraPiolotModel.value=GetBlueeraPiolotModel.fromJson(data);
+
+        getBlueeraPiolotModel.value = GetBlueeraPiolotModel.fromJson(data);
+
+        if (getBlueeraPiolotModel.value.users != null &&
+            getBlueeraPiolotModel.value.users!.length > 4) {
+          getBlueeraPiolotModel.value.users =
+              getBlueeraPiolotModel.value.users!.take(4).toList();
+        }
         getRidersListResponse.value=ApiResponse.complete(getBlueeraPiolotModel);
         return getBlueeraPiolotModel.value.users;
       }else{
@@ -128,18 +137,21 @@ class OrderNowController extends GetxController {
 
     }
   }
-  Future<void> sendMessageToOrderTab(
+  Future<bool> sendMessageToOrderTab(
       {required Map<String,dynamic> params})
   async {
     try {
       ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
       if (response.isSuccess ?? false) {
+     return true;
       } else {
         commonSnackBar(
             message: response?.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
   Future<void> VerifyPayment(
@@ -323,6 +335,30 @@ class OrderNowController extends GetxController {
     }else{
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
+
+  }
+  void createSelfPickupOrder(String? messageId,String? userId,String? conversationId,Map<String,dynamic> data) async {
+        Map<String,dynamic> addOrderTabParams={
+          ApiKeys.message_id: "$messageId",
+          ApiKeys.other_user_id :userId,
+          ApiKeys.order : data
+        };
+        bool value=await sendMessageToOrderTab(params: addOrderTabParams);
+        if(value){
+          final chatViewController = Get.find<ChatViewController>();
+
+          Map<String,dynamic>datadd={
+            ApiKeys.messageId: messageId,
+            ApiKeys.order_status : true
+          };
+          await updateOrderStatus(datadd);
+          chatViewController. emitEvent("messageReceived", {
+            ApiKeys.conversation_id: conversationId??userId,
+            ApiKeys.page: 1,
+            ApiKeys.is_online_user: businessId,
+            ApiKeys.per_page_message: 30,
+          });
+        }
 
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -114,7 +115,9 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
               final imagePath = widget.imagePaths[index];
               final imageWidget = widget.isLocal
                   ? Image.asset(imagePath, fit: BoxFit.cover)
-                  : CachedNetworkImage(
+                  : (!imagePath.contains('http'))?
+                  Image.file(File(imagePath),fit: BoxFit.cover,)
+                  :CachedNetworkImage(
                       imageUrl: imagePath,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
