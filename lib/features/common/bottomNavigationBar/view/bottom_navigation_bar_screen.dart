@@ -214,53 +214,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-    /*  floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 18.0),
-        child: FloatingActionButton(onPressed: () async {
-          final serviceAccountJson = {
-            "type": "service_account",
-            "project_id": "blueera-50c05",
-            "private_key_id": "402a80dac7372154b30156c81177bfe781af242d",
-            "private_key":
-                "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCh7175TtiMtURf\nRuYa9hDkpAQNiEuTTBV/edWRs0dnBZMTWEMbBFREM68N4GTgv3zSLMYaEPZakAvB\nigvpPeCxl6W+EJ2N3WAAmMeoBIQOMwc2mFMg6aXlN9zsD1dU33p5BnZuWOqIBDOv\nKbHhYLhFTDFVYsm+y5i5BdgMBRvhFCUJGjCp46wfYzYhzKlXfeUsUYbFb7tZ0BYD\nMy9OjnDQyfeF5+8JKTXvldQG8YsRcuXw2Z9Uy08vVwZIpaCQ4nPmI3fERhyLI9BF\n/7JmyyneotZXtZJ89R2x6QILgskBKqn7Wr0JCdpG5SnSZFmvRcIiBw5VbZPFsIbj\nnUlY5TEDAgMBAAECggEAFflCXPgrAGT0gy0+ujfbsPrkpeVxw+oWHLcumNfH/53N\nCFn4uSjMOnj87xgc+DZjvK1gsFbO5xkWz0tpNFw2KkMWtYTRrFd22H3i0dTTCo44\nE1t2JEgwP7tl2g523kh4+QU8etrL8GsJjGJPBfM27ghZxWljUOWVsr2tRGxJDTCU\nNzAoi6Ok6W/QQ/ccIVXz/B2ZNsF/gZiAwOEmNWNisbaMs4RJKn6FvTj/4E8VUwms\nodsTaKJMDJyhWPmzaHYL2swabOrjPXn8FkS41mMxg4bKlof0LwPm7H9V8Rw1RVUp\n079E07nktlrfIwAub58qcJzcFroJfd1xmL8tWAndEQKBgQDZ++vLu55kqxUvQD0e\nAypJYHDTms7/k21Vw9XtE2Emb9a/GFEyFahLRHkiCWRbliV6/U3nzDPRF8erEi57\nuo4pdK4MGy17ZwFFrxPu+hZAEG9Bqgs4L3SUxT+y3hMiqB75nIoetoXaVaydkcs0\nRnq2UdbNDzvwqKDkTfguV5pSiQKBgQC+LRhLM4ajSBFLqKrcLanm3r642yf3PtuW\nYXNV5+FDNT6v63HQXBg2eJlWuk6VwdvOZOMpy9iPQGOD7bD3Hoq/AUc2JT6CGT9B\nFv+YJ7RBCYWl+EsxMj0W446rQNWD0Sj13S+KWDHUd5vvI2Y9G0DW6OD8K1URObSn\n55QPqCm0KwKBgQCS0KXjth3cV44RIQcI68DTYu0a2C2K3VTKavfukRrhtHnCgzJM\ntWGAMEIVtpWtSdc8mtaZxGMx9P46Lii4lNGjAj8nUDa14o5szJp0XmQWCfulEk40\nLWIrwR5B7mic8vbJz7EHNo+4mfOEvOlL8Bw+J6iwvA327NxQaGM7cy0xYQKBgHz7\n6A5sQ50F3RALPpdLj3DCjTeyGHb+oZQYYZNgvIPN92/oXblg/Sy3X5dHBCSZ7lqb\npUuvw5iJ6Z0n1njiYq8bKPDl00nvS8n8UmhuF6Hynxovr0Ma0Fk9nmLgTjK+gJvt\nDLRwN/d50Ep+yk94nMlg7ZPs6pBSi28Z3A3aJ+ZXAoGBAKR1igkCFD7U4pdw2TMd\ncUaFE6SHClOs1F4oxS1FMhVHXV4P+VkGsbPP/RFIfnq/jvMums0sFQxEtx1hPBvZ\n5Tsxdrco7ks9RykXsLcYKENSn4O1t5TYpiCyO0IefcPWP/t5QC0tx23qoxu9W+ZW\ncSRoaX431CQynOdF+SwqTgNG\n-----END PRIVATE KEY-----\n",
-            "client_email":
-                "firebase-adminsdk-fbsvc@blueera-50c05.iam.gserviceaccount.com",
-            "client_id": "108051446785289900962",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url":
-                "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url":
-                "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40blueera-50c05.iam.gserviceaccount.com",
-            "universe_domain": "googleapis.com"
-          };
-          List<String> scopes =
-          [
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/firebase.database",
-            "https://www.googleapis.com/auth/firebase.messaging"
-          ];
-          http.Client client = await auth.clientViaServiceAccount(
-            auth.ServiceAccountCredentials.fromJson(serviceAccountJson),
-            scopes,
-          );
 
-        // get the access token
-          auth.AccessCredentials credentials = await auth.obtainAccessCredentialsViaServiceAccount(
-              auth.ServiceAccountCredentials.fromJson(serviceAccountJson),
-              scopes,
-              client
-          );
-
-          client.close();
-
-           logs("ACCESS TOKEN ===${credentials.accessToken.data}");
-           print("ACCESS TOKEN ===${credentials.accessToken.data}");
-           debugPrint("ACCESS TOKEN ===${credentials.accessToken.data}");
-
-          // arguments: {"postId": (uri.toString().split("/").last)});
-        }),
-      ),*/
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
