@@ -256,7 +256,7 @@ class _CreateMessagePostScreenNewState
                     Align(
                       alignment: Alignment.centerRight,
                       child: Obx(() => CustomText(
-                            "${msgController.postText.value.length}/1000",
+                            "${msgController.postText.value.length}/1800",
                             color: Colors.grey,
                             fontSize: 12,
                           )),

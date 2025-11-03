@@ -304,13 +304,13 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   void pauseVideo() => _controller?.pause();
 
   void _setupViewTimer() {
-    _viewTimer = Timer(const Duration(seconds: 5), () {
-      if (!_isDisposed) {
-        fullScreenShortController.shortVideoView(
-          videoId: fullScreenShortController.videoItem?.video?.id ?? '0',
-        );
-      }
-    });
+    // _viewTimer = Timer(const Duration(seconds: 5), () {
+    //   if (!_isDisposed) {
+    //     fullScreenShortController.shortVideoView(
+    //       videoId: fullScreenShortController.videoItem?.video?.id ?? '0',
+    //     );
+    //   }
+    // });
   }
 
   @override

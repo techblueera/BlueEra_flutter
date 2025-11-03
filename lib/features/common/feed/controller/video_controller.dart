@@ -72,7 +72,7 @@ class VideoController extends GetxController{
 
   /// View Video
   Future<void> videoView({required String videoId}) async {
-    try {
+   /* try {
 
       final response = await FeedRepo().viewVideo(videoId: videoId);
 
@@ -86,7 +86,7 @@ class VideoController extends GetxController{
       videoViewResponse =  ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-    }
+    }*/
   }
 
   ///GET ALL Feed Videos...

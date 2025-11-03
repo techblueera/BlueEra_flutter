@@ -118,10 +118,18 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   @override
   void dispose() {
     _controller?.removeListener(_onVideoProgress);
-    // 🔥 Don't dispose controller here if using shared cache (let cache manage it)
-    // _controller?.dispose();
+    if (_controller != null && _controller!.value.isPlaying) {
+      _controller!.pause(); // ✅ stop playback
+    }
     super.dispose();
   }
+  // @override
+  // void dispose() {
+  //   _controller?.removeListener(_onVideoProgress);
+  //   // 🔥 Don't dispose controller here if using shared cache (let cache manage it)
+  //   // _controller?.dispose();
+  //   super.dispose();
+  // }
 
   String _formatTime(Duration d) {
     final min = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -137,8 +145,26 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       child: VisibilityDetector(
         key: Key(widget.video.id),
         onVisibilityChanged: (info) {
-          // _visible = info.visibleFraction > 0.6;
-          _playPauseBasedOnVisibility();
+          if (info.visibleFraction > 0.6) {
+            _controller?.play();
+            _isPlaying = true;
+          } else {
+            _controller?.pause();
+            _isPlaying = false;
+          }
+
+          if (!mounted) return;
+          setState(() {});
+          // if (_visible && widget.isActive) {
+          //   _controller!.play();
+          //   _isPlaying = true;
+          // } else {
+          //   _controller!.pause();
+          //   _isPlaying = false;
+          // }
+          // if (!mounted) return;
+          // setState(() {});
+          // _playPauseBasedOnVisibility();
         },
         child: Column(
           children: [
@@ -724,36 +750,37 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       ),
     );
   }
+}
 
-
-  void _onLikeDislikePressed() {
-    feedController.postLikeDislike(
-        postId:  widget.video.id ?? '0',
-        type: PostType.otherChannelPosts,
-        sortBy: SortBy.Latest);
-  }
-
-  void _onCommentPressed() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.8,
-        child: CommentBottomSheet(
-            id: widget.video.id ?? '0',
-            totalComments: widget.video.comments_count ?? 0,
-            commentType: CommentType.post,
-            onNewCommentCount: (int newCommentCount) {
-              feedController.updateCommentCount(
-                  postId: widget.video.id ,
-                  type:PostType.otherChannelPosts,
-                  sortBy: SortBy.Latest,
-                  newCommentCount: newCommentCount);
-            }),
-      ),
-    );
-  }
+  //
+  // void _onLikeDislikePressed() {
+  //   feedController.postLikeDislike(
+  //       postId:  widget.video.id ?? '0',
+  //       type: PostType.otherChannelPosts,
+  //       sortBy: SortBy.Latest);
+  // }
+  //
+  // void _onCommentPressed() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) => FractionallySizedBox(
+  //       heightFactor: 0.8,
+  //       child: CommentBottomSheet(
+  //           id: widget.video.id ?? '0',
+  //           totalComments: widget.video.comments_count ?? 0,
+  //           commentType: CommentType.post,
+  //           onNewCommentCount: (int newCommentCount) {
+  //             feedController.updateCommentCount(
+  //                 postId: widget.video.id ,
+  //                 type:PostType.otherChannelPosts,
+  //                 sortBy: SortBy.Latest,
+  //                 newCommentCount: newCommentCount);
+  //           }),
+  //     ),
+  //   );
+  // }
 /*  @override
   Widget build(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
@@ -813,7 +840,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
       ],
     );
   }*/
-}
 
 /*
 class VideoPlayerItem extends StatefulWidget {

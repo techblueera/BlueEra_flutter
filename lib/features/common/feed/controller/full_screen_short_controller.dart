@@ -20,21 +20,21 @@ class FullScreenShortController extends GetxController{
 
   ///SHORT VIDEO View...
   Future<void> shortVideoView({required String videoId}) async {
-    try {
-
-      final response = await FeedRepo().viewVideo(videoId: videoId);
-
-      if (response.isSuccess) {
-        shortVideoViewResponse = ApiResponse.complete(response);
-      } else {
-        shortVideoViewResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      shortVideoViewResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
+    // try {
+    //
+    //   final response = await FeedRepo().viewVideo(videoId: videoId);
+    //
+    //   if (response.isSuccess) {
+    //     shortVideoViewResponse = ApiResponse.complete(response);
+    //   } else {
+    //     shortVideoViewResponse =  ApiResponse.error('error');
+    //     commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+    //   }
+    // } catch (e) {
+    //   shortVideoViewResponse =  ApiResponse.error('error');
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    // } finally {
+    // }
   }
 
   // ///SHORT VIDEO LIKE...
