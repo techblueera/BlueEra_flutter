@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/deliver_partner/view/personal_information_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
@@ -125,7 +125,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         break;
 
       case 'Delivery\nPartner':
-        Get.to(()=> PersonalInformationRidingScreen());
+        Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
         break;
 
       case 'Home Mad\nProducts':

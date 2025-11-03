@@ -12,6 +12,12 @@ import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/driving_verification_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -347,6 +353,24 @@ class RouteHelper {
 
   static String getAddFlatRoomRentalServiceScreenRoute() =>
       RouteConstant.addFlatRoomRentalServiceScreen;
+
+  static String getPersonalInformationRidingScreenRoute() =>
+      RouteConstant.personalInformationRidingScreen;
+
+  static String getAddressLocationRidingScreenRoute() =>
+      RouteConstant.addressLocationRidingScreen;
+
+  static String getPersonalIdentificationRidingScreenRoute() =>
+      RouteConstant.personalIdentificationRidingScreen;
+
+  static String getDrivingVerificationRidingScreenRoute() =>
+      RouteConstant.drivingVerificationRidingScreen;
+
+  static String getVehicleImagesRidingScreenRoute() =>
+      RouteConstant.vehicleImagesRidingScreen;
+
+  static String getVehicleInformationRidingScreenRoute() =>
+      RouteConstant.vehicleInformationRidingScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1041,7 +1065,30 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => AddFlatRoomRentalServiceScreen(),
             settings: RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
-
+      case RouteConstant.personalInformationRidingScreen:
+        return MaterialPageRoute(
+            builder: (_) => PersonalInformationRidingScreen(),
+            settings: RouteSettings(name: getPersonalInformationRidingScreenRoute()));
+      case RouteConstant.addressLocationRidingScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddressLocationRidingScreen(),
+            settings: RouteSettings(name: getAddressLocationRidingScreenRoute()));
+      case RouteConstant.personalIdentificationRidingScreen:
+        return MaterialPageRoute(
+            builder: (_) => PersonalIdentificationRidingScreen(),
+            settings: RouteSettings(name: getPersonalIdentificationRidingScreenRoute()));
+      case RouteConstant.drivingVerificationRidingScreen:
+        return MaterialPageRoute(
+            builder: (_) => DrivingVerificationRidingScreen(),
+            settings: RouteSettings(name: getDrivingVerificationRidingScreenRoute()));
+      case RouteConstant.vehicleImagesRidingScreen:
+        return MaterialPageRoute(
+            builder: (_) => VehicleImagesRidingScreen(),
+            settings: RouteSettings(name: getVehicleImagesRidingScreenRoute()));
+      case RouteConstant.vehicleInformationRidingScreen:
+        return MaterialPageRoute(
+            builder: (_) => VehicleInformationRidingScreen(),
+            settings: RouteSettings(name: getVehicleInformationRidingScreenRoute()));
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

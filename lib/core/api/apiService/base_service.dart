@@ -483,4 +483,13 @@ abstract class BaseService {
   String getNearByRiderApi = "rider-service/riders/nearby";
   final String servicesByLatLng = "earn-service/services/all/map";
 
+  final String ridersOnboardingPersonalInformation = "rider-service/riders/onboarding/personal-information";            // Onboarding rider (step 1)
+  final String ridersOnboardingAddress = "rider-service/riders/onboarding/address";                                     // Onboarding rider (step 2)
+  final String ridersOnboardingPersonalIdentification = "rider-service/riders/onboarding/personal-identification";      // Onboarding rider (step 3)
+  final String ridersOnboardingDrivingVerification = "rider-service/riders/onboarding/driving-verification";            // Onboarding rider (step 4)
+  final String ridersOnboardingVehicleImages = "rider-service/riders/onboarding/vehicle-images";                        // Onboarding rider (step 5)
+  final String ridersOnboardingVehicleInformation = "rider-service/riders/onboarding/vehicle-information";              // Onboarding rider (step 6)
+  final String ridersOnboardingStatus = "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
+  final String initRiderServiceUpload = "rider-service/s3/presigned-url";
+
 }

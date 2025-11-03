@@ -427,4 +427,31 @@ class ApiKeys {
   static const is_Self_Pickup_Order = 'is_Self_Pickup_Order';
   static const service_id = 'service_id';
 
+  static const dob = 'dob';
+  static const contactNo = 'contactNo';
+  static const homeLocation = 'homeLocation';
+  static const streetAddress = 'streetAddress';
+  static const locationPermission = 'locationPermission';
+  static const aadharNo = 'aadharNo';
+  static const panNo = 'panNo';
+  static const userPicture = 'userPicture';
+  static const aadharImages = 'aadharImages';
+  static const panImages = 'panImages';
+  static const front = 'front';
+  static const back = 'back';
+  static const rcNo = 'rcNo';
+  static const dlNo = 'dlNo';
+  static const rcImages = 'rcImages';
+  static const dlImages = 'dlImages';
+  static const vehicleNoPlateImg = 'vehicleNoPlateImg';
+  static const vehicleRightHandSideImage = 'vehicleRightHandSideImage';
+  static const vehicleLeftSideImage = 'vehicleLeftSideImage';
+  static const vehicleFrontImage = 'vehicleFrontImage';
+  static const vehicleBackImage = 'vehicleBackImage';
+  static const registrationType = 'registrationType';
+  static const vehicleName = 'vehicleName';
+  static const fuelType = 'fuelType';
+  static const registrationNo = 'registrationNo';
+  static const vehicleModelYear = 'vehicleModelYear';
+  static const vehicleType = 'vehicleType';
 }

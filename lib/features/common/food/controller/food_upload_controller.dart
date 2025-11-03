@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/upload_s3_image_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -201,7 +202,7 @@ class FoodUploadController extends GetxController {
       foodAiResponse.value = ApiResponse.error(e.toString());
     }
   }
-  List<LocalImage> images = [];
+  List<UploadS3ImageModel> images = [];
   double? _parsePriceToDouble(String raw) {
     if (raw
         .trim()
@@ -253,7 +254,7 @@ class FoodUploadController extends GetxController {
       final imageInfo = getFileInfo(File(imagePath));
       if (imageInfo.isNotEmpty) {
         images.add(
-          LocalImage(path: imagePath, mimeType: imageInfo['mimeType']!),
+          UploadS3ImageModel(path: imagePath, mimeType: imageInfo['mimeType']!),
         );
       }
     }
@@ -315,7 +316,7 @@ class FoodUploadController extends GetxController {
     }
   }
 
-  Future<void> uploadAllImages(List<LocalImage> images) async {
+  Future<void> uploadAllImages(List<UploadS3ImageModel> images) async {
     if (images.isEmpty) return;
 
     final totalImages = images.length;

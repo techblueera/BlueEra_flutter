@@ -962,7 +962,6 @@ bool updateBtnLoading=false;
                                 child: CustomBtn(
                                     isLoading: updateBtnLoading,
                                     radius: 10,
-
                                     isValidate: filedValidation(),
                                     onTap: filedValidation()
                                         ? () async {

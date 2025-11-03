@@ -229,6 +229,78 @@ class ValidationMethod {
     return null;
   }
 
+  static String? validateAadhaar(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Aadhaar number is required';
+    }
+
+    bool isValid = RegExp(r'^[2-9]{1}[0-9]{11}$').hasMatch(value);
+    if (!isValid) {
+      return 'Please enter a valid 12-digit Aadhaar number';
+    }
+
+    return null;
+  }
+
+  static String? validatePAN(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'PAN number is required';
+    }
+
+    bool isValid = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$')
+        .hasMatch(value.toUpperCase());
+    if (!isValid) {
+      return 'Please enter a valid PAN number (e.g. ABCDE1234F)';
+    }
+
+    return null;
+  }
+
+  static String? validateRC(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'RC number is required';
+    }
+
+    bool isValid = RegExp(r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$')
+        .hasMatch(value.toUpperCase());
+    if (!isValid) {
+      return 'Please enter a valid vehicle registration number (e.g. UP32AB1234)';
+    }
+
+    return null;
+  }
+
+  static String? validateDrivingLicense(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Driving license number is required';
+    }
+
+    bool isValid = RegExp(r'^[A-Z]{2}[0-9]{2}\d{11,13}$')
+        .hasMatch(value.toUpperCase());
+    if (!isValid) {
+      return 'Please enter a valid driving license number (e.g. DL0420110148936)';
+    }
+
+    return null;
+  }
+
+  static String? validateVehicleNumber(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Vehicle number is required.';
+    }
+
+    final regex = RegExp(r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$');
+
+    if (!regex.hasMatch(value.trim().toUpperCase())) {
+      return 'Please enter a valid vehicle number (e.g. MH12AB1234).';
+    }
+
+    return null;
+  }
+
+
+
+
 }
 
 
