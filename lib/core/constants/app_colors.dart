@@ -108,4 +108,6 @@ class AppColors {
   static const  purpleOut = Color(0xffC7017C);
   static const  backgroundBlur = Color(0xff0000004D);
   static const  litered = Color(0xffD94A42);
+  static const  blueLight = Color(0xFF56CCF2);
+  static const  blueDark = Color(0xFF2F80ED);
 }

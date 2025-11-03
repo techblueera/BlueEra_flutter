@@ -1,9 +1,13 @@
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
@@ -67,7 +71,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
           return Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF56CCF2), Color(0xFF2F80ED)],
+                colors: [AppColors.blueLight,AppColors.blueDark],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -100,39 +104,31 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 30),
-                    const Text(
+                     SizedBox(height: SizeConfig.size30),
+                    const CustomText(
                       "Payment Successful!",
-                      style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                      ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
+                     SizedBox(height: SizeConfig.size10),
+                    const CustomText(
                       "Your order has been placed successfully.",
-                      style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.white99,
                         fontSize: 16,
-                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 35),
+                     SizedBox(height: SizeConfig.size35),
 
                     // Order details card
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
+                          AppShadows.bottomShadow
                         ],
                       ),
                       child: Column(
@@ -147,7 +143,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 30),
+                     SizedBox(height: SizeConfig.size30),
 
                     // Track order button
                     ElevatedButton.icon(
@@ -160,7 +156,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
 
                       },
                       // icon: const Icon(Icons.location_on_outlined),
-                      label: const Text("View My Order"),
+                      label: const CustomText("View My Order"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF2F80ED),
@@ -172,14 +168,15 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                     SizedBox(height: SizeConfig.size16),
 
                     // Done button
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text(
+                      child: const CustomText(
                         "Done",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                       color:  AppColors.white,
+                          fontSize: 16
                       ),
                     ),
                   ],
@@ -201,28 +198,25 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          const CustomText(
             "Order ID",
-            style: TextStyle(fontSize: 15, color: Colors.black54),
+           fontSize: 15,
+              color:  AppColors.grayText
           ),
           Row(
             children: [
-              Text(
+              CustomText(
                 orderId,
-                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+                  color:AppColors.black,
               ),
-              const SizedBox(width: 8),
+               SizedBox(width: SizeConfig.size8),
               InkWell(
                 onTap: () async {
                   await Clipboard.setData(ClipboardData(text: orderId));
                   if (mounted) {
                     commonSnackBar(message: "Order ID copied to clipboard");
-
-
                   }
                 },
                 child: const Icon(
@@ -245,13 +239,15 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title,
-              style: const TextStyle(fontSize: 15, color: Colors.black54)),
-          Text(value,
-              style: const TextStyle(
+          CustomText(title,
+                  fontSize: 15, color: AppColors.blackA3
+          ),
+          CustomText(value,
+
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black)),
+                  color: AppColors.black
+          )
         ],
       ),
     );

@@ -13,9 +13,9 @@ import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../common/map/view/searchLocationScreen.dart';
 import '../../../auth/controller/order_controllar.dart';
+import '../../../auth/model/GetBlueeraPiolotModel.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../../auth/model/get_adress_details_model.dart';
-import '../../../auth/model/get_blueera_piolot_model.dart';
 import 'add_address_screen.dart';
 
 class AddressListScreen extends StatefulWidget {
@@ -48,7 +48,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: CommonBackAppBar(
-        title: "Address",
+        title: "Choose Delivery Address",
       ),
       body: SafeArea(
         child: Column(
@@ -215,8 +215,11 @@ class _AddressListScreenState extends State<AddressListScreen> {
                 showFindingRiderDialog(context);
                 Map<String, dynamic> params = {
                   ApiKeys.latitude: double.parse(orderController.lat.value),
-                  ApiKeys.longitude: double.parse(orderController.long.value)
+                  ApiKeys.longitude: double.parse(orderController.long.value),
+                  ApiKeys.range_in_km: 5,
                 };
+
+
                 List<Riders>? riders= await orderController.getRidersNearByShop(params);
                 Future.delayed(Duration(seconds: 4),(){
                   if(riders!=null&&riders.isNotEmpty){
@@ -230,19 +233,19 @@ class _AddressListScreenState extends State<AddressListScreen> {
                         .getAddressDetails.value.data?[selectedIndex!];
 
                     final Map<String, dynamic> payload = {
-                      "pickup_details": {
-                        "lat": orderController.lat.value,
-                        "lng": orderController.long.value,
+                      ApiKeys.pickup_details: {
+                        ApiKeys.lat: orderController.lat.value,
+                        ApiKeys.lng: orderController.long.value,
                       },
-                      "drop_details": {
-                        "lat": selectedAddress?.lat,
-                        "lng": selectedAddress?.lng,
+                      ApiKeys.drop_details: {
+                        ApiKeys.lat: selectedAddress?.lat,
+                        ApiKeys.lng: selectedAddress?.lng,
                       },
-                      "customer": {
-                        "name": "${selectedAddress?.name}",
-                        "mobile": {
-                          "country_code": "+91",
-                          "number": "${selectedAddress?.phone}",
+                      ApiKeys.customer: {
+                        ApiKeys.name: "${selectedAddress?.name}",
+                        ApiKeys.mobile: {
+                          ApiKeys.country_code: "+91",
+                          ApiKeys.number: "${selectedAddress?.phone}",
                         },
                       },
                     };

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -10,6 +11,7 @@ import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart'
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,6 +29,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../core/constants/regular_expression.dart';
+import '../../../../widgets/commom_textfield.dart';
 import '../../../../widgets/common_box_shadow.dart';
 import '../../../common/business_service/model/get_service_model.dart';
 import '../../../common/business_service/view/service_details_view_screen.dart';
@@ -34,6 +38,7 @@ import '../../../common/food/model/get_food_details_model.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
+import '../orders_chat/widget/order_common_widgets.dart';
 import '../orders_chat/widget/select_address_screen.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
@@ -100,7 +105,7 @@ class _MessageCardState extends State<MessageCard>
 
   @override
   Widget build(BuildContext context) {
-    print("sdjcnjsdc ${widget.userId}");
+
     final theme = Theme.of(context);
     final text = widget.message.message ?? '';
 
@@ -115,9 +120,7 @@ class _MessageCardState extends State<MessageCard>
    }
 
     final time = formatChatTime(widget.message.createdAt ?? '');
-
     Widget messageWidget;
-
     switch (widget.message.messageType) {
       case "location":
         messageWidget = _buildMapMessage(
@@ -218,19 +221,20 @@ class _MessageCardState extends State<MessageCard>
         List<String> message=widget.message.message?.split('.')??[];
         if(message.isNotEmpty){
           messageWidget = ServiceMessageCardBusiness(
+            isFromOrderTab: widget.isFromOrderTab??false,
             userId: widget.userId??'',
             message: widget.message,
             isFromChatCard: true,
             serviceData: GetServiceModel(
               business: BusinessService(
-                businessName:message.last ,
-                categoryOfBusiness: CategoryOfBusiness(name:message[1])
+                businessName:widget.message.metadata?.variant ,
+                categoryOfBusiness: CategoryOfBusiness(name:widget.message.metadata?.subCategory)
               ),
                 id: widget.message.metadata?.serviceId,
                 discounts: [Discounts(amountOff: num.tryParse(widget.message.metadata?.discount ?? '0'))],
                 userId: widget.userId,
-                type: "service",
-                title: message.first,
+                type: AppConstants.service,
+                title: widget.message.metadata?.title,
                 priceType: "single",
                 photos:url,
 
@@ -481,6 +485,7 @@ class _MessageCardState extends State<MessageCard>
       ProductListing product, {
         required double width,
       }) {
+
     return GestureDetector(
       onTap: () {
       },
@@ -502,7 +507,7 @@ class _MessageCardState extends State<MessageCard>
               aspectRatio: 1.2, // square-ish image (adjust if needed)
               child: Stack(
                 children: [
-                  CustomImageSlideshow(
+                 CustomImageSlideshow(
                     isLoading: false,
                     width: double.infinity,
                     height: double.infinity,
@@ -614,7 +619,106 @@ class _MessageCardState extends State<MessageCard>
                   ),
                 ),
               ],
-            ):(widget.message.metadata?.orderStatus??false)?
+            ):(widget.isFromOrderTab??false)?
+            (widget.message.metadata?.is_cancelled??false)? Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.close, color: Colors.red,),
+                    label:  CustomText(
+                      'Canceled',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+
+
+              ],
+            ):
+            Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.warning_amber_rounded,
+                                      color: Colors.red, size: 60),
+                                  const SizedBox(height: 15),
+                                  CustomText(
+                                    'Are you sure you want to cancel the order?',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 25),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Expanded(
+                                        child:  CustomBtn(
+                                            bgColor: AppColors.primaryColor,
+                                            onTap: ()async{
+                                              final controller = Get.put(OrderNowController());
+                                              bool? res=await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
+                                              Get.back();
+                                            }, title: "Yes"),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: CustomBtn(onTap: (){
+                                          Get.back();
+                                        }, title: "No"),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.close, color: Colors.red),
+                    label: CustomText(
+                      'Cancel',
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const VerticalDivider(width: 1,color: Colors.grey,),
+
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () async{
+                      final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.inAppWebView);
+                      }
+                    },
+                    icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
+                    label:   CustomText(
+                      'Track Order',
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ) :(widget.message.metadata?.orderStatus??false)?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Expanded(
@@ -1669,6 +1773,7 @@ class ServiceMessageCardBusiness extends StatefulWidget {
   final GetServiceModel serviceData;
   final bool isGridView;
   final bool isShowChat;
+  final bool isFromOrderTab;
   final bool isFromChatCard;
   final Messages message;
   final String userId;
@@ -1686,7 +1791,7 @@ class ServiceMessageCardBusiness extends StatefulWidget {
     this.isShowKM = false,
     this.isShowBusinessInfo = false,
     this.businessData,
-    required this.message, required this.userId, required this.conversationId,
+    required this.message, required this.userId, required this.conversationId, required this.isFromOrderTab,
   }) : super(key: key);
 
   @override
@@ -1819,8 +1924,7 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                 serviceData?.business?.businessLocation?.lon?.toString() ??
                     ""),
 
-
-            const Divider(height: 1,color: Colors.grey,),
+            (!(widget.message.myMessage??false))?const Divider(height: 1,color: Colors.grey,):SizedBox(),
             (!(widget.message.myMessage??false))?
             Row(mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1865,69 +1969,8 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                   ),
                 ),
               ],
-            ):(widget.message.metadata?.orderStatus??false)?
-            Row(mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Expanded(
-                //   child: TextButton.icon(
-                //     onPressed: () {},
-                //     icon: const Icon(Icons.close, color: Colors.red,),
-                //     label:  CustomText(
-                //       'Cancel',
-                //       color: Colors.red,
-                //       fontWeight: FontWeight.w900,
-                //     ),
-                //   ),
-                // ),
-                // const VerticalDivider(width: 1,color: Colors.grey,),
-
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-
-                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
-                    },
-                    icon: Icon(Icons.check,color: Colors.green,),
-                    label:   CustomText(
-                      'Order Placed',
-                      color: Colors.green,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ):Row(mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Expanded(
-                //   child: TextButton.icon(
-                //     onPressed: () {},
-                //     icon: const Icon(Icons.close, color: Colors.red,),
-                //     label:  CustomText(
-                //       'Cancel',
-                //       color: Colors.red,
-                //       fontWeight: FontWeight.w900,
-                //     ),
-                //   ),
-                // ),
-                // const VerticalDivider(width: 1,color: Colors.grey,),
-
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
-
-                      orderNow(context,widget.userId??"",widget.message);
-                    },
-                    icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
-                    label:   CustomText(
-                      'Order Now',
-                      color: Colors.blue,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ):
+            SizedBox(),
           ],
         ),
       ),
@@ -1935,5 +1978,6 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
   }
 }
 void orderNow(BuildContext context,String businessId,Messages message){
-  Navigator.push(context, MaterialPageRoute(builder: (context)=>AddressListScreen(message: message,businessId: businessId)));
+  OrderCommonWidget.showEnterOrderValueDialog(context,businessId,message);
+
 }

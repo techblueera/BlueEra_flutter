@@ -418,5 +418,13 @@ class ApiKeys {
   static const clones = 'clones';
   static const media_height = 'media_height';
   static const media_width = 'media_width';
+  static const range_in_km = 'range_in_km';
+  static const pickup_details = 'pickup_details';
+  static const drop_details = 'drop_details';
+  static const customer = 'customer';
+  static const mobile = 'mobile';
+  static const country_code = 'country_code';
+  static const is_Self_Pickup_Order = 'is_Self_Pickup_Order';
+  static const service_id = 'service_id';
 
 }

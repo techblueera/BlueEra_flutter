@@ -1,6 +1,8 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen, navigatePushTo;
+import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen, navigatePushTo, AppConstants;
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -21,9 +23,9 @@ class ServiceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     bool isSelfService = false;
     // log('type--> ${service.serviceProvider?.type}');
-
     if(service.serviceProvider?.type?.toLowerCase()
         == ProductServiceProviderType.user.name.toLowerCase() ||
         service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
@@ -144,11 +146,9 @@ class ServiceDetailsScreen extends StatelessWidget {
                           await chatViewController.checkChatConnection(detas);
                           List<Map<String, String>> urlList = service.photos?.map((e) => {"url": e}).toList()??[];
                           Map<String,dynamic> data={
-                            // "food_id": "${item.id}",
-                            // "product_id": "string",
-                            "service_id": "${service.id}",
-                            "price": "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
-                            "discount": "${(maxDiscount?.amountOff != null)
+                           ApiKeys.service_id : "${service.id}",
+                            ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                            ApiKeys.discount: "${(maxDiscount?.amountOff != null)
                                 ? "${maxDiscount?.amountOff.toString()}% Off"
                                 : "0% Off"}",
                             if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
@@ -165,9 +165,14 @@ class ServiceDetailsScreen extends StatelessWidget {
                                   ?.data
                                   ?.conversationId ??
                                   ''),
-                            "message": "${service.title}.${service.business?.categoryOfBusiness?.name ?? "N/A"}.${service.business?.businessName ?? "N/A"}",
-                            "message_type": "service",
-                            "url": urlList,
+
+                            ApiKeys.message: "${service.title}",
+                            ApiKeys.message_type: AppConstants.service,
+                            ApiKeys.title: service.title,
+                            ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
+                            ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
+                            // ApiKeys.mrp : "string"
+                            ApiKeys.url: urlList,
                           };
                           chatViewController.openAnyOneChatFunction(
                             shareProductParams:data,
@@ -185,7 +190,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                                 ''
                                 : null,
                             businessId: service.business?.id ,
-                            type: "business",
+                            type: AppConstants.chatMsgBusinessType,
                             isInitialMessage: (chatViewController
                                 .newVisitContactApiResponse
                                 ?.value

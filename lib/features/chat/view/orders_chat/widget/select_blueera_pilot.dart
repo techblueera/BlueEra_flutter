@@ -1,6 +1,5 @@
 import 'dart:typed_data';          // For Uint8List
 import 'package:flutter/services.dart';  // For rootBundle and ByteData
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -10,10 +9,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../auth/controller/order_controllar.dart';
-import '../../../auth/model/get_blueera_piolot_model.dart';
+import '../../../auth/model/GetBlueeraPiolotModel.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
@@ -59,16 +58,11 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
 
   List<int> selectedIndexes = [];
 
-  @override
-  void initState() {
-
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+
       appBar: CommonBackAppBar(
         title: "Delivery Pilot Near to ${widget.shopName}",
       ),
@@ -77,24 +71,15 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
           GetBlueeraPiolotModel data=orderController.getBlueeraPiolotModel.value;
           Future.delayed(Duration.zero,(){
             selectedIndexes = List.generate(data.users?.length ?? 0, (index) => index);
-
           });
-          return Column(
+          return
+            SafeArea(
+            child: Column(
+
             children: [
-              // Map section
-              // ClipRRect(
-              //   borderRadius: BorderRadius.circular(10),
-              //   child: Image.asset(
-              //     "assets/map_sample.png", // replace with your map image
-              //     height: 200,
-              //     width: double.infinity,
-              //     fit: BoxFit.cover,
-              //   ),
-              // ),
               Container(
                   height: 240,
-                  color: Colors.white,
-
+                  color: AppColors.white,
                   child: MapplsMap(
                     initialCameraPosition: CameraPosition(
                       target: LatLng(widget.lat, widget.long),
@@ -123,7 +108,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.9,
+                      childAspectRatio: 0.8,
                     ),
                     itemBuilder: (context, index) {
                       final pilot = data.users?[index];
@@ -142,15 +127,8 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,12 +137,25 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                     height: 150,
                                     decoration: BoxDecoration(
                                       color: AppColors.grayText.withOpacity(0.3),
-                                      borderRadius: BorderRadius.only(topLeft: Radius.circular(12),topRight:Radius.circular(12) ),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
+                                      ),
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(12)),
-                                      child: Center(child: Icon(Icons.person, size: 50)),
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                      child: CachedNetworkImage(
+                                        imageUrl:pilot?.user?.profileImage??'', // replace with your image url
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        placeholder: (context, url) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                        errorWidget: (context, url, error) => const Center(
+                                          child: Icon(Icons.person, size: 50),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   Padding(
@@ -174,19 +165,21 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                       children: [
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            CustomText(
-                                              pilot?.riderData?.personalInformation?.name,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
+                                            Expanded(
+                                              child: CustomText(
+                                                pilot?.riderData?.personalInformation?.name,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
-                                            const SizedBox(height: 4),
+                                             SizedBox(height: SizeConfig.size4),
                                             Row(
                                               children: [
                                                 const Icon(CupertinoIcons.location,
                                                     size: 14, color: Colors.grey),
-                                                const SizedBox(width: 4),
+                                                SizedBox(width: SizeConfig.size4),
                                                 CustomText(
-                                                  '0.4Km',
+                                                  pilot?.distance,
                                                   color: Colors.grey,
                                                   fontSize: 12,
                                                 ),
@@ -199,7 +192,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             CustomText(
-                                              "0 Orders",
+                                              "${pilot?.totalOrders} Orders",
                                               fontSize: 12,
                                               color: Colors.grey,
                                             ),
@@ -283,24 +276,25 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                 padding: const EdgeInsets.all(16),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: AppColors.primaryColor,
                     padding:
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
                   onPressed: () {},
-                  child: const Text(
+                  child: const CustomText(
                     "Book Delivery Pilot NOW",
-                    style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontSize: 16,
-                        fontWeight: FontWeight.bold),
+                        fontWeight: FontWeight.bold
                   ),
                 ),
               ),
+              SizedBox(height: SizeConfig.size18),
+
             ],
-          );
+          ));
         }else{
           return Center(
             child: CircularProgressIndicator(),

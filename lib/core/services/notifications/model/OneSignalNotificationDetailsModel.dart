@@ -76,7 +76,7 @@ class SenderUser {
       this.name,});
 
   SenderUser.fromJson(dynamic json) {
-    contact = json['contact'];
+    contact = json['contact']??'';
     name = json['name'];
     id = json['id'];
   }
