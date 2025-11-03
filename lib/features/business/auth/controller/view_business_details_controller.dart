@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
@@ -158,8 +159,8 @@ class ViewBusinessDetailsController extends GetxController {
           await BusinessProfileRepo().viewParticularBusinessProfile();
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-
         businessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+
         selectDay?.value =
             businessProfileDetails?.data?.dateOfIncorporation?.date ?? 0;
         selectMonth?.value =
@@ -271,6 +272,7 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);
+
         viewBusinessProfile();
         update();
       } else {

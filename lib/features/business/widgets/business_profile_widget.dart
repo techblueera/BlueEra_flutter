@@ -27,7 +27,10 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
+import '../../../widgets/highlight_text_widget.dart';
 // import 'package:lottie/lottie.dart';
+import 'package:flutter/gestures.dart';
 
 class BusinessProfileWidget extends StatefulWidget {
   BusinessProfileWidget({
@@ -567,6 +570,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         ///ABOUT YOUR BUSINESS...
         Obx(() {
           return CustomFormCard(
+
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,31 +719,34 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 (controller.isListingDescriptionEdit.value &&
                         controller.businessDescription != '')
                     ? Container(
-                        decoration: BoxDecoration(
-                            color: AppColors.white,
-                            border: Border.all(color: AppColors.whiteE5),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [AppShadows.textFieldShadow]),
-                        width: double.infinity,
-                        margin: EdgeInsets.only(top: 16),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 13, vertical: 13),
-                        child: Obx(() {
-                          return CustomText(
-                            "${controller.businessDescription.value}",
-                            fontSize: SizeConfig.medium,
-                            color: Colors.black,
-                          );
-                        }),
-                      )
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    border: Border.all(color: AppColors.whiteE5),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [AppShadows.textFieldShadow],
+                  ),
+                  width: double.infinity,
+                  margin: EdgeInsets.only(top: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+                  child: Obx(() {
+                    return DescriptionPreview(
+                      text: controller.businessDescription.value,
+                      dialogTitle: "Business Description",
+                    );
+                  }),
+                )
+
                     : CommonTextField(
-                      validator: null,
+
                       borderWidth: 0,
                       borderColor: Colors.transparent,
 
                       hintText: "Add your business details",
                       textEditController: controller.listingDescriptionController.value,
                       maxLine: 5,
+                      inputLength: 900,
+
+
                       isValidate: false,
                       maxLength: AppConstants.inputCharterLimit400,
                       inputFormatters: [
@@ -749,6 +756,19 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                         NoLeadingSpaceFormatter(),
                         NoConsecutiveSpacesFormatter(),
                       ],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Please enter business details";
+                    }
+                    if (value.trim().length < 50) {
+                      return "Minimum 50 characters required";
+                    }
+                    if (value.trim().length > 900) {
+                      return "Maximum 900 characters allowed";
+                    }
+                    return null;
+                  },
+
                     ),
 
                 Obx(() {
@@ -865,10 +885,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.secondaryTextColor,
                     ),
-                  ],
-                ),
-                Row(
-                  children: [
                     CustomText(
                       textAlign: TextAlign.left,
                       appLocalizations?.minThreeImg,
@@ -878,6 +894,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ),
                   ],
                 ),
+
                 SizedBox(
                   height: SizeConfig.size10,
                 ),
@@ -975,6 +992,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                         color: AppColors.secondaryTextColor,
                       ),
                     ),
+
                     InkWell(
                         onTap: () => updateLocationDialog(context),
                         child: LocalAssets(
@@ -994,8 +1012,15 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                   ),
                 ),
                 SizedBox(
-                  height: SizeConfig.size10,
+                  height: SizeConfig.size12,
                 ),
+                CustomText(
+                    '${details?.address}'
+
+                ),
+                // SizedBox(
+                //   height: SizeConfig.size10,
+                // ),
                 BusinessLocationWidget(
                   latitude: (details?.businessLocation?.lat?.toDouble() ?? 0.0),
                   longitude:
@@ -1327,6 +1352,8 @@ class VisitingCardPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool _isBottomSheetOpen = false;
+
     return Stack(
       children: [
         RepaintBoundary(
@@ -1524,8 +1551,14 @@ class VisitingCardPreview extends StatelessWidget {
           bottom: 10,
           right: 10,
           child: InkWell(
-            onTap: () async =>
-                await VisitingCardHelper().shareVisitingCard(cardKey),
+            onTap: () async{
+    if (_isBottomSheetOpen) return; // ✅ Block second tap instantly
+    _isBottomSheetOpen = true; // ✅ Lock immediately
+
+    await VisitingCardHelper().shareVisitingCard(cardKey); // Wait for sheet to close
+
+    _isBottomSheetOpen = false; //
+    },
             child: Container(
               decoration: BoxDecoration(
                   color: AppColors.primaryColor,
@@ -1574,6 +1607,130 @@ class VisitingCardPreview extends StatelessWidget {
           color: textColor,
         ))
       ],
+    );
+  }
+}
+class DescriptionPreview extends StatefulWidget {
+  final String text;
+  final String? dialogTitle;
+
+  const DescriptionPreview({
+    Key? key,
+    required this.text,
+    this.dialogTitle,
+  }) : super(key: key);
+
+  @override
+  State<DescriptionPreview> createState() => _DescriptionPreviewState();
+}
+
+class _DescriptionPreviewState extends State<DescriptionPreview> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxChars = 120; // ~4 lines
+
+    final showMore = widget.text.length > maxChars;
+
+    final displayText = showMore && !_expanded
+        ? "${widget.text.substring(0, maxChars)}..."
+        : widget.text;
+
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: SizeConfig.medium,
+          color: Colors.black,
+          fontFamily: AppConstants.OpenSans,
+        ),
+        children: [
+          TextSpan(text: displayText),
+
+          if (showMore && !_expanded)
+            TextSpan(
+              text: " Read more",
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  _showFullTextDialog(context,TextStyle());
+                },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullTextDialog(BuildContext context, TextStyle style) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+        child: Container(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.92,
+            // ⬇️ height expands naturally but limits only when too tall
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // 🔹 dynamic height based on content
+            children: [
+              CustomText(
+                widget.dialogTitle ?? 'Business Description',
+                fontSize: SizeConfig.large18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+              ),
+
+              SizedBox(height: SizeConfig.size10),
+
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: BouncingScrollPhysics(),
+                  child: HighlightText(
+                    text: widget.text,
+                    style: TextStyle(
+                      color: AppColors.mainTextColor,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: AppConstants.OpenSans,
+                      height: 1.30,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ⬇️ Reduced gap to minimize bottom space
+              SizedBox(height: SizeConfig.size4),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 4), // 🔹 small bottom padding
+                  child: TextButton(
+                    style: ButtonStyle(
+                      padding: MaterialStateProperty.all(EdgeInsets.zero),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: CustomText(
+                      'Close',
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.medium15,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

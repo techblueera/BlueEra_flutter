@@ -80,6 +80,7 @@ class AppConstants {
   static const int inputCharterLimit200 = 200;
   static const int inputCharterLimit50 = 50;
   static const int inputCharterLimit10 = 10;
+  static const int inputCharterLimit16 = 16;
   static const int inputCharterLimit20 = 20;
   static const int inputCharterLimit30 = 30;
   static const int inputCharterLimit100 = 100;
@@ -202,6 +203,17 @@ String formatIndianNumber(num number) {
     return number.toString();
   }
 }
+String formattedCreatedAt(String? createdAt) {
+  if (createdAt == null || createdAt.isEmpty) return "";
+
+  DateTime date = DateTime.parse(createdAt);
+  String day = date.day.toString().padLeft(2, '0');
+  String month = date.month.toString().padLeft(2, '0');
+  String year = date.year.toString();
+
+  return "$day/$month/$year";
+}
+
 String formatTime(String utcString) {
   try {
     final date = DateTime.parse(utcString).toLocal(); // convert to local timezone
