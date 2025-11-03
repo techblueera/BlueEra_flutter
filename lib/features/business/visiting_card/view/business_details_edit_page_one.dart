@@ -66,6 +66,7 @@ class _BusinessDetailsEditPageOneState
 
   bool validate = false;
   SizeOfBusiness? selectedBusiness;
+  final _formKey = GlobalKey<FormState>();
 
   final locationController = Get.put(LocationController());
 
@@ -84,6 +85,7 @@ class _BusinessDetailsEditPageOneState
     viewBusinessDetailsController.getAllCategories();
 
     final data = widget.prevBusinessDetails;
+
 
     if (data != null) {
       companyOrgNameTextController.text = data.businessName ?? '';
@@ -194,246 +196,77 @@ class _BusinessDetailsEditPageOneState
               child: Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal: SizeConfig.size16, vertical: SizeConfig.size30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    // ///UPLOAD PROFILE....
-                    // Center(
-                    //   child: CommonProfileImage(
-                    //     imagePath:
-                    //     viewBusinessDetailsController.imagePath?.value ??
-                    //         "",
-                    //     onImageUpdate: (image) {
-                    //       viewBusinessDetailsController.imagePath?.value =
-                    //           image;
-                    //       viewBusinessDetailsController.isImageUpdated.value =
-                    //       true;
-                    //     },
-                    //     dialogTitle: 'Upload Business Logo',
-                    //   ),
-                    // ),
-                    //
-                    // SizedBox(
-                    //   height: SizeConfig.size20,
-                    // ),
-                    // Center(
-                    //   child: CustomText(
-                    //     appLocalizations?.businessLogo,
-                    //     fontSize: SizeConfig.large,
-                    //   ),
-                    // ),
-                    // Center(
-                    //   child: CustomText(
-                    //     appLocalizations?.youCanUpdateYourLogoAnytime,
-                    //     fontSize: SizeConfig.small,
-                    //     color: AppColors.grey80,
-                    //   ),
-                    // ),
-                    // SizedBox(
-                    //   height: SizeConfig.size30,
-                    // ),
+                      // ///UPLOAD PROFILE....
+                      // Center(
+                      //   child: CommonProfileImage(
+                      //     imagePath:
+                      //     viewBusinessDetailsController.imagePath?.value ??
+                      //         "",
+                      //     onImageUpdate: (image) {
+                      //       viewBusinessDetailsController.imagePath?.value =
+                      //           image;
+                      //       viewBusinessDetailsController.isImageUpdated.value =
+                      //       true;
+                      //     },
+                      //     dialogTitle: 'Upload Business Logo',
+                      //   ),
+                      // ),
+                      //
+                      // SizedBox(
+                      //   height: SizeConfig.size20,
+                      // ),
+                      // Center(
+                      //   child: CustomText(
+                      //     appLocalizations?.businessLogo,
+                      //     fontSize: SizeConfig.large,
+                      //   ),
+                      // ),
+                      // Center(
+                      //   child: CustomText(
+                      //     appLocalizations?.youCanUpdateYourLogoAnytime,
+                      //     fontSize: SizeConfig.small,
+                      //     color: AppColors.grey80,
+                      //   ),
+                      // ),
+                      // SizedBox(
+                      //   height: SizeConfig.size30,
+                      // ),
 
-                    CommonTextField(
-                      textEditController: companyOrgNameTextController,
-                      inputLength: AppConstants.inputCharterLimit50,
-                      keyBoardType: TextInputType.text,
-                      regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
-                      title: "Business Name",
-                      hintText: AppConstants.companyOrgBusiness,
-                      isValidate: false,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
+                      CommonTextField(
+                        textEditController: companyOrgNameTextController,
+                        inputLength: AppConstants.inputCharterLimit30,
+                        keyBoardType: TextInputType.text,
 
-                    CustomText(
-                      appLocalizations?.dateOfIncorporation,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    NewDatePicker(
-                      selectedDay:
-                      viewBusinessDetailsController.selectDay?.value,
-                      selectedMonth:
-                      viewBusinessDetailsController.selectMonth?.value,
-                      selectedYear:
-                      viewBusinessDetailsController.selectYear?.value,
-                      onDayChanged: (value) {
-                        viewBusinessDetailsController.selectDay?.value =
-                            value ?? 0;
-                      },
-                      onMonthChanged: (value) {
-                        viewBusinessDetailsController.selectMonth?.value =
-                            value ?? 0;
-                      },
-                      onYearChanged: (value) {
-                        viewBusinessDetailsController.selectYear?.value =
-                            value ?? 0;
-                      },
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    ///SELECT BUSINESS CARD TYPE....
-
-                    CustomText(
-                      "Type of the Business",
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size14,
-                    ),
-               /*     Obx(() {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          BusinessTypeCard(
-                            type: BusinessType.Product,
-                            icon: AppIconAssets.store,
-                            title: appLocalizations?.shopStore ?? "",
-                            subtitle: appLocalizations?.egClothesFood ?? "",
-                            selectedType: viewBusinessDetailsController
-                                .selectedBusinessType?.value ??
-                                BusinessType.Both,
-                            onSelect: (type) {
-                              viewBusinessDetailsController
-                                  .selectedCategoryOfBusiness.value = null;
-                              viewBusinessDetailsController
-                                  .selectedSubCategoryOfBusinessNew
-                                  .value = null;
-                              viewBusinessDetailsController
-                                  .businessSubCategoriesList
-                                  .clear();
-                              viewBusinessDetailsController
-                                  .selectedBusinessType?.value = type;
-                            },
-                          ),
-                          SizedBox(width: SizeConfig.size20),
-                          BusinessTypeCard(
-                            type: BusinessType.Service,
-                            icon: AppIconAssets.service,
-                            title: appLocalizations?.provideServices ?? "",
-                            subtitle: appLocalizations?.egDoctorTutor ?? "",
-                            selectedType: viewBusinessDetailsController
-                                .selectedBusinessType?.value ??
-                                BusinessType.Both,
-                            onSelect: (type) {
-                              viewBusinessDetailsController
-                                  .selectedCategoryOfBusiness.value = null;
-                              viewBusinessDetailsController
-                                  .selectedSubCategoryOfBusinessNew
-                                  .value = null;
-                              viewBusinessDetailsController
-                                  .businessSubCategoriesList
-                                  .clear();
-                              viewBusinessDetailsController
-                                  .selectedBusinessType?.value = type;
-                            },
-                          ),
-                          SizedBox(width: SizeConfig.size20),
-                          BusinessTypeCard(
-                            type: BusinessType.Both,
-                            icon: AppIconAssets.store_service,
-                            title: "Other" ?? "",
-                            subtitle: appLocalizations?.egBikeShowroom ?? "",
-                            selectedType: viewBusinessDetailsController
-                                .selectedBusinessType?.value ??
-                                BusinessType.Both,
-                            onSelect: (type) {
-                              viewBusinessDetailsController
-                                  .selectedCategoryOfBusiness.value = null;
-                              viewBusinessDetailsController
-                                  .selectedSubCategoryOfBusinessNew
-                                  .value = null;
-                              viewBusinessDetailsController
-                                  .businessSubCategoriesList
-                                  .clear();
-                              viewBusinessDetailsController
-                                  .selectedBusinessType?.value = type;
-                            },
-                          ),
-                        ],
-                      );
-                    }),*/
-                    Obx(() {
-                      return CommonDropdownIconDialog<BusinessCategory>(
-                        items: typeOfBusinessList,
-                        selectedValue: viewBusinessDetailsController
-                            .selectedTypeOfBusiness.value,
-                        hintText:
-                        appLocalizations?.selectNatureOfTheBusiness ?? "",
-                        displayValue: (profession) => profession.title,
-                        title: appLocalizations?.natureOfBusiness ??
-                            "Nature of the Business",
-                        onChanged: (value) {
-                          viewBusinessDetailsController.selectedTypeOfBusiness
-                              .value = value!;
-                          if(value.type==BusinessType.Product.name)
-                            {
-                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Product;
-
-                            }
-                          else if(value.type==BusinessType.Service.name)
-                            {
-                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Service;
-
-                            }
-                          else if(value.type==BusinessType.Food.name)
-                            {
-                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Food;
-
-                            }
-                          else{
-                            viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Both;
-
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        title: "Business Name",
+                        hintText: AppConstants.companyOrgBusiness,
+                        isValidate: false,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Business name is required";
                           }
-                          viewBusinessDetailsController
-                              .selectedCategoryOfBusiness.value = null;
-                          viewBusinessDetailsController
-                              .selectedSubCategoryOfBusinessNew
-                              .value = null;
-                          viewBusinessDetailsController
-                              .businessSubCategoriesList
-                              .clear();
-
+                          if (value.trim().length < 6) {
+                            return "Minimum 6 characters required";
+                          }
+                          if (value.trim().length > 30) {
+                            return "Maximum 30 characters allowed";
+                          }
+                          return null;
                         },
-                        displayValueSubTitle: (profession) =>
-                        profession.subTitle,
-                        displayValueImagePath: (profession) => profession.icon,
-                      );
-                    }),
-                    SizedBox(
-                      height: SizeConfig.size12,
-                    ),
-
-                    // Center(
-                    //   child: CustomText(
-                    //     appLocalizations?.businessDetails,
-                    //     fontSize: SizeConfig.large,
-                    //     fontWeight: FontWeight.w600,
-                    //   ),
-                    // ),
-
-                    ///ENTER ORG/COMPANY NAME...
-
-                    ///Supply chain...
-                    if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
-                        BusinessType.Product.name)...[
+                      ),
                       SizedBox(
                         height: SizeConfig.size20,
                       ),
 
                       CustomText(
-                        'Nature of the Business',
+                        appLocalizations?.dateOfIncorporation,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w500,
                         color: AppColors.black,
@@ -441,224 +274,424 @@ class _BusinessDetailsEditPageOneState
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
-                      CommonDropdownDialog<SizeOfBusiness>(
-                        items: SizeOfBusiness.values,
-                        selectedValue: selectedBusiness,
-                        title: 'Nature of the Business',
-                        hintText: "Enter Category (if Others)",
-                        displayValue: (profession) => profession.displayName,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedBusiness = value;
-                          });
-
+                      NewDatePicker(
+                        selectedDay:
+                        viewBusinessDetailsController.selectDay?.value,
+                        selectedMonth:
+                        viewBusinessDetailsController.selectMonth?.value,
+                        selectedYear:
+                        viewBusinessDetailsController.selectYear?.value,
+                        onDayChanged: (value) {
+                          viewBusinessDetailsController.selectDay?.value =
+                              value ?? 0;
+                        },
+                        onMonthChanged: (value) {
+                          viewBusinessDetailsController.selectMonth?.value =
+                              value ?? 0;
+                        },
+                        onYearChanged: (value) {
+                          viewBusinessDetailsController.selectYear?.value =
+                              value ?? 0;
                         },
                       ),
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+
+                      ///SELECT BUSINESS CARD TYPE....
+
+                      CustomText(
+                        "Type of the Business",
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size14,
+                      ),
+                                 /*     Obx(() {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            BusinessTypeCard(
+                              type: BusinessType.Product,
+                              icon: AppIconAssets.store,
+                              title: appLocalizations?.shopStore ?? "",
+                              subtitle: appLocalizations?.egClothesFood ?? "",
+                              selectedType: viewBusinessDetailsController
+                                  .selectedBusinessType?.value ??
+                                  BusinessType.Both,
+                              onSelect: (type) {
+                                viewBusinessDetailsController
+                                    .selectedCategoryOfBusiness.value = null;
+                                viewBusinessDetailsController
+                                    .selectedSubCategoryOfBusinessNew
+                                    .value = null;
+                                viewBusinessDetailsController
+                                    .businessSubCategoriesList
+                                    .clear();
+                                viewBusinessDetailsController
+                                    .selectedBusinessType?.value = type;
+                              },
+                            ),
+                            SizedBox(width: SizeConfig.size20),
+                            BusinessTypeCard(
+                              type: BusinessType.Service,
+                              icon: AppIconAssets.service,
+                              title: appLocalizations?.provideServices ?? "",
+                              subtitle: appLocalizations?.egDoctorTutor ?? "",
+                              selectedType: viewBusinessDetailsController
+                                  .selectedBusinessType?.value ??
+                                  BusinessType.Both,
+                              onSelect: (type) {
+                                viewBusinessDetailsController
+                                    .selectedCategoryOfBusiness.value = null;
+                                viewBusinessDetailsController
+                                    .selectedSubCategoryOfBusinessNew
+                                    .value = null;
+                                viewBusinessDetailsController
+                                    .businessSubCategoriesList
+                                    .clear();
+                                viewBusinessDetailsController
+                                    .selectedBusinessType?.value = type;
+                              },
+                            ),
+                            SizedBox(width: SizeConfig.size20),
+                            BusinessTypeCard(
+                              type: BusinessType.Both,
+                              icon: AppIconAssets.store_service,
+                              title: "Other" ?? "",
+                              subtitle: appLocalizations?.egBikeShowroom ?? "",
+                              selectedType: viewBusinessDetailsController
+                                  .selectedBusinessType?.value ??
+                                  BusinessType.Both,
+                              onSelect: (type) {
+                                viewBusinessDetailsController
+                                    .selectedCategoryOfBusiness.value = null;
+                                viewBusinessDetailsController
+                                    .selectedSubCategoryOfBusinessNew
+                                    .value = null;
+                                viewBusinessDetailsController
+                                    .businessSubCategoriesList
+                                    .clear();
+                                viewBusinessDetailsController
+                                    .selectedBusinessType?.value = type;
+                              },
+                            ),
+                          ],
+                        );
+                      }),*/
+                      Obx(() {
+                        return CommonDropdownIconDialog<BusinessCategory>(
+                          items: typeOfBusinessList,
+                          selectedValue: viewBusinessDetailsController
+                              .selectedTypeOfBusiness.value,
+                          hintText:
+                          appLocalizations?.selectNatureOfTheBusiness ?? "",
+                          displayValue: (profession) => profession.title,
+                          title: appLocalizations?.natureOfBusiness ??
+                              "Nature of the Business",
+                          onChanged: (value) {
+                            viewBusinessDetailsController.selectedTypeOfBusiness
+                                .value = value!;
+                            if(value.type==BusinessType.Product.name)
+                              {
+                                viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Product;
+
+                              }
+                            else if(value.type==BusinessType.Service.name)
+                              {
+                                viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Service;
+
+                              }
+                            else if(value.type==BusinessType.Food.name)
+                              {
+                                viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Food;
+
+                              }
+                            else{
+                              viewBusinessDetailsController.selectedBusinessType?.value=BusinessType.Both;
+
+                            }
+                            viewBusinessDetailsController
+                                .selectedCategoryOfBusiness.value = null;
+                            viewBusinessDetailsController
+                                .selectedSubCategoryOfBusinessNew
+                                .value = null;
+                            viewBusinessDetailsController
+                                .businessSubCategoriesList
+                                .clear();
+
+                          },
+                          displayValueSubTitle: (profession) =>
+                          profession.subTitle,
+                          displayValueImagePath: (profession) => profession.icon,
+                        );
+                      }),
+                      SizedBox(
+                        height: SizeConfig.size12,
+                      ),
+
+                      // Center(
+                      //   child: CustomText(
+                      //     appLocalizations?.businessDetails,
+                      //     fontSize: SizeConfig.large,
+                      //     fontWeight: FontWeight.w600,
+                      //   ),
+                      // ),
+
+                      ///ENTER ORG/COMPANY NAME...
+
+                      ///Supply chain...
+                      if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
+                          BusinessType.Product.name)...[
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+
+                        CustomText(
+                          'Nature of the Business',
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.black,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+                        CommonDropdownDialog<SizeOfBusiness>(
+                          items: SizeOfBusiness.values,
+                          selectedValue: selectedBusiness,
+                          title: 'Nature of the Business',
+                          hintText: "Enter Category (if Others)",
+                          displayValue: (profession) => profession.displayName,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedBusiness = value;
+                            });
+
+                          },
+                        ),
 
 
-                      (selectedBusiness == SizeOfBusiness.OTHERS)
-                          ? SizedBox(
+                        (selectedBusiness == SizeOfBusiness.OTHERS)
+                            ? SizedBox(
+                          height: SizeConfig.size10,
+                        )
+                            : SizedBox(),
+                        (selectedBusiness == SizeOfBusiness.OTHERS)
+                            ? CommonTextField(
+                          textEditController: othersCatController,
+                          inputLength: AppConstants.inputCharterLimit50,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                          RegularExpressionUtils.alphabetSpacePattern,
+                          hintText: appLocalizations?.eGMedicalShopKiranaShop,
+                          isValidate: true,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Mobile Number is required";
+                            }
+
+
+                            return null;
+                          },
+                        )
+                            : SizedBox(),
+
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+                      ],
+
+
+                      ///Mobile number
+
+                      ContactInputField1(
+                        mobileController: mobileController,
+                        landlineCodeController: landlineCodeController,
+                        landlineNumberController: landlineNumberController,
+                        selectedType: selectedType ?? ContactType.Mobile,
+                        onTypeChanged: (type) {
+                          setState(() {
+                            selectedType = type;
+                          });
+                        },
+                        prefixOnChange: (value) => true,
+                        mobileNumberOnChange: (String) {},
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+
+                      ///websiteOptional
+                      CustomText(
+                        appLocalizations?.websiteOptional,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.black,
+                      ),
+                      SizedBox(
                         height: SizeConfig.size10,
-                      )
-                          : SizedBox(),
-                      (selectedBusiness == SizeOfBusiness.OTHERS)
-                          ? CommonTextField(
-                        textEditController: othersCatController,
+                      ),
+                      HttpsTextField(
+                        controller: websiteController,
+                        hintText: AppLocalizations.of(context)!.websiteLinkHere,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CommonTextField(
+                            readOnly: true,
+                            maxLine: 3,
+                            textEditController: fullBusinessAddressTextController,
+                            inputLength: AppConstants.inputCharterLimit50,
+                            keyBoardType: TextInputType.text,
+                            title: appLocalizations?.fullBusinessAddress,
+                            regularExpression:
+                            RegularExpressionUtils.alphabetSpacePattern,
+                            hintText: appLocalizations?.fullBusinessAddress,
+                            isValidate: false,
+                          ),
+                          _buildAddressField()
+                        ],
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+
+                      ///ENTER Landmark ......
+                      // CommonTextField(
+                      //   textEditController: landmarkController,
+                      //   inputLength: AppConstants.inputCharterLimit200,
+                      //   keyBoardType: TextInputType.text,
+                      //   regularExpression:
+                      //   RegularExpressionUtils.alphabetSpacePattern,
+                      //   title: 'Floor / Building Name / Landmark',
+                      //   hintText: 'Floor / Building Name / Landmark',
+                      //   isValidate: false,
+                      // ),
+                      // SizedBox(
+                      //   height: SizeConfig.size20,
+                      // ),
+
+                      ///ENTER NAME CONTROLLER......
+                      CommonTextField(
+                        textEditController: cityController,
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: appLocalizations?.eGMedicalShopKiranaShop,
+                        title: appLocalizations?.city,
+                        hintText: appLocalizations?.city,
                         isValidate: false,
-                      )
-                          : SizedBox(),
+                        readOnly: true,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size20,
+                      ),
+
+                      ///ENTER PIN CODE NAME ......
+                      CommonTextField(
+                        textEditController: picCodeController,
+                        inputLength: AppConstants.inputCharterLimit6,
+                        keyBoardType: TextInputType.number,
+                        regularExpression: RegularExpressionUtils.digitsPattern,
+                        title: "Pin Code",
+                        hintText: "345434",
+                        isValidate: true,
+                        readOnly: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter Pin Code";
+                          } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
+                              .hasMatch(value)) {
+                            return "Enter valid 6-digit Indian Pin Code";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      SizedBox(
+                        height: SizeConfig.size28,
+                      ),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomBtn(
+                              radius: 10,
+                              onTap: () {
+                                Navigator.of(context).pop();
+                              },
+                              title: appLocalizations?.cancel,
+                              bgColor: Colors.transparent,
+                              textColor: AppColors.primaryColor,
+                              borderColor: AppColors.primaryColor,
+                            ),
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size10,
+                          ),
+                          Expanded(
+                            child: CustomBtn(
+                              radius: 10,
+                              bgColor: AppColors.primaryColor,
+                              onTap: () async {
+                                if ((_formKey.currentState?.validate() ?? false) == false) {
+                                  commonSnackBar(message: "Please fix errors before saving");
+                                  return;
+                                }
+                                if (mobileController.text.isEmpty) {
+                                  commonSnackBar(message: "Please Enter Mobile Number");
+                                  return;
+                                }
+
+                                /// Validate Business Name
+                                if (companyOrgNameTextController.text.isEmpty) {
+                                  commonSnackBar(message: "Please Enter Business Name");
+                                  return;
+                                }
+
+                                /// Validate Address Lat/Long
+                                if ((viewBusinessDetailsController.addressLat?.value == 0.0) ||
+                                    (viewBusinessDetailsController.addressLong?.value == 0.0)) {
+                                  commonSnackBar(message: "Please Enter Address");
+                                  return;
+                                }
+
+                                /// Validate Pin Code
+                                if (picCodeController.text.isEmpty) {
+                                  commonSnackBar(message: "Please Enter Pin Code");
+                                  return;
+                                }
+
+                                /// ✅ All validation passed -> navigate
+                                navigatePushTo(
+                                  context,
+                                  BusinessDetailsEditPageTwo(
+                                    paramsMap: await buildBusinessDetailsPayload(),
+                                    prevBusinessDetails: widget.prevBusinessDetails,
+                                    isFromCreateUser: widget.isFromCreateUser,
+                                  ),
+                                );
+                              },
+                              title: "Next",
+                              isValidate: validate,
+                            ),
+                          )
+
+                        ],
+                      ),
 
                       SizedBox(
                         height: SizeConfig.size20,
                       ),
                     ],
-
-
-                    ///Mobile number
-
-                    ContactInputField1(
-                      mobileController: mobileController,
-                      landlineCodeController: landlineCodeController,
-                      landlineNumberController: landlineNumberController,
-                      selectedType: selectedType ?? ContactType.Mobile,
-                      onTypeChanged: (type) {
-                        setState(() {
-                          selectedType = type;
-                        });
-                      },
-                      prefixOnChange: (value) => true,
-                      mobileNumberOnChange: (String) {},
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    ///websiteOptional
-                    CustomText(
-                      appLocalizations?.websiteOptional,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.black,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    HttpsTextField(
-                      controller: websiteController,
-                      hintText: AppLocalizations.of(context)!.websiteLinkHere,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CommonTextField(
-                          readOnly: true,
-                          maxLine: 3,
-                          textEditController: fullBusinessAddressTextController,
-                          inputLength: AppConstants.inputCharterLimit50,
-                          keyBoardType: TextInputType.text,
-                          title: appLocalizations?.fullBusinessAddress,
-                          regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
-                          hintText: appLocalizations?.fullBusinessAddress,
-                          isValidate: false,
-                        ),
-                        _buildAddressField()
-                      ],
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    ///ENTER Landmark ......
-                    // CommonTextField(
-                    //   textEditController: landmarkController,
-                    //   inputLength: AppConstants.inputCharterLimit200,
-                    //   keyBoardType: TextInputType.text,
-                    //   regularExpression:
-                    //   RegularExpressionUtils.alphabetSpacePattern,
-                    //   title: 'Floor / Building Name / Landmark',
-                    //   hintText: 'Floor / Building Name / Landmark',
-                    //   isValidate: false,
-                    // ),
-                    // SizedBox(
-                    //   height: SizeConfig.size20,
-                    // ),
-
-                    ///ENTER NAME CONTROLLER......
-                    CommonTextField(
-                      textEditController: cityController,
-                      inputLength: AppConstants.inputCharterLimit50,
-                      keyBoardType: TextInputType.text,
-                      regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
-                      title: appLocalizations?.city,
-                      hintText: appLocalizations?.city,
-                      isValidate: false,
-                      readOnly: true,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-
-                    ///ENTER PIN CODE NAME ......
-                    CommonTextField(
-                      textEditController: picCodeController,
-                      inputLength: AppConstants.inputCharterLimit6,
-                      keyBoardType: TextInputType.number,
-                      regularExpression: RegularExpressionUtils.digitsPattern,
-                      title: "Pin Code",
-                      hintText: "345434",
-                      isValidate: true,
-                      readOnly: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter Pin Code";
-                        } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
-                            .hasMatch(value)) {
-                          return "Enter valid 6-digit Indian Pin Code";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    SizedBox(
-                      height: SizeConfig.size28,
-                    ),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomBtn(
-                            radius: 10,
-                            onTap: () {
-                              Navigator.of(context).pop();
-                            },
-                            title: appLocalizations?.cancel,
-                            bgColor: Colors.transparent,
-                            textColor: AppColors.primaryColor,
-                            borderColor: AppColors.primaryColor,
-                          ),
-                        ),
-                        SizedBox(
-                          width: SizeConfig.size10,
-                        ),
-                        Expanded(
-                          child: CustomBtn(
-                            radius: 10,
-                            bgColor: AppColors.primaryColor,
-                            onTap: () async {
-                              if (companyOrgNameTextController
-                                  .text.isNotEmpty) {
-                                if ((viewBusinessDetailsController
-                                    .addressLat?.value !=
-                                    0.0) &&
-                                    (viewBusinessDetailsController
-                                        .addressLong?.value !=
-                                        0.0)) {
-                                  if (picCodeController.text.isNotEmpty) {
-                                    navigatePushTo(
-                                        context,
-                                        BusinessDetailsEditPageTwo(
-                                          paramsMap:
-                                          await buildBusinessDetailsPayload(),
-                                          prevBusinessDetails:
-                                          widget.prevBusinessDetails,
-                                          isFromCreateUser:
-                                          widget.isFromCreateUser,
-                                        ));
-                                  } else {
-                                    commonSnackBar(
-                                        message: "Please Enter Pin Code");
-                                  }
-                                } else {
-                                  commonSnackBar(
-                                      message: "Please Enter address");
-                                }
-                              } else {
-                                commonSnackBar(
-                                    message: "Please Enter Required Field");
-                              }
-                            },
-                            title: "Next",
-                            isValidate: validate,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(
-                      height: SizeConfig.size20,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -669,6 +702,7 @@ class _BusinessDetailsEditPageOneState
   }
 
   Future<Map<String, dynamic>> buildBusinessDetailsPayload() async {
+
     // dioObj.MultipartFile? imageByPart;
     // if (viewBusinessDetailsController.isImageUpdated.value) {
     //   if (viewBusinessDetailsController.imagePath?.value.isNotEmpty ?? false) {
@@ -693,10 +727,22 @@ class _BusinessDetailsEditPageOneState
       ApiKeys.type_of_business:
       viewBusinessDetailsController.selectedBusinessType?.value.name ?? '',
       ApiKeys.office_mob_no_Pre: 91,
-      if (mobileController.text.isNotEmpty)
-        ApiKeys.office_mob_no_number: mobileController.text,
-      if (landlineCodeController.text.isNotEmpty)
-        ApiKeys.office_landline_no_pre: landlineCodeController.text,
+      ApiKeys.business_number: {
+        if (mobileController.text.isNotEmpty)
+          "office_mob_no": {
+            "pre": 91,
+            "number": int.tryParse(mobileController.text) ?? mobileController.text,
+          },
+
+        if (landlineNumberController.text.isNotEmpty)
+          "office_landline_no": {
+            "pre": int.tryParse(landlineCodeController.text) ??
+                landlineCodeController.text,
+            "number": int.tryParse(landlineNumberController.text) ??
+                landlineNumberController.text,
+          },
+
+        },
       if (landlineNumberController.text.isNotEmpty)
         ApiKeys.office_landline_no_number: landlineNumberController.text,
       ApiKeys.Nature_of_Business: selectedBusiness == SizeOfBusiness.OTHERS
@@ -713,6 +759,7 @@ class _BusinessDetailsEditPageOneState
       }),
       ApiKeys.pincode: picCodeController.text,
       ApiKeys.website_url: websiteController.text,
+
       // ApiKeys.logo_image: viewBusinessDetailsController.isImageUpdated.value
       //     ? imageByPart
       //     : null,
