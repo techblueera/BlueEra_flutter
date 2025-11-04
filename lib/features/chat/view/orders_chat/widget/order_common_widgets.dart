@@ -89,7 +89,7 @@ class OrderCommonWidget {
                                   ? () {
                                 Navigator.pop(context);
                                 OrderCommonWidget.showPickupOptionDialog(
-                                    context, businessId, message);
+                                    context, businessId, message,orderValueController.text);
                               }
                                   : null,
                               child: const CustomText(
@@ -114,7 +114,7 @@ class OrderCommonWidget {
 
 
   static Future<void> showPickupOptionDialog(
-      BuildContext context, String businessId, Messages message) async {
+      BuildContext context, String businessId, Messages message,String userEnterAmount) async {
     int selectedIndex = -1;
 
     await showDialog(
@@ -268,8 +268,9 @@ class OrderCommonWidget {
                                 } else {
                                   final orderController = Get.put(OrderNowController());
                                   orderController.createSelfPickupOrder(message.id, message.seller?.id, message.conversationId,{
-                                    ApiKeys.is_Self_Pickup_Order : true
-                                  });
+                                    ApiKeys.is_Self_Pickup_Order : true,
+                                    ApiKeys.orderType : "Self Pickup",
+                                  },userEnterAmount);
                                   Navigator.pop(context);
                                 }
                               }
