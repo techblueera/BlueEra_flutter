@@ -454,5 +454,6 @@ class ApiKeys {
   static const registrationNo = 'registrationNo';
   static const vehicleModelYear = 'vehicleModelYear';
   static const vehicleType = 'vehicleType';
+  static const commentType = 'commentType';
   static const orderType = 'orderType';
 }

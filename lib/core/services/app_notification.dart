@@ -12,10 +12,9 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
-import 'package:vibration/vibration.dart';
 
 String notificationSound = 'sound/iphone_tone.mp3';
-// String notificationSound = 'sound/notification_sound.wav';
+String chatNotificationSound = 'sound/notification_sound.wav';
 
 class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -94,7 +93,7 @@ class AppNotificationHandler {
           'High Importance Notifications', // title
           importance: Importance.high,
           playSound: true,
-          enableVibration: true);
+          enableVibration: false);
 
   static DarwinNotificationDetails iOSPlatformChannelSpecificsForNewOrder(
           {String? sound}) =>
@@ -162,9 +161,10 @@ class AppNotificationHandler {
       const NotificationDetails(
           android: AndroidNotificationDetails(
             AppStrings.appName, // id
+            // AppStrings.appName, // id
             'High Importance Notifications', // title
             channelDescription: '',
-            enableVibration: true,
+            enableVibration: false,
             // description
             importance: Importance.high,
             icon: '@drawable/ic_stat',
@@ -182,19 +182,19 @@ class AppNotificationHandler {
   ///call when click on notification
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
+      // RemoteNotification? notification = message.notification;
+      // AndroidNotification? android = message.notification?.android;
 
       ///FOR APP IS IN FOR GROUND....
+      logs("message===== ${(message.data)}");
+      logs("message===== ${jsonEncode(message.messageType)}");
 
       ///IOS LOCAL NOTIFICATION IS TRIGGER BY SELF & ANDROID NOT HANDLE
-      if (notification != null && Platform.isAndroid) {
-        playCustomSound();
+      // if (notification != null && Platform.isAndroid) {
+      if (Platform.isAndroid) {
+        playCustomSound(message);
         showMsg(message);
       } else if (Platform.isIOS) {
-        Vibration.vibrate(duration: 1000);
-        print("IOS CALL");
-
         ///FOR IOS....
         // callUnreadCount();
       }
@@ -226,7 +226,8 @@ class AppNotificationHandler {
     Map<String, dynamic> dataNotificationResponse,
   ) async {
     if (dataNotificationResponse['sender_user'] is String) {
-      dataNotificationResponse['sender_user'] = jsonDecode(dataNotificationResponse['sender_user']);
+      dataNotificationResponse['sender_user'] =
+          jsonDecode(dataNotificationResponse['sender_user']);
     }
     OneSignalNotificationDetailsModel data =
         OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
@@ -250,12 +251,24 @@ class AppNotificationHandler {
   }
 
   ///SET AUDIO SOUND....
-  Future<void> playCustomSound() async {
+  Future<void> playCustomSound(RemoteMessage dataNotificationResponse) async {
     print("play sound call");
-    Vibration.vibrate(duration: 1000);
+    String playNotificationSound;
+    if (dataNotificationResponse.data['sender_user'] is String) {
+      dataNotificationResponse.data['sender_user'] =
+          jsonDecode(dataNotificationResponse.data['sender_user']);
+    }
+    OneSignalNotificationDetailsModel data =
+    OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
+    if (data.operation== "sent_message") {
+      playNotificationSound = chatNotificationSound;
+    } else {
+      playNotificationSound = notificationSound;
+    }
+
     // Permission.
     try {
-      await audioPlayer.play(AssetSource(notificationSound));
+      await audioPlayer.play(AssetSource(playNotificationSound));
     } on Exception catch (e) {
       logs("SOUND ERROR====${e.toString()}");
       // TODO

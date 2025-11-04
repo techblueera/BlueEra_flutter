@@ -1,5 +1,8 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/comment/repo/comment_repo.dart';
@@ -8,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CommentController extends GetxController {
-
   TextEditingController sendMessageController = TextEditingController();
   final FocusNode replyFocusNode = FocusNode();
   RxList<CommentData> comments = <CommentData>[].obs;
@@ -18,7 +20,6 @@ class CommentController extends GetxController {
   RxnString replyingToUser = RxnString();
   RxInt totalCommentCount = 0.obs;
   RxBool isSendCommentLoading = false.obs;
-
 
   void toggleReplies(String commentId, int totalReplies) {
     final current = visibleRepliesCountMap[commentId] ?? 0;
@@ -62,7 +63,6 @@ class CommentController extends GetxController {
   ///Add Posts Comments...
   Future<void> addPostComment(
       {required Map<String, dynamic> params, required String postId}) async {
-
     isSendCommentLoading.value = true;
 
     try {
@@ -73,6 +73,7 @@ class CommentController extends GetxController {
         sendMessageController.clear();
         totalCommentCount.value = totalCommentCount.value + 1;
         getAllPostComments(postId: postId);
+        clearAiContent();
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -262,16 +263,13 @@ class CommentController extends GetxController {
       }
 
       if (response.isSuccess) {
-
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
         if (commentPostType == CommentType.video) {
           getAllVideoComments(videoId: postID);
-
         }
         if (commentPostType == CommentType.post) {
           getAllPostComments(postId: postID);
-
         }
 
         totalCommentCount.value = totalCommentCount.value - 1;
@@ -284,5 +282,66 @@ class CommentController extends GetxController {
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
+  }
+
+  RxBool isGenerated = false.obs; // <--- NEW
+  var suggestions = <String>[].obs;
+
+  // Dropdown Values
+  RxString selectedLanguage = ''.obs;
+  RxString selectedEmotion = ''.obs;
+  RxString selectedCommentType = ''.obs;
+  var selectedSuggestion = "".obs;
+  late final languages = SUPPORTED_LANGUAGES;
+  late final emotions = SUPPORTED_EMOTIONS;
+  late final commentType = COMMENT_TYPE;
+
+  Future<void> generateAiPostCommentController({required String postID}) async {
+    try {
+      isGenerated.value = true; // <--- Disable button after API call
+      suggestions.clear();
+      Map<String, dynamic> reqParm = {
+        ApiKeys.postId: postID,
+        ApiKeys.language: selectedLanguage.value,
+        ApiKeys.emotion: selectedEmotion.value,
+        ApiKeys.commentType: selectedCommentType.value,
+      };
+      ResponseModel responseModel =
+          await CommentRepo().aiCommentPostGenerateRepo(queryParam: reqParm);
+      if (responseModel.isSuccess) {
+        setSuggestions(responseModel.response?.data);
+      }
+    } catch (e) {
+      logs("ERROR 593$e");
+    }
+  }
+
+  void setSuggestions(dynamic json) {
+    final data = json["comment_suggestions"] as List<dynamic>;
+
+    suggestions.value = data.map((inner) {
+      return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+    }).toList();
+
+    selectedSuggestion.value = ""; // reset selection
+  }
+
+  // Call this whenever any selection changes
+  void onSelectionChanged() {
+    isGenerated.value = false; // Re-enable button
+  }
+
+  bool get isFormValid =>
+      selectedLanguage.value.isNotEmpty &&
+      selectedEmotion.value.isNotEmpty &&
+      !isGenerated.value;
+
+  void clearAiContent() {
+    selectedLanguage.value = "";
+    selectedEmotion.value = "";
+    selectedCommentType.value = "";
+    selectedSuggestion.value = "";
+    isGenerated.value=false;
+    suggestions.clear();
   }
 }

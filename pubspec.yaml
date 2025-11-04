@@ -80,7 +80,6 @@ dependencies:
 #  video_compress: ^3.1.4
 #  googleapis_auth: ^2.0.0
 #  googleapis: ^15.0.0
-  vibration: ^2.0.1
 
 
 dependency_overrides:
