@@ -115,8 +115,7 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
               final imagePath = widget.imagePaths[index];
               final imageWidget = widget.isLocal
                   ? Image.asset(imagePath, fit: BoxFit.cover)
-                  : (!imagePath.contains('http'))?
-                  Image.file(File(imagePath),fit: BoxFit.cover,)
+
                   :CachedNetworkImage(
                       imageUrl: imagePath,
                       fit: BoxFit.cover,
@@ -126,7 +125,8 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      errorWidget: (context, url, error) => LocalAssets(
+                      errorWidget: (context, url, error) =>(!imagePath.contains('http'))?
+                      Image.file(File(imagePath),fit: BoxFit.cover,): LocalAssets(
                         imagePath: AppIconAssets.place_holder_image,
                         boxFix: BoxFit.cover,
                       ),

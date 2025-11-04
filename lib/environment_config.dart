@@ -41,19 +41,20 @@ Future<void> projectKeys({required String environmentType}) async {
     baseUrl = "https://be.blueera.ai/api/";
     // baseUrl = "https://n81bnkglga.execute-api.ap-south-1.amazonaws.com/api/";
     // baseUrl = "https://api.blueera.ai/api/";
-    razorpayKey = "rzp_live_Z3hqjlIs4IEKya";
+    // razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
+    razorpayKey = "rzp_live_RYv0tzupV710iQ";
     chatSocketUrl = 'wss://chat.blueera.ai';
     // chatSocketUrl = 'http://43.204.28.90:3000/';
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
     baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
-    razorpayKey = "rzp_test_SxJzWVt7su8vd7";
+    razorpayKey = "rzp_live_RYv0tzupV710iQ";
     chatSocketUrl = 'wss://chat.blueera.ai';
     // chatSocketUrl = 'http://43.204.28.90:3000/';
   } else if (environmentType == AppConstants.qa) {
     isProdEnvironment = false;
     baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
-    razorpayKey = "rzp_test_SxJzWVt7su8vd7";
+    razorpayKey = "rzp_live_RYv0tzupV710iQ";
   }
 
   await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);

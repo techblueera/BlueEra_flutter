@@ -13,7 +13,9 @@ class RazorpayService {
   Function(ExternalWalletResponse)? onExternalWallet;
 
   RazorpayService() {
-    _razorpay = Razorpay();
+    _razorpay = Razorpay(
+
+    );
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
@@ -34,11 +36,11 @@ class RazorpayService {
   }) {
     this.onSuccess = onPaymentSuccess;
     this.onError = onPaymentError;
+
     this.onExternalWallet = onExternalWallet;
-logs("amount====$amount");
     var options = {
       'key': razorpayKey,
-      'amount': amount,
+      'amount': (amount * 100).toInt(),
       'name': name,
       if (subscriptionId.isNotEmpty) 'subscription_id': subscriptionId,
       'description': description,
@@ -51,6 +53,7 @@ logs("amount====$amount");
     try {
       logs("options =======$options");
       _razorpay.open(options);
+
     } catch (e) {
       debugPrint('Razorpay open error: $e');
     }

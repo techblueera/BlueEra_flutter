@@ -1,4 +1,6 @@
 import 'dart:typed_data';          // For Uint8List
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:flutter/services.dart';  // For rootBundle and ByteData
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -11,15 +13,19 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
+import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetBlueeraPiolotModel.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
-      {super.key, required this.lat, required this.long, required this.shopName});
+      {super.key, required this.lat, required this.long, required this.shopName, required this.startLat, required this.startLng});
 
   final double lat;
+  final double startLat;
   final double long;
+  final double startLng;
   final String shopName;
 
   @override
@@ -56,7 +62,13 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   }
 
 
-  List<int> selectedIndexes = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
 
 
   @override
@@ -67,11 +79,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
         title: "Delivery Pilot Near to ${widget.shopName}",
       ),
       body: Obx(() {
-        if(orderController.getRidersListResponse.value.status==Status.COMPLETE){
+        if(orderController.getRidersListResponse.value.status==Status.COMPLETE&&orderController.getFaireAmountResponse.value.status==Status.COMPLETE){
           GetBlueeraPiolotModel data=orderController.getBlueeraPiolotModel.value;
-          Future.delayed(Duration.zero,(){
-            selectedIndexes = List.generate(data.users?.length ?? 0, (index) => index);
-          });
+
           return
             SafeArea(
             child: Column(
@@ -108,18 +118,18 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.8,
+                      childAspectRatio: 0.9,
                     ),
                     itemBuilder: (context, index) {
                       final pilot = data.users?[index];
-                      final isSelected = selectedIndexes.contains(index);
+                      final isSelected = orderController.selectedIndexes.contains(pilot);
                       return GestureDetector(
                         onTap: () {
                           setState(() {
                             if (isSelected) {
-                              selectedIndexes.remove(index);
+                              orderController.selectedIndexes.remove(pilot);
                             } else {
-                              selectedIndexes.add(index);
+                              orderController.selectedIndexes.add(pilot);
                             }
                           });
                         },
@@ -226,9 +236,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                 onTap: () {
                                   setState(() {
                                     if (isSelected) {
-                                      selectedIndexes.remove(index);
+                                      orderController.selectedIndexes.remove(pilot);
                                     } else {
-                                      selectedIndexes.add(index);
+                                      orderController.selectedIndexes.add(pilot);
                                     }
                                   });
                                 },
@@ -271,25 +281,79 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               ),
 
               // Book button
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+              Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        final razorpayService =
+                        RazorpayService();
+
+                        razorpayService.openCheckout(
+                          name:"${orderController.openedMessage?.buyer?.name}",
+                          subscriptionId: "",
+                          description: '',
+                          amount:double.parse(orderController.fare.value.toString()),
+                          contact: "${orderController.openedMessage?.buyer?.contact}",
+                          email:
+                          'admin@bluecs.in',
+                          onPaymentSuccess:
+                              (response) async {
+                            debugPrint(
+                                "Payment Suzzz: ${response.data}");
+
+                            List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
+                            Map<String,dynamic> params={
+                              ApiKeys.selectedRiders: userIdList,
+                              ApiKeys.pickupLocation: {
+                                ApiKeys.latitude: widget.startLat,
+                                ApiKeys.longitude: widget.startLng
+                              },
+                              ApiKeys.dropLocation: {
+                                ApiKeys.latitude: widget.lat,
+                                ApiKeys.longitude: widget.long
+                              },
+                              ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
+                              orderController.openedMessage?.metadata?.foodId
+                                  :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
+                              orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
+                              ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
+                            };
+                            await orderController.sendOrderRequestToRider(params);
+                            commonSnackBar(
+                                message:
+                                "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
+                            Get.back();
+                            Get.back();
+
+                          },
+                          onPaymentError: (response) {
+                            debugPrint(
+                                "Payment Failed: ${response.message}");
+                            commonSnackBar(
+                                message:
+                                "Payment Failed ${response.message}");
+                          },
+                        );
+                      },
+                      child:  CustomText(
+                        "Book Delivery Pilot NOW (Pay ₹ ${orderController.fare.value})",
+                            color: AppColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold
+                      ),
+                    ),
                   ),
-                  onPressed: () {},
-                  child: const CustomText(
-                    "Book Delivery Pilot NOW",
-                        color: AppColors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold
-                  ),
-                ),
+                ],
               ),
               SizedBox(height: SizeConfig.size18),
 

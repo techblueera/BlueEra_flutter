@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -176,6 +178,8 @@ class FoodDetailsViewScreen extends StatelessWidget {
                             ApiKeys.url: urlList,
                           };
                           chatViewController.isChatFromBusinessProfile(true);
+                          chatViewController.canPopBusiness.value=true;
+
                           chatViewController.openAnyOneChatFunction(
                             shareProductParams: data,
                             isWithProductSend: true,

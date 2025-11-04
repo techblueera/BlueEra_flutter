@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -8,6 +9,8 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
+import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/controller/razorpay_controller.dart';
 import '../../../auth/model/get_porter_vechile_option_model.dart';
@@ -228,13 +231,33 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                     ? () {
                   final selectedVehicle = vehicleList[selectedIndex!];
 
-                  final razorpayController = Get.put(RazorpayController());
-                  razorpayController.openCheckout(
-                    amount: double.parse((selectedVehicle.fare?.minorAmount ?? 0/100).toString()),
-                    customerName: "${widget.userName}", // Replace with logged user name
-                    contact: "${widget.userNum}",    // Replace with user contact
-                    email: "admin@bluecs.in", // Replace with user email
+                  final razorpayService =
+                  RazorpayService();
+
+                  razorpayService.openCheckout(
+                    name:"${widget.userName}",
+                    subscriptionId:
+                        "",
+                    description: '',
+                    amount:( double.parse((selectedVehicle.fare?.minorAmount ?? 0/100).toString()) + (double.parse((selectedVehicle.fare?.minorAmount ?? 0/100).toString()) * 0.10)),
+
+                    contact: "${widget.userNum}",
+                    email:
+                    'admin@bluecs.in',
+                    onPaymentSuccess:
+                        (response) async {
+                          debugPrint(
+                              "Payment Suzzz: ${response.data}");
+                    },
+                    onPaymentError: (response) {
+                      debugPrint(
+                          "Payment Failed: ${response.message}");
+                      commonSnackBar(
+                          message:
+                          "Payment Failed ${response.message}");
+                    },
                   );
+
                 }
                     : null,
                 style: ElevatedButton.styleFrom(

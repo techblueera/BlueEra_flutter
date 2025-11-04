@@ -268,6 +268,12 @@ class AccountType {
   static const String company = 'COMPANY';
 }
 
+class MakeOrderType {
+  static const String porter = 'Porter';
+  static const String self = 'Self';
+  static const String rider = 'Rider';
+}
+
 redirectToProfileScreen(
     {required String accountType, required String profileId}) {
   String? accountTypeData = accountType.toUpperCase();

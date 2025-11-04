@@ -18,8 +18,10 @@ class OrderCommonWidget {
 
   static Future<void> showEnterOrderValueDialog(
       BuildContext context, String businessId, Messages message) async {
-    final TextEditingController orderValueController = TextEditingController(text: message.metadata?.price);
-
+    final orderController = Get.put(OrderNowController());
+    if(message.metadata?.price!=null){
+      orderController.orderValueController.text=message.metadata?.price??'';
+    }
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -27,8 +29,7 @@ class OrderCommonWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             bool hasOrderValue =
-                orderValueController.text.trim().isNotEmpty; // check if entered
-
+                orderController.orderValueController.text.trim().isNotEmpty;
             return Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -41,7 +42,7 @@ class OrderCommonWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
-                        textEditController: orderValueController,
+                        textEditController: orderController.orderValueController,
                         keyBoardType: TextInputType.number,
                         title: "Total Order Value",
                         hintText: "E.g  ₹400",
@@ -89,7 +90,7 @@ class OrderCommonWidget {
                                   ? () {
                                 Navigator.pop(context);
                                 OrderCommonWidget.showPickupOptionDialog(
-                                    context, businessId, message,orderValueController.text);
+                                    context, businessId, message,);
                               }
                                   : null,
                               child: const CustomText(
@@ -114,7 +115,7 @@ class OrderCommonWidget {
 
 
   static Future<void> showPickupOptionDialog(
-      BuildContext context, String businessId, Messages message,String userEnterAmount) async {
+      BuildContext context, String businessId, Messages message) async {
     int selectedIndex = -1;
 
     await showDialog(
@@ -255,22 +256,14 @@ class OrderCommonWidget {
                                   ? () {
                                 if (selectedIndex == 1) {
                                   Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          AddressListScreen(
-                                            message: message,
-                                            businessId: businessId,
-                                          ),
-                                    ),
-                                  );
+                                  Get.to(()=>AddressListScreen(
+                                    message: message,
+                                    businessId: businessId,
+                                  ));
+
                                 } else {
                                   final orderController = Get.put(OrderNowController());
-                                  orderController.createSelfPickupOrder(message.id, message.seller?.id, message.conversationId,{
-                                    ApiKeys.is_Self_Pickup_Order : true,
-                                    ApiKeys.orderType : "Self Pickup",
-                                  },userEnterAmount);
+                                  orderController.createSelfPickupOrder(message.id, message.seller?.id, message.conversationId,);
                                   Navigator.pop(context);
                                 }
                               }

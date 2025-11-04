@@ -48,7 +48,6 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                     itemBuilder: (context, index) {
                       return ChatListTile(
                           isFromGroupSelect: widget.isNewGroupUI,
-
                           onSelect: () {
                             setState(() {});
                           },

@@ -28,6 +28,7 @@ import '../model/payment_success_model.dart';
 import '../repo/make_order_repo.dart';
 import '../repo/porter_api_repo.dart';
 import 'chat_view_controller.dart';
+import 'package:geolocator/geolocator.dart';
 
 class OrderNowController extends GetxController {
   var address = "".obs;
@@ -36,10 +37,12 @@ class OrderNowController extends GetxController {
 
   Messages? openedMessage;
   Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getFaireAmountResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getVehicleOptionResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewBusinessProfileResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getRidersListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> paymentResponse = ApiResponse.initial('Initial').obs;
+  final TextEditingController orderValueController = TextEditingController();
   final porterApi = PorterApiService();
   Rx<TextEditingController> nameController    = TextEditingController().obs;
   Rx<TextEditingController> phoneController    = TextEditingController().obs;
@@ -58,6 +61,9 @@ class OrderNowController extends GetxController {
   Rx<PaymentResponseModel> paymentResponseModel=PaymentResponseModel().obs;
   RxBool isDefault = false.obs;
   RxInt? selectedIndex;
+  RxString distanceKm="0.0".obs;
+  RxList<Riders?> selectedIndexes = <Riders>[].obs;
+  RxString fare="0.0".obs;
   void copyLat() {
     Clipboard.setData(ClipboardData(text: lat.value));
     commonSnackBar(message: "Copied Store Lat");
@@ -66,6 +72,27 @@ class OrderNowController extends GetxController {
     Clipboard.setData(ClipboardData(text: long.value));
     commonSnackBar(message: "Copied Store Long");
   }
+
+
+  void calculateDistanceInKm(
+      {required double startLat,required double startLng,required double endLat,required double endLng}) {
+    // double distanceInMeters = Geolocator.distanceBetween(startLat, startLng, endLat, endLng);
+    // double distanceInKm = distanceInMeters / 1000; // convert meters to km
+    // distanceKm.value=double.parse(distanceInKm.toStringAsFixed(2));
+    // return double.parse(distanceInKm.toStringAsFixed(2)); // round to 2 decimals
+    Map<String,dynamic> params={
+      ApiKeys.pickupLocation: {
+        ApiKeys.latitude: endLat,
+        ApiKeys.longitude: endLng
+      },
+      ApiKeys.dropLocation: {
+        ApiKeys.latitude: startLat,
+        ApiKeys.longitude: startLng
+      }
+    };
+    getOrderFareFrom(params);
+  }
+
   void setMessageDetails(Messages msg){
     openedMessage=msg;
 
@@ -111,6 +138,7 @@ class OrderNowController extends GetxController {
           getBlueeraPiolotModel.value.users =
               getBlueeraPiolotModel.value.users!.take(4).toList();
         }
+        selectedIndexes.addAll(getBlueeraPiolotModel.value.users??[]);
         getRidersListResponse.value=ApiResponse.complete(getBlueeraPiolotModel);
         return getBlueeraPiolotModel.value.users;
       }else{
@@ -184,6 +212,39 @@ class OrderNowController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+  Future<void> sendOrderRequestToRider(Map<String,dynamic> params) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().sendOrderRequestToRider(params);
+
+      if (response.isSuccess ?? false) {
+
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getOrderFareFrom(Map<String,dynamic> params) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().getOrderFareFrom(params);
+
+      if (response.isSuccess ?? false) {
+        Map<String,dynamic> data=response.response?.data;
+        fare.value=data['fare'].toString();
+        distanceKm.value=data['distance'].toString();
+        getFaireAmountResponse.value=ApiResponse.complete(data);
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        getFaireAmountResponse.value=ApiResponse.error( response.message );
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      getFaireAmountResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+    }
+  }
 
   void fetchVehicleQuotes(
       Map<String,dynamic> params
@@ -193,9 +254,6 @@ class OrderNowController extends GetxController {
     final data = await porterApi.getQuote(params);
 
     if (data != null&&data['status']) {
-
-
-      final vehicles = data['data']['vehicles'];
       getPorterVehicleOptionModel.value=GetPorterVehicleOptionModel.fromJson(data['data']);
       getVehicleOptionResponse.value= ApiResponse.complete(getPorterVehicleOptionModel.value);
     } else {
@@ -205,7 +263,6 @@ class OrderNowController extends GetxController {
       }else{
         getVehicleOptionResponse.value= ApiResponse.error(AppStrings.somethingWentWrong);
       }
-
     }
   }
 
@@ -312,9 +369,19 @@ class OrderNowController extends GetxController {
         Map<String,dynamic> addOrderTabParams={
           ApiKeys.message_id: "${openedMessage?.id}",
           ApiKeys.other_user_id : openedMessage?.seller?.id,
-          ApiKeys.order : data
+
         };
-        sendMessageToOrderTab(params: addOrderTabParams);
+        Map<String,dynamic> addOrderTabPara={
+          ApiKeys.conversation_id: openedMessage?.conversationId,
+          ApiKeys.message_id:openedMessage?.id,
+          ApiKeys.other_user_id :userId,
+          ApiKeys.price: "${orderValueController.text}",
+          ApiKeys.order : data,
+          // "rider": {},
+          ApiKeys.rider_id: "$userId",
+          ApiKeys.ride_by: MakeOrderType.porter
+        };
+        sendMessageToOrderTab(params: addOrderTabPara);
         final chatViewController = Get.find<ChatViewController>();
 
         Map<String,dynamic>datadd={
@@ -337,23 +404,18 @@ class OrderNowController extends GetxController {
     }
 
   }
-  void createSelfPickupOrder(String? messageId,String? userId,String? conversationId,Map<String,dynamic> data,String price) async {
+  void createSelfPickupOrder(String? messageId,String? userid,String? conversationId,) async {
 
-    //
-    // Map<String,dynamic> addOrderTabParams={
-    //       ApiKeys.message_id: "$messageId",
-    //       ApiKeys.other_user_id :userId,
-    //       ApiKeys.order : data
-    //     };
+
     Map<String,dynamic> addOrderTabPara={
       ApiKeys.conversation_id: "$conversationId",
       ApiKeys.message_id: "$messageId",
-      ApiKeys.other_user_id :userId,
-      "price": "$price",
+      ApiKeys.other_user_id :userid,
+      ApiKeys.price: "${orderValueController.text}",
       // "order": {},
       // "rider": {},
-      "rider_id": "$userId",
-      "ride_by": "Self"
+      ApiKeys.rider_id: "$userId",
+      ApiKeys.ride_by: MakeOrderType.self
     };
         bool value=await sendMessageToOrderTab(params: addOrderTabPara);
         if(value){
@@ -374,9 +436,8 @@ class OrderNowController extends GetxController {
 
   }
 
+
     Future<bool?> cancelOrderApi(String orderId,String conversationId) async {
-
-
       final data = await porterApi.cancelOrder(orderId);
       if (data != null&&data) {
         commonSnackBar(message: "Order Deleted Successfully");
@@ -421,7 +482,6 @@ class OrderNowController extends GetxController {
       };
       ResponseModel? response = await MakeOrderRepo().addAddress(addressData);
       if (response.isSuccess ?? false) {
-
         nameController.value.clear();
         phoneController.value.clear();
         fullAddress.value.clear();
@@ -435,12 +495,12 @@ class OrderNowController extends GetxController {
         typeController.value.clear();
 
         commonSnackBar(
-            message: response?.message);
+            message: response.message);
         Get.back();
         getAddressApi();
       } else {
         commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -450,234 +510,3 @@ class OrderNowController extends GetxController {
 }
 
 
-// class OrderNowDialog {
-//   static void showDialogBox(String businessId,String messageId,String conversationId) async {
-//
-//     final controller = Get.put(OrderNowController())..viewBusinessForLocation(businessId);
-//     final chatViewController = Get.find<ChatViewController>();
-//     Get.dialog(
-//        Dialog(
-//             insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
-//             shape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(20)),
-//             backgroundColor: Color(0xffF1F1F3),
-//             child: Padding(
-//               padding: const EdgeInsets.all(20),
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   // Title
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       const CustomText("Order Now",
-//                           fontSize: 22, fontWeight: FontWeight.bold),
-//                       InkWell(
-//                           onTap: () {
-//                             Get.back();
-//                           },
-//                           child: LocalAssets(
-//                               imagePath: AppIconAssets.close_black))
-//                     ],
-//                   ),
-//                   SizedBox(height: SizeConfig.size10),
-//
-//                   // Step 1
-//                   Container(
-//                     padding: const EdgeInsets.all(20),
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(15),
-//                       color: AppColors.white,
-//                     ),
-//                     child: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         Row(
-//                           children: [
-//                             const CustomText("Step 1 :",
-//                                 fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.secondaryTextColor,),
-//                             Expanded(
-//                               child: const CustomText(" Copy Store Address",
-//                                   fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.black,),
-//                             ),
-//                           ],
-//                         ),
-//
-//
-//                         const SizedBox(height: 4),
-//                         // Address Box with Copy Button
-//
-//                         Obx(() =>
-//                             Container(
-//                               decoration: BoxDecoration(
-//                                 border: Border.all(color: Colors.grey.shade300),
-//                                 borderRadius: BorderRadius.circular(12),
-//                               ),
-//                               child: Row(
-//                                 children: [
-//                                   Expanded(
-//                                     child: Padding(
-//                                       padding: const EdgeInsets.symmetric(
-//                                           horizontal: 12, vertical: 10),
-//                                       child: CustomText(
-//                                         controller.lat.value,
-//                                         fontSize: 16,
-//                                         color: AppColors.primaryColor,
-//                                         overflow: TextOverflow.ellipsis,
-//                                         maxLines: 2,
-//                                       ),
-//                                     ),
-//                                   ),
-//                                   IconButton(
-//                                     icon: const Icon(Icons.copy_rounded,
-//                                         color: Colors.black54),
-//                                     onPressed: controller.copyLat,
-//                                   ),
-//                                 ],
-//                               ),
-//                             )),
-//                     /*    const CustomText("Log",
-//                             color: AppColors.secondaryTextColor),
-//                         const SizedBox(height: 4),
-//                         Obx(() =>
-//                             Container(
-//                               decoration: BoxDecoration(
-//                                 border: Border.all(color: Colors.grey.shade300),
-//                                 borderRadius: BorderRadius.circular(12),
-//                               ),
-//                               child: Row(
-//                                 children: [
-//                                   Expanded(
-//                                     child: Padding(
-//                                       padding: const EdgeInsets.symmetric(
-//                                           horizontal: 12, vertical: 10),
-//                                       child: CustomText(
-//                                         controller.long.value,
-//                                         fontSize: 16,
-//                                         overflow: TextOverflow.ellipsis,
-//                                       ),
-//                                     ),
-//                                   ),
-//                                   IconButton(
-//                                     icon: const Icon(Icons.copy_rounded,
-//                                         color: Colors.black54),
-//                                     onPressed: controller.copyLong,
-//                                   ),
-//                                 ],
-//                               ),
-//                             )),
-//                         const SizedBox(height: 25),*/
-//
-//                         const SizedBox(height: 5),
-//                         Row(
-//                           children: [
-//                             const CustomText("Step 2 :",
-//                               fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.secondaryTextColor,),
-//                             Expanded(
-//                               child: const CustomText(" Now Book Delivery Partner",
-//                                 fontSize: 14, fontWeight: FontWeight.w700,color: AppColors.black,),
-//                             ),
-//                           ],
-//                         ),
-//                         // Step 2
-//
-//                         const SizedBox(height: 12),
-//
-//                         // Buttons (Rapido & Porter)
-//                         Row(
-//                           children: [
-//                             Expanded(
-//                               child: ElevatedButton.icon(
-//                                 style: ElevatedButton.styleFrom(
-//                                   backgroundColor: Colors.white,
-//                                   foregroundColor: Colors.black,
-//                                   side: BorderSide(color: AppColors.primaryColor),
-//                                   shape: RoundedRectangleBorder(
-//                                       borderRadius: BorderRadius.circular(12)),
-//                                   padding: EdgeInsets.symmetric(
-//                                       vertical: SizeConfig.size8),
-//                                 ),
-//                                 icon: LocalAssets(
-//                                   imagePath: AppIconAssets.rapido,
-//                                   height: SizeConfig.size30,
-//                                   width: SizeConfig.size30,
-//                                 ),
-//                                 label: const CustomText("Rapido",
-//                                     fontWeight: FontWeight.w600),
-//                                 onPressed: () async{
-//                                   Map<String,dynamic>data={
-//                                     "messageId": "${messageId}",
-//                                     "order_status": true
-//                                   };
-//                                   await  controller.updateOrderStatus(data);
-//                                   chatViewController. emitEvent("messageReceived", {
-//                                     ApiKeys.conversation_id: conversationId,
-//                                     ApiKeys.page: 1,
-//                                     ApiKeys.is_online_user: businessId,
-//                                     ApiKeys.per_page_message: 30,
-//                                   });
-//                                   Get.back();
-//                                   if (!await launchUrl( Uri.parse(AppConstants.rapidoLink))) {
-//                                     // throw Exception('Could not launch $_url');
-//                                   }
-//                                   // Get.to(CommonWebView(
-//                                   //   urlLink: AppConstants.rapidoLink,
-//                                   //   urlTitle: 'Rapido',
-//                                   // ));
-//                                 },
-//                               ),
-//                             ),
-//                             const SizedBox(width: 12),
-//                             Expanded(
-//                               child: ElevatedButton.icon(
-//                                 style: ElevatedButton.styleFrom(
-//                                   backgroundColor: Colors.white,
-//                                   foregroundColor: Colors.black,
-//                                   side: BorderSide(color: AppColors.primaryColor),
-//                                   shape: RoundedRectangleBorder(
-//                                       borderRadius: BorderRadius.circular(12)),
-//                                   padding: EdgeInsets.symmetric(
-//                                       vertical: SizeConfig.size8),
-//                                 ),
-//                                 icon: LocalAssets(
-//                                     imagePath: AppIconAssets.porter,
-//                                     height: SizeConfig.size30,
-//                                     width: SizeConfig.size30),
-//                                 label: const CustomText("Porter",
-//                                     fontWeight: FontWeight.w600),
-//                                 onPressed: () async{
-//                                   Map<String,dynamic>data={
-//                                     "messageId": "${messageId}",
-//                                   "order_status": true
-//                                 };
-//                                  await  controller.updateOrderStatus(data);
-//                                  chatViewController. emitEvent("messageReceived", {
-//                                     ApiKeys.conversation_id: conversationId,
-//                                     ApiKeys.page: 1,
-//                                     ApiKeys.is_online_user: businessId,
-//                                     ApiKeys.per_page_message: 30,
-//                                   });
-//                                   Get.back();
-//                                   if (!await launchUrl( Uri.parse(AppConstants.porterLink))) {
-//                                     // throw Exception('Could not launch $_url');
-//                                   }
-//                                   // Get.to(CommonWebView(
-//                                   //   urlLink: AppConstants.porterLink,
-//                                   //   urlTitle: 'Porter',
-//                                   // ));
-//                                 },
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           )
-//     );
-//   }
-// }
