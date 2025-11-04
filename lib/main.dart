@@ -66,7 +66,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ///INIT FIREBASE NOTIFICATION...
   await firebaseInitializeApp();
   if (message.notification != null) {
-    await AppNotificationHandler().playCustomSound();
+    await AppNotificationHandler().playCustomSound(message);
   }
 }
 Future<void> main() async {
