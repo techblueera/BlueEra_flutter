@@ -108,6 +108,7 @@ class StoreScreenController extends GetxController {
   }
 
 
+
   ///GET All Stores feed data(Product, stores, food, services)...
   Future<void> getAllStoresFeedNearBy({bool isLoadMore = false}) async {
     if (isLoadMore) {

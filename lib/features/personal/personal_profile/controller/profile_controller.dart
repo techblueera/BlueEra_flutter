@@ -11,7 +11,9 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:get/get.dart';
 
+import '../../../common/store/view/store_screen_controller.dart';
 import '../repo/user_repo.dart';
+import '../view/inventory/model/all_stores_feed_response_model.dart';
 
 class VisitProfileController extends GetxController {
   var userProfileResponse = ApiResponse.initial('Initial').obs;
@@ -134,7 +136,13 @@ class VisitProfileController extends GetxController {
       if (responseModel.isSuccess) {
         isFollow.value = true;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
-        followerCount++;
+        followerCount.value++;
+        // Get.find<StoreScreenController>().getAllStoresFeedNearBy();
+        List<AllStoresFeedData> listData= Get.find<StoreScreenController>().allNearByStoresFeed;
+        if(listData.isNotEmpty){
+          AllStoresFeedData data= listData.firstWhere((elem)=>elem.businessData?.userId==candidateResumeId);
+          data.businessData?.copyWith(isFollowed: true);
+        }
       } else {
         isFollow.value = false;
 
@@ -148,9 +156,9 @@ class VisitProfileController extends GetxController {
 
       followUnFollowResponse.value = ApiResponse.error('error');
     }
-    if (isFollow.value == true) {
-      followerCount.value = followerCount.value + 1;
-    }
+    // if (isFollow.value == true) {
+    //   followerCount.value = followerCount.value + 1;
+    // }
   }
 
   ///UNFOLLOW USER...
@@ -166,6 +174,12 @@ class VisitProfileController extends GetxController {
         isFollow.value = false;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
         followerCount--;
+        List<AllStoresFeedData> listData= Get.find<StoreScreenController>().allNearByStoresFeed;
+        if(listData.isNotEmpty){
+          AllStoresFeedData data= listData.firstWhere((elem)=>elem.businessData?.userId==candidateResumeId);
+          data.businessData?.copyWith(isFollowed: false);
+        }
+
       } else {
         isFollow.value = true;
 
@@ -179,9 +193,9 @@ class VisitProfileController extends GetxController {
 
       followUnFollowResponse.value = ApiResponse.error('error');
     }
-    if (isFollow.value == false) {
-      followerCount.value = followerCount.value - 1;
-    }
+    // if (isFollow.value == false) {
+    //   followerCount.value = followerCount.value - 1;
+    // }
   }
 
   ///ADD TESTIMONIAL....

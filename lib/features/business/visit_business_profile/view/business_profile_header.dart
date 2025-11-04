@@ -14,347 +14,278 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/gestures.dart';
 
-class BusinessProfileHeader extends StatelessWidget {
+import '../../../../widgets/common_box_shadow.dart';
+import '../../../../widgets/highlight_text_widget.dart';
+
+class BusinessProfileHeader extends StatefulWidget {
   BusinessProfileHeader({super.key, required this.businessProfileDetails});
 
   final BusinessProfileDetails businessProfileDetails;
+
+  @override
+  State<BusinessProfileHeader> createState() => _BusinessProfileHeaderState();
+}
+
+class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
   final controllerVisit = Get.put(VisitProfileController());
+
   final chatViewController = Get.find<ChatViewController>();
+
   final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  Get.find<ViewBusinessDetailsController>();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    controllerVisit.followerCount.value =
+        widget.businessProfileDetails.total_followers ?? 0;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Material(borderRadius: BorderRadius.circular(10),
+    return Material(
+      borderRadius: BorderRadius.circular(SizeConfig.size10),
+      // elevation: 1.5,
+      color: Colors.white,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // === COVER PHOTO ===
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              ///PROFILE PICTURE & Follow Un follow action....
-              Padding(
-                padding: EdgeInsets.only(
-                    right: SizeConfig.size10,
-                    left: SizeConfig.size10,
-                    top: SizeConfig.size10,
-                    bottom: SizeConfig.size10),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.grey,
-                      backgroundImage: businessProfileDetails.logo != null
-                          ? NetworkImage(businessProfileDetails.logo ?? "")
-                          : null,
-                      child: businessProfileDetails.logo == null
-                          ? CustomText(
-                              getInitials(businessProfileDetails.businessName),
-                              fontSize: SizeConfig.size18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    if (businessProfileDetails.userId != null)
-                      Obx(() {
-                        return InkWell(
-                            onTap: () async {
-                              if (isGuestUser()) {
-                                createProfileScreen();
-                              } else {
-                                if (controllerVisit.isFollow.value) {
-                                  await controllerVisit.unFollowUserController(
-                                      candidateResumeId:
-                                          businessProfileDetails.userId);
-                                } else {
-                                  await controllerVisit.followUserController(
-                                      candidateResumeId:
-                                          businessProfileDetails.userId);
-                                }
-                              }
-                            },
-                            child: CustomText(
-                              controllerVisit.isFollow.value
-                                  ? "Unfollow"
-                                  : "Follow",
-                              color: controllerVisit.isFollow.value
-                                  ? AppColors.colorTextDarkGrey
-                                  : AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              decorationColor: controllerVisit.isFollow.value
-                                  ? AppColors.colorTextDarkGrey
-                                  : AppColors.primaryColor,
-                              fontSize: SizeConfig.size12,
-                            ));
-                      }),
-                  ],
+              ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(SizeConfig.size10),
+                  topRight: Radius.circular(SizeConfig.size10),
+                ),
+                child: Container(
+                  height: 140,
+                  width: double.infinity,
+                  color: Colors.grey.shade200,
+                  child: Image.network(
+                    widget.businessProfileDetails.logo ?? '',
+                    fit: BoxFit.cover,
+                    // errorWidget: (_, __, ___) => Container(
+                    //   color: Colors.grey.shade300,
+                    //   alignment: Alignment.center,
+                    //   child: Icon(Icons.image, color: Colors.grey),
+                    // ),
+                  ),
                 ),
               ),
-              SizedBox(
-                width: SizeConfig.size10,
-              ),
 
-              /// USER NAME AND FOLLOW/UNFOLLOW,MORE ICON VIEW....
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: SizeConfig.size5,
-                    ),
-                    SizedBox(
-                      width: Get.width,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Flexible(
-                                  child: CustomText(
-                                    businessProfileDetails.businessName,
-                                    fontSize: SizeConfig.large,
-                                    fontWeight: FontWeight.w600,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: AppColors.black,
-                                  ),
-                                ),
-                                if(businessProfileDetails.username!=null&&(businessProfileDetails.username?.isNotEmpty??false))
-                                Flexible(
-                                  child: CustomText(
-                                    " @${businessProfileDetails.username}",
-                                    fontSize: SizeConfig.medium,
-                                    fontWeight: FontWeight.w600,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: AppColors.shadowColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size10),
-                            child: Row(
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.only(
-                                      top: SizeConfig.size8,
-                                      left: SizeConfig.size10),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: SizeConfig.size10,
-                                      vertical: SizeConfig.size3),
-                                  decoration: BoxDecoration(
-                                      color: AppColors.primaryColor,
-                                      borderRadius: BorderRadius.circular(8)),
-                                  child: InkWell(
-                                      onTap: () async {
-                                        if (isGuestUser()) {
-                                          createProfileScreen();
-
-                                          return;
-                                        }
-                                        chatViewController
-                                            .openAnyOneChatFunction(
-                                          profileImage: businessProfileDetails.logo,
-                                          otherUserId:(viewBusinessDetailsController
-                                              .conversationId.value=='')?viewBusinessDetailsController
-                                            .otherUserId?.value :null,
-                                          businessId: businessProfileDetails.id,
-                                          type: "business",
-                                          isInitialMessage: (viewBusinessDetailsController
-                                              .conversationId.value=='')?true:false,
-                                          userId: businessProfileDetails.userId,
-                                          conversationId:
-                                              viewBusinessDetailsController
-                                                  .conversationId.value,
-                                          contactName: businessProfileDetails
-                                              .businessName,
-                                          contactNo: businessProfileDetails
-                                              .businessNumber
-                                              ?.officeMobNo
-                                              ?.number
-                                              .toString(),
-                                        );
-                                      },
-                                      child: CustomText(
-                                        "Chat",
-                                        color: AppColors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: SizeConfig.size12,
-                                      )),
-                                ),
-                                SizedBox(
-                                  width: SizeConfig.size6,
-                                ),
-                                Container(
-                                  height: 20,
-                                  width: 20,
-                                  margin: EdgeInsets.only(
-                                    top: SizeConfig.size8,
-                                    right: SizeConfig.size2,
-                                  ),
-                                  child: PopupMenuButton<String>(
-                                    padding: EdgeInsets.zero,
-                                    color: AppColors.white,
-                                    elevation: 3,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    onSelected: (value) async {
-                                      if (value.toUpperCase() == "SHARE") {
-                                        final link = profileDeepLink(userId: businessProfileDetails.userId);
-                                        final message = "See my profile on BlueEra:\n$link\n";
-                                        await SharePlus.instance.share(
-                                          ShareParams(
-                                            text: message,
-                                            subject: businessProfileDetails.businessName,
-                                          ),
-                                        );
-                                      } else if (value.toUpperCase() == "REPORT") {
-                                        // 👉 Handle report logic here
-                                        // e.g. open a dialog, send API call, etc.
-                                        showDialog(
-                                          context: context,
-                                          builder: (_) => AlertDialog(
-                                            title: const Text("Report"),
-                                            content: const Text("Report this profile?"),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text("Cancel"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                  // Perform report action
-                                                },
-                                                child: const Text("Report"),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                                    itemBuilder: (context) => popupMenuVisitProfileItemss(),
-                                  ),
-                                )
-
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: _buildTag((businessProfileDetails
-                                          .subCategoryDetails !=
-                                      null &&
-                                  businessProfileDetails
-                                          .subCategoryDetails?.name !=
-                                      null)
-                              ? businessProfileDetails
-                                      .subCategoryDetails?.name ??
-                                  ''
-                              : (businessProfileDetails.categoryDetails !=
-                                          null &&
-                                      businessProfileDetails
-                                              .categoryDetails?.name !=
-                                          null)
-                                  ? businessProfileDetails
-                                          .categoryDetails?.name ??
-                                      ''
-                                  : (businessProfileDetails.natureOfBusiness ??
-                                      'OTHERS')),
-                        ),
-                        SizedBox(
-                          width: SizeConfig.size6,
-                        ),
-                        _buildTag(
-                            businessProfileDetails.isActive ?? false
-                                ? "Opened"
-                                : "Closed",
-                            borderColor:
-                                businessProfileDetails.isActive ?? false
-                                    ? AppColors.green39
-                                    : AppColors.red,
-                            textColor: businessProfileDetails.isActive ?? false
-                                ? AppColors.green39
-                                : AppColors.red),
-                      ],
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    Row(
-                      children: [
-                        LocalAssets(
-                            height: 20,
-                            width: 20,
-                            imagePath: AppIconAssets.businessprofile_location),
-                        SizedBox(width: SizeConfig.size5),
-                        Flexible(
-                          child: CustomText(
-                            "${(viewBusinessDetailsController.distanceFromKm.value).toStringAsFixed(2)} Km Far",
-                            color: AppColors.primaryColor,
-                            fontSize: SizeConfig.size12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                      ],
-                    ),
-                    if(businessProfileDetails.cityStatePincode!=null&&(businessProfileDetails.cityStatePincode?.isNotEmpty??false)&&(businessProfileDetails.cityStatePincode?.toLowerCase())!="null")...[
-                      SizedBox(width: SizeConfig.size5),
-                      Padding(
-                        padding:  EdgeInsets.only(right: SizeConfig.size20),
-                        child: CustomText(
-                          "City : ${businessProfileDetails.cityStatePincode}",
-                          color: AppColors.secondaryTextColor,
-                          fontSize: SizeConfig.size12,
-                          fontWeight: FontWeight.bold,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ]
-
-                  ],
+              // === PROFILE AVATAR ===
+              Positioned(
+                left: 16,
+                bottom: -35,
+                child: CircleAvatar(
+                  radius: 36,
+                  backgroundColor: Colors.white,
+                  child: CircleAvatar(
+                    radius: 33,
+                    backgroundImage: NetworkImage(
+                        widget.businessProfileDetails.logo ?? ''),
+                    backgroundColor: Colors.grey.shade300,
+                  ),
                 ),
               ),
+              // Positioned(
+              //   right: 0,top: 180,
+              //
+              //     child: )
             ],
           ),
-
-          ///BUSINESS DESCRIPTION
-         if(businessProfileDetails.businessDescription!=null&&(businessProfileDetails.businessDescription?.isNotEmpty??false))
           Padding(
-            padding: EdgeInsets.only(
-                left: SizeConfig.size10,
-                right: SizeConfig.size10,
-                bottom: SizeConfig.size10),
-            child: ExpandableText(
-              text: "      ${businessProfileDetails.businessDescription}",
-              trimLines: 3,
-              style: TextStyle(
-                color: AppColors.mainTextColor,
-                fontFamily: AppConstants.OpenSans,
-                fontWeight: FontWeight.w400,
-              ),
+            padding: const EdgeInsets.only(top: 14.0, right: 14),
+            child: Obx(() {
+              return Row(mainAxisAlignment: MainAxisAlignment.end,
+
+                children: [
+
+                  _buildActionButton("Chat", AppColors.white,
+                      AppColors.primaryColor, () {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+
+                          return;
+                        }
+                        chatViewController
+                            .openAnyOneChatFunction(
+                          profileImage: widget.businessProfileDetails.logo,
+                          otherUserId: (viewBusinessDetailsController
+                              .conversationId.value == '')
+                              ? viewBusinessDetailsController
+                              .otherUserId?.value
+                              : null,
+                          businessId: widget.businessProfileDetails.id,
+                          type: "business",
+                          isInitialMessage: (viewBusinessDetailsController
+                              .conversationId.value == '') ? true : false,
+                          userId: widget.businessProfileDetails.userId,
+                          conversationId:
+                          viewBusinessDetailsController
+                              .conversationId.value,
+                          contactName: widget.businessProfileDetails
+                              .businessName,
+                          contactNo: widget.businessProfileDetails
+                              .businessNumber
+                              ?.officeMobNo
+                              ?.number
+                              .toString(),
+                        );
+                      }),
+                  const SizedBox(width: 6),
+                  _buildActionButton(controllerVisit.isFollow.value
+                      ? "Unfollow"
+                      : "Follow", AppColors.primaryColor,
+                      AppColors.white, () async {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          if (controllerVisit.isFollow.value) {
+                            await controllerVisit.unFollowUserController(
+                                candidateResumeId:
+                                widget.businessProfileDetails.userId);
+                          } else {
+                            await controllerVisit.followUserController(
+                                candidateResumeId:
+                                widget.businessProfileDetails.userId);
+                          }
+                        }
+                      }),
+
+                  Material(
+                    color: Colors.transparent,
+                    child: SizedBox(
+                      height: 28,
+                      width: 28,
+                      child: PopupMenuButton<String>(
+
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 0,
+                          minHeight: 0,
+                        ),
+                        color: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        icon: LocalAssets(imagePath: AppIconAssets
+                            .more_vertical),
+                        itemBuilder: (context) => popupMenuVisitProfileItemss(),
+                        onSelected: (value) async {
+                          if (value.toUpperCase() == "SHARE") {
+                            final link = profileDeepLink(
+                                userId: widget.businessProfileDetails.userId);
+                            final message = "See my profile on BlueEra:\n$link\n";
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                text: message,
+                                subject: widget.businessProfileDetails
+                                    .businessName,
+                              ),
+                            );
+                          } else if (value.toUpperCase() == "REPORT") {
+                            // 👉 Handle report logic here
+                            // e.g. open a dialog, send API call, etc.
+                            showDialog(
+                              context: context,
+                              builder: (_) =>
+                                  AlertDialog(
+                                    title: const Text("Report"),
+                                    content: const Text("Report this profile?"),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text("Cancel"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          // Perform report action
+                                        },
+                                        child: const Text("Report"),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  )
+
+                ],);
+            }),
+          ),
+
+          // === NAME, BUTTONS ===
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomText(
+                    widget.businessProfileDetails.businessName ?? '',
+                    fontSize: SizeConfig.size24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+
+              ],
             ),
           ),
 
-          SizedBox(height: SizeConfig.size12),
+          const SizedBox(height: 8),
+
+          // === TAGS (Shop / Close) ===
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            child: Row(
+              children: [
+                _buildTag(
+                    "Shop",
+                    bgColor: AppColors.white,
+                    textColor: AppColors.blackLite
+                ),
+                const SizedBox(width: 8),
+                _buildTag(
+                  (widget.businessProfileDetails.isActive ?? false)
+                      ? "Open"
+                      : "Close",
+                  bgColor: AppColors.white,
+                  textColor: (widget.businessProfileDetails.isActive ?? false)
+                      ? AppColors.greenShade
+                      : AppColors.redLite,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // === DESCRIPTION ===
+          if (widget.businessProfileDetails.businessDescription?.isNotEmpty ??
+              false)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              child: DescriptionPreview(
+                text: widget.businessProfileDetails.businessDescription ?? '',
+                dialogTitle: "Business Description", // optional
+              ),
+            ),
+
+
+          const SizedBox(height: 16),
+
+          // === STATS CONTAINER ===
           Container(
             margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
             padding: EdgeInsets.symmetric(
@@ -362,20 +293,14 @@ class BusinessProfileHeader extends StatelessWidget {
               horizontal: SizeConfig.size10,
             ),
             decoration: BoxDecoration(
+              color: AppColors.white,
               border: Border.all(
-                color: const Color(0xFFE5E5E5), // #E5E5E5 border
+                color: AppColors.whiteE5, // #E5E5E5 border
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(SizeConfig.size10),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0x14000000), // #000000 with 8% opacity
-                  offset: const Offset(0, 1), // X: 0, Y: 1
-                  blurRadius: 2,
-                  spreadRadius: 0,
-                ),
-              ],
-              color: Colors.white, // optional background
+              boxShadow: [AppShadows.textFieldShadow],
+              // color: Colors.white, // optional background
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -387,12 +312,15 @@ class BusinessProfileHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildInfo("Rating",
-                          "★ ${(businessProfileDetails.rating ?? 0).toStringAsFixed(1)}"),
+                          "★ ${(widget.businessProfileDetails.rating ?? 0)
+                              .toStringAsFixed(1)}"),
                       SizedBox(
                         height: SizeConfig.size12,
                       ),
-                      buildInfo(
-                          "Views", "${formatIndianNumber(businessProfileDetails.total_views ?? 0)}"),
+                      buildInfo("Views",
+                          "${formatIndianNumber(
+                              widget.businessProfileDetails.total_views ??
+                                  0)}"),
                     ],
                   ),
                 ),
@@ -412,110 +340,159 @@ class BusinessProfileHeader extends StatelessWidget {
                 // SizedBox(
                 //   width: SizeConfig.size24,
                 // ),
-                Flexible(
-                  flex: 2,
+                Obx(() {
+                  return Flexible(
+                    flex: 2,
+                    child: Container(
+                      // color: Colors.red,
+                      width: Get.width,
+                      alignment: Alignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          buildInfo("Inquiries", formatIndianNumber(0)),
+                          SizedBox(
+                            height: SizeConfig.size12,
+                          ),
 
-                  child: Container(
-                    // color: Colors.red,
-                    width: Get.width,
-                    alignment: Alignment.center,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding:  EdgeInsets.symmetric(),
-                          child: buildInfo("Inquiries",formatIndianNumber(0) ),
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size12,
-                        ),
-                        InkWell(
-                            onTap: () {
-                              Get.to(() => FollowersFollowingPage(
-                                    tabIndex: 1,
-                                    userID: businessProfileDetails.id ?? "",
-                                  ));
-                            },
-                            child: buildInfo("Followers",
-                                "${formatIndianNumber(businessProfileDetails.total_followers ?? 0)}")),
-                      ],
+                          InkWell(
+                              onTap: () {
+                                Get.to(() =>
+                                    FollowersFollowingPage(
+                                      tabIndex: 1,
+                                      userID: widget.businessProfileDetails
+                                          ?.id ?? "",
+                                    ));
+                              },
+                              child: buildInfo("Followers",
+                                  "${formatIndianNumber(
+                                      controllerVisit.followerCount.value)}")),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
                 // SizedBox(
                 //   width: SizeConfig.size20,
                 // ),
-                Expanded(
-                  child: SizedBox(
-                    height: SizeConfig.size50,
-                    child: VerticalDivider(
-                      color: AppColors.coloGreyText,
-                      width: 12,
-                      thickness: 1.2,
-                    ),
+                SizedBox(
+                  height: SizeConfig.size50,
+                  child: VerticalDivider(
+                    color: AppColors.coloGreyText,
+                    width: 12,
+                    thickness: 1.2,
                   ),
                 ),
-                // SizedBox(
-                //   width: SizeConfig.size20,
-                // ),
-                Expanded(
-                  flex: 2,
+                SizedBox(
+                  width: SizeConfig.size15,
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    CustomText(
+                      "Joined",
+                      fontSize: SizeConfig.size12,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(height: SizeConfig.size2),
+                    CustomText(
+                      formattedCreatedAt(
+                          widget.businessProfileDetails?.createdAt),
+                      fontSize: SizeConfig.size12,
+                      maxLines: 1,
+                      fontWeight: FontWeight.w400,
+                    ),
 
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      CustomText(
-                        "Joined",
-                        fontSize: SizeConfig.size12,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      SizedBox(height: SizeConfig.size2),
-                      CustomText(
-                        businessProfileDetails.dateOfIncorporation == null
-                            ? ""
-                            : "${businessProfileDetails.dateOfIncorporation?.date ?? ""}/${(businessProfileDetails.dateOfIncorporation?.month ?? 1)}/${businessProfileDetails.dateOfIncorporation?.year ?? ""}",
-                        fontSize: SizeConfig.size12,
-                        maxLines: 1,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      SizedBox(height: SizeConfig.size10),
-                    ],
-                  ),
+                    SizedBox(height: SizeConfig.size10),
+                  ],
                 )
               ],
             ),
           ),
-          SizedBox(height: SizeConfig.size12),
+          const SizedBox(height: 12),
         ],
       ),
     );
   }
 
-  Widget _buildTag(
-    String text, {
-    Color borderColor = AppColors.greyA5,
-    Color textColor = AppColors.black,
-  }) {
-    return Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8, vertical: SizeConfig.size2),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(SizeConfig.size12),
-          border: Border.all(color: borderColor),
+  /// small info column
+  Widget _buildInfo(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          label,
+          fontSize: SizeConfig.size12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.secondaryTextColor,
         ),
-        child: CustomText(
-          text,
-          fontSize: SizeConfig.size10,
-          fontWeight: FontWeight.w400,
-          color: textColor,
-        ));
+        const SizedBox(height: 2),
+        CustomText(
+          value,
+          fontSize: SizeConfig.size13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
+        ),
+      ],
+    );
   }
 
+  /// vertical divider
+  Widget _divider() =>
+      Container(
+        height: 30,
+        width: 1,
+        color: const Color(0xFFE5E5E5),
+      );
+
+  /// tag (like Shop / Close)
+  Widget _buildTag(String text, {Color? bgColor, Color? textColor}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+          color: bgColor ?? Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: textColor ?? AppColors.black,)
+
+      ),
+      child: CustomText(
+        text,
+        fontSize: SizeConfig.size12,
+        color: textColor ?? AppColors.black,
+        fontWeight: FontWeight.w400,
+      ),
+    );
+  }
+
+  /// reusable action buttons (Chat / Follow)
+  Widget _buildActionButton(String label,
+      Color bg,
+      Color textColor,
+      VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(6),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.primaryColor,)
+        ),
+        child: CustomText(
+          label,
+          color: textColor,
+          fontSize: SizeConfig.size10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
 }
+
 List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
   return [
     PopupMenuItem<String>(
@@ -523,7 +500,7 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
       child: Row(
         children: [
           LocalAssets(
-            imagePath:  AppIconAssets.share_bold,
+            imagePath: AppIconAssets.share_bold,
             height: SizeConfig.size20,
             width: SizeConfig.size20,
           ),
@@ -593,13 +570,13 @@ Widget buildInfo(String title, String value) {
       CustomText(
         title + ":",
         fontSize: SizeConfig.size12,
-        color: AppColors.grayText,
+        color: AppColors.secondaryTextColor,
         fontWeight: FontWeight.w400,
       ),
       SizedBox(width: SizeConfig.size6),
       Flexible(
         child: CustomText(
-          value ,
+          value,
           fontSize: SizeConfig.size12,
           fontWeight: FontWeight.w700,
           color: AppColors.secondaryTextColor,
@@ -607,5 +584,140 @@ Widget buildInfo(String title, String value) {
       ),
     ],
   );
+}
+
+class DescriptionPreview extends StatefulWidget {
+  final String text;
+  final String? dialogTitle;
+
+  const DescriptionPreview({
+    Key? key,
+    required this.text,
+    this.dialogTitle,
+  }) : super(key: key);
+
+  @override
+  State<DescriptionPreview> createState() => _DescriptionPreviewState();
+}
+
+class _DescriptionPreviewState extends State<DescriptionPreview> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxChars = 120; // ~4 lines
+
+    final showMore = widget.text.length > maxChars;
+
+    final displayText = showMore && !_expanded
+        ? "${widget.text.substring(0, maxChars)}..."
+        : widget.text;
+
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: SizeConfig.medium,
+          color: Colors.black,
+          fontFamily: AppConstants.OpenSans,
+        ),
+        children: [
+          TextSpan(text: displayText),
+
+          if (showMore && !_expanded)
+            TextSpan(
+              text: " Read more",
+              style: TextStyle(
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  _showFullTextDialog(context, TextStyle());
+                },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullTextDialog(BuildContext context, TextStyle style) {
+    showDialog(
+      context: context,
+      builder: (_) =>
+          Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            insetPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+            child: Container(
+              padding: EdgeInsets.all(SizeConfig.size16),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.92,
+                // ⬇️ height expands naturally but limits only when too tall
+                maxHeight: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.85,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                // 🔹 dynamic height based on content
+                children: [
+                  CustomText(
+                    widget.dialogTitle ?? 'Business Description',
+                    fontSize: SizeConfig.large18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+
+                  SizedBox(height: SizeConfig.size10),
+
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: BouncingScrollPhysics(),
+                      child: HighlightText(
+                        text: widget.text,
+                        style: TextStyle(
+                          color: AppColors.mainTextColor,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: AppConstants.OpenSans,
+                          height: 1.30,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ⬇️ Reduced gap to minimize bottom space
+                  SizedBox(height: SizeConfig.size4),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      // 🔹 small bottom padding
+                      child: TextButton(
+                        style: ButtonStyle(
+                          padding: MaterialStateProperty.all(EdgeInsets.zero),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: CustomText(
+                          'Close',
+                          fontWeight: FontWeight.w600,
+                          fontSize: SizeConfig.medium15,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
 }
 
