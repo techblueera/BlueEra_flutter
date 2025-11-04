@@ -12,9 +12,12 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as httpPkg;
 
 String notificationSound = 'sound/iphone_tone.mp3';
-String chatNotificationSound = 'sound/notification_sound.wav';
+String hello_delivery = 'sound/hello_delivery.mp3';
+String chatNotificationSound = 'sound/messenger.mp3';
 
 class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -151,14 +154,22 @@ class AppNotificationHandler {
     showNotification(message);
   }
 
-  void showNotification(
-    RemoteMessage notification,
-  ) {
+  Future<String> _downloadAndSaveFile(String url, String fileName) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/$fileName';
+    final response = await httpPkg.get(Uri.parse(url));
+    final file = File(filePath);
+    await file.writeAsBytes(response.bodyBytes);
+    return filePath;
+  }
+  Future<void> showNotification(
+      RemoteMessage notification,
+      ) async {
     flutterLocalNotificationsPlugin.show(
       notification.hashCode,
       notification.notification?.title ?? "",
       notification.notification?.body ?? "",
-      const NotificationDetails(
+      NotificationDetails(
           android: AndroidNotificationDetails(
             AppStrings.appName, // id
             // AppStrings.appName, // id
@@ -169,7 +180,7 @@ class AppNotificationHandler {
             importance: Importance.high,
             icon: '@drawable/ic_stat',
             playSound: true,
-            styleInformation: BigTextStyleInformation(''),
+            // styleInformation: styleInformation,
           ),
           iOS: DarwinNotificationDetails(
             presentBanner: true,
@@ -178,20 +189,85 @@ class AppNotificationHandler {
       payload: jsonEncode(notification.data),
     );
   }
+ ///WORKING CODE..
+  /* Future<void> showNotification(
+    RemoteMessage notification,
+  ) async {
+    final imageUrl =
+        "https://img.freepik.com/free-vector/flat-design-minimal-technology-twitch-banner_23-2149089532.jpg?semt=ais_hybrid&w=740&q=80";
+    // String imageUrl = notification.data['image'];
+    //
+
+    if (imageUrl.isNotEmpty) {
+      final bigPicture = await _downloadAndSaveFile(imageUrl, 'bigPicture');
+
+      final styleInformation = BigPictureStyleInformation(
+        FilePathAndroidBitmap(bigPicture),
+        largeIcon: null,
+        contentTitle: notification.notification?.title ?? "",
+        summaryText: notification.notification?.body ?? "",
+      );
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        "",
+        "",
+        NotificationDetails(
+            android: AndroidNotificationDetails(
+              AppStrings.appName, // id
+              // AppStrings.appName, // id
+              'High Importance Notifications', // title
+              channelDescription: '',
+              enableVibration: false,
+              // description
+              importance: Importance.high,
+              icon: '@drawable/ic_stat',
+              playSound: true,
+              styleInformation: styleInformation,
+            ),
+            iOS: DarwinNotificationDetails(
+              presentBanner: true,
+              presentSound: true,
+            )),
+        payload: jsonEncode(notification.data),
+      );
+    } else {
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.notification?.title ?? "",
+        notification.notification?.body ?? "",
+        NotificationDetails(
+            android: AndroidNotificationDetails(
+              AppStrings.appName, // id
+              // AppStrings.appName, // id
+              'High Importance Notifications', // title
+              channelDescription: '',
+              enableVibration: false,
+              // description
+              importance: Importance.high,
+              icon: '@drawable/ic_stat',
+              playSound: true,
+              // styleInformation: styleInformation,
+            ),
+            iOS: DarwinNotificationDetails(
+              presentBanner: true,
+              presentSound: true,
+            )),
+        payload: jsonEncode(notification.data),
+      );
+    }
+  }*/
 
   ///call when click on notification
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      // RemoteNotification? notification = message.notification;
-      // AndroidNotification? android = message.notification?.android;
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
 
       ///FOR APP IS IN FOR GROUND....
       logs("message===== ${(message.data)}");
-      logs("message===== ${jsonEncode(message.messageType)}");
 
       ///IOS LOCAL NOTIFICATION IS TRIGGER BY SELF & ANDROID NOT HANDLE
-      // if (notification != null && Platform.isAndroid) {
-      if (Platform.isAndroid) {
+      if (notification != null && Platform.isAndroid) {
         playCustomSound(message);
         showMsg(message);
       } else if (Platform.isIOS) {
@@ -252,18 +328,29 @@ class AppNotificationHandler {
 
   ///SET AUDIO SOUND....
   Future<void> playCustomSound(RemoteMessage dataNotificationResponse) async {
-    print("play sound call");
+    Map<String, dynamic> dataMap = dataNotificationResponse.data;
     String playNotificationSound;
-    if (dataNotificationResponse.data['sender_user'] is String) {
-      dataNotificationResponse.data['sender_user'] =
-          jsonDecode(dataNotificationResponse.data['sender_user']);
+    if (dataMap['sender_user'] is String) {
+      dataMap['sender_user'] = jsonDecode(dataMap['sender_user']);
     }
-    OneSignalNotificationDetailsModel data =
-    OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
-    if (data.operation== "sent_message") {
-      playNotificationSound = chatNotificationSound;
-    } else {
+    try {
+      OneSignalNotificationDetailsModel data =
+          OneSignalNotificationDetailsModel.fromJson(dataMap);
+      if (data.operation == "sent_message") {
+        playNotificationSound = chatNotificationSound;
+      } else if (data.operation == "order_placed") {
+        playNotificationSound = hello_delivery;
+      } else if (data.operation == "reposted_post" ||
+          data.operation == "commented_on_post") {
+        playNotificationSound = notificationSound;
+      } else {
+        ///DEFAULT...
+        playNotificationSound = notificationSound;
+      }
+    } on Exception catch (e) {
       playNotificationSound = notificationSound;
+
+      // TODO
     }
 
     // Permission.
