@@ -59,6 +59,8 @@ class BusinessProfileDetails {
       this.cityStatePincode, 
       this.subCategoryOfBusiness, 
       this.websiteUrl,
+      this.openTime,
+      this.closeTime,
       this.businessNumber,
       this.is_following,
       this.category_other,
@@ -113,6 +115,8 @@ class BusinessProfileDetails {
     cityStatePincode = json['city_state_pincode'];
     subCategoryOfBusiness = json['sub_category_Of_Business'];
     websiteUrl = json['website_url'];
+    openTime = json['opening_time'];
+    closeTime = json['closing_time'];
     categoryDetails = json['category_details'] != null ? CategoryDetails.fromJson(json['category_details']) : null;
     subCategoryDetails = json['sub_category_details'] != null ? SubCategoryDetails.fromJson(json['sub_category_details']) : null;
     pincode = json['pincode'];
@@ -146,6 +150,8 @@ class BusinessProfileDetails {
   String? cityStatePincode;
   String? subCategoryOfBusiness;
   String? websiteUrl;
+  String? openTime;
+  String? closeTime;
   dynamic pincode;
   CategoryDetails? categoryDetails;
   SubCategoryDetails? subCategoryDetails;
@@ -198,6 +204,8 @@ class BusinessProfileDetails {
     map['city_state_pincode'] = cityStatePincode;
     map['sub_category_Of_Business'] = subCategoryOfBusiness;
     map['website_url'] = websiteUrl;
+    map['opening_time'] = openTime;
+    map['closing_time'] = closeTime;
     map['rating']=rating;
     map['total_views']=total_views;
     map['total_followers']=total_followers;

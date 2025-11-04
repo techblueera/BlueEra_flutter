@@ -43,9 +43,36 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
         widget.businessProfileDetails.total_followers ?? 0;
     super.initState();
   }
+  bool isBusinessOpen(String open, String close) {
+    DateTime now = DateTime.now();
+
+    DateTime parseTime(String timeStr) {
+      final parts = timeStr.split(":");
+      int hour = int.tryParse(parts[0]) ?? 0;
+      int minute = int.tryParse(parts[1]) ?? 0;
+      return DateTime(now.year, now.month, now.day, hour, minute);
+    }
+
+    DateTime openTime = parseTime(open);
+    DateTime closeTime = parseTime(close);
+
+    // Handle overnight close (e.g. 22:00 → 03:00)
+    if (closeTime.isBefore(openTime)) {
+      return now.isAfter(openTime) || now.isBefore(closeTime);
+    }
+
+    return now.isAfter(openTime) && now.isBefore(closeTime);
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    print('ssss${widget.businessProfileDetails.openTime}');
+    print('ssss${widget.businessProfileDetails.closeTime}');
+    final open = widget.businessProfileDetails.openTime ?? "09:00 AM";
+    final close = widget.businessProfileDetails.closeTime ?? "06:00 PM";
+
+    bool isOpenNow = isBusinessOpen(open, close);
     return Material(
       borderRadius: BorderRadius.circular(SizeConfig.size10),
       // elevation: 1.5,
@@ -102,6 +129,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
           Padding(
             padding: const EdgeInsets.only(top: 14.0, right: 14),
             child: Obx(() {
+
+
               return Row(mainAxisAlignment: MainAxisAlignment.end,
 
                 children: [
@@ -257,14 +286,11 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                 ),
                 const SizedBox(width: 8),
                 _buildTag(
-                  (widget.businessProfileDetails.isActive ?? false)
-                      ? "Open"
-                      : "Close",
+                  isOpenNow ? "Open" : "Close",
                   bgColor: AppColors.white,
-                  textColor: (widget.businessProfileDetails.isActive ?? false)
-                      ? AppColors.greenShade
-                      : AppColors.redLite,
+                  textColor: isOpenNow ? AppColors.greenShade : AppColors.redLite,
                 ),
+
               ],
             ),
           ),

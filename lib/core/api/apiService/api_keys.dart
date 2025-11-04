@@ -464,4 +464,6 @@ class ApiKeys {
   static const selectedRiders = 'selectedRiders';
   static const orderId = 'orderId';
   static const receiverUserId = 'receiverUserId';
+  static const opening_time = 'opening_time';
+  static const closing_time = 'closing_time';
 }
