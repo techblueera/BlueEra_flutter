@@ -29,8 +29,6 @@ import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_cache_manager.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-
-
 class VideoPlayerItem extends StatefulWidget {
   final VideoPost video;
   final bool isActive;
@@ -49,6 +47,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   bool _isPlaying = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+  // bool _isInitializing = true;
+  // bool _hasError = false;
 
   @override
   void initState() {
@@ -68,7 +68,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         _controller!.setLooping(true);
 
         // Play/pause based on visibility flag
-        _playPauseBasedOnVisibility();
+         _playPauseBasedOnVisibility();
 
         setState(() {});
       }
@@ -85,7 +85,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   }
 
   void _playPauseBasedOnVisibility() {
-    if (!mounted || _controller == null) return;
+    if (!mounted || _controller == null || !_controller!.value.isInitialized) return;
     if (widget.isActive) {
       _controller!.play();
       _isPlaying = true;
@@ -97,7 +97,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   }
 
   void _togglePlay() {
-    if (_controller == null) return;
+    if (_controller == null || !_controller!.value.isInitialized) return;
     if (_controller!.value.isPlaying) {
       _controller!.pause();
       setState(() => _isPlaying = false);
@@ -121,6 +121,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     if (_controller != null && _controller!.value.isPlaying) {
       _controller!.pause(); // ✅ stop playback
     }
+
+    // Release controller reference from cache manager
+    VideoCacheManager().releaseController(widget.video.videoUrl);
+
     super.dispose();
   }
   // @override
@@ -136,6 +140,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     final sec = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$min:$sec";
   }
+
   final feedController = Get.isRegistered<FeedController>()
       ? Get.find<FeedController>()
       : Get.put(FeedController());
@@ -238,8 +243,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                           color: AppColors.white,
                                         ),
                                       ),
-                                      if (widget.video.authorUsername !=
-                                              null &&
+                                      if (widget.video.authorUsername.isNotEmpty &&
                                           (widget.video.authorUsername
                                                   .isNotEmpty ??
                                               false))
@@ -280,138 +284,140 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               ),
             ),
             Expanded(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // 🖼️ Video display
-                  Center(
-                    child: _controller != null &&
-                            _controller!.value.isInitialized
-                        ? AspectRatio(
-                            aspectRatio: _controller!.value.aspectRatio,
-                            child: VideoPlayer(_controller!),
-                          )
-                        : const Center(
-                            child: CircularProgressIndicator(
-                                color: Colors.white),
-                          ),
-                  ),
+              child:  _controller != null &&
+                  _controller!.value.isInitialized ? GestureDetector(
+                onTap: _togglePlay,
+                behavior: HitTestBehavior.opaque,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // 🖼️ Video display
+                    Center(
+                      child: AspectRatio(
+                        aspectRatio: _controller!.value.aspectRatio,
+                        child: VideoPlayer(_controller!),
+                      )
+                    ),
 
-                  // ▶️ Play/Pause button (center)
-                  if (_controller != null && _controller!.value.isInitialized)
-                    GestureDetector(
-                      onTap: _togglePlay,
-                      child: AnimatedOpacity(
-                        opacity: _isPlaying ? 0.0 : 0.8,
-                        duration: const Duration(milliseconds: 300),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.black54,
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(12),
-                          child: Icon(
-                            _isPlaying ? Icons.pause : Icons.play_arrow,
-                            size: 50,
-                            color: Colors.white,
+                    // ▶️ Play/Pause button (center)
+                    if (_controller != null && _controller!.value.isInitialized)
+                      GestureDetector(
+                        onTap: _togglePlay,
+                        behavior: HitTestBehavior.opaque,
+                        child: AnimatedOpacity(
+                          opacity: _isPlaying ? 0.0 : 0.8,
+                          duration: const Duration(milliseconds: 300),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: Icon(
+                              _isPlaying ? Icons.pause : Icons.play_arrow,
+                              size: 50,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                  // 🔇 Mute button + Duration overlay (bottom-right)
-
-                  Positioned(
-                    bottom: 10,
-                    left: 16,
-                    right: 16,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_controller != null &&
-                                _controller!.value.isInitialized)
-                              GestureDetector(
-                                onTap: _togglePlay,
-                                child: Icon(
-                                  _isPlaying ? Icons.pause : Icons.play_arrow,
-                                  size: 25,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            if (_controller != null)
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 5.0,
+                    // 🔇 Mute button + Duration overlay (bottom-right)
+                    Positioned(
+                      bottom: 10,
+                      left: 16,
+                      right: 16,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_controller != null &&
+                                  _controller!.value.isInitialized)
+                                GestureDetector(
+                                  onTap: _togglePlay,
+                                  child: Icon(
+                                    _isPlaying ? Icons.pause : Icons.play_arrow,
+                                    size: 25,
+                                    color: Colors.white,
                                   ),
-                                  child: VideoProgressIndicator(
-                                    _controller!,
-                                    allowScrubbing: true,
-                                    colors: const VideoProgressColors(
-                                      playedColor: Colors.white,
-                                      backgroundColor: Colors.white30,
-                                      bufferedColor: Colors.grey,
+                                ),
+                              if (_controller != null)
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: 5.0,
+                                    ),
+                                    child: VideoProgressIndicator(
+                                      _controller!,
+                                      allowScrubbing: true,
+                                      colors: const VideoProgressColors(
+                                        playedColor: Colors.white,
+                                        backgroundColor: Colors.white30,
+                                        bufferedColor: Colors.grey,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            // GestureDetector(
-                            //   onTap: _toggleMute,
-                            //   child: Icon(
-                            //     _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                            //     color: Colors.white,
-                            //     size: 24,
-                            //   ),
-                            // ),
-                            // const SizedBox(width: 12),
-                            CustomText(
-                                "${_formatTime(_position)} / ${_formatTime(_duration)}",
-                                color: Colors.white,
-                                fontSize: 12),
-                          ],
-                        ),
-                        // 📄 Title or Caption (bottom left)
-                        if (widget.video.title.isNotEmpty)
-                          SafeArea(
-                            child: Container(
-                              margin: EdgeInsets.only(top: 5),
-                              padding:
-                              const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ExpandableText(
-                                text: widget.video.title,
-                                trimLines: 2,
-                                isReadMoreNewLine: true,
-                                expandMode: ExpandMode.dialog,
-                                style: TextStyle(
-                                  color: AppColors.white,
-                                  fontSize: SizeConfig.large,
-                                  fontWeight: FontWeight.w400,
-                                  fontFamily: AppConstants.OpenSans,
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // GestureDetector(
+                              //   onTap: _toggleMute,
+                              //   child: Icon(
+                              //     _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                              //     color: Colors.white,
+                              //     size: 24,
+                              //   ),
+                              // ),
+                              // const SizedBox(width: 12),
+                              CustomText(
+                                  "${_formatTime(_position)} / ${_formatTime(_duration)}",
+                                  color: Colors.white,
+                                  fontSize: 12),
+                            ],
+                          ),
+                          // 📄 Title or Caption (bottom left)
+                          if (widget.video.title.isNotEmpty)
+                            SafeArea(
+                              child: Container(
+                                margin: EdgeInsets.only(top: 5),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: ExpandableText(
+                                  text: widget.video.title,
+                                  trimLines: 2,
+                                  isReadMoreNewLine: true,
+                                  expandMode: ExpandMode.dialog,
+                                  style: TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: SizeConfig.large,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: AppConstants.OpenSans,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
 
-                       SizedBox(height: SizeConfig.size30,),
-                      ],
+                         SizedBox(height: SizeConfig.size30,),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ) : const Center(
+                child: CircularProgressIndicator(
+                    color: Colors.white),
               ),
             ),
             /*Padding(

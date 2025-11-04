@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/model/video_post_model.dart';
@@ -73,7 +74,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>  
     String videoUrl;
 
     videoUrl = widget.videoItem.video?.videoUrl ?? '';
-
+    log('update video--> ');
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
       videoUrl,
@@ -130,113 +131,121 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>  
     final mainContent = VisibilityDetector(
       key: ValueKey(widget.videoItem.videoId),
       onVisibilityChanged: _handleVisibilityChange,
-      child: Obx(() {
-        final isCurrent = videoManager.currentIndex.value ==
-            widget.videoItem.videoId.hashCode;
-        final controller = videoManager.controller;
-        final isScrolling = videoManager.isScrolling.value;
+      child: GetBuilder<SimplePriorityVideoManager>(
+          builder: (videoManager) {
 
+            final isCurrent = videoManager.currentIndex.value ==
+                widget.videoItem.videoId.hashCode;
+            final controller = videoManager.controller;
+            final isScrolling = videoManager.isScrolling.value;
 
-        final bool showVideo = isCurrent &&
-            controller != null &&
-            controller.value.isInitialized &&
-            controller.value.size.width > 0 &&
-            controller.value.size.height > 0;
+            final bool showVideo = isCurrent &&
+                controller != null &&
+                controller.value.isInitialized &&
+                controller.value.size.width > 0 &&
+                controller.value.size.height > 0;
 
-        return Stack(
-          children: [
-            // --- 🖼️ Show Cover Image Only if Video Not Ready ---
-            if (!showVideo)
-              AspectRatio(
-                aspectRatio: 1,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                  child: _buildCoverImage(widget.videoItem.video?.coverUrl),
-                ),
-              ),
-            // --- 🎬 Video Player ---
-            if (showVideo)
-              Builder(
-                builder: (_) {
+            log('showVideo breakdown → '
+                'isCurrent:$isCurrent | '
+                'controller:${controller != null} | '
+                'initialized:${controller?.value.isInitialized} | '
+                'width:${controller?.value.size.width} | '
+                'height:${controller?.value.size.height}'
+            );
 
-                  final videoWidth = controller!.value.size.width;
-                  final videoHeight = controller.value.size.height;
-                  final bool isLandscape = videoWidth > videoHeight;
+            return Stack(
+              children: [
+                // --- 🖼️ Show Cover Image Only if Video Not Ready ---
+                if (!showVideo)
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                      child: _buildCoverImage(widget.videoItem.video?.coverUrl),
+                    ),
+                  ),
+                // --- 🎬 Video Player ---
+                if (showVideo)
+                  Builder(
+                    builder: (_) {
 
-                  // 🟩 LANDSCAPE VIDEO: Show full width, maintain aspect ratio
-                  if (isLandscape) {
-                    return Center(
-                      child: AspectRatio(
-                        aspectRatio: controller.value.aspectRatio,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(8)),
-                          child: VideoPlayer(controller),
+                      final videoWidth = controller.value.size.width;
+                      final videoHeight = controller.value.size.height;
+                      final bool isLandscape = videoWidth > videoHeight;
+
+                      // 🟩 LANDSCAPE VIDEO: Show full width, maintain aspect ratio
+                      if (isLandscape) {
+                        return Center(
+                          child: AspectRatio(
+                            aspectRatio: controller.value.aspectRatio,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(8)),
+                              child: VideoPlayer(controller),
+                            ),
+                          ),
+                        );
+                      }
+
+                      // 🟦 PORTRAIT VIDEO: Crop to square (Twitter-style)
+                      return Center(
+                        child: AspectRatio(
+                          aspectRatio: 1, // Make view square
+                          child: ClipRRect(
+                            borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(8)),
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: videoWidth,
+                                height: videoHeight,
+                                child: VideoPlayer(controller),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  }
+                      );
+                    },
+                  ),
 
-                  // 🟦 PORTRAIT VIDEO: Crop to square (Twitter-style)
-                  return Center(
-                    child: AspectRatio(
-                      aspectRatio: 1, // Make view square
-                      child: ClipRRect(
-                        borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(8)),
-                        child: FittedBox(
-                          fit: BoxFit.cover,
-                          child: SizedBox(
-                            width: videoWidth,
-                            height: videoHeight,
-                            child: VideoPlayer(controller),
+                // --- 🔄 Loading Overlay ---
+                if (isScrolling && isCurrent)
+                  Container(
+                    color: Colors.black38,
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+
+                // --- 🔇 Mute Button ---
+                if (isCurrent && controller != null)
+                  Positioned(
+                    top: SizeConfig.size12,
+                    right: SizeConfig.size10,
+                    child: GestureDetector(
+                      onTap: videoManager.toggleMute,
+                      child: Container(
+                        padding: EdgeInsets.all(SizeConfig.size6),
+                        decoration: BoxDecoration(
+                          color: AppColors.blackCC,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: videoManager.isMuted,
+                          builder: (_, isMuted, __) => Icon(
+                            isMuted ? Icons.volume_off : Icons.volume_up,
+                            color: AppColors.white,
+                            size: SizeConfig.size20,
                           ),
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
-
-            // --- 🔄 Loading Overlay ---
-            if (isScrolling && isCurrent)
-              Container(
-                color: Colors.black38,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-
-            // --- 🔇 Mute Button ---
-            if (isCurrent && controller != null)
-              Positioned(
-                top: SizeConfig.size12,
-                right: SizeConfig.size10,
-                child: GestureDetector(
-                  onTap: videoManager.toggleMute,
-                  child: Container(
-                    padding: EdgeInsets.all(SizeConfig.size6),
-                    decoration: BoxDecoration(
-                      color: AppColors.blackCC,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: videoManager.isMuted,
-                      builder: (_, isMuted, __) => Icon(
-                        isMuted ? Icons.volume_off : Icons.volume_up,
-                        color: AppColors.white,
-                        size: SizeConfig.size20,
-                      ),
-                    ),
                   ),
-                ),
-              ),
-          ],
-        );
-      }),
+              ],
+            );
+          }),
     );
 
     /// 🧩 Helper: Cover Image Widget
-
-
+    // return SizedBox();
     return SizedBox(
       width: Get.width,
       child: CommonVideoCard(

@@ -10,7 +10,7 @@ class FoodAiRepo extends BaseService {
       aiFoodGenerateContent,
       params: params,
       isMultipart: true,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -23,7 +23,7 @@ class FoodAiRepo extends BaseService {
       businessServices,
       params:queryParam,
       isMultipart: false,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

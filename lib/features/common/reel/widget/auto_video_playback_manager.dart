@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:flutter/foundation.dart';
@@ -46,6 +47,7 @@ class SimplePriorityVideoManager extends GetxController {
     }
 
     if (!isScrolling.value) {
+      log('coming from heere');
       _checkAndPlayTopVideo();
     }
   }
@@ -116,7 +118,7 @@ class SimplePriorityVideoManager extends GetxController {
         _controller = null;
       }
 
-      videoUrl.toLowerCase().endsWith('.m3u8');
+      // videoUrl.toLowerCase().endsWith('.m3u8');
 
       // Create new controller
       _controller = VideoPlayerController.networkUrl(

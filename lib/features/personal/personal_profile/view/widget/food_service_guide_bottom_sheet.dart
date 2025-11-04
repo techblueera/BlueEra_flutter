@@ -37,6 +37,9 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
         AppIconAssets.sweetIcon,
         bgColor: Color(0xFFF0F4C2),
         labelColor: Color(0xFF4E5500)),
+    ServiceItem('Other', AppIconAssets.staggeredIcon,
+        bgColor: const Color(0xFFCFD8DD),
+        labelColor: const Color(0xFF36444D)),
   ];
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -7,7 +9,6 @@ import 'package:BlueEra/features/common/reel/view/shorts/short_player_item.dart'
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:video_player/video_player.dart';
 
 
 class VideoFeedScreenNew extends StatefulWidget {
@@ -31,7 +32,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreenNew> {
 
   void _setupInitialVideo() {
     // Add clicked video first
-    controller.videos.add(widget.videoData);
+    controller.videos.insert(0, widget.videoData);
     controller.fetchVideos(); // Load API videos after that
   }
 
@@ -56,6 +57,12 @@ class _VideoFeedScreenState extends State<VideoFeedScreenNew> {
             onPageChanged: (index) {
               currentIndex.value = index;
 
+              // ✅ Update controller's current index for smart precaching
+              controller.updateCurrentIndex(index);
+
+              // ✅ Dispose distant videos to free memory
+              controller.disposeDistantVideos(index);
+
               // Pagination trigger
               if (index == videos.length - 2 && controller.hasMore.value) {
                 controller.fetchVideos(loadMore: true);
@@ -66,6 +73,7 @@ class _VideoFeedScreenState extends State<VideoFeedScreenNew> {
 
               // 🟢 No Obx here
               return VideoPlayerItem(
+                key: ValueKey(video.id),
                 video: video,
                 isActive: currentIndex.value == index,
               );
