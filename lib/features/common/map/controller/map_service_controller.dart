@@ -90,11 +90,14 @@ class MapServiceController extends GetxController{
   Future<void> fetchHomeService({
     required double lat,
     required double lng,
+    required String serviceType,
+    required String subType,
   }) async {
-
+    homeServiceResponse = ApiResponse.initial('Initial').obs;
     final Map<String, dynamic> queryParams = {
-      ApiKeys.type:"service" ,
-      ApiKeys.subType: "selfWork",
+      ApiKeys.type:serviceType ,
+      // ApiKeys.type:"service" ,
+      ApiKeys.subType: subType,
       ApiKeys.page: 1,
       ApiKeys.limit: 20,
     };/*   final Map<String, dynamic> queryParams = {

@@ -1973,7 +1973,21 @@ var SUPPORTED_LANGUAGES = [
   'Malayalam', 'Manipuri (Meitei)', 'Marathi', 'Nepali', 'Odia', 'Punjabi', 'Sanskrit',
   'Santali', 'Sindhi', 'Tamil', 'Telugu', 'Urdu', 'Marwadi', 'Haryanvi'
 ];
-var COMMENT_TYPE=["Agree","Disagree","Shock","Critisise"];
+var COMMENT_TYPE=[  "Agree",
+  "Disagree",
+  "Appreciate",
+  "Criticise",
+  "Question",
+  "Support",
+  "Funny",
+  "Shock",
+  "Inspired",
+  "Angry",
+  "Curious",
+  "Suggest",
+  "Empathy",
+  "Celebrate",
+  "Warn",];
 bool isImageUrl(String? url) {
   if (url == null || url.isEmpty) return false;
   final lower = url.toLowerCase();
