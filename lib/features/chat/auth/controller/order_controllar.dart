@@ -337,13 +337,25 @@ class OrderNowController extends GetxController {
     }
 
   }
-  void createSelfPickupOrder(String? messageId,String? userId,String? conversationId,Map<String,dynamic> data) async {
-        Map<String,dynamic> addOrderTabParams={
-          ApiKeys.message_id: "$messageId",
-          ApiKeys.other_user_id :userId,
-          ApiKeys.order : data
-        };
-        bool value=await sendMessageToOrderTab(params: addOrderTabParams);
+  void createSelfPickupOrder(String? messageId,String? userId,String? conversationId,Map<String,dynamic> data,String price) async {
+
+    //
+    // Map<String,dynamic> addOrderTabParams={
+    //       ApiKeys.message_id: "$messageId",
+    //       ApiKeys.other_user_id :userId,
+    //       ApiKeys.order : data
+    //     };
+    Map<String,dynamic> addOrderTabPara={
+      ApiKeys.conversation_id: "$conversationId",
+      ApiKeys.message_id: "$messageId",
+      ApiKeys.other_user_id :userId,
+      "price": "$price",
+      // "order": {},
+      // "rider": {},
+      "rider_id": "$userId",
+      "ride_by": "Self"
+    };
+        bool value=await sendMessageToOrderTab(params: addOrderTabPara);
         if(value){
           final chatViewController = Get.find<ChatViewController>();
 
