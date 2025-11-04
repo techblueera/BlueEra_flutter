@@ -25,10 +25,13 @@ import '../../../core/services/multipart_image_service.dart';
 import '../../../widgets/commom_textfield.dart';
 import '../../../widgets/common_box_shadow.dart';
 import '../../../widgets/custom_btn.dart';
+import '../../../widgets/empty_state_widget.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
 import '../../../widgets/local_assets.dart';
 import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
+import '../../personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
+import '../../personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
 import '../visit_business_profile/view/business_profile_header.dart';
@@ -50,19 +53,19 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
 
-  List<String> postTab = [
-    'Overview',
-    'My Products',
-    'Subscription',
-    'My Posts',
-    // 'Shorts',
-    // 'Videos',
-  ];
+  // List<String> postTab = [
+  //   'Overview',
+  //   'My Products',
+  //   'Subscription',
+  //   'My Posts',
+  //   // 'Shorts',
+  //   // 'Videos',
+  // ];
 
   List<String> postTabs = [
     'Profile',
     'My Products',
-    'Video',
+    //'Video',
     'My Posts',
     // 'Shorts',
     // 'Videos',
@@ -111,10 +114,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 labelBuilder: (label) => label,
               ),
               SizedBox(height: 14,),
-              BusinessProfileHeader(
-                details: details,
-                controller: viewBusinessDetailsController,
-              ),
+
 
               // HorizontalTabSelector(
               //   tabs: postTab,
@@ -136,7 +136,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               //   height: SizeConfig.size10,
               // ),
               _buildTabContent(
-                  controller, viewBusinessDetailsController.selectedIndex.value)
+                  controller, viewBusinessDetailsController.selectedIndex.value,details)
             ],
           ),
         );
@@ -155,10 +155,18 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     });
   }
 
-  Widget _buildTabContent(ViewBusinessDetailsController controller, int index) {
-    switch (postTab[index]) {
-      case 'Overview':
-        return BusinessProfileWidget();
+  Widget _buildTabContent(ViewBusinessDetailsController controller, int index,BusinessProfileDetails? details) {
+    switch (postTabs[index]) {
+      case 'Profile':
+        return Column(
+          children: [
+            BusinessProfileHeader(
+              details: details,
+              controller: viewBusinessDetailsController,
+            ),
+            BusinessProfileWidget(),
+          ],
+        );
       case 'My Posts':
         return FeedScreen(
             key: ValueKey('feedScreen_my_posts'),
@@ -182,11 +190,67 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
           postVia: PostVia.profile,
           sortBy: selectedFilter,
         );
+      case "My Products":
+        return MyProductCardDetails();
       default:
         return const Center(child: CustomText('Coming soon'));
     }
   }
 
+}
+class MyProductCardDetails extends StatelessWidget {
+  const MyProductCardDetails({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())..fetchOwnProducts();
+
+    final productList = earnWithBlueEraController.ownProductDataList;
+
+    return  Column(
+      children: [
+        (productList.isEmpty)?
+        Center(
+          child: EmptyStateWidget(
+            message:  'No Products available.',
+          ),
+        )
+            :SizedBox(
+          height: 600,
+          child: ListView.builder(
+
+            physics: const AlwaysScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: productList.length,
+            itemBuilder: (context, index) {
+              final productData = productList[index];
+
+              return Padding(
+                padding: EdgeInsets.only(
+                    bottom: SizeConfig.size8,
+                    left: SizeConfig.size8,
+                    right: SizeConfig.size8
+                ),
+                child: OwnProductCard(
+                  product: productData,
+                  isGridShow: false,
+                  deleteProductApi: (){
+                    // earnWithBlueEraController.deleteProduct();
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+
+        if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+      ],
+    );
+  }
 }
 
 
