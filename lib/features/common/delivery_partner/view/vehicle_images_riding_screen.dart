@@ -126,14 +126,14 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                 id: DeliveryPartnerController.vehicleFrontImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Front and Back Images',
-                  maxImages: 2,
+                  maxImages: 1,
                   images: ctrl.vehicleFrontImages,
                   onAddImage: () async {
                     ctrl.addImages(
                         label: 'Vehicle Front and Back Images',
                         imageList: ctrl.vehicleFrontImages,
                         updateId: DeliveryPartnerController.vehicleFrontImageId,
-                        maxUploadImages: 2
+                        maxUploadImages: 1
                     );
                   },
                   onRemoveImage: (index) {
@@ -152,14 +152,14 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                 id: DeliveryPartnerController.vehicleBackImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Front and Back Images',
-                  maxImages: 2,
+                  maxImages: 1,
                   images: ctrl.vehicleBackImages,
                   onAddImage: () async {
                     ctrl.addImages(
                         label: 'Vehicle Front and Back Images',
                         imageList: ctrl.vehicleBackImages,
                         updateId: DeliveryPartnerController.vehicleBackImageId,
-                        maxUploadImages: 2
+                        maxUploadImages: 1
                     );
                   },
                   onRemoveImage: (index) {

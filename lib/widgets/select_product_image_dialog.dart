@@ -13,6 +13,7 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -27,8 +28,8 @@ class SelectProductImageDialog {
     String title, {
     bool? isOnlyCamera = true,
     bool? isGallery = true,
-        int? maxImages,
-    CropAspectRatio cropAspectRatio = const CropAspectRatio(width: 9, height: 16),
+    int? maxImages,
+    CropAspectRatio? cropAspectRatio ,
   }) async {
     final appLocalizations = AppLocalizations.of(context);
 
@@ -198,6 +199,7 @@ class SelectProductImageDialog {
 
     final completer = Completer<String>();
 
+
     showCupertinoImageCropper(
       context,
       locale: const Locale('en', 'US'),
@@ -209,14 +211,80 @@ class SelectProductImageDialog {
         Transformation.panAndScale,
       ],
       shouldPopAfterCrop: true,
-      allowedAspectRatios: [
-        cropAspectRatio ?? CropAspectRatio(width: 10, height: 10),
+      allowedAspectRatios: (cropAspectRatio != null) ? [
+        cropAspectRatio
+      ] : [
+        const CropAspectRatio(width: 1, height: 1),   // Square
+        const CropAspectRatio(width: 2, height: 3),   // Mobile-friendly portrait
+        const CropAspectRatio(width: 3, height: 4),   // Common portrait
+        // const CropAspectRatio(width: 4, height: 3),   // Standard photo
+        // const CropAspectRatio(width: 5, height: 4),   // Product / print
+        // const CropAspectRatio(width: 7, height: 5),   // Camera default
       ],
+      // allowedAspectRatios: [
+      //   const CropAspectRatio(width: 1, height: 1),   // Square
+      //   const CropAspectRatio(width: 4, height: 3),   // Standard photo
+      //   const CropAspectRatio(width: 3, height: 2),   // Classic landscape
+      //   const CropAspectRatio(width: 16, height: 9),  // Wide
+      //   const CropAspectRatio(width: 9, height: 16),  // Vertical / portrait
+      //   const CropAspectRatio(width: 2, height: 3),   // Mobile-friendly portrait
+      //   const CropAspectRatio(width: 3, height: 4),   // Common portrait
+      //   const CropAspectRatio(width: 5, height: 4),   // Product / print
+      //   const CropAspectRatio(width: 7, height: 5),   // Camera default
+      //   const CropAspectRatio(width: 10, height: 16), // Social-friendly portrait
+      // ],
+      // allowedAspectRatios: (cropAspectRatio != null)
+      // ? [
+      //   cropAspectRatio
+      // ] : null, // If this is `null`, the crop rect can be resized freely.
       showLoadingIndicatorOnSubmit: true,
       postProcessFn: (result) async {
         final savedFile = await _saveUiImageToFile(result.uiImage, page);
         completer.complete(savedFile?.path);
         return result;
+
+        // try {
+        //   final ui.Image image = result.uiImage;
+        //   final double aspectRatio = image.width / image.height;
+        //   log('aspect ratio--> $aspectRatio');
+        //
+        //   // Block portrait or near-square photos (width smaller than height)
+        //   if (aspectRatio < 0.7) {
+        //     Get.snackbar(
+        //       'Invalid Crop',
+        //       'Portrait or square photos are not allowed. Please crop in landscape.',
+        //       snackPosition: SnackPosition.BOTTOM,
+        //       backgroundColor: Colors.redAccent,
+        //       colorText: Colors.white,
+        //       margin: const EdgeInsets.all(16),
+        //       duration: const Duration(seconds: 3),
+        //     );
+        //
+        //     completer.completeError('Portrait not allowed');
+        //     return result; // Stop further processing
+        //   }
+        //
+        //   //  Landscape allowed — save normally
+        //   final savedFile = await _saveUiImageToFile(image, page);
+        //   completer.complete(savedFile?.path);
+        //   return result;
+        // } catch (e, stack) {
+        //   debugPrint('Error while processing cropped image: $e');
+        //   debugPrint('$stack');
+        //
+        //   Get.snackbar(
+        //     'Error',
+        //     'Error processing image: $e',
+        //     snackPosition: SnackPosition.BOTTOM,
+        //     backgroundColor: Colors.redAccent,
+        //     colorText: Colors.white,
+        //     margin: const EdgeInsets.all(16),
+        //     duration: const Duration(seconds: 3),
+        //   );
+        //
+        //   completer.completeError(e);
+        //   return result;
+        // }
       },
       themeData: const CupertinoThemeData(),
     );

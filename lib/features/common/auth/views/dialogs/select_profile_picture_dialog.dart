@@ -23,8 +23,9 @@ class SelectProfilePictureDialog {
 
   static Future<String?> _handlePick(
       BuildContext context, {
-        required ImageSource source,
-        CropAspectRatio? cropAspectRatio,
+      required ImageSource source,
+      CropAspectRatio? cropAspectRatio = const CropAspectRatio(width: 1, height: 1),
+        // CropAspectRatio? cropAspectRatio,
       }) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source,);
@@ -218,9 +219,9 @@ class SelectProfilePictureDialog {
         Transformation.panAndScale,
       ],
       shouldPopAfterCrop: true,
-      allowedAspectRatios: [
-        cropAspectRatio ?? CropAspectRatio(width: 10, height: 10),
-      ],
+      allowedAspectRatios:  [
+          cropAspectRatio
+        ] , // If this is `null`, the crop rect can be resized freely.
       showLoadingIndicatorOnSubmit: true,
       postProcessFn: (result) async {
         final savedFile = await _saveUiImageToFile(result.uiImage, 0);
