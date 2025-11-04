@@ -986,3 +986,25 @@ class _BlinkingVerifyButtonState extends State<BlinkingVerifyButton>
   }
 }
 
+Widget buildInfo(String title, String value) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      CustomText(
+        title + ":",
+        fontSize: SizeConfig.size12,
+        color: AppColors.grayText,
+        fontWeight: FontWeight.w400,
+      ),
+      SizedBox(width: SizeConfig.size6),
+      Flexible(
+        child: CustomText(
+          value ,
+          fontSize: SizeConfig.size12,
+          fontWeight: FontWeight.w700,
+          color: AppColors.secondaryTextColor,
+        ),
+      ),
+    ],
+  );
+}

@@ -339,12 +339,12 @@ class OrderNowController extends GetxController {
   }
   void createSelfPickupOrder(String? messageId,String? userId,String? conversationId,Map<String,dynamic> data,String price) async {
 
-    //
     // Map<String,dynamic> addOrderTabParams={
     //       ApiKeys.message_id: "$messageId",
     //       ApiKeys.other_user_id :userId,
     //       ApiKeys.order : data
     //     };
+
     Map<String,dynamic> addOrderTabPara={
       ApiKeys.conversation_id: "$conversationId",
       ApiKeys.message_id: "$messageId",
@@ -371,7 +371,6 @@ class OrderNowController extends GetxController {
             ApiKeys.per_page_message: 30,
           });
         }
-
   }
 
     Future<bool?> cancelOrderApi(String orderId,String conversationId) async {

@@ -32,6 +32,7 @@ class AppColors {
   static const colorBorder = Color(0xFFE5EAFF);
   static const coloGreyText = Color(0xFF8F989F);
   static const green39 = Color(0xFF04D839);
+  static const greenShade = Color(0xFF40A246);
   static final shimmer = Color(0xFFC1C7E4).withValues(alpha: 0.5);
   static const greyCA = Color(0xFFCDCACA);
   static const greenLight = Color(0xFF5FD568);
@@ -110,4 +111,6 @@ class AppColors {
   static const  litered = Color(0xffD94A42);
   static const  blueLight = Color(0xFF56CCF2);
   static const  blueDark = Color(0xFF2F80ED);
+  static const  blackLite = Color(0xFF505050);
+  static const  redLite = Color(0xFFD94A42);
 }
