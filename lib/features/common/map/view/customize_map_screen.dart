@@ -338,11 +338,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       child: GestureDetector(
         onTap: () => unFocus(),
         child: Scaffold(
-
           appBar: CommonBackAppBar(
-            onBackTap: () {
-
-            },
+            onBackTap: () {},
             isSearch: true,
             isLeading: false,
             controller: searchController,
@@ -515,9 +512,10 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                 buildBottomSheet(),
 
                 searchLocationShow
-                    ? SearchPlaceList(onRefresh: (){
-                  _initializeLocationAndMarkers(context);
-                },
+                    ? SearchPlaceList(
+                        onRefresh: () {
+                          _initializeLocationAndMarkers(context);
+                        },
                         query: _currentSearchQuery,
                         lat: _currentPosition.latitude,
                         lng: _currentPosition.longitude,
@@ -553,10 +551,47 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           onTabSelected: (index, value) {
             setState(() {
               selectedServiceCategoryIndex = index;
+
               serviceCategoryType =
                   value.toServiceCategory() ?? ServiceCategory.homeServices;
             });
+            logs("serviceCategoryType111=== ${serviceCategoryType?.name}");
+
           },
+          labelBuilder: (ServiceCategory serviceSubCategory) {
+            return serviceSubCategory.label;
+          },
+          unSelectedBackgroundColor: AppColors.white,
+          unSelectedBorderColor: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.12),
+                blurRadius: 6,
+                offset: Offset(0, 2))
+          ],
+        );
+      case MapCategory.food:
+        return HorizontalTabSelector(
+          tabs: serviceCategory,
+          selectedIndex: selectedServiceCategoryIndex,
+          onTabSelected: (index, value) {
+            final selected = value.toServiceCategory();
+            setState(() {
+              serviceCategoryType = selected;
+            });
+            logs("selected=== ${selected}");
+            logs("serviceCategoryType=== ${serviceCategoryType}");
+            logs("ServiceCategory.foods.name=== ${ServiceCategory.foods.name}");
+          },
+
+          // onTabSelected: (index, value) {
+          //
+          //   // setState(() {
+          //   //   selectedServiceCategoryIndex = index;
+          //   //   serviceCategoryType =
+          //   //       value.toServiceCategory() ?? ServiceCategory.foods;
+          //   // });
+          // },
           labelBuilder: (ServiceCategory serviceSubCategory) {
             return serviceSubCategory.label;
           },
@@ -595,29 +630,50 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   Widget buildBottomSheet() {
     /// Service Category
     if (mapCategoryType == MapCategory.services) {
+      logs("mapCategoryType==== ${mapCategoryType}");
+      logs("serviceCategoryType==== ${serviceCategoryType}");
       switch (serviceCategoryType) {
         case ServiceCategory.homeServices:
           return HomeServicesBottomSheet(
-              lat: _lat,
-              lng: _lng,
-              onClose: () {
-                setState(() {
-                  selectedServiceCategoryIndex = -1;
-                  serviceCategoryType = null;
-                });
+            key: const ValueKey("homeServices"),
+            lat: _lat,
+            lng: _lng,
+            onClose: () {
+              setState(() {
+                selectedServiceCategoryIndex = -1;
+                serviceCategoryType = null;
               });
-        // case ServiceCategory.foods:
-        //   return CustomServiceBottomSheet(
-        //     serviceType: 'FOODS',
-        //     onClose: () {
-        //       setState(() {
-        //         selectedServiceCategoryIndex = -1;
-        //         serviceCategoryType = null;
-        //       });
-        //     },
-        //     lat: _lat,
-        //     lng: _lng,
-        //   );
+            },
+            category: "service",
+            subType: "selfWork",
+          );
+        case ServiceCategory.foods:
+          return FoodServicesBottomSheet(
+            key: const ValueKey("foods"),
+            lat: _lat,
+            lng: _lng,
+            onClose: () {
+              setState(() {
+                selectedServiceCategoryIndex = -1;
+                serviceCategoryType = null;
+              });
+            },
+            category: "food",
+            subType: "homeMadeFood",
+          );
+/*
+          return CustomServiceBottomSheet(
+            serviceType: 'FOODS',
+            onClose: () {
+              setState(() {
+                selectedServiceCategoryIndex = -1;
+                serviceCategoryType = null;
+              });
+            },
+            lat: _lat,
+            lng: _lng,
+          );
+*/
         // case ServiceCategory.stay:
         //   return SizedBox();
 
@@ -626,6 +682,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       }
     }
 
+/*
     /// Stores Category
     if (mapCategoryType == MapCategory.stores) {
       switch (storesCategoryType) {
@@ -698,6 +755,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         lng: _lng,
       );
     }
+*/
 
     return SizedBox();
   }

@@ -27,9 +27,12 @@ class HomeServicesBottomSheet extends StatefulWidget {
   final double lat;
   final double lng;
   final VoidCallback onClose;
+  final String category;
+  final String subType;
 
-  const HomeServicesBottomSheet(
-      {super.key, required this.onClose, required this.lat, required this.lng});
+
+   HomeServicesBottomSheet(
+      {super.key, required this.onClose, required this.lat, required this.lng, required this.category, required this.subType,});
 
   @override
   State<HomeServicesBottomSheet> createState() =>
@@ -70,12 +73,13 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
   void getHomeServices() {
     mapServiceController.fetchHomeService(
       lat: widget.lat,
-      lng: widget.lng,
+      lng: widget.lng,serviceType: widget.category,subType: widget.subType
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // return Container(width: Get.width,height: 200,color: Colors.red,);
     return CommonDraggableBottomSheet(
       initialChildSize: 0.45,
       minChildSize: 0.3,
@@ -90,6 +94,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
       borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       padding: EdgeInsets.only(top: SizeConfig.size10, bottom: kToolbarHeight),
       builder: (scrollController) {
+        // return Container(width: Get.width,height: 200,color: Colors.red,);
         return Obx(() {
           if (mapServiceController.homeServiceResponse.value.status ==
               Status.COMPLETE) {

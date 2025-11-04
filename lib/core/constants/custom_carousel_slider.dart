@@ -19,19 +19,19 @@ class CustomImageSlideshow extends StatefulWidget {
   final BorderRadius? borderRadius;
   final Function(int)? onPhotoIndex;
 
-  const CustomImageSlideshow({
-    Key? key,
-    required this.isLoading,
-    required this.imagePaths,
-    this.height = 160,
-    this.width = 100,
-    this.isLocal = false,
-    this.dotColor = AppColors.primaryColor,
-    this.dotInactiveColor = Colors.grey,
-    this.autoPlayInterval = const Duration(seconds: 3),
-    this.borderRadius,
-    this.onPhotoIndex
-  }) : super(key: key);
+  const CustomImageSlideshow(
+      {Key? key,
+      required this.isLoading,
+      required this.imagePaths,
+      this.height = 160,
+      this.width = 100,
+      this.isLocal = false,
+      this.dotColor = AppColors.primaryColor,
+      this.dotInactiveColor = Colors.grey,
+      this.autoPlayInterval = const Duration(seconds: 3),
+      this.borderRadius,
+      this.onPhotoIndex})
+      : super(key: key);
 
   @override
   State<CustomImageSlideshow> createState() => _CustomImageSlideshowState();
@@ -106,7 +106,7 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
             controller: _pageController,
             itemCount: widget.imagePaths.length,
             onPageChanged: (index) {
-              if(widget.onPhotoIndex!=null) widget.onPhotoIndex!(index);
+              if (widget.onPhotoIndex != null) widget.onPhotoIndex!(index);
               setState(() {
                 _currentIndex = index;
               });
@@ -115,22 +115,25 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
               final imagePath = widget.imagePaths[index];
               final imageWidget = widget.isLocal
                   ? Image.asset(imagePath, fit: BoxFit.cover)
-                  : (!imagePath.contains('http'))?
-                  Image.file(File(imagePath),fit: BoxFit.cover,)
-                  :CachedNetworkImage(
-                      imageUrl: imagePath,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
-                    );
+                  : (!imagePath.contains('http'))
+                      ? Image.file(
+                          File(imagePath),
+                          fit: BoxFit.cover,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: imagePath,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                        );
 
               return ClipRRect(
                 borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
