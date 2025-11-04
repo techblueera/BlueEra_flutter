@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../../widgets/common_box_shadow.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../auth/model/viewBusinessProfileModel.dart';
 
@@ -78,7 +79,10 @@ class _BusinessDetailsEditPageTwoState
       } else {
         subCategorySpecializationTextController.clear();
       }
+      viewBusinessDetailsController.shopOpenTime.value=widget.prevBusinessDetails?.openTime??'';
+    viewBusinessDetailsController.shopCloseTime.value=widget.prevBusinessDetails?.closeTime??'';;
     }
+
     super.initState();
   }
 
@@ -287,33 +291,62 @@ class _BusinessDetailsEditPageTwoState
 
                               Row(
                                 children: [
+                                  // Expanded(
+                                  //   child: CommonTextField(
+                                  //     title: "Shop Open Time",
+                                  //     keyBoardType: TextInputType.none,
+                                  //     // disable keyboard
+                                  //     isValidate: false,
+                                  //     readOnly: true,
+                                  //     textEditController:
+                                  //         TextEditingController(text: openTime),
+                                  //     onTap: () {
+                                  //
+                                  //     },
+                                  //   ),
+                                  // ),
+
                                   Expanded(
-                                    child: CommonTextField(
-                                      title: "Shop Open Time",
-                                      keyBoardType: TextInputType.none,
-                                      // disable keyboard
-                                      isValidate: false,
-                                      readOnly: true,
-                                      textEditController:
-                                          TextEditingController(text: openTime),
-                                      onTap: () {
-                                        _selectTime(context, true);
-                                      },
+                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CustomText("Shop Open Time"),
+                                        SizedBox(height: SizeConfig.size10,),
+                                        _buildDropdown(
+                                          hint: "Shop Open Time",
+                                          value:  viewBusinessDetailsController.shopOpenTime.value,
+                                          items: List.generate(
+                                            48,
+                                                (i) =>
+                                            "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                          ),
+                                          onChanged: (val) {
+                                            viewBusinessDetailsController.shopOpenTime.value=val??'';
+                                          }
+                                          // addServiceController.startTime.value = val!,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: CommonTextField(
-                                      title: "Shop Close Time",
-                                      keyBoardType: TextInputType.none,
-                                      // disable keyboard
-                                      isValidate: false,
-                                      readOnly: true,
-                                      textEditController: TextEditingController(
-                                          text: closeTime),
-                                      onTap: () {
-                                        _selectTime(context, false);
-                                      },
+                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        CustomText("Shop Close Time"),
+                                        SizedBox(height: SizeConfig.size10,),
+                                        _buildDropdown(
+                                            hint: "Shop Close Time",
+                                            value: viewBusinessDetailsController.shopCloseTime.value,
+                                            items: List.generate(
+                                              48,
+                                                  (i) =>
+                                              "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                            ),
+                                            onChanged: (val) {
+                                              viewBusinessDetailsController.shopCloseTime.value=val??'';
+                                            }
+                                          // addServiceController.startTime.value = val!,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -537,6 +570,8 @@ class _BusinessDetailsEditPageTwoState
                                   ApiKeys.email: emailTextController.text
                                 }
                               ]),
+                              ApiKeys.opening_time:viewBusinessDetailsController.shopOpenTime.value,
+                              ApiKeys.closing_time:viewBusinessDetailsController.shopCloseTime.value
                             });
 
                             await Get.find<ViewBusinessDetailsController>()
@@ -568,7 +603,40 @@ class _BusinessDetailsEditPageTwoState
       ),
     );
   }
-
+  Widget _buildDropdown({
+    required String hint,
+    required String value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16, vertical: SizeConfig.size10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyE5),
+        boxShadow: [AppShadows.textFieldShadow],
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isDense: true,
+          value: value.isEmpty ? null : value,
+          hint: Text(hint,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+          style: TextStyle(color: Colors.black87, fontSize: 14),
+          items: items.map((String t) {
+            return DropdownMenuItem<String>(
+              value: t,
+              child: Text(t),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
   void validateForm() {
     bool formValid = _formKey.currentState?.validate() ?? false;
 

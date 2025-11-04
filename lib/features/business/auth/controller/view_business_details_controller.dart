@@ -94,6 +94,8 @@ class ViewBusinessDetailsController extends GetxController {
   RxString? imagePath = "".obs;
   RxString conversationId = "".obs;
   RxString? otherUserId = "".obs;
+  RxString shopOpenTime = "".obs;
+  RxString shopCloseTime = "".obs;
   RxInt? selectDay = 0.obs, selectMonth = 0.obs, selectYear = 0.obs;
   RxBool isImageUpdated = false.obs;
   Rx<CategoryData?> selectedCategoryOfBusiness = Rx<CategoryData?>(null);
@@ -159,6 +161,7 @@ class ViewBusinessDetailsController extends GetxController {
           await BusinessProfileRepo().viewParticularBusinessProfile();
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
+        log("dkjjskdklsd ${data}");
         businessProfileDetails = ViewBusinessProfileModel.fromJson(data);
 
         selectDay?.value =
