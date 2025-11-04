@@ -786,7 +786,6 @@ enum OwnChannelMenuAction {
 /// Map Category
 enum MapCategory {
   services('Services'),
-  food('Food'),
   stores('Stores'),
   jobs('Jobs'),
   places('Places');
@@ -810,7 +809,7 @@ extension MapCategoryExtension on String {
 /// Service sub category
 enum ServiceCategory {
   // homeServices('Home Services');
-  homeServices('Services'),
+  homeServices('Home Services'),
   foods('Foods');
   // stay('Stay');
 
@@ -826,6 +825,19 @@ extension ServiceCategoryExtension on String {
       // orElse: () => null,
     );
   }
+}
+
+
+/// Stores sub category
+enum FoodCategory {
+  tiffin('Tiffins'),
+  bakery('Bakery'),
+  sweet('Sweets'),
+  others('Others');
+
+  final String label;
+
+  const FoodCategory(this.label);
 }
 
 /// Stores sub category

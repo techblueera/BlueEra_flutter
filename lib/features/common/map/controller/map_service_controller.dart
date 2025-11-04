@@ -22,6 +22,7 @@ class MapServiceController extends GetxController{
   /// Home Service Category
   var serviceModelResponse = ServiceModelResponse().obs;
   RxList<ServiceData> homeServiceList = <ServiceData>[].obs;
+  // RxList<String> homeServiceProfessionsList = <String>[].obs;
   RxList<FoodServicesData> foodServiceList = <FoodServicesData>[].obs;
   RxBool isHomeServiceLoading = true.obs;
   /// Food Service Category
@@ -118,6 +119,7 @@ class MapServiceController extends GetxController{
             homeServiceList.addAll(service.data!);
           }
         }
+        // homeServiceProfessionsList.assignAll(responseModel.professions??[]);
 
       } else {
         homeServiceResponse.value = ApiResponse.error('error');

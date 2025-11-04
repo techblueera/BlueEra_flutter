@@ -49,14 +49,15 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
   @override
   initState() {
     super.initState();
+    print("called after getting lat lng");
     // mapServiceController.getHomeServiceDataByProfession(
     //     serviceType: _selectedSubCategory,
     // );
 
-    // if (widget.lat != 0.0 && widget.lng != 0.0) {
-    //   print("called after getting lat lng");
-    //   getHomeServices();
-    // }
+    if (widget.lat != 0.0 && widget.lng != 0.0) {
+      print("called after getting lat lng");
+      fetchHomeServices();
+    }
   }
 
   @override
@@ -64,13 +65,13 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
     if (oldWidget.lat != widget.lat && oldWidget.lng != widget.lng) {
       if (widget.lat != 0.0 && widget.lng != 0.0) {
         print("called after getting lat lng");
-        getHomeServices();
+        fetchHomeServices();
       }
     }
     super.didUpdateWidget(oldWidget);
   }
 
-  void getHomeServices() {
+  void fetchHomeServices() {
     mapServiceController.fetchHomeService(
         lat: widget.lat,
         lng: widget.lng,serviceType: widget.category,subType: widget.subType
@@ -133,17 +134,17 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                         ),
                       ),
                     ),
-                    SubCategoryTabBar<String>(
-                      tabs: subCategories,
-                      selectedIndex: _selectedSubCategoryIndex,
-                      onSelected: (index, label) {
-                        setState(() {
-                          _selectedSubCategoryIndex = index;
-                          _selectedSubCategory = label;
-                        });
-                      },
-                      labelBuilder: (label) => label,
-                    ),
+                    // SubCategoryTabBar<String>(
+                    //   tabs: subCategories,
+                    //   selectedIndex: _selectedSubCategoryIndex,
+                    //   onSelected: (index, label) {
+                    //     setState(() {
+                    //       _selectedSubCategoryIndex = index;
+                    //       _selectedSubCategory = label;
+                    //     });
+                    //   },
+                    //   labelBuilder: (label) => label,
+                    // ),
                     Expanded(
                       child: Padding(
                         padding:
@@ -207,7 +208,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
               Status.ERROR) {
             return LoadErrorWidget(
                 errorMessage: 'Failed to load home services',
-                onRetry: () => getHomeServices());
+                onRetry: () => fetchHomeServices());
           }
 
           return SizedBox();

@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/map/widget/job_service_bottom_sheet.dart
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -58,9 +59,11 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   int selectedIndex = 0;
   int selectedServiceCategoryIndex = 0;
   int selectedStoresCategoryIndex = 0;
+  int selectedFoodCategoryIndex = 0;
   MapCategory? mapCategoryType = MapCategory.services;
   ServiceCategory? serviceCategoryType = ServiceCategory.homeServices;
   StoresCategory? storesCategoryType = StoresCategory.clothing;
+  FoodCategory? selectedFoodCategoryType = FoodCategory.tiffin;
   final TextEditingController searchController = TextEditingController();
   final locationTextController = TextEditingController();
   Timer? _debounce;
@@ -421,30 +424,30 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // HorizontalTabSelector(
-                      //   tabs: categories,
-                      //   selectedIndex: selectedIndex,
-                      //   onTabSelected: (index, value) {
-                      //     setState(() {
-                      //       selectedIndex = index;
-                      //       mapCategoryType =
-                      //           value.toMapCategory() ?? MapCategory.services;
-                      //     });
-                      //     searchController.clear();
-                      //   },
-                      //   labelBuilder: (MapCategory mapCategory) {
-                      //     return mapCategory.label;
-                      //   },
-                      //   unSelectedBackgroundColor: AppColors.white,
-                      //   unSelectedBorderColor: AppColors.white,
-                      //   boxShadow: [
-                      //     BoxShadow(
-                      //         color: AppColors.black.withValues(alpha: 0.12),
-                      //         blurRadius: 6,
-                      //         offset: Offset(0, 2))
-                      //   ],
-                      // ),
-                      // SizedBox(height: SizeConfig.size10),
+                      HorizontalTabSelector(
+                        tabs: categories,
+                        selectedIndex: selectedIndex,
+                        onTabSelected: (index, value) {
+                          setState(() {
+                            selectedIndex = index;
+                            mapCategoryType = value.toMapCategory() ?? MapCategory.services;
+
+                          });
+                          searchController.clear();
+                        },
+                        labelBuilder: (MapCategory mapCategory) {
+                          return mapCategory.label;
+                        },
+                        unSelectedBackgroundColor: AppColors.white,
+                        unSelectedBorderColor: AppColors.white,
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppColors.black.withValues(alpha: 0.12),
+                              blurRadius: 6,
+                              offset: Offset(0, 2))
+                        ],
+                      ),
+                      SizedBox(height: SizeConfig.size10),
                       buildSubCategory(),
                     ],
                   ),
@@ -549,14 +552,14 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           tabs: serviceCategory,
           selectedIndex: selectedServiceCategoryIndex,
           onTabSelected: (index, value) {
-            log('index');
+            logs("serviceCategoryType111=== ${serviceCategoryType?.label}");
             setState(() {
               selectedServiceCategoryIndex = index;
 
               serviceCategoryType =
                   value.toServiceCategory() ?? ServiceCategory.homeServices;
             });
-            logs("serviceCategoryType111=== ${serviceCategoryType?.name}");
+
 
           },
           labelBuilder: (ServiceCategory serviceSubCategory) {
@@ -571,40 +574,40 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                 offset: Offset(0, 2))
           ],
         );
-      case MapCategory.food:
-        return HorizontalTabSelector(
-          tabs: serviceCategory,
-          selectedIndex: selectedServiceCategoryIndex,
-          onTabSelected: (index, value) {
-            final selected = value.toServiceCategory();
-            setState(() {
-              serviceCategoryType = selected;
-            });
-            logs("selected=== ${selected}");
-            logs("serviceCategoryType=== ${serviceCategoryType}");
-            logs("ServiceCategory.foods.name=== ${ServiceCategory.foods.name}");
-          },
-
-          // onTabSelected: (index, value) {
-          //
-          //   // setState(() {
-          //   //   selectedServiceCategoryIndex = index;
-          //   //   serviceCategoryType =
-          //   //       value.toServiceCategory() ?? ServiceCategory.foods;
-          //   // });
-          // },
-          labelBuilder: (ServiceCategory serviceSubCategory) {
-            return serviceSubCategory.label;
-          },
-          unSelectedBackgroundColor: AppColors.white,
-          unSelectedBorderColor: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.12),
-                blurRadius: 6,
-                offset: Offset(0, 2))
-          ],
-        );
+      // case MapCategory.food:
+      //   return HorizontalTabSelector(
+      //     tabs: serviceCategory,
+      //     selectedIndex: selectedServiceCategoryIndex,
+      //     onTabSelected: (index, value) {
+      //       final selected = value.toServiceCategory();
+      //       setState(() {
+      //         serviceCategoryType = selected;
+      //       });
+      //       logs("selected=== ${selected}");
+      //       logs("serviceCategoryType=== ${serviceCategoryType}");
+      //       logs("ServiceCategory.foods.name=== ${ServiceCategory.foods.name}");
+      //     },
+      //
+      //     // onTabSelected: (index, value) {
+      //     //
+      //     //   // setState(() {
+      //     //   //   selectedServiceCategoryIndex = index;
+      //     //   //   serviceCategoryType =
+      //     //   //       value.toServiceCategory() ?? ServiceCategory.foods;
+      //     //   // });
+      //     // },
+      //     labelBuilder: (ServiceCategory serviceSubCategory) {
+      //       return serviceSubCategory.label;
+      //     },
+      //     unSelectedBackgroundColor: AppColors.white,
+      //     unSelectedBorderColor: AppColors.white,
+      //     boxShadow: [
+      //       BoxShadow(
+      //           color: AppColors.black.withValues(alpha: 0.12),
+      //           blurRadius: 6,
+      //           offset: Offset(0, 2))
+      //     ],
+      //   );
 
       case MapCategory.stores:
         return HorizontalTabSelector(
@@ -646,8 +649,9 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
               });
             },
             category: "service",
-            subType: "selfWork",
+            subType: EarnWithBlueEraServiceTypes.selfWork.label,
           );
+
         case ServiceCategory.foods:
           return FoodServicesBottomSheet(
             key: const ValueKey("foods"),
@@ -660,7 +664,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
               });
             },
             category: "food",
-            subType: "homeMadeFood",
+            subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
           );
 /*
           return CustomServiceBottomSheet(
