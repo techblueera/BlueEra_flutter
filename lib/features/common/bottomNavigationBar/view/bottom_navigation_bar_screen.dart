@@ -161,6 +161,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       key: _scaffoldKey,
       body: ValueListenableBuilder(
@@ -230,7 +231,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 onHeaderVisibilityChanged: _toggleAppBar);
       case 4:
       default:
-        return isGuestUser() ? GuestDashBoardScreen() : ChatMainScreen();
+        return isGuestUser() ? GuestDashBoardScreen() : ChatMainScreen(
+          onHeaderVisibilityChanged: _toggleAppBar,
+        );
     }
   }
 

@@ -92,7 +92,7 @@ class ChatViewController extends GetxController {
 
   void onSelectChatTab(int index) {
     chatMainTabController.animateTo(index);
-
+    selectedChatTabIndex.value=index;
   }
 
   void isChatFromBusinessProfile(bool value) {
@@ -650,7 +650,7 @@ class ChatViewController extends GetxController {
       }
     } else {
       viewContactsListResponse.value =
-          ApiResponse.complete(contactsListModel?.value);
+          ApiResponse.error('');
     }
 
     // } catch (e) {

@@ -35,11 +35,13 @@ class ChatMainScreen extends StatefulWidget {
       this.forwardId,
       this.isNewGroupUI,
       this.message,
-      this.isForwardUI});
+      this.isForwardUI,
+      this.onHeaderVisibilityChanged});
 
   final String? forwardId;
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+  final Function(bool)? onHeaderVisibilityChanged;
   final Messages? message;
 
   @override
@@ -48,10 +50,6 @@ class ChatMainScreen extends StatefulWidget {
 
 class _ChatMainScreenState extends State<ChatMainScreen>
     with SingleTickerProviderStateMixin {
-  // final chatViewController = Get.find<ChatViewController>();
-
-  // final groupChatViewController = Get.find<GroupChatViewController>();
-  // final chatThemeController = Get.find<ChatThemeController>();
   late ChatViewController chatViewController;
   late ChatThemeController chatThemeController;
 
@@ -92,7 +90,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
         } else if (index == 1) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
-        }else if (index == 2) {
+        } else if (index == 2) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
         } else if (index == 3) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "order"});
@@ -121,11 +119,10 @@ class _ChatMainScreenState extends State<ChatMainScreen>
           await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     } else {
-      await _refreshContacts();
+      // await _refreshContacts();
     }
   }
 
-// This is the isolate function → runs in background
   List<Map<String, String>> formatContactsInIsolate(
       List<Map<String, dynamic>> rawContacts) {
     return rawContacts
@@ -137,13 +134,12 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         .toList();
   }
 
-  Future<void> _refreshContacts() async {
+/*  Future<void> _refreshContacts() async {
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
       List<Contact> contacts =
           await FlutterContacts.getContacts(withProperties: true);
 
-      // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
         return {
           "displayName": c.displayName,
@@ -151,13 +147,11 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         };
       }).toList();
 
-
-      if(rawContacts.isNotEmpty){
+      if (rawContacts.isNotEmpty) {
         List<Map<String, String>> formattedContacts =
-        await formatContactsInIsolate(rawContacts);
+            await formatContactsInIsolate(rawContacts);
         chatViewController.uploadContacts(formattedContacts);
       }
-
     } else {
       PermissionStatus newStatus = await Permission.contacts.request();
       if (newStatus.isGranted) {
@@ -170,11 +164,9 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         );
       }
     }
-  }
+  }*/
 
-// Runs in isolate – must only use JSON-safe data
-
-  void _showPermissionDialog() {
+  /*void _showPermissionDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -195,20 +187,16 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         ],
       ),
     );
-  }
+  }*/
 
   bool _isFromForward() {
     return (widget.isForwardUI != null && (widget.isForwardUI ?? false));
   }
 
-  @override
-  void dispose() {
-    // chatViewController.chatMainTabController.removeListener((){});
-    // chatViewController.chatMainTabController.dispose();
-    super.dispose();
-  }
-
   Widget build(BuildContext context) {
+    Future.delayed(Duration.zero, () {
+      widget.onHeaderVisibilityChanged?.call(true);
+    });
     return Scaffold(
       floatingActionButton: (_isFromForward()) ||
               chatViewController.chatMainTabController.index == 1
@@ -251,9 +239,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                               },
                               child: Icon(Icons.arrow_back_ios))
                           : Obx(() {
-                            return
-
-                              PopupMenuButton<String>(
+                              return PopupMenuButton<String>(
                                 padding: EdgeInsets.zero,
                                 offset: const Offset(-6, 36),
                                 color: AppColors.white,
@@ -268,20 +254,8 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                                     size: SizeConfig.size30,
                                     borderRadius: 5.0,
                                     showProfileOnFullScreen: false),
-                                itemBuilder: (context) => popupMenuChatCardItems(),
-                              )
-                              ;
-                              return InkWell(
-                                onTap: () {
-
-                                },
-                                child: CachedAvatarWidget(
-                                    imageUrl: Get.find<AuthController>()
-                                        .imgPath
-                                        .value,
-                                    size: SizeConfig.size30,
-                                    borderRadius: 5.0,
-                                    showProfileOnFullScreen: false),
+                                itemBuilder: (context) =>
+                                    popupMenuChatCardItems(),
                               );
                             }),
                       SizedBox(width: SizeConfig.size8),
@@ -354,7 +328,6 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                                   //                   '',
                                   //             )));
                                 } else if (value == "settings") {
-                                  print("Open settings");
                                 }
                               },
                               itemBuilder: (context) => [
@@ -473,7 +446,6 @@ class _ChatMainScreenState extends State<ChatMainScreen>
 
                           bool value =
                               await chatViewController.forwardMessageApi(data);
-                          print("dfncvkdjfvdf ${value}");
 
                           if (value) {
                             chatViewController.emitEvent(

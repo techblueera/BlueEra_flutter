@@ -16,6 +16,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -167,8 +168,10 @@ Widget ChatListTile({required Function onSelect,
   required ChatList? chat,
   required ThemeData theme}) {
   final userId = chat?.sender?.id ?? '';
-  final isSelected =
-  chatViewController.selectedUserIds.contains(chat?.sender?.id ?? '');
+  bool isSelected =false;
+  if(chatViewController.selectedUserIds.isNotEmpty){
+    isSelected= chatViewController.selectedUserIds.contains(chat?.sender?.id ?? '');
+  }
 
   void selectChatListCard() {
     if (isSelected) {
@@ -180,7 +183,6 @@ Widget ChatListTile({required Function onSelect,
     }
     onSelect();
   }
-
   return ((chat?.sender?.name == null || chat?.sender?.name == "null") &
   (chat?.sender?.contactNo == null))
       ? SizedBox()
@@ -885,6 +887,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
+  final bottomBarController = Get.find<BottomBarController>();
 
   return AppBar(
     elevation: 0,
@@ -892,9 +895,19 @@ AppBar getChatTitleAppBar(BuildContext context, {
     leadingWidth: 38,
     leading: InkWell(
       onTap: () {
-        Navigator.pop(context);
-        chatViewController.emitEvent(
-            "ChatList", {ApiKeys.type: "personal"}, true);
+        if(chatViewController.canPopBusiness.value){
+          chatViewController.emitEvent(
+              "ChatList", {ApiKeys.type: "$type"}, true);
+          bottomBarController.onChangeIndex(4);
+          chatViewController.onSelectChatTab(1);
+          Navigator.pop(context);
+          Navigator.pop(context);
+        }else{
+          Navigator.pop(context);
+          chatViewController.emitEvent(
+              "ChatList", {ApiKeys.type: "$type"}, true);
+        }
+
       },
       child: Padding(
         padding: const EdgeInsets.only(left: 18.0),

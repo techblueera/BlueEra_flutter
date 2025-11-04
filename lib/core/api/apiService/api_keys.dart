@@ -456,4 +456,12 @@ class ApiKeys {
   static const vehicleType = 'vehicleType';
   static const commentType = 'commentType';
   static const orderType = 'orderType';
+  static const rider_id = 'rider_id';
+  static const ride_by = 'ride_by';
+  static const rider = 'rider';
+  static const pickupLocation = 'pickupLocation';
+  static const dropLocation = 'dropLocation';
+  static const selectedRiders = 'selectedRiders';
+  static const orderId = 'orderId';
+  static const receiverUserId = 'receiverUserId';
 }

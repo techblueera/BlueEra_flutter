@@ -218,20 +218,29 @@ class _AddressListScreenState extends State<AddressListScreen> {
                   ApiKeys.longitude: double.parse(orderController.long.value),
                   ApiKeys.range_in_km: 5,
                 };
-
+                orderController.selectedIndex?.value = selectedIndex ?? 0;
+                final selectedAddress = orderController
+                    .getAddressDetails.value.data?[selectedIndex!];
 
                 List<Riders>? riders= await orderController.getRidersNearByShop(params);
-                Future.delayed(Duration(seconds: 4),(){
+                orderController.calculateDistanceInKm(
+                    endLat: double.parse(orderController.lat.value) ,
+                    endLng:  double.parse(orderController.long.value) ,
+                    startLat:double.parse("${selectedAddress?.lat??"0.0"}") ,
+                    startLng:double.parse("${selectedAddress?.lng??"0.0"}")
+                );
+
+                Future.delayed(Duration(seconds: 3),(){
                   if(riders!=null&&riders.isNotEmpty){
-                    Get.off(() => DeliveryPilotScreen(shopName: widget.message.seller?.name??'',
+
+                    Get.off(() => DeliveryPilotScreen(
+                      shopName: widget.message.seller?.name??'',
                       lat: double.parse(orderController.lat.value),
                       long:   double.parse(orderController.long.value),
+                      startLat: double.parse("${selectedAddress?.lat??"0.0"}"),
+                      startLng: double.parse("${selectedAddress?.lng??"0.0"}"),
                     ));
                   }else{
-                    orderController.selectedIndex?.value = selectedIndex ?? 0;
-                    final selectedAddress = orderController
-                        .getAddressDetails.value.data?[selectedIndex!];
-
                     final Map<String, dynamic> payload = {
                       ApiKeys.pickup_details: {
                         ApiKeys.lat: orderController.lat.value,
@@ -293,7 +302,6 @@ class _AddressListScreenState extends State<AddressListScreen> {
         Timer.periodic(const Duration(seconds: 1), (timer) {
           if (remainingSeconds <= 1) {
             timer.cancel();
-            Navigator.of(context, rootNavigator: true).pop(); // close dialog
           } else {
             remainingSeconds--;
             timerNotifier.value = remainingSeconds;

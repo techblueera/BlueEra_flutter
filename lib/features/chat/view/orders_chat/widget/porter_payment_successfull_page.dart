@@ -16,14 +16,14 @@ import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/payment_success_model.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 
-class PaymentSuccessScreen extends StatefulWidget {
-  const PaymentSuccessScreen({super.key});
+class PorterPaymentSuccessScreen extends StatefulWidget {
+  const PorterPaymentSuccessScreen({super.key});
 
   @override
-  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
+  State<PorterPaymentSuccessScreen> createState() => _PorterPaymentSuccessScreenState();
 }
 
-class _PaymentSuccessScreenState extends State<PaymentSuccessScreen>
+class _PorterPaymentSuccessScreenState extends State<PorterPaymentSuccessScreen>
     with SingleTickerProviderStateMixin {
   final orderController = Get.find<OrderNowController>();
   late AnimationController _animationController;

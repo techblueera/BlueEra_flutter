@@ -1397,7 +1397,6 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
   @override
   Widget build(BuildContext context) {
     final priceOptions = serviceData?.priceOptions;
-
     String priceText = "N/A";
     if (priceOptions != null && priceOptions.isNotEmpty) {
       if (priceOptions.length == 1) {

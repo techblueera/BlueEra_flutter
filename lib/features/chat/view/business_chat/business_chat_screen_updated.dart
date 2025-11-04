@@ -98,15 +98,14 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
         if(chatViewController.canPopBusiness.value){
           chatViewController.emitEvent(
               "ChatList", {ApiKeys.type: "business"}, true);
-          Navigator.pop(context);
-          Navigator.pop(context);
-          bottomBarController.onChangeIndex(4);
           chatViewController.onSelectChatTab(1);
+          bottomBarController.onChangeIndex(4);
+          Navigator.pop(context);
+          Navigator.pop(context);
         }else{
           chatViewController.emitEvent(
               "ChatList", {ApiKeys.type: "business"}, true);
         }
-
         return true;
       },
       child: Obx(() {
