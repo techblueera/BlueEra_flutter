@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -154,12 +155,14 @@ class FoodUploadController extends GetxController {
   ];
 
   // Show image picker dialog
-  Rx<FoodAiResModel> foodAiResponseModel=FoodAiResModel().obs;
+  Rx<FoodAiResModel> foodAiResponseModel = FoodAiResModel().obs;
+  RxBool isGenerateFoodLoading = false.obs;
+
   // Generate food data
   Future<void> generateFood(
-      ProductServiceProviderType providerType,
-      {EarnWithBlueEraServiceTypes? serviceSubType}) async {
+      { required ProductServiceProviderType providerType, EarnWithBlueEraServiceTypes? serviceSubType}) async {
     try {
+      isGenerateFoodLoading.value = true;
       String fileName = selectedImage.value?.path.split('/').last ?? "";
       dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
           selectedImage.value?.path ?? "",
@@ -200,6 +203,8 @@ class FoodUploadController extends GetxController {
     } catch (e) {
       logs("ERROR===== ${e}");
       foodAiResponse.value = ApiResponse.error(e.toString());
+    }finally{
+      isGenerateFoodLoading.value = false;
     }
   }
   List<UploadS3ImageModel> images = [];
@@ -213,7 +218,11 @@ class FoodUploadController extends GetxController {
     return double.tryParse(cleaned);
   }
 
-  Future<Map<String, dynamic>> buildRequestBody(Map<String, dynamic> foodData) async {
+  Future<Map<String, dynamic>> buildRequestBody(
+      Map<String, dynamic> foodData,
+      ProductServiceProviderType providerType,
+     {EarnWithBlueEraServiceTypes? serviceSubType}
+      ) async {
     // Title & desc (use controller if filled, otherwise fall back to AI/model values)
 
     List<Map<String, dynamic>> normalizedAddOns = addOns.map((item) {
@@ -228,7 +237,7 @@ class FoodUploadController extends GetxController {
 
     final Map<String, dynamic> body = {
       "title": foodNameCtrl.text.trim(),
-      "providerType": "Business",
+      ApiKeys.providerType: providerType.title,
       "description": descCtrl.text.trim(),
       "type": "food",
       "category":  selectedCategory.value,
@@ -263,14 +272,20 @@ class FoodUploadController extends GetxController {
       body[ApiKeys.imageContentTypes] =
           images.map((img) => img.mimeType).toList();
     }
+    if (serviceSubType != null) body[ApiKeys.subType] = serviceSubType.label;
     return body;
   }
 
+  RxBool isAddFoodLoading = false.obs;
+
   Future<void> addFoodServices(Map<String,dynamic> foodData, ProductServiceProviderType providerType, {EarnWithBlueEraServiceTypes? serviceSubType}) async {
     try {
-      foodData[ApiKeys.providerType] = providerType.title;
-      if (serviceSubType != null) foodData[ApiKeys.subType] = serviceSubType.label;
-      Map<String, dynamic> data = await buildRequestBody(foodData);
+      isAddFoodLoading.value = true;
+      Map<String, dynamic> data = await buildRequestBody(
+          foodData,
+          providerType,
+          serviceSubType: serviceSubType
+      );
 
       final ResponseModel responseModel;
       if (providerType == ProductServiceProviderType.user) {
@@ -313,6 +328,8 @@ class FoodUploadController extends GetxController {
     } catch (e) {
       UploadProgressDialog.close();
       commonSnackBar(message: 'Something went wrong.');
+    }finally{
+      isAddFoodLoading.value = false;
     }
   }
 
@@ -480,10 +497,19 @@ class FoodUploadController extends GetxController {
     }
   }
 
-  @override
-  void onClose() {
-    foodNameController.dispose();
-    cityNameController.dispose();
-    super.onClose();
-  }
+  // @override
+  // void onClose() {
+  //   log('done, now deleted');
+  //   Get.delete<FoodUploadController>();
+  //   // foodNameController.dispose();
+  //   // cityNameController.dispose();
+  //   super.onClose();
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   log('done, now deleted');
+  //   Get.delete<FoodUploadController>();
+  //   super.dispose();
+  // }
 }

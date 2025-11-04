@@ -72,10 +72,10 @@ class CommonVideoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: Column(
               children: [
-                // 👇 main content (different per card type)
+                // main content (different per card type)
                 mainContent,
                 if (isShowUser)
-                  // 👇 common footer
+                  // common footer
                   GestureDetector(
                     onTap: () {
                       if (isGuestUser()) {

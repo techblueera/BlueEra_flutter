@@ -1,10 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -177,18 +180,45 @@ class FoodItemCard extends StatelessWidget {
                     topLeft: Radius.circular(12),
                     bottomLeft: Radius.circular(12),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: foodData.photos?.first ?? "",
-                    fit: BoxFit.cover, // fills entire box
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+                  child: (foodData.photos?.isNotEmpty??false)
+                      ?
+                  CustomImageSlideshow(
+                    isLoading: false,
+                    width: 140, // fixed width for image column
+                    height: 200, // fixed height (adjust as needed)
+                    imagePaths: foodData.photos ?? [],
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
                     ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.broken_image, size: 40),
+                    onPhotoIndex: (index) {
+                      // productPhotoIndex = index;
+                    },
+                  ) : LocalAssets(
+                    imagePath:
+                    AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.fill,
                   ),
+
+                  // CachedNetworkImage(
+                  //   imageUrl: foodData.photos?.first ?? "",
+                  //   fit: BoxFit.cover, // fills entire box
+                  //   placeholder: (context, url) =>  LocalAssets(
+                  //     imagePath:
+                  //     AppIconAssets.place_holder_image,
+                  //     boxFix: BoxFit.fill,
+                  //   ),
+                  //   errorWidget: (context, url, error) =>
+                  //       LocalAssets(
+                  //         imagePath:
+                  //         AppIconAssets.place_holder_image,
+                  //         boxFix: BoxFit.fill,
+                  //       ),
+                  // ) : LocalAssets(
+                  //   imagePath:
+                  //   AppIconAssets.place_holder_image,
+                  //   boxFix: BoxFit.fill,
+                  // ),
                 ),
               ),
 

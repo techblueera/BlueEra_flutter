@@ -39,7 +39,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   final predictions = <PlacePrediction>[].obs;
   Timer? debounce;
 
-  // RxString currentAddress = ''.obs;
+  RxString currentAddress = ''.obs;
   // double latitude = 0.0;
   // double longitude = 0.0;
 
@@ -69,6 +69,8 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
 
     isLoading.value = true;
     errorMessage.value = '';
+    currentAddress.value = query;
+
     try {
       final response = await PlaceRepo().autoCompleteSearch(query: query);
       if (response.statusCode == 200) {
@@ -109,12 +111,12 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     overlayEntry ??= OverlayEntry(
       builder: (context) => Positioned(
         left: offset.dx,
-        top: offset.dy + size.height + 10,
+        top: offset.dy + size.height + 5,
         width: size.width,
         child: CompositedTransformFollower(
           link: layerLink,
           showWhenUnlinked: false,
-          offset: Offset(0, size.height + 10),
+          offset: Offset(0, size.height + 5),
           child: Material(
             elevation: 4,
             borderRadius: BorderRadius.circular(10),
@@ -171,6 +173,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         child: ListView.builder(
           controller: scrollController,
           itemCount: predictions.length,
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size4, horizontal: SizeConfig.size20),
           itemBuilder: (context, index) {
             final item = predictions[index];
             return ListTile(
@@ -215,11 +218,12 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         pIcon: Icon(Icons.search, color: AppColors.primaryColor),
         textEditController: widget.controller,
         onChange: onSearchChanged,
-        sIcon: Obx(() => predictions.isNotEmpty
+        sIcon: Obx(() => currentAddress.isNotEmpty
             ? IconButton(
           icon: const Icon(Icons.clear),
           onPressed: () {
             widget.controller.clear();
+            currentAddress.value = '';
             predictions.clear();
             _removeOverlay();
           },

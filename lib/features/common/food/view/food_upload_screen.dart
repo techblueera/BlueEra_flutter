@@ -1,5 +1,5 @@
+import 'dart:developer';
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -13,15 +13,27 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart'; // make sure this import is correct
-
-class FoodUploadScreen extends StatelessWidget {
+class FoodUploadScreen extends StatefulWidget {
   final ProductServiceProviderType providerType;
   final EarnWithBlueEraServiceTypes? serviceSubType;
-  final FoodUploadController controller = Get.put(FoodUploadController());
 
   FoodUploadScreen({Key? key, required this.providerType, this.serviceSubType}) : super(key: key);
+
+  @override
+  State<FoodUploadScreen> createState() => _FoodUploadScreenState();
+}
+
+class _FoodUploadScreenState extends State<FoodUploadScreen> {
+  final FoodUploadController controller = Get.put(FoodUploadController());
+
+  @override
+  void dispose() {
+    log('done, now deleted');
+    Get.delete<FoodUploadController>();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,80 +48,83 @@ class FoodUploadScreen extends StatelessWidget {
             child: CommonCardWidget(
               child: Padding(
                 padding: EdgeInsets.all(0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Upload Images Section
-                    _buildUploadImagesSection(context),
-                    SizedBox(height: SizeConfig.size20),
+                child: Obx(()=> AbsorbPointer(
+                  absorbing: controller.isGenerateFoodLoading.value,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Upload Images Section
+                      _buildUploadImagesSection(context),
+                      SizedBox(height: SizeConfig.size20),
 
-                    // Food Name Field
-                    _buildTextField(
-                      label: 'Food Name',
-                      hint: 'E.g. Paneer Butter Masala....',
-                      inputController: controller.foodNameController,
-                      filedName: 'food_name',
-                    ),
-                    SizedBox(height: SizeConfig.size20),
+                      // Food Name Field
+                      _buildTextField(
+                        label: 'Food Name',
+                        hint: 'E.g. Paneer Butter Masala....',
+                        inputController: controller.foodNameController,
+                        filedName: 'food_name',
+                      ),
+                      SizedBox(height: SizeConfig.size20),
 
-                    // Food Type 1 Selection
-                    _buildTabSection(
-                      title: 'Food Type 1',
-                      tabs: controller.foodType1Options,
-                      selectedIndex: controller.selectedFoodType1Index,
-                      onTabSelected: (index, value) {
-                        controller.selectedFoodType1.value = value;
-                      },
-                    ),
-                    SizedBox(height: SizeConfig.size20),
+                      // Food Type 1 Selection
+                      _buildTabSection(
+                        title: 'Food Type 1',
+                        tabs: controller.foodType1Options,
+                        selectedIndex: controller.selectedFoodType1Index,
+                        onTabSelected: (index, value) {
+                          controller.selectedFoodType1.value = value;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.size20),
 
-                    // Food Type 2 Selection
-                    _buildTabSection(
-                      title: 'Food Type 2',
-                      tabs: controller.foodType2Options,
-                      selectedIndex: controller.selectedFoodType2Index,
-                      onTabSelected: (index, value) {
-                        controller.selectedFoodType2.value = value;
-                      },
-                    ),
-                    SizedBox(height: SizeConfig.size20),
+                      // Food Type 2 Selection
+                      _buildTabSection(
+                        title: 'Food Type 2',
+                        tabs: controller.foodType2Options,
+                        selectedIndex: controller.selectedFoodType2Index,
+                        onTabSelected: (index, value) {
+                          controller.selectedFoodType2.value = value;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.size20),
 
-                    // Cooking Method Selection
-                    _buildTabSection(
-                      title: 'Cooking Method',
-                      tabs: controller.cookingMethodOptions,
-                      selectedIndex: controller.selectedCookingMethodIndex,
-                      onTabSelected: (index, value) {
-                        controller.selectedCookingMethod.value = value;
-                      },
-                    ),
-                    SizedBox(height: SizeConfig.size20),
+                      // Cooking Method Selection
+                      _buildTabSection(
+                        title: 'Cooking Method',
+                        tabs: controller.cookingMethodOptions,
+                        selectedIndex: controller.selectedCookingMethodIndex,
+                        onTabSelected: (index, value) {
+                          controller.selectedCookingMethod.value = value;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.size20),
 
-                    // Item Nature Selection
-                    _buildTabSection(
-                      title: 'Item Nature',
-                      tabs: controller.itemNatureOptions,
-                      selectedIndex: controller.selectedItemNatureIndex,
-                      onTabSelected: (index, value) {
-                        controller.selectedItemNature.value = value;
-                      },
-                    ),
-                    SizedBox(height: SizeConfig.size20),
+                      // Item Nature Selection
+                      _buildTabSection(
+                        title: 'Item Nature',
+                        tabs: controller.itemNatureOptions,
+                        selectedIndex: controller.selectedItemNatureIndex,
+                        onTabSelected: (index, value) {
+                          controller.selectedItemNature.value = value;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.size20),
 
-                    // City Name Field (Optional)
-                    _buildTextField(
-                      label: 'City Name (Optional)',
-                      hint: 'E.g. Durgapur',
-                      inputController: controller.cityNameController,
-                      filedName: '',
-                    ),
-                    SizedBox(height: SizeConfig.size30),
+                      // City Name Field (Optional)
+                      _buildTextField(
+                        label: 'City Name (Optional)',
+                        hint: 'E.g. Durgapur',
+                        inputController: controller.cityNameController,
+                        filedName: '',
+                      ),
+                      SizedBox(height: SizeConfig.size30),
 
-                    // Generate Button
-                    _buildGenerateButton(providerType),
-                    SizedBox(height: SizeConfig.size30),
-                  ],
-                ),
+                      // Generate Button
+                      _buildGenerateButton(),
+                      SizedBox(height: SizeConfig.size30),
+                    ],
+                  ),
+                )),
               ),
             ),
           ),
@@ -224,7 +239,7 @@ class FoodUploadScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGenerateButton(ProductServiceProviderType providerType) {
+  Widget _buildGenerateButton() {
     return Obx(() {
       return CustomBtn(
           isValidate: (controller.selectedImage.value != null &&
@@ -235,13 +250,17 @@ class FoodUploadScreen extends StatelessWidget {
             if (controller.selectedImage.value != null &&
                 controller.foodNameController.text.isNotEmpty) {
               controller.generateFood(
-                  providerType,
-                  serviceSubType: serviceSubType
+                  providerType: widget.providerType,
+                  serviceSubType: widget.serviceSubType
               );
             }
           }
               : null,
-          title: "Generate");
+          title: controller.isGenerateFoodLoading.value
+              ? null
+              : 'Generate',
+        isLoading: controller.isGenerateFoodLoading.value,
+      );
     });
   }
 }

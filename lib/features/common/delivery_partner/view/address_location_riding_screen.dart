@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
@@ -46,10 +45,21 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
         child: CustomFormCard(
           child: Form(
             key: controller.formKeyStep2,
-            child:  Obx(()=> AbsorbPointer(
+            child: Obx(()=> AbsorbPointer(
+              absorbing: controller.isRidersAddressLoading.value,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+                  // CustomText(
+                  //   'Enable Live Location',
+                  //   fontSize: SizeConfig.small,
+                  //   color: AppColors.mainTextColor,
+                  //   fontWeight: FontWeight.w400,
+                  // ),
+                  //
+                  // SizedBox(height: SizeConfig.size8),
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -61,6 +71,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                           onSelected: (placeId, lat, lng, address) async {
                             print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                             controller.locationController.text = address;
+                            controller.currentAddress.value = address;
                             controller.latitude = lat;
                             controller.longitude = lng;
 
@@ -102,16 +113,17 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                           },
                         ),
                       ),
-                      SizedBox(width: SizeConfig.size8),
 
-                     if (controller.isFetchingAddressDetails.value)
-                           SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                     else Icon(Icons.check_circle, color: Colors.green, size: 22)
-
+                     if(controller.currentAddress.isNotEmpty)
+                       Padding(
+                         padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
+                         child: (controller.isFetchingAddressDetails.value) ?
+                         SizedBox(
+                           height: 20,
+                           width: 20,
+                           child: CircularProgressIndicator(strokeWidth: 2),
+                         ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
+                       )
                     ],
                   ),
                   SizedBox(height: SizeConfig.paddingM),
@@ -128,7 +140,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.pinCodeController,
-                    readOnly: true,
+                    // readOnly: true,
                     title: 'Pincode',
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,

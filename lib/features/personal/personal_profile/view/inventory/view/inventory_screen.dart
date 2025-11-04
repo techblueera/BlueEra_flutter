@@ -236,10 +236,12 @@ class _InventoryScreenState extends State<InventoryScreen>
             }
         );
       } else if (result.toUpperCase() == "ADD FOOD") {
-        Get.to(() => FoodUploadScreen(
-          providerType: ProductServiceProviderType.business,
-        ));
-        // Get.to(()=> FoodPage());
+        Get.toNamed(
+          RouteHelper.getFoodUploadScreenRoute(),
+          arguments: {
+            ApiKeys.providerType: ProductServiceProviderType.business,
+          },
+        );
       }
     }
   }
