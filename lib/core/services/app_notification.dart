@@ -12,7 +12,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
-import 'package:vibration/vibration.dart';
 
 String notificationSound = 'sound/iphone_tone.mp3';
 // String notificationSound = 'sound/notification_sound.wav';
@@ -192,9 +191,6 @@ class AppNotificationHandler {
         playCustomSound();
         showMsg(message);
       } else if (Platform.isIOS) {
-        Vibration.vibrate(duration: 1000);
-        print("IOS CALL");
-
         ///FOR IOS....
         // callUnreadCount();
       }
@@ -252,7 +248,6 @@ class AppNotificationHandler {
   ///SET AUDIO SOUND....
   Future<void> playCustomSound() async {
     print("play sound call");
-    Vibration.vibrate(duration: 1000);
     // Permission.
     try {
       await audioPlayer.play(AssetSource(notificationSound));

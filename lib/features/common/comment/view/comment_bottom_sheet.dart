@@ -2,11 +2,13 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
+import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -52,6 +54,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   void initState() {
     super.initState();
     // Choose the appropriate API based on comment type
+    commentController.clearAiContent();
+    commentController.replyingToUser.value=null;
     if (widget.commentType == CommentType.video) {
       commentController.getAllVideoComments(
           videoId: widget.id, isInitialized: true);
@@ -524,22 +528,67 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                 ),
               ),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                     decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.greyE5)),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         LocalAssets(
                           imagePath: AppIconAssets.chat_box_smile,
                           imgColor: AppColors.coloGreyText,
                         ),
-                        SizedBox(width: 8),
+                        // SizedBox(width: 8),
                         Expanded(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              // Optional: limit max height if you want more control
+                              maxHeight: 120, // around 4 lines depending on font size
+                            ),
+                            child: Scrollbar(
+                              child: TextFormField(
+                                focusNode: commentController.replyFocusNode,
+                                controller: commentController.sendMessageController,
+                                style: const TextStyle(color: Colors.black),
+                                onChanged: (value) {
+                                  setState(() {}); // Only rebuild when needed
+                                },
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null, // Allows auto-expanding
+                                minLines: 1, // Starts with one line
+                                decoration: InputDecoration(
+                                  hintText: "Write a comment...",
+                                  fillColor: Colors.transparent,
+                                  filled: true,
+                                  isDense: true,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  hintStyle: TextStyle(
+                                    color: AppColors.greyBf,
+                                    fontSize: SizeConfig.size14,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 5,
+                                    horizontal: 5,
+                                  ),
+                                  // fillColor: Colors.transparent,
+                                  // filled: true,
+                                  // border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+
+                        /* Expanded(
                           child: TextFormField(
                             focusNode: commentController.replyFocusNode,
                             controller: commentController.sendMessageController,
@@ -564,9 +613,41 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               disabledBorder: InputBorder.none,
                             ),
                           ),
-                        ),
+                        ),*/
                       ],
                     ),
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                InkWell(
+                  onTap: () async {
+                  try {
+                    WidgetsBinding.instance.addPostFrameCallback((_) async {
+                      try {
+                        logs("STEP 1");
+                      await  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>PostAiCommentScreen(postID: widget.id)));
+                        logs("STEP 3");
+                        setState(() {});
+                        logs("STEP 4");
+                      } catch (e) {
+                        logs("ERROR $e");
+                      }
+                    });
+
+                  } on Exception catch (e) {
+                    logs("ERROR ${e}");
+                    // TODO
+                  }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(18)),
+                    child: LocalAssets(
+                        height: 21,
+                        width: 21,
+                        imagePath: AppIconAssets.ai_generative,imgColor: Colors.white,),
                   ),
                 ),
                 SizedBox(width: SizeConfig.size10),
