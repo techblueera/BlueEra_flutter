@@ -405,7 +405,7 @@ class ApiKeys {
   static const language = 'language';
   static const emotion = 'emotion';
   static const image_topic = 'image_topic';
-  static const isSelfEmployement = 'isSelfEmployement';
+  static const isFromEarnWithBlueEraService = 'isFromEarnWithBlueEraService';
   static const subType = 'subType';
   static const serviceSubType = 'serviceSubType';
   static const discount = 'discount';

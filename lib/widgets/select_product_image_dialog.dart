@@ -29,7 +29,7 @@ class SelectProductImageDialog {
     bool? isOnlyCamera = true,
     bool? isGallery = true,
     int? maxImages,
-    CropAspectRatio? cropAspectRatio ,
+    CropAspectRatio? cropAspectRatio,
   }) async {
     final appLocalizations = AppLocalizations.of(context);
 

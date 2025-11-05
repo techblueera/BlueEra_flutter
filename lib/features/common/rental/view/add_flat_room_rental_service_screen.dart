@@ -123,7 +123,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonTextField(
-                    readOnly: true,
                     maxLine: 3,
                     textEditController: controller.propertyName,
                     inputLength: AppConstants.inputCharterLimit50,

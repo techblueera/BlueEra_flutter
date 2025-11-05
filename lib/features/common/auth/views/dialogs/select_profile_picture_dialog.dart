@@ -219,9 +219,16 @@ class SelectProfilePictureDialog {
         Transformation.panAndScale,
       ],
       shouldPopAfterCrop: true,
-      allowedAspectRatios:  [
-          cropAspectRatio ?? const CropAspectRatio(width: 1, height: 1)
-        ] ,
+      allowedAspectRatios: (cropAspectRatio != null) ? [
+          cropAspectRatio
+        ] : [
+        const CropAspectRatio(width: 1, height: 1),   // Square
+        const CropAspectRatio(width: 2, height: 3),   // Mobile-friendly portrait
+        const CropAspectRatio(width: 3, height: 4),   // Common portrait
+        // const CropAspectRatio(width: 4, height: 3),   // Standard photo
+        // const CropAspectRatio(width: 5, height: 4),   // Product / print
+        // const CropAspectRatio(width: 7, height: 5),   // Camera default
+      ],
       showLoadingIndicatorOnSubmit: true,
       postProcessFn: (result) async {
         final savedFile = await _saveUiImageToFile(result.uiImage, 0);

@@ -970,7 +970,7 @@ class _BlinkingVerifyButtonState extends State<BlinkingVerifyButton>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 5),
               decoration: BoxDecoration(
-                  color: AppColors.litered,
+                  color: AppColors.redLite,
                   borderRadius: BorderRadius.circular(8)),
               child: const CustomText(
                 "Verify Now",

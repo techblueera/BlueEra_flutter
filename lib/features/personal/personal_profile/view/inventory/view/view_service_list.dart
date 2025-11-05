@@ -31,22 +31,49 @@ class _ViewServiceListState extends State<ViewServiceList> {
 
   @override
   void initState() {
-    isFromEarnWithBlueEra = widget.providerType == ProductServiceProviderType.user;
+    super.initState();
+    _initQueryAndFetch();
+    scrollController.addListener(_scrollListener);
+  }
+
+  /// Refactored to reuse between initState & didUpdateWidget
+  void _initQueryAndFetch() {
+    isFromEarnWithBlueEra =
+        widget.providerType == ProductServiceProviderType.user;
 
     queryParams = {
       ApiKeys.all: false,
       ApiKeys.type: "service",
       ApiKeys.providerType: widget.providerType.title,
     };
-    if(isFromEarnWithBlueEra) queryParams[ApiKeys.subType] = widget.serviceSubType?.label;
-    if(widget.channelId!=null) queryParams[ApiKeys.channelId] = widget.channelId;
+
+    if (isFromEarnWithBlueEra) {
+      queryParams[ApiKeys.subType] = widget.serviceSubType?.label;
+    }
+
+    if (widget.channelId != null) {
+      queryParams[ApiKeys.channelId] = widget.channelId;
+    }
 
     serviceController.getServices(
-        queryParams,
-        isFromEarnWithBlueEra: isFromEarnWithBlueEra);
+      queryParams,
+      isFromEarnWithBlueEra: isFromEarnWithBlueEra,
+    );
+  }
 
-    scrollController.addListener(_scrollListener);
-    super.initState();
+  /// Detects changes to serviceSubType or providerType and refreshes data
+  @override
+  void didUpdateWidget(covariant ViewServiceList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final bool shouldRefetch =
+        oldWidget.serviceSubType != widget.serviceSubType ||
+            oldWidget.providerType != widget.providerType ||
+            oldWidget.channelId != widget.channelId;
+
+    if (shouldRefetch) {
+      _initQueryAndFetch();
+    }
   }
 
   void _scrollListener() {
@@ -62,7 +89,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (serviceController.isServiceDataFirstLoading.value) {
+      if (serviceController.isServiceDataFirstLoading.isTrue) {
         const Center(
           child: CircularProgressIndicator(),
         );
@@ -257,7 +284,8 @@ class _ViewServiceListState extends State<ViewServiceList> {
               ),
           ],
         );
-      }else{
+      }
+      else{
         return Center(child: Text('No Services', style: TextStyle(fontSize: 18)));
       }
 

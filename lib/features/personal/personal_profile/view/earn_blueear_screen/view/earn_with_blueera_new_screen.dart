@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/food_and_grocery_screen.dart';
@@ -52,17 +54,21 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
   final inventoryController = Get.put(InventoryController());
   // final foodUploadController = Get.put(FoodUploadController());
   // final serviceController = Get.put(ServiceController());
+  final deliveryPartnerController = Get.put(DeliveryPartnerController());
 
   @override
   void initState() {
-    _tabController = TabController(length: 3, vsync: this);
-    earnWithBlueEraController.fetchOwnProducts();
     // if(Get.isRegistered<InventoryController>()){
     //   inventoryController = Get.find<InventoryController>();
     // } else {
     //   inventoryController = Get.put(InventoryController());
     // }
+    _tabController = TabController(length: 3, vsync: this);
+    earnWithBlueEraController.fetchOwnProducts();
 
+    /// check riding status
+    deliveryPartnerController.ridersOnboardingStatusRepoApi();
+    WidgetsBinding.instance.addPostFrameCallback((_)=> _openEarnWithBlueEraSheet());
     super.initState();
   }
 
@@ -71,6 +77,14 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     Get.delete<EarnWithBlueEraController>();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _openEarnWithBlueEraSheet(){
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EarnWithBlueEraBottomSheet(),
+    );
   }
 
   @override
@@ -129,11 +143,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
       ),
       floatingActionButton: Builder(builder: (context) {
         return FloatingActionButton(
-          onPressed: () => showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            builder: (_) => EarnWithBlueEraBottomSheet(),
-          ),
+          onPressed: () => _openEarnWithBlueEraSheet(),
           backgroundColor: AppColors.primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -186,13 +196,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
   }
 
   Widget _buildOwnUserOrders(){
-    return SizedBox(
-      child: Center(
-        child: CustomText(
-            'Coming soon.'
-        ),
-      ),
-    );
+    return DeliveryPartnerOrders();
   }
 
   void onProductsServicesTabChanged(int index) async {
@@ -318,19 +322,19 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
           );
           break;
 
-        case 6:
-          tabContent = ViewServiceList(
-            providerType: ProductServiceProviderType.user,
-            serviceSubType: EarnWithBlueEraServiceTypes.consultingService,
-          );
-          break;
-
-        case 7:
-          tabContent = ViewServiceList(
-            providerType: ProductServiceProviderType.user,
-            serviceSubType: EarnWithBlueEraServiceTypes.tuitionService,
-          );
-          break;
+        // case 6:
+        //   tabContent = ViewServiceList(
+        //     providerType: ProductServiceProviderType.user,
+        //     serviceSubType: EarnWithBlueEraServiceTypes.consultingService,
+        //   );
+        //   break;
+        //
+        // case 7:
+        //   tabContent = ViewServiceList(
+        //     providerType: ProductServiceProviderType.user,
+        //     serviceSubType: EarnWithBlueEraServiceTypes.tuitionService,
+        //   );
+        //   break;
 
         default:
           tabContent = const SizedBox.shrink();

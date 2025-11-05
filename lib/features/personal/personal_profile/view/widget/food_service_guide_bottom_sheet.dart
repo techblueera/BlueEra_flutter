@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -25,21 +26,34 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
   ServiceItem? selectedService;
 
   final List<ServiceItem> _services = [
-    ServiceItem('Tiffin',
-        AppIconAssets.tiffinIcon,
-        bgColor: Color(0xFFFFF2DF),
-        labelColor: Color(0xFFAF6800)),
-    ServiceItem('Bakery',
-        AppIconAssets.bakeryIcon,
-        bgColor: Color(0xFFFFF2C3),
-        labelColor: Color(0xFF5D4900)),
-    ServiceItem('Sweets',
-        AppIconAssets.sweetIcon,
-        bgColor: Color(0xFFF0F4C2),
-        labelColor: Color(0xFF4E5500)),
-    ServiceItem('Other', AppIconAssets.staggeredIcon,
-        bgColor: const Color(0xFFCFD8DD),
-        labelColor: const Color(0xFF36444D)),
+    ServiceItem(
+      label: 'Tiffin',
+      name: AppConstants.TIFFIN,
+      icon: AppIconAssets.tiffinIcon,
+      bgColor: const Color(0xFFFFF2DF),
+      labelColor: const Color(0xFFAF6800),
+    ),
+    ServiceItem(
+      label: 'Bakery',
+      name: AppConstants.BAKERY,
+      icon: AppIconAssets.bakeryIcon,
+      bgColor: const Color(0xFFFFF2C3),
+      labelColor: const Color(0xFF5D4900),
+    ),
+    ServiceItem(
+      label: 'Sweets',
+      name: AppConstants.SWEETS,
+      icon: AppIconAssets.sweetIcon,
+      bgColor: const Color(0xFFF0F4C2),
+      labelColor: const Color(0xFF4E5500),
+    ),
+    ServiceItem(
+      label: 'Other',
+      name: 'OTHER',
+      icon: AppIconAssets.staggeredIcon,
+      bgColor: const Color(0xFFCFD8DD),
+      labelColor: const Color(0xFF36444D),
+    ),
   ];
 
   @override

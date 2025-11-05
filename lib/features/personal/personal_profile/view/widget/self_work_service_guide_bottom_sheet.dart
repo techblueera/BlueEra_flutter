@@ -10,6 +10,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -32,55 +33,92 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
   ServiceItem? selectedService;
 
   final List<ServiceItem> _services = [
-    ServiceItem('Electrician', AppIconAssets.electricianIcon,
-        id: '68ad6204dafb4bca58cf55d7',
-        bgColor: const Color(0xFFFFF2DF),
-        labelColor: const Color(0xFFAF6800)),
-    ServiceItem('Plumber', AppIconAssets.plumberIcon,
-        id: '68ad6204dafb4bca58cf55d8',
-        bgColor: const Color(0xFFFFF2C3),
-        labelColor: const Color(0xFF5D4900)),
-    ServiceItem('Technician', AppIconAssets.technicianIcon,
-        id: '68ad6204dafb4bca58cf55d9',
-        bgColor: const Color(0xFFF0F4C2),
-        labelColor: const Color(0xFF4E5500)),
-    ServiceItem('Maid - Cleaner', AppIconAssets.mainCleanerIcon,
-        id: '68ad6204dafb4bca58cf55da',
-        bgColor: const Color(0xFFD7EAC9),
-        labelColor: const Color(0xFF183A00)),
-    ServiceItem('Carpenter', AppIconAssets.carpenterIcon,
-        id: '68ad6204dafb4bca58cf55dc',
-        bgColor: const Color(0xFFE1FCB3),
-        labelColor: const Color(0xFF375700)),
-    ServiceItem('Taxi - Car Driver', AppIconAssets.taxiDriverIcon,
-        id: '68ad6204dafb4bca58cf55dd',
-        bgColor: const Color(0xFFB2DFDC),
-        labelColor: const Color(0xFF00625C)),
-    ServiceItem('Mechanic', AppIconAssets.mechanicIcon,
-        id: '68ad6204dafb4bca58cf55df',
-        bgColor: const Color(0xFFB3E5FC),
-        labelColor: const Color(0xFF003E5B)),
-    ServiceItem('Home Renovator', AppIconAssets.mistryIcon,
-        id: '68ad6204dafb4bca58cf55e2',
-        bgColor: const Color(0xFFD0C4E8),
-        labelColor: const Color(0xFF24006D)),
-    ServiceItem('Painter', AppIconAssets.painterIcon,
-        id: '68ad6204dafb4bca58cf55e3',
-        bgColor: const Color(0xFFF9BBD0),
-        labelColor: const Color(0xFF84002D)),
-    ServiceItem('Gardener', AppIconAssets.gardenerIcon,
-        id: '68ad6204dafb4bca58cf55e4',
-        bgColor: const Color(0xFFA3E7A3),
-        labelColor: const Color(0xFF006300)),
-    ServiceItem('Security Person', AppIconAssets.securityPersonIcon,
-        id: '68f8b41e0c46204861b3b312',
-        bgColor: const Color(0xFFD7CCC8),
-        labelColor: const Color(0xFF5B3F38)),
-    ServiceItem('Other', AppIconAssets.staggeredIcon,
-        id: '68ad6204dafb4bca58cf55e5',
-        bgColor: const Color(0xFFCFD8DD),
-        labelColor: const Color(0xFF36444D)),
+    ServiceItem(
+      label: 'Electrician',
+      name: AppConstants.ELECTRICIAN,
+      icon: AppIconAssets.electricianIcon,
+      bgColor: const Color(0xFFFFF2DF),
+      labelColor: const Color(0xFFAF6800),
+    ),
+    ServiceItem(
+      label: 'Plumber',
+      name: AppConstants.PLUMBER,
+      icon: AppIconAssets.plumberIcon,
+      bgColor: const Color(0xFFFFF2C3),
+      labelColor: const Color(0xFF5D4900),
+    ),
+    ServiceItem(
+      label: 'Technician',
+      name: AppConstants.TECHNICIAN,
+      icon: AppIconAssets.technicianIcon,
+      bgColor: const Color(0xFFF0F4C2),
+      labelColor: const Color(0xFF4E5500),
+    ),
+    ServiceItem(
+      label: 'Maid - Cleaner',
+      name: AppConstants.MAID_CLEANER,
+      icon: AppIconAssets.mainCleanerIcon,
+      bgColor: const Color(0xFFD7EAC9),
+      labelColor: const Color(0xFF183A00),
+    ),
+    ServiceItem(
+      label: 'Carpenter',
+      name: AppConstants.CARPENTER,
+      icon: AppIconAssets.carpenterIcon,
+      bgColor: const Color(0xFFE1FCB3),
+      labelColor: const Color(0xFF375700),
+    ),
+    ServiceItem(
+      label: 'Taxi - Car Driver',
+      name: AppConstants.CAR_DRIVER_TAXI,
+      icon: AppIconAssets.taxiDriverIcon,
+      bgColor: const Color(0xFFB2DFDC),
+      labelColor: const Color(0xFF00625C),
+    ),
+    ServiceItem(
+      label: 'Mechanic',
+      name: AppConstants.MECHANIC,
+      icon: AppIconAssets.mechanicIcon,
+      bgColor: const Color(0xFFB3E5FC),
+      labelColor: const Color(0xFF003E5B),
+    ),
+    ServiceItem(
+      label: 'Home Renovator',
+      name: AppConstants.HOME_RENOVATION,
+      icon: AppIconAssets.mistryIcon,
+      bgColor: const Color(0xFFD0C4E8),
+      labelColor: const Color(0xFF24006D),
+    ),
+    ServiceItem(
+      label: 'Painter',
+      name: AppConstants.PAINTER,
+      icon: AppIconAssets.painterIcon,
+      bgColor: const Color(0xFFF9BBD0),
+      labelColor: const Color(0xFF84002D),
+    ),
+    ServiceItem(
+      label: 'Gardener',
+      name: AppConstants.GARDENER,
+      icon: AppIconAssets.gardenerIcon,
+      bgColor: const Color(0xFFA3E7A3),
+      labelColor: const Color(0xFF006300),
+    ),
+    ServiceItem(
+      label: 'Security Person',
+      name: AppConstants.SECURITY,
+      icon: AppIconAssets.securityPersonIcon,
+      bgColor: const Color(0xFFD7CCC8),
+      labelColor: const Color(0xFF5B3F38),
+    ),
+    ServiceItem(
+      label: 'Other',
+      name: AppConstants.OTHER,
+      icon: AppIconAssets.staggeredIcon,
+      bgColor: const Color(0xFFCFD8DD),
+      labelColor: const Color(0xFF36444D),
+    ),
   ];
+
 
 
   @override
@@ -157,7 +195,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
               final filteredServices = _services.where((service) {
                 return apiSubcategories.any((api) =>
-                api.id == service.id);
+                api.name == service.name);
               }).toList();
 
               // 3-column grid
@@ -202,40 +240,46 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   return;
                 }
 
-                await showCommonDialog(
-                context: context,
-                text: 'Your profession and work type will be changed. Continue?',
-                confirmText: 'Update',
-                cancelText: 'Cancel',
-                confirmCallback: () async {
-                  final personalCreateProfileController = Get.isRegistered<PersonalCreateProfileController>()
-                    ? Get.find<PersonalCreateProfileController>()
-                     : Get.put(PersonalCreateProfileController());
-
-                  personalCreateProfileController
-                      .updateUserProfileProfessionDesignation(
-                    params: {
-                      ApiKeys.profession: SELF_EMPLOYED,
-                      ApiKeys.designation: selectedService?.label
-                    },
-                  ).then((value){
-                    Get.offNamedUntil(
-                      RouteHelper.getAddServicesScreenRoute(),
-                      ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-                      arguments: {
-                        ApiKeys.providerType: ProductServiceProviderType.user,
-                        ApiKeys.isSelfEmployement: true,
-                        ApiKeys.designation: selectedService?.label,
-                        ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
-                      },
-                    );
-                  });
-
-                },
-                cancelCallback: () {
-                  Get.back();
-                 },
+                showProfessionChangeDialog(
+                  context: context,
+                  designation: selectedService?.name ?? AppConstants.OTHER,
+                  serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
                 );
+
+                // await showCommonDialog(
+                // context: context,
+                // text: 'Your profession and work type will be changed. Continue?',
+                // confirmText: 'Update',
+                // cancelText: 'Cancel',
+                // confirmCallback: () async {
+                //   final personalCreateProfileController = Get.isRegistered<PersonalCreateProfileController>()
+                //     ? Get.find<PersonalCreateProfileController>()
+                //      : Get.put(PersonalCreateProfileController());
+                //
+                //   personalCreateProfileController
+                //       .updateUserProfileProfessionDesignation(
+                //     params: {
+                //       ApiKeys.profession: SELF_EMPLOYED,
+                //       ApiKeys.designation: selectedService?.label
+                //     },
+                //   ).then((value){
+                //     Get.offNamedUntil(
+                //       RouteHelper.getAddServicesScreenRoute(),
+                //       ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+                //       arguments: {
+                //         ApiKeys.providerType: ProductServiceProviderType.user,
+                //         ApiKeys.isFromEarnWithBlueEraService: true,
+                //         ApiKeys.designation: selectedService?.label,
+                //         ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
+                //       },
+                //     );
+                //   });
+                //
+                // },
+                // cancelCallback: () {
+                //   Get.back();
+                //  },
+                // );
 
               },
               bgColor: AppColors.primaryColor,

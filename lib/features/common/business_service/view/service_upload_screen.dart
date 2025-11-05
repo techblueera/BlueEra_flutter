@@ -25,16 +25,16 @@ import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
   final ProductServiceProviderType providerType;
-  final bool? isSelfEmployement;
+  final bool? isFromEarnWithBlueEraService;
   final String? channelId;
-  final String? workType;
+  final String? designation;
   final EarnWithBlueEraServiceTypes? serviceSubType;
 
   ServiceUploadScreen({
     Key? key,
     required this.providerType,
-    this.isSelfEmployement,
-    this.workType,
+    this.isFromEarnWithBlueEraService,
+    this.designation,
     this.channelId,
     this.serviceSubType})
       : super(key: key);
@@ -47,14 +47,14 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
   final viewBusinessDetailsController =
   Get.put(ViewBusinessDetailsController());
-  bool isSelfEmployement = false;
+  bool isFromEarnWithBlueEraService = false;
 
   @override
   void initState() {
-    isSelfEmployement = widget.isSelfEmployement??false;
-    if(isSelfEmployement){
-      controller.serviceNameController.text = widget.workType ?? 'OTHER';
-      controller.serviceName.value = controller.serviceNameController.text ;
+    isFromEarnWithBlueEraService = widget.isFromEarnWithBlueEraService??false;
+    if(isFromEarnWithBlueEraService){
+      controller.serviceNameController.text = widget.designation ?? 'OTHER';
+      controller.serviceName.value = controller.serviceNameController.text;
     }
     viewBusinessDetailsController.getAllCategories();
     super.initState();
@@ -129,7 +129,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        (isSelfEmployement) ? SELF_EMPLOYED : "$userProfessionGlobal",
+                                        (isFromEarnWithBlueEraService) ? SELF_EMPLOYED : "$userProfessionGlobal",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -149,7 +149,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        (isSelfEmployement)? widget.workType : "$userWorkTypeGlobal ",
+                                        (isFromEarnWithBlueEraService)? widget.designation : "$userWorkTypeGlobal ",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -243,7 +243,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     // Service Name Field
                     CommonTextField(
                       title: 'Service Name',
-                      readOnly: isSelfEmployement,
+                      readOnly: isFromEarnWithBlueEraService,
                       textEditController: controller.serviceNameController,
                       hintText: 'E.g. Car washing....',
                       onChange: (value) {

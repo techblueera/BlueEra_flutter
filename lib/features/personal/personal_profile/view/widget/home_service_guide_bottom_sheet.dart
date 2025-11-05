@@ -9,6 +9,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -31,26 +32,41 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
   int? selectedIndex;
   ServiceItem? selectedService;
   final List<ServiceItem> _services = [
-    ServiceItem('Beauty Services',
-        AppIconAssets.beautyServiceIcon,
-        bgColor: Color(0xFFFFF2DF),
-        labelColor: Color(0xFFAF6800)),
-    ServiceItem('Tailoring',
-        AppIconAssets.tailoringIcon,
-        bgColor: Color(0xFFFFF2C3),
-        labelColor: Color(0xFF5D4900)),
-    ServiceItem('digital marketing',
-        AppIconAssets.digitalMarketingIcon,
-        bgColor: Color(0xFFF0F4C2),
-        labelColor: Color(0xFF4E5500)),
-    ServiceItem('interior decor',
-        AppIconAssets.interiorIcon,
-        bgColor: Color(0xFFD7EAC9),
-        labelColor: Color(0xFF183A00)),
-    ServiceItem('Other', AppIconAssets.staggeredIcon,
-        id: '68ad6204dafb4bca58cf55e5',
-        bgColor: const Color(0xFFCFD8DD),
-        labelColor: const Color(0xFF36444D)),
+    ServiceItem(
+      label: 'Beauty Services',
+      name: AppConstants.BEAUTICIAN,
+      icon: AppIconAssets.beautyServiceIcon,
+      bgColor: const Color(0xFFFFF2DF),
+      labelColor: const Color(0xFFAF6800),
+    ),
+    ServiceItem(
+      label: 'Tailoring',
+      name: AppConstants.TAILOR,
+      icon: AppIconAssets.tailoringIcon,
+      bgColor: const Color(0xFFFFF2C3),
+      labelColor: const Color(0xFF5D4900),
+    ),
+    ServiceItem(
+      label: 'Digital Marketing',
+      name: AppConstants.DIGITAL_MARKETING,
+      icon: AppIconAssets.digitalMarketingIcon,
+      bgColor: const Color(0xFFF0F4C2),
+      labelColor: const Color(0xFF4E5500),
+    ),
+    ServiceItem(
+      label: 'Interior Decor',
+      name: AppConstants.INTERIOR_DESIGNER,
+      icon: AppIconAssets.interiorIcon,
+      bgColor: const Color(0xFFD7EAC9),
+      labelColor: const Color(0xFF183A00),
+    ),
+    ServiceItem(
+      label: 'Other',
+      name: AppConstants.OTHER,
+      icon: AppIconAssets.staggeredIcon,
+      bgColor: const Color(0xFFCFD8DD),
+      labelColor: const Color(0xFF36444D),
+    ),
   ];
 
   @override
@@ -142,40 +158,46 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                   return;
                 }
 
-                await showCommonDialog(
+                showProfessionChangeDialog(
                   context: context,
-                  text: 'Your profession and work type will be changed. Continue?',
-                  confirmText: 'Update',
-                  cancelText: 'Cancel',
-                  confirmCallback: () async {
-                    final personalCreateProfileController = Get.isRegistered<PersonalCreateProfileController>()
-                        ? Get.find<PersonalCreateProfileController>()
-                        : Get.put(PersonalCreateProfileController());
-
-                    personalCreateProfileController
-                        .updateUserProfileProfessionDesignation(
-                      params: {
-                        ApiKeys.profession: SELF_EMPLOYED,
-                        ApiKeys.designation: selectedService?.label
-                      },
-                    ).then((value){
-                      Get.offNamedUntil(
-                        RouteHelper.getAddServicesScreenRoute(),
-                        ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-                        arguments: {
-                          ApiKeys.providerType: ProductServiceProviderType.user,
-                          ApiKeys.isSelfEmployement: true,
-                          ApiKeys.designation: selectedService?.label,
-                          ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
-                        },
-                      );
-                    });
-
-                  },
-                  cancelCallback: () {
-                    Get.back();
-                  },
+                  designation: selectedService?.name ?? AppConstants.OTHER,
+                  serviceSubType: EarnWithBlueEraServiceTypes.homeService,
                 );
+
+                // await showCommonDialog(
+                //   context: context,
+                //   text: 'Your profession and work type will be changed. Continue?',
+                //   confirmText: 'Update',
+                //   cancelText: 'Cancel',
+                //   confirmCallback: () async {
+                //     final personalCreateProfileController = Get.isRegistered<PersonalCreateProfileController>()
+                //         ? Get.find<PersonalCreateProfileController>()
+                //         : Get.put(PersonalCreateProfileController());
+                //
+                //     personalCreateProfileController
+                //         .updateUserProfileProfessionDesignation(
+                //       params: {
+                //         ApiKeys.profession: SELF_EMPLOYED,
+                //         ApiKeys.designation: selectedService?.label
+                //       },
+                //     ).then((value){
+                //       Get.offNamedUntil(
+                //         RouteHelper.getAddServicesScreenRoute(),
+                //         ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+                //         arguments: {
+                //           ApiKeys.providerType: ProductServiceProviderType.user,
+                //           ApiKeys.isFromEarnWithBlueEraService: true,
+                //           ApiKeys.designation: selectedService?.label,
+                //           ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
+                //         },
+                //       );
+                //     });
+                //
+                //   },
+                //   cancelCallback: () {
+                //     Get.back();
+                //   },
+                // );
 
               },
               bgColor: AppColors.primaryColor,
