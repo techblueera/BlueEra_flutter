@@ -786,9 +786,13 @@ enum OwnChannelMenuAction {
 /// Map Category
 enum MapCategory {
   services('Services'),
-  stores('Stores'),
-  jobs('Jobs'),
-  places('Places');
+  homeService('Home Service'),
+  foods('Foods'),
+  rental('Rental');
+
+  // stores('Stores'),
+  // jobs('Jobs'),
+  // places('Places');
   //TODO: remove event tab
   // events('Events');
 

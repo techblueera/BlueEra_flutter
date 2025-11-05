@@ -96,6 +96,7 @@ class ServiceData {
   int? reviewCount;
   ServiceMedia? serviceMedia;
   PriceData? priceData;
+  String? category;
   ServiceData(
       {
         this.id,
@@ -142,7 +143,8 @@ class ServiceData {
         this.rating,
         this.reviewCount,
         this.serviceMedia,
-        this.priceData
+        this.priceData,
+        this.category,
       });
 
   ServiceData.fromJson(Map<String, dynamic> json) {
@@ -195,6 +197,7 @@ class ServiceData {
     distance = json['distance'];
     rating = json['rating'];
     reviewCount = json['reviewCount'];
+    category = json['category'];
     serviceMedia = json['serviceMedia'] != null
         ? new ServiceMedia.fromJson(json['serviceMedia'])
         : null;
@@ -254,6 +257,7 @@ class ServiceData {
     data['distance'] = this.distance;
     data['rating'] = this.rating;
     data['reviewCount'] = this.reviewCount;
+    data['category'] = this.category;
     if (this.serviceMedia != null) {
       data['serviceMedia'] = this.serviceMedia!.toJson();
     }

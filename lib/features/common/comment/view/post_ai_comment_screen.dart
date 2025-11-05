@@ -14,9 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PostAiCommentScreen extends StatelessWidget {
-  PostAiCommentScreen({super.key, required this.postID});
+  PostAiCommentScreen({super.key, required this.dataId, required this.commentType});
 
-  final String postID;
+  final String dataId;
+  final String commentType;
   final commentController = Get.find<CommentController>();
 
   @override
@@ -119,8 +120,15 @@ class PostAiCommentScreen extends StatelessWidget {
                       isValidate: commentController.isFormValid,
                       onTap: commentController.isFormValid
                           ? () async {
-                              await commentController
-                                  .generateAiPostCommentController(postID: postID);
+                        if(commentType=="comment"){
+                          await commentController
+                              .generateAiPostCommentController(postID: dataId);
+                        }
+                        else if(commentType=="comment_reply"){
+                          await commentController
+                              .generateAiPostCommentReplyController(commentID: dataId);
+                        }
+
                             }
                           : null,
                     ),

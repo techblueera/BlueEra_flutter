@@ -30,9 +30,14 @@ class FoodServicesBottomSheet extends StatefulWidget {
   final String category;
   final String subType;
 
-
-  FoodServicesBottomSheet(
-      {super.key, required this.onClose, required this.lat, required this.lng, required this.category, required this.subType,});
+  FoodServicesBottomSheet({
+    super.key,
+    required this.onClose,
+    required this.lat,
+    required this.lng,
+    required this.category,
+    required this.subType,
+  });
 
   @override
   State<FoodServicesBottomSheet> createState() =>
@@ -41,7 +46,7 @@ class FoodServicesBottomSheet extends StatefulWidget {
 
 class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
   final MapServiceController mapServiceController =
-  Get.put(MapServiceController());
+      Get.put(MapServiceController());
   int _selectedSubCategoryIndex = 0;
   String? _selectedSubCategory;
   final List<String> subCategories = [];
@@ -53,34 +58,39 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
     // mapServiceController.getHomeServiceDataByProfession(
     //     serviceType: _selectedSubCategory,
     // );
+    fetchHomeServices();
 
-    if (widget.lat != 0.0 && widget.lng != 0.0) {
-      print("called after getting lat lng");
-      fetchHomeServices();
-    }
+    // if (widget.lat != 0.0 && widget.lng != 0.0) {
+    //   print("called after getting lat lng");
+    //   fetchHomeServices();
+    // }
   }
 
   @override
   void didUpdateWidget(covariant FoodServicesBottomSheet oldWidget) {
-    if (oldWidget.lat != widget.lat && oldWidget.lng != widget.lng) {
-      if (widget.lat != 0.0 && widget.lng != 0.0) {
-        print("called after getting lat lng");
-        fetchHomeServices();
-      }
-    }
+    // fetchHomeServices();
+
+    // if (oldWidget.lat != widget.lat && oldWidget.lng != widget.lng) {
+    //   if (widget.lat != 0.0 && widget.lng != 0.0) {
+    //     print("called after getting lat lng");
+    //     fetchHomeServices();
+    //   }
+    // }
     super.didUpdateWidget(oldWidget);
   }
 
   void fetchHomeServices() {
     mapServiceController.fetchHomeService(
         lat: widget.lat,
-        lng: widget.lng,serviceType: widget.category,subType: widget.subType
-    );
+        lng: widget.lng,
+        serviceType: widget.category,
+        subType: widget.subType);
   }
 
   @override
   Widget build(BuildContext context) {
-    return CommonDraggableBottomSheet(key: ValueKey( widget.category),
+    return CommonDraggableBottomSheet(
+      key: ValueKey(widget.category),
       initialChildSize: 0.45,
       minChildSize: 0.3,
       maxChildSize: 0.95,
@@ -122,7 +132,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                       alignment: Alignment.centerRight,
                       child: Padding(
                         padding:
-                        EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size8),
                         child: IconButton(
                           iconSize: SizeConfig.size18,
                           onPressed: () => widget.onClose(),
@@ -134,43 +144,47 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                         ),
                       ),
                     ),
-                    // SubCategoryTabBar<String>(
-                    //   tabs: subCategories,
-                    //   selectedIndex: _selectedSubCategoryIndex,
-                    //   onSelected: (index, label) {
-                    //     setState(() {
-                    //       _selectedSubCategoryIndex = index;
-                    //       _selectedSubCategory = label;
-                    //     });
-                    //   },
-                    //   labelBuilder: (label) => label,
-                    // ),
+                    SubCategoryTabBar<String>(
+                      tabs: subCategories,
+                      selectedIndex: _selectedSubCategoryIndex,
+                      onSelected: (index, label) {
+                        setState(() {
+                          _selectedSubCategoryIndex = index;
+                          _selectedSubCategory = label;
+                        });
+                      },
+                      labelBuilder: (label) => label,
+                    ),
                     Expanded(
                       child: Padding(
                         padding:
-                        EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             // final itemWidth = (constraints.maxWidth - 10) / 2;
                             // final itemHeight = SizeConfig.size220;
 
                             final List<ServiceData> serviceData =
-                            _selectedSubCategory != null
-                                ? professionMap[_selectedSubCategory] ?? []
-                                : [];
+                                _selectedSubCategory != null
+                                    ? professionMap[_selectedSubCategory] ?? []
+                                    : [];
                             return GridView.builder(
                               controller: scrollController,
                               itemCount: serviceData.length,
                               shrinkWrap: true,
-                              padding: const EdgeInsets.only(top: 12, bottom: 24),
+                              padding:
+                                  const EdgeInsets.only(top: 12, bottom: 24),
                               physics: const BouncingScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.80, // 🔹 slightly increased to give more height
+                                childAspectRatio: 0.80,
+                                // 🔹 slightly increased to give more height
                                 crossAxisSpacing: 8.0,
                                 mainAxisSpacing: 8.0,
                               ),
-                              itemBuilder: (context, index) => _buildServiceCard(serviceData[index]),
+                              itemBuilder: (context, index) =>
+                                  _buildServiceCard(serviceData[index]),
                             );
 
                             return GridView.builder(
@@ -178,9 +192,9 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                               itemCount: serviceData.length,
                               shrinkWrap: true,
                               padding:
-                              const EdgeInsets.only(top: 12, bottom: 24),
+                                  const EdgeInsets.only(top: 12, bottom: 24),
                               gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
+                                  SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 childAspectRatio: 0.70,
                                 // childAspectRatio: 0.712,
@@ -200,14 +214,14 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
               } else {
                 return Center(
                     child: EmptyStateWidget(
-                      message: 'No service available.',
-                    ));
+                  message: 'No service available.',
+                ));
               }
             }
           } else if (mapServiceController.homeServiceResponse.value.status ==
               Status.ERROR) {
             return LoadErrorWidget(
-                errorMessage: 'Failed to load home services',
+                errorMessage: 'Failed to load food services',
                 onRetry: () => fetchHomeServices());
           }
 
@@ -224,9 +238,9 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
           Get.to(() => PersonalProfileSetupNewScreen());
         } else {
           Get.to(() => NewVisitProfileScreen(
-            authorId: serviceData.id ?? '',
-            screenFromName: AppConstants.feedScreen,
-          ));
+                authorId: serviceData.id ?? '',
+                screenFromName: AppConstants.feedScreen,
+              ));
         }
       },
       child: Container(
@@ -244,22 +258,27 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-
           children: [
             /// ✅ Make image flexible — not fixed 190
             AspectRatio(
               aspectRatio: 1.4, // controls image height dynamically
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
                 child: Stack(
                   children: [
                     CustomImageSlideshow(
                       isLoading: false,
                       width: double.infinity,
                       height: double.infinity,
-                      imagePaths: [
-                        serviceData.serviceMedia?.photos?.firstOrNull ?? "",
-                      ],
+                      imagePaths: (serviceData
+                                  .serviceMedia?.photos?.isNotEmpty ??
+                              false)
+                          ? [
+                              serviceData.serviceMedia?.photos?.firstOrNull ??
+                                  "",
+                            ]
+                          : [],
                       borderRadius: BorderRadius.zero,
                     ),
                     if (serviceData.priceData?.priceRange?.min != null)
@@ -267,13 +286,15 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                         right: 6,
                         bottom: 6,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 3),
                           decoration: BoxDecoration(
                             color: AppColors.blackD4,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: CustomText(
-                            (serviceData.priceData?.priceRange?.min ?? 0) > 1000000
+                            (serviceData.priceData?.priceRange?.min ?? 0) >
+                                    1000000
                                 ? "INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
                                 : 'INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
                             fontSize: SizeConfig.extraSmall,
@@ -296,7 +317,9 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 2,),
+                    SizedBox(
+                      height: 2,
+                    ),
                     ProfileSummaryCard(
                       name: serviceData.name ?? '',
                       imageUrl: serviceData.profileImage ?? '',
@@ -304,23 +327,31 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                       reviews: serviceData.reviewCount ?? 0,
                       distance: "${serviceData.distance ?? 0} km",
                     ),
-                    SizedBox(height: 2,),
-
+                    SizedBox(
+                      height: 2,
+                    ),
                     Row(
                       children: [
                         Expanded(
                           child: CommonIconContainerButton(
                             onTap: () async {
-                              final chatViewController = Get.put(ChatViewController());
-                              await chatViewController.checkChatConnection({ApiKeys.user_id: serviceData.id});
+                              final chatViewController =
+                                  Get.put(ChatViewController());
+                              await chatViewController.checkChatConnection(
+                                  {ApiKeys.user_id: serviceData.id});
 
-                              final chatData = chatViewController.newVisitContactApiResponse?.value?.data;
-                              final hasExisting = (chatData?.conversationId?.isNotEmpty ?? false);
+                              final chatData = chatViewController
+                                  .newVisitContactApiResponse?.value?.data;
+                              final hasExisting =
+                                  (chatData?.conversationId?.isNotEmpty ??
+                                      false);
 
                               chatViewController.openAnyOneChatFunction(
                                 isWithProductSend: false,
                                 profileImage: serviceData.profileImage ?? '',
-                                otherUserId: hasExisting ? null : chatData?.otherUserId ?? '',
+                                otherUserId: hasExisting
+                                    ? null
+                                    : chatData?.otherUserId ?? '',
                                 businessId: "",
                                 type: "personal",
                                 isInitialMessage: !hasExisting,
@@ -352,7 +383,6 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
       ),
     );
   }
-
 }
 
 // import 'package:BlueEra/core/api/apiService/api_keys.dart';

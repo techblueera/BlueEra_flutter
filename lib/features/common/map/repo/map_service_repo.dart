@@ -38,5 +38,16 @@ class MapServiceRepo extends BaseService{
     );
     return response;
   }
+  ///GET RENTAL SERVICE...
+  Future<ResponseModel> bookingGetRentalServiceMapRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      bookingGetRentalServiceMap,
+      showProgress: true,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }
