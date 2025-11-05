@@ -1,11 +1,12 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/home_service_guide_bottom_sheet.dart';
@@ -21,38 +22,62 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
   EarnWithBlueEraBottomSheet({Key? key}) : super(key: key);
 
   final List<ServiceItem> _services = [
-    ServiceItem('Self Work',
-        AppIconAssets.plumberIcon,
-        bgColor: Color(0xFFCBEAFC),
-        labelColor: Color(0xFF004E7C)),
-    ServiceItem('Delivery\nPartner',
-        AppIconAssets.deliveryPartnerIcon,
-        bgColor: Color(0xFFDAEDCF),
-        labelColor: Color(0xFF204A08)),
-    ServiceItem('Home Mad\nProducts',
-        AppIconAssets.homeMadeProductIcon,
-        bgColor: Color(0xFFFDD5A4),
-        labelColor: Color(0xFF8C4D00)),
-    ServiceItem('Home Made\nFood Items',
-        AppIconAssets.homeMadeFoodIcon,
-        bgColor: Color(0xFFFEF2B6),
-        labelColor: Color(0xFF856F00)),
-    ServiceItem('Home\nServices',
-        AppIconAssets.homeServiceIcon,
-        bgColor: Color(0xFFDBD5F7),
-        labelColor: Color(0xFF140074)),
-    ServiceItem('Rental\nServices',
-        AppIconAssets.rentalServiceIcon,
-        bgColor: Color(0xFFFAD7D3),
-        labelColor: Color(0xFF740C00)),
-    ServiceItem('Counselling /\nConsulting',
-        AppIconAssets.consultingIcon,
-        bgColor: Color(0xFFBCEEE2),
-        labelColor: Color(0xFF006950)),
-    ServiceItem('Tuition Classes\nOnline/Offline',
-        AppIconAssets.teachingIcon,
-        bgColor: Color(0xFFEEBCE7),
-        labelColor: Color(0xFF8B0077)),
+    ServiceItem(
+      label: 'Self Work',
+      name: 'SELF_WORK',
+      icon: AppIconAssets.plumberIcon,
+      bgColor: const Color(0xFFCBEAFC),
+      labelColor: const Color(0xFF004E7C),
+    ),
+    ServiceItem(
+      label: 'Delivery\nPartner',
+      name: 'DELIVERY_PARTNER',
+      icon: AppIconAssets.deliveryPartnerIcon,
+      bgColor: const Color(0xFFDAEDCF),
+      labelColor: const Color(0xFF204A08),
+    ),
+    ServiceItem(
+      label: 'Home Mad\nProducts',
+      name: 'HOME_MADE_PRODUCTS',
+      icon: AppIconAssets.homeMadeProductIcon,
+      bgColor: const Color(0xFFFDD5A4),
+      labelColor: const Color(0xFF8C4D00),
+    ),
+    ServiceItem(
+      label: 'Home Made\nFood Items',
+      name: 'HOME_MADE_FOOD_ITEMS',
+      icon: AppIconAssets.homeMadeFoodIcon,
+      bgColor: const Color(0xFFFEF2B6),
+      labelColor: const Color(0xFF856F00),
+    ),
+    ServiceItem(
+      label: 'Home\nServices',
+      name: 'HOME_SERVICES',
+      icon: AppIconAssets.homeServiceIcon,
+      bgColor: const Color(0xFFDBD5F7),
+      labelColor: const Color(0xFF140074),
+    ),
+    ServiceItem(
+      label: 'Rental\nServices',
+      name: 'RENTAL_SERVICES',
+      icon: AppIconAssets.rentalServiceIcon,
+      bgColor: const Color(0xFFFAD7D3),
+      labelColor: const Color(0xFF740C00),
+    ),
+    ServiceItem(
+      label: 'Counselling /\nConsulting',
+      name: 'COUNSELLING_CONSULTING',
+      icon: AppIconAssets.consultingIcon,
+      bgColor: const Color(0xFFBCEEE2),
+      labelColor: const Color(0xFF006950),
+    ),
+    ServiceItem(
+      label: 'Tuition Classes\nOnline/Offline',
+      name: 'TUITION_CLASSES_ONLINE_OFFLINE',
+      icon: AppIconAssets.teachingIcon,
+      bgColor: const Color(0xFFEEBCE7),
+      labelColor: const Color(0xFF8B0077),
+    ),
   ];
 
   @override
@@ -165,39 +190,41 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         break;
 
       case 'Counselling /\nConsulting':
-        Get.offNamedUntil(
-          RouteHelper.getAddServicesScreenRoute(),
-          ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-          arguments: {
-            ApiKeys.providerType: ProductServiceProviderType.user,
-            ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.consultingService,
-          },
+        showProfessionChangeDialog(
+          context: context,
+          designation: AppConstants.CONSULTANT,
+          serviceSubType: EarnWithBlueEraServiceTypes.homeService,
         );
-      // await Get.toNamed(
-      //   RouteHelper.getAddProductScreenRoute(),
-      //   arguments: {
-      //     ApiKeys.id: userId,
-      //     ApiKeys.providerType: ProductServiceProviderType.business,
-      //   },
-      // );
+        // Get.offNamedUntil(
+        //   RouteHelper.getAddServicesScreenRoute(),
+        //   ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+        //   arguments: {
+        //     ApiKeys.providerType: ProductServiceProviderType.user,
+        //     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
+        //     ApiKeys.isFromEarnWithBlueEraService: true,
+        //     ApiKeys.designation: AppConstants.CONSULTANT,
+        //   },
+        // );
+
         break;
 
       case 'Tuition Classes\nOnline/Offline':
-        Get.offNamedUntil(
-          RouteHelper.getAddServicesScreenRoute(),
-          ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-          arguments: {
-            ApiKeys.providerType: ProductServiceProviderType.user,
-            ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.tuitionService,
-          },
+        showProfessionChangeDialog(
+          context: context,
+          designation: AppConstants.TUTOR,
+          serviceSubType: EarnWithBlueEraServiceTypes.homeService,
         );
-      // await Get.toNamed(
-      //   RouteHelper.getAddProductScreenRoute(),
-      //   arguments: {
-      //     ApiKeys.id: userId,
-      //     ApiKeys.providerType: ProductServiceProviderType.channel,
-      //   },
-      // );
+        // Get.offNamedUntil(
+        //   RouteHelper.getAddServicesScreenRoute(),
+        //   ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+        //   arguments: {
+        //     ApiKeys.providerType: ProductServiceProviderType.user,
+        //     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
+        //     ApiKeys.isFromEarnWithBlueEraService: true,
+        //     ApiKeys.designation: AppConstants.TUTOR,
+        //   },
+        // );
+
         break;
 
       default:

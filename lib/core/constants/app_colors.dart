@@ -108,11 +108,11 @@ class AppColors {
   static const  orangeOut = Color(0xffFE7B2E);
   static const  purpleOut = Color(0xffC7017C);
   static const  backgroundBlur = Color(0xff0000004D);
-  static const  litered = Color(0xffD94A42);
   static const  blueLight = Color(0xFF56CCF2);
   static const  blueDark = Color(0xFF2F80ED);
   static const  blackLite = Color(0xFF505050);
   static const  redLite = Color(0xFFD94A42);
   static const  blueLightShade = Color(0xFFF2FEFE);
   static const  rating = Color(0xFFFABC00);
+  static const  green0B = Color(0xFF0BC041);
 }

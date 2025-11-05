@@ -1404,6 +1404,28 @@ extension FuelTypeExtension on FuelType {
   }
 }
 
+enum DeliveryPartnerOrdersTab {
+  pickUp("Pick-Up"),
+  grocery("Grocery"),
+  parcel("Parcel"),
+  income("Income");
+
+  final String label;
+  const DeliveryPartnerOrdersTab(this.label);
+}
+
+enum PickUpTab {
+  newOrder("New"),
+  onGoing("On-Going"),
+  completed("Completed"),
+  cancel("Cancel"),
+  rejected("Rejected");
+
+  final String label;
+  const PickUpTab(this.label);
+}
+
+
 
 
 

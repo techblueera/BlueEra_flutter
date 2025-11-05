@@ -2,9 +2,16 @@ import 'dart:ui';
 
 class ServiceItem {
   final String label;
+  final String name;
   final String icon;
   final Color bgColor;
   final Color labelColor;
-  final String? id;
-  const ServiceItem(this.label, this.icon, {required this.bgColor, required this.labelColor, this.id});
+  const ServiceItem(
+
+      {  required this.label,
+        required this.name,
+        required this.icon,
+        required this.bgColor,
+        required this.labelColor,
+      });
 }

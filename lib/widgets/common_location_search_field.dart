@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -53,8 +54,9 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
 
   void onSearchChanged(String query) {
     debounce?.cancel();
-    debounce = Timer(const Duration(milliseconds: 400), () {
-      _fetchPredictions(query);
+
+    debounce = Timer(const Duration(milliseconds: 600), () {
+       _fetchPredictions(query);
       _updateOverlay();
     });
   }
@@ -67,6 +69,8 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
       return;
     }
 
+    if (isLoading.value && query == currentAddress.value) return;
+
     isLoading.value = true;
     errorMessage.value = '';
     currentAddress.value = query;
@@ -76,7 +80,10 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
       if (response.statusCode == 200) {
         final data = response.response?.data;
         final list = data?['predictions'] as List? ?? [];
-        predictions.assignAll(PlacePrediction.fromList(list));
+
+        // Parse on background isolate to avoid frame drop
+        final parsedList = await compute(PlacePrediction.fromList, list);
+        predictions.assignAll(parsedList);
         log('Predictions found: ${predictions.length}');
       } else {
         errorMessage.value =
@@ -90,17 +97,20 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   }
 
   void _updateOverlay() {
-    if (widget.controller.text.isNotEmpty ||
-        isLoading.value ||
-        predictions.isNotEmpty ||
-        errorMessage.isNotEmpty) {
-      _showOverlay();
-    } else {
+    if (widget.controller.text.isEmpty &&
+        predictions.isEmpty &&
+        errorMessage.isEmpty &&
+        !isLoading.value) {
       _removeOverlay();
+      return;
     }
+
+    _showOverlay();
   }
 
   void _showOverlay() {
+    _removeOverlay();
+
     final renderBox =
     textFieldKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
@@ -108,7 +118,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     final size = renderBox.size;
     final offset = renderBox.localToGlobal(Offset.zero);
 
-    overlayEntry ??= OverlayEntry(
+    overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         left: offset.dx,
         top: offset.dy + size.height + 5,
@@ -135,7 +145,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
       ),
     );
 
-    Overlay.of(context).insert(overlayEntry!);
+    Overlay.of(Get.overlayContext ?? context).insert(overlayEntry!);
   }
 
   Widget _buildOverlayBody() {
@@ -203,8 +213,10 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   }
 
   void _removeOverlay() {
-    overlayEntry?.remove();
-    overlayEntry = null;
+    if (overlayEntry != null) {
+      overlayEntry!.remove();
+      overlayEntry = null;
+    }
   }
 
   @override

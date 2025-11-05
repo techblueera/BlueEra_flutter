@@ -18,8 +18,8 @@ class EarnWithBlueEraController extends GetxController{
     "Food",
     "Home Services",
     "Rental Services",
-    "Counselling/Consulting",
-    "Tuition Classes",
+    // "Counselling/Consulting",
+    // "Tuition Classes",
   ];
   RxBool showGoLiveEnabled = false.obs;
 

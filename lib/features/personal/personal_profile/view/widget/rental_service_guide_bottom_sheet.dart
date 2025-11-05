@@ -21,18 +21,34 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
   int? selectedIndex;
   ServiceItem? selectedService;
   final List<ServiceItem> _services = [
-    ServiceItem('Home Stay',
-        AppIconAssets.plumberIcon,
-        bgColor: Color(0xFFFFF2DF),
-        labelColor: Color(0xFFAF6800)),
-    ServiceItem('Flat/Room',
-        AppIconAssets.deliveryPartnerIcon,
-        bgColor: Color(0xFFF0F4C2),
-        labelColor: Color(0xFF4E5500)),
-    ServiceItem('Vehicle',
-        AppIconAssets.homeMadeProductIcon,
-        bgColor: Color(0xFFD7EAC9),
-        labelColor: Color(0xFF183A00))
+    ServiceItem(
+      label: 'Home Stay',
+       name: 'HOME_STAY',
+      icon: AppIconAssets.plumberIcon,
+      bgColor: const Color(0xFFFFF2DF),
+      labelColor: const Color(0xFFAF6800),
+    ),
+    ServiceItem(
+      label: 'Flat/Room',
+      name: 'FLAT_ROOM',
+      icon: AppIconAssets.deliveryPartnerIcon,
+      bgColor: const Color(0xFFF0F4C2),
+      labelColor: const Color(0xFF4E5500),
+    ),
+    ServiceItem(
+      label: 'Vehicle',
+      name: 'VEHICLE',
+      icon: AppIconAssets.homeMadeProductIcon,
+      bgColor: const Color(0xFFD7EAC9),
+      labelColor: const Color(0xFF183A00),
+    ),
+    ServiceItem(
+      label: 'Other',
+      name: 'OTHER',
+      icon: AppIconAssets.staggeredIcon,
+      bgColor: const Color(0xFFCFD8DD),
+      labelColor: const Color(0xFF36444D),
+    ),
   ];
 
   @override

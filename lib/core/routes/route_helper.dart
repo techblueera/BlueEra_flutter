@@ -930,17 +930,17 @@ class RouteHelper {
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
-        final bool? isSelfEmployement = args[ApiKeys.isSelfEmployement] as bool?;
-        final String? workType = args[ApiKeys.designation] as String?;
         final EarnWithBlueEraServiceTypes? serviceSubType = args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final bool? isFromEarnWithBlueEraService = args[ApiKeys.isFromEarnWithBlueEraService] as bool?;
+        final String? designation = args[ApiKeys.designation] as String?;
         final String? channelId = args[ApiKeys.channelId] as String?;
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
               providerType: providerType,
-              isSelfEmployement: isSelfEmployement,
+              isFromEarnWithBlueEraService: isFromEarnWithBlueEraService,
               channelId: channelId,
-              workType: workType,
+              designation: designation,
               serviceSubType: serviceSubType,
             ),
             // builder: (_) => AddServicesScreen(),
