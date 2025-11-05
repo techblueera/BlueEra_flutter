@@ -15,6 +15,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_ne
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_btn_with_icon.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -30,9 +31,14 @@ class HomeServicesBottomSheet extends StatefulWidget {
   final String category;
   final String subType;
 
-
-   HomeServicesBottomSheet(
-      {super.key, required this.onClose, required this.lat, required this.lng, required this.category, required this.subType,});
+  HomeServicesBottomSheet({
+    super.key,
+    required this.onClose,
+    required this.lat,
+    required this.lng,
+    required this.category,
+    required this.subType,
+  });
 
   @override
   State<HomeServicesBottomSheet> createState() =>
@@ -49,6 +55,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
   @override
   initState() {
     super.initState();
+    getHomeServices();
     // mapServiceController.getHomeServiceDataByProfession(
     //     serviceType: _selectedSubCategory,
     // );
@@ -61,20 +68,23 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
 
   @override
   void didUpdateWidget(covariant HomeServicesBottomSheet oldWidget) {
-    if (oldWidget.lat != widget.lat && oldWidget.lng != widget.lng) {
-      if (widget.lat != 0.0 && widget.lng != 0.0) {
-        print("called after getting lat lng");
-        getHomeServices();
-      }
-    }
+    // getHomeServices();
+
+    // if (oldWidget.lat != widget.lat && oldWidget.lng != widget.lng) {
+    //   if (widget.lat != 0.0 && widget.lng != 0.0) {
+    //     print("called after getting lat lng");
+    //     getHomeServices();
+    //   }
+    // }
     super.didUpdateWidget(oldWidget);
   }
 
   void getHomeServices() {
     mapServiceController.fetchHomeService(
-      lat: widget.lat,
-      lng: widget.lng,serviceType: widget.category,subType: widget.subType
-    );
+        lat: widget.lat,
+        lng: widget.lng,
+        serviceType: widget.category,
+        subType: widget.subType);
   }
 
   @override
@@ -163,15 +173,19 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                               controller: scrollController,
                               itemCount: serviceData.length,
                               shrinkWrap: true,
-                              padding: const EdgeInsets.only(top: 12, bottom: 24),
+                              padding:
+                                  const EdgeInsets.only(top: 12, bottom: 24),
                               physics: const BouncingScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.80, // 🔹 slightly increased to give more height
+                                childAspectRatio: 0.80,
+                                // 🔹 slightly increased to give more height
                                 crossAxisSpacing: 8.0,
                                 mainAxisSpacing: 8.0,
                               ),
-                              itemBuilder: (context, index) => _buildServiceCard(serviceData[index]),
+                              itemBuilder: (context, index) =>
+                                  _buildServiceCard(serviceData[index]),
                             );
 
                             return GridView.builder(
@@ -218,140 +232,164 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
     );
   }
 
-    Widget _buildServiceCard(ServiceData serviceData) {
-      return InkWell(
-        onTap: () {
-          if (userId == serviceData.id) {
-            Get.to(() => PersonalProfileSetupNewScreen());
-          } else {
-            Get.to(() => NewVisitProfileScreen(
-              authorId: serviceData.id ?? '',
-              screenFromName: AppConstants.feedScreen,
-            ));
-          }
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: AppColors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-
-            children: [
-              /// ✅ Make image flexible — not fixed 190
-              AspectRatio(
-                aspectRatio: 1.4, // controls image height dynamically
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Stack(
-                    children: [
-                      CustomImageSlideshow(
-                        isLoading: false,
-                        width: double.infinity,
-                        height: double.infinity,
-                        imagePaths: [
-                          serviceData.serviceMedia?.photos?.firstOrNull ?? "",
-                        ],
-                        borderRadius: BorderRadius.zero,
-                      ),
-                      if (serviceData.priceData?.priceRange?.min != null)
-                        Positioned(
-                          right: 6,
-                          bottom: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.blackD4,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: CustomText(
-                              (serviceData.priceData?.priceRange?.min ?? 0) > 1000000
-                                  ? "INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
-                                  : 'INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
-                              fontSize: SizeConfig.extraSmall,
-                              color: AppColors.white,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+  Widget _buildServiceCard(ServiceData serviceData) {
+    return InkWell(
+      onTap: () {
+        if (userId == serviceData.id) {
+          Get.to(() => PersonalProfileSetupNewScreen());
+        } else {
+          Get.to(() => NewVisitProfileScreen(
+                authorId: serviceData.id ?? '',
+                screenFromName: AppConstants.feedScreen,
+              ));
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            /// ✅ Make image flexible — not fixed 190
+            AspectRatio(
+              aspectRatio: 1.4, // controls image height dynamically
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+                child: Stack(
+                  children: [
+                    CustomImageSlideshow(
+                      isLoading: false,
+                      width: double.infinity,
+                      height: double.infinity,
+                      imagePaths: [
+                        serviceData.serviceMedia?.photos?.firstOrNull ?? "",
+                      ],
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    if (serviceData.priceData?.priceRange?.min != null)
+                      Positioned(
+                        right: 6,
+                        bottom: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.blackD4,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: CustomText(
+                            (serviceData.priceData?.priceRange?.min ?? 0) >
+                                    1000000
+                                ? "INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
+                                : 'INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
+                            fontSize: SizeConfig.extraSmall,
+                            color: AppColors.white,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
+            ),
 
-              /// ✅ Rest of info area flexible
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 2,),
-                      ProfileSummaryCard(
-                        name: serviceData.name ?? '',
-                        imageUrl: serviceData.profileImage ?? '',
-                        rating: (serviceData.rating ?? 0).toDouble(),
-                        reviews: serviceData.reviewCount ?? 0,
-                        distance: "${serviceData.distance ?? 0} km",
-                      ),
-                      SizedBox(height: 2,),
+            /// ✅ Rest of info area flexible
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 2,
+                    ),
+                    ProfileSummaryCard(
+                      name: serviceData.name ?? '',
+                      imageUrl: serviceData.profileImage ?? '',
+                      rating: (serviceData.rating ?? 0).toDouble(),
+                      reviews: serviceData.reviewCount ?? 0,
+                      distance: "${serviceData.distance ?? 0} km",
+                    ),
+                    SizedBox(
+                      height: 2,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: (serviceData.id != userId)
+                              ? CommonIconContainerButton(
+                                  onTap: () async {
+                                    final chatViewController =
+                                        Get.put(ChatViewController());
+                                    await chatViewController
+                                        .checkChatConnection(
+                                            {ApiKeys.user_id: serviceData.id});
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CommonIconContainerButton(
-                              onTap: () async {
-                                final chatViewController = Get.put(ChatViewController());
-                                await chatViewController.checkChatConnection({ApiKeys.user_id: serviceData.id});
+                                    final chatData = chatViewController
+                                        .newVisitContactApiResponse
+                                        ?.value
+                                        ?.data;
+                                    final hasExisting =
+                                        (chatData?.conversationId?.isNotEmpty ??
+                                            false);
 
-                                final chatData = chatViewController.newVisitContactApiResponse?.value?.data;
-                                final hasExisting = (chatData?.conversationId?.isNotEmpty ?? false);
-
-                                chatViewController.openAnyOneChatFunction(
-                                  isWithProductSend: false,
-                                  profileImage: serviceData.profileImage ?? '',
-                                  otherUserId: hasExisting ? null : chatData?.otherUserId ?? '',
-                                  businessId: "",
-                                  type: "personal",
-                                  isInitialMessage: !hasExisting,
-                                  userId: serviceData.id ?? '',
-                                  conversationId: chatData?.conversationId ?? '',
-                                  contactName: serviceData.name ?? '',
-                                  contactNo: "",
-                                );
-                              },
-                              icon: LocalAssets(
-                                imagePath: AppIconAssets.quillChatIcon,
-                                imgColor: AppColors.white,
-                              ),
-                              label: "Chat",
-                              backgroundColor: AppColors.primaryColor,
-                              height: 28,
-                              fontSize: SizeConfig.size12,
-                              textColor: AppColors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                                    chatViewController.openAnyOneChatFunction(
+                                      isWithProductSend: false,
+                                      profileImage:
+                                          serviceData.profileImage ?? '',
+                                      otherUserId: hasExisting
+                                          ? null
+                                          : chatData?.otherUserId ?? '',
+                                      businessId: "",
+                                      type: "personal",
+                                      isInitialMessage: !hasExisting,
+                                      userId: serviceData.id ?? '',
+                                      conversationId:
+                                          chatData?.conversationId ?? '',
+                                      contactName: serviceData.name ?? '',
+                                      contactNo: "",
+                                    );
+                                  },
+                                  icon: LocalAssets(
+                                    imagePath: AppIconAssets.quillChatIcon,
+                                    imgColor: AppColors.white,
+                                  ),
+                                  label: "Chat",
+                                  backgroundColor: AppColors.primaryColor,
+                                  height: 28,
+                                  fontSize: SizeConfig.size12,
+                                  textColor: AppColors.white,
+                                )
+                              : PositiveCustomBtn(
+                                  onTap: null,
+                                  title: "View",
+                                  height: 28,
+                                  fontSize: SizeConfig.size12,
+                                  textColor: AppColors.white,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    }
-
+      ),
+    );
+  }
 }

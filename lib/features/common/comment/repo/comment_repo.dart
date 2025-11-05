@@ -115,4 +115,16 @@ class CommentRepo extends BaseService {
     );
     return response;
   }
+
+  Future<ResponseModel> aiCommentReplyPostGenerateRepo({Map<String, dynamic>? queryParam}) async {
+
+    final response = await ApiBaseHelper().postHTTP(
+      aiCommentReplySuggestion,
+      params:queryParam,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

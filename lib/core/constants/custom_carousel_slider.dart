@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -19,19 +20,19 @@ class CustomImageSlideshow extends StatefulWidget {
   final BorderRadius? borderRadius;
   final Function(int)? onPhotoIndex;
 
-  const CustomImageSlideshow({
-    Key? key,
-    required this.isLoading,
-    required this.imagePaths,
-    this.height = 160,
-    this.width = 100,
-    this.isLocal = false,
-    this.dotColor = AppColors.primaryColor,
-    this.dotInactiveColor = Colors.grey,
-    this.autoPlayInterval = const Duration(seconds: 3),
-    this.borderRadius,
-    this.onPhotoIndex
-  }) : super(key: key);
+  const CustomImageSlideshow(
+      {Key? key,
+      required this.isLoading,
+      required this.imagePaths,
+      this.height = 160,
+      this.width = 100,
+      this.isLocal = false,
+      this.dotColor = AppColors.primaryColor,
+      this.dotInactiveColor = Colors.grey,
+      this.autoPlayInterval = const Duration(seconds: 3),
+      this.borderRadius,
+      this.onPhotoIndex})
+      : super(key: key);
 
   @override
   State<CustomImageSlideshow> createState() => _CustomImageSlideshowState();
@@ -106,7 +107,7 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
             controller: _pageController,
             itemCount: widget.imagePaths.length,
             onPageChanged: (index) {
-              if(widget.onPhotoIndex!=null) widget.onPhotoIndex!(index);
+              if (widget.onPhotoIndex != null) widget.onPhotoIndex!(index);
               setState(() {
                 _currentIndex = index;
               });
@@ -115,8 +116,7 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
               final imagePath = widget.imagePaths[index];
               final imageWidget = widget.isLocal
                   ? Image.asset(imagePath, fit: BoxFit.cover)
-
-                  :CachedNetworkImage(
+                  : CachedNetworkImage(
                       imageUrl: imagePath,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
@@ -125,11 +125,41 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      errorWidget: (context, url, error) =>(!imagePath.contains('http'))?
-                      Image.file(File(imagePath),fit: BoxFit.cover,): LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
+                errorWidget: (context, url, error) {
+                  try {
+                    if (imagePath.isNotEmpty && !imagePath.startsWith('http')) {
+                      final file = File(imagePath);
+                      if (file.existsSync()) {
+                        return Image.file(
+                          file,
+                          fit: BoxFit.cover,
+                        );
+                      }
+                    }
+
+                    // fallback if not valid local file or url failed
+                    return LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.cover,
+                    );
+                  } catch (e) {
+                    // in case something goes wrong in file handling
+                    return LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.cover,
+                    );
+                  }
+                },
+                     /* errorWidget: (context, url, error) =>
+                          (!imagePath.contains('http'))
+                              ? Image.file(
+                                  File(imagePath),
+                                  fit: BoxFit.cover,
+                                )
+                              : LocalAssets(
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.cover,
+                                ),*/
                     );
 
               return ClipRRect(

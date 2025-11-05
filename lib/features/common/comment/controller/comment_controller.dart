@@ -315,9 +315,37 @@ class CommentController extends GetxController {
       logs("ERROR 593$e");
     }
   }
+  Future<void> generateAiPostCommentReplyController({required String commentID}) async {
+    try {
+      isGenerated.value = true; // <--- Disable button after API call
+      suggestions.clear();
+      Map<String, dynamic> reqParm = {
+        ApiKeys.commentId: commentID,
+        ApiKeys.language: selectedLanguage.value,
+        ApiKeys.emotion: selectedEmotion.value,
+        ApiKeys.commentType: selectedCommentType.value,
+      };
+      ResponseModel responseModel =
+          await CommentRepo().aiCommentReplyPostGenerateRepo(queryParam: reqParm);
+      if (responseModel.isSuccess) {
+        setCommentReplySuggestions(responseModel.response?.data);
+      }
+    } catch (e) {
+      logs("ERROR 593$e");
+    }
+  }
 
   void setSuggestions(dynamic json) {
     final data = json["comment_suggestions"] as List<dynamic>;
+
+    suggestions.value = data.map((inner) {
+      return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+    }).toList();
+
+    selectedSuggestion.value = ""; // reset selection
+  }
+  void setCommentReplySuggestions(dynamic json) {
+    final data = json["reply_suggestions"] as List<dynamic>;
 
     suggestions.value = data.map((inner) {
       return (inner as List<dynamic>).join("\n"); // join lines as paragraph

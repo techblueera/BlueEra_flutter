@@ -11,9 +11,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
 import 'package:BlueEra/features/common/map/view/location_service.dart';
-import 'package:BlueEra/features/common/map/widget/custom_service_bottom_sheet.dart';
+import 'package:BlueEra/features/common/map/widget/food_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/home_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/job_service_bottom_sheet.dart';
+import 'package:BlueEra/features/common/map/widget/rental_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
@@ -43,15 +44,14 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   final MapServiceController mapServiceController =
       Get.put(MapServiceController());
 
-  bool isOpenKeyBoard = false;
   late MapplsMapController _mapController;
   LatLng _currentPosition =
       const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
   final List<MapCategory> categories = MapCategory.values.where((category) {
-    if (isBusiness()) {
-      return category != MapCategory.jobs;
-    }
+    // if (isBusiness()) {
+    //   return category != MapCategory.jobs;
+    // }
     return true;
   }).toList();
   final List<ServiceCategory> serviceCategory = ServiceCategory.values;
@@ -405,15 +405,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                   onMapCreated: _onMapCreated,
                   onStyleLoadedCallback: () =>
                       _initializeLocationAndMarkers(context),
-                  // zoomControlsEnabled: false,
-                  // we use our custom zoom controls
-                  // mapType: MapType.normal,
-                  // ✅ Satellite view here
-                  // markers: _allMarkers,
-                  // ✅ Show _markers
-                  // myLocationButtonEnabled: false,
-                  // ✅ shows default button
-                  // style: mapLightCode,
                 ),
 
                 // 🧭 Top Controls
@@ -430,8 +421,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         onTabSelected: (index, value) {
                           setState(() {
                             selectedIndex = index;
-                            mapCategoryType = value.toMapCategory() ?? MapCategory.services;
-
+                            mapCategoryType =
+                                value.toMapCategory() ?? MapCategory.services;
                           });
                           searchController.clear();
                         },
@@ -448,7 +439,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         ],
                       ),
                       SizedBox(height: SizeConfig.size10),
-                      buildSubCategory(),
+                      // buildSubCategory(),
                     ],
                   ),
                 ),
@@ -559,8 +550,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
               serviceCategoryType =
                   value.toServiceCategory() ?? ServiceCategory.homeServices;
             });
-
-
           },
           labelBuilder: (ServiceCategory serviceSubCategory) {
             return serviceSubCategory.label;
@@ -574,42 +563,41 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                 offset: Offset(0, 2))
           ],
         );
-      // case MapCategory.food:
-      //   return HorizontalTabSelector(
-      //     tabs: serviceCategory,
-      //     selectedIndex: selectedServiceCategoryIndex,
-      //     onTabSelected: (index, value) {
-      //       final selected = value.toServiceCategory();
-      //       setState(() {
-      //         serviceCategoryType = selected;
-      //       });
-      //       logs("selected=== ${selected}");
-      //       logs("serviceCategoryType=== ${serviceCategoryType}");
-      //       logs("ServiceCategory.foods.name=== ${ServiceCategory.foods.name}");
-      //     },
-      //
-      //     // onTabSelected: (index, value) {
-      //     //
-      //     //   // setState(() {
-      //     //   //   selectedServiceCategoryIndex = index;
-      //     //   //   serviceCategoryType =
-      //     //   //       value.toServiceCategory() ?? ServiceCategory.foods;
-      //     //   // });
-      //     // },
-      //     labelBuilder: (ServiceCategory serviceSubCategory) {
-      //       return serviceSubCategory.label;
-      //     },
-      //     unSelectedBackgroundColor: AppColors.white,
-      //     unSelectedBorderColor: AppColors.white,
-      //     boxShadow: [
-      //       BoxShadow(
-      //           color: AppColors.black.withValues(alpha: 0.12),
-      //           blurRadius: 6,
-      //           offset: Offset(0, 2))
-      //     ],
-      //   );
+      case MapCategory.foods:
+        return HorizontalTabSelector(
+          tabs: serviceCategory,
+          selectedIndex: selectedServiceCategoryIndex,
+          // onTabSelected: (index, value) {
+          //   final selected = value.toServiceCategory();
+          //   setState(() {
+          //     serviceCategoryType = selected;
+          //   });
+          //   logs("selected=== ${selected}");
+          //   logs("serviceCategoryType=== ${serviceCategoryType}");
+          //   logs("ServiceCategory.foods.name=== ${ServiceCategory.foods.name}");
+          // },
 
-      case MapCategory.stores:
+          onTabSelected: (index, value) {
+            setState(() {
+              selectedServiceCategoryIndex = index;
+              serviceCategoryType =
+                  value.toServiceCategory() ?? ServiceCategory.foods;
+            });
+          },
+          labelBuilder: (ServiceCategory serviceSubCategory) {
+            return serviceSubCategory.label;
+          },
+          unSelectedBackgroundColor: AppColors.white,
+          unSelectedBorderColor: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.12),
+                blurRadius: 6,
+                offset: Offset(0, 2))
+          ],
+        );
+
+      /*    case MapCategory.stores:
         return HorizontalTabSelector(
             tabs: storesCategory,
             selectedIndex: selectedStoresCategoryIndex,
@@ -625,7 +613,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
             },
             unSelectedBackgroundColor: AppColors.white,
             unSelectedBorderColor: AppColors.white);
-
+*/
       default:
         return const SizedBox(); // or any fallback widget
     }
@@ -634,57 +622,62 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   Widget buildBottomSheet() {
     /// Service Category
     if (mapCategoryType == MapCategory.services) {
-      logs("mapCategoryType==== ${mapCategoryType}");
-      logs("serviceCategoryType==== ${serviceCategoryType}");
-      switch (serviceCategoryType) {
-        case ServiceCategory.homeServices:
-          return HomeServicesBottomSheet(
-            key: const ValueKey("homeServices"),
-            lat: _lat,
-            lng: _lng,
-            onClose: () {
-              setState(() {
-                selectedServiceCategoryIndex = -1;
-                serviceCategoryType = null;
-              });
-            },
-            category: "service",
-            subType: EarnWithBlueEraServiceTypes.selfWork.label,
-          );
-
-        case ServiceCategory.foods:
-          return FoodServicesBottomSheet(
-            key: const ValueKey("foods"),
-            lat: _lat,
-            lng: _lng,
-            onClose: () {
-              setState(() {
-                selectedServiceCategoryIndex = -1;
-                serviceCategoryType = null;
-              });
-            },
-            category: "food",
-            subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
-          );
-/*
-          return CustomServiceBottomSheet(
-            serviceType: 'FOODS',
-            onClose: () {
-              setState(() {
-                selectedServiceCategoryIndex = -1;
-                serviceCategoryType = null;
-              });
-            },
-            lat: _lat,
-            lng: _lng,
-          );
-*/
-        // case ServiceCategory.stay:
-        //   return SizedBox();
-
-        default:
-          return const SizedBox(); // or any fallback widget
-      }
+      return HomeServicesBottomSheet(
+        key: const ValueKey("services"),
+        lat: _lat,
+        lng: _lng,
+        onClose: () {
+          setState(() {
+            selectedServiceCategoryIndex = -1;
+            serviceCategoryType = null;
+          });
+        },
+        category: "service",
+        subType: EarnWithBlueEraServiceTypes.selfWork.label,
+      );
+    } else if (mapCategoryType == MapCategory.homeService) {
+      return HomeServicesBottomSheet(
+        key: const ValueKey("home_services"),
+        lat: _lat,
+        lng: _lng,
+        onClose: () {
+          setState(() {
+            selectedServiceCategoryIndex = -1;
+            serviceCategoryType = null;
+          });
+        },
+        category: "service",
+        subType: EarnWithBlueEraServiceTypes.homeService.label,
+      );
+    } else if (mapCategoryType == MapCategory.foods) {
+      return FoodServicesBottomSheet(
+        key: const ValueKey("foods"),
+        lat: _lat,
+        lng: _lng,
+        onClose: () {
+          setState(() {
+            selectedServiceCategoryIndex = -1;
+            serviceCategoryType = null;
+          });
+        },
+        category: "food",
+        subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
+      );
+    }
+    else if (mapCategoryType == MapCategory.rental) {
+      return RentalServicesBottomSheet(
+        key: const ValueKey("rental_service"),
+        lat: _lat,
+        lng: _lng,
+        onClose: () {
+          setState(() {
+            selectedServiceCategoryIndex = -1;
+            serviceCategoryType = null;
+          });
+        },
+        category: "rental",
+        subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
+      );
     }
 
 /*

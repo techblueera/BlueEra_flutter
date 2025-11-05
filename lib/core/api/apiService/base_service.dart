@@ -494,5 +494,7 @@ abstract class BaseService {
   final String aiCommentSuggestion = "ai-service/api/ai-comment/generate-suggestions";
   final String sendOrderReqToRider = "rider-service/riders/orders";
   final String getOrderFare = "rider-service/riders/fare";
+  final String aiCommentReplySuggestion = "ai-service/api/ai-reply/generate-suggestions";
+  final String bookingGetRentalServiceMap = "booking-enquiry-service/rentals";
 
 }
