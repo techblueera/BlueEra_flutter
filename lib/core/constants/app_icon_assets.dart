@@ -418,5 +418,7 @@ class AppIconAssets {
   static String tagIcon = "${iconPath}tag_icon.svg";
   static String self_pickup = "${iconPath}self_pickup.svg";
   static String pickup_by_rider = "${iconPath}pickup_by_rider.svg";
+  static String empty_star = "${iconPath}empty_star.svg";
+  static String fill_star = "${iconPath}fill_star.svg";
 
 }
