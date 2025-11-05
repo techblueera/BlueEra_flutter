@@ -56,7 +56,8 @@ class User {
       this.designation, 
       this.sector,
       this.profileImage,
-      this.username, 
+      this.coverPicture,
+      this.username,
       this.dateOfBirth, 
       this.deletedAt, 
       this.accountType, 
@@ -92,6 +93,7 @@ class User {
     designation = json['designation'];
     sector = json['sector'];
     profileImage = json['profile_image'];
+    coverPicture = json['coverPicture'];
     username = json['username'];
     dateOfBirth = json['date_of_birth'] != null ? DateOfBirth.fromJson(json['date_of_birth']) : null;
     deletedAt = json['deleted_at'];
@@ -138,6 +140,7 @@ class User {
   String? designation;
   String? sector;
   String? profileImage;
+  String? coverPicture;
   String? username;
   DateOfBirth? dateOfBirth;
   dynamic deletedAt;
@@ -178,6 +181,7 @@ class User {
     map['designation'] = designation;
     map['sector'] = sector;
     map['profile_image'] = profileImage;
+    map['coverPicture'] = coverPicture;
     map['username'] = username;
     if (dateOfBirth != null) {
       map['date_of_birth'] = dateOfBirth?.toJson();

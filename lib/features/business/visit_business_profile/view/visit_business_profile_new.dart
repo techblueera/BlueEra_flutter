@@ -123,6 +123,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       ),
                     ),
                   ),
+
                 ],
                 body: TabBarView(
                   controller: _tabController,
@@ -133,6 +134,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SizedBox(height: SizeConfig.size6,),
                           // controller.userData.value?.user
                           RatingSummaryWidget(
                             rating: businessData?.avg_rating?.toDouble() ?? 0.0,
@@ -227,7 +229,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             ),
                           ],
                           SizedBox(
-                            height: SizeConfig.size20,
+                            height: SizeConfig.size6,
                           ),
                           StandaloneProductScreen(
                             businessId: businessData?.id ?? "",
@@ -239,6 +241,10 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                     ),
 
                     postsTab(data: businessData),
+                    // Container(
+                    //   height: 900,
+                    //   color: AppColors.red,
+                    // ),
                     // jobsTab(),
 
                     // Shorts tab
@@ -765,10 +771,14 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
 
   Widget postsTab({BusinessProfileDetails? data}) {
-    return FeedScreen(
-      key: const ValueKey('feedScreen_others_posts'),
-      postFilterType: PostType.otherPosts,
-      id: data?.userId,
+    return Padding(
+      padding:  EdgeInsets.only(top: SizeConfig.size10),
+      child: FeedScreen(
+        key: const ValueKey('feedScreen_others_posts'),
+        postFilterType: PostType.otherPosts,
+        isInParentScroll: true,
+        id: data?.userId,
+      ),
     );
   }
 }

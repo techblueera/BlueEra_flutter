@@ -44,24 +44,47 @@ class NewProfileHeaderWidget extends StatelessWidget {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Container(
+        SizedBox(
+        height: 140,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            // Background image
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child: Image.network(
+                user?.coverPicture ?? "",
                 height: 140,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8DD0F7),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  image: (user?.profileImage != null &&
-                          (user?.profileImage?.isNotEmpty ?? false))
-                      ? DecorationImage(
-                          image: NetworkImage(user?.profileImage ?? ""),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 140,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF8DD0F7),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.error_outline,
+                        size: 40,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
               ),
+            ),
+          ],
+        ),
+      ),
 
               /// ==== Profile Image ====
               Positioned(

@@ -27,6 +27,7 @@ class PersonalCreateProfileController extends GetxController {
   Rx<GenderType?> selectedGender = Rx<GenderType?>(null);
   final RxBool updateBtnLoading = false.obs;
   RxString? imagePath = "".obs;
+  RxString? coverImagePath = "".obs;
   RxBool isImageUpdated = false.obs;
 
   RxDouble? locationLat = 0.0.obs;

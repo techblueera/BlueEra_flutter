@@ -242,6 +242,8 @@ class ViewPersonalDetailsController extends GetxController {
         setSocialLink(data);
         personalController.imagePath?.value =
             personalProfileDetails.value.user?.profileImage ?? "";
+        personalController.coverImagePath?.value =
+            personalProfileDetails.value.user?.coverPicture ?? "";
 
         ///SET SKILL...
         personalController.skillsList.clear();

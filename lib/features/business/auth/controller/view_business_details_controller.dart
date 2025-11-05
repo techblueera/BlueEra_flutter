@@ -92,6 +92,7 @@ class ViewBusinessDetailsController extends GetxController {
   RxDouble distanceFromKm = 0.0.obs;
   Rx<BusinessType>? selectedBusinessType = BusinessType.Both.obs;
   RxString? imagePath = "".obs;
+  RxString? coverImage = "".obs;
   RxString conversationId = "".obs;
   RxString? otherUserId = "".obs;
   RxString shopOpenTime = "".obs;

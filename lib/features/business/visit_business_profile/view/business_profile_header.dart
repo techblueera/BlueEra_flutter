@@ -309,7 +309,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
             ),
 
 
-          const SizedBox(height: 12),
+          if (widget.businessProfileDetails.businessDescription?.isNotEmpty ??
+              false)  const SizedBox(height: 12),
 
           // === STATS CONTAINER ===
           Container(

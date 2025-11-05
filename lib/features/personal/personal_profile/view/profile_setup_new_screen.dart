@@ -779,10 +779,10 @@ class _PersonalProfileSetupNewScreenState
                       ),
                       child: Obx(() {
                         final banner =
-                            personalCreateProfileController.imagePath?.value ??
+                            personalCreateProfileController.coverImagePath?.value ??
                                 '';
                         return banner.isNotEmpty
-                            ? Image.network(banner, fit: BoxFit.cover)
+                            ? Image.network(banner,fit: BoxFit.cover,)
                             : const SizedBox();
                       }),
                     ),
@@ -794,7 +794,6 @@ class _PersonalProfileSetupNewScreenState
                     top: 90,
                     child: Obx(() {
                       return CommonProfileImage(
-
                         imagePath:
                             personalCreateProfileController.imagePath?.value ??
                                 "",
@@ -897,7 +896,7 @@ class _PersonalProfileSetupNewScreenState
                             );
                             dynamic dataImage =
                                 await multiPartImage(imagePath: newPath);
-                            var reqProfile = {ApiKeys.profile_image: dataImage};
+                            var reqProfile = {ApiKeys.coverpicture: dataImage};
                             await personalCreateProfileController
                                 .updateUserProfileDetails(
                                     params: reqProfile,
@@ -910,7 +909,7 @@ class _PersonalProfileSetupNewScreenState
                           },
                           child: CircleAvatar(
                             backgroundColor: AppColors.black.withOpacity(0.3),
-                            child: Image.asset('assets/diwali_card/image.png'),
+                            child: LocalAssets(imagePath: 'assets/diwali_card/image.png'),
                           )))
                 ],
               ),

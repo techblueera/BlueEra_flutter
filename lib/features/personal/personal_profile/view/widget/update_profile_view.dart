@@ -125,6 +125,9 @@ bool updateBtnLoading=false;
       personalCreateProfileController.imagePath?.value = viewProfileController
               .personalProfileDetails.value.user?.profileImage ??
           "";
+      personalCreateProfileController.coverImagePath?.value = viewProfileController
+              .personalProfileDetails.value.user?.coverPicture ??
+          "";
       personalCreateProfileController.selectedGender
           .value = GenderTypeExtension.fromString((viewProfileController
                   .personalProfileDetails.value.user?.gender?.isNotEmpty ??

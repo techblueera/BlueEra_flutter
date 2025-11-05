@@ -62,7 +62,8 @@ class User {
       this.profession, 
       this.designation, 
       this.profileImage, 
-      this.isEnded, 
+      this.coverPicture,
+      this.isEnded,
       this.username, 
       this.dateOfBirth, 
       this.deletedAt, 
@@ -96,6 +97,7 @@ class User {
     profession = json['profession'];
     designation = json['designation'];
     profileImage = json['profile_image'];
+    coverPicture = json['coverPicture'];
     isEnded = json['is_ended'];
     username = json['username'];
     dateOfBirth = json['date_of_birth'] != null ? DateOfBirth.fromJson(json['date_of_birth']) : null;
@@ -139,6 +141,7 @@ class User {
   String? profession;
   String? designation;
   String? profileImage;
+  String? coverPicture;
   bool? isEnded;
   String? username;
   DateOfBirth? dateOfBirth;
@@ -174,6 +177,7 @@ class User {
     map['profession'] = profession;
     map['designation'] = designation;
     map['profile_image'] = profileImage;
+    map['coverPicture'] = coverPicture;
     map['is_ended'] = isEnded;
     map['username'] = username;
     if (dateOfBirth != null) {

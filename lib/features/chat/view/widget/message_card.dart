@@ -121,6 +121,7 @@ class _MessageCardState extends State<MessageCard>
 
     final time = formatChatTime(widget.message.createdAt ?? '');
     Widget messageWidget;
+
     switch (widget.message.messageType) {
       case "location":
         messageWidget = _buildMapMessage(
@@ -183,8 +184,6 @@ class _MessageCardState extends State<MessageCard>
       case "food":
       List<String> url=[];
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
-      List<String> message=widget.message.message?.split('.')??[];
-      if(message.isNotEmpty){
         messageWidget = FoodCardMessageCardBusiness(
           isFromOrderTab: widget.isFromOrderTab??false,
           photos: url,
@@ -203,7 +202,7 @@ class _MessageCardState extends State<MessageCard>
               photos:url,
               vegType:widget.message.metadata?.vegType,
               nutritionalSummaryPer100g: NutritionalSummaryPer100g(
-                  caloriesKcal: message.last
+                  caloriesKcal: widget.message.metadata?.calories
               )
           ),
           isGridView: false,
@@ -211,15 +210,11 @@ class _MessageCardState extends State<MessageCard>
           isShowKM: false,
           isShowBusinessInfo: true,
         );
-      }else{
-        messageWidget=SizedBox();
-      }
+
       case "service":
         List<String> url=[];
 
         url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
-        List<String> message=widget.message.message?.split('.')??[];
-        if(message.isNotEmpty){
           messageWidget = ServiceMessageCardBusiness(
             isFromOrderTab: widget.isFromOrderTab??false,
             userId: widget.userId??'',
@@ -244,9 +239,7 @@ class _MessageCardState extends State<MessageCard>
             isShowKM: false,
             isShowBusinessInfo: true, conversationId: widget.conversationId??'',
           );
-        }else{
-          messageWidget=SizedBox();
-        }
+
       case "product":
         List<String> url=[];
 

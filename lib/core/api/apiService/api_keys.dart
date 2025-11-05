@@ -466,4 +466,5 @@ class ApiKeys {
   static const receiverUserId = 'receiverUserId';
   static const opening_time = 'opening_time';
   static const closing_time = 'closing_time';
+  static const coverpicture = 'coverpicture';
 }

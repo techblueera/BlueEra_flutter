@@ -158,7 +158,6 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                     user: user,
                     screenFromName: widget.screenFromName,
                   ),
-
                   SizedBox(
                     height: SizeConfig.size12,
                   ),
