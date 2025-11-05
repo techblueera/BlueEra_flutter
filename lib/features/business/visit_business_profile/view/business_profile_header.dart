@@ -272,7 +272,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           // === TAGS (Shop / Close) ===
           Padding(
@@ -295,7 +295,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // === DESCRIPTION ===
           if (widget.businessProfileDetails.businessDescription?.isNotEmpty ??
@@ -309,7 +309,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
             ),
 
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // === STATS CONTAINER ===
           Container(
@@ -480,7 +480,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
           color: bgColor ?? Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: textColor ?? AppColors.black,)
 
       ),
