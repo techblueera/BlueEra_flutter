@@ -34,4 +34,5 @@ class AppImageAssets {
   static String leftQuotation = "${imgPath}left_quotation.png";
   static String rightQuotation = "${imgPath}right_quotation.png";
   static const String storeNewBackground = "assets/store/store_baground_bg.png";
+  static const String earnWithBlueeraVideoThumbnail = "${imgPath}earn_with_blueera_video_thumbnail.png";
 }

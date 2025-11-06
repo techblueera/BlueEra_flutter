@@ -1,9 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
-
-import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
@@ -11,7 +7,7 @@ import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
-class RentalServiceController extends GetxController {
+class AddFlatRentalServiceController extends GetxController {
   final currentStep = 0.obs;
 
   final formKeyStep1 = GlobalKey<FormState>();
@@ -97,6 +93,14 @@ class RentalServiceController extends GetxController {
 
   void previousStep() {
     if (currentStep.value > 0) currentStep.value--;
+  }
+
+  void onBackPressed(){
+    if(currentStep.value > 0){
+      previousStep();
+    }else{
+      Get.back();
+    }
   }
 
   void addHighlights() {

@@ -36,7 +36,9 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
 
   @override
   void initState() {
-    loadInitData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadInitData();
+    });
     super.initState();
   }
 

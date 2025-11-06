@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:get/get.dart';
 
 class CommonMultipleImageUploadSection extends StatelessWidget {
   final String title;
@@ -44,7 +47,9 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
               if(minImages!=null)
                 Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size8),
-                  child: CustomText("Min-$minImages Images/Max-${maxImages}Images",
+                  child: CustomText(
+                      "Min-$minImages Images",
+                      // "Min-$minImages Images/Max-${maxImages}Images",
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w400
@@ -125,5 +130,53 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+}
+
+class CommonMultipleImageSectionController extends GetxController{
+
+  Future<List<String>?> pickImages(String title) async {
+    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+        Get.context!,
+        title
+    );
+    if (selected != null && selected.isNotEmpty) {
+      return selected;
+    }
+    return null;
+  }
+
+  /// Pick and add images
+  Future<void> addImages({
+    required String label,
+    required List<File> imageList,
+    required String updateId,
+    required int maxUploadImages
+  }) async {
+    final selectedImages = await pickImages(label);
+    if (selectedImages == null || selectedImages.isEmpty) return;
+
+    final newFiles = selectedImages.map((e) => File(e)).toList();
+    final remaining = maxUploadImages - imageList.length;
+    if (remaining <= 0) {
+      commonSnackBar(message: 'You can only upload $maxUploadImages images');
+      return;
+    }
+
+    imageList.addAll(newFiles.take(remaining));
+    update([updateId]);
+  }
+
+  /// Remove image
+  void removeImageAt({
+    required List<File> imageList,
+    required int index,
+    required String updateId,
+  }) {
+    if (index >= 0 && index < imageList.length) {
+      imageList.removeAt(index);
+      update([updateId]);
+    }
   }
 }

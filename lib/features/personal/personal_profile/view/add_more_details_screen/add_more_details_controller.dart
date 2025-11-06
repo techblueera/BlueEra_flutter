@@ -1,5 +1,5 @@
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/common/rental/controller/rental_service_controller.dart';
+import 'package:BlueEra/features/common/rental/controller/add_flat_rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
@@ -89,7 +89,7 @@ class AddMoreDetailsController extends GetxController {
           details: details['detail'].toString(),
         );
 
-        Get.find<RentalServiceController>().addDetail(detailItem);
+        Get.find<AddFlatRentalServiceController>().addDetail(detailItem);
       }
 
       Get.back();

@@ -301,6 +301,7 @@ class ViewPersonalDetailsController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      log('open');
       viewPersonalResponse.value = ApiResponse.error('error');
     }
   }

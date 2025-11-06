@@ -80,7 +80,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                                 imageFile: controller.rcFrontImage,
                                 context: context,
                                 onImageSelected: () async {
-                                  final selectedPath = await controller.pickImage(context: context);
+                                  final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                                   if (selectedPath != null) {
                                     controller.rcFrontImage.value = File(selectedPath);
                                   }
@@ -95,7 +95,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                                 imageFile: controller.rcBackImage,
                                 context: context,
                                 onImageSelected: () async {
-                                  final selectedPath = await controller.pickImage(context: context);
+                                  final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                                   if (selectedPath != null) {
                                     controller.rcBackImage.value = File(selectedPath);
                                   }
@@ -142,7 +142,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                                 imageFile: controller.drivingLicenseFrontImage,
                                 context: context,
                                 onImageSelected: () async {
-                                  final selectedPath = await controller.pickImage(context: context);
+                                  final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                                   if (selectedPath != null) {
                                     controller.drivingLicenseFrontImage.value = File(selectedPath);
                                   }
@@ -157,7 +157,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                                 imageFile: controller.drivingLicenseBackImage,
                                 context: context,
                                 onImageSelected: () async {
-                                  final selectedPath = await controller.pickImage(context: context);
+                                  final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                                   if (selectedPath != null) {
                                     controller.drivingLicenseBackImage.value = File(selectedPath);
                                   }

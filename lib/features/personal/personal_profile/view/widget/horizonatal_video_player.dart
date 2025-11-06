@@ -1,7 +1,14 @@
+import 'dart:developer';
+import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get_thumbnail_video/index.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -12,58 +19,116 @@ class HorizontalVideoPlayer extends StatefulWidget {
   State<HorizontalVideoPlayer> createState() => _HorizontalVideoPlayerState();
 }
 
-class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
+class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
+    with WidgetsBindingObserver {
   final PageController _pageController = PageController(viewportFraction: 1.0);
 
-  // final List<String> videoUrls = [
-  //   'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-  //   'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-  // ];
   final List<String> videoUrls = [
     'assets/video/earn_with_blue_era_video.mp4'
   ];
 
+  // Optional: Add thumbnail paths (same order as videoUrls)
+  final List<String> thumbnailUrls = [
+    AppImageAssets.earnWithBlueeraVideoThumbnail // Add your thumbnail image
+  ];
+
   VideoPlayerController? _controller;
   int _currentPage = 0;
-  bool _isInitializing = false;
+  bool _isUserPaused = false;
+  bool _isVisible = true;
 
   @override
   void initState() {
     super.initState();
-    _initializeController(videoUrls[_currentPage]);
-  }
-
-  Future<void> _initializeController(String url) async {
-    // Prevent multiple init calls
-    if (_isInitializing) return;
-    _isInitializing = true;
-
-    // Dispose old controller
-    if (_controller != null) {
-      await _controller!.pause();
-      await _controller!.dispose();
-      _controller = null;
-    }
-
-    final controller = VideoPlayerController.asset(url);
-    // final controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    await controller.initialize();
-    controller.setLooping(true);
-    controller.play();
-
-    setState(() {
-      _controller = controller;
-      _isInitializing = false;
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeController(videoUrls[_currentPage]);
     });
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _disposeController();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      log('App going to background - disposing controller');
+      _disposeController();
+      if (mounted) setState(() {});
+    } else if (state == AppLifecycleState.resumed) {
+      log('App resumed - reinitializing if visible');
+      if (_isVisible && !_isUserPaused) {
+        _initializeController(videoUrls[_currentPage]);
+      }
+    }
+  }
+
+  Future<void> _initializeController(String url) async {
+    // Dispose old controller first
+    _controller?.dispose();
+
+    final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
+    log('Current route active: $isCurrentRoute');
+
+    if (!isCurrentRoute) {
+      log('Skipping video init: not current route');
+      return;
+    }
+
+    _controller = VideoPlayerController.asset(url);
+
+    try {
+      await _controller!.initialize();
+      _controller!.setLooping(true);
+
+      // Only play if visible and user hasn't paused
+      if (!_isUserPaused && _isVisible && mounted) {
+        log('Auto-playing video');
+        _controller!.play();
+      } else {
+        log('Not auto-playing - userPaused: $_isUserPaused, visible: $_isVisible');
+      }
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      log('Error initializing video: $e');
+    }
+  }
+
+  void _disposeController() {
+    if (_controller != null) {
+      log('Disposing controller completely');
+      _controller!.pause();
+      _controller!.dispose();
+      _controller = null;
+    }
+  }
+
   void _onPlayPause() {
-    if (_controller == null) return;
+    if (_controller == null) {
+      // Controller was disposed, reinitialize it
+      _isUserPaused = false;
+      _initializeController(videoUrls[_currentPage]);
+      return;
+    }
+
     setState(() {
       if (_controller!.value.isPlaying) {
+        log('User paused video');
         _controller!.pause();
+        _isUserPaused = true;
       } else {
+        log('User resumed video');
         _controller!.play();
+        _isUserPaused = false;
       }
     });
   }
@@ -74,7 +139,6 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
-      _initializeController(videoUrls[_currentPage - 1]);
     }
   }
 
@@ -84,15 +148,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
-      _initializeController(videoUrls[_currentPage + 1]);
     }
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    _pageController.dispose();
-    super.dispose();
   }
 
   @override
@@ -100,35 +156,40 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
     final controller = _controller;
 
     return VisibilityDetector(
-      key: const ValueKey("HorizontalVideoPlayer"),
+      key: Key('HorizontalVideoPlayer_${identityHashCode(this)}'),
       onVisibilityChanged: (info) {
         final visibleFraction = info.visibleFraction;
 
-        // If the widget is less than 50% visible → pause video
+        log('Visibility: ${(visibleFraction * 100).toStringAsFixed(0)}%');
+
+        _isVisible = visibleFraction >= 0.5;
+
         if (visibleFraction < 0.5) {
-          if (controller != null && controller.value.isPlaying) {
-            controller.pause();
-            if(!mounted) return;
+          // Destroy the controller when not visible
+          if (_controller != null) {
+            log('Widget < 50% visible - DESTROYING controller');
+            _disposeController();
+            if (!mounted) return;
             setState(() {});
           }
+        } else {
+          // Recreate the controller when visible again
+          if (_controller == null && !_isUserPaused) {
+            log('Widget >= 50% visible - RECREATING controller');
+            _initializeController(videoUrls[_currentPage]);
+          }
         }
-        // else {
-        //   if (controller != null && !controller.value.isPlaying) {
-        //     controller.play();
-        //   }
-        // }
       },
       child: AspectRatio(
-        aspectRatio: 16/9,
-        // width: SizeConfig.screenWidth,
-        // color: Colors.red,
+        aspectRatio: 16 / 9,
         child: PageView.builder(
           controller: _pageController,
           scrollDirection: Axis.horizontal,
           itemCount: videoUrls.length,
-
           onPageChanged: (index) async {
+            log('Page changed to: $index');
             _currentPage = index;
+            _isUserPaused = false;
             await _initializeController(videoUrls[index]);
           },
           itemBuilder: (context, index) {
@@ -139,20 +200,34 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
+                  // Thumbnail (shown when video is not initialized)
+                  if (isCurrent && (controller == null || !controller.value.isInitialized))
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child:    // Show thumbnail image
+                        LocalAssets(
+                          imagePath: thumbnailUrls[index],
+                          boxFix: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+
+                  // Video player (shown when initialized)
                   if (isCurrent && controller != null && controller.value.isInitialized)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: AspectRatio(
-                        aspectRatio: 16/9,
-                        // width: controller.value.size.width,
-                        // height: controller.value.size.height,
+                        aspectRatio: 16 / 9,
                         child: VideoPlayer(controller),
                       ),
-                    )
-                  else
+                    ),
+
+                  // Fallback for non-current pages
+                  if (!isCurrent)
                     Container(
                       color: Colors.black12,
-                      child: const Center(child: CircularProgressIndicator()),
                     ),
 
                   // Play/Pause overlay button
@@ -184,9 +259,8 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
                       ),
                     ),
 
-                  // Previous Video
-
-                  if(videoUrls.length > 1)
+                  // Previous button
+                  if (videoUrls.length > 1)
                     Positioned(
                       left: 8,
                       child: GestureDetector(
@@ -212,12 +286,14 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
                       ),
                     ),
 
-                  if(videoUrls.length > 1)
+                  // Next button
+                  if (videoUrls.length > 1)
                     Positioned(
                       right: 8,
                       child: GestureDetector(
                         onTap: _onNextVideo,
                         child: ClipRRect(
+                          borderRadius: BorderRadius.circular(30.0),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                             child: Container(
@@ -244,4 +320,5 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
       ),
     );
   }
+
 }
