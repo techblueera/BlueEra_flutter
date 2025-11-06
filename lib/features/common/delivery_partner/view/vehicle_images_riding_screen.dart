@@ -18,6 +18,7 @@ class VehicleImagesRidingScreen extends StatefulWidget {
 
 class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
   final controller = Get.put(DeliveryPartnerController());
+  final multipleImageSectionController = Get.put(CommonMultipleImageSectionController());
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +50,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                   maxImages: 1,
                   images: ctrl.vehicleNumberPlateImages,
                   onAddImage: () async {
-                    ctrl.addImages(
+                    multipleImageSectionController.addImages(
                         label: 'Vehicle Number Plate Images',
                         imageList: ctrl.vehicleNumberPlateImages,
                         updateId: DeliveryPartnerController.vehicleNumberPlateImageId,
@@ -57,7 +58,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                     );
                   },
                   onRemoveImage: (index) {
-                    ctrl.removeImageAt(
+                    multipleImageSectionController.removeImageAt(
                       imageList: ctrl.vehicleNumberPlateImages,
                       index: index,
                       updateId: DeliveryPartnerController.vehicleNumberPlateImageId,
@@ -76,7 +77,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                   maxImages: controller.maxVehicleImageUpload,
                   images: ctrl.vehicleRightSideImages,
                   onAddImage: () async {
-                    ctrl.addImages(
+                    multipleImageSectionController.addImages(
                         label: 'Vehicle Right Side Images',
                         imageList: ctrl.vehicleRightSideImages,
                         updateId: DeliveryPartnerController.vehicleRightSideImageId,
@@ -84,7 +85,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                     );
                   },
                   onRemoveImage: (index) {
-                    ctrl.removeImageAt(
+                    multipleImageSectionController.removeImageAt(
                       imageList: ctrl.vehicleRightSideImages,
                       index: index,
                       updateId: DeliveryPartnerController.vehicleRightSideImageId,
@@ -103,7 +104,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                   maxImages: controller.maxVehicleImageUpload,
                   images: ctrl.vehicleLeftSideImages,
                   onAddImage: () async {
-                    ctrl.addImages(
+                    multipleImageSectionController.addImages(
                         label: 'Upload Vehicle Left Side Images',
                         imageList: ctrl.vehicleLeftSideImages,
                         updateId: DeliveryPartnerController.vehicleLeftSideImageId,
@@ -111,7 +112,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                     );
                   },
                   onRemoveImage: (index) {
-                    ctrl.removeImageAt(
+                    multipleImageSectionController.removeImageAt(
                       imageList: ctrl.vehicleLeftSideImages,
                       index: index,
                       updateId: DeliveryPartnerController.vehicleLeftSideImageId,
@@ -129,7 +130,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                   maxImages: 1,
                   images: ctrl.vehicleFrontImages,
                   onAddImage: () async {
-                    ctrl.addImages(
+                    multipleImageSectionController.addImages(
                         label: 'Vehicle Front and Back Images',
                         imageList: ctrl.vehicleFrontImages,
                         updateId: DeliveryPartnerController.vehicleFrontImageId,
@@ -137,7 +138,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                     );
                   },
                   onRemoveImage: (index) {
-                    ctrl.removeImageAt(
+                    multipleImageSectionController.removeImageAt(
                       imageList: ctrl.vehicleFrontImages,
                       index: index,
                       updateId: DeliveryPartnerController.vehicleFrontImageId,
@@ -155,7 +156,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                   maxImages: 1,
                   images: ctrl.vehicleBackImages,
                   onAddImage: () async {
-                    ctrl.addImages(
+                    multipleImageSectionController.addImages(
                         label: 'Vehicle Front and Back Images',
                         imageList: ctrl.vehicleBackImages,
                         updateId: DeliveryPartnerController.vehicleBackImageId,
@@ -163,7 +164,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
                     );
                   },
                   onRemoveImage: (index) {
-                    ctrl.removeImageAt(
+                    multipleImageSectionController.removeImageAt(
                       imageList: ctrl.vehicleBackImages,
                       index: index,
                       updateId: DeliveryPartnerController.vehicleBackImageId,

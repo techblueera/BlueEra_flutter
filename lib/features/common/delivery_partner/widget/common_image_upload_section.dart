@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -44,7 +46,6 @@ class CommonImageUploadTile extends StatelessWidget {
           }
         },
         child: Container(
-
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(10.0),
@@ -101,5 +102,32 @@ class CommonImageUploadTile extends StatelessWidget {
         ),
       );
     });
+  }
+
+  static Future<String?> pickImage({
+    required BuildContext context,
+    String title = "Select Photo",
+    bool showError = true,
+  }) async {
+    try {
+      final String? selected = await SelectProfilePictureDialog.showLogoDialog(
+        context,
+        title,
+      );
+
+      if (selected != null && selected.isNotEmpty) {
+        return selected;
+      } else {
+        if (showError) {
+          commonSnackBar(message: "Something went wrong, please try again");
+        }
+        return null;
+      }
+    } catch (e) {
+      if (showError) {
+        commonSnackBar(message: "Error selecting image: $e");
+      }
+      return null;
+    }
   }
 }

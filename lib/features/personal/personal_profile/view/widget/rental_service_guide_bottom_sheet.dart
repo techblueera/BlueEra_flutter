@@ -157,26 +157,15 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
   void _handleServiceTap() async {
     switch (selectedIndex) {
       case 0:
-        // showModalBottomSheet(
-        //   context: context,
-        //   backgroundColor: Colors.transparent,
-        //   isScrollControlled: true,
-        //   builder: (_) => SelfWorkServiceGuideBottomSheet(),
-        // );
+        Get.toNamed(RouteHelper.getHomeStayRentalServiceRoute());
         break;
 
       case 1:
-        print('flat room service');
         Get.toNamed(RouteHelper.getAddFlatRoomRentalServiceScreenRoute());
         break;
 
       case 2:
-        // showModalBottomSheet(
-        //   context: context,
-        //   backgroundColor: Colors.transparent,
-        //   isScrollControlled: true,
-        //   builder: (_) => ProductServiceGuideBottomSheet(),
-        // );
+        Get.toNamed(RouteHelper.getVehicleRentalServiceRoute());
         break;
 
       default:
