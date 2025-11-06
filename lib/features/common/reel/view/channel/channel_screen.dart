@@ -12,8 +12,6 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_joined_user_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
-import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
@@ -201,23 +199,7 @@ class _ChannelScreenState extends State<ChannelScreen>
     }
   }
 
-  Shorts _getShortsType() {
-    return switch (channelController.selectedFilter) {
-      SortBy.Latest => Shorts.latest,
-      SortBy.Popular => Shorts.popular,
-      SortBy.Oldest => Shorts.oldest,
-      SortBy.UnderProgress => Shorts.underProgress,
-    };
-  }
 
-  VideoType _getVideosType() {
-    return switch (channelController.selectedFilter) {
-      SortBy.Latest => VideoType.latest,
-      SortBy.Popular => VideoType.popular,
-      SortBy.Oldest => VideoType.oldest,
-      SortBy.UnderProgress => VideoType.underProgress,
-    };
-  }
 
   PostType _getPostType() {
     return switch (channelController.selectedFilter) {

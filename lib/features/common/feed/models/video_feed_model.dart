@@ -214,6 +214,8 @@ class VideoData {
   final Stats? stats;
   final String? createdAt;
   final String? updatedAt;
+  final num? media_height;
+  final num? media_width;
 
   VideoData({
     this.id,
@@ -246,6 +248,8 @@ class VideoData {
     this.stats,
     this.createdAt,
     this.updatedAt,
+    this.media_width,
+    this.media_height,
   });
 
   factory VideoData.fromJson(Map<String, dynamic> json) {
@@ -287,6 +291,8 @@ class VideoData {
       stats: json['stats'] != null ? Stats.fromJson(json['stats']) : null,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
+      media_height: json['media_height'],
+      media_width: json['media_width'],
     );
   }
 
@@ -321,6 +327,8 @@ class VideoData {
         'stats': stats?.toJson(),
         'createdAt': createdAt,
         'updatedAt': updatedAt,
+    'media_width': media_width,
+    'media_height': media_height,
       };
 
   VideoData copyWith({
@@ -354,6 +362,8 @@ class VideoData {
     Stats? stats,
     String? createdAt,
     String? updatedAt,
+     num? media_height,
+     num? media_width,
   }) {
     return VideoData(
       id: id ?? this.id,
@@ -387,6 +397,8 @@ class VideoData {
       stats: stats ?? this.stats,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      media_height: media_height ?? this.media_height,
+      media_width: media_width ?? this.media_width,
     );
   }
 }

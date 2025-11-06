@@ -421,4 +421,33 @@ class AppIconAssets {
   static String empty_star = "${iconPath}empty_star.svg";
   static String fill_star = "${iconPath}fill_star.svg";
 
+  static String emotionAnger = "${iconPath}emotion_anger.svg";
+  static String emotionEducational = "${iconPath}emotion_educational.svg";
+  static String emotionHope = "${iconPath}emotion_hope.svg";
+  static String emotionHumanity = "${iconPath}emotion_humanity.svg";
+  static String emotionInformative = "${iconPath}emotion_informative.svg";
+  static String emotionOpinionated = "${iconPath}emotion_opinionated.svg";
+  static String emotionOutrage = "${iconPath}emotion_outrage.svg";
+  static String emotionPatriotism = "${iconPath}emotion_patriotism.svg";
+  static String emotionRebellion = "${iconPath}emotion_rebellion.svg";
+  static String emotionSarcasm = "${iconPath}emotion_sarcasm.svg";
+  static String emotionStorytelling = "${iconPath}emotion_storytelling.svg";
+  static String emotionSympathy = "${iconPath}emotion_sympathy.svg";
+  static String emotionUpdate = "${iconPath}emotion_update.svg";
+
+  static String commentAgree = "${iconPath}comment_agree.svg";
+  static String commentAngry = "${iconPath}comment_angry.svg";
+  static String commentAppreciate = "${iconPath}comment_appreciate.svg";
+  static String commentCapa = "${iconPath}comment_capa.svg";
+  static String commentCelebrate = "${iconPath}comment_celebrate.svg";
+  static String commentCriticise = "${iconPath}comment_criticise.svg";
+  static String commentCurious = "${iconPath}comment_curious.svg";
+  static String commentDisagree = "${iconPath}comment_disagree.svg";
+  static String commentEmpathy = "${iconPath}comment_empathy.svg";
+  static String commentFunny = "${iconPath}comment_funny.svg";
+  static String commentInspired = "${iconPath}comment_inspired.svg";
+  static String commentQuestion = "${iconPath}comment_question.svg";
+  static String commentSuggest = "${iconPath}comment_suggest.svg";
+  static String commentSupport = "${iconPath}comment_support.svg";
+  static String commentWarn = "${iconPath}comment_warn.svg";
 }

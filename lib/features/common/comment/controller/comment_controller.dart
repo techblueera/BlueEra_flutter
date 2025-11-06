@@ -293,8 +293,7 @@ class CommentController extends GetxController {
   RxString selectedCommentType = ''.obs;
   var selectedSuggestion = "".obs;
   late final languages = SUPPORTED_LANGUAGES;
-  late final emotions = SUPPORTED_EMOTIONS;
-  late final commentType = COMMENT_TYPE;
+  // late final emotions = SUPPORTED_EMOTIONS;
 
   Future<void> generateAiPostCommentController({required String postID}) async {
     try {

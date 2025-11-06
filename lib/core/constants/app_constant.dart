@@ -64,7 +64,8 @@ class AppConstants {
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
-  static const String porterLink = "https://porter.in/two-wheelers/pune?gads=search&utm_source=google&utm_medium=cpc&utm_campaign=20818387432&utm_term=155699175106&utm_content=proter&click_id=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE&gad_source=1&gad_campaignid=20818387432&gbraid=0AAAAAoulZ9ihaB8xOb2NnDAf_6AJckFkq&gclid=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE";
+  static const String porterLink =
+      "https://porter.in/two-wheelers/pune?gads=search&utm_source=google&utm_medium=cpc&utm_campaign=20818387432&utm_term=155699175106&utm_content=proter&click_id=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE&gad_source=1&gad_campaignid=20818387432&gbraid=0AAAAAoulZ9ihaB8xOb2NnDAf_6AJckFkq&gclid=CjwKCAjw0sfHBhB6EiwAQtv5qYha39Cvxfna--Z62rwj2oXy0dUbTfhiY_-AkfXSSz9nIFcXetJxHxoCzWgQAvD_BwE";
   static const String rapidoLink = "https://www.rapido.bike/Home";
 
   ///CHANGE NAME : arial to open sans some conflict are there
@@ -226,6 +227,7 @@ String formatIndianNumber(num number) {
     return number.toString();
   }
 }
+
 String formattedCreatedAt(String? createdAt) {
   if (createdAt == null || createdAt.isEmpty) return "";
 
@@ -239,12 +241,14 @@ String formattedCreatedAt(String? createdAt) {
 
 String formatTime(String utcString) {
   try {
-    final date = DateTime.parse(utcString).toLocal(); // convert to local timezone
+    final date =
+        DateTime.parse(utcString).toLocal(); // convert to local timezone
     return DateFormat('hh:mm a').format(date); // e.g., 11:40 AM
   } catch (e) {
     return '';
   }
 }
+
 String formatNumberLikePost(int number) {
   if (number >= 10000000) {
     return '${(number / 10000000).toStringAsFixed((number % 10000000 == 0) ? 0 : 1)}M';
@@ -303,7 +307,7 @@ redirectToProfileScreen(
   // logs("user.accountType?=== ${user.accountType}");
   if (accountType.toUpperCase() == AppConstants.individual) {
     if (userId == profileId) {
-      Get.to(()=> PersonalProfileSetupNewScreen());
+      Get.to(() => PersonalProfileSetupNewScreen());
     } else {
       Get.to(() => NewVisitProfileScreen(
             authorId: profileId,
@@ -572,7 +576,7 @@ openBusinessProfile({required String? businessUserId}) {
 
 openPersonalProfile({required String? userID}) {
   if (userId == userID) {
-    Get.to(()=> PersonalProfileSetupNewScreen());
+    Get.to(() => PersonalProfileSetupNewScreen());
   } else {
     // Get.to(() => NewVisitProfileScreen(authorId: userID ?? "", screenFromName: '', channelId: channelId,));
     Get.to(() => NewVisitProfileScreen(
@@ -1801,7 +1805,6 @@ const String mapLightCode = '''[
     }
   ]''';
 
-
 // Constants
 const String SELF_EMPLOYED = "SELF_EMPLOYED";
 const String PRIVATE_JOB = "PRIVATE_JOB";
@@ -1991,32 +1994,89 @@ final List<String> bgAssetsForServices = [
   'assets/services_cards/blueera_aatmnirbhar_service_card14.jpeg',
   'assets/services_cards/blueera_aatmnirbhar_service_card15.jpeg',
 ];
-var SUPPORTED_EMOTIONS = [
-  'Anger / Outrage', 'Pride / Patriotism', 'Happiness / Celebration', 'Sadness / Sympathy',
-  'Motivation / Hope', 'Protest / Rebellion', 'Empathy / Humanity', 'Humor / Sarcasm','Poetic/Storytelling',
-  'Latest/Update','Informative/Educational','Treding/Current Events','Political/Opinionated'
-
-];
+// var SUPPORTED_EMOTIONS = [
+//   'Anger / Outrage',
+//   'Pride / Patriotism',
+//   'Happiness / Celebration',
+//   'Sadness / Sympathy',
+//   'Motivation / Hope',
+//   'Protest / Rebellion',
+//   'Empathy / Humanity',
+//   'Humor / Sarcasm',
+//   'Poetic/Storytelling',
+//   'Latest/Update',
+//   'Informative/Educational',
+//   'Treding/Current Events',
+//   'Political/Opinionated'
+// ];
 var SUPPORTED_LANGUAGES = [
-  'Bengali', 'Bhojpuri', 'Dogri', 'English','Gujarati', 'Hindi', 'Kannada', 'Kashmiri', 'Konkani',
-  'Malayalam', 'Manipuri (Meitei)', 'Marathi', 'Nepali', 'Odia', 'Punjabi', 'Sanskrit',
-  'Santali', 'Sindhi', 'Tamil', 'Telugu', 'Urdu', 'Marwadi', 'Haryanvi'
+  'Bengali',
+  'Bhojpuri',
+  'Dogri',
+  'English',
+  'Gujarati',
+  'Hindi',
+  'Kannada',
+  'Kashmiri',
+  'Konkani',
+  'Malayalam',
+  'Manipuri (Meitei)',
+  'Marathi',
+  'Nepali',
+  'Odia',
+  'Punjabi',
+  'Sanskrit',
+  'Santali',
+  'Sindhi',
+  'Tamil',
+  'Telugu',
+  'Urdu',
+  'Marwadi',
+  'Haryanvi'
 ];
-var COMMENT_TYPE=[  "Agree",
-  "Disagree",
-  "Appreciate",
-  "Criticise",
-  "Question",
-  "Support",
-  "Funny",
-  "Shock",
-  "Inspired",
-  "Angry",
-  "Curious",
-  "Suggest",
-  "Empathy",
-  "Celebrate",
-  "Warn",];
+
+
+final List<CommentTypeModel> emotionList = [
+  CommentTypeModel("Anger / Outrage", AppIconAssets.emotionAnger),
+  CommentTypeModel("Pride / Patriotism", AppIconAssets.emotionPatriotism),
+  CommentTypeModel("Happiness / Celebration", AppIconAssets.emotionStorytelling),
+  CommentTypeModel("Sadness / Sympathy", AppIconAssets.emotionSympathy),
+  CommentTypeModel("Motivation / Hope", AppIconAssets.emotionHope),
+  CommentTypeModel("Protest / Rebellion", AppIconAssets.emotionRebellion),
+  CommentTypeModel("Empathy / Humanity", AppIconAssets.emotionHumanity),
+  CommentTypeModel("Humor / Sarcasm", AppIconAssets.emotionSarcasm),
+  CommentTypeModel("Poetic / Storytelling", AppIconAssets.emotionStorytelling),
+  CommentTypeModel("Latest / Update", AppIconAssets.emotionUpdate),
+  CommentTypeModel("Informative / Educational", AppIconAssets.emotionEducational),
+  CommentTypeModel("Trending / Current Events", AppIconAssets.emotionInformative),
+  CommentTypeModel("Political / Opinionated", AppIconAssets.emotionOpinionated),
+];
+
+class CommentTypeModel {
+  final String name;
+  final String icon;
+
+  const CommentTypeModel(this.name, this.icon);
+}
+
+final List<CommentTypeModel> commentTypes = [
+  CommentTypeModel("Agree", AppIconAssets.commentAgree),
+  CommentTypeModel("Disagree", AppIconAssets.commentDisagree),
+  CommentTypeModel("Appreciate", AppIconAssets.commentAppreciate),
+  CommentTypeModel("Criticise", AppIconAssets.commentCriticise),
+  CommentTypeModel("Question", AppIconAssets.commentQuestion),
+  CommentTypeModel("Support", AppIconAssets.commentSupport),
+  CommentTypeModel("Funny", AppIconAssets.commentFunny),
+  CommentTypeModel("Shock", AppIconAssets.commentCapa),
+  CommentTypeModel("Inspired", AppIconAssets.commentInspired),
+  CommentTypeModel("Angry", AppIconAssets.commentAngry),
+  CommentTypeModel("Curious", AppIconAssets.commentCurious),
+  CommentTypeModel("Suggest", AppIconAssets.commentSuggest),
+  CommentTypeModel("Empathy", AppIconAssets.commentEmpathy),
+  CommentTypeModel("Celebrate", AppIconAssets.commentCelebrate),
+  CommentTypeModel("Warn", AppIconAssets.commentWarn),
+];
+
 bool isImageUrl(String? url) {
   if (url == null || url.isEmpty) return false;
   final lower = url.toLowerCase();

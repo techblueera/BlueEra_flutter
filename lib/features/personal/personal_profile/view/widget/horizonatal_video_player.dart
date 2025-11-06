@@ -15,10 +15,7 @@ class HorizontalVideoPlayer extends StatefulWidget {
 class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
   final PageController _pageController = PageController(viewportFraction: 1.0);
 
-  // final List<String> videoUrls = [
-  //   'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-  //   'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-  // ];
+
   final List<String> videoUrls = [
     'assets/video/earn_with_blue_era_video.mp4'
   ];
@@ -49,7 +46,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer> {
     // final controller = VideoPlayerController.networkUrl(Uri.parse(url));
     await controller.initialize();
     controller.setLooping(true);
-    controller.play();
+    // controller.play();
 
     setState(() {
       _controller = controller;

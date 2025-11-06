@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CommonDropdownDialog<T> extends StatefulWidget {
   final List<T> items;
@@ -61,16 +63,30 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                     itemBuilder: (context, index) {
                       final item = widget.items[index];
                       return ListTile(
+                        leading:item is CommentTypeModel
+                            ? SvgPicture.asset(item.icon, height: 24, width: 24)
+                            : null,
                         title: CustomText(
                           widget.displayValue(item),
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,
                         ),
-                        onTap: () {
-                          Navigator.of(context).pop(item);
-                        },
+                        onTap: () => Navigator.of(context).pop(item),
                       );
                     },
+                    // itemBuilder: (context, index) {
+                    //   final item = widget.items[index];
+                    //   return ListTile(
+                    //     title: CustomText(
+                    //       widget.displayValue(item),
+                    //       fontWeight: FontWeight.w400,
+                    //       fontSize: SizeConfig.size15,
+                    //     ),
+                    //     onTap: () {
+                    //       Navigator.of(context).pop(item);
+                    //     },
+                    //   );
+                    // },
                   ),
                 ),
               ],
@@ -115,7 +131,33 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: widget.selectedValue != null
+                  child:widget.selectedValue != null
+                      ? Row(
+                    children: [
+                      if (widget.selectedValue is CommentTypeModel)
+                        SvgPicture.asset(
+                          (widget.selectedValue as CommentTypeModel).icon,
+                          height: 22,
+                          width: 22,
+                        ),
+                      if (widget.selectedValue is CommentTypeModel)
+                        const SizedBox(width: 8),
+                      Flexible(
+                        child: CustomText(
+                          widget.displayValue(widget.selectedValue as T),
+                          color: Colors.black,
+                          fontWeight: FontWeight.w400,
+                          fontSize: SizeConfig.size15,
+                        ),
+                      ),
+                    ],
+                  )
+                      : CustomText(
+                    widget.hintText,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeConfig.size15,
+                  ), /*widget.selectedValue != null
                       ? CustomText(
                           widget.displayValue(widget.selectedValue as T),
                           color: Colors.black,
@@ -127,7 +169,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                           color: Colors.grey,
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,
-                        ),
+                        ),*/
                 ),
                 if (widget.showDownArrow??false)
                   const Icon(Icons.keyboard_arrow_down_outlined,
