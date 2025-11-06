@@ -1,19 +1,11 @@
 import 'dart:math' hide log;
-import 'dart:developer';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/apiService/response_model.dart';
@@ -22,13 +14,11 @@ import '../../../business/auth/repo/business_profile_repo.dart';
 import '../model/GetBlueeraPiolotModel.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/get_adress_details_model.dart';
-
 import '../model/get_porter_vechile_option_model.dart';
 import '../model/payment_success_model.dart';
 import '../repo/make_order_repo.dart';
 import '../repo/porter_api_repo.dart';
 import 'chat_view_controller.dart';
-import 'package:geolocator/geolocator.dart';
 
 class OrderNowController extends GetxController {
   var address = "".obs;

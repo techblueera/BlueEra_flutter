@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -13,10 +14,12 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetBlueeraPiolotModel.dart';
+import '../../../auth/stream/rider_response_stream.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
@@ -35,7 +38,9 @@ class DeliveryPilotScreen extends StatefulWidget {
 class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   final orderController = Get.find<OrderNowController>();
   MapplsMapController? mapController;
-
+  late Stream<dynamic> _stream;
+  StreamSubscription? _subscription;
+  List<dynamic> orders = [];
   Future<void> _showMarkerAndZoom() async {
     if (mapController == null) return;
 
@@ -61,11 +66,71 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     );
   }
 
+Future<void> fetchStream()async{
+  _stream = await riderOrderStream(userId);
 
+  // final razorpayService =
+  //                         RazorpayService();
+  //
+  //                         razorpayService.openCheckout(
+  //                           name:"${orderController.openedMessage?.buyer?.name}",
+  //                           subscriptionId: "",
+  //                           description: '',
+  //                           amount:double.parse(orderController.fare.value.toString()),
+  //                           contact: "${orderController.openedMessage?.buyer?.contact}",
+  //                           email:
+  //                           'admin@bluecs.in',
+  //                           onPaymentSuccess:
+  //                               (response) async {
+  //                             debugPrint(
+  //                                 "Payment Suzzz: ${response.data}");
+  //
+  //                             List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
+  //                             Map<String,dynamic> params={
+  //                               ApiKeys.selectedRiders: userIdList,
+  //                               ApiKeys.pickupLocation: {
+  //                                 ApiKeys.latitude: widget.startLat,
+  //                                 ApiKeys.longitude: widget.startLng
+  //                               },
+  //                               ApiKeys.dropLocation: {
+  //                                 ApiKeys.latitude: widget.lat,
+  //                                 ApiKeys.longitude: widget.long
+  //                               },
+  //                               ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
+  //                               orderController.openedMessage?.metadata?.foodId
+  //                                   :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
+  //                               orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
+  //                               ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
+  //                             };
+  //                             await orderController.sendOrderRequestToRider(params);
+  //                             commonSnackBar(
+  //                                 message:
+  //                                 "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
+  //                             Get.back();
+  //                             Get.back();
+  //
+  //                           },
+  //                           onPaymentError: (response) {
+  //                             debugPrint(
+  //                                 "Payment Failed: ${response.message}");
+  //                             commonSnackBar(
+  //                                 message:
+  //                                 "Payment Failed ${response.message}");
+  //                           },
+  //                         );
+  _subscription = _stream.listen((event) {
+    print('sdvsdvscvdc New order: $event');
+    setState(() => orders.insert(0, event));
+  }, onError: (error) {
+    print('sdvsdvscvdc Stream error: $error');
+  }, onDone: () {
+    print('sdvsdvscvdc Stream closed');
+  });
+}
 
   @override
   void initState() {
-    // TODO: implement initState
+    fetchStream();
     super.initState();
   }
 
@@ -294,56 +359,76 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
                       ),
-                      onPressed: () {
-                        final razorpayService =
-                        RazorpayService();
+                      onPressed: () async{
 
-                        razorpayService.openCheckout(
-                          name:"${orderController.openedMessage?.buyer?.name}",
-                          subscriptionId: "",
-                          description: '',
-                          amount:double.parse(orderController.fare.value.toString()),
-                          contact: "${orderController.openedMessage?.buyer?.contact}",
-                          email:
-                          'admin@bluecs.in',
-                          onPaymentSuccess:
-                              (response) async {
-                            debugPrint(
-                                "Payment Suzzz: ${response.data}");
-
-                            List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
-                            Map<String,dynamic> params={
-                              ApiKeys.selectedRiders: userIdList,
-                              ApiKeys.pickupLocation: {
-                                ApiKeys.latitude: widget.startLat,
-                                ApiKeys.longitude: widget.startLng
-                              },
-                              ApiKeys.dropLocation: {
-                                ApiKeys.latitude: widget.lat,
-                                ApiKeys.longitude: widget.long
-                              },
-                              ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
-                              orderController.openedMessage?.metadata?.foodId
-                                  :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
-                              orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
-                              ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
-                            };
-                            await orderController.sendOrderRequestToRider(params);
-                            commonSnackBar(
-                                message:
-                                "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
-                            Get.back();
-                            Get.back();
-
+                        List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
+                        Map<String,dynamic> params={
+                          ApiKeys.selectedRiders: userIdList,
+                          ApiKeys.pickupLocation: {
+                            ApiKeys.latitude: widget.startLat,
+                            ApiKeys.longitude: widget.startLng
                           },
-                          onPaymentError: (response) {
-                            debugPrint(
-                                "Payment Failed: ${response.message}");
-                            commonSnackBar(
-                                message:
-                                "Payment Failed ${response.message}");
+                          ApiKeys.dropLocation: {
+                            ApiKeys.latitude: widget.lat,
+                            ApiKeys.longitude: widget.long
                           },
-                        );
+                          ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
+                          orderController.openedMessage?.metadata?.foodId
+                              :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
+                          orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
+                          ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
+                        };
+                        await orderController.sendOrderRequestToRider(params);
+                        showAwaitingForRider(context);
+                        // final razorpayService =
+                        // RazorpayService();
+                        //
+                        // razorpayService.openCheckout(
+                        //   name:"${orderController.openedMessage?.buyer?.name}",
+                        //   subscriptionId: "",
+                        //   description: '',
+                        //   amount:double.parse(orderController.fare.value.toString()),
+                        //   contact: "${orderController.openedMessage?.buyer?.contact}",
+                        //   email:
+                        //   'admin@bluecs.in',
+                        //   onPaymentSuccess:
+                        //       (response) async {
+                        //     debugPrint(
+                        //         "Payment Suzzz: ${response.data}");
+                        //
+                        //     List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
+                        //     Map<String,dynamic> params={
+                        //       ApiKeys.selectedRiders: userIdList,
+                        //       ApiKeys.pickupLocation: {
+                        //         ApiKeys.latitude: widget.startLat,
+                        //         ApiKeys.longitude: widget.startLng
+                        //       },
+                        //       ApiKeys.dropLocation: {
+                        //         ApiKeys.latitude: widget.lat,
+                        //         ApiKeys.longitude: widget.long
+                        //       },
+                        //       ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
+                        //       orderController.openedMessage?.metadata?.foodId
+                        //           :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
+                        //       orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
+                        //       ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
+                        //     };
+                        //     await orderController.sendOrderRequestToRider(params);
+                        //     commonSnackBar(
+                        //         message:
+                        //         "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
+                        //     Get.back();
+                        //     Get.back();
+                        //
+                        //   },
+                        //   onPaymentError: (response) {
+                        //     debugPrint(
+                        //         "Payment Failed: ${response.message}");
+                        //     commonSnackBar(
+                        //         message:
+                        //         "Payment Failed ${response.message}");
+                        //   },
+                        // );
                       },
                       child:  CustomText(
                         "Book Delivery Pilot NOW (Pay ₹ ${orderController.fare.value})",
@@ -366,6 +451,76 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
         }
 
       }),
+    );
+  }
+  void showAwaitingForRider(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // ❌ cannot close manually
+      barrierColor: Colors.black.withOpacity(0.4), // dim background
+      builder: (BuildContext context) {
+        int remainingSeconds = 60;
+        ValueNotifier<int> timerNotifier = ValueNotifier(remainingSeconds);
+
+        // ⏱ Start 30s timer
+        Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (remainingSeconds <= 1) {
+            timer.cancel();
+          } else {
+            remainingSeconds--;
+            timerNotifier.value = remainingSeconds;
+          }
+        });
+
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: staggeredDotsWaveLoading(
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const CustomText(
+                  "Our rider will accept your order please wait",
+                  textAlign: TextAlign.center,
+                  // style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                  // ),
+                ),
+                const SizedBox(height: 12),
+                ValueListenableBuilder<int>(
+                  valueListenable: timerNotifier,
+                  builder: (context, seconds, _) {
+                    return CustomText(
+                      "Accepted in $seconds seconds",
+                      // style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
+                      // ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
