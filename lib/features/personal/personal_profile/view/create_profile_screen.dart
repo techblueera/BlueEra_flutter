@@ -45,7 +45,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     locationController.dispose();
     emailController.dispose();
     educationController.dispose();
-    bioController.dispose();
+    // bioController.dispose();
     super.dispose();
   }
 
@@ -70,7 +70,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   void initState() {
     final user =
         viewPersonalDetailsController.personalProfileDetails.value.user;
-
+    bioController.clear();
     super.initState();
     personalCreateProfileController.selectedGender.value =
         GenderTypeExtension.fromString((user?.gender?.isNotEmpty ?? false)

@@ -543,7 +543,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           tabs: serviceCategory,
           selectedIndex: selectedServiceCategoryIndex,
           onTabSelected: (index, value) {
-            logs("serviceCategoryType111=== ${serviceCategoryType?.label}");
             setState(() {
               selectedServiceCategoryIndex = index;
 

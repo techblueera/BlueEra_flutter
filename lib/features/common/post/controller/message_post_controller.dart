@@ -26,7 +26,6 @@ import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dioObj;
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
@@ -109,17 +108,14 @@ class MessagePostController extends GetxController {
             RouteHelper.getBottomNavigationBarScreenRoute());
         addPostMessage.value = ApiResponse.complete(responseModel);
         clearData();
-
       } else {
         commonSnackBar(
             message: data['message'] ?? AppStrings.somethingWentWrong);
       }
-
     } catch (e) {
       logs("ERROR 117 ${e.toString()}");
       addPostMessage.value = ApiResponse.error('error');
     }
-
   }
 
   ///RePost  MESSAGE POST...
@@ -223,25 +219,23 @@ class MessagePostController extends GetxController {
 
     if (result == null) return;
 
-    if (result.path != null) {
-      final path = result.path!;
+    final path = result.path;
 
-      final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
+    final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
 
-      if (trimmedPath != null) {
-        print("✅ Trimmed Video Path: $trimmedPath");
-        // final files = result.paths.map((e) => File(e!)).toList();
-        final videoTriFile = File(trimmedPath);
+    if (trimmedPath != null) {
+      print("✅ Trimmed Video Path: $trimmedPath");
+      // final files = result.paths.map((e) => File(e!)).toList();
+      final videoTriFile = File(trimmedPath);
 
-        selectedType.value = MediaType.video;
+      selectedType.value = MediaType.video;
 
-        imagesList.value = [videoTriFile];
-        _generateThumbnail(videoTriFile);
+      imagesList.value = [videoTriFile];
+      _generateThumbnail(videoTriFile);
 
-        // Upload / Save / Play trimmed video here
-      }
+      // Upload / Save / Play trimmed video here
     }
-    // <-- Add for video
+      // <-- Add for video
   }
 
   /*Future<void> pickVideoMedia() async {
@@ -277,184 +271,183 @@ class MessagePostController extends GetxController {
       quality: 80,
     );
 
-    if (thumbPath != null) {
-      videoThumbnails[videoFile.path] = File(thumbPath.path);
+    videoThumbnails[videoFile.path] = File(thumbPath.path);
     }
-  }
 
   Future<void> uploadMessagePost({required PostVia? postVia}) async {
     try {
-    dio.FormData formData = dio.FormData();
-    if (imagesList.length > 4) {
-      commonSnackBar(message: "Max 4 image are allowed");
-      return;
-    }
-    if (selectedType.value == MediaType.video) {
-      double progress = 0.0;
-
-      void updateProgress(double value) {
-        progress = value.clamp(0.0, 1.0);
-        UploadProgressDialog.update(progress);
+      dio.FormData formData = dio.FormData();
+      if (imagesList.length > 4) {
+        commonSnackBar(message: "Max 4 image are allowed");
+        return;
       }
+      if (selectedType.value == MediaType.video) {
+        double progress = 0.0;
 
-      // ✅ Show the dialog (GetX version, no context needed)
-      UploadProgressDialog.show(initialProgress: progress);
-      final videoFile = File(imagesList.firstOrNull?.path ?? "");
-      final coverFile = File(videoThumbnails[videoFile.path]?.path ?? "");
+        void updateProgress(double value) {
+          progress = value.clamp(0.0, 1.0);
+          UploadProgressDialog.update(progress);
+        }
 
-      final videoInfo = getFileInfo(videoFile);
-      final coverInfo = getFileInfo(coverFile);
+        // ✅ Show the dialog (GetX version, no context needed)
+        UploadProgressDialog.show(initialProgress: progress);
+        final videoFile = File(imagesList.firstOrNull?.path ?? "");
+        final coverFile = File(videoThumbnails[videoFile.path]?.path ?? "");
 
-      // 1. Init both uploads (20%)
-      await Future.wait([
-        uploadInit(
-          queryParams: {
-            ApiKeys.filenameKey: videoInfo['fileName'],
-            ApiKeys.contentTypeKey: videoInfo['mimeType']
-          },
-          isVideoUpload: true,
-        ),
-        uploadInit(
-          queryParams: {
-            ApiKeys.filenameKey: coverInfo['fileName'],
-            ApiKeys.contentTypeKey: coverInfo['mimeType']
-          },
-          isVideoUpload: false,
-        ),
-      ]);
-      updateProgress(0.2);
+        final videoInfo = getFileInfo(videoFile);
+        final coverInfo = getFileInfo(coverFile);
 
-      // 2. Upload files with combined progress (20% → 90%)
-      double videoProgress = 0.0;
-      double coverProgress = 0.0;
-
-      void updateCombinedProgress() {
-        // 20% init + 70% file uploads
-        final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
-        updateProgress(combined);
-      }
-
-      if (uploadInitVideoFile?.success ?? false) {
+        // 1. Init both uploads (20%)
         await Future.wait([
-          uploadFileToS3(
-            file: videoFile,
-            fileType: videoInfo['mimeType']!,
-            preSignedUrl: uploadInitVideoFile?.data?.uploadUrl ?? "",
-            onProgress: (total) {
-              videoProgress = total;
-              updateCombinedProgress();
+          uploadInit(
+            queryParams: {
+              ApiKeys.filenameKey: videoInfo['fileName'],
+              ApiKeys.contentTypeKey: videoInfo['mimeType']
             },
+            isVideoUpload: true,
           ),
-          uploadFileToS3(
-            file: coverFile,
-            fileType: coverInfo['mimeType']!,
-            preSignedUrl: uploadInitCoverImageFile?.data?.uploadUrl ?? "",
-            onProgress: (total) {
-              coverProgress = total;
-              updateCombinedProgress();
+          uploadInit(
+            queryParams: {
+              ApiKeys.filenameKey: coverInfo['fileName'],
+              ApiKeys.contentTypeKey: coverInfo['mimeType']
             },
+            isVideoUpload: false,
           ),
         ]);
-        formData.fields.add(MapEntry(ApiKeys.media_types, "video/mp4"));
-        formData.fields.add(MapEntry(ApiKeys.thumbnail,
-            uploadInitCoverImageFile?.data?.publicUrl ?? ""));
+        updateProgress(0.2);
 
-        formData.fields.add(MapEntry(
-            ApiKeys.media, uploadInitVideoFile?.data?.publicUrl ?? ""));
-      }
-      final size = await getVideoDimensions(videoFile.path);
-      print('Width: ${size?.width}, Height: ${size?.height}');
-      formData.fields
-          .add(MapEntry(ApiKeys.media_width, size?.width.toString() ?? ""));
-      formData.fields
-          .add(MapEntry(ApiKeys.media_height, size?.height.toString() ?? ""));
-      updateProgress(0.9);
-    }
-    if ((uploadInitVideoFile?.success == false ||
-            uploadInitVideoFile?.success == null) &&
-        (selectedType.value == MediaType.video)) {
-      return;
-    }
-    final position = await getCurrentLocation();
-    final tagUserController = Get.find<TagUserController>();
+        // 2. Upload files with combined progress (20% → 90%)
+        double videoProgress = 0.0;
+        double coverProgress = 0.0;
 
-    String? tagUserIds = tagUserController.selectedUsers
-        .map((user) => user.id.toString())
-        .join(',');
-    if (selectedType.value == MediaType.image) {
-      /// Add media files
-      for (int i = 0; i < (imagesList.length); i++) {
-        final data = imagesList[i];
+        void updateCombinedProgress() {
+          // 20% init + 70% file uploads
+          final combined = 0.2 + ((videoProgress + coverProgress) / 2) * 0.7;
+          updateProgress(combined);
+        }
 
-        File processed = File(data.path);
-
-        String fileName = processed.path.split('/').last;
-        formData.files.add(
-          MapEntry(
-            ApiKeys.media,
-            await dio.MultipartFile.fromFile(
-              processed.path,
-              filename: fileName,
+        if (uploadInitVideoFile?.success ?? false) {
+          await Future.wait([
+            uploadFileToS3(
+              file: videoFile,
+              fileType: videoInfo['mimeType']!,
+              preSignedUrl: uploadInitVideoFile?.data?.uploadUrl ?? "",
+              onProgress: (total) {
+                videoProgress = total;
+                updateCombinedProgress();
+              },
             ),
-          ),
-        );
-        formData.fields.add(MapEntry(ApiKeys.media_types, "image/jpeg"));
-      }
-      if (imagesList.length == 1) {
-        final size =
-            await getImageDimensions(File(imagesList.firstOrNull?.path ?? ""));
+            uploadFileToS3(
+              file: coverFile,
+              fileType: coverInfo['mimeType']!,
+              preSignedUrl: uploadInitCoverImageFile?.data?.uploadUrl ?? "",
+              onProgress: (total) {
+                coverProgress = total;
+                updateCombinedProgress();
+              },
+            ),
+          ]);
+          formData.fields.add(MapEntry(ApiKeys.media_types, "video/mp4"));
+          formData.fields.add(MapEntry(ApiKeys.thumbnail,
+              uploadInitCoverImageFile?.data?.publicUrl ?? ""));
+
+          formData.fields.add(MapEntry(
+              ApiKeys.media, uploadInitVideoFile?.data?.publicUrl ?? ""));
+        }
+        // final size = await getVideoDimensions(videoFile.path);
+        final size = await getImageDimensions(File(coverFile.path));
         print('Width: ${size.width}, Height: ${size.height}');
         formData.fields
             .add(MapEntry(ApiKeys.media_width, size.width.toString()));
         formData.fields
             .add(MapEntry(ApiKeys.media_height, size.height.toString()));
+        updateProgress(0.9);
       }
-    }
+      if ((uploadInitVideoFile?.success == false ||
+              uploadInitVideoFile?.success == null) &&
+          (selectedType.value == MediaType.video)) {
+        return;
+      }
+      final position = await getCurrentLocation();
+      final tagUserController = Get.find<TagUserController>();
 
-    ///POST VIA TYPE...
-    formData.fields.add(MapEntry(ApiKeys.postVia, postVia?.name ?? "profile"));
+      String? tagUserIds = tagUserController.selectedUsers
+          .map((user) => user.id.toString())
+          .join(',');
+      if (selectedType.value == MediaType.image) {
+        /// Add media files
+        for (int i = 0; i < (imagesList.length); i++) {
+          final data = imagesList[i];
 
-    ///TITLE...
-    if (postTitleController.value.text.isNotEmpty)
+          File processed = File(data.path);
+
+          String fileName = processed.path.split('/').last;
+          formData.files.add(
+            MapEntry(
+              ApiKeys.media,
+              await dio.MultipartFile.fromFile(
+                processed.path,
+                filename: fileName,
+              ),
+            ),
+          );
+          formData.fields.add(MapEntry(ApiKeys.media_types, "image/jpeg"));
+        }
+        if (imagesList.length == 1) {
+          final size = await getImageDimensions(
+              File(imagesList.firstOrNull?.path ?? ""));
+          print('Width: ${size.width}, Height: ${size.height}');
+          formData.fields
+              .add(MapEntry(ApiKeys.media_width, size.width.toString()));
+          formData.fields
+              .add(MapEntry(ApiKeys.media_height, size.height.toString()));
+        }
+      }
+
+      ///POST VIA TYPE...
       formData.fields
-          .add(MapEntry(ApiKeys.title, postTitleController.value.text));
+          .add(MapEntry(ApiKeys.postVia, postVia?.name ?? "profile"));
 
-    ///DESCRIPTION...
-    if (postText.value.isNotEmpty)
-      formData.fields
-          .add(MapEntry(ApiKeys.sub_title, postText.value));
+      ///TITLE...
+      if (postTitleController.value.text.isNotEmpty)
+        formData.fields
+            .add(MapEntry(ApiKeys.title, postTitleController.value.text));
 
-    ///NATURE OF POST...
-    if (natureOfPostController.value.text.isNotEmpty)
-      formData.fields.add(
-          MapEntry(ApiKeys.nature_of_post, natureOfPostController.value.text));
+      ///DESCRIPTION...
+      if (postText.value.isNotEmpty)
+        formData.fields.add(MapEntry(ApiKeys.sub_title, postText.value));
 
-    ///REFERENCE LINK...
-    if (referenceLinkController.value.text.isNotEmpty)
-      formData.fields.add(MapEntry(
-        ApiKeys.reference_link,
-        referenceLinkController.value.text.isNotEmpty
-            ? referenceLinkController.value.text
-            : "",
-      ));
+      ///NATURE OF POST...
+      if (natureOfPostController.value.text.isNotEmpty)
+        formData.fields.add(MapEntry(
+            ApiKeys.nature_of_post, natureOfPostController.value.text));
 
-    /// Add location if available
-    if (position?.latitude != null && position?.longitude != null) {
-      formData.fields
-          .add(MapEntry(ApiKeys.latitude, position?.latitude.toString() ?? ""));
-      formData.fields.add(
-          MapEntry(ApiKeys.longitude, position?.longitude.toString() ?? ""));
-    }
+      ///REFERENCE LINK...
+      if (referenceLinkController.value.text.isNotEmpty)
+        formData.fields.add(MapEntry(
+          ApiKeys.reference_link,
+          referenceLinkController.value.text.isNotEmpty
+              ? referenceLinkController.value.text
+              : "",
+        ));
 
-    ///POST TYPE....
-    formData.fields.add(MapEntry(ApiKeys.type, AppConstants.MESSAGE_POST));
+      /// Add location if available
+      if (position?.latitude != null && position?.longitude != null) {
+        formData.fields.add(
+            MapEntry(ApiKeys.latitude, position?.latitude.toString() ?? ""));
+        formData.fields.add(
+            MapEntry(ApiKeys.longitude, position?.longitude.toString() ?? ""));
+      }
 
-    ///TAG IDS...
-    if (tagUserIds.isNotEmpty)
-      formData.fields.add(MapEntry(ApiKeys.tagged_users, tagUserIds));
-    await addMsgPostControllerNew(
-      bodyReq: formData,
-    );
+      ///POST TYPE....
+      formData.fields.add(MapEntry(ApiKeys.type, AppConstants.MESSAGE_POST));
+
+      ///TAG IDS...
+      if (tagUserIds.isNotEmpty)
+        formData.fields.add(MapEntry(ApiKeys.tagged_users, tagUserIds));
+      await addMsgPostControllerNew(
+        bodyReq: formData,
+      );
     } catch (e) {
       logs("errorr === $e");
 
@@ -474,24 +467,24 @@ class MessagePostController extends GetxController {
       {required Map<String, dynamic> queryParams,
       required bool isVideoUpload}) async {
     // try {
-      ResponseModel? response = await PostRepo().uploadMessagePostVideoRepo(
-        queryParams: queryParams,
-      );
+    ResponseModel? response = await PostRepo().uploadMessagePostVideoRepo(
+      queryParams: queryParams,
+    );
 
-      if (response?.isSuccess ?? false) {
-        uploadInitResponse = ApiResponse.complete(response);
-        final uploadInit =
-            GeneratePresignedUrl.fromJson(response?.response?.data);
-        if (isVideoUpload) {
-          uploadInitVideoFile = uploadInit;
-        } else {
-          uploadInitCoverImageFile = uploadInit;
-        }
+    if (response?.isSuccess ?? false) {
+      uploadInitResponse = ApiResponse.complete(response);
+      final uploadInit =
+          GeneratePresignedUrl.fromJson(response?.response?.data);
+      if (isVideoUpload) {
+        uploadInitVideoFile = uploadInit;
       } else {
-        uploadInitResponse = ApiResponse.error('error');
-        commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+        uploadInitCoverImageFile = uploadInit;
       }
+    } else {
+      uploadInitResponse = ApiResponse.error('error');
+      commonSnackBar(
+          message: response?.message ?? AppStrings.somethingWentWrong);
+    }
     // } catch (e) {
     //   uploadInitResponse = ApiResponse.error('error');
     //   commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -532,7 +525,6 @@ class MessagePostController extends GetxController {
 
   // Lists
   late final languages = SUPPORTED_LANGUAGES;
-  late final emotions = SUPPORTED_EMOTIONS;
   RxList<VideoCategoryData> natureOfPostList =
       <VideoCategoryData>[].obs; // You already have this list
   // var suggestions = <String>[].obs;

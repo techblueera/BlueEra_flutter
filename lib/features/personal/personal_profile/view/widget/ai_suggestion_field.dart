@@ -8,7 +8,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AiSuggestionField extends StatelessWidget {
+class AiSuggestionField extends StatefulWidget {
   final String title;
   final String apiType; // "bio" or "description"
   final TextEditingController textController;
@@ -27,8 +27,29 @@ class AiSuggestionField extends StatelessWidget {
   });
 
   @override
+  State<AiSuggestionField> createState() => _AiSuggestionFieldState();
+}
+
+class _AiSuggestionFieldState extends State<AiSuggestionField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.textController.addListener(_onTextChange);
+  }
+
+  void _onTextChange() => setState(() {});
+
+  @override
+  void dispose() {
+    widget.textController.removeListener(_onTextChange);
+    widget.textController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final aiController = Get.put(AiSuggestionController());
+    final bool isEmpty = widget.textController.text.trim().isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,27 +58,46 @@ class AiSuggestionField extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CustomText(
-              title,
+              widget.title,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.black,
             ),
-            InkWell(
-                onTap: () async {
-                  await aiController.fetchSuggestions(
-                    bodyRequest: bodyRequest,
-                    apiType: apiType,
-                    targetController: textController,
-                    onSaved: onSaved,
-                  );
-                },
-                child: LocalAssets(
+          ],
+        ),
+        // const SizedBox(height: 10),
+
+        // --- 🔴 Show AI suggestion only when empty ---
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: isEmpty
+              ? InkWell(
+            onTap: () async {
+              await aiController.fetchSuggestions(
+                bodyRequest: widget.bodyRequest,
+                apiType: widget.apiType,
+                targetController: widget.textController,
+                onSaved: widget.onSaved,
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                 CustomText(
+                  "Create... Via Bluer AI",
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w500,
+                ),
+                LocalAssets(
                   height: 25,
                   width: 25,
                   imagePath: AppIconAssets.ai_generative,
                   imgColor: AppColors.primaryColor,
-                )),
-          ],
+                ),
+              ],
+            ),
+          )
+              : const SizedBox.shrink(),
         ),
         const SizedBox(height: 10),
         CommonTextField(
@@ -72,12 +112,10 @@ class AiSuggestionField extends StatelessWidget {
             }
             return null;
           },
-          hintText: "Write your $title...",
-          textEditController: textController,
+          hintText: "Write your ${widget.title}...",
+          textEditController: widget.textController,
           maxLine: 3,
-
-          onChange: (val) => onChange?.call(),
-
+          onChange: (val) => widget.onChange?.call(),
         ),
       ],
     );

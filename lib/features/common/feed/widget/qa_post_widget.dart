@@ -7,10 +7,8 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/message_post_widget.dart';
-import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/post_like_user_list_dialog.dart';
 import 'package:flutter/material.dart';
 
 class QaPostWidget extends StatefulWidget {
@@ -176,36 +174,6 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                 // SizedBox(
                 //   height: SizeConfig.size10,
                 // ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-    return FeedCardWidget(
-      childWidget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-                top: SizeConfig.size8, bottom: SizeConfig.size5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                widget.authorSection(),
-                _buildPollOptions(),
-                Padding(
-                  padding: EdgeInsets.only(
-                      left: SizeConfig.size15,
-                      right: SizeConfig.size15,
-                      top: SizeConfig.size15,
-                      bottom: 0),
-                  child: CommonHorizontalDivider(
-                    color: AppColors.secondaryTextColor,
-                    height: 0.5,
-                  ),
-                ),
-                widget.buildActions(),
               ],
             ),
           ),

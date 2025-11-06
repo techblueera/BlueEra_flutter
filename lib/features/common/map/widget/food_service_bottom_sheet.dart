@@ -12,7 +12,6 @@ import 'package:BlueEra/features/common/map/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn_with_icon.dart';
@@ -187,24 +186,6 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                                   _buildServiceCard(serviceData[index]),
                             );
 
-                            return GridView.builder(
-                              controller: scrollController,
-                              itemCount: serviceData.length,
-                              shrinkWrap: true,
-                              padding:
-                                  const EdgeInsets.only(top: 12, bottom: 24),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.70,
-                                // childAspectRatio: 0.712,
-                                crossAxisSpacing: 6.0,
-                                mainAxisSpacing: 6.0,
-                                // childAspectRatio: itemWidth / itemHeight,
-                              ),
-                              itemBuilder: (context, index) =>
-                                  _buildServiceCard(serviceData[index]),
-                            );
                           },
                         ),
                       ),

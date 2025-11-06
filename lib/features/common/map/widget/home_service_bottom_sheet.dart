@@ -12,7 +12,6 @@ import 'package:BlueEra/features/common/map/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -179,7 +178,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                childAspectRatio: 0.80,
+                                childAspectRatio: 0.78,
                                 // 🔹 slightly increased to give more height
                                 crossAxisSpacing: 8.0,
                                 mainAxisSpacing: 8.0,
@@ -277,29 +276,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                       ],
                       borderRadius: BorderRadius.zero,
                     ),
-                    if (serviceData.priceData?.priceRange?.min != null)
-                      Positioned(
-                        right: 6,
-                        bottom: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.blackD4,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: CustomText(
-                            (serviceData.priceData?.priceRange?.min ?? 0) >
-                                    1000000
-                                ? "INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
-                                : 'INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
-                            fontSize: SizeConfig.extraSmall,
-                            color: AppColors.white,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
+
                   ],
                 ),
               ),
@@ -313,9 +290,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 2,
-                    ),
+
                     ProfileSummaryCard(
                       name: serviceData.name ?? '',
                       imageUrl: serviceData.profileImage ?? '',
@@ -323,9 +298,20 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                       reviews: serviceData.reviewCount ?? 0,
                       distance: "${serviceData.distance ?? 0} km",
                     ),
-                    SizedBox(
-                      height: 2,
-                    ),
+
+
+                    if (serviceData.priceData?.priceRange?.min != null)
+                      CustomText(
+                        (serviceData.priceData?.priceRange?.min ?? 0) >
+                            1000000
+                            ? "Charge : INR ${formatIndianNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-"
+                            : 'Charge : INR ${formatNumber(serviceData.priceData?.priceRange?.min ?? 0)}/-',
+                        fontSize: SizeConfig.extraSmall,
+                        maxLines: 1,
+                        fontWeight: FontWeight.bold,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
                     Row(
                       children: [
                         Expanded(
