@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -15,6 +16,7 @@ import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/api/apiService/api_response.dart';
@@ -296,7 +298,9 @@ class BusinessProfileHeader extends StatelessWidget {
                   ),
                   child: Container(
                     child: Image.network(
-                      controller.imagePath?.value ?? "",
+                      (controller.coverImage?.value != null && controller.coverImage!.value!.isNotEmpty)
+                          ? controller.coverImage!.value!
+                          : (controller.imagePath?.value ?? ''),
                       width: double.infinity,
                       height: 130,
                       //height: 160,
@@ -338,25 +342,51 @@ class BusinessProfileHeader extends StatelessWidget {
                     top: 8,
                     child: InkWell(
                         onTap: () async {
-                          final newPath =
-                              await SelectProfilePictureDialog.showLogoDialog(
-                            context,
-                            "Edit Cover Picture",
-                            isOnlyCamera: true,
-                            isGallery: true,
-                          );
-                          dynamic dataImage =
-                              await multiPartImage(imagePath: newPath);
-                          var reqProfile = {ApiKeys.profile_image: dataImage};
-                          await controller.uploadLiveStoreImage(
-                            reqProfile,
-                          );
-                          // personalCreateProfileController.imagePath?.value = image;
-                          // dynamic dataImage = await multiPartImage(imagePath: image);
-                          // var reqProfile = {ApiKeys.profile_image: dataImage};
-                          // await personalCreateProfileController.updateUserProfileDetails(
-                          //     params: reqProfile, isFromProfileOnly: true);
+                          try {
+                            final newPath = await SelectProfilePictureDialog.showLogoDialog(
+                              context,
+                              "Edit Cover Picture",
+                              isOnlyCamera: true,
+                              isGallery: true,
+                            ).catchError((_) => null);
+
+                            if (newPath == null || newPath.isEmpty) {
+                              commonSnackBar(message: "No image selected");
+                              return;
+                            }
+
+                            controller.coverImage?.value = newPath;
+
+                            // Compress before upload
+                            final file = File(newPath);
+                            final compressed = await FlutterImageCompress.compressAndGetFile(
+                              file.absolute.path,
+                              "${file.path}_compressed.jpg",
+                              quality: 75,
+                            );
+
+                            final dataImage = await multiPartImage(
+                              imagePath: compressed?.path ?? newPath,
+                            );
+
+                            if (dataImage == null) {
+                              commonSnackBar(message: "Image processing failed");
+                              return;
+                            }
+
+                            final reqProfile = {
+
+                              ApiKeys.businessId: businessId,
+
+                             "coverPicture": dataImage};
+                            await controller.updateBusinessDetails(reqProfile);
+                          } catch (e, s) {
+                            debugPrint("❌ Crash in cover picture upload: $e\n$s");
+                            commonSnackBar(message: "Something went wrong while updating picture");
+                          }
                         },
+
+
                         child: Image.asset('assets/diwali_card/camera.png'))),
 
                 // Follow button & menu

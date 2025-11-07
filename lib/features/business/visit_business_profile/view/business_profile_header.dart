@@ -94,8 +94,10 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                   width: double.infinity,
                   color: Colors.grey.shade200,
                   child: Image.network(
-                    widget.businessProfileDetails.logo ?? '',
-                    fit: BoxFit.cover,
+                    (widget.businessProfileDetails.coverimage != null &&
+                        widget.businessProfileDetails.coverimage!.isNotEmpty)
+                        ? widget.businessProfileDetails.coverimage!
+                        : (widget.businessProfileDetails.logo ?? ''),                    fit: BoxFit.cover,
                     // errorWidget: (_, __, ___) => Container(
                     //   color: Colors.grey.shade300,
                     //   alignment: Alignment.center,
@@ -136,7 +138,10 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                 children: [
 
                   _buildActionButton("Chat", AppColors.white,
-                      AppColors.primaryColor, () {
+                      AppColors.primaryColor,
+                          true,
+
+                          () {
                         if (isGuestUser()) {
                           createProfileScreen();
 
@@ -170,8 +175,11 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                   const SizedBox(width: 6),
                   _buildActionButton(controllerVisit.isFollow.value
                       ? "Unfollow"
-                      : "Follow", AppColors.primaryColor,
-                      AppColors.white, () async {
+                      : "Follow",
+                      controllerVisit.isFollow.value?  AppColors.greylite:AppColors.primaryColor,
+                      controllerVisit.isFollow.value? AppColors.secondaryTextColor:AppColors.white,
+                          false,
+                          () async {
                         if (isGuestUser()) {
                           createProfileScreen();
                         } else {
@@ -498,16 +506,17 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
   Widget _buildActionButton(String label,
       Color bg,
       Color textColor,
+      bool border,
       VoidCallback onTap) {
     return InkWell(
       borderRadius: BorderRadius.circular(6),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.primaryColor,)
+            border: Border.all(color: border?AppColors.primaryColor:Colors.transparent)
         ),
         child: CustomText(
           label,

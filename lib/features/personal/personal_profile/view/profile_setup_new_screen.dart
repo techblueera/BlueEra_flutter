@@ -778,7 +778,7 @@ class _PersonalProfileSetupNewScreenState
                                 '';
                         return banner.isNotEmpty
                             ? Image.network(banner,fit: BoxFit.cover,)
-                            : const SizedBox();
+                            :  Image.network(personalCreateProfileController.imagePath?.value??'',fit: BoxFit.cover,);
                       }),
                     ),
                   ),

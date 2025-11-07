@@ -43,6 +43,7 @@ class ApiKeys {
   static const username = 'username';
   static const bio = 'bio';
   static const logo = 'logo';
+  static const coverimg = 'coverPicture';
   static const websites = 'websites';
   static const platform = 'platform';
   static const url = 'url';

@@ -115,4 +115,5 @@ class AppColors {
   static const  blueLightShade = Color(0xFFF2FEFE);
   static const  rating = Color(0xFFFABC00);
   static const  green0B = Color(0xFF0BC041);
+  static const  greylite = Color(0xFFCCCCCC);
 }
