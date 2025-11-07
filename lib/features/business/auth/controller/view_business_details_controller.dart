@@ -156,7 +156,7 @@ class ViewBusinessDetailsController extends GetxController {
   }
 
   Future<void> viewBusinessProfile() async {
-    try {
+    // try {
       await getUserLoginBusinessId();
       ResponseModel responseModel =
           await BusinessProfileRepo().viewParticularBusinessProfile();
@@ -172,6 +172,8 @@ class ViewBusinessDetailsController extends GetxController {
         selectYear?.value =
             businessProfileDetails?.data?.dateOfIncorporation?.year ?? 0;
         imagePath?.value = businessProfileDetails?.data?.logo ?? "";
+        coverImage?.value= businessProfileDetails?.data?.coverimage ?? "";
+        print("skldclskmcsldkc ${businessProfileDetails?.data?.coverimage ?? ""}");
         selectedCategoryOfBusiness.value = CategoryData(
             id: businessProfileDetails?.data?.categoryDetails?.id,
             name: businessProfileDetails?.data?.categoryDetails?.name);
@@ -260,10 +262,10 @@ class ViewBusinessDetailsController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      logs("ERROR BUSINESS PROFILE ${e}");
-      viewBusinessResponse = ApiResponse.error('error');
-    }
+    // } catch (e) {
+    //   logs("ERROR BUSINESS PROFILE ${e}");
+    //   viewBusinessResponse = ApiResponse.error('error');
+    // }
   }
 
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
@@ -276,6 +278,26 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);
+
+        viewBusinessProfile();
+        update();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      viewBusinessResponse = ApiResponse.error('error');
+    }
+  }
+  Future<void> updateBusinessProfileDetails(Map<String, dynamic> params) async {
+    try {
+      ResponseModel responseModel =
+          await BusinessProfileRepo().updateBusinessProfileDetails(params);
+
+      // ResponseModel responseModel =
+      //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: "${responseModel.message}");
 
         viewBusinessProfile();
         update();

@@ -89,7 +89,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
           backgroundColor: backgroundColor,
           appBar: (chatThemeController.isMessageSelectionActive.value &&
                   widget.type != "Admin")
-              ? getChatOptionsAppBar(context,
+              ? getChatOptionsAppBar(
+              context,
                   profileImage: widget.profileImage,
                   editingController: editingController,
                   conversationId: widget.conversationId,
@@ -97,7 +98,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                   type: widget.type,
                   name: widget.name,
                   contactNo: widget.contactNo)
-              : getChatTitleAppBar(context,
+              : getChatTitleAppBar(socketType: "personal",
+              context,
                   userId: widget.userId,
                   type: widget.type,
                   name: widget.name,

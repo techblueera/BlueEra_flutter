@@ -15,6 +15,7 @@ class BusinessProfileRepo extends BaseService {
       Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().putHTTP(
         params: params,
+        showProgress: true,
         isMultipart: true,
         updateBusinessProfile,
         onError: (error) {},

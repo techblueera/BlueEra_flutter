@@ -142,10 +142,11 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
 
   void _openRateAndReviewSheet(BuildContext context) {
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const RateAndReviewBottomSheet(),
+      isDismissible: true,
+        context: context,
+       // barrierDismissible: true,
+        builder: (context) => RatingFeedbackDialog(businessId: widget.businessId,
+          reviewFor: AppConstants.business,)
     );
   }
 }

@@ -83,7 +83,7 @@ class BusinessProfileDetails {
     businessName = json['business_name'];
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
-    coverimage = json['coverimage'];
+    coverimage = json['coverPicture'];
     categoryOfBusiness = json['category_Of_Business'];
     natureOfBusiness = json['Nature_of_Business'];
     isActive = json['isActive'];
@@ -312,8 +312,8 @@ class BusinessLocation {
       this.lon,});
 
   BusinessLocation.fromJson(dynamic json) {
-    lat = double.parse(json['lat'].toString());
-    lon = double.parse(json['lon'].toString());
+    lat = double.parse((json['lat']??'0.0').toString());
+    lon = double.parse((json['lon']??'0.0').toString());
   }
   double? lat;
   double? lon;

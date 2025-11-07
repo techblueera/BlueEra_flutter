@@ -26,6 +26,8 @@ import '../../auth/model/visitBusinessDetailedRatingModel.dart';
 import '../../widgets/live_photos_of_business_widget.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_product_screen.dart';
 
+import '../../widgets/rating_widget.dart';
+
 class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
   final String screenName;
@@ -322,324 +324,343 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
   bool _isExpanded = false;
 
-  Widget buildRatingSummary({
-    required double rating,
-    List<RatingCountsListModel>? ratingsList,
-    required String totalReviews,
-    bool? allowRate,
-  }) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SizeConfig.size16),
-      ),
-      elevation: 0,
-      color: AppColors.white,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              CustomText(
-                "Rating Summary",
-                fontWeight: FontWeight.w600,
-                fontSize: SizeConfig.medium15,
-                color: AppColors.secondaryTextColor,
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CustomText(
-                          rating.toStringAsFixed(1),
-                          fontWeight: FontWeight.w600,
-                          fontSize: SizeConfig.size50,
-                          color: AppColors.black,
-                        ),
-                        SizedBox(width: SizeConfig.size12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AbsorbPointer(
-                              absorbing: true,
-                              child: RatingBar.builder(
-                                initialRating: rating,
-                                minRating: 1,
-                                direction: Axis.horizontal,
-                                allowHalfRating: false,
-                                itemCount: 5,
-                                itemSize: 16,
-                                unratedColor: Colors.grey.shade400,
-                                itemBuilder: (context, _) => const Icon(
-                                  Icons.star,
-                                  color: Colors.amber,
-                                ),
-                                onRatingUpdate: (rate) {},
-                              ),
-                            ),
-                            SizedBox(height: SizeConfig.size4),
-                            CustomText(
-                              "${(totalReviews).toString()} Reviews",
-                              fontSize: SizeConfig.size14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.coloGreyText,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => setState(() {
-                      _isExpanded = !_isExpanded;
-                    }),
-                    child: Icon(
-                      !_isExpanded
-                          ? Icons.keyboard_arrow_down
-                          : Icons.keyboard_arrow_up,
-                      size: SizeConfig.size32,
-                    ),
-                  ),
-                ],
-              ),
+  // Widget buildRatingSummary({
+  //   required double rating,
+  //   List<RatingCountsListModel>? ratingsList,
+  //   required String totalReviews,
+  //   bool? allowRate,
+  // }) {
+  //   return Card(
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(SizeConfig.size16),
+  //     ),
+  //     elevation: 0,
+  //     color: AppColors.white,
+  //     child: Padding(
+  //       padding: EdgeInsets.symmetric(
+  //           horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+  //       child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           mainAxisAlignment: MainAxisAlignment.start,
+  //           children: [
+  //             CustomText(
+  //               "Rating Summary",
+  //               fontWeight: FontWeight.w600,
+  //               fontSize: SizeConfig.medium15,
+  //               color: AppColors.secondaryTextColor,
+  //             ),
+  //             SizedBox(height: SizeConfig.size12),
+  //             Row(
+  //               children: [
+  //                 Expanded(
+  //                   child: Row(
+  //                     crossAxisAlignment: CrossAxisAlignment.center,
+  //                     children: [
+  //                       CustomText(
+  //                         rating.toStringAsFixed(1),
+  //                         fontWeight: FontWeight.w600,
+  //                         fontSize: SizeConfig.size50,
+  //                         color: AppColors.black,
+  //                       ),
+  //                       SizedBox(width: SizeConfig.size12),
+  //                       Column(
+  //                         crossAxisAlignment: CrossAxisAlignment.start,
+  //                         children: [
+  //                           AbsorbPointer(
+  //                             absorbing: true,
+  //                             child: RatingBar.builder(
+  //                               initialRating: rating,
+  //                               minRating: 1,
+  //                               direction: Axis.horizontal,
+  //                               allowHalfRating: false,
+  //                               itemCount: 5,
+  //                               itemSize: 16,
+  //                               unratedColor: Colors.grey.shade400,
+  //                               itemBuilder: (context, _) => const Icon(
+  //                                 Icons.star,
+  //                                 color: Colors.amber,
+  //                               ),
+  //                               onRatingUpdate: (rate) {
+  //
+  //                               },
+  //                             ),
+  //                           ),
+  //                           SizedBox(height: SizeConfig.size4),
+  //                           CustomText(
+  //                             "${(totalReviews).toString()} Reviews",
+  //                             fontSize: SizeConfig.size14,
+  //                             fontWeight: FontWeight.w600,
+  //                             color: AppColors.coloGreyText,
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //                 InkWell(
+  //                   onTap: () => setState(() {
+  //                     _isExpanded = !_isExpanded;
+  //                   }),
+  //                   child: Icon(
+  //                     !_isExpanded
+  //                         ? Icons.keyboard_arrow_down
+  //                         : Icons.keyboard_arrow_up,
+  //                     size: SizeConfig.size32,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //
+  //             if (_isExpanded) const SizedBox(height: 16),
+  //
+  //             /// Expanded → Show detailed breakdown + Rate & Review UI
+  //             if (_isExpanded && ratingsList != null) ...[
+  //               /// Rating distribution bars
+  //               Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   ...ratingsList
+  //                       .map(
+  //                         (rating) => _buildRatingRow(
+  //                           rating.rating ?? 0,
+  //                           rating.count ?? 0,
+  //                         ),
+  //                       )
+  //                       .toList(),
+  //                 ],
+  //               ),
+  //             ],
+  //             (allowRate ?? true)
+  //                 ? SizedBox(height: SizeConfig.size20)
+  //                 : SizedBox(),
+  //             (allowRate ?? true)
+  //                 ? Center(
+  //                     child: InkWell(
+  //                       onTap: () => showDialog(
+  //                         context: context,
+  //                         barrierDismissible: true,
+  //                         builder: (context) => RatingFeedbackDialog(businessId: widget.businessId,
+  //                            reviewFor: AppConstants.business,)
+  //                         //     buildRatingReviewWidget(
+  //                         //   context,
+  //                         //   (rating, review) async {
+  //                         //     if (rating == 0) {
+  //                         //       commonSnackBar(
+  //                         //           message: "Please select a rating");
+  //                         //
+  //                         //       return;
+  //                         //     }
+  //                         //   },
+  //                         // ),
+  //                       ),
+  //                       child: AbsorbPointer(
+  //                         absorbing: true,
+  //                         child: RatingBar.builder(
+  //                           initialRating: 0,
+  //                           minRating: 1,
+  //                           direction: Axis.horizontal,
+  //                           allowHalfRating: false,
+  //                           itemCount: 5,
+  //                           itemSize: 56,
+  //                           unratedColor: Colors.grey.shade400,
+  //                           itemBuilder: (context, _) => const Icon(
+  //                             Icons.star_border,
+  //                             color: Colors.amber,
+  //                           ),
+  //                           onRatingUpdate: (rate) {
+  //                             setState(() {
+  //                               rating = rate;
+  //                             });
+  //                           },
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   )
+  //                 : SizedBox(),
+  //           ]),
+  //     ),
+  //   );
+  // }
 
-              if (_isExpanded) const SizedBox(height: 16),
+  // Widget _buildRatingRow(int stars, double percentage) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(vertical: 2),
+  //     child: Row(
+  //       children: [
+  //         Text("$stars ★", style: const TextStyle(fontSize: 14)),
+  //         const SizedBox(width: 8),
+  //         Expanded(
+  //           child: LinearProgressIndicator(
+  //             value: percentage,
+  //             backgroundColor: Colors.grey.shade300,
+  //             color: Colors.blue,
+  //             minHeight: 6,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-              /// Expanded → Show detailed breakdown + Rate & Review UI
-              if (_isExpanded && ratingsList != null) ...[
-                /// Rating distribution bars
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ...ratingsList
-                        .map(
-                          (rating) => _buildRatingRow(
-                            rating.rating ?? 0,
-                            rating.count ?? 0,
-                          ),
-                        )
-                        .toList(),
-                  ],
-                ),
-              ],
-              (allowRate ?? true)
-                  ? SizedBox(height: SizeConfig.size20)
-                  : SizedBox(),
-              (allowRate ?? true)
-                  ? Center(
-                      child: InkWell(
-                        onTap: () => showDialog(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (context) => buildRatingReviewWidget(
-                            context,
-                            (rating, review) async {
-                              if (rating == 0) {
-                                commonSnackBar(
-                                    message: "Please select a rating");
-
-                                return;
-                              }
-                            },
-                          ),
-                        ),
-                        child: AbsorbPointer(
-                          absorbing: true,
-                          child: RatingBar.builder(
-                            initialRating: 0,
-                            minRating: 1,
-                            direction: Axis.horizontal,
-                            allowHalfRating: false,
-                            itemCount: 5,
-                            itemSize: 56,
-                            unratedColor: Colors.grey.shade400,
-                            itemBuilder: (context, _) => const Icon(
-                              Icons.star_border,
-                              color: Colors.amber,
-                            ),
-                            onRatingUpdate: (rate) {
-                              setState(() {
-                                rating = rate;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    )
-                  : SizedBox(),
-            ]),
-      ),
-    );
-  }
-
-  Widget _buildRatingRow(int stars, double percentage) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Text("$stars ★", style: const TextStyle(fontSize: 14)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: LinearProgressIndicator(
-              value: percentage,
-              backgroundColor: Colors.grey.shade300,
-              color: Colors.blue,
-              minHeight: 6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildRatingReviewWidget(
-    BuildContext context,
-    void Function(int rating, String comments) onSubmit,
-  ) {
-    int rating = 0;
-    final TextEditingController reviewController = TextEditingController();
-
-    return Center(
-      child: Wrap(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Center(
-              child: Card(
-                elevation: 0,
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    return Container(
-                      margin: const EdgeInsets.all(16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            "Rate And Review",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 12),
-
-                          RatingBar.builder(
-                            initialRating: rating.toDouble(),
-                            minRating: 0,
-                            direction: Axis.horizontal,
-                            allowHalfRating: false,
-                            itemCount: 5,
-                            itemSize: 36,
-                            unratedColor: Colors.grey.shade400,
-                            itemBuilder: (context, index) => Icon(
-                              rating >= index ? Icons.star : Icons.star_border,
-                              color: Colors.amber,
-                            ),
-                            onRatingUpdate: (rate) {
-                              setState(() {
-                                rating = rate.toInt();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // ✍ Review Box
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: CustomText(
-                                "Write Your Review (Optional)",
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              )),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: reviewController,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              hintText:
-                                  'E.g. "Great service, quick response, highly recommended!"',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // 📸 Upload
-                          Align(
-                              alignment: Alignment.centerLeft,
-                              child: CustomText(
-                                "Share Image or Video (Optional)",
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ) /*const Text(
-                              "",
-                              style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w500),
-                            ),*/
-                              ),
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.upload_file_outlined),
-                            label: const Text("Upload Image or Video"),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 48),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomBtn(
-                                  onTap: () => Get.back(),
-                                  title: "Cancel",
-                                  radius: 12,
-                                  borderColor: AppColors.skyBlueDF,
-                                  bgColor: AppColors.white,
-                                  textColor: AppColors.skyBlueDF,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: CustomBtn(
-                                  onTap: () =>
-                                      onSubmit(rating, reviewController.text),
-                                  title: "Submit",
-                                  bgColor: AppColors.skyBlueDF,
-                                  textColor: AppColors.white,
-                                  radius: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget buildRatingReviewWidget(
+  //   BuildContext context,
+  //   void Function(int rating, String comments) onSubmit,
+  // ) {
+  //   int rating = 0;
+  //   final TextEditingController reviewController = TextEditingController();
+  //
+  //   return Center(
+  //     child: Wrap(
+  //       children: [
+  //         Padding(
+  //           padding: const EdgeInsets.all(12.0),
+  //           child: Center(
+  //             child: Card(
+  //               elevation: 0,
+  //               child: StatefulBuilder(
+  //                 builder: (context, setState) {
+  //                   return Container(
+  //                     margin: const EdgeInsets.all(16),
+  //                     padding: const EdgeInsets.all(16),
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.white,
+  //                       borderRadius: BorderRadius.circular(16),
+  //                     ),
+  //                     child: Column(
+  //                       mainAxisSize: MainAxisSize.min,
+  //                       children: [
+  //                         const Text(
+  //                           "Rate And Review",
+  //                           style: TextStyle(
+  //                               fontSize: 20, fontWeight: FontWeight.bold),
+  //                         ),
+  //                         const SizedBox(height: 12),
+  //
+  //                         RatingBar.builder(
+  //                           initialRating: rating.toDouble(),
+  //                           minRating: 0,
+  //                           direction: Axis.horizontal,
+  //                           allowHalfRating: false,
+  //                           itemCount: 5,
+  //                           itemSize: 36,
+  //                           unratedColor: Colors.grey.shade400,
+  //                           itemBuilder: (context, index) => Icon(
+  //                             rating >= index ? Icons.star : Icons.star_border,
+  //                             color: Colors.amber,
+  //                           ),
+  //                           onRatingUpdate: (rate) {
+  //                             setState(() {
+  //                               rating = rate.toInt();
+  //                             });
+  //                           },
+  //                         ),
+  //                         const SizedBox(height: 16),
+  //
+  //                         // ✍ Review Box
+  //                         Align(
+  //                             alignment: Alignment.centerLeft,
+  //                             child: CustomText(
+  //                               "Write Your Review (Optional)",
+  //                               fontSize: 14,
+  //                               fontWeight: FontWeight.w500,
+  //                             )),
+  //                         const SizedBox(height: 8),
+  //                         TextField(
+  //                           controller: reviewController,
+  //                           maxLines: 3,
+  //                           decoration: InputDecoration(
+  //                             hintText:
+  //                                 'E.g. "Great service, quick response, highly recommended!"',
+  //                             hintStyle: TextStyle(color: Colors.grey.shade400),
+  //                             border: OutlineInputBorder(
+  //                               borderRadius: BorderRadius.circular(10),
+  //                             ),
+  //                             filled: true,
+  //                             fillColor: Colors.grey.shade50,
+  //                           ),
+  //                         ),
+  //                         const SizedBox(height: 16),
+  //
+  //                         // 📸 Upload
+  //                         Align(
+  //                             alignment: Alignment.centerLeft,
+  //                             child: CustomText(
+  //                               "Share Image or Video (Optional)",
+  //                               fontSize: 14,
+  //                               fontWeight: FontWeight.w500,
+  //                             ) /*const Text(
+  //                             "",
+  //                             style: TextStyle(
+  //                                 fontSize: 14, fontWeight: FontWeight.w500),
+  //                           ),*/
+  //                             ),
+  //                         const SizedBox(height: 8),
+  //                         OutlinedButton.icon(
+  //                           onPressed: () {},
+  //                           icon: const Icon(Icons.upload_file_outlined),
+  //                           label: const Text("Upload Image or Video"),
+  //                           style: OutlinedButton.styleFrom(
+  //                             minimumSize: const Size(double.infinity, 48),
+  //                             shape: RoundedRectangleBorder(
+  //                               borderRadius: BorderRadius.circular(10),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                         const SizedBox(height: 20),
+  //
+  //                         // Buttons
+  //                         Row(
+  //                           children: [
+  //                             Expanded(
+  //                               child: CustomBtn(
+  //                                 onTap: () => Get.back(),
+  //                                 title: "Cancel",
+  //                                 radius: 12,
+  //                                 borderColor: AppColors.skyBlueDF,
+  //                                 bgColor: AppColors.white,
+  //                                 textColor: AppColors.skyBlueDF,
+  //                               ),
+  //                             ),
+  //                             const SizedBox(width: 12),
+  //                             Expanded(
+  //                               child: CustomBtn(
+  //                                 onTap: () async {
+  //                                   // final success = await reviewController
+  //                                   //     .submitBusinessRatingController(
+  //                                   //   businessId: widget.businessId,
+  //                                   // //  rating: selectedRating,
+  //                                   //  // comment: _feedbackController.text.trim(),
+  //                                   // );
+  //                                   //
+  //                                   // if (success && mounted) {
+  //                                   //   Navigator.of(context).pop(success);
+  //                                   //}
+  //
+  //                                 },
+  //
+  //
+  //
+  //                                     //onSubmit(rating, reviewController.text),
+  //                                 title: "Submit",
+  //                                 bgColor: AppColors.skyBlueDF,
+  //                                 textColor: AppColors.white,
+  //                                 radius: 12,
+  //                               ),
+  //                             ),
+  //                           ],
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   );
+  //                 },
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget buildHorizontalProductList(
       {required GetAllProductDetailsModel? products}) {

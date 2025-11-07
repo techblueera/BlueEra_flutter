@@ -191,6 +191,7 @@ Widget ChatListTile({required Function onSelect,
       if (isForwardUI == true) {
         selectChatListCard();
       } else {
+
         chatViewController.openAnyOneChatFunction(
           businessId: chat?.sender?.businessId,
           type: type,
@@ -861,6 +862,7 @@ Widget messageTypeIconWithLabel(Messages message) {
 
 void _navigateToProfile({required String authorId, required String type}) {
   if (type.toUpperCase() == AppConstants.business) {
+    print("sldkclkmsldkcmslkdcmlskdc ");
     Get.to(() =>
         VisitBusinessProfileNew(
           businessId: authorId,
@@ -879,6 +881,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   required String? userId,
   required String? conversationId,
   required String? type,
+  required String? socketType,
   required String? name,
   required String? contactNo,
   String? profileImage,
@@ -897,14 +900,14 @@ AppBar getChatTitleAppBar(BuildContext context, {
       onTap: () {
         if(chatViewController.canPopBusiness.value){
           chatViewController.emitEvent(
-              "ChatList", {ApiKeys.type: "$type"}, true);
+              "ChatList", {ApiKeys.type: "$socketType"}, true);
           bottomBarController.onChangeIndex(4);
           Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
           chatViewController.onSelectChatTab(1);
         }else{
           Get.back();
           chatViewController.emitEvent(
-              "ChatList", {ApiKeys.type: "$type"}, true);
+              "ChatList", {ApiKeys.type: "$socketType"}, true);
         }
       },
       child: Padding(
@@ -942,6 +945,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           );
 
         }else{
+          print("skjdcnksjnckjsdc ${userId}");
           _navigateToProfile(authorId: userId ?? '', type: type ?? "");
 
         }
