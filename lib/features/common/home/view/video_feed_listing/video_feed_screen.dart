@@ -1,11 +1,7 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/video_post_model.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_feed_controller.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_player_item.dart';
-import 'package:BlueEra/features/common/reel/view/shorts/short_player_item.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
