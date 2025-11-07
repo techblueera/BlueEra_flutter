@@ -627,13 +627,22 @@ bool crBtnLoading=false;
                   CommonTextField(
                     isValidate: false,
 
+
                     textEditController: _sectorTextController,
-                    inputLength: AppConstants.inputCharterLimit250,
+                    inputLength: 24,
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
                     title: "Sector",
                     hintText: "eg. IT Sector",
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your Sector';
+                      } if (value.trim().length > 24) {
+                        return 'Sector must not exceed 24 characters';
+                      }
+                      return null;
+                    },
                     // autovalidateMode: _autoValidate,
                   ),
                   SizedBox(height: SizeConfig.size18),

@@ -59,7 +59,7 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size10),
       ),
-      margin: EdgeInsets.all(SizeConfig.size12),
+      margin: EdgeInsets.only(left:SizeConfig.size8,right:SizeConfig.size8 ),
       child: Padding(
         padding: EdgeInsets.all(SizeConfig.size16),
         child: Column(

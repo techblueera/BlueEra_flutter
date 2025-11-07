@@ -334,9 +334,11 @@ bool updateBtnLoading=false;
                               CommonTextField(
                                 title: "Full Name",
                                 hintText: "Enter your full name",
+                                inputLength: 30,
                                 textEditController: nameController,
                                 validationType: ValidationTypeEnum.name,
                                 autovalidateMode: _autoValidate,
+
 
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -833,16 +835,24 @@ bool updateBtnLoading=false;
                                 ],
                               ],
 
-                              if (selectedProfession == PRIVATE_JOB) ...[
+                              if (selectedProfession == 'Private Job') ...[
                                 CommonTextField(
                                   textEditController: sectorTextController,
-                                  inputLength: AppConstants.inputCharterLimit250,
+                                  inputLength: 24,
                                   keyBoardType: TextInputType.text,
-                                  isValidate: false,
+                                 // isValidate: false,
                                   regularExpression:
                                       RegularExpressionUtils.alphabetSpacePattern,
                                   title: "Sector",
                                   hintText: "eg. IT Sector",
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your Sector';
+                                    } if (value.trim().length > 24) {
+                                      return 'Sector must not exceed 24 characters';
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 SizedBox(height: SizeConfig.size18),
                               ],
