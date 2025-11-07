@@ -1275,7 +1275,8 @@ enum ChargesTypes {
   Daily('Daily'),
   Weekly('Weekly'),
   Monthly('Monthly'),
-  Yearly('Yearly');
+  Yearly('Yearly'),
+  KM('KM');
 
   final String label;
 

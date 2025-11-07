@@ -22,6 +22,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/email_veri
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
@@ -172,7 +173,7 @@ class ViewPersonalDetailsController extends GetxController {
   List<_ProfileFieldStatus> fields = [];
   RxDouble myProfileCompletionPercent = 0.0.obs;
 
-  Future<void> viewPersonalProfile() async {
+  Future<void> viewPersonalProfile({bool isCheckServiceOpt = true}) async {
     final personalController = Get.put(PersonalCreateProfileController());
 
     try {
@@ -275,26 +276,30 @@ class ViewPersonalDetailsController extends GetxController {
           userNameAt: "${personalProfileDetails.value.user?.username}",
         );
         await getUserLoginData();
-        if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
-            SELF_EMPLOYED) {
-          await getUserServiceCreatedStatusUtils();
-          if (userServiceCreatedStatusGlobal.isEmpty ||
-              userServiceCreatedStatusGlobal == "false") {
-            await getUserServiceStatusController();
-          }
 
-          await getServiceProviderStatusUtils();
-          if (serviceProviderStatusGlobal.isNotEmpty) {
-            if (serviceProviderStatusGlobal.toUpperCase() ==
-                AppConstants.OPEN.toUpperCase()) {
-              shopStatusOpenClose.value = true;
-            } else {
-              shopStatusOpenClose.value = false;
+        if(isCheckServiceOpt){
+          if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
+              SELF_EMPLOYED ) {
+            await getUserServiceCreatedStatusUtils();
+            if (userServiceCreatedStatusGlobal.isEmpty ||
+                userServiceCreatedStatusGlobal == "false") {
+              await getUserServiceStatusController();
             }
-          } else {
-            getServiceProviderStatus();
+
+            await getServiceProviderStatusUtils();
+            if (serviceProviderStatusGlobal.isNotEmpty) {
+              if (serviceProviderStatusGlobal.toUpperCase() ==
+                  AppConstants.OPEN.toUpperCase()) {
+                shopStatusOpenClose.value = true;
+              } else {
+                shopStatusOpenClose.value = false;
+              }
+            } else {
+              getServiceProviderStatus();
+            }
           }
         }
+
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {
         commonSnackBar(
@@ -398,6 +403,7 @@ class ViewPersonalDetailsController extends GetxController {
           //   personalProfileDetails.value =
           //       PersonalProfileDetailsModel.fromJson(data);
           // }
+
         }
       } else {
         getFollowerViewCountResponse.value = ApiResponse.error();
@@ -457,6 +463,8 @@ class ViewPersonalDetailsController extends GetxController {
         if (statusData == "false") {
           Get.to(()=> ServiceUploadScreen(
               providerType: ProductServiceProviderType.user,
+              serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
+              designation: userProfessionGlobal,
           ));
         }
       } else {
@@ -518,7 +526,6 @@ class ViewPersonalDetailsController extends GetxController {
         Get.snackbar('Action', 'Tapped on ${item.title}');
     }
   }
-
 
   void showEmailVerificationDialog() {
     final formKey = GlobalKey<FormState>();

@@ -498,4 +498,8 @@ abstract class BaseService {
   final String bookingGetRentalServiceMap = "booking-enquiry-service/rentals";
   final String channelsRecommendations = "channel-service/channels/recommendations/trending";
   final String channelServiceFollower = "channel-service/follower/";
+
+  final String addRentalService = "booking-enquiry-service/rentals";
+
+
 }

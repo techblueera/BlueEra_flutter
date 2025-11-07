@@ -43,7 +43,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
   }
 
   Future<void> loadInitData() async {
-    await viewProfileController.viewPersonalProfile();
+    await viewProfileController.viewPersonalProfile(isCheckServiceOpt: false);
     controller.fullNameController.text =
         viewProfileController.personalProfileDetails.value.user?.name ?? "";
     controller.emailController.text =
@@ -77,7 +77,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Flat/Room",
+        title: "Personal Information",
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
               padding: const EdgeInsets.only(right: 16),

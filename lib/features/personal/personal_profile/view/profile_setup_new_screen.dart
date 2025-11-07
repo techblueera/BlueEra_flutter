@@ -40,6 +40,8 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -777,8 +779,18 @@ class _PersonalProfileSetupNewScreenState
                             personalCreateProfileController.coverImagePath?.value ??
                                 '';
                         return banner.isNotEmpty
-                            ? Image.network(banner,fit: BoxFit.cover,)
-                            :  Image.network(personalCreateProfileController.imagePath?.value??'',fit: BoxFit.cover,);
+                            ? Image.network(banner, fit: BoxFit.cover)
+                            :  CachedNetworkImage(
+                          imageUrl: personalCreateProfileController.imagePath?.value??'',
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            width: SizeConfig.size32,
+                            height: SizeConfig.size32,
+                            color: Colors.grey[300],
+                          ),
+                          errorWidget: (context, url, error) =>
+                              Icon(Icons.person, size: SizeConfig.size32 / 2),
+                        );
                       }),
                     ),
                   ),
@@ -882,25 +894,30 @@ class _PersonalProfileSetupNewScreenState
                       top: 8,
                       child: InkWell(
                           onTap: () async {
-                            final newPath =
+                            final String? newPath =
                                 await SelectProfilePictureDialog.showLogoDialog(
                               context,
                               "Edit Cover Picture",
-                              isOnlyCamera: true,
-                              isGallery: true,
+                              cropAspectRatio: CropAspectRatio(width: 3, height: 1)
+                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
                             );
-                            dynamic dataImage =
-                                await multiPartImage(imagePath: newPath);
-                            var reqProfile = {ApiKeys.coverpicture: dataImage};
-                            await personalCreateProfileController
-                                .updateUserProfileDetails(
-                                    params: reqProfile,
-                                    isFromProfileOnly: true);
-                            // personalCreateProfileController.imagePath?.value = image;
-                            // dynamic dataImage = await multiPartImage(imagePath: image);
-                            // var reqProfile = {ApiKeys.profile_image: dataImage};
-                            // await personalCreateProfileController.updateUserProfileDetails(
-                            //     params: reqProfile, isFromProfileOnly: true);
+
+                            if (newPath == null || newPath.isEmpty) {
+                              return;
+                            }
+
+                              dynamic dataImage =
+                              await multiPartImage(imagePath: newPath);
+                              var reqProfile = {ApiKeys.coverpicture: dataImage};
+                              await personalCreateProfileController
+                                  .updateUserProfileDetails(
+                                  params: reqProfile,
+                                  isFromProfileOnly: true);
+                              // personalCreateProfileController.imagePath?.value = image;
+                              // dynamic dataImage = await multiPartImage(imagePath: image);
+                              // var reqProfile = {ApiKeys.profile_image: dataImage};
+                              // await personalCreateProfileController.updateUserProfileDetails(
+                              //     params: reqProfile, isFromProfileOnly: true);
                           },
                           child: CircleAvatar(
                             backgroundColor: AppColors.black.withOpacity(0.3),

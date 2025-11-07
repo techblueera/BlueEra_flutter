@@ -48,26 +48,25 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
             absorbing: controller.isRiderPersonalIdentificationLoading.value,
             child: Column(
               children: [
-                GetBuilder<DeliveryPartnerController>(
-                  id: DeliveryPartnerController.livePhotoId,
+                GetBuilder<CommonMultipleImageSectionController>(
+                  id: CommonMultipleImageSectionController.livePhotoImageId,
                   builder: (ctrl) => CommonMultipleImageUploadSection(
                     title: 'Upload Your Live Photo',
-                    // minImages: 2,
                     maxImages: controller.maxLiveUploadImages,
-                    images: ctrl.livePhoto,
+                    images: controller.livePhoto,
                     onAddImage: () async {
                       multipleImageSectionController.addImages(
                           label: 'Road Side Images',
-                          imageList: ctrl.livePhoto,
-                          updateId: DeliveryPartnerController.livePhotoId,
+                          imageList: controller.livePhoto,
+                          updateId: CommonMultipleImageSectionController.livePhotoImageId,
                           maxUploadImages: controller.maxLiveUploadImages
                       );
                     },
                     onRemoveImage: (index) {
                       multipleImageSectionController.removeImageAt(
-                        imageList: ctrl.livePhoto,
+                        imageList: controller.livePhoto,
                         index: index,
-                        updateId: DeliveryPartnerController.livePhotoId,
+                        updateId: CommonMultipleImageSectionController.livePhotoImageId,
                       );
                     },
                   ),

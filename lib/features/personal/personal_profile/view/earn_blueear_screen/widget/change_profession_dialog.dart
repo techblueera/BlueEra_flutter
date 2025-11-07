@@ -25,7 +25,7 @@ Future<void> showProfessionChangeDialog({
           : Get.put(PersonalCreateProfileController());
 
       await personalCreateProfileController
-          .updateUserProfileProfessionDesignation(
+          .updateUserProfileDetails(
         params: {
           ApiKeys.profession: SELF_EMPLOYED,
           ApiKeys.designation: designation,

@@ -187,24 +187,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                                   _buildServiceCard(serviceData[index]),
                             );
 
-                            return GridView.builder(
-                              controller: scrollController,
-                              itemCount: serviceData.length,
-                              shrinkWrap: true,
-                              padding:
-                                  const EdgeInsets.only(top: 12, bottom: 24),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.70,
-                                // childAspectRatio: 0.712,
-                                crossAxisSpacing: 6.0,
-                                mainAxisSpacing: 6.0,
-                                // childAspectRatio: itemWidth / itemHeight,
-                              ),
-                              itemBuilder: (context, index) =>
-                                  _buildServiceCard(serviceData[index]),
-                            );
                           },
                         ),
                       ),

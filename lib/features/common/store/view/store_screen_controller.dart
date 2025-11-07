@@ -274,6 +274,13 @@ class StoreScreenController extends GetxController {
               .toList();
         }
 
+        newStores = newStores
+            .where((store) =>
+        (store.livePhotos != null &&
+            store.livePhotos!.isNotEmpty &&
+            store.livePhotos!.any((p) => p.trim().isNotEmpty)))
+            .toList();
+
         if (newStores.isNotEmpty) {
           if (isLoadMore) {
             allStore.addAll(newStores);

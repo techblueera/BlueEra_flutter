@@ -136,6 +136,19 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
 
 class CommonMultipleImageSectionController extends GetxController{
 
+  // IDs for GetBuilder updates
+  static const String livePhotoImageId = 'livePhotoImageId';
+  static const String vehicleNumberPlateImageId = 'vehicleNumberPlateImageId';
+  static const String vehicleRightSideImageId = 'vehicleRightSideImageId';
+  static const String vehicleLeftSideImageId = 'vehicleLeftSideImageId';
+  static const String vehicleFrontImageId = 'vehicleFrontImageId';
+  static const String vehicleBackImageId = 'vehicleBackImageId';
+  static const String roomImageId = 'roomImageId';
+  static const String kitchenImageId = 'kitchenImageId';
+  static const String bathroomImageId = 'bathroomImageId';
+  static const String roadSideImageId = 'bathroomImageId';
+  static const String otherImageId = 'bathroomImageId';
+
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
         Get.context!,

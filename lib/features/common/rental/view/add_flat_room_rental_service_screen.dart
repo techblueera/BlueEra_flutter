@@ -1,17 +1,18 @@
-import 'dart:developer';
-import 'dart:io';
+import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
 import 'package:BlueEra/features/common/rental/controller/add_flat_rental_service_controller.dart';
+import 'package:BlueEra/features/common/rental/widget/add_highlights_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -33,6 +34,8 @@ class AddFlatRoomRentalServiceScreen extends StatefulWidget {
 
 class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServiceScreen> {
   final controller = Get.put(AddFlatRentalServiceController());
+  final langController = Get.put(LanguageListController());
+  final multipleImageSectionController = Get.put(CommonMultipleImageSectionController());
 
   @override
   void initState() {
@@ -87,11 +90,13 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ),
             )),
         ),
-        body: Obx(() {
-          return controller.currentStep.value == 0
-              ? _buildStepOne()
-              : _buildStepTwo();
-        }),
+        body: SafeArea(
+          child: Obx(() {
+            return controller.currentStep.value == 0
+                ? _buildStepOne()
+                : _buildStepTwo();
+          }),
+        ),
       ),
     );
   }
@@ -114,7 +119,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonTextField(
-                    maxLine: 3,
                     textEditController: controller.propertyName,
                     inputLength: AppConstants.inputCharterLimit50,
                     keyBoardType: TextInputType.text,
@@ -122,8 +126,9 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "E.g. Taj Hotel...",
                     isValidate: true,
+                    maxLength: 50,
                   ),
-                  SizedBox(height: SizeConfig.size15),
+                  SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.landmark,
                     title: 'Land Mark',
@@ -134,19 +139,81 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     keyBoardType: TextInputType.text,
                     isValidate: true,
                   ),
-                  SizedBox(height: SizeConfig.size15),
-                  CommonLocationSearchField(
-                    controller: controller.location,
-                    title: "Property Location",
-                    hintText: "E.g. Lucknow, Gomti Nagar...",
-                    onSelected: (PlaceId, lat, lng, address) {
-                      controller.location.text = address;
-                      controller.currentAddress.value = address;
-                      controller.latitude = lat;
-                      controller.longitude = lng;
-                    },
+                  SizedBox(height: SizeConfig.paddingM),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CommonLocationSearchField(
+                          controller: controller.location,
+                          title: "Property Location",
+                          hintText: "E.g. Lucknow, Gomti Nagar...",
+                          onSelected: (placeId, lat, lng, address) async {
+                            print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                            controller.location.text = address;
+                            controller.currentAddress.value = address;
+                            controller.latitude = lat;
+                            controller.longitude = lng;
+
+                            controller.isFetchingAddressDetails.value = true;
+
+                            // Fetch and auto-fill details
+                            try {
+                              final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
+                              final detailsData = detailsResponse.response?.data;
+
+                              final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
+                              final components = placeDetails.result?.addressComponents ?? [];
+
+                              String city = '';
+                              String state = '';
+                              String postalCode = '';
+
+                              for (var comp in components) {
+                                final types = comp.types ?? [];
+                                if (types.contains('locality')) {
+                                  city = comp.longName ?? '';
+                                } else if (types.contains('administrative_area_level_1')) {
+                                  state = comp.longName ?? '';
+                                } else if (types.contains('postal_code')) {
+                                  postalCode = comp.longName ?? '';
+                                }
+                              }
+
+                              controller.pinCode.text = postalCode;
+
+                            } catch (e) {
+                              print("Error fetching place details: $e");
+                            }finally {
+                              controller.isFetchingAddressDetails.value = false;
+                            }
+                          },
+                        ),
+                      ),
+
+                      if(controller.currentAddress.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
+                          child: (controller.isFetchingAddressDetails.value) ?
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
+                        )
+                    ],
                   ),
-                  SizedBox(height: SizeConfig.size15),
+                  SizedBox(height: SizeConfig.paddingM),
+                  CommonTextField(
+                    textEditController: controller.pinCode,
+                    title: 'Pincode',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w400,
+                    titleColor: AppColors.mainTextColor,
+                    hintText: "E.g. 700045....",
+                    keyBoardType: TextInputType.text,
+                    isValidate: true,
+                  ),
+                  SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.description,
                     title: 'Property Description',
@@ -154,31 +221,57 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
                     maxLine: 4,
-                    maxLength: 300,
+                    maxLength: 200,
+                    inputLength: AppConstants.inputCharterLimit200,
                     hintText: "E.g. 2BHK with swimming pool...",
                     keyBoardType: TextInputType.text,
-                    isValidate: true,
+                    validator: ValidationMethod().validatePropertyDescription,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
-                  ContactInputField1(
-                    mobileController: controller.mobile,
-                    landlineCodeController: controller.landlineCode,
-                    landlineNumberController: controller.landlineNumber,
-                    selectedType: controller.selectedType ?? ContactType.Mobile,
-                    onTypeChanged: (type) {
-                      controller.mobile.clear();
-                      controller.landlineCode.clear();
-                      controller.landlineNumber.clear();
-                      setState(() {
-                        controller.selectedType = type;
-                      });
-
-                      // _validateForm();
-                    },
-                    prefixOnChange: (v) => true,
-                    mobileNumberOnChange: (v) {},
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: SizeConfig.size45,
+                        width: SizeConfig.size57,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: AppColors.greyE5,
+                            width: 1,
+                          ),
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [AppShadows.textFieldShadow],
+                        ),
+                        child: CustomText("+91", fontSize: SizeConfig.large),
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      Expanded(
+                        child: CommonTextField(
+                          textEditController: controller.mobile,
+                          inputLength: 10,
+                          maxLength: 10,
+                          keyBoardType: TextInputType.number,
+                          regularExpression:
+                          RegularExpressionUtils.digitsPattern,
+                          validationType: ValidationTypeEnum.pNumber,
+                          hintText: langController.tr('Enter your mobile number'),
+                          hintStyle: TextStyle(
+                            fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
+                          ),                          onTapOutsideTrue: false,
+                          validator: (value) {
+                            if (value?.length != 10) {
+                              return langController.tr('Please enter valid mobile number');
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: SizeConfig.size15),
+                  SizedBox(height: SizeConfig.paddingM),
 
                   CustomText(
                     'Charges Type',
@@ -187,39 +280,60 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     fontWeight: FontWeight.w400,
                   ),
                   SizedBox(height: SizeConfig.size8),
-                  CommonDropdown<ChargesTypes>(
-                    items: ChargesTypes.values.toList(),
-                    selectedValue: controller.selectedChargesTypes.value,
-                    hintText: "E.g. Hourly..",
-                    displayValue: (item) => item.label,
-                    onChanged: (val) {
-                      if (val != null) {
-                        controller.selectedChargesTypes.value = val;
-                      }
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CommonDropdown<ChargesTypes>(
+                          items: ChargesTypes.values
+                              .where((e) => e != ChargesTypes.KM)
+                              .toList(),
+                          selectedValue: controller.selectedChargesTypes.value,
+                          hintText: "E.g. Hourly..",
+                          displayValue: (item) => item.label,
+                          onChanged: (val) {
+                            if (val != null) {
+                              controller.selectedChargesTypes.value = val;
+                            }
+                          },
+                            validator: (value){
+                              if(value==null){
+                                return 'Please select charges type.';
+                              }
+                              return null;
+                            }
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+                      Expanded(
+                        child: CommonTextField(
+                          textEditController: controller.charge,
+                          title: null,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          titleColor: AppColors.mainTextColor,
+                          hintText: "E.g. ₹2000",
+                          keyBoardType: TextInputType.number,
+                          isValidate: true,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: SizeConfig.size15),
-                  CommonTextField(
-                    textEditController: controller.charge,
-                    title: 'Charge',
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    titleColor: AppColors.mainTextColor,
-                    hintText: "E.g. ₹2000",
-                    keyBoardType: TextInputType.number,
-                    isValidate: true,
-                  ),
-                  SizedBox(height: SizeConfig.size15),
-                  _buildHighlightsSection(),
+
+                  SizedBox(height: SizeConfig.paddingM),
+
+                  _buildAddHighlightsSection()
+
                 ],
               ),
             ),
-            SizedBox(height: SizeConfig.size15),
+
+            SizedBox(height: SizeConfig.paddingM),
+
             CustomFormCard(
                 child: Column(
                   children: [
                     _buildAddMoreDetails(),
-                    SizedBox(height: SizeConfig.size30),
+                    SizedBox(height: SizeConfig.paddingL),
                     CustomBtn(
                       title: 'Next',
                       onTap: controller.nextStep,
@@ -232,105 +346,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHighlightsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          'Property Highlights',
-          fontSize: SizeConfig.medium,
-          color: AppColors.mainTextColor,
-          fontWeight: FontWeight.w400,
-        ),
-        SizedBox(height: SizeConfig.size8),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16,
-            vertical: SizeConfig.size10,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.greyE5, width: 1),
-          ),
-          child: Row(
-            children: [
-              LocalAssets(imagePath: AppIconAssets.tagIcon),
-              SizedBox(width: SizeConfig.size12),
-              Expanded(
-                child: TextField(
-                  controller: controller.highlights,
-                  onChanged: (_) => controller.update(["addHighlight"]),
-                  decoration: const InputDecoration(
-                    hintText: 'Add Highlights',
-                    hintStyle: TextStyle(
-                      color: AppColors.grey9B,
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
-
-                  ),
-                ),
-              ),
-              GetBuilder<AddFlatRentalServiceController>(
-                id: "addHighlight",
-                builder: (_) {
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (child, anim) =>
-                        ScaleTransition(scale: anim, child: child),
-                    child: controller.highlights.text.isNotEmpty
-                        ? InkWell(
-                      key: const ValueKey("add"),
-                      onTap: () {
-                        controller.addHighlights();
-                        controller.update(["addHighlight"]);
-                        unFocus();
-                      },
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.addBlueIcon,
-                        // imgColor: AppColors.grey9A
-                      ),
-                    )
-                        : const SizedBox.shrink(key: ValueKey("empty")),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Obx(()=> Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: controller.arrHighlights.map((h) {
-            return Chip(
-              label: Text(h),
-              backgroundColor: AppColors.lightBlue,
-              labelStyle: TextStyle(
-                  fontSize: SizeConfig.size14,
-                  color: Colors.black87
-              ),
-              deleteIcon: const Icon(Icons.close,
-                  size: 20, color: AppColors.mainTextColor),
-              shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.transparent),
-                  borderRadius: BorderRadius.circular(8.0)),
-              onDeleted: () => controller.removeHighlights(h),
-              labelPadding: const EdgeInsets.only(left: 12),
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            );
-          }).toList(),
-        ))
-      ],
     );
   }
 
@@ -467,260 +482,298 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   // ---------------- STEP 2 ----------------
   Widget _buildStepTwo() {
-    return ListView(
-      padding: EdgeInsets.only(
-        left: SizeConfig.size15,
-        right: SizeConfig.size15,
-        top: SizeConfig.size15,
-        bottom: SizeConfig.size40,
+    return AbsorbPointer(
+      absorbing: controller.isAddFlatRentalServiceLoading.value,
+      child: ListView(
+        padding: EdgeInsets.only(
+          left: SizeConfig.size15,
+          right: SizeConfig.size15,
+          top: SizeConfig.size15,
+          bottom: SizeConfig.size40,
+        ),
+        children: [
+          // Road Side Images
+          GetBuilder<CommonMultipleImageSectionController>(
+            id: CommonMultipleImageSectionController.roadSideImageId,
+            builder: (ctrl) => CommonMultipleImageUploadSection(
+              title: "Upload Road Side Images",
+              minImages: 2,
+              maxImages: controller.maxUploadImages,
+              images: controller.roadSideImage,
+              onAddImage: () {
+                multipleImageSectionController.addImages(
+                  label: 'Road Side Images',
+                  imageList: controller.roadSideImage,
+                  updateId: CommonMultipleImageSectionController.roadSideImageId,
+                  maxUploadImages: controller.maxUploadImages,
+                );
+              },
+              onRemoveImage: (index) {
+                multipleImageSectionController.removeImageAt(
+                  imageList: controller.roadSideImage,
+                  index: index,
+                  updateId: CommonMultipleImageSectionController.roadSideImageId,
+                );
+              },
+            ),
+          ),
+          SizedBox(height: SizeConfig.size15),
+
+          // Rooms
+          GetBuilder<CommonMultipleImageSectionController>(
+            id: CommonMultipleImageSectionController.roomImageId,
+            builder: (ctrl) => CommonMultipleImageUploadSection(
+              title: "Upload Rooms Images",
+              minImages: 4,
+              maxImages: controller.maxUploadImages,
+              images: controller.roomImages,
+              onAddImage: () async {
+                multipleImageSectionController.addImages(
+                  label: 'Rooms Images',
+                  imageList: controller.roomImages,
+                  updateId: CommonMultipleImageSectionController.roomImageId,
+                  maxUploadImages: controller.maxUploadImages,
+                );
+              },
+              onRemoveImage: (index) {
+                multipleImageSectionController.removeImageAt(
+                  imageList: controller.roomImages,
+                  index: index,
+                  updateId: CommonMultipleImageSectionController.roomImageId,
+                );
+              },
+            ),
+          ),
+          SizedBox(height: SizeConfig.size15),
+
+          // Kitchen
+          GetBuilder<CommonMultipleImageSectionController>(
+            id: CommonMultipleImageSectionController.kitchenImageId,
+            builder: (ctrl) => CommonMultipleImageUploadSection(
+              title: "Upload Kitchen Images",
+              minImages: 2,
+              maxImages: controller.maxUploadImages,
+              images: controller.kitchenImage,
+              onAddImage: () async {
+                multipleImageSectionController.addImages(
+                  label: 'Kitchen Images',
+                  imageList: controller.kitchenImage,
+                  updateId: CommonMultipleImageSectionController.kitchenImageId,
+                  maxUploadImages: controller.maxUploadImages,
+                );
+              },
+              onRemoveImage: (index) {
+                multipleImageSectionController.removeImageAt(
+                  imageList: controller.kitchenImage,
+                  index: index,
+                  updateId: CommonMultipleImageSectionController.kitchenImageId,
+                );
+              },
+            ),
+          ),
+          SizedBox(height: SizeConfig.size15),
+
+          // Bathroom
+          GetBuilder<CommonMultipleImageSectionController>(
+            id: CommonMultipleImageSectionController.bathroomImageId,
+            builder: (ctrl) => CommonMultipleImageUploadSection(
+              title: "Upload Bathroom Images",
+              minImages: 2,
+              maxImages: controller.maxUploadImages,
+              images: controller.bathroomImage,
+              onAddImage: () async {
+                multipleImageSectionController.addImages(
+                  label: 'Bathroom Images',
+                  imageList: controller.bathroomImage,
+                  updateId: CommonMultipleImageSectionController.bathroomImageId,
+                  maxUploadImages: controller.maxUploadImages
+                );
+              },
+              onRemoveImage: (index) {
+                multipleImageSectionController.removeImageAt(
+                  imageList: controller.bathroomImage,
+                  index: index,
+                  updateId: CommonMultipleImageSectionController.bathroomImageId,
+                );
+              },
+            ),
+          ),
+          SizedBox(height: SizeConfig.size15),
+
+          // Other
+          GetBuilder<CommonMultipleImageSectionController>(
+            id: CommonMultipleImageSectionController.otherImageId,
+            builder: (ctrl) => CommonMultipleImageUploadSection(
+              title: "Upload Other Images(Optional)",
+              maxImages: controller.maxUploadImages,
+              images: controller.otherImage,
+              onAddImage: () async {
+                multipleImageSectionController.addImages(
+                  label: 'Other Images',
+                  imageList: controller.otherImage,
+                  updateId: CommonMultipleImageSectionController.otherImageId,
+                  maxUploadImages: controller.maxUploadImages,
+                );
+              },
+              onRemoveImage: (index) {
+                multipleImageSectionController.removeImageAt(
+                  imageList: controller.otherImage,
+                  index: index,
+                  updateId: CommonMultipleImageSectionController.otherImageId,
+                );
+              },
+            ),
+          ),
+          SizedBox(height: SizeConfig.size20),
+
+          CustomBtn(
+            title: controller.isAddFlatRentalServiceLoading.value
+                ? null
+                : 'Post Now',
+            onTap: controller.addFlatRentalServiceApi,
+            radius: 10.0,
+            bgColor: AppColors.primaryColor,
+            isLoading: controller.isAddFlatRentalServiceLoading.value,
+          ),
+        ],
       ),
-      children: [
-        // Road Side Images
-        GetBuilder<AddFlatRentalServiceController>(
-          id: AddFlatRentalServiceController.roadSideId,
-          builder: (ctrl) => _imageUploadSection(
-            "Upload Road Side Images",
-            minImages: 2,
-            images: ctrl.roadSideImage,
-            addNewImage: () async {
-              ctrl.addImages(
-                label: 'Road Side Images',
-                imageList: ctrl.roadSideImage,
-                updateId: AddFlatRentalServiceController.roadSideId,
-              );
-            },
-            removeSelectedImage: (index) {
-              ctrl.removeImageAt(
-                imageList: ctrl.roadSideImage,
-                index: index,
-                updateId: AddFlatRentalServiceController.roadSideId,
-              );
-            },
-          ),
-        ),
-        SizedBox(height: SizeConfig.size15),
-
-        // Rooms
-        GetBuilder<AddFlatRentalServiceController>(
-          id: AddFlatRentalServiceController.roomId,
-          builder: (ctrl) => _imageUploadSection(
-            "Upload Rooms Images",
-            minImages: 4,
-            images: ctrl.roomImages,
-            addNewImage: () async {
-              ctrl.addImages(
-                label: 'Rooms Images',
-                imageList: ctrl.roomImages,
-                updateId: AddFlatRentalServiceController.roomId,
-              );
-            },
-            removeSelectedImage: (index) {
-              ctrl.removeImageAt(
-                imageList: ctrl.roomImages,
-                index: index,
-                updateId: AddFlatRentalServiceController.roomId,
-              );
-            },
-          ),
-        ),
-        SizedBox(height: SizeConfig.size15),
-
-        // Kitchen
-        GetBuilder<AddFlatRentalServiceController>(
-          id: AddFlatRentalServiceController.kitchenId,
-          builder: (ctrl) => _imageUploadSection(
-            "Upload Kitchen Images",
-            minImages: 2,
-            images: ctrl.kitchenImage,
-            addNewImage: () async {
-              ctrl.addImages(
-                label: 'Kitchen Images',
-                imageList: ctrl.kitchenImage,
-                updateId: AddFlatRentalServiceController.kitchenId,
-              );
-            },
-            removeSelectedImage: (index) {
-              ctrl.removeImageAt(
-                imageList: ctrl.kitchenImage,
-                index: index,
-                updateId: AddFlatRentalServiceController.kitchenId,
-              );
-            },
-          ),
-        ),
-        SizedBox(height: SizeConfig.size15),
-
-        // Bathroom
-        GetBuilder<AddFlatRentalServiceController>(
-          id: AddFlatRentalServiceController.bathroomId,
-          builder: (ctrl) => _imageUploadSection(
-            "Upload Bathroom Images",
-            minImages: 2,
-            images: ctrl.bathroomImage,
-            addNewImage: () async {
-              ctrl.addImages(
-                label: 'Bathroom Images',
-                imageList: ctrl.bathroomImage,
-                updateId: AddFlatRentalServiceController.bathroomId,
-              );
-            },
-            removeSelectedImage: (index) {
-              ctrl.removeImageAt(
-                imageList: ctrl.bathroomImage,
-                index: index,
-                updateId: AddFlatRentalServiceController.bathroomId,
-              );
-            },
-          ),
-        ),
-        SizedBox(height: SizeConfig.size15),
-
-        // Other
-        GetBuilder<AddFlatRentalServiceController>(
-          id: AddFlatRentalServiceController.otherId,
-          builder: (ctrl) => _imageUploadSection(
-            "Upload Other Images",
-            minImages: 4,
-            images: ctrl.otherImage,
-            isOptional: true,
-            addNewImage: () async {
-              ctrl.addImages(
-                label: 'Other Images(Optional)',
-                imageList: ctrl.otherImage,
-                updateId: AddFlatRentalServiceController.otherId,
-              );
-            },
-            removeSelectedImage: (index) {
-              ctrl.removeImageAt(
-                imageList: ctrl.otherImage,
-                index: index,
-                updateId: AddFlatRentalServiceController.otherId,
-              );
-            },
-          ),
-        ),
-        SizedBox(height: SizeConfig.size20),
-
-        CustomBtn(
-          title: 'Post Now',
-          onTap: controller.submitForm,
-          radius: 10.0,
-          bgColor: AppColors.primaryColor,
-        ),
-      ],
     );
   }
 
-  Widget _imageUploadSection(
-      String title,
-      {
-        List<File>? images,
-        required int minImages,
-        required VoidCallback addNewImage,
-        required Function(int) removeSelectedImage,
-        bool isOptional = false
-      }) {
-    return CustomFormCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: CustomText(
-                    title,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.mainTextColor,
-                    fontWeight: FontWeight.w400,
-                ),
-              ),
-              if(!isOptional)
-              Padding(
-                padding: EdgeInsets.only(left: SizeConfig.size8),
-                child: CustomText("Min-$minImages Images/Max-${controller.maxUploadImages}Images",
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w400
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth;
-              final spacing = SizeConfig.size6;
-              final itemCount = controller.maxUploadImages;
-              final imageList = images ?? [];
-              log('imageList length --> ${imageList.length}');
+  Widget _buildAddHighlightsSection() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            CustomText(
+              'Home Highlights',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w400,
+              color: AppColors.mainTextColor,
+            ),
 
-              // 4 items with equal width and 3 gaps between them
-              final itemWidth = (availableWidth - (spacing * 5)) / 4;
-
-              return SizedBox(
-                height: itemWidth, // square shape
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const NeverScrollableScrollPhysics(), // prevent scroll
-                  padding: EdgeInsets.zero,
-                  itemCount: itemCount,
-                  separatorBuilder: (_, __) => SizedBox(width: spacing),
-                  itemBuilder: (context, index) {
-                    final hasImage = index < imageList.length;
-
-                    return GestureDetector(
-                      onTap: () {
-                        if (!hasImage) addNewImage();
-                      },
-                      child: Container(
-                        width: itemWidth,
-                        height: itemWidth,
-                        decoration: BoxDecoration(
-                          color: AppColors.whiteFE,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.greyE5),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            if (hasImage)
-                              Image.file(imageList[index], fit: BoxFit.cover)
-                            else
-                              const Center(
-                                child: Icon(Icons.photo_outlined,
-                                    color: Colors.grey, size: 28),
-                              ),
-                            if (hasImage)
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: GestureDetector(
-                                  onTap: () => removeSelectedImage(index),
-                                  child: Container(
-                                    width: 22,
-                                    height: 22,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.black54,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.close,
-                                        size: 14, color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
+            if(controller.arrHighlights.isNotEmpty)
+              ...[
+                Spacer(),
+                InkWell(
+                  onTap: ()=> Get.to(()=> AddHighlightsWidget(
+                      initialHighlights: controller.arrHighlights,
+                      onSave: (List<String> highlights) {
+                        controller.addHighlights(highlights);
+                      })),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const LocalAssets(
+                        imagePath: AppIconAssets.addBlueIcon,
                       ),
-                    );
-                  },
+                      CustomText(
+                        'Add More',
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
+                )
+              ]
+
+          ],
+        ),
+        SizedBox(height: SizeConfig.size8),
+        (controller.arrHighlights.isNotEmpty)
+            ? Container(
+          margin: const EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+              color: AppColors.white,
+              boxShadow: [AppShadows.textFieldShadow],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.whiteE5)
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: controller.arrHighlights
+                .map((e) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: SizeConfig.size6,
+                    width: SizeConfig.size6,
+                    decoration: BoxDecoration(
+                        color: AppColors.secondaryTextColor,
+                        shape: BoxShape.circle
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  Expanded(
+                    child: Text(
+                      e,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ))
+                .toList(),
+          ),
+        )
+            : InkWell(
+          onTap: ()=> Get.to(()=> AddHighlightsWidget(
+              initialHighlights: controller.arrHighlights,
+              onSave: (List<String> highlights) {
+                controller.addHighlights(highlights);
+              })),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size14,
+              vertical: SizeConfig.size12,
+            ),
+            decoration: BoxDecoration(
+                color: AppColors.white,
+                boxShadow: [AppShadows.textFieldShadow],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.whiteE5)
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(SizeConfig.size4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.white,
+                    border: Border.all(
+                        color: AppColors.mainTextColor,
+                        width: 2
+                    ),
+                  ),
+                  child: LocalAssets(
+                      imagePath: AppIconAssets.add,
+                      imgColor: AppColors.mainTextColor
+                  ),
                 ),
-              );
-            },
-          )
-        ],
-      ),
+                SizedBox(width: SizeConfig.size6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: CustomText(
+                    'Add Highlights',
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+                Spacer(),
+                Icon(
+                  Icons.chevron_right,
+                  color: AppColors.mainTextColor,
+                )
+              ],
+            ),
+          ),
+        )
+      ],
     );
   }
 }

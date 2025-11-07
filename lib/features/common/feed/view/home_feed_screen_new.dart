@@ -639,7 +639,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             ],
           ),
           SizedBox(height: SizeConfig.size16),
-          HorizontalVideoPlayer(),
+          HorizontalVideoPlayer(
+            isAutoPlay: true,
+          ),
           SizedBox(height: SizeConfig.size16),
           Align(
             alignment: Alignment.bottomRight,

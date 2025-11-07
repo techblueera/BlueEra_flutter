@@ -8,12 +8,9 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_service_upload_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
-import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -54,7 +51,7 @@ class DeliveryPartnerController extends GetxController{
   final aadharController = TextEditingController();
   final panNumberController = TextEditingController();
   int maxLiveUploadImages = 2;
-  static const String livePhotoId = 'livePhotoId';
+
   final RxList<File> livePhoto = <File>[].obs;
   final Rxn<File> aadharFrontImage = Rxn<File>();
   final Rxn<File> aadharBackImage = Rxn<File>();
@@ -70,11 +67,7 @@ class DeliveryPartnerController extends GetxController{
   final Rxn<File> drivingLicenseBackImage = Rxn<File>();
 
   /// step 5
-  static const String vehicleNumberPlateImageId = 'vehicleNumberPlateImageId';
-  static const String vehicleRightSideImageId = 'vehicleRightSideImageId';
-  static const String vehicleLeftSideImageId = 'vehicleLeftSideImageId';
-  static const String vehicleFrontImageId = 'vehicleFrontImageId';
-  static const String vehicleBackImageId = 'vehicleBackImageId';
+
   final RxList<File> vehicleNumberPlateImages = <File>[].obs;
   final RxList<File> vehicleRightSideImages = <File>[].obs;
   final RxList<File> vehicleLeftSideImages = <File>[].obs;
