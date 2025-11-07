@@ -15,6 +15,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
@@ -346,8 +347,8 @@ class BusinessProfileHeader extends StatelessWidget {
                             final newPath = await SelectProfilePictureDialog.showLogoDialog(
                               context,
                               "Edit Cover Picture",
-                              isOnlyCamera: true,
-                              isGallery: true,
+                              cropAspectRatio: CropAspectRatio(width: 3, height: 1)
+                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
                             ).catchError((_) => null);
 
                             if (newPath == null || newPath.isEmpty) {

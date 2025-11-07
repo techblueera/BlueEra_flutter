@@ -1,38 +1,53 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/features/common/rental/repo/rental_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart' as dio;
 
 class AddFlatRentalServiceController extends GetxController {
-  final currentStep = 0.obs;
+  Rx<ApiResponse> addFlatRentalServiceResponse = ApiResponse.initial('Initial').obs;
 
+  final currentStep = 0.obs;
+  final int totalSteps = 2;
+
+  /// Step 1
   final formKeyStep1 = GlobalKey<FormState>();
 
   // Example form data
   final propertyName = TextEditingController();
   final landmark = TextEditingController();
   final location = TextEditingController();
+  final pinCode = TextEditingController();
   final description = TextEditingController();
-  final landlineNumber = TextEditingController();
-  final landlineCode = TextEditingController();
+  // final landlineNumber = TextEditingController();
+  // final landlineCode = TextEditingController();
   final mobile = TextEditingController();
   final charge = TextEditingController();
-  final highlights = TextEditingController();
 
-  ContactType? selectedType = ContactType.Mobile;
+  // ContactType? selectedType = ContactType.Mobile;
   final selectedChargesTypes = Rxn<ChargesTypes>();
 
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
   double longitude = 0.0;
+  RxBool isFetchingAddressDetails = false.obs;
+
 
   final RxList<String> arrHighlights = <String>[].obs;
   RxList<DetailItem> arrMoreDetails = <DetailItem>[].obs;
 
+  /// step 2
   int maxUploadImages = 4;
   final RxList<File> roadSideImage = <File>[].obs;
   final RxList<File> roomImages = <File>[].obs;
@@ -53,29 +68,6 @@ class AddFlatRentalServiceController extends GetxController {
 
   void nextStep() {
     if (formKeyStep1.currentState?.validate() ?? false) {
-      bool isFormValid = false;
-
-      // Validate contact type
-      if (selectedType == ContactType.Mobile) {
-        isFormValid = mobile.text.trim().isNotEmpty;
-        if (!isFormValid) {
-          commonSnackBar(message: 'Please enter your mobile number.');
-          return;
-        }
-      }
-      else if (selectedType == ContactType.Landline) {
-        isFormValid = landlineCode.text.trim().isNotEmpty &&
-            landlineNumber.text.trim().isNotEmpty;
-        if (!isFormValid) {
-          commonSnackBar(message: 'Please enter your landline code and number.');
-          return;
-        }
-      }
-      else {
-        commonSnackBar(message: 'Please select contact type.');
-        return;
-      }
-
       // Validate charges type
       if (selectedChargesTypes.value == null) {
         commonSnackBar(message: 'Please choose charges type.');
@@ -83,13 +75,14 @@ class AddFlatRentalServiceController extends GetxController {
       }
 
       // Move to next step
-      if (currentStep.value < 1) {
+      if (currentStep.value < totalSteps - 1) {
         currentStep.value++;
       }
     } else {
       commonSnackBar(message: 'Please fill all required fields correctly.');
     }
   }
+
 
   void previousStep() {
     if (currentStep.value > 0) currentStep.value--;
@@ -103,21 +96,9 @@ class AddFlatRentalServiceController extends GetxController {
     }
   }
 
-  void addHighlights() {
-    if(arrHighlights.length == 10){
-      commonSnackBar(message: 'You can\'t add more than 10 highlights');
-      return;
-    }
-
-    final text = highlights.text.trim();
-    if (text.isNotEmpty) {
-      arrHighlights.add(text);
-      highlights.clear();
-    }
-  }
-
-  void removeHighlights(String tag) {
-    arrHighlights.remove(tag);
+  void addHighlights(List<String> highlights) {
+    arrHighlights.clear();
+    arrHighlights.value = highlights;
   }
 
   void addDetail(DetailItem detail) {
@@ -127,90 +108,6 @@ class AddFlatRentalServiceController extends GetxController {
   void removeDetail(int index) {
     arrMoreDetails.removeAt(index);
   }
-
-  /// Pick images
-  Future<List<String>?> pickImages(String title) async {
-    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
-      Get.context!,
-      title,
-    );
-    if (selected != null && selected.isNotEmpty) {
-      return selected;
-    }
-    return null;
-  }
-
-  // IDs for GetBuilder updates
-  static const String roadSideId = 'roadSide';
-  static const String roomId = 'room';
-  static const String kitchenId = 'kitchen';
-  static const String bathroomId = 'bathroom';
-  static const String otherId = 'other';
-
-  /// Pick and add images
-  Future<void> addImages({
-    required String label,
-    required List<File> imageList,
-    required String updateId,
-  }) async {
-    final selectedImages = await pickImages(label);
-    if (selectedImages == null || selectedImages.isEmpty) return;
-
-    final newFiles = selectedImages.map((e) => File(e)).toList();
-    final remaining = maxUploadImages - imageList.length;
-    if (remaining <= 0) {
-      commonSnackBar(message: 'You can only upload $maxUploadImages images');
-      return;
-    }
-
-    imageList.addAll(newFiles.take(remaining));
-    update([updateId]);
-  }
-
-  /// Remove image
-  void removeImageAt({
-    required List<File> imageList,
-    required int index,
-    required String updateId,
-  }) {
-    if (index >= 0 && index < imageList.length) {
-      imageList.removeAt(index);
-      update([updateId]);
-    }
-  }
-
-  // final propertyName = TextEditingController();
-  // final landmark = TextEditingController();
-  // final location = TextEditingController();
-  // final description = TextEditingController();
-  // final landlineNumber = TextEditingController();
-  // final landlineCode = TextEditingController();
-  // final mobile = TextEditingController();
-  // final charge = TextEditingController();
-  // final highlights = TextEditingController();
-  //
-  // void validateStep1Form() {
-  //     bool commonValid = propertyName.text.trim().isNotEmpty &&
-  //         fullBusinessAddressTextController.text.trim().isNotEmpty &&
-  //         nameTextController.text.trim().isNotEmpty &&
-  //         yourRoleController.text.trim().isNotEmpty &&
-  //         viewBusinessDetailsController.businessDescription.value
-  //             .trim()
-  //             .isNotEmpty &&
-  //         picCodeController.text.trim().isNotEmpty &&
-  //         emailTextController.text.trim().isNotEmpty;
-  //
-  //     // Type-specific validation
-  //     if (selectedType == ContactType.Mobile) {
-  //       isFormValid = commonValid && mobileController.text.trim().isNotEmpty;
-  //     } else if (selectedType == ContactType.Landline) {
-  //       isFormValid = commonValid &&
-  //           landlineCodeController.text.trim().isNotEmpty &&
-  //           landlineNumberController.text.trim().isNotEmpty;
-  //     } else {
-  //       isFormValid = false;
-  //     }
-  // }
 
   bool validateBeforePost() {
     final errors = <String>[];
@@ -234,14 +131,84 @@ class AddFlatRentalServiceController extends GetxController {
       return false;
     }
 
-    // call api
     return true;
   }
 
+  RxBool isAddFlatRentalServiceLoading = false.obs;
 
-  void submitForm() {
-    if(!validateBeforePost()) return;
+  Future<void> addFlatRentalServiceApi() async {
+     if(!validateBeforePost()) return;
 
-    print('Submitting form...');
-  }
+      try {
+        isAddFlatRentalServiceLoading.value = true;
+
+        List<dio.MultipartFile> roadsideParts = [];
+        List<dio.MultipartFile> roomParts = [];
+        List<dio.MultipartFile> kitchenParts = [];
+        List<dio.MultipartFile> bathroomParts = [];
+        List<dio.MultipartFile> otherParts = [];
+
+        if (roadSideImage.isNotEmpty) {
+          roadsideParts = await multiPartMultipleImages(arrImages: roadSideImage);
+        }
+        if (roomImages.isNotEmpty) {
+          roomParts = await multiPartMultipleImages(arrImages: roomImages);
+        }
+        if (kitchenImage.isNotEmpty) {
+          kitchenParts = await multiPartMultipleImages(arrImages: kitchenImage);
+        }
+        if (bathroomImage.isNotEmpty) {
+          bathroomParts = await multiPartMultipleImages(arrImages: bathroomImage);
+        }
+        if (otherImage.isNotEmpty) {
+          otherParts = await multiPartMultipleImages(arrImages: otherImage);
+        }
+
+        Map<String, dynamic> params = {
+          ApiKeys.type: 'Property',
+          ApiKeys.name: propertyName.text,
+          ApiKeys.landmark: landmark.text,
+          ApiKeys.address: location.text,
+          ApiKeys.lat : latitude,
+          ApiKeys.lng: longitude,
+          ApiKeys.pincode: '342019',
+          // ApiKeys.pincode: pinCode.text,
+          ApiKeys.description: description.text,
+          ApiKeys.contactNumber: mobile.text,
+          ApiKeys.priceUnit: selectedChargesTypes.value?.label,
+          ApiKeys.price: charge.text,
+          if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
+          if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
+          if(roadsideParts.isNotEmpty) ApiKeys.roadImages: roadsideParts,
+          if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
+          if(kitchenParts.isNotEmpty) ApiKeys.kitchenImages: kitchenParts,
+          if(bathroomParts.isNotEmpty) ApiKeys.bathroomImages: bathroomParts,
+          if(otherParts.isNotEmpty) ApiKeys.otherImages: otherParts,
+        };
+
+        ResponseModel response = await RentalServiceRepo().addRentalServiceRepo(
+          params: params,
+        );
+
+        if (response.isSuccess) {
+          addFlatRentalServiceResponse.value = ApiResponse.complete(response);
+          Get.until(
+                (route) =>
+            route.settings.name ==
+                RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+          );
+        } else {
+          addFlatRentalServiceResponse.value = ApiResponse.error('error');
+        }
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      } catch (e) {
+        addFlatRentalServiceResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }finally{
+        isAddFlatRentalServiceLoading.value = false;
+      }
+    }
+
 }
+

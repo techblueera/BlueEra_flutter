@@ -1,19 +1,15 @@
 import 'dart:developer';
-import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get_thumbnail_video/index.dart';
-import 'package:get_thumbnail_video/video_thumbnail.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class HorizontalVideoPlayer extends StatefulWidget {
-  const HorizontalVideoPlayer({super.key});
+  final bool isAutoPlay;
+  const HorizontalVideoPlayer({super.key, this.isAutoPlay = false});
 
   @override
   State<HorizontalVideoPlayer> createState() => _HorizontalVideoPlayerState();
@@ -23,13 +19,9 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     with WidgetsBindingObserver {
   final PageController _pageController = PageController(viewportFraction: 1.0);
 
-  final List<String> videoUrls = [
-    'assets/video/earn_with_blue_era_video.mp4'
-  ];
-
-  // Optional: Add thumbnail paths (same order as videoUrls)
+  final List<String> videoUrls = ['assets/video/earn_with_blue_era_video.mp4'];
   final List<String> thumbnailUrls = [
-    AppImageAssets.earnWithBlueeraVideoThumbnail // Add your thumbnail image
+    AppImageAssets.earnWithBlueeraVideoThumbnail
   ];
 
   VideoPlayerController? _controller;
@@ -56,24 +48,18 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      log('App going to background - disposing controller');
-      _disposeController();
-      if (mounted) setState(() {});
+      log('App background → pause video');
+      _pauseVideo();
     } else if (state == AppLifecycleState.resumed) {
-      log('App resumed - reinitializing if visible');
-      if (_isVisible && !_isUserPaused) {
-        _initializeController(videoUrls[_currentPage]);
-      }
+      log('App resumed → maybe resume video');
+      if (_isVisible && !_isUserPaused) _playVideo();
     }
   }
 
-  Future<void> _initializeController(String url) async {
-    // Dispose old controller first
-    _controller?.dispose();
+  Future<void> _initializeController(String path) async {
+    _disposeController();
 
     final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
     log('Current route active: $isCurrentRoute');
@@ -83,57 +69,61 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
       return;
     }
 
-    _controller = VideoPlayerController.asset(url);
+    _controller = VideoPlayerController.asset(path);
 
     try {
       await _controller!.initialize();
       _controller!.setLooping(true);
+      _controller!.addListener(_onVideoControllerUpdated);
 
-      // Only play if visible and user hasn't paused
-      if (!_isUserPaused && _isVisible && mounted) {
-        log('Auto-playing video');
+      if (widget.isAutoPlay && _isVisible && !_isUserPaused) {
         _controller!.play();
-      } else {
-        log('Not auto-playing - userPaused: $_isUserPaused, visible: $_isVisible');
       }
 
       if (mounted) setState(() {});
     } catch (e) {
-      log('Error initializing video: $e');
+      log('Video init failed: $e');
     }
+  }
+
+  void _onVideoControllerUpdated() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _disposeController() {
-    if (_controller != null) {
-      log('Disposing controller completely');
-      _controller!.pause();
-      _controller!.dispose();
-      _controller = null;
-    }
+    _controller?.pause();
+    _controller?.dispose();
+    _controller = null;
   }
 
-  void _onPlayPause() {
+  void _pauseVideo() {
+    if (_controller?.value.isPlaying ?? false) _controller?.pause();
+  }
+
+  void _playVideo() {
+    if (!(_controller?.value.isPlaying ?? true)) _controller?.play();
+  }
+
+  void _togglePlayPause() {
     if (_controller == null) {
-      // Controller was disposed, reinitialize it
       _isUserPaused = false;
       _initializeController(videoUrls[_currentPage]);
       return;
     }
 
-    setState(() {
-      if (_controller!.value.isPlaying) {
-        log('User paused video');
-        _controller!.pause();
-        _isUserPaused = true;
-      } else {
-        log('User resumed video');
-        _controller!.play();
-        _isUserPaused = false;
-      }
-    });
+    if (_controller!.value.isPlaying) {
+      _pauseVideo();
+      _isUserPaused = true;
+    } else {
+      _playVideo();
+      _isUserPaused = false;
+    }
+
+    setState(() {});
   }
 
-  void _onPreviousVideo() {
+  void _goToPrevious() {
     if (_currentPage > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -142,7 +132,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     }
   }
 
-  void _onNextVideo() {
+  void _goToNext() {
     if (_currentPage < videoUrls.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -153,31 +143,19 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   @override
   Widget build(BuildContext context) {
-    final controller = _controller;
-
     return VisibilityDetector(
       key: Key('HorizontalVideoPlayer_${identityHashCode(this)}'),
       onVisibilityChanged: (info) {
         final visibleFraction = info.visibleFraction;
-
-        log('Visibility: ${(visibleFraction * 100).toStringAsFixed(0)}%');
-
+        final wasVisible = _isVisible;
         _isVisible = visibleFraction >= 0.5;
 
-        if (visibleFraction < 0.5) {
-          // Destroy the controller when not visible
-          if (_controller != null) {
-            log('Widget < 50% visible - DESTROYING controller');
-            _disposeController();
-            if (!mounted) return;
-            setState(() {});
-          }
-        } else {
-          // Recreate the controller when visible again
-          if (_controller == null && !_isUserPaused) {
-            log('Widget >= 50% visible - RECREATING controller');
-            _initializeController(videoUrls[_currentPage]);
-          }
+        if (!wasVisible && _isVisible && !_isUserPaused) {
+          log('Video became visible → resume');
+          _playVideo();
+        } else if (wasVisible && !_isVisible) {
+          log('Video became hidden → pause');
+          _pauseVideo();
         }
       },
       child: AspectRatio(
@@ -187,131 +165,38 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
           scrollDirection: Axis.horizontal,
           itemCount: videoUrls.length,
           onPageChanged: (index) async {
-            log('Page changed to: $index');
             _currentPage = index;
             _isUserPaused = false;
             await _initializeController(videoUrls[index]);
           },
           itemBuilder: (context, index) {
             final isCurrent = index == _currentPage;
+            final controller = _controller;
+
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: isCurrent ? _onPlayPause : null,
+              onTap: isCurrent ? _togglePlayPause : null,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Thumbnail (shown when video is not initialized)
-                  if (isCurrent && (controller == null || !controller.value.isInitialized))
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child:    // Show thumbnail image
-                        LocalAssets(
-                          imagePath: thumbnailUrls[index],
-                          boxFix: BoxFit.cover,
-                        ),
-                      ),
-                    ),
+                  // --- Thumbnail (before load) ---
+                  if (isCurrent &&
+                      (controller == null || !controller.value.isInitialized))
+                    _buildThumbnail(thumbnailUrls[index]),
 
-                  // Video player (shown when initialized)
-                  if (isCurrent && controller != null && controller.value.isInitialized)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: VideoPlayer(controller),
-                      ),
-                    ),
+                  // --- Video player ---
+                  if (isCurrent &&
+                      controller != null &&
+                      controller.value.isInitialized)
+                    _buildVideo(controller),
 
-                  // Fallback for non-current pages
-                  if (!isCurrent)
-                    Container(
-                      color: Colors.black12,
-                    ),
+                  if (!isCurrent) _buildDimmedBackground(),
 
-                  // Play/Pause overlay button
-                  if (isCurrent)
-                    GestureDetector(
-                      child: AnimatedOpacity(
-                        opacity: (controller?.value.isPlaying ?? false) ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 200),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20.0),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.black45,
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(12),
-                              child: Icon(
-                                (controller?.value.isPlaying ?? false)
-                                    ? Icons.pause
-                                    : Icons.play_arrow,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  // --- Play overlay button ---
+                  if (isCurrent) _buildPlayPauseOverlay(controller),
 
-                  // Previous button
-                  if (videoUrls.length > 1)
-                    Positioned(
-                      left: 8,
-                      child: GestureDetector(
-                        onTap: _onPreviousVideo,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.black.withValues(alpha: 0.55),
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.chevron_left,
-                                color: AppColors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Next button
-                  if (videoUrls.length > 1)
-                    Positioned(
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: _onNextVideo,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.black.withValues(alpha: 0.55),
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.chevron_right,
-                                color: AppColors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  // --- Navigation buttons ---
+                  if (videoUrls.length > 1) _buildNavigationButtons(),
                 ],
               ),
             );
@@ -321,4 +206,73 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     );
   }
 
+  Widget _buildThumbnail(String thumbnail) => ClipRRect(
+    borderRadius: BorderRadius.circular(10),
+    child: LocalAssets(imagePath: thumbnail, boxFix: BoxFit.cover),
+  );
+
+  Widget _buildVideo(VideoPlayerController controller) => ClipRRect(
+    borderRadius: BorderRadius.circular(10),
+    child: VideoPlayer(controller),
+  );
+
+  Widget _buildDimmedBackground() =>
+      Container(color: Colors.black12, width: double.infinity, height: double.infinity);
+
+  Widget _buildPlayPauseOverlay(VideoPlayerController? controller) {
+    final isPlaying = controller?.value.isPlaying ?? false;
+    return AnimatedOpacity(
+      opacity: isPlaying ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.0),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.black45,
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Icon(
+              isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationButtons() => Stack(
+    children: [
+      Positioned(
+        left: 8,
+        child: _navButton(Icons.chevron_left, _goToPrevious),
+      ),
+      Positioned(
+        right: 8,
+        child: _navButton(Icons.chevron_right, _goToNext),
+      ),
+    ],
+  );
+
+  Widget _navButton(IconData icon, VoidCallback onTap) => GestureDetector(
+    onTap: onTap,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.black.withValues(alpha: 0.55),
+            shape: BoxShape.circle,
+          ),
+          padding: const EdgeInsets.all(6),
+          child: Icon(icon, color: AppColors.white, size: 20),
+        ),
+      ),
+    ),
+  );
 }

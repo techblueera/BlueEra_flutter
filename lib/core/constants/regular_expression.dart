@@ -298,8 +298,23 @@ class ValidationMethod {
     return null;
   }
 
+  String? validatePropertyDescription(String? value) {
+    if (value == null || value.isEmpty) return 'Property description is required';
+    if (value.length <= 20) return 'Property description name must be at least 20 characters';
+    return null;
+  }
 
+  String? validateHomeStayDescription(String? value) {
+    if (value == null || value.isEmpty) return 'House description is required';
+    if (value.length <= 20) return 'House description must be at least 20 characters';
+    return null;
+  }
 
+  String? validateVehicleDescription(String? value) {
+    if (value == null || value.isEmpty) return 'Vehicle description is required';
+    if (value.length <= 20) return 'Vehicle description must be at least 20 characters';
+    return null;
+  }
 
 }
 

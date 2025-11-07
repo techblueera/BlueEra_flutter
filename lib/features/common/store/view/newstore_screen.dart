@@ -574,12 +574,20 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
         );
 
       case StoreType.business:
-        final businessId = first.businessData?.id ?? '';
+        final businessData = first.businessData;
+
+        // skip rendering if no valid live photos
+        if (businessData?.livePhotos == null ||
+            businessData!.livePhotos!.isEmpty ||
+            !businessData.livePhotos!.any((p) => p.trim().isNotEmpty)) {
+          return const SizedBox.shrink();
+        }
+
+        final businessId = businessData.id ?? '';
 
         return VisibilityDetector(
           key: Key('business_$businessId'),
           onVisibilityChanged: (info) {
-            // Trigger API when 50% or more of the card is visible
             if (info.visibleFraction >= 0.5 && businessId.isNotEmpty) {
               trackBusinessStoreView(businessId);
             }
@@ -588,7 +596,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
             padding: padding,
             child: BusinessStoreCard(
               ds: ds,
-              getAllStoreResData: first.businessData ?? GetAllStoreResModel(),
+              getAllStoreResData: businessData,
             ),
           ),
         );

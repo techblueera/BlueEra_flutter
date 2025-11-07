@@ -43,25 +43,25 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
           child: Column(
             children: [
               /// vehicleNumberPlateImages
-              GetBuilder<DeliveryPartnerController>(
-                id: DeliveryPartnerController.vehicleNumberPlateImageId,
+              GetBuilder<CommonMultipleImageSectionController>(
+                id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Number Plate Image',
                   maxImages: 1,
-                  images: ctrl.vehicleNumberPlateImages,
+                  images: controller.vehicleNumberPlateImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
                         label: 'Vehicle Number Plate Images',
-                        imageList: ctrl.vehicleNumberPlateImages,
-                        updateId: DeliveryPartnerController.vehicleNumberPlateImageId,
+                        imageList: controller.vehicleNumberPlateImages,
+                        updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                         maxUploadImages: 1
                     );
                   },
                   onRemoveImage: (index) {
                     multipleImageSectionController.removeImageAt(
-                      imageList: ctrl.vehicleNumberPlateImages,
+                      imageList: controller.vehicleNumberPlateImages,
                       index: index,
-                      updateId: DeliveryPartnerController.vehicleNumberPlateImageId,
+                      updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                     );
                   },
                 ),
@@ -69,26 +69,26 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               SizedBox(height: SizeConfig.paddingM),
 
               /// vehicleRightSideImageId
-              GetBuilder<DeliveryPartnerController>(
-                id: DeliveryPartnerController.vehicleRightSideImageId,
+              GetBuilder<CommonMultipleImageSectionController>(
+                id: CommonMultipleImageSectionController.vehicleRightSideImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Right Side Images',
                   minImages: 2,
                   maxImages: controller.maxVehicleImageUpload,
-                  images: ctrl.vehicleRightSideImages,
+                  images: controller.vehicleRightSideImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
                         label: 'Vehicle Right Side Images',
-                        imageList: ctrl.vehicleRightSideImages,
-                        updateId: DeliveryPartnerController.vehicleRightSideImageId,
+                        imageList: controller.vehicleRightSideImages,
+                        updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
                         maxUploadImages: controller.maxVehicleImageUpload
                     );
                   },
                   onRemoveImage: (index) {
                     multipleImageSectionController.removeImageAt(
-                      imageList: ctrl.vehicleRightSideImages,
+                      imageList: controller.vehicleRightSideImages,
                       index: index,
-                      updateId: DeliveryPartnerController.vehicleRightSideImageId,
+                      updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
                     );
                   },
                 ),
@@ -96,26 +96,26 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               SizedBox(height: SizeConfig.paddingM),
 
               /// vehicleLeftSideImageId
-              GetBuilder<DeliveryPartnerController>(
-                id: DeliveryPartnerController.vehicleLeftSideImageId,
+              GetBuilder<CommonMultipleImageSectionController>(
+                id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Left Side Images',
                   minImages: 2,
                   maxImages: controller.maxVehicleImageUpload,
-                  images: ctrl.vehicleLeftSideImages,
+                  images: controller.vehicleLeftSideImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
                         label: 'Upload Vehicle Left Side Images',
-                        imageList: ctrl.vehicleLeftSideImages,
-                        updateId: DeliveryPartnerController.vehicleLeftSideImageId,
+                        imageList: controller.vehicleLeftSideImages,
+                        updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                         maxUploadImages: controller.maxVehicleImageUpload
                     );
                   },
                   onRemoveImage: (index) {
                     multipleImageSectionController.removeImageAt(
-                      imageList: ctrl.vehicleLeftSideImages,
+                      imageList: controller.vehicleLeftSideImages,
                       index: index,
-                      updateId: DeliveryPartnerController.vehicleLeftSideImageId,
+                      updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                     );
                   },
                 ),
@@ -123,25 +123,25 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               SizedBox(height: SizeConfig.paddingM),
 
               /// vehicleFrontImages
-              GetBuilder<DeliveryPartnerController>(
-                id: DeliveryPartnerController.vehicleFrontImageId,
+              GetBuilder<CommonMultipleImageSectionController>(
+                id: CommonMultipleImageSectionController.vehicleFrontImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Front and Back Images',
                   maxImages: 1,
-                  images: ctrl.vehicleFrontImages,
+                  images: controller.vehicleFrontImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
                         label: 'Vehicle Front and Back Images',
-                        imageList: ctrl.vehicleFrontImages,
-                        updateId: DeliveryPartnerController.vehicleFrontImageId,
+                        imageList: controller.vehicleFrontImages,
+                        updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
                         maxUploadImages: 1
                     );
                   },
                   onRemoveImage: (index) {
                     multipleImageSectionController.removeImageAt(
-                      imageList: ctrl.vehicleFrontImages,
+                      imageList: controller.vehicleFrontImages,
                       index: index,
-                      updateId: DeliveryPartnerController.vehicleFrontImageId,
+                      updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
                     );
                   },
                 ),
@@ -149,25 +149,25 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               SizedBox(height: SizeConfig.paddingM),
 
               /// vehicleBackImages
-              GetBuilder<DeliveryPartnerController>(
-                id: DeliveryPartnerController.vehicleBackImageId,
+              GetBuilder<CommonMultipleImageSectionController>(
+                id: CommonMultipleImageSectionController.vehicleBackImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
                   title: 'Upload Vehicle Front and Back Images',
                   maxImages: 1,
-                  images: ctrl.vehicleBackImages,
+                  images: controller.vehicleBackImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
                         label: 'Vehicle Front and Back Images',
-                        imageList: ctrl.vehicleBackImages,
-                        updateId: DeliveryPartnerController.vehicleBackImageId,
+                        imageList: controller.vehicleBackImages,
+                        updateId: CommonMultipleImageSectionController.vehicleBackImageId,
                         maxUploadImages: 1
                     );
                   },
                   onRemoveImage: (index) {
                     multipleImageSectionController.removeImageAt(
-                      imageList: ctrl.vehicleBackImages,
+                      imageList: controller.vehicleBackImages,
                       index: index,
-                      updateId: DeliveryPartnerController.vehicleBackImageId,
+                      updateId: CommonMultipleImageSectionController.vehicleBackImageId,
                     );
                   },
                 ),

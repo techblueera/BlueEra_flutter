@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -13,8 +12,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
-import 'package:BlueEra/features/common/rental/controller/home_stay_rental_service_controller.dart';
 import 'package:BlueEra/features/common/rental/controller/vehicle_rental_service_controller.dart';
+import 'package:BlueEra/features/common/rental/widget/add_highlights_widget.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
@@ -98,7 +97,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
         controller.onBackPressed();
       },
-      child: Scaffold(
+      child: Obx(()=> Scaffold(
         appBar: CommonBackAppBar(
           title: controller.currentStep.value == 0
               ? "Owner Details" :
@@ -109,8 +108,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                                 : controller.currentStep.value == 3
                                   ? "Rental Information" : "Vehicle  Images ",
           onBackTap: controller.previousStep,
-          buildCustomWidget: ()=>
-              Obx(() => Padding(
+          buildCustomWidget: ()=> Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Center(
                   child: Text(
@@ -118,24 +116,27 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
-              )),
+              ),
         ),
-        body: Obx(() {
-          switch (controller.currentStep.value) {
-            case 0:
-              return _buildStepOne();
-            case 1:
-              return _buildStepTwo();
-            case 2:
-              return _buildStepThree();
-            case 3:
-              return _buildStepFour();
-            case 4:
-              return _buildStepFive();
-            default:
-              return const SizedBox();
-          }
-        }),
+        body: SafeArea(
+          child: Obx(() {
+            switch (controller.currentStep.value) {
+              case 0:
+                return _buildStepOne();
+              case 1:
+                return _buildStepTwo();
+              case 2:
+                return _buildStepThree();
+              case 3:
+                return _buildStepFour();
+              case 4:
+                return _buildStepFive();
+              default:
+                return const SizedBox();
+            }
+          }),
+        ),
+       )
       ),
     );
   }
@@ -228,13 +229,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                         hintText: langController.tr('Enter your mobile number'),
                         hintStyle: TextStyle(
                           fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
-                        ),                          onTapOutsideTrue: false,
-                        validator: (value) {
-                          if (value?.length != 10) {
-                            return langController.tr('Please enter valid mobile number');
-                          }
-                          return null;
-                        },
+                        ),
+                        onTapOutsideTrue: false,
                       ),
                     ),
                   ],
@@ -375,7 +371,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 SizedBox(height: SizeConfig.paddingL),
                 CustomBtn(
                   title: 'Next',
-                  onTap: controller.nextStep,
+                  onTap: controller.validateStepOne,
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,
                 ),
@@ -572,7 +568,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 SizedBox(height: SizeConfig.paddingL),
                 CustomBtn(
                   title: 'Next',
-                  onTap: controller.nextStep,
+                  onTap: controller.validateStepTwo,
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,
                 ),
@@ -720,7 +716,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   title: "Vehicle Condition Description",
                   regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                   hintText: "E.g. Good Condition...",
-                  isValidate: true,
+                  validator: ValidationMethod().validateVehicleDescription,
                   maxLine: 3,
                   maxLength: 200,
                 ),
@@ -779,6 +775,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                                 controller.selectedChargesTypes.value = val;
                               }
                             },
+                              validator: (value){
+                                if(value==null){
+                                  return 'Please select charges type.';
+                                }
+                                return null;
+                              }
                           ),
                         ),
                         SizedBox(width: SizeConfig.size8),
@@ -796,37 +798,49 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: CommonLocationSearchField(
-                            controller: controller.pickUpLocationCtrl,
-                            title: "Pickup Location",
-                            hintText: "E.g. Subhas Palli, Gomti Nagar, luckn....",
-                            onSelected: (placeId, lat, lng, address) async {
-                              print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
-                              controller.pickUpLocationCtrl.text = address;
-                              controller.pickUpLocationAddress.value = address;
-                              controller.pickUpLocationLongitude = lat;
-                              controller.longitude = lng;
-
-                            },
-                          ),
-                        ),
-
-                        if(controller.currentAddress.isNotEmpty)
-                          Padding(
-                            padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
-                            child: (controller.isFetchingAddressDetails.value) ?
-                            SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
-                          )
-                      ],
+                    CommonLocationSearchField(
+                      controller: controller.pickUpLocationCtrl,
+                      title: "Pickup Location",
+                      hintText: "E.g. Subhas Palli, Gomti Nagar, luckn....",
+                      onSelected: (placeId, lat, lng, address) async {
+                        print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                        controller.pickUpLocationCtrl.text = address;
+                        controller.pickUpLocationAddress.value = address;
+                        controller.pickUpLocationLatitude = lat;
+                        controller.pickUpLocationLongitude = lng;
+                      },
                     ),
+
+                    // Row(
+                    //   crossAxisAlignment: CrossAxisAlignment.center,
+                    //   children: [
+                    //     Expanded(
+                    //       child: CommonLocationSearchField(
+                    //         controller: controller.pickUpLocationCtrl,
+                    //         title: "Pickup Location",
+                    //         hintText: "E.g. Subhas Palli, Gomti Nagar, luckn....",
+                    //         onSelected: (placeId, lat, lng, address) async {
+                    //           print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                    //           controller.pickUpLocationCtrl.text = address;
+                    //           controller.pickUpLocationAddress.value = address;
+                    //               controller.pickUpLocationLatitude = lat;
+                    //               controller.pickUpLocationLongitude = lng;
+                    //         },
+                    //       ),
+                    //     ),
+                    //
+                    //     if(controller.currentAddress.isNotEmpty)
+                    //       Padding(
+                    //         padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
+                    //         child: (controller.isFetchingAddressDetails.value) ?
+                    //         SizedBox(
+                    //           height: 20,
+                    //           width: 20,
+                    //           child: CircularProgressIndicator(strokeWidth: 2),
+                    //         ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
+                    //       )
+                    //   ],
+                    // ),
 
                   ],
                 ),
@@ -837,24 +851,24 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
               CustomFormCard(
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start  ,
-                        children: [
-                          const LocalAssets(
-                            imagePath: AppIconAssets.addBlueIcon,
-                          ),
-                          CustomText(
-                            'Add Restrictions',
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.primaryColor,
-                          ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.start  ,
+                      //   children: [
+                      //     const LocalAssets(
+                      //       imagePath: AppIconAssets.addBlueIcon,
+                      //     ),
+                      //     CustomText(
+                      //       'Add Restrictions',
+                      //       fontSize: SizeConfig.large,
+                      //       fontWeight: FontWeight.w400,
+                      //       color: AppColors.primaryColor,
+                      //     ),
+                      //
+                      //   ],
+                      // ),
+                      // SizedBox(height: SizeConfig.paddingM),
 
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.paddingM),
-
-                      _buildHighlightsSection(),
+                      _buildAddHighlightsSection(),
 
                       SizedBox(height: SizeConfig.paddingL),
 
@@ -875,256 +889,297 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
   // ---------------- STEP 5 ----------------
   Widget _buildStepFive() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        left: SizeConfig.size15,
-        right: SizeConfig.size15,
-        top: SizeConfig.size15,
-        bottom: SizeConfig.size40,
-      ),
-      child: Column(
-        children: [
-          /// vehicleNumberPlateImages
-          GetBuilder<VehicleRentalServiceController>(
-            id: VehicleRentalServiceController.vehicleNumberPlateImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Vehicle Number Plate Image',
-              maxImages: 1,
-              images: ctrl.vehicleNumberPlateImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                    label: 'Vehicle Number Plate Images',
-                    imageList: ctrl.vehicleNumberPlateImages,
-                    updateId: VehicleRentalServiceController.vehicleNumberPlateImageId,
-                    maxUploadImages: 1
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: ctrl.vehicleNumberPlateImages,
-                  index: index,
-                  updateId: VehicleRentalServiceController.vehicleNumberPlateImageId,
-                );
-              },
+    return AbsorbPointer(
+      absorbing: controller.isVehicleRentalServiceLoading.value,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: SizeConfig.size15,
+          right: SizeConfig.size15,
+          top: SizeConfig.size15,
+          bottom: SizeConfig.size40,
+        ),
+        child: Column(
+          children: [
+            /// vehicleNumberPlateImages
+            GetBuilder<CommonMultipleImageSectionController>(
+              id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+              builder: (ctrl) => CommonMultipleImageUploadSection(
+                title: 'Upload Vehicle Number Plate Image',
+                maxImages: 1,
+                images: controller.vehicleNumberPlateImages,
+                onAddImage: () async {
+                  multipleImageSectionController.addImages(
+                      label: 'Vehicle Number Plate Images',
+                      imageList: controller.vehicleNumberPlateImages,
+                      updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                      maxUploadImages: 1
+                  );
+                },
+                onRemoveImage: (index) {
+                  multipleImageSectionController.removeImageAt(
+                    imageList: controller.vehicleNumberPlateImages,
+                    index: index,
+                    updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                  );
+                },
+              ),
             ),
-          ),
-          SizedBox(height: SizeConfig.paddingM),
+            SizedBox(height: SizeConfig.paddingM),
 
-          /// vehicleRightSideImageId
-          GetBuilder<VehicleRentalServiceController>(
-            id: VehicleRentalServiceController.vehicleRightSideImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Vehicle Right Side Images',
-              minImages: 2,
-              maxImages: controller.maxVehicleImageUpload,
-              images: ctrl.vehicleRightSideImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                    label: 'Vehicle Right Side Images',
-                    imageList: ctrl.vehicleRightSideImages,
-                    updateId: VehicleRentalServiceController.vehicleRightSideImageId,
-                    maxUploadImages: controller.maxVehicleImageUpload
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: ctrl.vehicleRightSideImages,
-                  index: index,
-                  updateId: VehicleRentalServiceController.vehicleRightSideImageId,
-                );
-              },
+            /// vehicleRightSideImageId
+            GetBuilder<CommonMultipleImageSectionController>(
+              id: CommonMultipleImageSectionController.vehicleRightSideImageId,
+              builder: (ctrl) => CommonMultipleImageUploadSection(
+                title: 'Upload Vehicle Right Side Images',
+                minImages: 2,
+                maxImages: controller.maxVehicleImageUpload,
+                images: controller.vehicleRightSideImages,
+                onAddImage: () async {
+                  multipleImageSectionController.addImages(
+                      label: 'Vehicle Right Side Images',
+                      imageList: controller.vehicleRightSideImages,
+                      updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                      maxUploadImages: controller.maxVehicleImageUpload
+                  );
+                },
+                onRemoveImage: (index) {
+                  multipleImageSectionController.removeImageAt(
+                    imageList: controller.vehicleRightSideImages,
+                    index: index,
+                    updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                  );
+                },
+              ),
             ),
-          ),
-          SizedBox(height: SizeConfig.paddingM),
+            SizedBox(height: SizeConfig.paddingM),
 
-          /// vehicleLeftSideImageId
-          GetBuilder<VehicleRentalServiceController>(
-            id: VehicleRentalServiceController.vehicleLeftSideImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Vehicle Left Side Images',
-              minImages: 2,
-              maxImages: controller.maxVehicleImageUpload,
-              images: ctrl.vehicleLeftSideImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                    label: 'Upload Vehicle Left Side Images',
-                    imageList: ctrl.vehicleLeftSideImages,
-                    updateId: VehicleRentalServiceController.vehicleLeftSideImageId,
-                    maxUploadImages: controller.maxVehicleImageUpload
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: ctrl.vehicleLeftSideImages,
-                  index: index,
-                  updateId: VehicleRentalServiceController.vehicleLeftSideImageId,
-                );
-              },
+            /// vehicleLeftSideImageId
+            GetBuilder<CommonMultipleImageSectionController>(
+              id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+              builder: (ctrl) => CommonMultipleImageUploadSection(
+                title: 'Upload Vehicle Left Side Images',
+                minImages: 2,
+                maxImages: controller.maxVehicleImageUpload,
+                images: controller.vehicleLeftSideImages,
+                onAddImage: () async {
+                  multipleImageSectionController.addImages(
+                      label: 'Upload Vehicle Left Side Images',
+                      imageList: controller.vehicleLeftSideImages,
+                      updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                      maxUploadImages: controller.maxVehicleImageUpload
+                  );
+                },
+                onRemoveImage: (index) {
+                  multipleImageSectionController.removeImageAt(
+                    imageList: controller.vehicleLeftSideImages,
+                    index: index,
+                    updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                  );
+                },
+              ),
             ),
-          ),
-          SizedBox(height: SizeConfig.paddingM),
+            SizedBox(height: SizeConfig.paddingM),
 
-          /// vehicleFrontImages
-          GetBuilder<VehicleRentalServiceController>(
-            id: VehicleRentalServiceController.vehicleFrontImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Vehicle Front and Back Images',
-              maxImages: 1,
-              images: ctrl.vehicleFrontImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                    label: 'Vehicle Front and Back Images',
-                    imageList: ctrl.vehicleFrontImages,
-                    updateId: VehicleRentalServiceController.vehicleFrontImageId,
-                    maxUploadImages: 1
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: ctrl.vehicleFrontImages,
-                  index: index,
-                  updateId: VehicleRentalServiceController.vehicleFrontImageId,
-                );
-              },
+            /// vehicleFrontImages
+            GetBuilder<CommonMultipleImageSectionController>(
+              id: CommonMultipleImageSectionController.vehicleFrontImageId,
+              builder: (ctrl) => CommonMultipleImageUploadSection(
+                title: 'Upload Vehicle Front and Back Images',
+                maxImages: 2,
+                images: controller.vehicleFrontImages,
+                onAddImage: () async {
+                  multipleImageSectionController.addImages(
+                      label: 'Vehicle Front and Back Images',
+                      imageList: controller.vehicleFrontImages,
+                      updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
+                      maxUploadImages: 1
+                  );
+                },
+                onRemoveImage: (index) {
+                  multipleImageSectionController.removeImageAt(
+                    imageList: controller.vehicleFrontImages,
+                    index: index,
+                    updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
+                  );
+                },
+              ),
             ),
-          ),
-          SizedBox(height: SizeConfig.paddingM),
+            SizedBox(height: SizeConfig.paddingM),
 
-          /// vehicleBackImages
-          GetBuilder<VehicleRentalServiceController>(
-            id: VehicleRentalServiceController.vehicleBackImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Vehicle Front and Back Images',
-              maxImages: 1,
-              images: ctrl.vehicleBackImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                    label: 'Vehicle Front and Back Images',
-                    imageList: ctrl.vehicleBackImages,
-                    updateId: VehicleRentalServiceController.vehicleBackImageId,
-                    maxUploadImages: 1
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: ctrl.vehicleBackImages,
-                  index: index,
-                  updateId: VehicleRentalServiceController.vehicleBackImageId,
-                );
-              },
+            /// vehicleBackImages
+            GetBuilder<CommonMultipleImageSectionController>(
+              id: CommonMultipleImageSectionController.vehicleBackImageId,
+              builder: (ctrl) => CommonMultipleImageUploadSection(
+                title: 'Upload Vehicle Front and Back Images',
+                maxImages: 2,
+                images: controller.vehicleBackImages,
+                onAddImage: () async {
+                  multipleImageSectionController.addImages(
+                      label: 'Vehicle Front and Back Images',
+                      imageList: controller.vehicleBackImages,
+                      updateId: CommonMultipleImageSectionController.vehicleBackImageId,
+                      maxUploadImages: 1
+                  );
+                },
+                onRemoveImage: (index) {
+                  multipleImageSectionController.removeImageAt(
+                    imageList: controller.vehicleBackImages,
+                    index: index,
+                    updateId: CommonMultipleImageSectionController.vehicleBackImageId,
+                  );
+                },
+              ),
             ),
-          ),
-          SizedBox(height: SizeConfig.paddingL),
+            SizedBox(height: SizeConfig.paddingL),
 
-          CustomBtn(
-            title: 'Post Now',
-            // title: controller.isRiderVehicleImagesLoading.value
-            //     ? null
-            //     : 'Next',
-            onTap: () {},
-            radius: 10.0,
-            bgColor: AppColors.primaryColor,
-          )
-        ],
+            CustomBtn(
+              title: controller.isVehicleRentalServiceLoading.value
+                  ? null
+                  : 'Post Now',
+              onTap: controller.validateStepFive,
+              radius: 10.0,
+              bgColor: AppColors.primaryColor,
+              isLoading: controller.isVehicleRentalServiceLoading.value
+            )
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHighlightsSection() {
+  Widget _buildAddHighlightsSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          'Property Highlights',
-          fontSize: SizeConfig.medium,
-          color: AppColors.mainTextColor,
-          fontWeight: FontWeight.w400,
+        Row(
+          children: [
+            CustomText(
+              'Home Highlights',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w400,
+              color: AppColors.mainTextColor,
+            ),
+
+            if(controller.arrHighlights.isNotEmpty)
+              ...[
+                Spacer(),
+                InkWell(
+                  onTap: ()=> Get.to(()=> AddHighlightsWidget(
+                      initialHighlights: controller.arrHighlights,
+                      onSave: (List<String> highlights) {
+                        controller.addHighlights(highlights);
+                      })),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const LocalAssets(
+                        imagePath: AppIconAssets.addBlueIcon,
+                      ),
+                      CustomText(
+                        'Add More',
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
+                )
+              ]
+
+          ],
         ),
         SizedBox(height: SizeConfig.size8),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16,
-            vertical: SizeConfig.size10,
-          ),
+        (controller.arrHighlights.isNotEmpty)
+            ? Container(
+          margin: const EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.greyE5, width: 1),
+              color: AppColors.white,
+              boxShadow: [AppShadows.textFieldShadow],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.whiteE5)
           ),
-          child: Row(
-            children: [
-              LocalAssets(imagePath: AppIconAssets.tagIcon),
-              SizedBox(width: SizeConfig.size12),
-              Expanded(
-                child: TextField(
-                  controller: controller.highlights,
-                  onChanged: (_) => controller.update(["addHighlight"]),
-                  decoration: const InputDecoration(
-                    hintText: 'Add Highlights',
-                    hintStyle: TextStyle(
-                      color: AppColors.grey9B,
-                      fontSize: 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: controller.arrHighlights
+                .map((e) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: SizeConfig.size6,
+                    width: SizeConfig.size6,
+                    decoration: BoxDecoration(
+                        color: AppColors.secondaryTextColor,
+                        shape: BoxShape.circle
                     ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    isDense: true,
-
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  Expanded(
+                    child: Text(
+                      e,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ))
+                .toList(),
+          ),
+        )
+            : InkWell(
+          onTap: ()=> Get.to(()=> AddHighlightsWidget(
+              initialHighlights: controller.arrHighlights,
+              onSave: (List<String> highlights) {
+                controller.addHighlights(highlights);
+              })),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size14,
+              vertical: SizeConfig.size12,
+            ),
+            decoration: BoxDecoration(
+                color: AppColors.white,
+                boxShadow: [AppShadows.textFieldShadow],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.whiteE5)
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(SizeConfig.size4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.white,
+                    border: Border.all(
+                        color: AppColors.mainTextColor,
+                        width: 2
+                    ),
+                  ),
+                  child: LocalAssets(
+                      imagePath: AppIconAssets.add,
+                      imgColor: AppColors.mainTextColor
                   ),
                 ),
-              ),
-              GetBuilder<VehicleRentalServiceController>(
-                id: "addHighlight",
-                builder: (_) {
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (child, anim) =>
-                        ScaleTransition(scale: anim, child: child),
-                    child: controller.highlights.text.isNotEmpty
-                        ? InkWell(
-                      key: const ValueKey("add"),
-                      onTap: () {
-                        controller.addHighlights();
-                        controller.update(["addHighlight"]);
-                        unFocus();
-                      },
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.addBlueIcon,
-                        // imgColor: AppColors.grey9A
-                      ),
-                    )
-                        : const SizedBox.shrink(key: ValueKey("empty")),
-                  );
-                },
-              ),
-            ],
+                SizedBox(width: SizeConfig.size6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: CustomText(
+                    'Add Highlights',
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+                Spacer(),
+                Icon(
+                  Icons.chevron_right,
+                  color: AppColors.mainTextColor,
+                )
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Obx(()=> Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: controller.arrHighlights.map((h) {
-            return Chip(
-              label: Text(h),
-              backgroundColor: AppColors.lightBlue,
-              labelStyle: TextStyle(
-                  fontSize: SizeConfig.size14,
-                  color: Colors.black87
-              ),
-              deleteIcon: const Icon(Icons.close,
-                  size: 20, color: AppColors.mainTextColor),
-              shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.transparent),
-                  borderRadius: BorderRadius.circular(8.0)),
-              onDeleted: () => controller.removeHighlights(h),
-              labelPadding: const EdgeInsets.only(left: 12),
-              padding: EdgeInsets.zero,
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            );
-          }).toList(),
-        ))
+        )
       ],
     );
   }

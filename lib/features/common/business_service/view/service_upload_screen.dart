@@ -300,9 +300,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 );
                 if ((selected?.isNotEmpty ?? false) && selected != null) {
                   controller.selectedImage.value = File(selected);
-                } else {
-                  commonSnackBar(
-                      message: "Something went wrong please try again");
                 }
               },
               // onTap: () => controller.showImagePickerDialog(context),

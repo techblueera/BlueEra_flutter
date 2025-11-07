@@ -109,7 +109,6 @@ class PersonalCreateProfileController extends GetxController {
         if(!isFromProfileOnly)
           {
             Get.back();
-
           }
         commonSnackBar(
             message: responseModel.response?.data?['message'] ??
@@ -126,33 +125,7 @@ class PersonalCreateProfileController extends GetxController {
     }
   }
 
-  Future<void> updateUserProfileProfessionDesignation({
-    required Map<String, dynamic> params,
-    bool isFromProfileOnly = false,
-  }) async {
-    try {
-      print("Params being sent to API: $params");
-      ResponseModel responseModel = await PersonalProfileRepo().updateUser(
-        formData: params,
-      );
-
-      if (responseModel.isSuccess) {
-        updateUserProfileResponse = ApiResponse.complete(responseModel);
-        commonSnackBar(
-            message: responseModel.response?.data?['message'] ??
-                "Update successfully");
-      } else {
-        commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong,
-        );
-      }
-    } catch (e) {
-      updateUserProfileResponse = ApiResponse.error('Update failed');
-    }
-  }
-
   ///FOR EXPERIENCE...
-
   final companyNameController = TextEditingController();
   final roleResController = TextEditingController();
 

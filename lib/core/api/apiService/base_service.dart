@@ -497,4 +497,7 @@ abstract class BaseService {
   final String aiCommentReplySuggestion = "ai-service/api/ai-reply/generate-suggestions";
   final String bookingGetRentalServiceMap = "booking-enquiry-service/rentals";
 
+  final String addRentalService = "booking-enquiry-service/rentals";
+
+
 }

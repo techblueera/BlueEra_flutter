@@ -577,7 +577,6 @@ class ProductController extends GetxController{
               path,
               filename: fileName,
               contentType: MediaType.parse(mimeType ?? 'application/octet-stream'),
-
             ));
       }
       params[ApiKeys.media] = imageByPart;
