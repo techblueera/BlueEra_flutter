@@ -899,15 +899,13 @@ AppBar getChatTitleAppBar(BuildContext context, {
           chatViewController.emitEvent(
               "ChatList", {ApiKeys.type: "$type"}, true);
           bottomBarController.onChangeIndex(4);
+          Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
           chatViewController.onSelectChatTab(1);
-          Navigator.pop(context);
-          Navigator.pop(context);
         }else{
-          Navigator.pop(context);
+          Get.back();
           chatViewController.emitEvent(
               "ChatList", {ApiKeys.type: "$type"}, true);
         }
-
       },
       child: Padding(
         padding: const EdgeInsets.only(left: 18.0),
@@ -996,30 +994,28 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 ),
               ),
               if(isGroupAppBar == null)
-                Obx(() {
-                  return Row(
-                    children: [
-                      CustomText(
-                        '${(type != "Admin") ? (type=="business")?chatViewController
-                            .userOnlineStatus.value=="Online"?"Shop Open":"Shop Closed":chatViewController
-                            .userOnlineStatus.value : "BlueCs Limited"}',
-                        color: AppColors.grayText,
+                Row(
+                  children: [
+                    CustomText(
+                      '${(type != "Admin") ? (type=="business")?chatViewController
+                          .userOnlineStatus.value=="Online"?"Shop Open":"Shop Closed":chatViewController
+                          .userOnlineStatus.value : "BlueCs Limited"}',
+                      color: AppColors.grayText,
 
-                        fontSize: 12,
-                      ),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      (type != "Admin")
-                          ? SizedBox()
-                          : Icon(
-                        Icons.verified,
-                        color: Colors.blue,
-                        size: 14,
-                      ),
-                    ],
-                  );
-                }),
+                      fontSize: 12,
+                    ),
+                    const SizedBox(
+                      width: 3,
+                    ),
+                    (type != "Admin")
+                        ? SizedBox()
+                        : Icon(
+                      Icons.verified,
+                      color: Colors.blue,
+                      size: 14,
+                    ),
+                  ],
+                ),
             ],
           ),
         ],

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -8,13 +9,27 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:intl/intl.dart';
+import '../../../chat/auth/model/rider_orders_details_model.dart';
+import '../controller/delivery_partner_orders_controller.dart';
 
 class OrderCard extends StatelessWidget {
   final PickUpTab selectedPickUp;
-  const OrderCard({super.key, required this.selectedPickUp});
+  final RiderOrdersDetailsModel order;
+  const OrderCard({super.key, required this.selectedPickUp, required this.order});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.isRegistered<DeliverPartnerOrdersController>()
+        ? Get.find<DeliverPartnerOrdersController>()
+        : Get.put(DeliverPartnerOrdersController());
+
+    String formatTime(String isoString) {
+      final dateTime = DateTime.parse(isoString).toLocal(); // convert UTC → local
+      return DateFormat('hh a').format(dateTime); // Example → "09 AM"
+    }
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -27,12 +42,12 @@ class OrderCard extends StatelessWidget {
                   context,
                   ImageViewScreen(
                     appBarTitle: '',
-                    imageUrls: ['profileImage'],
+                    imageUrls: [order.user?.profileImage??''],
                     initialIndex: 0,
                   ),
                 ),
                 child: CachedAvatarWidget(
-                  imageUrl: 'profileImage',
+                  imageUrl: order.user?.profileImage,
                   size: SizeConfig.size40,
                   borderRadius: SizeConfig.size20,
                 ),
@@ -43,7 +58,7 @@ class OrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Amit Kumar',
+                        order.user?.name,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor,
@@ -51,14 +66,14 @@ class OrderCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: SizeConfig.size6),
-                      CustomText(
-                        'Item Name: Men Sports Shoe',
-                        fontSize: SizeConfig.small11,
-                        fontWeight: FontWeight.w400,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.secondaryTextColor,
-                      ),
+                      // CustomText(
+                      //   'Item Name: ${order.}',
+                      //   fontSize: SizeConfig.small11,
+                      //   fontWeight: FontWeight.w400,
+                      //   maxLines: 2,
+                      //   overflow: TextOverflow.ellipsis,
+                      //   color: AppColors.secondaryTextColor,
+                      // ),
                     ],
                   )
               ),
@@ -67,7 +82,7 @@ class OrderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   CustomText(
-                    '9:52 PM',
+                    '${formatTime(order.createdAt??'')}',
                     fontSize: SizeConfig.extraSmall,
                     fontWeight: FontWeight.w400,
                     color: AppColors.grey9A
@@ -124,7 +139,7 @@ class OrderCard extends StatelessWidget {
                             color: AppColors.secondaryTextColor,
                           ),
                           CustomText(
-                            '2.5KM',
+                            '${order.distanceToPickup}',
                             fontSize: SizeConfig.small11,
                             fontWeight: FontWeight.w400,
                             color: AppColors.primaryColor,
@@ -163,7 +178,7 @@ class OrderCard extends StatelessWidget {
                             color: AppColors.secondaryTextColor,
                           ),
                           CustomText(
-                            '10KM',
+                            '${order.distancePickupToDrop}',
                             fontSize: SizeConfig.small11,
                             fontWeight: FontWeight.w400,
                             color: AppColors.primaryColor,
@@ -172,7 +187,7 @@ class OrderCard extends StatelessWidget {
                       ),
                       SizedBox(height: SizeConfig.size6),
                       CustomText(
-                        'Bishnupur, Lucknow Gomtinagar, +91 1234567890',
+                        'Bishnupur, Lucknow Gomtinagar, +91 ${order.user?.contactNo}',
                         fontSize: SizeConfig.small11,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
@@ -189,7 +204,7 @@ class OrderCard extends StatelessWidget {
             builder: (BuildContext context) {
               switch (selectedPickUp) {
                 case PickUpTab.newOrder:
-                  return _buildNewPickupButtons();
+                  return _buildNewPickupButtons(controller);
 
                 case PickUpTab.onGoing:
                   return _buildOnGoingPickupOrderButton();
@@ -209,7 +224,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildNewPickupButtons() {
+  Widget _buildNewPickupButtons(DeliverPartnerOrdersController controller) {
     return Row(
         children: [
           Container(
@@ -222,7 +237,7 @@ class OrderCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(100.0)
             ),
             child: CustomText(
-              'Fare: ₹ 89.0',
+              'Fare: ₹ ${order.fare}',
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -238,7 +253,13 @@ class OrderCard extends StatelessWidget {
           ),
           SizedBox(width: SizeConfig.size6),
           _buildActionButton(
-            onTap: (){},
+            onTap: (){
+              controller.updateOrderStatusFromPialot(
+                  {
+                    ApiKeys.action: "reject"
+                  }
+                  , order.id??"");
+            },
             text: 'Reject',
             bgColor: AppColors.redLite.withValues(alpha: 0.1),
             borderColor: AppColors.redLite,
@@ -246,7 +267,13 @@ class OrderCard extends StatelessWidget {
           ),
           SizedBox(width: SizeConfig.size6),
           _buildActionButton(
-            onTap: (){},
+            onTap: (){
+              controller.updateOrderStatusFromPialot(
+                {
+                  ApiKeys.action: "accept"
+                }
+              , order.id??"");
+            },
             text: 'Accept',
             bgColor: AppColors.green0B.withValues(alpha: 0.1),
             borderColor: AppColors.green0B,

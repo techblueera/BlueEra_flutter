@@ -78,13 +78,13 @@ class _ChatMainScreenState extends State<ChatMainScreen>
       initialIndex: chatViewController.selectedChatTabIndex.value,
     );
 
-    chatViewController.chatMainTabController.addListener(() {
-      if (!chatViewController.chatMainTabController.indexIsChanging &&
-          chatViewController.chatMainTabController.index ==
-              chatViewController.chatMainTabController.animation?.value
+    chatViewController.chatMainTabController?.addListener(() {
+      if (!(chatViewController.chatMainTabController?.indexIsChanging??false) &&
+          chatViewController.chatMainTabController?.index ==
+              chatViewController.chatMainTabController?.animation?.value
                   .round()) {
-        final index = chatViewController.chatMainTabController.index;
-        chatViewController.onSelectChatTab(index);
+        final index = chatViewController.chatMainTabController?.index;
+        chatViewController.onSelectChatTab(index??0);
 
         if (index == 0) {
           chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
@@ -199,7 +199,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
     });
     return Scaffold(
       floatingActionButton: (_isFromForward()) ||
-              chatViewController.chatMainTabController.index == 1
+              chatViewController.chatMainTabController?.index == 1
           ? SizedBox()
           : SafeArea(
               child: Padding(
@@ -210,7 +210,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
                     onPressed: () {
-                      if (chatViewController.chatMainTabController.index == 2) {
+                      if (chatViewController.chatMainTabController?.index == 2) {
                         Get.to(ContactsPage(
                           from: "group",
                         ));

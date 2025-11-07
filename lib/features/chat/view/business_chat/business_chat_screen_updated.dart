@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
+import '../../../../core/routes/route_helper.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -100,8 +101,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
               "ChatList", {ApiKeys.type: "business"}, true);
           chatViewController.onSelectChatTab(1);
           bottomBarController.onChangeIndex(4);
-          Navigator.pop(context);
-          Navigator.pop(context);
+          Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
         }else{
           chatViewController.emitEvent(
               "ChatList", {ApiKeys.type: "business"}, true);

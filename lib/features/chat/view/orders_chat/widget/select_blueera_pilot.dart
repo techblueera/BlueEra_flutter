@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -65,67 +66,143 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
       CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.long), 14.0),
     );
   }
+  void _showPaymentDialog(BuildContext context,String orderId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFFFFFFFF),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.payment_rounded,
+                  color: AppColors.greyE5,
+                  size: 60,
+                ),
+                const SizedBox(height: 16),
+                const CustomText(
+                  "Payment Required",
+
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+
+                ),
+                const SizedBox(height: 10),
+                const CustomText(
+                  "Your rider is waiting for payment confirmation.\n"
+                      "Please complete your payment to proceed with delivery.",
+                  textAlign: TextAlign.center,
+
+                    fontSize: 15,
+                    color: Colors.black54,
+                    height: 1.4,
+
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 20,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context); // close dialog first
+                          final razorpayService =
+                          RazorpayService();
+
+                          razorpayService.openCheckout(
+                            name:"${orderController.openedMessage?.buyer?.name}",
+                            subscriptionId: "",
+                            description: '',
+                            amount:double.parse(orderController.fare.value.toString()),
+                            contact: "${orderController.openedMessage?.buyer?.contact}",
+                            email:
+                            'admin@bluecs.in',
+                            onPaymentSuccess:
+                                (response) async {
+                                  await orderController.updatePaymentStausByUser(orderId);
+                                  commonSnackBar(
+                                      message:
+                                      "Payment SuccessFully Completed Our Raider Will Get You Soon..");
+                            },
+                            onPaymentError: (response) {
+                              debugPrint(
+                                  "Payment Failed: ${response.message}");
+                              commonSnackBar(
+                                  message:
+                                  "Payment Failed ${response.message}");
+                            },
+                          );
+
+                        },
+                        icon: const Icon(Icons.credit_card),
+                        label:  CustomText(
+                          "Pay Now (Pay ₹ ${orderController.fare.value})",
+                         fontSize: 16, color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
 Future<void> fetchStream()async{
   _stream = await riderOrderStream(userId);
 
-  // final razorpayService =
-  //                         RazorpayService();
-  //
-  //                         razorpayService.openCheckout(
-  //                           name:"${orderController.openedMessage?.buyer?.name}",
-  //                           subscriptionId: "",
-  //                           description: '',
-  //                           amount:double.parse(orderController.fare.value.toString()),
-  //                           contact: "${orderController.openedMessage?.buyer?.contact}",
-  //                           email:
-  //                           'admin@bluecs.in',
-  //                           onPaymentSuccess:
-  //                               (response) async {
-  //                             debugPrint(
-  //                                 "Payment Suzzz: ${response.data}");
-  //
-  //                             List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
-  //                             Map<String,dynamic> params={
-  //                               ApiKeys.selectedRiders: userIdList,
-  //                               ApiKeys.pickupLocation: {
-  //                                 ApiKeys.latitude: widget.startLat,
-  //                                 ApiKeys.longitude: widget.startLng
-  //                               },
-  //                               ApiKeys.dropLocation: {
-  //                                 ApiKeys.latitude: widget.lat,
-  //                                 ApiKeys.longitude: widget.long
-  //                               },
-  //                               ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
-  //                               orderController.openedMessage?.metadata?.foodId
-  //                                   :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
-  //                               orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
-  //                               ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
-  //                             };
-  //                             await orderController.sendOrderRequestToRider(params);
-  //                             commonSnackBar(
-  //                                 message:
-  //                                 "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
-  //                             Get.back();
-  //                             Get.back();
-  //
-  //                           },
-  //                           onPaymentError: (response) {
-  //                             debugPrint(
-  //                                 "Payment Failed: ${response.message}");
-  //                             commonSnackBar(
-  //                                 message:
-  //                                 "Payment Failed ${response.message}");
-  //                           },
-  //                         );
+
   _subscription = _stream.listen((event) {
-    print('sdvsdvscvdc New order: $event');
-    setState(() => orders.insert(0, event));
+
+    if (event is List) {
+      for (final item in event) {
+        final status = item['status'];
+
+        if (status == 'payment-pending') {
+          // Show payment dialog (only once per new event)
+          _showPaymentDialog(Get.context!,status['_id']);
+          break; // stop after first match
+        }
+      }
+    } else if (event is Map) {
+      // If server sends a single object
+      final status = event['status'];
+
+      if (status == 'payment-pending') {
+        _showPaymentDialog(Get.context!,status['_id']);
+      }
+    } else {
+    }
   }, onError: (error) {
-    print('sdvsdvscvdc Stream error: $error');
+    print('❌ Stream error: $error');
   }, onDone: () {
-    print('sdvsdvscvdc Stream closed');
+    print('ℹ️ Stream closed');
   });
+
 }
 
   @override
@@ -134,6 +211,12 @@ Future<void> fetchStream()async{
     super.initState();
   }
 
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
 
   @override
@@ -360,7 +443,6 @@ Future<void> fetchStream()async{
                             borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async{
-
                         List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
                         Map<String,dynamic> params={
                           ApiKeys.selectedRiders: userIdList,
@@ -378,8 +460,9 @@ Future<void> fetchStream()async{
                           orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
                           ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
                         };
-                        await orderController.sendOrderRequestToRider(params);
                         showAwaitingForRider(context);
+                        await orderController.sendOrderRequestToRider(params);
+
                         // final razorpayService =
                         // RazorpayService();
                         //
@@ -431,7 +514,7 @@ Future<void> fetchStream()async{
                         // );
                       },
                       child:  CustomText(
-                        "Book Delivery Pilot NOW (Pay ₹ ${orderController.fare.value})",
+                        "Book Delivery Pilot NOW",
                             color: AppColors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -128,6 +129,8 @@ class OrderNowController extends GetxController {
           getBlueeraPiolotModel.value.users =
               getBlueeraPiolotModel.value.users!.take(4).toList();
         }
+
+        //6307790308
         selectedIndexes.addAll(getBlueeraPiolotModel.value.users??[]);
         getRidersListResponse.value=ApiResponse.complete(getBlueeraPiolotModel);
         return getBlueeraPiolotModel.value.users;
@@ -205,6 +208,22 @@ class OrderNowController extends GetxController {
   Future<void> sendOrderRequestToRider(Map<String,dynamic> params) async {
     try {
       ResponseModel? response = await MakeOrderRepo().sendOrderRequestToRider(params);
+
+      if (response.isSuccess ?? false) {
+        commonSnackBar(
+            message:
+            "Wait Our Rider Will Accept Your Order Soon ");
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> updatePaymentStausByUser(String params) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().updatePaymentStausByUser(params);
 
       if (response.isSuccess ?? false) {
 

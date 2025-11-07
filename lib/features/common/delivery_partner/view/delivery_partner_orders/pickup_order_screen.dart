@@ -7,7 +7,9 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_enum.dart';
+import '../../../../chat/auth/model/rider_orders_details_model.dart';
 
 class PickupOrderScreen extends StatefulWidget {
   const PickupOrderScreen({super.key});
@@ -20,7 +22,6 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
   final controller = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
       : Get.put(DeliverPartnerOrdersController());
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +33,14 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
             child: Obx(() {
               switch (controller.selectedPickUp.value) {
                 case PickUpTab.newOrder || PickUpTab.onGoing:
-                  return _buildOrder();
+                  if(controller.ordersListResponse.value.status==Status.COMPLETE){
+                    return _buildOrder(controller.riderOrdersList);
+                  }else{
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
 
                 case PickUpTab.completed:
                   return CustomText(
@@ -92,9 +100,11 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     );
   }
 
-  Widget _buildOrder(){
-    return ListView.builder(
-        itemCount: 5,
+  Widget _buildOrder(List<RiderOrdersDetailsModel> ordersList){
+    return ordersList.isEmpty?Center(
+      child: CustomText("No Orders Found"),
+    ):ListView.builder(
+        itemCount: ordersList.length,
         padding: EdgeInsets.only(
             top: SizeConfig.size10,
             bottom: kBottomNavigationBarHeight + SizeConfig.size40,
@@ -102,7 +112,8 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
             right: SizeConfig.size15
         ),
         itemBuilder: (context, index){
-          return OrderCard(
+          RiderOrdersDetailsModel rider=ordersList[index];
+          return OrderCard(order: rider,
               selectedPickUp: controller.selectedPickUp.value
           );
         }

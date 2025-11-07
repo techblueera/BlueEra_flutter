@@ -52,5 +52,21 @@ class MakeOrderRepo extends BaseService {
      onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> updateOrderStatusFromPt(Map<String,dynamic> params,String orderId) async {
+    final response = await ApiBaseHelper().patchHTTP(
+        updateOrderStatusFromPialot(orderId),
+        showProgress: false,
+     params: params,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> updatePaymentStausByUser(String orderId) async {
+    final response = await ApiBaseHelper().patchHTTP(
+        updatePaymentStaus(orderId),
+        showProgress: false,
+
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 }
