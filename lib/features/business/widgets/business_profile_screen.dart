@@ -291,20 +291,26 @@ class BusinessProfileHeader extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 // Banner Image
+
                 ClipRRect(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(12),
                     topRight: Radius.circular(12),
                   ),
                   child: Container(
+                    height: 130,
+                    width: double.infinity,
                     child: Image.network(
                       (controller.coverImage?.value != null && controller.coverImage!.value!.isNotEmpty)
                           ? controller.coverImage!.value!
-                          : (controller.imagePath?.value ?? ''),
+                          : (controller.coverImage?.value ?? ''),
                       width: double.infinity,
                       height: 130,
                       //height: 160,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox();
+                      },
                     ),
                   ),
                 ),
@@ -312,6 +318,7 @@ class BusinessProfileHeader extends StatelessWidget {
                 // Profile image overlapping banner bottom
                 Positioned(
                   left: 20,
+
                   top: 90, // makes it overlap smoothly
                   child: CommonProfileImage(
                     imagePath: controller.imagePath?.value ?? "",
@@ -377,9 +384,10 @@ class BusinessProfileHeader extends StatelessWidget {
                             final reqProfile = {
 
                               ApiKeys.businessId: businessId,
+                              ApiKeys.business_name: details?.businessName,
 
                              "coverPicture": dataImage};
-                            await controller.updateBusinessDetails(reqProfile);
+                            await controller.updateBusinessProfileDetails(reqProfile);
                           } catch (e, s) {
                             debugPrint("❌ Crash in cover picture upload: $e\n$s");
                             commonSnackBar(message: "Something went wrong while updating picture");

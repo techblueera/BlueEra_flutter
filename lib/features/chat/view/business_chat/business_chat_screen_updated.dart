@@ -53,6 +53,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
 
   @override
   void initState() {
+
     chatViewController.isChatFromBusinessProfile(true);
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
@@ -122,9 +123,9 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
               name: widget.name,
               contactNo: widget.contactNo,
           )
-              : getChatTitleAppBar(
+              : getChatTitleAppBar(socketType:"business",
               context,
-              userId: widget.businessId,
+              userId: widget.userId,
               // userId: widget.userId,
               type: widget.type,
               name: widget.name,

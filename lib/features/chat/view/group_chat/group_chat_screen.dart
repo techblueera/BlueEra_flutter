@@ -112,7 +112,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               type: widget.type,
               name: widget.name,
               contactNo: '')
-              : getChatTitleAppBar(context,
+              : getChatTitleAppBar(
+              socketType: "group",
+              context,
               userId: '',
               isGroupAppBar: true,
               type: widget.type,
