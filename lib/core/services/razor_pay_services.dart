@@ -30,6 +30,7 @@ class RazorpayService {
     required String subscriptionId,
     String currency = "INR",
     String? orderId,
+    Map<String,dynamic>? note,
     Function(PaymentSuccessResponse)? onPaymentSuccess,
     Function(PaymentFailureResponse)? onPaymentError,
     Function(ExternalWalletResponse)? onExternalWallet,

@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:intl/intl.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
+import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 
 class OrderCard extends StatelessWidget {
@@ -28,7 +29,7 @@ class OrderCard extends StatelessWidget {
 
     String formatTime(String isoString) {
       final dateTime = DateTime.parse(isoString).toLocal(); // convert UTC → local
-      return DateFormat('hh a').format(dateTime); // Example → "09 AM"
+      return DateFormat('hh:mm a').format(dateTime); // Example → "09 AM"
     }
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -95,13 +96,13 @@ class OrderCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: AppColors.primaryColor
+                        color:selectedPickUp==PickUpTab.cancel?AppColors.red00: AppColors.primaryColor
                       ),
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(100.0)
                     ),
                     child: CustomText(
-                      'Review',
+                      selectedPickUp==PickUpTab.cancel?"Cancelled":'Review',
                       fontSize: SizeConfig.small11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -147,11 +148,11 @@ class OrderCard extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: SizeConfig.size6),
-                      CustomText(
-                        'Laxmi Nagar, Gupta General Store, 2.5K Orders, Lucknow Gomtinagar',
-                        fontSize: SizeConfig.small11,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
+                      LocationTextWidget(
+                        latitude: double.parse("${order.pickupLocation?.location?.coordinates?[1]??0}"),
+                        longitude: double.parse("${order.pickupLocation?.location?.coordinates?[0]??0}"),
+                        fontSize: 13,
+                        color: Colors.grey,
                       ),
                     ],
                   ),
@@ -186,11 +187,21 @@ class OrderCard extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: SizeConfig.size6),
-                      CustomText(
-                        'Bishnupur, Lucknow Gomtinagar, +91 ${order.user?.contactNo}',
-                        fontSize: SizeConfig.small11,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
+                      Wrap(
+                        children: [
+                          LocationTextWidget(
+                            latitude: double.parse("${order.dropLocation?.location?.coordinates?[1]??0}"),
+                            longitude: double.parse("${order.dropLocation?.location?.coordinates?[0]??0}"),
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                          (selectedPickUp==PickUpTab.newOrder||selectedPickUp==PickUpTab.onGoing)?CustomText(
+                            '+91 ${order.user?.contactNo}',
+                            fontSize: SizeConfig.small11,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.secondaryTextColor,
+                          ):SizedBox(),
+                        ],
                       ),
                     ],
                   ),

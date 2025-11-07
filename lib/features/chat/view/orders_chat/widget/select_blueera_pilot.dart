@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/widget/waiting_for_payment_dialog.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/services.dart';  // For rootBundle and ByteData
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -66,134 +68,72 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
       CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.long), 14.0),
     );
   }
-  void _showPaymentDialog(BuildContext context,String orderId) {
+  bool paymentDialogShow=false;
+  void _showPaymentDialog(
+      BuildContext context,
+      String orderId, {
+        required String driverImageUrl,
+        required String driverName,
+        required String driverPhone,
+        required String driverDistanceKm,
+      }) {
+
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 30),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: const Color(0xFFFFFFFF),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.payment_rounded,
-                  color: AppColors.greyE5,
-                  size: 60,
-                ),
-                const SizedBox(height: 16),
-                const CustomText(
-                  "Payment Required",
+        return WaitingForPaymentDialog(
+          orderId: orderId,
+          driverPhone: driverPhone,
+            driverName: driverName,
+          driverImageUrl: driverImageUrl,
+          context: context,
+          driverDistanceKm: driverDistanceKm,
 
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-
-                ),
-                const SizedBox(height: 10),
-                const CustomText(
-                  "Your rider is waiting for payment confirmation.\n"
-                      "Please complete your payment to proceed with delivery.",
-                  textAlign: TextAlign.center,
-
-                    fontSize: 15,
-                    color: Colors.black54,
-                    height: 1.4,
-
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                            horizontal: 20,
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context); // close dialog first
-                          final razorpayService =
-                          RazorpayService();
-
-                          razorpayService.openCheckout(
-                            name:"${orderController.openedMessage?.buyer?.name}",
-                            subscriptionId: "",
-                            description: '',
-                            amount:double.parse(orderController.fare.value.toString()),
-                            contact: "${orderController.openedMessage?.buyer?.contact}",
-                            email:
-                            'admin@bluecs.in',
-                            onPaymentSuccess:
-                                (response) async {
-                                  await orderController.updatePaymentStausByUser(orderId);
-                                  commonSnackBar(
-                                      message:
-                                      "Payment SuccessFully Completed Our Raider Will Get You Soon..");
-                            },
-                            onPaymentError: (response) {
-                              debugPrint(
-                                  "Payment Failed: ${response.message}");
-                              commonSnackBar(
-                                  message:
-                                  "Payment Failed ${response.message}");
-                            },
-                          );
-
-                        },
-                        icon: const Icon(Icons.credit_card),
-                        label:  CustomText(
-                          "Pay Now (Pay ₹ ${orderController.fare.value})",
-                         fontSize: 16, color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
   }
 
-Future<void> fetchStream()async{
+
+  Future<void> fetchStream()async{
   _stream = await riderOrderStream(userId);
 
-
   _subscription = _stream.listen((event) {
-
+    log("lsdkclksdmcd ${event}");
     if (event is List) {
-      for (final item in event) {
-        final status = item['status'];
+      if(event.isEmpty){
+        if(paymentDialogShow==true){
+          Get.back();
+        }
+      }else{
+        for (final item in event) {
+          final status = item['status'];
 
-        if (status == 'payment-pending') {
-          // Show payment dialog (only once per new event)
-          _showPaymentDialog(Get.context!,status['_id']);
-          break; // stop after first match
+          if (status == 'payment-pending') {
+            // Show payment dialog (only once per new event)
+            if(paymentDialogShow==false){
+              _showPaymentDialog(Get.context!,item['_id'],
+                  driverImageUrl: '${item['assignedRider']['profile_image']}',
+                  driverName: '${item['assignedRider']['name']}',
+                  driverPhone: '${item['assignedRider']['contact_no']}',
+                  driverDistanceKm: item['distanceToPickup']
+              );
+              paymentDialogShow=true;
+            }
+
+            break; // stop after first match
+          }
         }
       }
+
     } else if (event is Map) {
       // If server sends a single object
       final status = event['status'];
 
       if (status == 'payment-pending') {
-        _showPaymentDialog(Get.context!,status['_id']);
+        // _showPaymentDialog(Get.context!,event['_id']);
       }
     } else {
     }
@@ -542,18 +482,6 @@ Future<void> fetchStream()async{
       barrierDismissible: false, // ❌ cannot close manually
       barrierColor: Colors.black.withOpacity(0.4), // dim background
       builder: (BuildContext context) {
-        int remainingSeconds = 60;
-        ValueNotifier<int> timerNotifier = ValueNotifier(remainingSeconds);
-
-        // ⏱ Start 30s timer
-        Timer.periodic(const Duration(seconds: 1), (timer) {
-          if (remainingSeconds <= 1) {
-            timer.cancel();
-          } else {
-            remainingSeconds--;
-            timerNotifier.value = remainingSeconds;
-          }
-        });
 
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -563,6 +491,7 @@ Future<void> fetchStream()async{
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+
                 Container(
                   width: 80,
                   height: 80,
@@ -578,7 +507,7 @@ Future<void> fetchStream()async{
                 ),
                 const SizedBox(height: 20),
                 const CustomText(
-                  "Our rider will accept your order please wait",
+                  "Our rider will accept soon,\n Dont close this page",
                   textAlign: TextAlign.center,
                   // style: TextStyle(
                   fontSize: 16,
@@ -587,18 +516,7 @@ Future<void> fetchStream()async{
                   // ),
                 ),
                 const SizedBox(height: 12),
-                ValueListenableBuilder<int>(
-                  valueListenable: timerNotifier,
-                  builder: (context, seconds, _) {
-                    return CustomText(
-                      "Accepted in $seconds seconds",
-                      // style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      // ),
-                    );
-                  },
-                ),
+
               ],
             ),
           ),

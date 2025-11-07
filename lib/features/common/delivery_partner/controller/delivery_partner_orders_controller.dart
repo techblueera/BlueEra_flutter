@@ -23,7 +23,11 @@ class DeliverPartnerOrdersController extends GetxController {
   Rx<PickUpTab> selectedPickUp = PickUpTab.newOrder.obs;
   RxList<RiderOrdersDetailsModel> riderOrdersList =
       <RiderOrdersDetailsModel>[].obs;
-  Rx<ApiResponse> ordersListResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ordersListResponse = ApiResponse.initial('Initial').obs;// Declare your RxLists
+  RxList<RiderOrdersDetailsModel> riderOrdersDetailsModel = <RiderOrdersDetailsModel>[].obs;
+  RxList<RiderOrdersDetailsModel> completedOrders = <RiderOrdersDetailsModel>[].obs;
+  RxList<RiderOrdersDetailsModel> cancelledOrders = <RiderOrdersDetailsModel>[].obs;
+  RxList<RiderOrdersDetailsModel> rejectedOrders = <RiderOrdersDetailsModel>[].obs;
 
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
@@ -52,8 +56,7 @@ class DeliverPartnerOrdersController extends GetxController {
   Future<void> updateOrderStatusFromPialot(Map<String,dynamic> params,String orderId) async {
     try {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromPt(params,orderId);
-      if (response.isSuccess ?? false) {
-        log("sdcldskmclsdcsdc ${response.response?.data}");
+      if (response.isSuccess ) {
         commonSnackBar(
             message: response.message ?? "Order Status Updated Successfully");
       } else {
@@ -61,6 +64,49 @@ class DeliverPartnerOrdersController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getRidersBookingOrders() async {
+    try {
+      ordersListResponse.value=ApiResponse.initial('initial');
+      ResponseModel? response = await MakeOrderRepo().getRidersBookingOrders();
+      if (response.isSuccess ) {
+
+        if (response.response?.data is List) {
+          final parsedList = (response.response?.data as List)
+              .map((item) => RiderOrdersDetailsModel.fromJson(
+            Map<String, dynamic>.from(item),
+          ))
+              .toList();
+
+          riderOrdersDetailsModel.value = parsedList;
+
+        
+          completedOrders.value =
+              parsedList.where((e) => e.status?.toLowerCase() == 'completed').toList();
+
+          cancelledOrders.value =
+              parsedList.where((e) => e.status?.toLowerCase() == 'cancelled').toList();
+
+          rejectedOrders.value =
+              parsedList.where((e) => e.status?.toLowerCase() == 'rejected').toList();
+          ordersListResponse.value=ApiResponse.complete();
+        }else{
+          ordersListResponse.value=ApiResponse.error();
+
+        }
+
+      } else {
+        ordersListResponse.value=ApiResponse.error();
+
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+
+    } catch (e) {
+      ordersListResponse.value=ApiResponse.error();
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }

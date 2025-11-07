@@ -187,7 +187,7 @@ class ViewPersonalDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        log("sdkjcnksjnskjcnsdc ${data}");
+
         personalProfileDetails.value =
             PersonalProfileDetailsModel.fromJson(data);
 

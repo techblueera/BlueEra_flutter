@@ -102,7 +102,6 @@ class OrderNowController extends GetxController {
           long.value=data['data']['user']['user_location']['lon'].toString();
         }else{
           address.value=data['data']['address'].toString();
-
           lat.value=data['data']['business_location']['lat'].toString();
           long.value=data['data']['business_location']['lon'].toString();
         }
@@ -233,6 +232,20 @@ class OrderNowController extends GetxController {
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> cancelOrderForce(String orderId,Map<String,dynamic> params) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().cancelOrderForce(orderId,params);
+
+      if (response.isSuccess ?? false) {
+        commonSnackBar(
+            message: response.message );
+      } else {
+
+      }
+    } catch (e) {
+
     }
   }
   Future<void> getOrderFareFrom(Map<String,dynamic> params) async {
@@ -375,11 +388,7 @@ class OrderNowController extends GetxController {
       if (data != null) {
         paymentResponseModel.value=PaymentResponseModel.fromJson(data);
         paymentResponse.value= ApiResponse.complete(paymentResponseModel.value);
-        Map<String,dynamic> addOrderTabParams={
-          ApiKeys.message_id: "${openedMessage?.id}",
-          ApiKeys.other_user_id : openedMessage?.seller?.id,
 
-        };
         Map<String,dynamic> addOrderTabPara={
           ApiKeys.conversation_id: openedMessage?.conversationId,
           ApiKeys.message_id:openedMessage?.id,
@@ -414,8 +423,6 @@ class OrderNowController extends GetxController {
 
   }
   void createSelfPickupOrder(String? messageId,String? userid,String? conversationId,) async {
-
-
     Map<String,dynamic> addOrderTabPara={
       ApiKeys.conversation_id: "$conversationId",
       ApiKeys.message_id: "$messageId",
@@ -435,7 +442,36 @@ class OrderNowController extends GetxController {
             ApiKeys.order_status : true
           };
           await updateOrderStatus(datadd);
-          chatViewController. emitEvent("messageReceived", {
+          chatViewController.emitEvent("messageReceived", {
+            ApiKeys.conversation_id: conversationId??userId,
+            ApiKeys.page: 1,
+            ApiKeys.is_online_user: businessId,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+
+  }
+  void createRiderPickupOrder(String? messageId,String? userid,String? conversationId,) async {
+    Map<String,dynamic> addOrderTabPara={
+      ApiKeys.conversation_id: "$conversationId",
+      ApiKeys.message_id: "$messageId",
+      ApiKeys.other_user_id :userid,
+      ApiKeys.price: "${orderValueController.text}",
+      // "order": {},
+      // "rider": {},
+      ApiKeys.rider_id: "$userId",
+      ApiKeys.ride_by: MakeOrderType.self
+    };
+        bool value=await sendMessageToOrderTab(params: addOrderTabPara);
+        if(value){
+          final chatViewController = Get.find<ChatViewController>();
+
+          Map<String,dynamic>datadd={
+            ApiKeys.messageId: messageId,
+            ApiKeys.order_status : true
+          };
+          await updateOrderStatus(datadd);
+          chatViewController.emitEvent("messageReceived", {
             ApiKeys.conversation_id: conversationId??userId,
             ApiKeys.page: 1,
             ApiKeys.is_online_user: businessId,

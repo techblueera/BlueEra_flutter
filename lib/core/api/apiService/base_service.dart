@@ -496,6 +496,8 @@ abstract class BaseService {
   final String getOrderFare = "rider-service/riders/fare";
   final String aiCommentReplySuggestion = "ai-service/api/ai-reply/generate-suggestions";
   final String bookingGetRentalServiceMap = "booking-enquiry-service/rentals";
+  final String getRiderBookingList = "rider-service/riders/orders/requested";
   String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
+  String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
 }
