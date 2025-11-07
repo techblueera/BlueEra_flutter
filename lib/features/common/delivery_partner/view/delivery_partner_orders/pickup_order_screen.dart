@@ -7,7 +7,9 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_enum.dart';
+import '../../../../chat/auth/model/rider_orders_details_model.dart';
 
 class PickupOrderScreen extends StatefulWidget {
   const PickupOrderScreen({super.key});
@@ -30,27 +32,28 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           _filterButtons(),
           Expanded(
             child: Obx(() {
-              switch (controller.selectedPickUp.value) {
-                case PickUpTab.newOrder || PickUpTab.onGoing:
-                  return _buildOrder();
+              if (controller.ordersListResponse.value.status ==
+                  Status.COMPLETE) {
+                switch (controller.selectedPickUp.value) {
+                  case PickUpTab.newOrder || PickUpTab.onGoing:
+                    return _buildOrder(controller.riderOrdersList);
 
-                case PickUpTab.completed:
-                  return CustomText(
-                      'Coming Soon..'
-                  );
+                  case PickUpTab.completed:
+                    return _buildCancelled(controller.completedOrders ?? []);
                   // return CompletedPickupOrderScreen();
 
-                case PickUpTab.cancel:
-                  return CustomText(
-                    'Coming Soon..'
-                  );
+                  case PickUpTab.cancel:
+                    return _buildCancelled(controller.cancelledOrders ?? []);
                   // return CancelledPickupOrderScreen();
 
-                case PickUpTab.rejected:
-                  return CustomText(
-                      'Coming Soon..'
-                  );
+                  case PickUpTab.rejected:
+                    return _buildCancelled(controller.rejectedOrders ?? []);
                   // return RejectedPickupOrderScreen();
+                }
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
               }
             }),
           ),
@@ -60,53 +63,79 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
   }
 
   Widget _filterButtons() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(SizeConfig.size15),
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-          SizedBox(width: SizeConfig.size10),
-          Row(
-            children: controller.pickUpTabs.map((tab) {
-              final isSelected = controller.selectedPickUp.value == tab;
-              return Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size14),
-                child: GestureDetector(
-                  onTap: () {
-                    controller.selectedPickUp.value = tab;
-                  },
-                  child: CustomText(
-                    tab.label,
-                    decoration: TextDecoration.underline,
-                    color: isSelected ? Colors.blue : Colors.black54,
-                    decorationColor: isSelected ? Colors.blue : Colors.black54,
-                    fontWeight: FontWeight.w600,
+    return Obx(() {
+      return SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size15),
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
+            SizedBox(width: SizeConfig.size10),
+            Row(
+              children: controller.pickUpTabs.map((tab) {
+                final isSelected = controller.selectedPickUp.value == tab;
+                return Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size14),
+                  child: GestureDetector(
+                    onTap: () {
+                      controller.selectedPickUp.value = tab;
+                      controller.getRidersBookingOrders();
+                    },
+                    child: CustomText(
+                      tab.label,
+                      decoration: TextDecoration.underline,
+                      color: isSelected ? Colors.blue : Colors.black54,
+                      decorationColor:
+                          isSelected ? Colors.blue : Colors.black54,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrder(){
-    return ListView.builder(
-        itemCount: 5,
-        padding: EdgeInsets.only(
-            top: SizeConfig.size10,
-            bottom: kBottomNavigationBarHeight + SizeConfig.size40,
-            left: SizeConfig.size15,
-            right: SizeConfig.size15
+                );
+              }).toList(),
+            ),
+          ],
         ),
-        itemBuilder: (context, index){
-          return OrderCard(
-              selectedPickUp: controller.selectedPickUp.value
-          );
-        }
-    );
+      );
+    });
   }
 
+  Widget _buildOrder(List<RiderOrdersDetailsModel> ordersList) {
+    return ordersList.isEmpty
+        ? Center(
+            child: CustomText("No Orders Found"),
+          )
+        : ListView.builder(
+            itemCount: ordersList.length,
+            padding: EdgeInsets.only(
+                top: SizeConfig.size10,
+                bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+                left: SizeConfig.size15,
+                right: SizeConfig.size15),
+            itemBuilder: (context, index) {
+              RiderOrdersDetailsModel rider = ordersList[index];
+              return OrderCard(
+                  order: rider,
+                  selectedPickUp: controller.selectedPickUp.value);
+            });
+  }
+
+  Widget _buildCancelled(List<RiderOrdersDetailsModel> ordersList) {
+    return ordersList.isEmpty
+        ? Center(
+            child: CustomText("No Orders Found"),
+          )
+        : ListView.builder(
+            itemCount: ordersList.length,
+            padding: EdgeInsets.only(
+                top: SizeConfig.size10,
+                bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+                left: SizeConfig.size15,
+                right: SizeConfig.size15),
+            itemBuilder: (context, index) {
+              RiderOrdersDetailsModel rider = ordersList[index];
+              return OrderCard(
+                  order: rider,
+                  selectedPickUp: controller.selectedPickUp.value);
+            });
+  }
 }

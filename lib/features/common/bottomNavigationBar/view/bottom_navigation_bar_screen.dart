@@ -57,7 +57,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
-    // _initializeOneSignal();
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();

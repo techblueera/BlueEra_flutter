@@ -230,7 +230,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     startLng:double.parse("${selectedAddress?.lng??"0.0"}")
                 );
 
-                Future.delayed(Duration(seconds: 3),(){
+                Future.delayed(Duration(seconds: 2),(){
                   if(riders!=null&&riders.isNotEmpty){
 
                     Get.off(() => DeliveryPilotScreen(

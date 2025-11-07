@@ -61,7 +61,6 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
               final vehicle = vehicleList[index];
               final isSelected = selectedIndex == index;
               final amount=(vehicle.fare?.minorAmount ?? 0) / 100;
-              print("Data  ___ ${vehicle.type}");
 
               return GestureDetector(
                 onTap: () {

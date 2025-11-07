@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/widget/waiting_for_payment_dialog.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/services.dart';  // For rootBundle and ByteData
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -65,67 +68,81 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
       CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.long), 14.0),
     );
   }
+  bool paymentDialogShow=false;
+  void _showPaymentDialog(
+      BuildContext context,
+      String orderId, {
+        required String driverImageUrl,
+        required String driverName,
+        required String driverPhone,
+        required String driverDistanceKm,
+      }) {
 
-Future<void> fetchStream()async{
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return WaitingForPaymentDialog(
+          orderId: orderId,
+          driverPhone: driverPhone,
+            driverName: driverName,
+          driverImageUrl: driverImageUrl,
+          context: context,
+          driverDistanceKm: driverDistanceKm,
+
+        );
+      },
+    );
+  }
+
+
+  Future<void> fetchStream()async{
   _stream = await riderOrderStream(userId);
 
-  // final razorpayService =
-  //                         RazorpayService();
-  //
-  //                         razorpayService.openCheckout(
-  //                           name:"${orderController.openedMessage?.buyer?.name}",
-  //                           subscriptionId: "",
-  //                           description: '',
-  //                           amount:double.parse(orderController.fare.value.toString()),
-  //                           contact: "${orderController.openedMessage?.buyer?.contact}",
-  //                           email:
-  //                           'admin@bluecs.in',
-  //                           onPaymentSuccess:
-  //                               (response) async {
-  //                             debugPrint(
-  //                                 "Payment Suzzz: ${response.data}");
-  //
-  //                             List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
-  //                             Map<String,dynamic> params={
-  //                               ApiKeys.selectedRiders: userIdList,
-  //                               ApiKeys.pickupLocation: {
-  //                                 ApiKeys.latitude: widget.startLat,
-  //                                 ApiKeys.longitude: widget.startLng
-  //                               },
-  //                               ApiKeys.dropLocation: {
-  //                                 ApiKeys.latitude: widget.lat,
-  //                                 ApiKeys.longitude: widget.long
-  //                               },
-  //                               ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
-  //                               orderController.openedMessage?.metadata?.foodId
-  //                                   :(orderController.openedMessage?.metadata?.productId!=null&&orderController.openedMessage?.metadata?.productId!='')?
-  //                               orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
-  //                               ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
-  //                             };
-  //                             await orderController.sendOrderRequestToRider(params);
-  //                             commonSnackBar(
-  //                                 message:
-  //                                 "Wait Our Pilot Little Bit Busy \nWe Will Notify You Soon..");
-  //                             Get.back();
-  //                             Get.back();
-  //
-  //                           },
-  //                           onPaymentError: (response) {
-  //                             debugPrint(
-  //                                 "Payment Failed: ${response.message}");
-  //                             commonSnackBar(
-  //                                 message:
-  //                                 "Payment Failed ${response.message}");
-  //                           },
-  //                         );
   _subscription = _stream.listen((event) {
-    print('sdvsdvscvdc New order: $event');
-    setState(() => orders.insert(0, event));
+    log("lsdkclksdmcd ${event}");
+    if (event is List) {
+      if(event.isEmpty){
+        if(paymentDialogShow==true){
+          Get.back();
+        }
+      }else{
+        for (final item in event) {
+          final status = item['status'];
+
+          if (status == 'payment-pending') {
+            // Show payment dialog (only once per new event)
+            if(paymentDialogShow==false){
+              _showPaymentDialog(Get.context!,item['_id'],
+                  driverImageUrl: '${item['assignedRider']['profile_image']}',
+                  driverName: '${item['assignedRider']['name']}',
+                  driverPhone: '${item['assignedRider']['contact_no']}',
+                  driverDistanceKm: item['distanceToPickup']
+              );
+              paymentDialogShow=true;
+            }
+
+            break; // stop after first match
+          }
+        }
+      }
+
+    } else if (event is Map) {
+      // If server sends a single object
+      final status = event['status'];
+
+      if (status == 'payment-pending') {
+        // _showPaymentDialog(Get.context!,event['_id']);
+      }
+    } else {
+    }
   }, onError: (error) {
-    print('sdvsdvscvdc Stream error: $error');
+    print('❌ Stream error: $error');
   }, onDone: () {
-    print('sdvsdvscvdc Stream closed');
+    print('ℹ️ Stream closed');
   });
+
 }
 
   @override
@@ -134,6 +151,12 @@ Future<void> fetchStream()async{
     super.initState();
   }
 
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
 
   @override
@@ -360,7 +383,6 @@ Future<void> fetchStream()async{
                             borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async{
-
                         List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
                         Map<String,dynamic> params={
                           ApiKeys.selectedRiders: userIdList,
@@ -378,8 +400,9 @@ Future<void> fetchStream()async{
                           orderController.openedMessage?.metadata?.productId: orderController.openedMessage?.metadata?.serviceId}",
                           ApiKeys.receiverUserId: "${orderController.openedMessage?.seller?.id}"
                         };
-                        await orderController.sendOrderRequestToRider(params);
                         showAwaitingForRider(context);
+                        await orderController.sendOrderRequestToRider(params);
+
                         // final razorpayService =
                         // RazorpayService();
                         //
@@ -431,7 +454,7 @@ Future<void> fetchStream()async{
                         // );
                       },
                       child:  CustomText(
-                        "Book Delivery Pilot NOW (Pay ₹ ${orderController.fare.value})",
+                        "Book Delivery Pilot NOW",
                             color: AppColors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold
@@ -459,18 +482,6 @@ Future<void> fetchStream()async{
       barrierDismissible: false, // ❌ cannot close manually
       barrierColor: Colors.black.withOpacity(0.4), // dim background
       builder: (BuildContext context) {
-        int remainingSeconds = 60;
-        ValueNotifier<int> timerNotifier = ValueNotifier(remainingSeconds);
-
-        // ⏱ Start 30s timer
-        Timer.periodic(const Duration(seconds: 1), (timer) {
-          if (remainingSeconds <= 1) {
-            timer.cancel();
-          } else {
-            remainingSeconds--;
-            timerNotifier.value = remainingSeconds;
-          }
-        });
 
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -480,6 +491,7 @@ Future<void> fetchStream()async{
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+
                 Container(
                   width: 80,
                   height: 80,
@@ -495,7 +507,7 @@ Future<void> fetchStream()async{
                 ),
                 const SizedBox(height: 20),
                 const CustomText(
-                  "Our rider will accept your order please wait",
+                  "Our rider will accept soon,\n Dont close this page",
                   textAlign: TextAlign.center,
                   // style: TextStyle(
                   fontSize: 16,
@@ -504,18 +516,7 @@ Future<void> fetchStream()async{
                   // ),
                 ),
                 const SizedBox(height: 12),
-                ValueListenableBuilder<int>(
-                  valueListenable: timerNotifier,
-                  builder: (context, seconds, _) {
-                    return CustomText(
-                      "Accepted in $seconds seconds",
-                      // style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      // ),
-                    );
-                  },
-                ),
+
               ],
             ),
           ),

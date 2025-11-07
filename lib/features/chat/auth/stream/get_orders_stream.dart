@@ -7,9 +7,9 @@ import '../../../../core/constants/shared_preference_utils.dart';
 // Make sure authTokenGlobal is initialized before calling this function
 // Example: authTokenGlobal = await getUserAuthToken();
 
-Stream<dynamic> riderOrderStream(String userId,) async* {
+Stream<dynamic> getOrderFromUserStream() async* {
   final url = Uri.parse(
-    'https://rider.blueera.ai/riders/orders/stream/$userId',
+    'https://rider.blueera.ai/riders/orders/requested/stream',
   );
 
   final request = http.Request('GET', url);

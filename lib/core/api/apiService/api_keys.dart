@@ -471,6 +471,7 @@ class ApiKeys {
   static const availability = 'availability';
   static const priceUnit = 'priceUnit';
   static const coverpicture = 'coverpicture';
+  static const ride_order_id = 'ride_order_id';
   static const contactNumber  = 'contactNumber';
   static const highlights  = 'highlights';
   static const additionalDetails = 'additionalDetails';

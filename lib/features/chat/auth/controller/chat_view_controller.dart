@@ -83,7 +83,7 @@ class ChatViewController extends GetxController {
       GenerateUploadUlrModel().obs;
   RxString VideoUploadProgress = ''.obs;
   RxInt selectedChatTabIndex = 0.obs;
-  late TabController chatMainTabController;
+  TabController? chatMainTabController;
   final localStorageHelper = LocalStorageHelper();
 
   void setReplyMessage(Messages? message) {
@@ -91,10 +91,14 @@ class ChatViewController extends GetxController {
   }
 
   void onSelectChatTab(int index) {
-    chatMainTabController.animateTo(index);
-    selectedChatTabIndex.value=index;
+    if (chatMainTabController == null) {
+      // Optionally initialize here if possible
+      // chatMainTabController = TabController(length: ..., vsync: this);
+      return; // or handle gracefully
+    }
+    chatMainTabController!.animateTo(index);
+    selectedChatTabIndex.value = index;
   }
-
   void isChatFromBusinessProfile(bool value) {
     chatFromBusinessProfile.value = value;
   }
