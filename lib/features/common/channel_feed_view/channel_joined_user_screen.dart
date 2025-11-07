@@ -58,13 +58,13 @@ class _ChannelJoinedUserScreenState extends State<ChannelJoinedUserScreen>
         child: Obx(() {
           return  (channelFeedController.followerResponse.value.status ==
               Status.COMPLETE &&
-              (channelFeedController.channelDataList.isNotEmpty))
+              (channelFeedController.userChannelList.isNotEmpty))
               ? RefreshIndicator(
             onRefresh: () async {
               apiCalling();
             },
             child: ListView.builder(
-              itemCount: channelFeedController.channelDataList.length,
+              itemCount: channelFeedController.userChannelList.length,
               itemBuilder: (context, index) =>
                   _buildUserTile(
                       channelFeedController

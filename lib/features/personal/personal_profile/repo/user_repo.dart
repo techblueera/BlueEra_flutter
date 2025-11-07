@@ -3,7 +3,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 import '../../../../core/api/apiService/base_service.dart';
 
-
 class UserRepo extends BaseService {
   Future<ResponseModel> getUserById({required String userId}) async {
     final response = await ApiBaseHelper().getHTTP(
@@ -35,7 +34,7 @@ class UserRepo extends BaseService {
     return response;
   }
 
- Future<ResponseModel> getRattingDetailsById({required String userId}) async {
+  Future<ResponseModel> getRattingDetailsById({required String userId}) async {
     final response = await ApiBaseHelper().getHTTP(
       userGetRattingDetails(userId),
       showProgress: false,
@@ -44,7 +43,6 @@ class UserRepo extends BaseService {
     );
     return response;
   }
-
 
   Future<ResponseModel> postEmail({Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().postHTTP(
@@ -103,6 +101,30 @@ class UserRepo extends BaseService {
     return response;
   }
 
+  ///FOLLOW USER
+  Future<ResponseModel> channelFollowUser(
+      {required String? followUserId}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "${channelServiceFollower}/$followUserId/follow",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///UN FOLLOW USER
+  Future<ResponseModel> channelUnfollowUser(
+      {required String? followUserId}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      "${channelServiceFollower}/$followUserId/unfollow",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///addTestimonial
   Future<ResponseModel> addTestimonialRepo(
       {required Map<String, dynamic>? reqPar}) async {
@@ -116,8 +138,7 @@ class UserRepo extends BaseService {
   }
 
   ///getTestimonial
-  Future<ResponseModel> getTestimonialRepo(
-      {required String? userId}) async {
+  Future<ResponseModel> getTestimonialRepo({required String? userId}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${getTestimonialById}$userId",
       onError: (error) {},
@@ -127,7 +148,8 @@ class UserRepo extends BaseService {
   }
 
   ///Get All users...
-  Future<ResponseModel> getAllUsers({required Map<String, dynamic> params}) async {
+  Future<ResponseModel> getAllUsers(
+      {required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().getHTTP(
       allUsers,
       params: params,
@@ -150,7 +172,8 @@ class UserRepo extends BaseService {
   }
 
   /// Card Categories
-  Future<ResponseModel> getAllCards({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> getAllCards(
+      {required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       allCardCategories,
       params: queryParams,
@@ -162,7 +185,8 @@ class UserRepo extends BaseService {
   }
 
   /// Card Categories By Date
-  Future<ResponseModel> cardCategoriesSortedByDate({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> cardCategoriesSortedByDate(
+      {required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       cardCategoriesSortByDate,
       params: queryParams,
@@ -172,5 +196,4 @@ class UserRepo extends BaseService {
     );
     return response;
   }
-
 }

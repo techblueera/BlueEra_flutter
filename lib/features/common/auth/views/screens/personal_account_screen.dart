@@ -899,12 +899,13 @@ bool crBtnLoading=false;
           return;
         }
       }
+      setState(() {
+        crBtnLoading=true;
+      });
       // final position = await getCurrentLocation();
       final locationData = await locationController.checkPermissionAndSetData();
       if (locationData != null) {
-        setState(() {
-          crBtnLoading=true;
-        });
+
         final imageFile = (UserSession().imagePath != null)
             ? File(UserSession().imagePath!)
             : null;

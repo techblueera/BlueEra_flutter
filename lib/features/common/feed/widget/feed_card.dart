@@ -124,6 +124,7 @@ class _FeedCardState extends State<FeedCard> {
                 isShowOnlyDetails: widget.isFromDetailsScreen,
                 authorSection: () => SizedBox.shrink(),
                 commentView: () => _onCommentPressed(),
+
                 buildActions: SizedBox.shrink,
                 likeFeed: () {
                   _onLikeDislikePressed();

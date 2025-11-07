@@ -164,7 +164,7 @@ class OrderNowController extends GetxController {
      return true;
       } else {
         commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong);
         return false;
       }
     } catch (e) {
@@ -179,7 +179,7 @@ class OrderNowController extends GetxController {
       if (response.isSuccess ?? false) {
       } else {
         commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);

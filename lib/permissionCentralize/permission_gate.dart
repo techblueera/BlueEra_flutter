@@ -35,12 +35,12 @@ class _PermissionGateState extends State<PermissionGate> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
+    return const SplashScreen();
     return hasPermission!
         ? const SplashScreen()
         : PermissionRequiredScreen(
-      missingPermissions: missingPermissions,
-      onRetry: _checkAllPermissions,
-    );
+            missingPermissions: missingPermissions,
+            onRetry: _checkAllPermissions,
+          );
   }
 }

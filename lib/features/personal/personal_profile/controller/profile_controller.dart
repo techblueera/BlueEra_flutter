@@ -190,11 +190,74 @@ class VisitProfileController extends GetxController {
 
       followUnFollowResponse.value = ApiResponse.error('error');
     }
-    // if (isFollow.value == false) {
-    //   followerCount.value = followerCount.value - 1;
+  }
+  ///FOLLOW CHANNEL...
+
+  Future<void> followChannelUserController(
+      {required String? candidateResumeId}) async {
+    try {
+      followUnFollowResponse.value = ApiResponse.initial('Initial');
+
+      ///FOR NOW WE SET
+      ResponseModel responseModel =
+      await UserRepo().channelFollowUser(followUserId: candidateResumeId);
+      if (responseModel.isSuccess) {
+        isFollow.value = true;
+        followUnFollowResponse.value = ApiResponse.complete(responseModel);
+        followerCount.value++;
+
+        /// Update follow status in store screen
+        updateFollowStatusForStore(candidateResumeId, true);
+
+      } else {
+        isFollow.value = false;
+
+        followUnFollowResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      isFollow.value = false;
+
+      followUnFollowResponse.value = ApiResponse.error('error');
+    }
+    // if (isFollow.value == true) {
+    //   followerCount.value = followerCount.value + 1;
     // }
   }
+  ///UNFOLLOW CHANNEL USER...
+  Future<void> unChannelFollowUserController(
+      {required String? candidateResumeId}) async {
+    try {
+      followUnFollowResponse.value = ApiResponse.initial('Initial');
 
+      ///FOR NOW WE SET
+      ResponseModel responseModel =
+          await UserRepo().channelUnfollowUser(followUserId: candidateResumeId);
+      if (responseModel.isSuccess) {
+        isFollow.value = false;
+        followUnFollowResponse.value = ApiResponse.complete(responseModel);
+        followerCount--;
+
+        /// Update Unfollow status in store screen
+        updateFollowStatusForStore(candidateResumeId, false);
+
+      } else {
+        isFollow.value = true;
+
+        followUnFollowResponse.value = ApiResponse.error('error');
+
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      isFollow.value = true;
+
+      followUnFollowResponse.value = ApiResponse.error('error');
+    }
+  }
+///
   void updateFollowStatusForStore(String? candidateResumeId, bool isFollowed) {
     if (Get.isRegistered<StoreScreenController>()) {
       final storeScreenController = Get.find<StoreScreenController>();

@@ -128,7 +128,7 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: json['_id'],
+      id: json['_id']??"",
       is_reposted: json['is_reposted'],
       message: json['message'],
       // location: json['location'],

@@ -172,7 +172,6 @@ class _FeedScreenState extends State<FeedScreen> {
         if (visibilityInfo.visibleFraction > 0.5) {
           // Post is at least 50% visible
           trackPostView(posts[postIndex].id);
-          print("Post ${posts[postIndex].id} is visible");
           // _callViewApi(post.id); // 👈 Call your view API here
         }
       },

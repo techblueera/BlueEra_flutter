@@ -19,7 +19,6 @@ import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
-
 enum SavedFeedTab {
   posts;
   // videos,
@@ -256,20 +255,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         selectedIndex = index;
                       });
                     },
-                    children:  isIndividual()? [
-
-                    HomeFeedScreenNew(
-                      key: ValueKey('feedScreen_all'),
-                      onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                      postFilterType: PostType.all,
-                      query: searchController.text.isEmpty
-                          ? null
-                          : searchController.text,
-                      headerHeight: _headerHeight,
-                      isInParentScroll: false,
-                    ),
-                      ChannelFeedScreen(),
-                      /*  VideoFeedScreen(
+                    children: isIndividual()
+                        ? [
+                            HomeFeedScreenNew(
+                              key: ValueKey('feedScreen_all'),
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                              postFilterType: PostType.all,
+                              query: searchController.text.isEmpty
+                                  ? null
+                                  : searchController.text,
+                              headerHeight: _headerHeight,
+                              isInParentScroll: false,
+                            ),
+                            ChannelFeedScreen(),
+                            /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
                           headerHeight: _headerHeight),
@@ -278,51 +278,38 @@ class _HomeScreenState extends State<HomeScreen> {
                           headerHeight: _headerHeight
                           // You can add _toggleAppBarAndBottomNav later if needed
                           ),*/
-                      SavedFeedScreen(
-                          onHeaderVisibilityChanged:
-                          _toggleAppBarAndBottomNav,
-                          query: searchController.text,
-                          selectedTab: _selectedSavedTab,
-                          headerHeight: _headerHeight + SizeConfig.size30),
-
-                      ]: [
-
-                        HomeFeedScreenNew(
-                          key: ValueKey('feedScreen_all'),
-                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                          postFilterType: PostType.all,
-                          query: searchController.text.isEmpty
-                              ? null
-                              : searchController.text,
-                          headerHeight: _headerHeight,
-                          isInParentScroll: false,
-                        ),
-                        ChannelFeedScreen(),
-                      /*  VideoFeedScreen(
-                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                          query: searchController.text,
-                          headerHeight: _headerHeight),
-                      ShortsFeedScreen(
-                          query: searchController.text,
-                          headerHeight: _headerHeight
-                          // You can add _toggleAppBarAndBottomNav later if needed
-                          ),*/
-                        SavedFeedScreen(
-                            onHeaderVisibilityChanged:
-                                _toggleAppBarAndBottomNav,
-                            query: searchController.text,
-                            selectedTab: _selectedSavedTab,
-                            headerHeight: _headerHeight + SizeConfig.size30),
-
-                      InventoryBusinessCardsScreen(
+                            SavedFeedScreen(
+                                onHeaderVisibilityChanged:
+                                    _toggleAppBarAndBottomNav,
+                                query: searchController.text,
+                                selectedTab: _selectedSavedTab,
+                                headerHeight:
+                                    _headerHeight + SizeConfig.size30),
+                          ]
+                        : [
+                            HomeFeedScreenNew(
+                              key: ValueKey('feedScreen_all'),
+                              onHeaderVisibilityChanged:
+                                  _toggleAppBarAndBottomNav,
+                              postFilterType: PostType.all,
+                              query: searchController.text.isEmpty
+                                  ? null
+                                  : searchController.text,
+                              headerHeight: _headerHeight,
+                              isInParentScroll: false,
+                            ),
+                            ChannelFeedScreen(),
+                            SavedFeedScreen(
+                                onHeaderVisibilityChanged:
+                                    _toggleAppBarAndBottomNav,
+                                query: searchController.text,
+                                selectedTab: _selectedSavedTab,
+                                headerHeight:
+                                    _headerHeight + SizeConfig.size30),
+                            InventoryBusinessCardsScreen(
                               showBackAppBar: false,
                             )
-                      // MoreCardsScreen(
-                      //   isFromHomeScreen: true,
-                      //   headerHeight: _headerHeight,
-                      //   onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                      // ),
-                    ],
+                          ],
                   ),
                 ),
 

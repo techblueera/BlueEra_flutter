@@ -10,13 +10,13 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/core/services/notifications/one_signal_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
@@ -34,7 +34,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/services/home_cache_service.dart';
-import 'core/services/notifications/firebase_notification_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
 
@@ -278,7 +277,7 @@ class _MyAppState extends State<MyApp> {
         }
 
         // Normal operation → Go to your normal entry point
-        return const PermissionGate(); // or SplashScreen / whatever your entry route is
+        return const SplashScreen(); // or SplashScreen / whatever your entry route is
       }),
     );
   }

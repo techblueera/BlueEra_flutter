@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/location_permission_handler.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
@@ -16,11 +17,13 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
 import '../../map/view/customize_map_screen.dart';
 import '../auth/controller/bottom_bar_controller.dart';
+
 // import 'package:http/http.dart' as http;
 // import 'package:googleapis_auth/auth_io.dart' as auth;
 class BottomNavigationBarScreen extends StatefulWidget {
@@ -127,7 +130,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-
   Future<void> getBusinessUserOwnProduct() async {
     await inventoryController.fetchProducts();
   }
@@ -158,7 +160,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       key: _scaffoldKey,
       body: ValueListenableBuilder(
@@ -188,8 +189,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         onHeaderVisibilityChanged: _toggleAppBar,
                         isBottomNavVisible: isVisible,
                         currentIndex: bottomBarController.currentIndex.value,
-                        onTap: (index) {
-                          bottomBarController.onChangeIndex(index);
+                        onTap: (index) async {
+                          if (index == 4) {
+                            await AppNotificationHandler()
+                                .checkNotificationPermission();
+                            if (await Permission.notification.isGranted) {
+                              bottomBarController.onChangeIndex(index);
+                            }
+                          } else {
+                            bottomBarController.onChangeIndex(index);
+
+                            // Stay on the same screen until permission is granted
+                          }
                         },
                         chatNotificationCount: chatNotificationCount,
                       ),
@@ -228,9 +239,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 onHeaderVisibilityChanged: _toggleAppBar);
       case 4:
       default:
-        return isGuestUser() ? GuestDashBoardScreen() : ChatMainScreen(
-          onHeaderVisibilityChanged: _toggleAppBar,
-        );
+        return isGuestUser()
+            ? GuestDashBoardScreen()
+            : ChatMainScreen(
+                onHeaderVisibilityChanged: _toggleAppBar,
+              );
     }
   }
 

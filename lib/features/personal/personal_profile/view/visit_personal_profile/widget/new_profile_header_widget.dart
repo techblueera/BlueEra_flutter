@@ -1,10 +1,8 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -12,11 +10,9 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/gestures.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
 import '../../../../../../widgets/expandable_text.dart';
-import '../../../../../../widgets/highlight_text_widget.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
   final User? user;

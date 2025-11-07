@@ -23,10 +23,8 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../core/services/notifications/one_signal_services.dart';
 
 class AuthController extends GetxController {
   ApiResponse mobileNoOtpSendResponse = ApiResponse.initial('Initial');

@@ -44,7 +44,6 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
   @override
   void initState() {
     super.initState();
-    print('subtitle-- ${widget.subTitle}');
     _pageController = PageController(initialPage: widget.initialIndex);
   }
 

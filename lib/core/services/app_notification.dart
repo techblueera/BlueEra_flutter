@@ -2,18 +2,23 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/notifications/model/OneSignalNotificationDetailsModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/main.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as httpPkg;
+import 'package:permission_handler/permission_handler.dart';
 
 String notificationSound = 'sound/iphone_tone.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -162,9 +167,10 @@ class AppNotificationHandler {
     await file.writeAsBytes(response.bodyBytes);
     return filePath;
   }
+
   Future<void> showNotification(
-      RemoteMessage notification,
-      ) async {
+    RemoteMessage notification,
+  ) async {
     flutterLocalNotificationsPlugin.show(
       notification.hashCode,
       notification.notification?.title ?? "",
@@ -189,7 +195,8 @@ class AppNotificationHandler {
       payload: jsonEncode(notification.data),
     );
   }
- ///WORKING CODE..
+
+  ///WORKING CODE..
   /* Future<void> showNotification(
     RemoteMessage notification,
   ) async {
@@ -359,6 +366,74 @@ class AppNotificationHandler {
     } on Exception catch (e) {
       logs("SOUND ERROR====${e.toString()}");
       // TODO
+    }
+  }
+
+  Future<void> checkNotificationPermission() async {
+    // Check current permission
+    final status = await Permission.notification.status;
+
+    if (status.isDenied || status.isPermanentlyDenied) {
+      // Show custom GetX dialog to request permission
+      Get.dialog(
+        WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: Colors.white,
+            title: CustomText(
+              "Notification Permission Required",
+              fontSize: 16,
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w600,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  "Please enable notification permission to use chat features.",
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                PositiveCustomBtn(
+                    onTap: () async {
+                      Get.back(); // Close dialog if granted
+
+                      // Request permission
+                      final newStatus = await Permission.notification.request();
+                      if (newStatus.isGranted) {
+                        Get.back(); // Close dialog if granted
+
+                      } else {
+                        // If still denied, open settings
+                        await openAppSettings();
+                      }
+                    },
+                    title: "Grant Permission"),
+                const SizedBox(height: 10),
+                InkWell(
+                  onTap: (){
+                    Get.back(); // Close dialog if granted
+
+                  },
+                  child: CustomText(
+                    "Skip",
+                    fontSize: 16,
+                    color: AppColors.primaryColor,
+                    textAlign: TextAlign.center,
+                    fontWeight: FontWeight.w600,
+                    decorationColor: AppColors.primaryColor,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
     }
   }
 }

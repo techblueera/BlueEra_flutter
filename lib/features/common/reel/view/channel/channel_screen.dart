@@ -385,10 +385,10 @@ class _ChannelScreenState extends State<ChannelScreen>
                                   createProfileScreen();
                                 } else {
                                   if (controller.isFollow.value) {
-                                    await controller.unFollowUserController(
+                                    await controller.unChannelFollowUserController(
                                         candidateResumeId: channelData?.id);
                                   } else {
-                                    await controller.followUserController(
+                                    await controller.followChannelUserController(
                                         candidateResumeId: channelData?.id);
                                   }
                                 }

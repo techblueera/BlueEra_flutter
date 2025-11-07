@@ -389,6 +389,18 @@ print("url=== ${url}");
     return response;
   }
 
+  ///GET CHANNEL UnFOLLOWING ME ...
+  Future<ResponseModel> getChannelRecommendationsMeRepo({  required int page,
+    required int limit,}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${channelsRecommendations}?page=$page&limit=$limit",
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
   ///GET FOLLOWER LIST...
   Future<ResponseModel> getChannelJoinedUserRepo({

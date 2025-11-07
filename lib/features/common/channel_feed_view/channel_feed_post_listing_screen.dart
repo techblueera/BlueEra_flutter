@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -27,6 +28,15 @@ class ChannelFeedPostListingScreen extends StatefulWidget {
 
 class _ChannelFeedPostListingScreenState
     extends State<ChannelFeedPostListingScreen> {
+  final controller = Get.find<ChannelFeedController>();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    controller.isChannelJoin.value = true;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,22 +128,6 @@ class _ChannelFeedPostListingScreenState
                                             color: AppColors.black,
                                           ),
                                         ),
-                                        if (widget.channelData?.username !=
-                                                null &&
-                                            (widget.channelData?.username
-                                                    ?.isNotEmpty ??
-                                                false))
-                                          Expanded(
-                                            child: Padding(
-                                              padding: EdgeInsets.only(top: 3),
-                                              child: CustomText(
-                                                " @${widget.channelData?.username}",
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
-                                                color: AppColors.white,
-                                              ),
-                                            ),
-                                          ),
                                       ],
                                     ),
                                   ),
@@ -146,11 +140,59 @@ class _ChannelFeedPostListingScreenState
                                     // color: AppColors.white,
                                   ),
                                   SizedBox(height: SizeConfig.size5),
-
-                                  // Add optional follower/follow section if needed
                                 ],
                               ),
                             ),
+                            SizedBox(width: SizeConfig.size8),
+
+                            // Add optional follower/follow section if needed
+                            Obx(() {
+                              return GestureDetector(
+                                onTap: () async {
+                                  if (isGuestUser()) {
+                                    createProfileScreen();
+                                  } else {
+                                    if (controller.isChannelJoin.value) {
+                                      await controller.unFollowUserController(
+                                          candidateResumeId:
+                                              widget.channelData?.id);
+                                    } else {
+                                      await controller.followUserController(
+                                          candidateResumeId:
+                                              widget.channelData?.id);
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 13, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: controller.isChannelJoin.value
+                                        ? AppColors.colorTextDarkGrey
+                                        : AppColors.primaryColor,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CustomText(
+                                        controller.isChannelJoin.value
+                                            ? "Unjoin"
+                                            : "Join",
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: SizeConfig.size10,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                        Icons.person_add_alt,
+                                        color: Colors.white,
+                                        size: 14,
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
                           ],
                         ),
                       ),
@@ -178,7 +220,8 @@ class _ChannelFeedPostListingScreenState
                 key: ValueKey(
                     'feedScreen_user_posts_${widget.channelData?.ownership?.claimedBy}'),
                 postFilterType: PostType.otherChannelPosts,
-                isInParentScroll: false,bottomPaddingChannel: 20,
+                isInParentScroll: false,
+                bottomPaddingChannel: 20,
                 id: widget.channelData?.ownership?.claimedBy),
           ),
         ],

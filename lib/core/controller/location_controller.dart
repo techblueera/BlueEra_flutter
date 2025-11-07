@@ -17,7 +17,7 @@ class LocationController extends GetxController {
     isFetchingAddress.value = true;
     HapticFeedback.lightImpact();
 
-    final locationResult = await LocationPermissionHandler.getCurrentLocation();
+    final locationResult = await LocationPermissionHandler().getCurrentLocation();
 
     if (locationResult.isSuccess && locationResult.position != null) {
       final pos = locationResult.position!;

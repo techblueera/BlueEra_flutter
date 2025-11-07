@@ -47,7 +47,6 @@ class SimplePriorityVideoManager extends GetxController {
     }
 
     if (!isScrolling.value) {
-      log('coming from heere');
       _checkAndPlayTopVideo();
     }
   }

@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 ChannelFeedModel channelFeedModelFromJson(String str) => ChannelFeedModel.fromJson(json.decode(str));
 String channelFeedModelToJson(ChannelFeedModel data) => json.encode(data.toJson());
 class ChannelFeedModel {
@@ -85,6 +87,7 @@ class ChannelFeedData {
 
     this.createdAt,
     this.updatedAt,
+    required this.isFollowing,
     this.v,
     this.latestPost,});
 
@@ -100,10 +103,11 @@ class ChannelFeedData {
 
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+    isFollowing = json['isFollowing'];
     posts = json["stats"]['posts'];
     followers = json["stats"]['followers'];
     v = json['__v'];
-    latestPost = json['latestPost'] != null ? LatestPost.fromJson(json['latestPost']) : null;
+    latestPost = json['latestPost'] != null ? Post.fromJson(json['latestPost']) : null;
   }
   Ownership? ownership;
   String? id;
@@ -117,7 +121,8 @@ class ChannelFeedData {
   int? followers;
   int? posts;
   int? v;
-  LatestPost? latestPost;
+  bool isFollowing=false;
+  Post? latestPost;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -137,6 +142,7 @@ class ChannelFeedData {
     map['updatedAt'] = updatedAt;
     map['posts'] = posts;
     map['followers'] = followers;
+    map['isFollowing'] = isFollowing;
     map['__v'] = v;
     if (latestPost != null) {
       map['latestPost'] = latestPost?.toJson();
@@ -144,6 +150,16 @@ class ChannelFeedData {
     return map;
   }
 
+
+  ChannelFeedData copyWith({bool? isFollowing}) {
+    return ChannelFeedData(
+      id: id,
+      name: name,
+      username: username,
+      logoUrl: logoUrl,
+      isFollowing: isFollowing ?? this.isFollowing,
+    );
+  }
 }
 
 Ownership ownershipFromJson(String str) => Ownership.fromJson(json.decode(str));

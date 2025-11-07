@@ -231,8 +231,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                       ),
                                       if (widget.video.authorUsername.isNotEmpty &&
                                           (widget.video.authorUsername
-                                                  .isNotEmpty ??
-                                              false))
+                                                  .isNotEmpty))
                                         Expanded(
                                           child: Padding(
                                             padding: EdgeInsets.only(top: 3),

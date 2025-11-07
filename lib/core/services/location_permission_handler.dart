@@ -1,85 +1,15 @@
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class LocationPermissionHandler {
-
-  /// Request location permission first (GPS service check happens later)
-  static Future<LocationPermissionResult> requestLocationPermission() async {
-    try {
-      // Step 1: Check current permission status FIRST
-      PermissionStatus permission = await Permission.location.status;
-      log("Current location permission status: $permission");
-
-      // Step 2: Handle different permission states
-      switch (permission) {
-        case PermissionStatus.granted:
-          return LocationPermissionResult(
-              isGranted: true,
-              message: 'Location permission granted'
-          );
-
-        case PermissionStatus.denied:
-        // Request permission
-          permission = await Permission.location.request();
-          return _handlePermissionResult(permission);
-
-        case PermissionStatus.permanentlyDenied:
-          return LocationPermissionResult(
-            isGranted: false,
-            message: 'Location permission permanently denied. Please grant it in app settings.',
-            shouldOpenSettings: true,
-          );
-
-        case PermissionStatus.restricted:
-          return LocationPermissionResult(
-            isGranted: false,
-            message: 'Location permission is restricted on this device.',
-          );
-
-        default:
-          return LocationPermissionResult(
-            isGranted: false,
-            message: 'Unknown permission status.',
-          );
-      }
-    } catch (e) {
-      log("Error requesting location permission: $e");
-      return LocationPermissionResult(
-        isGranted: false,
-        message: 'Error requesting location permission: $e',
-      );
-    }
-  }
-
-  /// Handle the result of permission request
-  static LocationPermissionResult _handlePermissionResult(PermissionStatus status) {
-    switch (status) {
-      case PermissionStatus.granted:
-        return LocationPermissionResult(
-            isGranted: true,
-            message: 'Location permission granted'
-        );
-      case PermissionStatus.denied:
-        return LocationPermissionResult(
-          isGranted: false,
-          message: 'Location permission denied',
-        );
-      case PermissionStatus.permanentlyDenied:
-        return LocationPermissionResult(
-          isGranted: false,
-          message: 'Location permission permanently denied. Please grant it in app settings.',
-          shouldOpenSettings: true,
-        );
-      default:
-        return LocationPermissionResult(
-          isGranted: false,
-          message: 'Permission request failed',
-        );
-    }
-  }
-
   /// Check if location services are enabled (call this only when getting location)
   static Future<bool> isLocationServiceEnabled() async {
     try {
@@ -90,74 +20,65 @@ class LocationPermissionHandler {
     }
   }
 
-  /// Get current location with proper error handling
-  /// This method checks both permission AND GPS service
-  // static Future<LocationResult> getCurrentLocation() async {
-  //   try {
-  //     // 1. permission ----------------------------------------------------------
-  //     final permissionResult = await requestLocationPermission();
-  //     if (!permissionResult.isGranted) {
-  //       return LocationResult(
-  //         position: null,
-  //         isSuccess: false,
-  //         message: permissionResult.message,
-  //         shouldOpenSettings: permissionResult.shouldOpenSettings,
-  //         errorType: LocationErrorType.permissionDenied,
-  //       );
-  //     }
-  //
-  //     // 2. let the Fused Provider ask for GPS if it is off ----------------------
-  //     try {
-  //       final position = await Geolocator.getCurrentPosition(
-  //         locationSettings: const LocationSettings(
-  //           accuracy: LocationAccuracy.high,
-  //           timeLimit: Duration(seconds: 10),
-  //         ),
-  //       );
-  //
-  //       return LocationResult(
-  //         position: position,
-  //         isSuccess: true,
-  //         message: 'Location retrieved successfully',
-  //         errorType: LocationErrorType.none,
-  //       );
-  //     } on LocationServiceDisabledException {
-  //       // user pressed “No thanks” in the system dialog
-  //       return LocationResult(
-  //         position: null,
-  //         isSuccess: false,
-  //         message: 'Location services are disabled. Please enable GPS in device settings.',
-  //         shouldOpenSettings: true,
-  //         errorType: LocationErrorType.serviceDisabled,
-  //       );
-  //     }
-  //   } catch (e) {
-  //     log("Error getting current location: $e");
-  //     return LocationResult(
-  //       position: null,
-  //       isSuccess: false,
-  //       message: 'Failed to get location: $e',
-  //       errorType: LocationErrorType.unknown,
-  //     );
-  //   }
-  // }
+  noLocationPermissionDialogBox() async {
+    Get.dialog(
+      WillPopScope(
+        onWillPop: () async => false, // Prevent closing with back button
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10), // 👈 Border radius here
+          ),
+          backgroundColor: Colors.white,
+          title: CustomText(
+            "Current Location Unavailable",
+            fontSize: 16,
+            textAlign: TextAlign.center,
+            fontWeight: FontWeight.w600,
+          ),
+          content: SizedBox(
+            width: 80,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  "Blue Era needs your location while using the app to provide accurate nearby services and improve your experience.",
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                PositiveCustomBtn(
+                  onTap: () async {
+                    await openAppSettings();
+                    Get.back(); // Close dialog after navigating to settings
+                  },
+                  title: "Change Location Settings",
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
 
-  static Future<LocationResult> getCurrentLocation() async {
+  Future<LocationResult> getCurrentLocation() async {
     try {
-      // 1. Permission check
-      final permissionResult = await requestLocationPermission();
-      if (!permissionResult.isGranted) {
-        return LocationResult(
-          position: null,
-          isSuccess: false,
-          message: permissionResult.message,
-          shouldOpenSettings: permissionResult.shouldOpenSettings,
-          errorType: LocationErrorType.permissionDenied,
-        );
-      }
-
-      // 2. Try to get location (triggers system dialog if GPS off)
       try {
+        var location = await Permission.location.status;
+        logs("location==== 1 ${location}");
+        if ((location == PermissionStatus.permanentlyDenied) ||
+            (location == PermissionStatus.denied)) {
+          var locationStatus = await Permission.location.request();
+          logs("location==== 2 ${locationStatus}");
+
+          if ((location == PermissionStatus.permanentlyDenied) ||
+              (location == PermissionStatus.denied)) {
+            await noLocationPermissionDialogBox();
+          }
+        }
+
         final position = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
@@ -172,8 +93,11 @@ class LocationPermissionHandler {
         );
       } on LocationServiceDisabledException {
         // User pressed "No thanks" in system dialog → open settings manually
-        await Geolocator.openLocationSettings();
-        await Future.delayed(const Duration(milliseconds: 800)); // Wait for user
+        // await Geolocator.openLocationSettings();
+        await openAppSettings();
+
+        await Future.delayed(
+            const Duration(milliseconds: 800)); // Wait for user
 
         // 3. Retry once after user comes back
         final serviceEnabled = await isLocationServiceEnabled();
@@ -220,24 +144,6 @@ class LocationPermissionHandler {
     } catch (e) {
       log("Error checking location permission: $e");
       return false;
-    }
-  }
-
-  /// Open app settings for manual permission grant
-  static Future<void> openAppSettings() async {
-    // try {
-    //   await openAppSettings();
-    // } catch (e) {
-    //   log("Error opening app settings: $e");
-    // }
-  }
-
-  /// Open device location settings
-  static Future<void> openLocationSettings() async {
-    try {
-      await Geolocator.openLocationSettings();
-    } catch (e) {
-      log("Error opening location settings: $e");
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_join_list_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
 
 class ChannelFeedController extends GetxController {
@@ -49,26 +50,125 @@ class ChannelFeedController extends GetxController {
     isLoading.value = false;
   }
 
-
-
   Rx<ApiResponse> followerResponse = ApiResponse.initial('Initial').obs;
   RxList<UserChannelData> userChannelList = <UserChannelData>[].obs;
 
   ///GET CHANNEL DETAILS...
   Future<void> getChannelMembersController({required String userID}) async {
-
     try {
-      ResponseModel response = await ChannelRepo().getChannelJoinedUserRepo(userId: userID);
+      ResponseModel response =
+          await ChannelRepo().getChannelJoinedUserRepo(userId: userID);
 
       if (response.isSuccess) {
         followerResponse.value = ApiResponse.complete(response);
-        ChannelJoinListModel followerResModel = ChannelJoinListModel.fromJson(response.response?.data);
+        ChannelJoinListModel followerResModel =
+            ChannelJoinListModel.fromJson(response.response?.data);
         userChannelList.value = followerResModel.data ?? [];
       }
     } catch (e) {
       followerResponse.value = ApiResponse.error('error');
-    }finally{
+    } finally {
       // isFollowerLoading.value = false;
     }
   }
+
+  ///UN JOINED CHANNEL LISTING
+  var unJoinChannelDataList = <ChannelFeedData>[].obs;
+  final unJoinChannelFeedModel = ChannelFeedModel().obs;
+  var isUnJoinLoading = false.obs;
+  var unJoinHasMore = true.obs;
+  int _unJoinPage = 1;
+
+  Future<void> fetchUnJoinChannelData({bool loadMore = false}) async {
+    if (isUnJoinLoading.value) return;
+    isUnJoinLoading.value = true;
+
+    if (!loadMore) _unJoinPage = 1;
+    final fetchedData = await ChannelRepo().getChannelRecommendationsMeRepo(
+        page: _unJoinPage, limit: 10); // implement your API fetch
+    final data = fetchedData.response?.data;
+
+    late final Map<String, dynamic> json;
+
+    if (data is String) {
+      json = jsonDecode(data);
+    } else if (data is Map<String, dynamic>) {
+      json = data;
+    } else {
+      throw Exception('Unexpected response type: ${data.runtimeType}');
+    }
+    unJoinChannelFeedModel.value = ChannelFeedModel.fromJson(json);
+    final fetched = (json['data'] as List)
+        .map((item) => ChannelFeedData.fromJson(item))
+        .toList();
+    if (fetched.isEmpty) {
+      unJoinHasMore.value = false;
+    } else {
+      if (loadMore) {
+        unJoinChannelDataList.addAll(fetched);
+      } else {
+        unJoinChannelDataList.assignAll(fetched);
+      }
+      _unJoinPage++;
+    }
+    isUnJoinLoading.value = false;
+  }
+
+  /// Toggle follow/unfollow locally (no API call)
+
+  /// Optimistic Follow / Unfollow
+  Future<void> toggleFollow({
+    required String channelId,
+  }) async {
+    final index = unJoinChannelDataList.indexWhere((c) => c.id == channelId);
+    if (index == -1) return;
+
+    final current = unJoinChannelDataList[index];
+    final previousValue = current.isFollowing;
+    final newValue = !previousValue;
+
+    // 🔹 1. Instantly update UI
+    unJoinChannelDataList[index] = current.copyWith(isFollowing: newValue);
+
+    try {
+      // 🔹 2. Fire API silently
+      if (newValue) {
+        await followUserController(candidateResumeId: channelId);
+      } else {
+        await unFollowUserController(candidateResumeId: channelId);
+      }
+    } catch (e) {
+      // 🔹 3. Rollback if API fails
+      unJoinChannelDataList[index] =
+          current.copyWith(isFollowing: previousValue);
+      print('Follow/Unfollow API failed: $e');
+    }
+  }
+
+  /// Actual API calls
+  RxBool isChannelJoin = false.obs;
+
+  Future<void> followUserController(
+      {required String? candidateResumeId}) async {
+    ResponseModel responseModel =
+        await UserRepo().channelFollowUser(followUserId: candidateResumeId);
+    if (responseModel.isSuccess) {
+      isChannelJoin.value = true;
+    } else {
+      isChannelJoin.value = false;
+    }
+  }
+
+  Future<void> unFollowUserController(
+      {required String? candidateResumeId}) async {
+    ResponseModel responseModel =
+        await UserRepo().channelUnfollowUser(followUserId: candidateResumeId);
+
+    if (responseModel.isSuccess) {
+      isChannelJoin.value = false;
+    } else {
+      isChannelJoin.value = true;
+    }
+  }
 }
+// https://be.blueera.ai/api/channel-service/follower/690c3d0d0ad6fa1f88e3dc67/followers

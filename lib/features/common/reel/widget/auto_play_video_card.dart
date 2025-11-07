@@ -67,7 +67,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
     String videoUrl;
 
     videoUrl = widget.videoItem.video?.videoUrl ?? '';
-    log('update video--> ');
     videoManager.updateVideoVisibility(
       widget.videoItem.videoId ?? '',
       videoUrl,

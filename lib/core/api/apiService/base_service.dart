@@ -496,5 +496,6 @@ abstract class BaseService {
   final String getOrderFare = "rider-service/riders/fare";
   final String aiCommentReplySuggestion = "ai-service/api/ai-reply/generate-suggestions";
   final String bookingGetRentalServiceMap = "booking-enquiry-service/rentals";
-
+  final String channelsRecommendations = "channel-service/channels/recommendations/trending";
+  final String channelServiceFollower = "channel-service/follower/";
 }
