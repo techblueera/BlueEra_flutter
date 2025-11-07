@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
@@ -13,12 +12,10 @@ import 'package:BlueEra/features/business/visit_business_profile/view/visit_busi
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
-import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
@@ -498,7 +495,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                 ),
               );
             }
-            if (item.type == "long_video") {
+          /*  if (item.type == "long_video") {
               ShortFeedItem videoData = getVideoData(item);
               if ((videoData.video?.duration ?? 0) > 0)
                 return Padding(
@@ -531,7 +528,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                     },
                   ),
                 );
-            }
+            }*/
             return const SizedBox.shrink(); // skip if no card
           },
         );
@@ -736,6 +733,8 @@ ShortFeedItem getVideoData(Post video) {
           // videoUrl: video.videoUrl,
           // coverUrl: video.thumbnail,
           createdAt: video.createdAt.toString(),
+          media_height:video.media_height ,
+          media_width: video.media_width,
           duration: video.duration,
           stats: Stats(
               comments: video.commentsCount,

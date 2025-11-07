@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
@@ -66,17 +67,19 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                     height: SizeConfig.size10,
                   ),
 
-                  CommonDropdownDialog<String>(
-                    items: messageController.emotions,
-                    selectedValue:
-                        messageController.selectedEmotion.value.isEmpty
-                            ? null
-                            : messageController.selectedEmotion.value,
+                  CommonDropdownDialog<CommentTypeModel>(
+                    items:emotionList,
+                    selectedValue: messageController.selectedEmotion.value.isEmpty
+                        ? null
+                        : emotionList.firstWhere(
+                          (e) => e.name == messageController.selectedEmotion.value,
+                      orElse: () => emotionList.first,
+                    ),
                     title: "Select Emotion",
                     hintText: "Eg. Motivation, Anger...",
-                    displayValue: (value) => value,
+                    displayValue: (value) => value.name,
                     onChanged: (value) {
-                      messageController.selectedEmotion.value = value!;
+                      messageController.selectedEmotion.value = value?.name??"";
                       messageController.onSelectionChanged();
                     },
                   ),

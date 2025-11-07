@@ -45,7 +45,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
         SizedBox(
-        height: 140,
+        height: 166,
         width: double.infinity,
         child: Stack(
           children: [
@@ -56,7 +56,9 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 topRight: Radius.circular(12),
               ),
               child: Image.network(
-                user?.coverPicture ?? "",
+                (user?.coverPicture?.isNotEmpty ?? false)
+                    ? user!.coverPicture!
+                    : (user?.profileImage ?? ''),
                 height: 140,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -89,7 +91,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
               /// ==== Profile Image ====
               Positioned(
                 left: 20,
-                bottom: -35,
+                top: 100,
                 child: CircleAvatar(
                   radius: 38,
                   backgroundColor: AppColors.white,
@@ -116,7 +118,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
               /// ==== Follow Button + Menu ====
               Positioned(
                 right: 4,
-                bottom: -50,
+                top: 140,
                 child: Row(
                   children: [
                     if (user?.id != null)
@@ -137,10 +139,10 @@ class NewProfileHeaderWidget extends StatelessWidget {
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 13, vertical: 4),
+                                horizontal: 13, vertical: 6),
                             decoration: BoxDecoration(
                               color: controller.isFollow.value
-                                  ? AppColors.colorTextDarkGrey
+                                  ? AppColors.greylite
                                   : AppColors.primaryColor,
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -150,16 +152,16 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                   controller.isFollow.value
                                       ? "Unfollow"
                                       : "Follow",
-                                  color: Colors.white,
+                                  color: controller.isFollow.value?AppColors.secondaryTextColor:Colors.white,
                                   fontWeight: FontWeight.w700,
                                   fontSize: SizeConfig.size10,
                                 ),
-                                const SizedBox(width: 6),
-                                Icon(
-                                  Icons.person_add_alt,
-                                  color: Colors.white,
-                                  size: 14,
-                                )
+                                // const SizedBox(width: 6),
+                                // Icon(
+                                //   Icons.person_add_alt,
+                                //   color: Colors.white,
+                                //   size: 14,
+                                // )
                               ],
                             ),
                           ),
@@ -191,7 +193,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 45),
+          const SizedBox(height: 10),
 
           /// ==== Name + Username ====
           Padding(

@@ -60,6 +60,8 @@ import 'package:BlueEra/features/common/reel/view/video/full_video_preview_scree
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/common/rental/view/add_flat_room_rental_service_screen.dart';
+import 'package:BlueEra/features/common/rental/view/home_stay_rental_service.dart';
+import 'package:BlueEra/features/common/rental/view/vehicle_rental_service.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
@@ -371,6 +373,12 @@ class RouteHelper {
 
   static String getVehicleInformationRidingScreenRoute() =>
       RouteConstant.vehicleInformationRidingScreen;
+
+  static String getHomeStayRentalServiceRoute() =>
+      RouteConstant.homeStayRentalService;
+
+  static String getVehicleRentalServiceRoute() =>
+      RouteConstant.vehicleRentalService;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1089,6 +1097,14 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => VehicleInformationRidingScreen(),
             settings: RouteSettings(name: getVehicleInformationRidingScreenRoute()));
+      case RouteConstant.homeStayRentalService:
+        return MaterialPageRoute(
+            builder: (_) => HomeStayRentalService(),
+            settings: RouteSettings(name: getHomeStayRentalServiceRoute()));
+      case RouteConstant.vehicleRentalService:
+        return MaterialPageRoute(
+            builder: (_) => VehicleRentalService(),
+            settings: RouteSettings(name: getVehicleRentalServiceRoute()));
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

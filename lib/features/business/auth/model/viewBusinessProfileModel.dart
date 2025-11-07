@@ -45,7 +45,8 @@ class BusinessProfileDetails {
       this.businessName, 
       this.typeOfBusiness, 
       this.logo, 
-      this.categoryOfBusiness, 
+      this.coverimage,
+      this.categoryOfBusiness,
       this.natureOfBusiness, 
       this.isActive, 
       this.businessIsVerified, 
@@ -82,6 +83,7 @@ class BusinessProfileDetails {
     businessName = json['business_name'];
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
+    coverimage = json['coverimage'];
     categoryOfBusiness = json['category_Of_Business'];
     natureOfBusiness = json['Nature_of_Business'];
     isActive = json['isActive'];
@@ -135,6 +137,7 @@ class BusinessProfileDetails {
   String? conversationId;
   String? typeOfBusiness;
   String? logo;
+  String? coverimage;
   String? categoryOfBusiness;
   String? natureOfBusiness;
   bool? isActive;
@@ -184,6 +187,7 @@ class BusinessProfileDetails {
     map['business_name'] = businessName;
     map['type_of_business'] = typeOfBusiness;
     map['logo'] = logo;
+    map['coverPicture'] = coverimage;
     map['category_Of_Business'] = categoryOfBusiness;
     map['Nature_of_Business'] = natureOfBusiness;
     map['isActive'] = isActive;

@@ -17,7 +17,6 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
-import 'package:BlueEra/features/common/reel/view/sections/video_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
@@ -27,14 +26,12 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents_scr
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clock_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/info_card_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/link_tile_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
-import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/subscription/view/subscription_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
@@ -279,13 +276,10 @@ class _PersonalProfileSetupNewScreenState
                 );
               } else {
                 return Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 40, top: 20),
-                    child: SizedBox(
-                      height: 30,
-                      width: 30,
-                      child: CircularProgressIndicator(),
-                    ),
+                  child: SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(),
                   ),
                 );
               }
@@ -348,6 +342,7 @@ class _PersonalProfileSetupNewScreenState
           _buildChannelWidget(),
 
           SizedBox(height: SizeConfig.size10),
+
           _buildEarnWithBlueEraWidget(),
 
           // SizedBox(height: SizeConfig.size10),
@@ -783,7 +778,7 @@ class _PersonalProfileSetupNewScreenState
                                 '';
                         return banner.isNotEmpty
                             ? Image.network(banner,fit: BoxFit.cover,)
-                            : const SizedBox();
+                            :  Image.network(personalCreateProfileController.imagePath?.value??'',fit: BoxFit.cover,);
                       }),
                     ),
                   ),

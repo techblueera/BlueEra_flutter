@@ -1311,6 +1311,38 @@ extension VehicleRegistrationTypeExtension on VehicleRegistrationType {
   }
 }
 
+enum RentalVehicleRegistrationType {
+  Personal,
+  Commercial,
+  CommercialGoods,
+}
+
+extension RentalRegistrationTypeExtension on RentalVehicleRegistrationType {
+  // Get display name
+  String get displayName {
+    switch (this) {
+      case RentalVehicleRegistrationType.Personal:
+        return 'Personal';
+      case RentalVehicleRegistrationType.Commercial:
+        return 'Commercial';
+      case RentalVehicleRegistrationType.CommercialGoods:
+        return 'Commercial Goods';
+    }
+  }
+
+  // Get enum from string
+  static VehicleRegistrationType fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'personal':
+        return VehicleRegistrationType.Personal;
+      case 'commercial':
+        return VehicleRegistrationType.Commercial;
+      default:
+        return VehicleRegistrationType.Personal;
+    }
+  }
+}
+
 
 enum VehicleType {
   TwoWheeler,

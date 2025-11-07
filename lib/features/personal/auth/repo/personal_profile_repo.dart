@@ -108,6 +108,7 @@ class PersonalProfileRepo extends BaseService {
   Future<ResponseModel> getServiceStatusRepo() async {
     final response = await ApiBaseHelper().getHTTP(
       "${mapServiceProviderStatus}/$userId",
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

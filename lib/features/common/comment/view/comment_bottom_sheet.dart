@@ -485,8 +485,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     final textValue = commentController.sendMessageController.text.trim();
 
     final replyingTo = commentController.replyingToUser.value;
-    final isTextEmpty =
-        commentController.sendMessageController.text.trim().isEmpty;
 // 🧠 New logic: consider AI icon visible if only mention exists or empty
     bool isAiVisible = false;
     if (textValue.isEmpty) {

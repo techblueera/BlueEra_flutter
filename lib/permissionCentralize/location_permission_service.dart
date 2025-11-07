@@ -73,19 +73,22 @@ class PermissionService {
               if(Platform.isAndroid){
                 await openAppSettings();
               }else{
-                commonSnackBar(message: 'Location and gps permission not given , enable it from setting');
+                commonSnackBar(message: 'Location permission not given , enable it from setting');
+
+                await openAppSettings();
+
               }
             }
           return false;
         }
       }
 
-      // bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      // if (!serviceEnabled) {
-      //   await Geolocator.openLocationSettings();
-      //   serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      //   if (!serviceEnabled) return false;
-      // }
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) return false;
+      }
 
       await Geolocator.getCurrentPosition(
         locationSettings:

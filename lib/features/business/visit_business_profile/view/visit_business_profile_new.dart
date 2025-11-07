@@ -134,7 +134,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: SizeConfig.size6,),
+                          SizedBox(height: SizeConfig.size10,),
                           // controller.userData.value?.user
                           RatingSummaryWidget(
                             rating: businessData?.avg_rating?.toDouble() ?? 0.0,
@@ -151,7 +151,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                           //     rating:
                           //         double.parse("${ratingData?.avgRating ?? 0}"),
                           //     totalReviews: "${ratingData?.totalRatings ?? 0}"),
-                          SizedBox(height: SizeConfig.size2),
+                          SizedBox(height: SizeConfig.size6),
                           Card(
                             margin: EdgeInsets.all(8),
                             shape: RoundedRectangleBorder(

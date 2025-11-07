@@ -1,11 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
-import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
-import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
-import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -70,21 +66,23 @@ class PostAiCommentScreen extends StatelessWidget {
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
-
-                  CommonDropdownDialog<String>(
-                    items: commentController.emotions,
-                    selectedValue:
-                        commentController.selectedEmotion.value.isEmpty
-                            ? null
-                            : commentController.selectedEmotion.value,
+                  CommonDropdownDialog<CommentTypeModel>(
+                    items: emotionList,
+                    selectedValue: commentController.selectedEmotion.value.isEmpty
+                        ? null
+                        : emotionList.firstWhere(
+                          (e) => e.name == commentController.selectedEmotion.value,
+                      orElse: () => emotionList.first,
+                    ),
                     title: "Select Emotion",
                     hintText: "Eg. Motivation, Anger...",
-                    displayValue: (value) => value,
+                    displayValue: (value) => value.name, // <-- use the emotion name
                     onChanged: (value) {
-                      commentController.selectedEmotion.value = value!;
+                      commentController.selectedEmotion.value = value?.name??"";
                       commentController.onSelectionChanged();
                     },
                   ),
+
                   SizedBox(
                     height: SizeConfig.size15,
                   ),
@@ -92,21 +90,39 @@ class PostAiCommentScreen extends StatelessWidget {
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
-
-                  CommonDropdownDialog<String>(
-                    items: commentController.commentType,
-                    selectedValue:
-                    commentController.selectedCommentType.value.isEmpty
+                  CommonDropdownDialog<CommentTypeModel>(
+                    items: commentTypes,
+                    selectedValue: commentController.selectedCommentType.value.isEmpty
                         ? null
-                        : commentController.selectedCommentType.value,
+                        : commentTypes.firstWhere(
+                          (e) => e.name == commentController.selectedCommentType.value,
+                      orElse: () => commentTypes.first,
+                    ),
                     title: "Select Comment Type",
                     hintText: "Eg. Shock...",
-                    displayValue: (value) => value,
+                    displayValue: (value) => value.name,
                     onChanged: (value) {
-                      commentController.selectedCommentType.value = value!;
-                      commentController.onSelectionChanged();
+                      if (value != null) {
+                        commentController.selectedCommentType.value = value.name;
+                        commentController.onSelectionChanged();
+                      }
                     },
                   ),
+
+                  // CommonDropdownDialog<String>(
+                  //   items: commentController.commentType,
+                  //   selectedValue:
+                  //   commentController.selectedCommentType.value.isEmpty
+                  //       ? null
+                  //       : commentController.selectedCommentType.value,
+                  //   title: "Select Comment Type",
+                  //   hintText: "Eg. Shock...",
+                  //   displayValue: (value) => value,
+                  //   onChanged: (value) {
+                  //     commentController.selectedCommentType.value = value!;
+                  //     commentController.onSelectionChanged();
+                  //   },
+                  // ),
 
                   SizedBox(
                     height: SizeConfig.size30,

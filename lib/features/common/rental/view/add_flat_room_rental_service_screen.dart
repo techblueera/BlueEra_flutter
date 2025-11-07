@@ -11,7 +11,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
-import 'package:BlueEra/features/common/rental/controller/rental_service_controller.dart';
+import 'package:BlueEra/features/common/rental/controller/add_flat_rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -32,7 +32,7 @@ class AddFlatRoomRentalServiceScreen extends StatefulWidget {
 }
 
 class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServiceScreen> {
-  final controller = Get.put(RentalServiceController());
+  final controller = Get.put(AddFlatRentalServiceController());
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   @override
   void dispose() {
-    Get.delete<RentalServiceController>();
+    Get.delete<AddFlatRentalServiceController>();
     super.dispose();
   }
 
@@ -61,15 +61,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   }
 
-  void onBackPressed(){
-    log('current step-- ${controller.currentStep.value}');
-    if(controller.currentStep.value > 0){
-      controller.previousStep();
-    }else{
-      Get.back();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -79,12 +70,12 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           return;
         }
 
-        onBackPressed();
+        controller.onBackPressed();
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
           title: "Flat/Room",
-          onBackTap: onBackPressed,
+          onBackTap: controller.onBackPressed,
           buildCustomWidget: ()=>
             Obx(() => Padding(
               padding: const EdgeInsets.only(right: 16),
@@ -168,7 +159,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     keyBoardType: TextInputType.text,
                     isValidate: true,
                   ),
-                  SizedBox(height: SizeConfig.size15),
+                  SizedBox(height: SizeConfig.paddingM),
                   ContactInputField1(
                     mobileController: controller.mobile,
                     landlineCodeController: controller.landlineCode,
@@ -287,7 +278,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                   ),
                 ),
               ),
-              GetBuilder<RentalServiceController>(
+              GetBuilder<AddFlatRentalServiceController>(
                 id: "addHighlight",
                 builder: (_) {
                   return AnimatedSwitcher(
@@ -485,8 +476,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
       ),
       children: [
         // Road Side Images
-        GetBuilder<RentalServiceController>(
-          id: RentalServiceController.roadSideId,
+        GetBuilder<AddFlatRentalServiceController>(
+          id: AddFlatRentalServiceController.roadSideId,
           builder: (ctrl) => _imageUploadSection(
             "Upload Road Side Images",
             minImages: 2,
@@ -495,14 +486,14 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ctrl.addImages(
                 label: 'Road Side Images',
                 imageList: ctrl.roadSideImage,
-                updateId: RentalServiceController.roadSideId,
+                updateId: AddFlatRentalServiceController.roadSideId,
               );
             },
             removeSelectedImage: (index) {
               ctrl.removeImageAt(
                 imageList: ctrl.roadSideImage,
                 index: index,
-                updateId: RentalServiceController.roadSideId,
+                updateId: AddFlatRentalServiceController.roadSideId,
               );
             },
           ),
@@ -510,8 +501,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
         SizedBox(height: SizeConfig.size15),
 
         // Rooms
-        GetBuilder<RentalServiceController>(
-          id: RentalServiceController.roomId,
+        GetBuilder<AddFlatRentalServiceController>(
+          id: AddFlatRentalServiceController.roomId,
           builder: (ctrl) => _imageUploadSection(
             "Upload Rooms Images",
             minImages: 4,
@@ -520,14 +511,14 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ctrl.addImages(
                 label: 'Rooms Images',
                 imageList: ctrl.roomImages,
-                updateId: RentalServiceController.roomId,
+                updateId: AddFlatRentalServiceController.roomId,
               );
             },
             removeSelectedImage: (index) {
               ctrl.removeImageAt(
                 imageList: ctrl.roomImages,
                 index: index,
-                updateId: RentalServiceController.roomId,
+                updateId: AddFlatRentalServiceController.roomId,
               );
             },
           ),
@@ -535,8 +526,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
         SizedBox(height: SizeConfig.size15),
 
         // Kitchen
-        GetBuilder<RentalServiceController>(
-          id: RentalServiceController.kitchenId,
+        GetBuilder<AddFlatRentalServiceController>(
+          id: AddFlatRentalServiceController.kitchenId,
           builder: (ctrl) => _imageUploadSection(
             "Upload Kitchen Images",
             minImages: 2,
@@ -545,14 +536,14 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ctrl.addImages(
                 label: 'Kitchen Images',
                 imageList: ctrl.kitchenImage,
-                updateId: RentalServiceController.kitchenId,
+                updateId: AddFlatRentalServiceController.kitchenId,
               );
             },
             removeSelectedImage: (index) {
               ctrl.removeImageAt(
                 imageList: ctrl.kitchenImage,
                 index: index,
-                updateId: RentalServiceController.kitchenId,
+                updateId: AddFlatRentalServiceController.kitchenId,
               );
             },
           ),
@@ -560,8 +551,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
         SizedBox(height: SizeConfig.size15),
 
         // Bathroom
-        GetBuilder<RentalServiceController>(
-          id: RentalServiceController.bathroomId,
+        GetBuilder<AddFlatRentalServiceController>(
+          id: AddFlatRentalServiceController.bathroomId,
           builder: (ctrl) => _imageUploadSection(
             "Upload Bathroom Images",
             minImages: 2,
@@ -570,14 +561,14 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ctrl.addImages(
                 label: 'Bathroom Images',
                 imageList: ctrl.bathroomImage,
-                updateId: RentalServiceController.bathroomId,
+                updateId: AddFlatRentalServiceController.bathroomId,
               );
             },
             removeSelectedImage: (index) {
               ctrl.removeImageAt(
                 imageList: ctrl.bathroomImage,
                 index: index,
-                updateId: RentalServiceController.bathroomId,
+                updateId: AddFlatRentalServiceController.bathroomId,
               );
             },
           ),
@@ -585,8 +576,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
         SizedBox(height: SizeConfig.size15),
 
         // Other
-        GetBuilder<RentalServiceController>(
-          id: RentalServiceController.otherId,
+        GetBuilder<AddFlatRentalServiceController>(
+          id: AddFlatRentalServiceController.otherId,
           builder: (ctrl) => _imageUploadSection(
             "Upload Other Images",
             minImages: 4,
@@ -596,14 +587,14 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ctrl.addImages(
                 label: 'Other Images(Optional)',
                 imageList: ctrl.otherImage,
-                updateId: RentalServiceController.otherId,
+                updateId: AddFlatRentalServiceController.otherId,
               );
             },
             removeSelectedImage: (index) {
               ctrl.removeImageAt(
                 imageList: ctrl.otherImage,
                 index: index,
-                updateId: RentalServiceController.otherId,
+                updateId: AddFlatRentalServiceController.otherId,
               );
             },
           ),

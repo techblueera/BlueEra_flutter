@@ -22,6 +22,7 @@ class PersonalIdentificationRidingScreen extends StatefulWidget {
 
 class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificationRidingScreen> {
   final controller = Get.put(DeliveryPartnerController());
+  final multipleImageSectionController = Get.put(CommonMultipleImageSectionController());
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +56,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                     maxImages: controller.maxLiveUploadImages,
                     images: ctrl.livePhoto,
                     onAddImage: () async {
-                      ctrl.addImages(
+                      multipleImageSectionController.addImages(
                           label: 'Road Side Images',
                           imageList: ctrl.livePhoto,
                           updateId: DeliveryPartnerController.livePhotoId,
@@ -63,7 +64,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                       );
                     },
                     onRemoveImage: (index) {
-                      ctrl.removeImageAt(
+                      multipleImageSectionController.removeImageAt(
                         imageList: ctrl.livePhoto,
                         index: index,
                         updateId: DeliveryPartnerController.livePhotoId,
@@ -104,7 +105,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                                 imageFile: controller.aadharFrontImage,
                                 context: context,
                                 onImageSelected: () async {
-                                  final selectedPath = await controller.pickImage(context: context);
+                                  final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                                   if (selectedPath != null) {
                                     controller.aadharFrontImage.value = File(selectedPath);
                                   }
@@ -119,7 +120,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                                 imageFile: controller.aadharBackImage,
                                 context: context,
                                 onImageSelected: () async {
-                                  final selectedPath = await controller.pickImage(context: context);
+                                  final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                                   if (selectedPath != null) {
                                     controller.aadharBackImage.value = File(selectedPath);
                                   }
@@ -163,7 +164,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                           imageFile: controller.panCardImage,
                           context: context,
                           onImageSelected: () async {
-                            final selectedPath = await controller.pickImage(context: context);
+                            final selectedPath = await CommonImageUploadTile.pickImage(context: context);
                             if (selectedPath != null) {
                               controller.panCardImage.value = File(selectedPath);
                             }
