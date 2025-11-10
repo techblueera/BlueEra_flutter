@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -196,40 +198,76 @@ class _ProductCardState extends State<ProductCardBusiness> {
                   };
                   chatViewController.newVisitContactApiResponse?.value;
                   await chatViewController.checkChatConnection(detas);
+                  List<Map<String, String>> urlList =
+                  product.details?.media.map((e) => {"url": e}).toList()??[];
+                  Map<String, dynamic> data = {
+                    ApiKeys.product_id:"${product.details?.id}",
 
+                    ApiKeys.price: "${product.sellerClassification?.variants[0].sellingPrice}",
+                    ApiKeys.discount: "${discountProduct}",
+                    if ((chatViewController.newVisitContactApiResponse
+                        ?.value?.data?.conversationId ==
+                        '' ||
+                        chatViewController.newVisitContactApiResponse
+                            ?.value?.data?.conversationId ==
+                            null))
+                      ApiKeys.other_user_id: (chatViewController
+                          .newVisitContactApiResponse
+                          ?.value
+                          ?.data
+                          ?.otherUserId ??
+                          '')
+                    else
+                      ApiKeys.conversation_id: (chatViewController
+                          .newVisitContactApiResponse
+                          ?.value
+                          ?.data
+                          ?.conversationId ??
+                          ''),
+                    ApiKeys.message:
+                    "${product.details?.name}",
+                    ApiKeys.message_type: "product",
+                    ApiKeys.title: product.details?.name,
+                    // ApiKeys.variant : jsonEncode(product.sellerClassification.),
+                    ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
+                    ApiKeys.url: urlList,
+                  };
                   chatViewController.openAnyOneChatFunction(
+                    shareProductParams: data,
+                    isWithProductSend: true,
                     profileImage: widget.businessData?.logo,
                     otherUserId: (chatViewController.newVisitContactApiResponse
-                                    ?.value?.data?.conversationId ??
-                                '') ==
-                            ""
+                        ?.value?.data?.conversationId ??
+                        '') ==
+                        ""
                         ? chatViewController.newVisitContactApiResponse?.value
-                                ?.data?.otherUserId ??
-                            ''
+                        ?.data?.otherUserId ??
+                        ''
                         : null,
                     businessId: widget.businessData?.id,
                     type: "business",
                     isInitialMessage: (chatViewController
-                                    .newVisitContactApiResponse
-                                    ?.value
-                                    ?.data
-                                    ?.conversationId ??
-                                '') ==
-                            ""
+                        .newVisitContactApiResponse
+                        ?.value
+                        ?.data
+                        ?.conversationId ??
+                        '') ==
+                        ""
                         ? true
                         : false,
                     userId: widget.businessData?.userId,
                     conversationId: (chatViewController
-                            .newVisitContactApiResponse
-                            ?.value
-                            ?.data
-                            ?.conversationId ??
+                        .newVisitContactApiResponse
+                        ?.value
+                        ?.data
+                        ?.conversationId ??
                         ''),
                     contactName: widget.businessData?.businessName,
                     contactNo: widget
                         .businessData?.businessNumber?.officeMobNo?.number
                         .toString(),
                   );
+
                 },
                 child: Container(
                   width: Get.width,

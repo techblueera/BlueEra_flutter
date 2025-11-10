@@ -213,7 +213,6 @@ class _MessageCardState extends State<MessageCard>
 
       case "service":
         List<String> url=[];
-
         url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
           messageWidget = ServiceMessageCardBusiness(
             isFromOrderTab: widget.isFromOrderTab??false,
@@ -242,25 +241,20 @@ class _MessageCardState extends State<MessageCard>
 
       case "product":
         List<String> url=[];
-
         url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
-        List<String> message=widget.message.message?.split('.')??[];
-        if(message.isNotEmpty){
           messageWidget = ProductCard(ProductListing(
               image: url,
-              name: message.first,
+              name: widget.message.metadata?.title??'',
               id: widget.message.metadata?.productId??'',
             discount:widget.message.metadata?.discount ,
-            mrp: message[1],
+            mrp: widget.message.metadata?.mrp,
             price: widget.message.metadata?.price,
-            selectedVariants: (message.last.contains("{"))?jsonDecode(message.last):{},
+            selectedVariants: (widget.message.metadata?.variant?.contains("{")??false)?jsonDecode(widget.message.metadata?.variant??'{}'):{},
           ),
 
               width: SizeConfig.screenWidth*0.68
           );
-        }else{
-          messageWidget=SizedBox();
-        }
+
       default:
         messageWidget = _buildReceivedMessage(
           widget.message,
@@ -761,7 +755,7 @@ class _MessageCardState extends State<MessageCard>
                   child: TextButton.icon(
                     onPressed: () {
                       // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
-                      orderNow(context,widget.userId??"",widget.message);
+                      orderNow(context,widget.message.seller?.id??"",widget.message);
 
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
@@ -1741,7 +1735,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                   child: TextButton.icon(
                     onPressed: () {
                       // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
-                      orderNow(context,widget.userId??"",widget.message);
+                      orderNow(context,widget.message.seller?.id??"",widget.message);
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
                     label:   CustomText(

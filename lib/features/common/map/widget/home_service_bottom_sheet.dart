@@ -315,7 +315,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                                             false);
 
                                     chatViewController.openAnyOneChatFunction(
-                                      isWithProductSend: false,
                                       profileImage:
                                           serviceData.profileImage ?? '',
                                       otherUserId: hasExisting

@@ -328,7 +328,6 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                                       false);
 
                               chatViewController.openAnyOneChatFunction(
-                                isWithProductSend: false,
                                 profileImage: serviceData.profileImage ?? '',
                                 otherUserId: hasExisting
                                     ? null
