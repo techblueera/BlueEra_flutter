@@ -438,7 +438,6 @@ bool updateBtnLoading=false;
                                   isValidate: false,
                                   title: "Location",
                                   onTap: () {
-                                    logs("logMsg 1");
                                     Navigator.pushNamed(
                                       context,
                                       RouteHelper.getSearchLocationScreenRoute(),
