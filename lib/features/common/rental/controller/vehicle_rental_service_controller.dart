@@ -179,6 +179,11 @@ class VehicleRentalServiceController extends GetxController{
   }
 
   void nextStep() {
+    if(arrHighlights.isEmpty){
+      commonSnackBar(message: 'Highlights is required.');
+      return;
+    }
+
     if (currentStep.value < totalSteps - 1) {
       currentStep.value++;
     }
@@ -322,7 +327,7 @@ class VehicleRentalServiceController extends GetxController{
     } catch (e, s) {
       log('stack trace-- $s');
       addVehicleRentalServiceResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: e.toString());
     }finally{
       isVehicleRentalServiceLoading.value = false;
     }

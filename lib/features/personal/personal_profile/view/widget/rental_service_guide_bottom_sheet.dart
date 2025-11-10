@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -23,32 +24,32 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
   final List<ServiceItem> _services = [
     ServiceItem(
       label: 'Home Stay',
-       name: 'HOME_STAY',
+      name: AppConstants.HOME_STAY,
       icon: AppIconAssets.homeStayIcon,
       bgColor: const Color(0xFFFFF2DF),
       labelColor: const Color(0xFFAF6800),
     ),
     ServiceItem(
       label: 'Flat/Room',
-      name: 'FLAT_ROOM',
+      name: AppConstants.Flat_ROOM,
       icon: AppIconAssets.roomIcon,
       bgColor: const Color(0xFFF0F4C2),
       labelColor: const Color(0xFF4E5500),
     ),
     ServiceItem(
       label: 'Vehicle',
-      name: 'VEHICLE',
+      name: AppConstants.VEHICLE,
       icon: AppIconAssets.vehicleIcon,
       bgColor: const Color(0xFFD7EAC9),
       labelColor: const Color(0xFF183A00),
     ),
-    ServiceItem(
-      label: 'Other',
-      name: 'OTHER',
-      icon: AppIconAssets.staggeredIcon,
-      bgColor: const Color(0xFFCFD8DD),
-      labelColor: const Color(0xFF36444D),
-    ),
+    // ServiceItem(
+    //   label: 'Other',
+    //   name: AppConstants.OTHER,
+    //   icon: AppIconAssets.staggeredIcon,
+    //   bgColor: const Color(0xFFCFD8DD),
+    //   labelColor: const Color(0xFF36444D),
+    // ),
   ];
 
   @override
@@ -85,7 +86,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
             HorizontalVideoPlayer(),
             SizedBox(height: SizeConfig.size10),
             CustomText(
-              'How To Earn With Home Made Food Items ? consectetur adipiscing elit. Nunc vulputate li.....',
+              'How To Earn With Rental Services ? consectetur adipiscing elit. Nunc vulputate li.....',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
@@ -155,6 +156,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
   }
 
   void _handleServiceTap() async {
+    print('selected index-- ${selectedIndex}');
     switch (selectedIndex) {
       case 0:
         Get.toNamed(RouteHelper.getHomeStayRentalServiceRoute());

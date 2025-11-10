@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
@@ -50,16 +52,6 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // CustomText(
-                  //   'Enable Live Location',
-                  //   fontSize: SizeConfig.small,
-                  //   color: AppColors.mainTextColor,
-                  //   fontWeight: FontWeight.w400,
-                  // ),
-                  //
-                  // SizedBox(height: SizeConfig.size8),
-
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -130,6 +122,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   CommonTextField(
                     textEditController: controller.landmarkController,
                     title: 'House No. and Land Mark ',
+                    inputLength: AppConstants.inputCharterLimit30,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
@@ -146,8 +139,9 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
                     hintText: "E.g. 700045....",
-                    keyBoardType: TextInputType.text,
-                    isValidate: true,
+                    keyBoardType: TextInputType.number,
+                    inputLength: AppConstants.inputCharterLimit6,
+                    validator: ValidationMethod().validatePin,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
@@ -160,6 +154,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                     hintText: "E.g. Kolkata....",
                     keyBoardType: TextInputType.text,
                     isValidate: true,
+                    inputLength: AppConstants.inputCharterLimit50,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
@@ -172,6 +167,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                     hintText: "E.g. West Bengal....",
                     keyBoardType: TextInputType.text,
                     isValidate: true,
+                    inputLength: AppConstants.inputCharterLimit50,
                   ),
 
                   SizedBox(height: SizeConfig.paddingM),
@@ -180,7 +176,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                     'Enable Live Location',
                     fontSize: SizeConfig.small,
                     color: AppColors.mainTextColor,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w600,
                   ),
                   SizedBox(height: SizeConfig.size10),
                   Row(

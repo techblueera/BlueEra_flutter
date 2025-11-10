@@ -8,11 +8,22 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_service_upload_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+enum RiderProfileStep {
+  personalInfo,
+  addressInfo,
+  personalIdentificationInfo,
+  drivingInfo,
+  vehicleImagesInfo,
+  vehicleInfo
+}
 
 class DeliveryPartnerController extends GetxController{
   Rx<ApiResponse> uploadInitResponse = ApiResponse.initial('Initial').obs;
@@ -24,6 +35,8 @@ class DeliveryPartnerController extends GetxController{
   Rx<ApiResponse> ridersOnboardingVehicleImagesResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> ridersOnboardingVehicleInformationResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> ridersOnboardingStatusResponse = ApiResponse.initial('Initial').obs;
+
+    final stepStatus = <RiderProfileStep, bool>{}.obs;
 
   /// step 1
   final fullNameController = TextEditingController();
@@ -48,6 +61,7 @@ class DeliveryPartnerController extends GetxController{
 
   /// step 3
   final GlobalKey<FormState> formKeyStep3 = GlobalKey<FormState>();
+  static const String livePhotoImageId = 'livePhotoImageId';
   final aadharController = TextEditingController();
   final panNumberController = TextEditingController();
   int maxLiveUploadImages = 2;
@@ -111,7 +125,17 @@ class DeliveryPartnerController extends GetxController{
 
       if (response.isSuccess) {
         ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
-        // Get.to(()=> AddressLocationRidingScreen());
+        final riderOnboardingStatusResponse = RiderOnboardingStatusResponse.fromJson(response.response?.data);
+
+        stepStatus.assignAll({
+          RiderProfileStep.personalInfo: riderOnboardingStatusResponse.data?.personalInformation ?? false,
+          RiderProfileStep.addressInfo: riderOnboardingStatusResponse.data?.address ?? false,
+          RiderProfileStep.personalIdentificationInfo: riderOnboardingStatusResponse.data?.personalIdentification ?? false,
+          RiderProfileStep.drivingInfo: riderOnboardingStatusResponse.data?.drivingVerification ?? false,
+          RiderProfileStep.vehicleImagesInfo: riderOnboardingStatusResponse.data?.vehicleImages ?? false,
+          RiderProfileStep.vehicleInfo: riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
+        });
+
       } else {
         ridersOnboardingStatusResponse.value = ApiResponse.error('error');
         commonSnackBar(
@@ -605,6 +629,22 @@ class DeliveryPartnerController extends GetxController{
         isRiderVehicleInformationLoading.value = false;
       }
     }
+  }
+
+  Future<void> addLivePhoto() async {
+    final selectedPath =
+        await SelectProfilePictureDialog.pickFromCamera(
+        Get.context!
+      );
+    if (selectedPath != null) {
+      livePhoto.add(File(selectedPath));
+    }
+    update([livePhotoImageId]);
+  }
+
+  Future<void> removeLivePhoto(int index) async {
+    livePhoto.removeAt(index);
+    update([livePhotoImageId]);
   }
 
 }

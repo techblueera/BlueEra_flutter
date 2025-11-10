@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
@@ -47,28 +48,110 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
           child: Obx(()=> AbsorbPointer(
             absorbing: controller.isRiderPersonalIdentificationLoading.value,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GetBuilder<CommonMultipleImageSectionController>(
-                  id: CommonMultipleImageSectionController.livePhotoImageId,
-                  builder: (ctrl) => CommonMultipleImageUploadSection(
-                    title: 'Upload Your Live Photo',
-                    maxImages: controller.maxLiveUploadImages,
-                    images: controller.livePhoto,
-                    onAddImage: () async {
-                      multipleImageSectionController.addImages(
-                          label: 'Road Side Images',
-                          imageList: controller.livePhoto,
-                          updateId: CommonMultipleImageSectionController.livePhotoImageId,
-                          maxUploadImages: controller.maxLiveUploadImages
-                      );
-                    },
-                    onRemoveImage: (index) {
-                      multipleImageSectionController.removeImageAt(
-                        imageList: controller.livePhoto,
-                        index: index,
-                        updateId: CommonMultipleImageSectionController.livePhotoImageId,
-                      );
-                    },
+                GetBuilder<DeliveryPartnerController>(
+                  id: DeliveryPartnerController.livePhotoImageId,
+                  builder: (ctrl) =>  CustomFormCard(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomText(
+                                'Upload Your Live Photo',
+                                fontSize: SizeConfig.small,
+                                color: AppColors.mainTextColor,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(left: SizeConfig.size8),
+                              child: CustomText(
+                                  "Min-${controller.maxLiveUploadImages} Images",
+                                  // "Min-$minImages Images/Max-${maxImages}Images",
+                                  fontSize: SizeConfig.medium,
+                                  color: AppColors.mainTextColor,
+                                  fontWeight: FontWeight.w400
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final availableWidth = constraints.maxWidth;
+                            final spacing = SizeConfig.size6;
+
+                            // 4 items with equal width and gaps
+                            final itemWidth = (availableWidth - (spacing * 5)) / 4;
+
+                            return SizedBox(
+                              height: itemWidth, // square images
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                physics: const NeverScrollableScrollPhysics(),
+                                padding: EdgeInsets.zero,
+                                itemCount: controller.maxLiveUploadImages,
+                                separatorBuilder: (_, __) => SizedBox(width: spacing),
+                                itemBuilder: (context, index) {
+                                  RxList<File> liveImages = controller.livePhoto;
+                                  final hasImage = index < controller.livePhoto.length;
+
+                                  return GestureDetector(
+                                    onTap: () async {
+                                      if (!hasImage) {
+                                        controller.addLivePhoto();
+                                      }
+                                    },
+                                    child: Container(
+                                      width: itemWidth,
+                                      height: itemWidth,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.whiteFE,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: AppColors.greyE5),
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          if (hasImage)
+                                            Image.file(liveImages[index], fit: BoxFit.cover)
+                                          else
+                                            const Center(
+                                              child: Icon(Icons.photo_outlined,
+                                                  color: Colors.grey, size: 28),
+                                            ),
+                                          if (hasImage)
+                                            Positioned(
+                                              top: 4,
+                                              right: 4,
+                                              child: GestureDetector(
+                                                onTap: () => controller.removeLivePhoto(index),
+                                                child: Container(
+                                                  width: 22,
+                                                  height: 22,
+                                                  decoration: const BoxDecoration(
+                                                    color: Colors.black54,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(Icons.close,
+                                                      size: 14, color: Colors.white),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -152,7 +235,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          'Upload Aadhar (Both Side)',
+                          'Upload Pan',
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w400,

@@ -23,6 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_sc
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
+import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -171,7 +172,16 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                width: SizeConfig.size110,
                onTap: () {
                  if(isBusinessUser()){
-                   Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                   final controller = Get.find<ViewBusinessDetailsController>();
+
+                   if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
+                     showLivePhotoDialog(
+                       context: context,
+                     );
+                   }else{
+                     Get.toNamed(RouteHelper.getInventoryScreenRoute());
+
+                   }
                  }else{
                    if (viewPersonalDetailsController
                        .personalProfileDetails.value.isProfileCreated ==

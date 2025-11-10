@@ -137,7 +137,6 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
 class CommonMultipleImageSectionController extends GetxController{
 
   // IDs for GetBuilder updates
-  static const String livePhotoImageId = 'livePhotoImageId';
   static const String vehicleNumberPlateImageId = 'vehicleNumberPlateImageId';
   static const String vehicleRightSideImageId = 'vehicleRightSideImageId';
   static const String vehicleLeftSideImageId = 'vehicleLeftSideImageId';

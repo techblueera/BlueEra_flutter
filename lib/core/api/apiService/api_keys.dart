@@ -503,4 +503,8 @@ class ApiKeys {
   static const pollutionCertificate = 'pollutionCertificate';
   static const fitnessCertificate = 'fitnessCertificate';
   static const product_id = 'product_id';
+  static const propertyName = 'property_name';
+  static const noOfBeds = 'no_of_beds';
+  static const propertyLocation = 'property_location';
+  static const propertyHighlight = 'property_highlight';
 }

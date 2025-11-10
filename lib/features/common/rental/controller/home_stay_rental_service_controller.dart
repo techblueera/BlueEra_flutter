@@ -9,12 +9,14 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/rental/repo/rental_service_repo.dart';
+import 'package:BlueEra/features/common/rental/widget/show_home_description_suggestion_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HomeStayRentalServiceController extends GetxController{
   Rx<ApiResponse> addHomeStayRentalServiceResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> generateHomeRentalServiceResponse = ApiResponse.initial('Initial').obs;
 
   final currentStep = 0.obs;
   int totalSteps = 4;
@@ -50,6 +52,7 @@ class HomeStayRentalServiceController extends GetxController{
   final selectedChargesTypes = Rxn<ChargesTypes>();
 
   final List<String> peopleCountOptions = [
+    '0',
     '1',
     '2',
     '3',
@@ -76,7 +79,11 @@ class HomeStayRentalServiceController extends GetxController{
 
   void validateStepTwo(){
     if(formKeyStep2.currentState!.validate()){
-      nextStep();
+      if(arrHighlights.isNotEmpty){
+        nextStep();
+      }else{
+        commonSnackBar(message: 'Highlights is required.');
+      }
     }
   }
 
@@ -195,7 +202,7 @@ class HomeStayRentalServiceController extends GetxController{
         ApiKeys.price: chargeCtrl.text,
         if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
         ApiKeys.restrictions: jsonEncode({
-          ApiKeys.unmarriedCoupleAllowed: nearByAirportCtrl.text,
+          ApiKeys.unmarriedCoupleAllowed: isUnMarried.value,
         }),
         if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
         if(kitchenParts.isNotEmpty) ApiKeys.kitchenImages: kitchenParts,
@@ -222,11 +229,62 @@ class HomeStayRentalServiceController extends GetxController{
           message: response.message ?? AppStrings.somethingWentWrong);
     } catch (e) {
       addHomeStayRentalServiceResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: e.toString());
     }finally{
       isHomeStayRentalServiceLoading.value = false;
     }
   }
+
+  RxBool isGenerateHomeRentalServiceLoading = false.obs;
+  var descriptionSuggestions = <String>[].obs;
+  var selectedDescription = "".obs;
+
+  Future<void> generateHomeRentalServiceApi() async {
+    if(bedsCountCtrl.text.isEmpty || arrHighlights.isEmpty){
+      commonSnackBar(message: "Please enter bed count and add house highlights to generate the description.");
+      return;
+    }
+
+    try {
+      isGenerateHomeRentalServiceLoading.value = true;
+      descriptionSuggestions.clear();
+      selectedDescription.value = '';
+
+      Map<String, dynamic> params = {
+        ApiKeys.propertyName: propertyNameCtrl.text,
+        ApiKeys.noOfBeds: bedsCountCtrl.text,
+        ApiKeys.propertyLocation: locationCtrl.text,
+        ApiKeys.propertyHighlight: jsonEncode(arrHighlights)
+      };
+
+      ResponseModel response = await RentalServiceRepo().generateHomeRentalServiceRepo(
+        params: params,
+      );
+
+      if (response.isSuccess) {
+        generateHomeRentalServiceResponse.value = ApiResponse.complete(response);
+
+        final List<dynamic>? responseData = response.response?.data['description_suggestions'];
+
+        if (responseData != null && responseData.isNotEmpty) {
+          descriptionSuggestions.value =
+              responseData.map((e) => e.toString()).toList();
+
+          await showHomeDescriptionSuggestionsDialog();
+        } else {
+          commonSnackBar(message: 'No home description suggestions found.');
+        }
+      }
+    } catch (e) {
+      generateHomeRentalServiceResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: e.toString());
+    } finally{
+      isGenerateHomeRentalServiceLoading.value = false;
+    }
+  }
+
+
+
 
 
 }

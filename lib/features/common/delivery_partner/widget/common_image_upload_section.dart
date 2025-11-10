@@ -56,8 +56,8 @@ class CommonImageUploadTile extends StatelessWidget {
               ? Padding(
                 padding: EdgeInsets.all(SizeConfig.size12),
                 child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                 LocalAssets(imagePath: AppIconAssets.uploadIcon),
                 SizedBox(width: SizeConfig.size8),
                 CustomText(

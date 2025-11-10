@@ -124,7 +124,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                           keyBoardType: TextInputType.text,
                           validator: ValidationMethod.validateDrivingLicense,
                           isCapitalize: true,
-                          maxLength: 16,
+                          maxLength: 15,
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
