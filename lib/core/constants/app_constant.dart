@@ -171,7 +171,7 @@ class AppConstants {
   static const MAID_CLEANER = "Maid - Cleaner";
   static const CARPENTER = "Carpenter";
   static const CAR_DRIVER_TAXI = "Taxi - Car Driver";
-  static const DELIVERY_RIDER = "Delivery Partner";
+  static const DELIVERY_PARTNER = "Delivery Partner";
   static const MECHANIC = "Mechanic";
   static const TAILOR = "Tailor";
   static const BEAUTICIAN = "Beautician";
@@ -187,6 +187,9 @@ class AppConstants {
   static const TIFFIN = "Tiffin";
   static const BAKERY = "Bakery";
   static const SWEETS = "Sweets";
+  static const HOME_STAY = "HOME STAY";
+  static const Flat_ROOM = "Flat/Room";
+  static const VEHICLE = "Vehicle";
 
   static Future<bool> checkInternet() async {
     final List<ConnectivityResult> connectivityResult =

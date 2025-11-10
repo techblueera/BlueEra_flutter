@@ -15,4 +15,20 @@ class RentalServiceRepo extends BaseService{
       onSuccess: (data) {},
     );
     return response;
-  }}
+  }
+
+  ///GET RENTAL SERVICE...
+  Future<ResponseModel> generateHomeRentalServiceRepo({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      generateHomeRentalService,
+      isMultipart: true,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
+}

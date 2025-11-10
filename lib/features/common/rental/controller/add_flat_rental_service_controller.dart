@@ -73,6 +73,10 @@ class AddFlatRentalServiceController extends GetxController {
         commonSnackBar(message: 'Please choose charges type.');
         return;
       }
+      if(arrHighlights.isEmpty){
+        commonSnackBar(message: 'Highlights is required.');
+        return;
+      }
 
       // Move to next step
       if (currentStep.value < totalSteps - 1) {
@@ -204,8 +208,8 @@ class AddFlatRentalServiceController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       } catch (e) {
         addFlatRentalServiceResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }finally{
+        commonSnackBar(message: e.toString());
+      } finally {
         isAddFlatRentalServiceLoading.value = false;
       }
     }

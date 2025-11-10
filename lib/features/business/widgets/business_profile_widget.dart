@@ -1066,8 +1066,10 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       context,
                     );
                     if (imgStr != null) {
-                      saveBusinessImages(
-                          imgStr, controller.imgDeleteL3, controller);
+                      controller.saveBusinessImages(
+                          imgStr,
+                          controller
+                      );
                     }
                   },
                   confirmText: 'Cancel',
@@ -1149,23 +1151,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           ),
       ],
     );
-  }
-
-  ///UPDATE BUSINESS IMAGES....
-  saveBusinessImages(String imagePath, List<int> deleteProfileId,
-      ViewBusinessDetailsController controller) async {
-    dio.MultipartFile? imageByPart;
-
-    String fileName = imagePath.split('/').last;
-    imageByPart =
-        await dio.MultipartFile.fromFile(imagePath, filename: fileName);
-
-    Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
-
-    controller.uploadLiveStoreImage(params);
-    await Future.delayed(Duration(seconds: 2));
-    controller.imgDeleteL3.clear();
-    // viewBusinessDetailsController.imgUploadL2.addAll(viewBusinessDetailsController.imgLocalL3);
   }
 
   Widget _APIbuildImageContainer(

@@ -115,14 +115,12 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
           child: Column(
             children:[
               CommonTextField(
-                maxLine: 3,
                 textEditController: controller.propertyNameCtrl,
                 inputLength: AppConstants.inputCharterLimit50,
                 keyBoardType: TextInputType.text,
                 title: "Property Name With House No.",
-                regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                 hintText: "E.g. Taj Hotel...",
-                isValidate: true,
+                isValidate: true
               ),
               SizedBox(height: SizeConfig.paddingM),
               Row(
@@ -267,13 +265,15 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
                 hintText: "E.g. 700045....",
-                keyBoardType: TextInputType.text,
-                isValidate: true,
+                keyBoardType: TextInputType.number,
+                inputLength: AppConstants.inputCharterLimit6,
+                validator: ValidationMethod().validatePin,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.landmarkCtrl,
-                title: 'House No. and Land Mark ',
+                title: 'Land Mark',
+                inputLength: AppConstants.inputCharterLimit30,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
@@ -290,7 +290,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 titleColor: AppColors.mainTextColor,
                 hintText: "E.g. Gomtinagar Rail Station ....",
                 keyBoardType: TextInputType.text,
-                isValidate: true,
+                isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
@@ -301,7 +301,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 titleColor: AppColors.mainTextColor,
                 hintText: "E.g. Subhas Chandra Airport ....",
                 keyBoardType: TextInputType.text,
-                isValidate: true,
+                isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
@@ -312,7 +312,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 titleColor: AppColors.mainTextColor,
                 hintText: "E.g. Gomtinagar Bus Stand....",
                 keyBoardType: TextInputType.text,
-                isValidate: true,
+                isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
@@ -323,7 +323,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 titleColor: AppColors.mainTextColor,
                 hintText: "E.g. Durga mandir ....",
                 keyBoardType: TextInputType.text,
-                isValidate: true,
+                isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingL),
               CustomBtn(
@@ -357,37 +357,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CustomText(
-                          'Home Stay Description',
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        CustomText(
-                          'Create Via BE ai',
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size8),
-
-                    CommonTextField(
-                      maxLine: 3,
-                      textEditController: controller.descriptionCtrl,
-                      inputLength: AppConstants.inputCharterLimit200,
-                      maxLength: 200,
-                      keyBoardType: TextInputType.text,
-                      regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                      hintText: "E.g. 2BHK with swimming pool...",
-                      validator: ValidationMethod().validateHomeStayDescription,
-                    ),
-
-                    SizedBox(height: SizeConfig.paddingM),
 
                     CustomText(
                       'How many maximum people can stay here?',
@@ -415,7 +384,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                                 return 'Please select adult count';
                               }
                               return null;
-                            }
+                            },
                           )),
                         ),
 
@@ -447,7 +416,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
                     CommonTextField(
                       textEditController: controller.bedsCountCtrl,
-                      inputLength: AppConstants.inputCharterLimit200,
+                      inputLength: AppConstants.inputCharterLimit6,
                       keyBoardType: TextInputType.number,
                       title: "How many beds will be there?",
                       hintText: "E.g. 2 Beds",
@@ -496,13 +465,63 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             hintText: "E.g. ₹2000",
                             keyBoardType: TextInputType.number,
                             isValidate: true,
+                            inputLength: AppConstants.inputCharterLimit10,
                           ),
                         ),
                       ],
                     ),
 
                     SizedBox(height: SizeConfig.paddingM),
+
                     _buildAddHighlightsSection(),
+
+                    SizedBox(height: SizeConfig.paddingM),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                          'Home Stay Description',
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        Obx(()=> !controller.isGenerateHomeRentalServiceLoading.value
+                            ? InkWell(
+                          onTap: (){
+                            controller.generateHomeRentalServiceApi();
+                          },
+                          child: CustomText(
+                            'Create Via BE ai',
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                            : SizedBox(
+                            height: 15,
+                            width: 15,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.0,
+                            ))
+                         )
+
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.size8),
+
+                    CommonTextField(
+                      maxLine: 4,
+                      textEditController: controller.descriptionCtrl,
+                      inputLength: AppConstants.inputCharterLimit200,
+                      keyBoardType: TextInputType.text,
+                      regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                      hintText: "E.g. 2BHK with swimming pool...",
+                      validator: ValidationMethod().validateHomeStayDescription,
+                    ),
+
+
                   ],
                 )
             ),
@@ -542,7 +561,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           CustomText(
-                            'Are You Allow Un-Married Couple',
+                            'Do You Allow Un-Married Couples?',
                             fontSize: SizeConfig.medium,
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w400,

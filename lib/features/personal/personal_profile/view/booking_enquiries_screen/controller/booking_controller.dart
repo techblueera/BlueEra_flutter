@@ -252,7 +252,6 @@ class BookingTabController extends GetxController {
     }
   }
 
-
   Future<AvailabilityModel?> getCachedAvailability() async {
     try {
       final savedData = await SharedPreferenceUtils.getBookingAvailabilityDetail();

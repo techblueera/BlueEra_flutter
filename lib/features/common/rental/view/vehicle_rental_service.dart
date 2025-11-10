@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -46,39 +47,20 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
   @override
   void initState() {
     super.initState();
-    // loadInitData();
+    loadInitData();
   }
 
-  // Future<void> loadInitData() async {
-  //   await viewProfileController.viewPersonalProfile();
-  //   controller.fullNameController.text =
-  //       viewProfileController.personalProfileDetails.value.user?.name ?? "";
-  //   controller.emailController.text =
-  //       viewProfileController.personalProfileDetails.value.user?.email ?? "";
-  //   controller.mobileNumberController.text = viewProfileController
-  //       .personalProfileDetails.value.user?.contactNo??'';
-  //   controller.selectedGender
-  //       .value = GenderTypeExtension.fromString((viewProfileController
-  //       .personalProfileDetails.value.user?.gender?.isNotEmpty ??
-  //       false)
-  //       ? viewProfileController.personalProfileDetails.value.user?.gender ??
-  //       "Male"
-  //       : "Male");
-  //   controller.selectedDay?.value = viewProfileController
-  //       .personalProfileDetails.value.user?.dateOfBirth?.date
-  //       ?.toInt() ??
-  //       0;
-  //   controller.selectedMonth?.value =
-  //       viewProfileController
-  //           .personalProfileDetails.value.user?.dateOfBirth?.month
-  //           ?.toInt() ??
-  //           0;
-  //   controller.selectedYear?.value =
-  //       viewProfileController
-  //           .personalProfileDetails.value.user?.dateOfBirth?.year
-  //           ?.toInt() ??
-  //           0;
-  // }
+  Future<void> loadInitData() async {
+    await viewProfileController.viewPersonalProfile(isCheckServiceOpt: false);
+    controller.ownerNameCtrl.text =
+        viewProfileController.personalProfileDetails.value.user?.name ?? "";
+    controller.emailCtrl.text =
+        viewProfileController.personalProfileDetails.value.user?.email ?? "";
+    controller.mobileNumberCtrl.text = viewProfileController
+        .personalProfileDetails.value.user?.contactNo??'';
+    controller.locationCtrl.text = viewProfileController.personalProfileDetails.value.user?.location ??
+            "";
+  }
 
   @override
   void dispose() {
@@ -150,234 +132,248 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
         top: SizeConfig.size15,
         bottom: SizeConfig.size40,
       ),
-      child: Form(
-        key: controller.formKeyStep1,
-        child: CustomFormCard(
-          child: Column(
-              children:[
-                CommonTextField(
-                  textEditController: controller.ownerNameCtrl,
-                  inputLength: AppConstants.inputCharterLimit50,
-                  keyBoardType: TextInputType.text,
-                  title: "Owner Name",
-                  regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                  hintText: "E.g. Rahul Sharma....",
-                  isValidate: true,
-                ),
-                SizedBox(height: SizeConfig.paddingM),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      "Contact Number",
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        final result = await CommonMobileOtpDialog().show(context);
-
-                        if (result == true) {
-                          //  OTP successfully verified
-                          print("OTP verification successful");
-                        } else {
-                          // Either cancelled or verification failed
-                          print("OTP verification failed or cancelled");
-                        }
-
-                      },
-                      child: CustomText(
-                        "Edit",
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
+      child: Obx(
+        (){
+          if(viewProfileController.viewPersonalResponse.value.status == Status.COMPLETE) {
+            return Form(
+              key: controller.formKeyStep1,
+              child: CustomFormCard(
+                child: Column(
+                    children:[
+                      CommonTextField(
+                        textEditController: controller.ownerNameCtrl,
+                        inputLength: AppConstants.inputCharterLimit50,
+                        keyBoardType: TextInputType.text,
+                        title: "Owner Name",
+                        regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "E.g. Rahul Sharma....",
+                        isValidate: true,
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size8),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: SizeConfig.size45,
-                      width: SizeConfig.size57,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppColors.greyE5,
-                          width: 1,
-                        ),
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [AppShadows.textFieldShadow],
-                      ),
-                      child: CustomText("+91", fontSize: SizeConfig.large),
-                    ),
-                    SizedBox(width: SizeConfig.size10),
-                    Expanded(
-                      child: CommonTextField(
-                        textEditController: controller.mobileNumberCtrl,
-                        inputLength: 10,
-                        maxLength: 10,
-                        keyBoardType: TextInputType.number,
-                        regularExpression:
-                        RegularExpressionUtils.digitsPattern,
-                        validationType: ValidationTypeEnum.pNumber,
-                        hintText: langController.tr('Enter your mobile number'),
-                        hintStyle: TextStyle(
-                          fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
-                        ),
-                        onTapOutsideTrue: false,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.paddingM),
-                CommonTextField(
-                  title: "Email",
-                  hintText: "Enter your email address",
-                  textEditController: controller.emailCtrl,
-                  validationType: ValidationTypeEnum.email,
-                  onChange: (val) {
-                    // filedValidation();
-                  },
-                  sIcon: (viewProfileController
-                      .personalProfileDetails.value.user?.emailVerified == true)
-                      ? Icon(
-                    Icons.verified_user_outlined,
-                    color: AppColors.green39,
-                  )
-                      : null,
-                ),
-                if(viewProfileController.personalProfileDetails
-                    .value.user?.emailVerified ==
-                    false)
-                  ...[
-                    SizedBox(height: SizeConfig.size8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {
+                      SizedBox(height: SizeConfig.paddingM),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CustomText(
+                            "Contact Number",
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.mainTextColor,
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              final result = await CommonMobileOtpDialog().show(context);
 
-                          // Validate just the email field
-                          if (controller.emailCtrl.text.isNotEmpty &&
-                              validateEmail(controller.emailCtrl.text)) {
-                            emailVerificationController
-                                .verifyEmail(controller.emailCtrl.text);
-                          } else {
-                            commonSnackBar(
-                                message:
-                                'Please enter a valid email address');
-                          }
-
-                        },
-                        child: CustomText(
-                          'Get Verify',
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                SizedBox(height: SizeConfig.paddingM),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: CommonLocationSearchField(
-                        controller: controller.locationCtrl,
-                        title: "Home Location",
-                        hintText: "E.g. Lucknow, Gomti Nagar...",
-                        onSelected: (placeId, lat, lng, address) async {
-                          print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
-                          controller.locationCtrl.text = address;
-                          controller.currentAddress.value = address;
-                          controller.latitude = lat;
-                          controller.longitude = lng;
-
-                          controller.isFetchingAddressDetails.value = true;
-
-                          // Fetch and auto-fill details
-                          try {
-                            final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-                            final detailsData = detailsResponse.response?.data;
-
-                            final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                            final components = placeDetails.result?.addressComponents ?? [];
-
-                            String city = '';
-                            String state = '';
-                            String postalCode = '';
-
-                            for (var comp in components) {
-                              final types = comp.types ?? [];
-                              if (types.contains('locality')) {
-                                city = comp.longName ?? '';
-                              } else if (types.contains('administrative_area_level_1')) {
-                                state = comp.longName ?? '';
-                              } else if (types.contains('postal_code')) {
-                                postalCode = comp.longName ?? '';
+                              if (result == true) {
+                                //  OTP successfully verified
+                                print("OTP verification successful");
+                              } else {
+                                // Either cancelled or verification failed
+                                print("OTP verification failed or cancelled");
                               }
-                            }
 
-                            controller.pinCodeCtrl.text = postalCode;
-
-                          } catch (e) {
-                            print("Error fetching place details: $e");
-                          }finally {
-                            controller.isFetchingAddressDetails.value = false;
-                          }
-                        },
+                            },
+                            child: CustomText(
+                              "Edit",
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      SizedBox(height: SizeConfig.size8),
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: SizeConfig.size45,
+                            width: SizeConfig.size57,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColors.greyE5,
+                                width: 1,
+                              ),
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [AppShadows.textFieldShadow],
+                            ),
+                            child: CustomText("+91", fontSize: SizeConfig.large),
+                          ),
+                          SizedBox(width: SizeConfig.size10),
+                          Expanded(
+                            child: CommonTextField(
+                              textEditController: controller.mobileNumberCtrl,
+                              inputLength: 10,
+                              maxLength: 10,
+                              keyBoardType: TextInputType.number,
+                              regularExpression:
+                              RegularExpressionUtils.digitsPattern,
+                              validationType: ValidationTypeEnum.pNumber,
+                              hintText: langController.tr('Enter your mobile number'),
+                              hintStyle: TextStyle(
+                                fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
+                              ),
+                              onTapOutsideTrue: false,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        title: "Email",
+                        hintText: "Enter your email address",
+                        textEditController: controller.emailCtrl,
+                        validationType: ValidationTypeEnum.email,
+                        onChange: (val) {
+                          // filedValidation();
+                        },
+                        sIcon: (viewProfileController
+                            .personalProfileDetails.value.user?.emailVerified == true)
+                            ? Icon(
+                          Icons.verified_user_outlined,
+                          color: AppColors.green39,
+                        )
+                            : null,
+                      ),
+                      if(viewProfileController.personalProfileDetails
+                          .value.user?.emailVerified ==
+                          false)
+                        ...[
+                          SizedBox(height: SizeConfig.size8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
 
-                    if(controller.currentAddress.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
-                        child: (controller.isFetchingAddressDetails.value) ?
-                        SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
-                      )
-                  ],
+                                // Validate just the email field
+                                if (controller.emailCtrl.text.isNotEmpty &&
+                                    validateEmail(controller.emailCtrl.text)) {
+                                  emailVerificationController
+                                      .verifyEmail(controller.emailCtrl.text);
+                                } else {
+                                  commonSnackBar(
+                                      message:
+                                      'Please enter a valid email address');
+                                }
+
+                              },
+                              child: CustomText(
+                                'Get Verify',
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      SizedBox(height: SizeConfig.paddingM),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: CommonLocationSearchField(
+                              controller: controller.locationCtrl,
+                              title: "Home Location",
+                              hintText: "E.g. Lucknow, Gomti Nagar...",
+                              onSelected: (placeId, lat, lng, address) async {
+                                print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                                controller.locationCtrl.text = address;
+                                controller.currentAddress.value = address;
+                                controller.latitude = lat;
+                                controller.longitude = lng;
+
+                                controller.isFetchingAddressDetails.value = true;
+
+                                // Fetch and auto-fill details
+                                try {
+                                  final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
+                                  final detailsData = detailsResponse.response?.data;
+
+                                  final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
+                                  final components = placeDetails.result?.addressComponents ?? [];
+
+                                  String city = '';
+                                  String state = '';
+                                  String postalCode = '';
+
+                                  for (var comp in components) {
+                                    final types = comp.types ?? [];
+                                    if (types.contains('locality')) {
+                                      city = comp.longName ?? '';
+                                    } else if (types.contains('administrative_area_level_1')) {
+                                      state = comp.longName ?? '';
+                                    } else if (types.contains('postal_code')) {
+                                      postalCode = comp.longName ?? '';
+                                    }
+                                  }
+
+                                  controller.pinCodeCtrl.text = postalCode;
+
+                                } catch (e) {
+                                  print("Error fetching place details: $e");
+                                }finally {
+                                  controller.isFetchingAddressDetails.value = false;
+                                }
+                              },
+                            ),
+                          ),
+
+                          if(controller.currentAddress.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
+                              child: (controller.isFetchingAddressDetails.value) ?
+                              SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
+                            )
+                        ],
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        textEditController: controller.pinCodeCtrl,
+                        title: 'Pincode',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        titleColor: AppColors.mainTextColor,
+                        hintText: "E.g. 700045....",
+                        keyBoardType: TextInputType.number,
+                        inputLength: AppConstants.inputCharterLimit6,
+                        validator: ValidationMethod().validatePin,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        textEditController: controller.landmarkCtrl,
+                        inputLength: AppConstants.inputCharterLimit30,
+                        title: 'House No. and Land Mark ',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        titleColor: AppColors.mainTextColor,
+                        hintText: "E.g. Flat 21B, Lake View Apartment....",
+                        keyBoardType: TextInputType.text,
+                        isValidate: true,
+                      ),
+                      SizedBox(height: SizeConfig.paddingL),
+                      CustomBtn(
+                        title: 'Next',
+                        onTap: controller.validateStepOne,
+                        radius: 10.0,
+                        bgColor: AppColors.primaryColor,
+                      ),
+                    ]
                 ),
-                SizedBox(height: SizeConfig.paddingM),
-                CommonTextField(
-                  textEditController: controller.pinCodeCtrl,
-                  title: 'Pincode',
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  titleColor: AppColors.mainTextColor,
-                  hintText: "E.g. 700045....",
-                  keyBoardType: TextInputType.text,
-                  isValidate: true,
-                ),
-                SizedBox(height: SizeConfig.paddingM),
-                CommonTextField(
-                  textEditController: controller.landmarkCtrl,
-                  title: 'House No. and Land Mark ',
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  titleColor: AppColors.mainTextColor,
-                  hintText: "E.g. Flat 21B, Lake View Apartment....",
-                  keyBoardType: TextInputType.text,
-                  isValidate: true,
-                ),
-                SizedBox(height: SizeConfig.paddingL),
-                CustomBtn(
-                  title: 'Next',
-                  onTap: controller.validateStepOne,
-                  radius: 10.0,
-                  bgColor: AppColors.primaryColor,
-                ),
-              ]
-          ),
-        ),
+              ),
+            );
+          }
+
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+
+        }
+
       ),
     );
   }

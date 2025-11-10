@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/update_contact_number.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -123,10 +124,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     inputLength: AppConstants.inputCharterLimit50,
                     keyBoardType: TextInputType.text,
                     title: "Property Name With House No.",
-                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                     hintText: "E.g. Taj Hotel...",
                     isValidate: true,
-                    maxLength: 50,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
@@ -138,6 +137,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     hintText: "E.g: Gomti Nagar, Durgabari...",
                     keyBoardType: TextInputType.text,
                     isValidate: true,
+                    inputLength: AppConstants.inputCharterLimit30,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   Row(
@@ -210,8 +210,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
                     hintText: "E.g. 700045....",
-                    keyBoardType: TextInputType.text,
-                    isValidate: true,
+                    keyBoardType: TextInputType.number,
+                    validator: ValidationMethod().validatePin,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
@@ -221,13 +221,44 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
                     maxLine: 4,
-                    maxLength: 200,
                     inputLength: AppConstants.inputCharterLimit200,
                     hintText: "E.g. 2BHK with swimming pool...",
                     keyBoardType: TextInputType.text,
                     validator: ValidationMethod().validatePropertyDescription,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        "Contact Number",
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          final result = await CommonMobileOtpDialog().show(context);
+
+                          if (result == true) {
+                            //  OTP successfully verified
+                            print("OTP verification successful");
+                          } else {
+                            // Either cancelled or verification failed
+                            print("OTP verification failed or cancelled");
+                          }
+
+                        },
+                        child: CustomText(
+                          "Edit",
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
                   Row(
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -260,13 +291,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           hintText: langController.tr('Enter your mobile number'),
                           hintStyle: TextStyle(
                             fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
-                          ),                          onTapOutsideTrue: false,
-                          validator: (value) {
-                            if (value?.length != 10) {
-                              return langController.tr('Please enter valid mobile number');
-                            }
-                            return null;
-                          },
+                          ),
+                          onTapOutsideTrue: false,
                         ),
                       ),
                     ],
@@ -314,6 +340,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           hintText: "E.g. ₹2000",
                           keyBoardType: TextInputType.number,
                           isValidate: true,
+                          inputLength: AppConstants.inputCharterLimit10,
                         ),
                       ),
                     ],

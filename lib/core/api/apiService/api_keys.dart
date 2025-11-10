@@ -502,4 +502,8 @@ class ApiKeys {
   static const insuranceDocument = 'insuranceDocument';
   static const pollutionCertificate = 'pollutionCertificate';
   static const fitnessCertificate = 'fitnessCertificate';
+  static const propertyName = 'property_name';
+  static const noOfBeds = 'no_of_beds';
+  static const propertyLocation = 'property_location';
+  static const propertyHighlight = 'property_highlight';
 }
