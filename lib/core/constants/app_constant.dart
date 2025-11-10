@@ -393,30 +393,6 @@ noticePeriodAPISending({String? keyName}) {
                           : "";
 }
 
-String formatLastSeen(BuildContext context, int secondsAgo) {
-  final localizations = AppLocalizations.of(context)!;
-
-  if (secondsAgo == 0) {
-    return localizations.online;
-  }
-
-  DateTime now = DateTime.now();
-  DateTime lastSeenTime = now.subtract(Duration(seconds: secondsAgo));
-  String formattedTime = DateFormat('hh:mm a').format(lastSeenTime);
-
-  if (lastSeenTime.year == now.year &&
-      lastSeenTime.month == now.month &&
-      lastSeenTime.day == now.day) {
-    return localizations.last_seen_today(formattedTime);
-  } else if (lastSeenTime.year == now.year &&
-      lastSeenTime.month == now.month &&
-      lastSeenTime.day == now.day - 1) {
-    return localizations.last_seen_yesterday(formattedTime);
-  } else {
-    String dayName = DateFormat('EEEE').format(lastSeenTime);
-    return localizations.last_seen_on_day(dayName, formattedTime);
-  }
-}
 
 ///DISPLAY DROP DOWN VALUE...
 setNoticePeriod({String? keyName}) {

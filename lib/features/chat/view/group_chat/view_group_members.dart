@@ -244,10 +244,6 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                             if (index == 0) {
                               return InkWell(
                                 onTap: () {
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(builder: (_) => ),
-                                  // );
                                   Get.to(()=>BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,));
                                 },
                                 child: Padding(

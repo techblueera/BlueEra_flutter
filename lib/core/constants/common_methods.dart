@@ -135,29 +135,8 @@ List<String> generateList(int startYear, int endYear) {
   return yearsList;
 }
 
-AppLocalizationsEn loc = AppLocalizationsEn();
 
-final List<String> courseTypes = [loc.fullName, loc.partTime, loc.distance];
 
-courseTypeApiKey({String? keyName}) {
-  return keyName == loc.fullName
-      ? "FULL_TIME"
-      : keyName == loc.partTime
-          ? "PART_TIME"
-          : keyName == loc.distance
-              ? "DISTANCE"
-              : "";
-}
-
-courseTypeApiValue({String? keyName}) {
-  return keyName == "FULL_TIME"
-      ? loc.fullName
-      : keyName == "PART_TIME"
-          ? loc.partTime
-          : keyName == "DISTANCE"
-              ? loc.distance
-              : "";
-}
 
 ///GENERATE POST DEEPLINK
 String postDeepLink({String? postId}) {
