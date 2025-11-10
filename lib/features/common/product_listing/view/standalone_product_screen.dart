@@ -95,7 +95,7 @@ class StandaloneProductScreen extends StatelessWidget {
   // Horizontal list view
   Widget _buildHorizontalView(ViewBusinessDetailsController controller) {
     return SizedBox(
-      height: 320,
+      height: 322,
       child: ListView.builder(
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
