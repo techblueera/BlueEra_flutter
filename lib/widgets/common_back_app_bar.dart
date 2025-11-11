@@ -507,28 +507,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: IconButton(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
                 onPressed: () async {
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) => ProfileSettingsScreen()));
-
                   Get.to(() => ProfileSettingsNewScreen());
-
-                  /* await showCommonDialog(
-                          context: context,
-                          text: AppLocalizations.of(context)!
-                              .areYouSureYouWantToLogout,
-                          confirmCallback: () async {
-                            await SharedPreferenceUtils.clearPreference();
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                RouteHelper.getMobileNumberLoginRoute(),
-                                    (Route<dynamic> route) => false);
-                          },
-                          cancelCallback: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                          confirmText: AppLocalizations.of(context)!.yes,
-                          cancelText: AppLocalizations.of(context)!.no);*/
                 },
                 icon: LocalAssets(
                   imagePath: AppIconAssets.more_setting,

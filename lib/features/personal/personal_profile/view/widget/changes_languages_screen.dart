@@ -1,11 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/language_service_app.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
+import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
+import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-
 
 class ChangeLanguageScreen extends StatelessWidget {
   final controller = Get.find<LanguageControllerNew>();
@@ -15,7 +16,7 @@ class ChangeLanguageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Change App Language'),
+      appBar: CommonBackAppBar(title: AppStrings.changeLanguage),
       body: Obx(() {
         final langs = controller.languages;
         if (langs.isEmpty) {
@@ -41,7 +42,8 @@ class ChangeLanguageScreen extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -61,11 +63,12 @@ class ChangeLanguageScreen extends StatelessWidget {
                     Expanded(
                       child: CustomText(
                         lang.name,
-                          fontSize: 16,
-                          fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color:
-                          isSelected ? AppColors.primaryColor : Colors.black87,
+                        fontSize: 16,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected
+                            ? AppColors.primaryColor
+                            : Colors.black87,
                       ),
                     ),
                     if (lang.isDownloaded)
@@ -101,17 +104,17 @@ class ChangeLanguageScreen extends StatelessWidget {
               children: [
                 const CustomText(
                   'Download Language Pack',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 const CustomText(
                   'To use this language, please download the required language files.',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    height: 1.4,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  height: 1.4,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -132,9 +135,9 @@ class ChangeLanguageScreen extends StatelessWidget {
                         ),
                         child: CustomText(
                           'Cancel',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.primaryColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primaryColor,
                         ),
                       ),
                     ),
@@ -158,9 +161,9 @@ class ChangeLanguageScreen extends StatelessWidget {
                         ),
                         child: const CustomText(
                           'Download',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -174,7 +177,6 @@ class ChangeLanguageScreen extends StatelessWidget {
     );
   }
 }
-
 
 // import 'package:BlueEra/core/constants/common_methods.dart';
 // import 'package:BlueEra/core/language_service_app.dart';

@@ -41,7 +41,7 @@ class CustomText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      title ?? "",
+      title?.tr ?? "",
       textAlign: textAlign,
       maxLines: maxLines,
       softWrap: true,

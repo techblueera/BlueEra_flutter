@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -114,7 +115,7 @@ showCommonDialog(
                   alignment: Alignment.center,
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
                   child: CustomText(
-                    header ?? AppLocalizations.of(context)!.confirm,
+                    header ?? AppStrings.confirm,
                     color: Colors.white,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.bold,

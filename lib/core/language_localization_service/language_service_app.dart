@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/personal/auth/repo/languages_repo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:http/http.dart' as http;
 
 class LocalizationService extends Translations {
   static final LocalizationService _instance = LocalizationService._internal();
@@ -21,9 +20,53 @@ class LocalizationService extends Translations {
   Future<void> init() async {
     box = await Hive.openBox('translations');
   }
-
+  void clearInMemoryTranslations() {
+    _translations.clear();
+  }
   /// Loads translations from Hive if present, otherwise fetches from API
   Future<Map<String, String>> loadTranslations(String languageCode) async {
+    try {
+      logs("_translations === ${_translations}");
+      logs("(_translations.containsKey(languageCode)) === ${(_translations.containsKey(languageCode))}");
+      // Step 1: load from memory first
+      if (_translations.containsKey(languageCode)) {
+        return _translations[languageCode]!;
+      }
+
+      // Step 2: load from Hive
+      final stored = box.get(languageCode);
+      Map<String, String> localData = {};
+      if (stored != null && stored is Map) {
+        localData = Map<String, String>.from(stored);
+      }
+
+      // Step 3: call API to get latest
+      final response = await LanguageRepo().downloadLanguage(languageCode);
+      if (response.statusCode == 200) {
+        final raw = response.response?.data;
+        final Map<String, dynamic> jsonData =
+        raw is String ? jsonDecode(raw) : (raw is Map ? raw : {});
+        final Map<String, String> formatted =
+        jsonData.map((k, v) => MapEntry(k, v.toString()));
+
+        // ✅ Step 4: Merge old + new keys
+        final merged = {...localData, ...formatted};
+
+        _translations[languageCode] = merged;
+
+        // Step 5: Save back to Hive
+        await box.put(languageCode, merged);
+        return merged;
+      }
+
+      return localData;
+    } catch (e, st) {
+      print('⚠️ Error loading translations for $languageCode: $e\n$st');
+      return {};
+    }
+  }
+
+  Future<Map<String, String>> loadTranslations_(String languageCode) async {
     try {
       // 1️⃣ If translations already in memory → return directly
       if (_translations.containsKey(languageCode)) {
@@ -90,75 +133,12 @@ class LocalizationService extends Translations {
 
   @override
   Map<String, Map<String, String>> get keys => _translations;
-}
 
 
-class LanguageControllerNew extends GetxController {
-  final languages = <LanguageModelNew>[].obs;
-  final box = Hive.box('translations');
-  final selectedLang = ''.obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    loadLanguages();
+  Future<void> refreshTranslations(String langCode) async {
+    final newData = await loadTranslations(langCode);
+    Get.clearTranslations();
+    Get.addTranslations({langCode: newData});
+    Get.updateLocale(Locale(langCode));
   }
-
-  Future<void> loadLanguages() async {
-    // Example static or from API
-    final savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
-    selectedLang.value = savedLangCode;
-
-    final response = await http
-        .get(Uri.parse('${baseUrl}language-service/languages'));
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-
-      languages.value = data.map((e) {
-        final code = e['languageCode'];
-        final isDownloaded = box.get(code) != null;
-        final isSelected = box.get('selectedLanguage') == code;
-        return LanguageModelNew(
-          name: e['languageName'],
-          code: code,
-          isDownloaded: code == "en" ? true : isDownloaded,
-          isSelected: isSelected,
-        );
-      }).toList();
-    }
-  }
-
-  Future<void> downloadLanguage(LanguageModelNew lang) async {
-    await LocalizationService().loadTranslations(lang.code);
-    await box.put(lang.code, true);
-    lang.isDownloaded = true;
-    languages.refresh();
-  }
-
-  Future<void> changeLanguage(LanguageModelNew lang) async {
-    await LocalizationService().updateLanguage(lang.code);
-    selectedLang.value = lang.code;
-
-    // Update UI states
-    for (final l in languages) {
-      l.isSelected = (l.code == lang.code);
-    }
-    lang.isDownloaded = true;
-
-    languages.refresh();
-  }
-}
-
-class LanguageModelNew {
-  final String name;
-  final String code;
-  bool isDownloaded;
-  bool isSelected;
-
-  LanguageModelNew({
-    required this.name,
-    required this.code,
-    this.isDownloaded = false,
-    this.isSelected = false,
-  });
 }

@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 typedef OnChangeString = void Function(String value);
 
@@ -220,7 +221,7 @@ class CommonTextField extends StatelessWidget {
                   EdgeInsets.symmetric(
                       horizontal: SizeConfig.paddingM,
                       vertical: SizeConfig.paddingXSL),
-              hintText: hintText,
+              hintText: hintText?.tr,
               prefixIcon: pIcon != null ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: pIcon,

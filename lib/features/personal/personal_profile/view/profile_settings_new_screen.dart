@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -28,7 +29,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Settings',
+        title: AppStrings.settings,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -44,21 +45,27 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                 ),
                   child: Column(
                      children: [
+                       _buildTile(
+                           AppIconAssets.accountSetting,
+                           AppStrings.accountSettings,
+                           onTap: () => Get.to(() => AccountSettingScreen())
+                       ),
+                       _buildTile(
+                         AppIconAssets.helpSupport,
+                       AppStrings.helpSupport,
+                         onTap: () => Get.to(() => HelpAndSupportScreen()),
+                       ),
                        // _buildTile(
                        //     AppIconAssets.cards, "My Cards",
                        //     onTap: () => Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
                        //         arguments: {ApiKeys.isFromHomeScreen: false})
                        // ),
-                       _buildTile(
-                           AppIconAssets.accountSetting,
-                           "App Settings",
-                           onTap: () => Get.to(() => AccountSettingScreen())
-                       ),
-                       _buildTile(
-                           AppIconAssets.accountSetting,
-                           "Account Settings",
-                           onTap: () => Get.to(() => AccountSettingScreen())
-                       ),
+                       // _buildTile(
+                       //     AppIconAssets.accountSetting,
+                       //     AppStrings.appSettings,
+                       //     onTap: () => Get.to(() => AccountSettingScreen())
+                       // ),
+
                        // _buildTile(
                        //     AppIconAssets.accountSetting,
                        //     "Account Settings",
@@ -77,11 +84,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                        //     "Language/Delete Account & More",
                        //     onTap: () => Get.to(() => AccountSettingScreen())
                        // ),
-                       _buildTile(
-                         AppIconAssets.helpSupport,
-                         "Help & Support",
-                         onTap: () => Get.to(() => HelpAndSupportScreen()),
-                       ),
+
                      ],
                   )
               ),
@@ -94,7 +97,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                          await showCommonDialog(
                              context: context,
                              text:
-                             AppLocalizations.of(context)!.areYouSureYouWantToLogout,
+                            AppStrings.logoutConfirmationMessage,
                              confirmCallback: () async {
                                Get.delete<ChatViewController>();
                                await SharedPreferenceUtils.clearPreference();
@@ -105,10 +108,10 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                              cancelCallback: () {
                                Navigator.of(context).pop(); // Close the dialog
                              },
-                             confirmText: AppLocalizations.of(context)!.yes,
-                             cancelText: AppLocalizations.of(context)!.no);
+                             confirmText: AppStrings.yes,
+                             cancelText: AppStrings.no);
                        },
-                       title: "Logout",
+                       title:AppStrings.logout,
                        bgColor: Colors.white,
                        textColor: AppColors.primaryColor,
                        borderColor: AppColors.primaryColor,
@@ -119,9 +122,8 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                        onTap: () async {
                          await showCommonDialog(
                              context: context,
-                             text: "Are you sure you want to delete account?",
+                             text: AppStrings.deleteAccountConfirmationMessage,
                              confirmCallback: () async {
-                               // Get.find<AuthController>().deleteUserController();
                                await SharedPreferenceUtils.clearPreference();
                                Navigator.of(context).pushNamedAndRemoveUntil(
                                    RouteHelper.getMobileNumberLoginRoute(),
@@ -130,10 +132,10 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                              cancelCallback: () {
                                Navigator.of(context).pop(); // Close the dialog
                              },
-                             confirmText: AppLocalizations.of(context)!.yes,
-                             cancelText: AppLocalizations.of(context)!.no);
+                             confirmText:AppStrings.yes,
+                             cancelText: AppStrings.no);
                        },
-                       title: "Delete My Account",
+                       title: AppStrings.deleteAccount,
                        bgColor: Colors.white,
                        textColor: AppColors.red00,
                        borderColor: AppColors.red00,
@@ -154,7 +156,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                                  ),
                                  children: [
                                    TextSpan(
-                                     text: 'Terms & Conditions',
+                                     text: AppStrings.termsConditions.tr,
                                      style: const TextStyle(
                                        color: AppColors.primaryColor,
                                        fontFamily: AppConstants.OpenSans,
@@ -163,15 +165,14 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                                        ..onTap = () {
                                          Get.to(()=> CommonWebView(
                                            urlLink: tncLink,
-                                           urlTitle: 'Terms & Conditions',
+                                           urlTitle: AppStrings.termsConditions.tr,
                                          ));
                                          // Handle Terms & Conditions tap
-                                         print('Tapped Terms & Conditions');
                                        },
                                    ),
-                                   const TextSpan(text: ' and '),
+                                   const TextSpan(text: ' & '),
                                    TextSpan(
-                                     text: 'Privacy Policy.',
+                                     text: AppStrings.privacyPolicy.tr,
                                      style: TextStyle(
                                        color: AppColors.primaryColor,
                                        fontFamily: AppConstants.OpenSans,
@@ -180,25 +181,15 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                                        ..onTap = () {
                                          Get.to(CommonWebView(
                                            urlLink: privacyLink,
-                                           urlTitle: 'Privacy Policy',
+                                           urlTitle: AppStrings.privacyPolicy.tr,
                                          ));
 
-                                         // Handle Privacy Policy tap
-                                         print('Tapped Privacy Policy');
                                        },
                                    ),
                                  ],
                                ),
                              ),
                            ),
-
-                           // Text("Terms & Conditions, Privacy Policy",
-                           //     style: TextStyle(fontSize: 12)),
-                           // Text("See all policies",
-                           //     style: TextStyle(
-                           //         fontSize: 12,
-                           //         fontWeight: FontWeight.bold,
-                           //         color: Colors.blue)),
                            SizedBox(height: 10),
                            Row(
                              mainAxisAlignment: MainAxisAlignment.center,
@@ -209,7 +200,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                                ),
                                LocalAssets(imagePath: AppIconAssets.india_flag),
                                CustomText(
-                                 " Make in India",
+                                 " ${AppStrings.makeInIndia.tr}",
                                  fontSize: 12,
                                ),
                              ],
@@ -260,13 +251,6 @@ class ProfileSettingsNewScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          //   child: Divider(
-          //     thickness: 1,
-          //     color: Color.fromRGBO(186, 199, 210, 1),
-          //   ),
-          // ),
         ],
       ),
     );

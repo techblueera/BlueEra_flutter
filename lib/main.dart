@@ -7,9 +7,10 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/core/language_service_app.dart';
+import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -39,6 +40,7 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'core/services/home_cache_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
@@ -60,8 +62,11 @@ Future<void> main() async {
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);
   await firebaseInitializeApp();
-
-  clearSecureStorageIfFreshInstall();
+  /// Hive Database
+  await Hive.initFlutter();
+  if (Platform.isIOS) {
+    clearSecureStorageIfFreshInstall();
+  }
   Get.put(AuthController());
 
   ///GET LOGIN USER DATA...
@@ -90,8 +95,7 @@ Future<void> main() async {
   // Initialize workmanager for background tasks
   // await WorkmanagerUploadService.initialize();
 
-  /// Hive Database
-  await Hive.initFlutter();
+
 
   /// Initialize Home Feed Cache Service
   await HiveServices.init();
@@ -104,12 +108,27 @@ Future<void> main() async {
 
   // await OnesignalService().initialize();
 
-  cameras = await availableCameras();
-  await Hive.initFlutter();
   final localizationService = LocalizationService();
   await localizationService.init();
   await localizationService.preloadCachedLanguages();
 
+  // Load saved language code (default: 'en')
+  final box = Hive.box('translations');
+  final savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
+
+  // Load that language’s translations if not already loaded
+  // await localizationService.refreshTranslations(savedLangCode);
+
+  await localizationService.loadTranslations(savedLangCode);
+
+  // Register translations with GetX
+  Get.addTranslations(localizationService.keys);
+
+  // Set saved locale before app starts
+  final locale = Locale(savedLangCode);
+
+  // 🔄 Check if app version changed
+  // await checkAppVersionAndResetIfNeeded();
   // await Hive.openBox('translations');
   //
   // // Load saved language from Hive or fallback to English
@@ -137,12 +156,16 @@ Future<void> main() async {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         return true;
       };
-      runApp(MyApp(localizationService: localizationService,));
+      runApp(MyApp(
+        initialLocale: locale,
+      ));
     }, (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     });
   } else {
-    runApp(MyApp(localizationService: localizationService,));
+    runApp(MyApp(
+      initialLocale: locale,
+    ));
   }
 }
 
@@ -157,87 +180,20 @@ late List<CameraDescription> cameras;
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatefulWidget {
-  final LocalizationService localizationService;
-  const MyApp({super.key, required this.localizationService});
+  final Locale initialLocale;
+
+  // final LocalizationService localizationService;
+  const MyApp({super.key, required this.initialLocale});
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  late final AppLinks _appLinks;
-
   @override
   void initState() {
     super.initState();
     // _initDeepLinks();
-  }
-
-  void _initDeepLinks() {
-    _appLinks = AppLinks();
-
-    logs("added deepLink");
-
-    // Handle app launched via link (cold start)
-    _appLinks.getInitialLink().then((uri) {
-      if (uri != null) _handleDeepLink(uri);
-    });
-
-    // Handle links when app is already running (warm)
-    _appLinks.uriLinkStream.listen((uri) {
-      if (uri.path.isNotEmpty) _handleDeepLink(uri);
-    });
-  }
-
-  void _handleDeepLink(Uri uri) async {
-    debugPrint(
-        "=====================================Deep link received:========================= $uri");
-    try {
-      final segments = uri.pathSegments; // e.g., [app, post, 123]
-      if (segments.length >= 3 && segments[0] == 'app') {
-        final type = segments[1]; // post | video | short | job | product
-        final id = segments[2];
-        switch (type) {
-          case 'post':
-            Get.to(() => PostDeatilPage(), arguments: {"postId": id});
-            break;
-          case 'video':
-            // TODO: Navigate to video detail screen with id
-            await deepLinkNetworkResources.navigateToVideoDetail(id);
-            logs('Deep link -> video id: $id');
-            break;
-          // case 'short':
-          //   // TODO: Navigate to short/reel detail screen with id
-          //   logs('Deep link -> short id: $id');
-          //   break;
-          case 'job':
-            // TODO: Navigate to job detail screen with id
-            logs('Deep link -> job id: $id');
-            break;
-          case 'profile':
-            // TODO: Navigate to profile screen with user id
-            //TODO: we have three profile screen first is normal user profile screen and then other are
-            // the profile screen of the users whose post are visible on home, they use two different screen to show
-            // there profile Visiting_profile_screen.dart and Header_widget.dart both has sharing funtionaity.
-
-            logs('Deep link -> profile userId: $id');
-          case 'product':
-            logs('Deep link -> job id: $id');
-            Get.to(() => ShareProductScreen(productId: id));
-            break;
-          default:
-            logs('Unknown deep link type: $type');
-        }
-      } else {
-        // Fallback: try last segment as id (legacy)
-        final last = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
-        if (last.isNotEmpty) {
-          Get.to(() => PostDeatilPage(), arguments: {"postId": last});
-        }
-      }
-    } on Exception catch (e) {
-      print(e.toString());
-    }
   }
 
   final appController = Get.find<AppMaintenanceController>();
@@ -264,8 +220,12 @@ class _MyAppState extends State<MyApp> {
       onGenerateRoute: RouteHelper.generateRoute,
       navigatorObservers: [RouteHelper.routeObserver],
 
-      translations:widget.localizationService,
-      locale:const Locale('en'),
+      // translations:widget.localizationService,
+      // locale:const Locale('en'),
+      // fallbackLocale: const Locale('en'),
+      translations: LocalizationService(),
+
+      locale: widget.initialLocale,
       fallbackLocale: const Locale('en'),
       localizationsDelegates: [
         AppLocalizations.delegate,

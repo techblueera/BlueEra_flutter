@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/language_service_app.dart';
+import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
