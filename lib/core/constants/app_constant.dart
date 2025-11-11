@@ -165,6 +165,16 @@ class AppConstants {
   static const String service = "service";
   static const String chatMsgBusinessType = "business";
 
+  static const SELF_WORK_OPTION = "SELF_WORK_OPTION";
+  static const DELIVERY_PARTNER_OPTION = "DELIVERY_PARTNER_OPTION";
+  static const HOME_MADE_PRODUCTS_OPTION = "HOME_MADE_PRODUCTS_OPTION";
+  static const HOME_MADE_FOOD_ITEMS_OPTION = "HOME_MADE_FOOD_ITEMS_OPTION";
+  static const HOME_SERVICES_OPTION = "HOME_SERVICES_OPTION";
+  static const RENTAL_SERVICES_OPTION = "RENTAL_SERVICES_OPTION";
+  static const COUNSELLING_CONSULTING_OPTION = "COUNSELLING_CONSULTING_OPTION";
+  static const TUITION_CLASSES_ONLINE_OFFLINE_OPTION = "TUITION_CLASSES_ONLINE_OFFLINE_OPTION";
+
+
   static const ELECTRICIAN = "Electrician";
   static const PLUMBER = "Plumber";
   static const TECHNICIAN = "Technician";

@@ -42,25 +42,36 @@ class StoreRepo extends BaseService {
   }
 
   /// homePageProduct
+  Future<ResponseModel> homePageProductRepo({
+    required int page,
+    String? lat,
+    String? long,
+  }) async {
+    const int limit = 40;
 
-  Future<ResponseModel> homePageProductRepo(
-      {required int page, required String? lat, required String? long}) async {
-    int limit = 40;
-    String? url;
+    // Build query parameters dynamically
+    final Map<String, dynamic> queryParams = {
+      ApiKeys.page: page,
+      ApiKeys.limit: limit,
+      ApiKeys.maxDistance: kmRadius1000,
+    };
+
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
-      url =
-          "$homePageProduct?${ApiKeys.page}=$page&${ApiKeys.limit}=$limit&${ApiKeys.latitude}=$lat&${ApiKeys.longitude}=$long&${ApiKeys.maxDistance}=$kmRadius1000";
-    } else {
-      url = "$homePageProduct?${ApiKeys.page}=$page&${ApiKeys.limit}=$limit&${ApiKeys.maxDistance}=$kmRadius1000";
+      queryParams[ApiKeys.latitude] = lat;
+      queryParams[ApiKeys.longitude] = long;
     }
+
     final response = await ApiBaseHelper().getHTTP(
-      url,
+      homePageProduct,
       showProgress: false,
+      params: queryParams,
       onError: (error) {},
       onSuccess: (data) {},
     );
+
     return response;
   }
+
 
   ///GET STORE FEED(PRODUCTS, SERVICE , STORES)......
   Future<ResponseModel> getAllStoresFeed({required int page, String? lat, String? long}) async {
@@ -94,5 +105,41 @@ class StoreRepo extends BaseService {
     return response;
   }
 
+  /// productSearchFilterRepo
+  Future<ResponseModel> productSearchFilterRepo({
+    required int page,
+    String? lat,
+    String? long,
+    String? query,
+  }) async {
+    const int limit = 40;
+
+    // Build query parameters dynamically
+    final Map<String, dynamic> queryParams = {
+      ApiKeys.page: page,
+      ApiKeys.limit: limit,
+      ApiKeys.maxDistance: kmRadius1000,
+    };
+
+    if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
+      queryParams[ApiKeys.latitude] = lat;
+      queryParams[ApiKeys.longitude] = long;
+    }
+
+    if ((query?.isNotEmpty ?? false)) {
+      queryParams[ApiKeys.searchTerm] = query;
+    }
+
+
+    final response = await ApiBaseHelper().getHTTP(
+      productSearchFilter,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+
+    return response;
+  }
 
 }

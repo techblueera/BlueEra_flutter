@@ -52,6 +52,7 @@ class _PortfolioWidgetState extends State<PortfolioWidget> {
             SizedBox(
               height: SizeConfig.size10,
             ),
+
             ExperienceWidgetView(
               isSelfPortfolio: widget.isSelfPortfolio,
             ),

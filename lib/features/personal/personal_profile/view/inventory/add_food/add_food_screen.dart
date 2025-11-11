@@ -483,44 +483,46 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                               MaterialPageRoute(
                                 builder: (_) =>
                                     AddOnsPage(
-                                      initialAddOns: controller
-                                          .addOns, // 👈 pass previous list
+                                      initialAddOns: List<Map<String, dynamic>>.from(controller.addOns),
                                     ),
                               ),
                             );
 
-                            if (result != null && result is List<
-                                Map<String, dynamic>>) {
-                              setState(() {
-                                controller.addOns.value = result;
-                              });
+                            if (result != null && result is List<Map<String, dynamic>>) {
+                              log('result length  before  -- > $result');
+                              controller.addOns.assignAll(result);
+                               log('result length after -- > ${controller.addOns.length}');
                             }
                           },
                         ),
                       ),
-                      SizedBox(height: 10,),
+                      SizedBox(height: 10),
                       Obx(() {
+                        final addOns = controller.addOns;
+
+                        if (addOns.isEmpty) {
+                          return const SizedBox();
+                        }
                         return Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: List.generate(controller.addOns.length, (
-                              index) {
-                            final item = controller.addOns[index];
+                          children: List.generate(addOns.length, (index) {
+                            final item = addOns[index];
                             return Chip(
                               label: Text(
                                 "${item['name']} (+₹${item['price']})",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w500),
+                                style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.mainTextColor),
                               ),
-                              backgroundColor: AppColors.skyBlueDF..withValues(alpha: 0.1),
+                              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
                               deleteIcon: const Icon(Icons.close, size: 18),
                               onDeleted: () {
-                                controller.addOns.removeAt(index);
+                                 addOns.removeAt(index);
                               },
                             );
                           }),
                         );
                       }),
+
                       SafeArea(
                         child: CommonCardWidget(
                           padding: 0,
@@ -1064,8 +1066,9 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
 
 class AddOnsPage extends StatefulWidget {
-  AddOnsPage({Key? key, required this.initialAddOns}) : super(key: key);
   final List<Map<String, dynamic>> initialAddOns;
+
+  const AddOnsPage({Key? key, required this.initialAddOns}) : super(key: key);
 
   @override
   State<AddOnsPage> createState() => _AddOnsPageState();
@@ -1102,8 +1105,7 @@ class _AddOnsPageState extends State<AddOnsPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    addOns = widget.initialAddOns;
+    addOns = List<Map<String, dynamic>>.from(widget.initialAddOns);
     super.initState();
   }
 
@@ -1111,8 +1113,8 @@ class _AddOnsPageState extends State<AddOnsPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context, addOns); // 👈 send back data on back press
-        return false; // prevent default pop (we already popped)
+        Navigator.pop(context, addOns);
+        return false;
       },
       child: Scaffold(
         appBar: CommonBackAppBar(onBackTap: () {
@@ -1189,9 +1191,9 @@ class _AddOnsPageState extends State<AddOnsPage> {
                     return Chip(
                       label: Text(
                         "${item['name']} (+₹${item['price']})",
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.mainTextColor),
                       ),
-                      backgroundColor: AppColors.skyBlueDF..withValues(alpha: 0.1),
+                      backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () => _removeAddOn(index),
                     );
@@ -1228,6 +1230,7 @@ class _AddOnsPageState extends State<AddOnsPage> {
   }
 
 }
+
 class PriceOptionsWidget extends StatelessWidget {
   final controller = Get.put(FoodUploadController());
 

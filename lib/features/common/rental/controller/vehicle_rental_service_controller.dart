@@ -205,14 +205,7 @@ class VehicleRentalServiceController extends GetxController{
   }
 
   void addHighlights(List<String> highlights) {
-
-    // if(arrHighlights.length == 10){
-    //   commonSnackBar(message: 'You can\'t add more than 10 highlights');
-    //   return;
-    // }
-
     arrHighlights.clear();
-
     arrHighlights.value = highlights;
   }
 

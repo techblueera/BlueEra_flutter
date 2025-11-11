@@ -116,4 +116,5 @@ class AppColors {
   static const  rating = Color(0xFFFABC00);
   static const  green0B = Color(0xFF0BC041);
   static const  greylite = Color(0xFFCCCCCC);
+  static const  green1A = Color(0xFF1AA260);
 }

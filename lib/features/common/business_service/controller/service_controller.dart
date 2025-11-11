@@ -46,6 +46,8 @@ class ServiceController extends GetxController {
   Rx<ServiceAiGenerateModel> serviceAiResModel = ServiceAiGenerateModel().obs;
   RxBool isGenerateAiServiceLoading = false.obs;
 
+  /// All Service data
+
   Future<void> generateServiceAiController(
       {
         String? channelId,
@@ -93,11 +95,9 @@ class ServiceController extends GetxController {
       logs("ERROR===== ${e}");
       serviceAiResponse.value = ApiResponse.error(e.toString());
     }finally{
-      isGenerateAiServiceLoading.value = true;
+      isGenerateAiServiceLoading.value = false;
     }
   }
-
-  /// All Service data
   RxList<GetServiceModel> serviceDataList = <GetServiceModel>[].obs;
   RxBool isServiceDataLoadingMore = false.obs;
   RxBool isServiceDataFirstLoading = false.obs;
@@ -200,10 +200,10 @@ class ServiceController extends GetxController {
   }
 
 
-  @override
-  void onClose() {
-    serviceNameController.dispose();
-    serviceShortDescriptionController.dispose();
-    super.onClose();
-  }
+  // @override
+  // void onClose() {
+  //   serviceNameController.dispose();
+  //   serviceShortDescriptionController.dispose();
+  //   super.onClose();
+  // }
 }

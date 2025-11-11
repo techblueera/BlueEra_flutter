@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -19,7 +21,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/create_profile_s
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
@@ -65,6 +67,18 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     controller = Get.put(StoreScreenController());
     controller.onHeaderVisibilityChanged = widget.onHeaderVisibilityChanged;
     controller.checkAndFetchAllStoresFeed();
+    controller.searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    controller.debounce?.cancel();
+    controller.debounce = Timer(const Duration(milliseconds: 500), () {
+      controller.getAllStoreProductNearBy(
+        query: controller.searchController.text.trim().isEmpty
+            ? null
+            : controller.searchController.text.trim(),
+      );
+    });
   }
 
   void _onTabChanged() {
@@ -730,13 +744,40 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Obx(()=> LocationService.userCurrentAddress.isNotEmpty ? CustomText(
-                'Find Anything\n in ' + LocationService.userCurrentAddress[2],
-                fontSize: SizeConfig.extraLarge22,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-                textAlign: TextAlign.center,
+              Obx(()=> LocationService.userCurrentAddress.isNotEmpty
+                  ? Padding(
+                    padding: controller.selectedStoreIndex.value == 1
+                        ? const EdgeInsets.only(bottom: 20.0) : EdgeInsets.zero,
+                    child: CustomText(
+                                    'Find Anything\n in ' + LocationService.userCurrentAddress[2],
+                                    fontSize: SizeConfig.extraLarge22,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white,
+                                    textAlign: TextAlign.center,
+                                  ),
+                  ) : SizedBox()),
+
+              Obx(()=> (controller.selectedStoreIndex.value == 1)
+                  ? Positioned(
+                  bottom: 60,
+                  left: 20,
+                  right: 20,
+                  child: CommonTextField(
+                    textEditController: controller.searchController,
+                    hintText: "Search Product...",
+                    showClearIcon: controller.searchText.isNotEmpty,
+                    isValidate: false,
+                    onChange: (value){
+                      controller.searchController.text = value;
+                      controller.searchText.value = value;
+                    },
+                    onClearTap: (){
+                      controller.searchController.clear();
+                      controller.searchText.value = '';
+                    },
+                  )
               ) : SizedBox()),
+
               Positioned(
                   top: ds(12),
                   right: ds(15),
