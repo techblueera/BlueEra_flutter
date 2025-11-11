@@ -84,7 +84,7 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                  CustomText(
-                  "Create... Via Bluer AI",
+                  "Create... Via Blueera AI",
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w500,
                 ),

@@ -1,10 +1,10 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -37,7 +37,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
       labelColor: const Color(0xFF204A08),
     ),
     ServiceItem(
-      label: 'Home Mad\nProducts',
+      label: 'Home Made\nProducts',
       name: 'HOME_MADE_PRODUCTS',
       icon: AppIconAssets.homeMadeProductIcon,
       bgColor: const Color(0xFFFDD5A4),
@@ -150,7 +150,10 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         break;
 
       case 'Delivery\nPartner':
-        Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
+        showProfessionChangeDialog(
+          context: context,
+          designation: AppConstants.DELIVERY_PARTNER,
+        );
         break;
 
       case 'Home Mad\nProducts':
@@ -195,16 +198,6 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
           designation: AppConstants.CONSULTANT,
           serviceSubType: EarnWithBlueEraServiceTypes.homeService,
         );
-        // Get.offNamedUntil(
-        //   RouteHelper.getAddServicesScreenRoute(),
-        //   ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-        //   arguments: {
-        //     ApiKeys.providerType: ProductServiceProviderType.user,
-        //     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
-        //     ApiKeys.isFromEarnWithBlueEraService: true,
-        //     ApiKeys.designation: AppConstants.CONSULTANT,
-        //   },
-        // );
 
         break;
 
@@ -214,16 +207,6 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
           designation: AppConstants.TUTOR,
           serviceSubType: EarnWithBlueEraServiceTypes.homeService,
         );
-        // Get.offNamedUntil(
-        //   RouteHelper.getAddServicesScreenRoute(),
-        //   ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-        //   arguments: {
-        //     ApiKeys.providerType: ProductServiceProviderType.user,
-        //     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeService,
-        //     ApiKeys.isFromEarnWithBlueEraService: true,
-        //     ApiKeys.designation: AppConstants.TUTOR,
-        //   },
-        // );
 
         break;
 
@@ -233,7 +216,3 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
   }
 
 }
-
-// onTap: (){
-// Navigator.push(context, MaterialPageRoute(builder: (context) => RentalScreen(),));
-// },

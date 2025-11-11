@@ -77,6 +77,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: GetBuilder<ViewBusinessDetailsController>(

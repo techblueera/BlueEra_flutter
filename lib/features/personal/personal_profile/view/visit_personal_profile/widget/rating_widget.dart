@@ -11,8 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../core/constants/regular_expression.dart';
+import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../widgets/commom_textfield.dart';
 import '../../../../../../widgets/common_draggable_bottom_sheet.dart';
+import '../../../../../business/auth/controller/view_business_details_controller.dart';
 
 
 
@@ -140,20 +142,32 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
     );
   }
 
-  void _openRateAndReviewSheet(BuildContext context) {
-    showModalBottomSheet(
-      isDismissible: true,
-        context: context,
-       // barrierDismissible: true,
-        builder: (context) => RatingFeedbackDialog(businessId: widget.businessId,
-          reviewFor: AppConstants.business,)
+  void _openRateAndReviewSheet(BuildContext context) async {
+    final result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RateAndReviewBottomSheet(
+        businessId: widget.businessId,
+        reviewFor: AppConstants.business,
+      ),
     );
-  }
-}
+
+    if (result == true) {
+
+    }
+  }}
 
 
-class RateAndReviewBottomSheet extends StatefulWidget {
-  const RateAndReviewBottomSheet({super.key});
+  class RateAndReviewBottomSheet extends StatefulWidget {
+  final String businessId;
+  final String reviewFor; // 'business' or 'individual'
+
+  const RateAndReviewBottomSheet({
+    super.key,
+    required this.businessId,
+    required this.reviewFor,
+  });
 
   @override
   State<RateAndReviewBottomSheet> createState() => _RateAndReviewBottomSheetState();
@@ -165,12 +179,15 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
 
+  final ViewBusinessDetailsController _ratingController = ViewBusinessDetailsController();
+  bool _isSubmitting = false;
+
   @override
   Widget build(BuildContext context) {
     return CommonDraggableBottomSheet(
-      // initialChildSize: 0.75,
-      // minChildSize: 0.55,
-      // maxChildSize: 0.9,
+      initialChildSize: 0.55,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
       builder: (scrollController) {
         return Padding(
           padding: EdgeInsets.only(
@@ -185,13 +202,10 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
             child: Form(
               key: _formKey,
               autovalidateMode: _autoValidate,
-              child: Column(mainAxisSize: MainAxisSize.min,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Handle bar
-
-
-                  // Title
                   Center(
                     child: CustomText(
                       "Rate And Review",
@@ -201,7 +215,7 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                   ),
                   SizedBox(height: SizeConfig.size20),
 
-                  // Star rating
+                  // ⭐ Star rating
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
@@ -210,28 +224,25 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                         return GestureDetector(
                           onTap: () {
                             setState(() {
-                              selectedRating = index + 1;  // update rating
+                              selectedRating = index + 1;
                             });
                           },
                           child: LocalAssets(
                             imagePath: index < selectedRating
-                                ? AppIconAssets.fill_star      // filled star for selected
-                                : AppIconAssets.empty_star,    // empty star for rest
+                                ? AppIconAssets.fill_star
+                                : AppIconAssets.empty_star,
                           ),
                         );
                       }),
-                    )
-                    ,
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size20),
 
-                  // Review input
+                  // 💬 Review input
                   CommonTextField(
                     textEditController: _reviewController,
                     inputLength: 250,
-
                     keyBoardType: TextInputType.multiline,
-                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                     title: "Write Your Review (Optional)",
                     titleColor: AppColors.grayText,
                     maxLine: 5,
@@ -244,12 +255,11 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                       }
                       return null;
                     },
-
                   ),
 
                   SizedBox(height: SizeConfig.size20),
 
-                  // Upload image/video
+                  // 📎 Upload section (optional)
                   CustomText(
                     "Share Image or Video (Optional)",
                     fontSize: SizeConfig.size13,
@@ -263,27 +273,15 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                     child: Container(
                       padding: EdgeInsets.all(SizeConfig.size14),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppColors.greyE5,
-                        ),
+                        border: Border.all(color: AppColors.greyE5),
                         borderRadius: BorderRadius.circular(SizeConfig.size10),
-                        boxShadow: [
-                          BoxShadow(
-                            offset: const Offset(0, 1),     // 0px 1px
-                            blurRadius: 2,                  // 2px
-                            spreadRadius: 0,
-                            color: AppColors.white, // #00000014
-                          ),
-                        ],
                       ),
-
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
-                          'assets/diwali_card/upload.png',
+                            'assets/diwali_card/upload.png',
                             color: AppColors.secondaryTextColor,
-
                           ),
                           SizedBox(width: SizeConfig.size10),
                           CustomText(
@@ -295,17 +293,17 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                       ),
                     ),
                   ),
+
                   SizedBox(height: SizeConfig.size20),
 
-                  // Buttons
+                  // 🔘 Buttons
                   Row(
                     children: [
                       Expanded(
                         child: CustomBtn(
                           title: "Cancel",
                           onTap: () => Navigator.pop(context),
-                          bgColor:  AppColors.white,
-
+                          bgColor: AppColors.white,
                           textColor: AppColors.primaryColor,
                           borderColor: AppColors.primaryColor,
                         ),
@@ -314,12 +312,13 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                       Expanded(
                         child: CustomBtn(
                           title: "Submit",
+                          isLoading: _isSubmitting,
                           bgColor: AppColors.primaryColor,
-
-                          onTap: () {
+                          onTap: _isSubmitting
+                              ? null
+                              : () {
                             if (_formKey.currentState!.validate()) {
-                              Navigator.pop(context);
-                              // Handle submission
+                              _submitFeedback(widget.reviewFor);
                             } else {
                               setState(() {
                                 _autoValidate = AutovalidateMode.always;
@@ -338,5 +337,55 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
         );
       },
     );
+  }
+
+  /// ✅ Submit API integration
+  Future<void> _submitFeedback(String ratingFrom) async {
+    if (selectedRating == 0) {
+      commonSnackBar(message: "Please select a rating");
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      bool success = false;
+
+      if (ratingFrom == AppConstants.business) {
+        success = await _ratingController.submitBusinessRatingController(
+          businessId: widget.businessId,
+          rating: selectedRating,
+          comment: _reviewController.text.trim(),
+        );
+      } else if (ratingFrom == AppConstants.individual) {
+        success = await _ratingController.submitPersonalRating(
+          userId: widget.businessId,
+          rating: selectedRating,
+          comment: _reviewController.text.trim(),
+        );
+      }
+
+      if (success && mounted) {
+        final controller = Get.find<ViewBusinessDetailsController>();
+
+        controller.loadInitData(visitBusinessId: widget.businessId);
+
+        Navigator.pop(context, success);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _reviewController.dispose();
+    super.dispose();
   }
 }

@@ -1365,10 +1365,10 @@ class _StoreProductPreviewScreenProductState
                   List<Map<String, String>> urlList =
                   product.image.map((e) => {"url": e}).toList();
                   Map<String, dynamic> data = {
-                    "product_id":"${product.id}",
+                    ApiKeys.product_id:"${product.id}",
 
-                    "price": "${product.price}",
-                    "discount": "${product.discount}",
+                    ApiKeys.price: "${product.price}",
+                    ApiKeys.discount: "${product.discount}",
                     if ((chatViewController.newVisitContactApiResponse
                         ?.value?.data?.conversationId ==
                         '' ||
@@ -1388,10 +1388,13 @@ class _StoreProductPreviewScreenProductState
                           ?.data
                           ?.conversationId ??
                           ''),
-                    "message":
-                    "${product.name}.${product.mrp}.${jsonEncode(product.selectedVariants)}",
-                    "message_type": "product",
-                    "url": urlList,
+                    ApiKeys.message:
+                    "${product.name}",
+                    ApiKeys.message_type: "product",
+                    ApiKeys.title: product.name,
+                    ApiKeys.variant : jsonEncode(product.selectedVariants),
+                    ApiKeys.mrp :product.mrp,
+                    ApiKeys.url: urlList,
                   };
                   chatViewController.openAnyOneChatFunction(
                     shareProductParams: data,

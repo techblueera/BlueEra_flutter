@@ -101,7 +101,6 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   _stream = await riderOrderStream(userId);
 
   _subscription = _stream.listen((event) {
-    log("lsdkclksdmcd ${event}");
     if (event is List) {
       if(event.isEmpty){
         if(paymentDialogShow==true){
@@ -206,7 +205,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.9,
+                      childAspectRatio: 0.83,
                     ),
                     itemBuilder: (context, index) {
                       final pilot = data.users?[index];

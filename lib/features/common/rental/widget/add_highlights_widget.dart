@@ -38,11 +38,11 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
       for (final text in widget.initialHighlights) {
         _controllers.add(TextEditingController(text: text));
       }
-    }
-
-    // Ensure there are always 4 controllers minimum
-    while (_controllers.length < 4) {
-      _controllers.add(TextEditingController());
+    }else{
+      // Ensure there are always 4 controllers minimum
+      while(_controllers.length < 4) {
+        _controllers.add(TextEditingController());
+      }
     }
   }
 

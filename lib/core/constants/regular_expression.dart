@@ -316,6 +316,15 @@ class ValidationMethod {
     return null;
   }
 
+  String? validatePin(String? value) {
+    if (value == null || value.trim().isEmpty) return 'PIN code is required';
+
+    final regex = RegExp(r'^[1-9][0-9]{5}$');
+
+    if (!regex.hasMatch(value.trim())) return 'Enter a valid 6-digit PIN code';
+    return null;
+  }
+
 }
 
 

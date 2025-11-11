@@ -19,6 +19,7 @@ class CommonDropdown<T> extends FormField<T> {
     key: key,
     initialValue: selectedValue,
     validator: validator,
+    autovalidateMode: AutovalidateMode.onUserInteraction,
     builder: (FormFieldState<T> state) {
       return _CommonDropdownInternal<T>(
         items: items,
@@ -188,7 +189,7 @@ class _CustomDropdownOverlayInternalState<T> extends State<_CommonDropdownIntern
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size15,
-                vertical: SizeConfig.size10,
+                vertical: SizeConfig.size8,
               ),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),

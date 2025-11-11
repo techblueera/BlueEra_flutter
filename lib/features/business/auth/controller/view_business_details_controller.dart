@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/business_service/model/get_service_model
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -268,6 +269,22 @@ class ViewBusinessDetailsController extends GetxController {
     // }
   }
 
+  ///UPDATE BUSINESS IMAGES....
+  saveBusinessImages(String imagePath,
+      ViewBusinessDetailsController controller) async {
+    dio.MultipartFile? imageByPart;
+
+    String fileName = imagePath.split('/').last;
+    imageByPart =
+    await dio.MultipartFile.fromFile(imagePath, filename: fileName);
+
+    Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
+
+    controller.uploadLiveStoreImage(params);
+    await Future.delayed(Duration(seconds: 2));
+    controller.imgDeleteL3.clear();
+  }
+
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
@@ -344,7 +361,6 @@ class ViewBusinessDetailsController extends GetxController {
       isCategoriesLoading.value = false;
     }
   }
-
 
   Future<void> postVerifyBusinessDocs(Map<String, dynamic> params) async {
     try {
@@ -758,34 +774,22 @@ class ViewBusinessDetailsController extends GetxController {
     } finally {}
   }
 
-  // Future<void> getMyServices(Map<String, dynamic> params) async {
-  //   // try {
-  //   ResponseModel responseModel =
-  //   await FoodAiRepo().getFoodService(queryParam: params);
+  // void deleteLocalLivePhoto(String imagePath) {
+  //   imgLocalL3.remove(imagePath);
+  //   update(['livePhotos']);
+  // }
   //
-  //   if (responseModel.isSuccess) {
-  //     final data = responseModel.response?.data;
-  //
-  //     log("skdjncksjdc ${jsonEncode(data)}");
-  //     if (data is List) {
-  //       // if API returns a raw array
-  //       services.value = data.map((e) => GetServiceModel.fromJson(e)).toList();
-  //     } else if (data is Map && data['data'] is List) {
-  //       // if API returns { "data": [...] }
-  //       services.value =
-  //           (data['data'] as List).map((e) => GetServiceModel.fromJson(e)).toList();
-  //     } else {
-  //       print("⚠️ Unexpected API response: $data");
+  // Future<void> uploadAllLocalLivePhotos() async {
+  //   if (imgLocalL3.isEmpty) return;
+  //   for (final path in List<String>.from(imgLocalL3)) {
+  //     try {
+  //       await saveBusinessImages(path, this);
+  //     } catch (e) {
+  //       print("Upload failed: $e");
   //     }
-  //
-  //
-  //     // print("✅ Loaded ${foodList.length} food items");
-  //   } else {
-  //     print("❌ API failed: ${responseModel.response?.data}");
   //   }
-  //   // } catch (e) {
-  //   //   logs("ERROR===== $e");
-  //   // }
+  //   imgLocalL3.clear();
+  //   update(['livePhotos']);
   // }
 
 }

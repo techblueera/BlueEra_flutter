@@ -51,11 +51,14 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   void initState() {
-    isFromEarnWithBlueEraService = widget.isFromEarnWithBlueEraService??false;
-    if(isFromEarnWithBlueEraService){
-      controller.serviceNameController.text = widget.designation ?? 'OTHER';
-      controller.serviceName.value = controller.serviceNameController.text;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      isFromEarnWithBlueEraService = widget.isFromEarnWithBlueEraService??false;
+      if(isFromEarnWithBlueEraService){
+        controller.serviceNameController.text = widget.designation ?? 'OTHER';
+        controller.serviceName.value = controller.serviceNameController.text;
+      }
+    });
+
     viewBusinessDetailsController.getAllCategories();
     super.initState();
   }
@@ -159,7 +162,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                 ),
                                 SizedBox(height: SizeConfig.size5),
                                 CustomText(
-                                  "Kindly add services to your Profession & work type only unless result may effected",
+                                  "Kindly add services to your Profession & work type only unless result may affected",
                                   color: AppColors.red00,
                                   overflow: TextOverflow.ellipsis,
                                   fontSize: SizeConfig.small,
@@ -271,7 +274,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
                     // Generate Button
                     _buildGenerateButton(),
-                    SizedBox(height: SizeConfig.size30),
+                    SizedBox(height: SizeConfig.size10),
                   ],
                 ),
               )),

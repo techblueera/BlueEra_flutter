@@ -500,6 +500,7 @@ abstract class BaseService {
   final String channelServiceFollower = "channel-service/follower/";
 
   final String addRentalService = "booking-enquiry-service/rentals";
+  final String generateHomeRentalService = "ai-service/api/ai-property/generate-description";
 
 
   final String getRiderBookingList = "rider-service/riders/orders/requested";
