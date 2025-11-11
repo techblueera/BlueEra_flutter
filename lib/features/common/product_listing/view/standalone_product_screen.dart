@@ -43,11 +43,14 @@ class StandaloneProductScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                  "Products",
-                  fontWeight: FontWeight.w600,
-                  fontSize: SizeConfig.medium15,
-                  color: AppColors.secondaryTextColor),
+              Padding(
+                padding: const EdgeInsets.only(left: 6.0),
+                child: CustomText(
+                    "Products",
+                    fontWeight: FontWeight.w600,
+                    fontSize: SizeConfig.medium15,
+                    color: AppColors.secondaryTextColor),
+              ),
               SizedBox(height: SizeConfig.size8),
               isGrid
                   ? Expanded(child: _buildGridView(controller))
@@ -95,11 +98,11 @@ class StandaloneProductScreen extends StatelessWidget {
   // Horizontal list view
   Widget _buildHorizontalView(ViewBusinessDetailsController controller) {
     return SizedBox(
-      height: 322,
+      height: SizeConfig.size306,
       child: ListView.builder(
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.all(8),
+
         itemCount: controller.products.length,
         itemBuilder: (context, index) {
           return Padding(

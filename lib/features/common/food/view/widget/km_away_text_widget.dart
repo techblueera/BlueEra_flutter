@@ -46,13 +46,14 @@ class _KmAwayTextWidgetState extends State<KmAwayTextWidget> {
               LocalAssets(
                 imagePath: AppIconAssets.location_new,
                 imgColor: AppColors.primaryColor,
+              height: 10,width: 10,
               ),
               SizedBox(
                 width: SizeConfig.size5,
               ),
               CustomText(
                 "${kmAway.toStringAsFixed(0)} km away",
-                fontSize: SizeConfig.small,
+                fontSize: SizeConfig.size8,
                 maxLines: 1,
                 color: AppColors.primaryColor,
                 decoration: widget.isUnderlineShow ? TextDecoration.underline : null,

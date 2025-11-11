@@ -100,6 +100,8 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
               if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Service',
               if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Foods'
             ];
+            print("sd;kcmlskdmcsdc ${businessData?.businessLocation?.lat}");
+            print("sd;kcmlskdmcsdc ${businessData?.businessLocation?.lon}");
 
             return DefaultTabController(
               length: tabs.length,
@@ -141,6 +143,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                         children: [
                           SizedBox(height: SizeConfig.size10,),
                           // controller.userData.value?.user
+
                           RatingSummaryWidget(
                             rating: businessData?.avg_rating?.toDouble() ?? 0.0,
                             ratingPersonCount:

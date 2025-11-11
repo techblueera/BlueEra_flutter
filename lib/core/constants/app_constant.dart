@@ -543,7 +543,7 @@ final List<String> jobPostNoticePeriods = [
 
 openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
-    Get.to(() => BusinessOwnProfileScreen);
+    Get.to(() => BusinessOwnProfileScreen());
   } else {
     Get.to(() => VisitBusinessProfileNew(
           businessId: businessUserId ?? "",
