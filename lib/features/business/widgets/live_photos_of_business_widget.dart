@@ -17,10 +17,11 @@ class BusinessLivePhotos extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: EdgeInsets.symmetric(horizontal: 14,vertical: 10),
 
-      child: Column(mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        //crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -28,7 +29,7 @@ class BusinessLivePhotos extends StatelessWidget {
                   "Live Photos",
 
                 fontWeight: FontWeight.w600,
-                fontSize: SizeConfig.medium15,
+                fontSize: SizeConfig.size16,
                 color: AppColors.secondaryTextColor,
               ),
             ],
