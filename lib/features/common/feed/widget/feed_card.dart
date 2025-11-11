@@ -32,7 +32,6 @@ class FeedCard extends StatefulWidget {
   final bool? isRepost;
   final VoidCallback? likeFeed;
 
-
   const FeedCard(
       {super.key,
       required this.post,
@@ -43,7 +42,6 @@ class FeedCard extends StatefulWidget {
       this.bottomPadding,
       this.likeFeed,
       this.isFromDetailsScreen = false,
-
       this.isRepost = false});
 
   @override
@@ -124,7 +122,6 @@ class _FeedCardState extends State<FeedCard> {
                 isShowOnlyDetails: widget.isFromDetailsScreen,
                 authorSection: () => SizedBox.shrink(),
                 commentView: () => _onCommentPressed(),
-
                 buildActions: SizedBox.shrink,
                 likeFeed: () {
                   _onLikeDislikePressed();
@@ -154,9 +151,10 @@ class _FeedCardState extends State<FeedCard> {
                 ),
                 commentView: () => _onCommentPressed(),
                 buildActions: SizedBox.shrink,
-                likeFeed:widget.likeFeed?? () {
-                  _onLikeDislikePressed();
-                },
+                likeFeed: widget.likeFeed ??
+                    () {
+                      _onLikeDislikePressed();
+                    },
                 onShareButtonPressed: () {
                   onShareButtonPressed(_post);
                 },
@@ -164,7 +162,8 @@ class _FeedCardState extends State<FeedCard> {
 
       case FeedType.qaPost:
         return QaPostWidget(
-          post: _post, horizontalPaddingChannel: widget.horizontalPadding,
+          post: _post,
+          horizontalPaddingChannel:widget.postFilteredType == PostType.otherChannelPosts?0: widget.horizontalPadding,
           bottomPadding: widget.bottomPadding,
           postId: _post?.id ?? "0",
           poll: Poll(
@@ -178,17 +177,20 @@ class _FeedCardState extends State<FeedCard> {
               _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
           totalViews: _post?.viewsCount.toString() ?? "0",
           referenceLink: _post?.referenceLink ?? '',
-          authorSection: () => PostAuthorHeader(
-            post: _post,
-            authorId: _post?.user?.id ?? '0',
-            postType: widget.postFilteredType,
-            onTapAvatar: _shouldShowProfileNavigation()
-                ? () => _navigateToProfile(authorId: _post?.user?.id ?? '0')
-                : null,
-            postedAgo: "",
-            // postedAgo: timeAgo(
-            //     _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
-          ),
+          authorSection: widget.postFilteredType == PostType.otherChannelPosts
+              ? () => SizedBox.shrink()
+              : () => PostAuthorHeader(
+                    post: _post,
+                    authorId: _post?.user?.id ?? '0',
+                    postType: widget.postFilteredType,
+                    onTapAvatar: _shouldShowProfileNavigation()
+                        ? () =>
+                            _navigateToProfile(authorId: _post?.user?.id ?? '0')
+                        : null,
+                    postedAgo: "",
+                    // postedAgo: timeAgo(
+                    //     _post?.createdAt != null ? _post!.createdAt! : DateTime.now()),
+                  ),
           /*  buildActions: () => PostActionsBar(
             post: _post,
             isLiked: _post?.isLiked ?? false,

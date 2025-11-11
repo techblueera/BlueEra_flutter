@@ -81,7 +81,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                   padding: EdgeInsets.only(
                       top: SizeConfig.size5,
                       bottom: SizeConfig.size5,
-                      left: SizeConfig.size32,
+                      left:widget.postFilteredType == PostType.otherChannelPosts? SizeConfig.size15: SizeConfig.size32,
                       right: SizeConfig.size5),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,9 +160,9 @@ class _QaPostWidgetState extends State<QaPostWidget> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
+                // SizedBox(
+                //   height: SizeConfig.size10,
+                // ),
                 // Padding(
                 //   padding: EdgeInsets.only(
                 //       top: SizeConfig.size5,

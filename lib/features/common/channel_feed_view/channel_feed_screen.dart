@@ -87,6 +87,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         controller: scrollController, // 👈 attach this!
         slivers: [
@@ -132,7 +133,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                            horizontal: 0, vertical: 0),
                         child: ChannelCardWidget(channelModel: channel),
                       ),
                     );
