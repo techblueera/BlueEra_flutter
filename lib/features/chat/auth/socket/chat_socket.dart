@@ -20,10 +20,7 @@ class ChatSocketService {
 
   Future<void> connectToSocket() async {
     try {
-
-      print("Attempting to connect to socket...");
       _socket = IO.io(chatSocketUrl,
-      // _socket = IO.io('http://13.127.15.108:3000/',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setPath('/socket')
@@ -34,7 +31,6 @@ class ChatSocketService {
 
       _socket.connect();
       _socket.onConnect((_) {
-        print("___ Chat Socket connected!");
         _isConnected = true;
         _socket.emit("screenRoom", {ApiKeys.conversation_id: "online"});
         _socket.emit("ChatList", {ApiKeys.type: "personal"});

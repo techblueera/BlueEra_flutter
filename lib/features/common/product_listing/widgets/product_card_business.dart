@@ -228,7 +228,6 @@ class _ProductCardState extends State<ProductCardBusiness> {
                     "${product.details?.name}",
                     ApiKeys.message_type: "product",
                     ApiKeys.title: product.details?.name,
-                    // ApiKeys.variant : jsonEncode(product.sellerClassification.),
                     ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
                     ApiKeys.url: urlList,
                   };

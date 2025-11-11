@@ -169,7 +169,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                             ApiKeys.title: service.title,
                             ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
                             ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
-                            // ApiKeys.mrp : "string"
+
                             ApiKeys.url: urlList,
                           };
                           chatViewController.openAnyOneChatFunction(

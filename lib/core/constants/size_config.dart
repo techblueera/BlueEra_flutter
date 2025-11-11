@@ -54,6 +54,7 @@ class SizeConfig {
   static double get size6 => isTablet ? 12.0 : 6.0;
   static double get size7 => isTablet ? 14.0 : 7.0;
   static double get size8 => isTablet ? 16.0 : 8.0;
+  static double get size11 => isTablet ? 19.0 : 11.0;
   static double get size9 => isTablet ? 18.0 : 9.0;
   static double get size10 => isTablet ? 20.0 : 10.0;
   static double get size12 => isTablet ? 24.0 : 12.0;
@@ -77,6 +78,7 @@ class SizeConfig {
   static double get size38 => isTablet ? 48.0 : 38.0;
   static double get size40 => isTablet ? 50.0 : 40.0;
   static double get size42 => isTablet ? 52.0 : 42.0;
+  static double get size44 => isTablet ? 54.0 : 44.0;
   static double get size45 => isTablet ? 55.0 : 45.0;
   static double get size50 => isTablet ? 60.0 : 50.0;
   static double get size54 => isTablet ? 64.0 : 54.0;
@@ -94,6 +96,7 @@ class SizeConfig {
   static double get size220 => isTablet ? 300.0 : 220.0;
   static double get size230 => isTablet ? 320.0 : 230.0;
   static double get size250 => isTablet ? 350.0 : 250.0;
+  static double get size260 => isTablet ? 360.0 : 260.0;
   static double get size55 => isTablet ? 65.0 : 55.0;
   static double get size57 => isTablet ? 67.0 : 57.0;
   static double get size120 => isTablet ? 130.0 : 120.0;
