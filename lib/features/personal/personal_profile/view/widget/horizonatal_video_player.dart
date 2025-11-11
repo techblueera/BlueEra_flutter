@@ -87,7 +87,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
   }
 
   void _onVideoControllerUpdated() {
-    if (!mounted) return;
+    if (!context.mounted) return;
     setState(() {});
   }
 

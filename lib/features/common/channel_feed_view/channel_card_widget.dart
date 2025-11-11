@@ -69,7 +69,7 @@ class ChannelCardWidget extends StatelessWidget {
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w400,
                         fontFamily: AppConstants.OpenSans,
-                        fontSize: SizeConfig.small
+                        fontSize: SizeConfig.medium
                     ),
                   ),
                 ],
@@ -83,7 +83,7 @@ class ChannelCardWidget extends StatelessWidget {
               children: [
                 CustomText(
                   formatTime(channelModel.ownership?.claimedAt ?? ""),
-                  fontSize: SizeConfig.small,
+                  fontSize: SizeConfig.small11,
                   color: Colors.grey.shade600,
                 ),
                 const SizedBox(height: 6),

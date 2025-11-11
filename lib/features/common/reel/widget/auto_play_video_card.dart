@@ -117,45 +117,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
   }
 
   /// 🧩 Helper: Cover Image Widget
-  Widget _buildCoverImage(String? coverUrl) {
-    if (coverUrl == null) {
-      return Container(
-        color: Colors.grey[300],
-        child: LocalAssets(
-          imagePath: AppIconAssets.place_holder_image,
-          boxFix: BoxFit.cover,
-        ),
-      );
-    }
-
-    if (isNetworkImage(coverUrl)) {
-      return CachedNetworkImage(
-        imageUrl: coverUrl,
-        width: SizeConfig.screenWidth,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => Container(
-          color: Colors.grey[300],
-          child: LocalAssets(
-            imagePath: AppIconAssets.place_holder_image,
-            boxFix: BoxFit.cover,
-          ),
-        ),
-        errorWidget: (_, __, ___) => Container(
-          color: Colors.grey[300],
-          child: LocalAssets(
-            imagePath: AppIconAssets.place_holder_image,
-            boxFix: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      return Image.file(
-        File(coverUrl),
-        width: SizeConfig.screenWidth,
-        fit: BoxFit.cover,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
