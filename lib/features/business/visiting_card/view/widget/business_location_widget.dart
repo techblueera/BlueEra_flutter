@@ -78,7 +78,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                 // )),
               ],
             ),
-            SizedBox(height: 15),
+            SizedBox( height: SizeConfig.size8,),
             ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 // Adjust border radius here
