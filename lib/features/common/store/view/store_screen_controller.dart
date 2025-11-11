@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -18,7 +19,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../food/model/get_food_details_model.dart';
 import '../../food/repo/food_ai_repo.dart';
@@ -39,6 +39,26 @@ class StoreScreenController extends GetxController {
   Rx<ApiResponse> unFollowResponse =
       ApiResponse.initial('Initial').obs;
 
+
+  // Scroll and Header Management
+  final GlobalKey headerKey = GlobalKey();
+  final ScrollController scrollController = ScrollController();
+  Function(bool isVisible)? onHeaderVisibilityChanged;
+  final RxBool isHeaderVisible = true.obs;
+  RxInt selectedStoreIndex = 0.obs;
+  final List<String> storeTab = [
+    "All",
+    "Product",
+    "Service",
+    "Food",
+    "Store"
+  ];
+
+
+  // Search Management
+  final TextEditingController searchController = TextEditingController();
+  final RxString searchText = ''.obs;
+  Timer? debounce;
 
   /// All Stores feed data(Product, stores, food, services)
   RxList<AllStoresFeedData> allNearByStoresFeed = <AllStoresFeedData>[].obs;
@@ -314,15 +334,15 @@ class StoreScreenController extends GetxController {
   }
 
   ///GET STORE PRODUCT ONLY....
-  Future<void> getAllStoreProductNearBy({bool isLoadMore = false}) async {
+  Future<void> getAllStoreProductNearBy({bool isLoadMore = false, String? query}) async {
     if (isLoadMore) {
       if (isStoreProductDataLoadingMore.value || !storeProductDataHasMore) return;
       isStoreProductDataLoadingMore.value = true;
     } else {
       isStoreProductDataFirstLoading.value = true;
-      final cachedFood = await HiveServices().getAllStoreProduct(userId);
-      if (cachedFood != null && cachedFood.isNotEmpty) {
-        storeProductDataList.assignAll(cachedFood);
+      final cachedProduct = await HiveServices().getAllStoreProduct(userId);
+      if (cachedProduct != null && cachedProduct.isNotEmpty) {
+        storeProductDataList.assignAll(cachedProduct);
         isStoreProductDataFirstLoading.value = false;
       } else {
         storeProductDataList.clear();
@@ -333,12 +353,25 @@ class StoreScreenController extends GetxController {
     }
 
     try {
-      final response = await StoreRepo().homePageProductRepo(
-          page: storeProductDataPage,
-          lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-          long: LocationService.lng != 0.0
-              ? "${LocationService.lng}"
-              : ""); // Make sure repo uses params
+      final response;
+      if(query != null){
+         response = await StoreRepo().productSearchFilterRepo(
+            page: storeProductDataPage,
+            lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
+            long: LocationService.lng != 0.0
+                ? "${LocationService.lng}"
+                : ""
+         );
+      }else{
+        response = await StoreRepo().homePageProductRepo(
+            page: storeProductDataPage,
+            lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
+            long: LocationService.lng != 0.0
+                ? "${LocationService.lng}"
+                : ""
+        );
+      }
+
       if (response.isSuccess) {
         getAllStoreProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel =
@@ -353,7 +386,6 @@ class StoreScreenController extends GetxController {
           } else {
             storeProductDataList.assignAll(newData);
             await HiveServices().saveAllStoreProduct(storeProductDataList, userId);
-
           }
           storeProductDataPage++;
         }
@@ -576,37 +608,6 @@ class StoreScreenController extends GetxController {
     log('Store rating count updated for businessId: $businessId');
   }
 
-  // Scroll and Header Management
-  final GlobalKey headerKey = GlobalKey();
-  final ScrollController scrollController = ScrollController();
-  Function(bool isVisible)? onHeaderVisibilityChanged;
-  final RxBool isHeaderVisible = true.obs;
-  // final RxDouble headerHeight = 0.0.obs;
-  // final RxDouble headerOffset = 0.0.obs;
-  RxInt selectedStoreIndex = 0.obs;
-  final List<String> storeTab = [
-    "All",
-    "Product",
-    "Service",
-    "Food",
-    "Store"
-  ];
-  final ScrollController nearbyFeedScroll = ScrollController();
-  final ScrollController productScroll = ScrollController();
-  final ScrollController serviceScroll = ScrollController();
-  final ScrollController foodScroll = ScrollController();
-  final ScrollController storeScroll = ScrollController();
-
-  // Search Management
-  final TextEditingController searchController = TextEditingController();
-  final RxString searchText = ''.obs;
-
-  // Categories Data
-  // final RxList<Map<String, dynamic>> categories = <Map<String, dynamic>>[].obs;
-
-  // Stores Data
-  final RxList<Map<String, dynamic>> stores = <Map<String, dynamic>>[].obs;
-
   @override
   void onInit() {
     super.onInit();
@@ -639,13 +640,9 @@ class StoreScreenController extends GetxController {
 
   @override
   void onClose() {
+    debounce?.cancel();
     searchController.dispose();
     scrollController.dispose();
-    nearbyFeedScroll.dispose();
-    productScroll.dispose();
-    serviceScroll.dispose();
-    foodScroll.dispose();
-    storeScroll.dispose();
     super.onClose();
   }
 

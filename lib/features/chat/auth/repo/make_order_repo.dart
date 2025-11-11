@@ -83,4 +83,28 @@ class MakeOrderRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> deliverOtpVerifyRepo(
+      {
+        required String orderId,
+        required Map<String, dynamic> params
+      }
+      ) async {
+    final response = await ApiBaseHelper().postHTTP(
+        deliverOtpVerify(orderId),
+        showProgress: false,
+        params:params ,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> updateOrderStatusFromAdminRepo(Map<String,dynamic> params, String orderId) async {
+    final response = await ApiBaseHelper().patchHTTP(
+        updateOrderStatusFromAdmin(orderId),
+        showProgress: false,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+
 }

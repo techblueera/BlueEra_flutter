@@ -558,3 +558,34 @@ bool validateEmail(String email) {
   final emailRegex = RegExp(r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
   return emailRegex.hasMatch(email);
 }
+
+String normalisePhone(String raw) {
+  final digits = raw.replaceAll(RegExp(r'\D'), ''); // keep only 0-9
+  if (digits.length == 10 && digits[0] != '0') {
+    return '+91$digits'; // add country code
+  }
+  return '+$digits'; // assume it already had country code
+}
+
+Future<void> openDialer(String contactNumber) async {
+  final phone = normalisePhone(contactNumber);
+  final uri = Uri(scheme: 'tel', path: phone);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+Future<void> openGoogleMaps({
+  required double latitude,
+  required double longitude,
+}) async {
+  final uri = Uri.parse(
+    'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
+  );
+
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    throw 'Could not open Google Maps';
+  }
+}

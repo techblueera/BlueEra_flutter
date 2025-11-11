@@ -53,7 +53,6 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
               labelBuilder: (value) => value.label,
             ),
           ),
-          SizedBox(height: SizeConfig.size16),
           Expanded(
             child: Builder(
               builder: (context) {

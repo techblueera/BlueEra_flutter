@@ -111,8 +111,7 @@ Future<void> showProfessionChangeDialog({
                                           .getEarnWithBlueEraNewScreenRoute(),
                                     ),
                                     arguments: {
-                                      ApiKeys.providerType:
-                                      ProductServiceProviderType.user,
+                                      ApiKeys.providerType: ProductServiceProviderType.user,
                                       ApiKeys.isFromEarnWithBlueEraService: true,
                                       ApiKeys.designation: designation,
                                       ApiKeys.serviceSubType: serviceSubType,

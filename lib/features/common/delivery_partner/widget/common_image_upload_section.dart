@@ -107,7 +107,6 @@ class CommonImageUploadTile extends StatelessWidget {
   static Future<String?> pickImage({
     required BuildContext context,
     String title = "Select Photo",
-    bool showError = true,
   }) async {
     try {
       final String? selected = await SelectProfilePictureDialog.showLogoDialog(
@@ -118,15 +117,10 @@ class CommonImageUploadTile extends StatelessWidget {
       if (selected != null && selected.isNotEmpty) {
         return selected;
       } else {
-        if (showError) {
-          commonSnackBar(message: "Something went wrong, please try again");
-        }
         return null;
       }
     } catch (e) {
-      if (showError) {
         commonSnackBar(message: "Error selecting image: $e");
-      }
       return null;
     }
   }

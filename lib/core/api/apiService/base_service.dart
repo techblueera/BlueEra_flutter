@@ -507,4 +507,10 @@ abstract class BaseService {
   String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
+  String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
+  String updateOrderStatusFromAdmin(String orderId) => "rider-service/riders/orders/$orderId/admin/status";
+
+  final String productSearchFilter = 'inventory-service/api/product/sort/filter';
+
+
 }

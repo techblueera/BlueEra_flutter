@@ -65,6 +65,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   void dispose() {
+    log('deleted');
     Get.delete<ServiceController>();
     super.dispose();
   }
@@ -370,26 +371,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
             isLoading: controller.isGenerateAiServiceLoading.value
         );
       else
-        // return CustomBtn(
-        //     isValidate: isValidate(),
-        //     onTap: isValidate()
-        //         ? () async {
-        //             if (isValidate()) {
-        //               await controller
-        //                   .generateServiceAiController(serviceDetailsReq: {
-        //                 ApiKeys.service_name: controller.serviceName.value,
-        //                 ApiKeys.category: viewBusinessDetailsController
-        //                     .selectedCategoryOfBusiness.value?.name,
-        //                 ApiKeys.sub_category: viewBusinessDetailsController
-        //                     .selectedSubCategoryOfBusinessNew.value?.name,
-        //                 if (controller.shortDescriptionName.value.isNotEmpty)
-        //                   ApiKeys.short_description:
-        //                       controller.shortDescriptionName.value,
-        //               }, providerType: widget.providerType,);
-        //             }
-        //           }
-        //         : null,
-        //     title: "Generate");
         return CustomBtn(
             isValidate: isValidate(),
 
