@@ -52,16 +52,17 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
   }
 
   Future<void> checkPermissionAndSetData() async {
-    LocationPermission permission = await Geolocator.checkPermission();
+    // LocationPermission permission = await Geolocator.checkPermission();
+    //
+    // if (permission == LocationPermission.denied) {
+    //   permission = await Geolocator.requestPermission();
+    // }
 
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.deniedForever) {
+  /*  if (permission == LocationPermission.deniedForever) {
       openAppSettings();
-    } else {
-      var locationData = await LocationService.fetchLocation();
+    } */
+    // else {
+      var locationData = await LocationService.fetchLocation(isPermissionRequired: false);
       if (locationData != null) {
         var position = locationData["position"];
         final address = locationData["address"];
@@ -70,7 +71,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
         // _currentCity = address;
         setState(() {});
       }
-    }
+    // }
   }
 
   @override

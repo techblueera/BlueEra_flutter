@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -6,9 +7,11 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/language_service_app.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
+import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -19,13 +22,16 @@ import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:app_links/app_links.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
 import 'package:croppy/croppy.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -37,27 +43,6 @@ import 'core/services/home_cache_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
 
-firebaseInitializeApp() async {
-  if (Platform.isAndroid) {
-    await Firebase.initializeApp(
-        options: FirebaseOptions(
-      apiKey: androidFirebaseAPIKey,
-      appId: firebaseAppId,
-      messagingSenderId: messagingSenderId,
-      projectId: projectFireBaseId,
-    ));
-  } else if (Platform.isIOS) {
-    await Firebase.initializeApp(
-        options: FirebaseOptions(
-            apiKey: iosFirebaseAPIKey,
-            appId: firebaseAppId,
-            messagingSenderId: messagingSenderId,
-            projectId: projectFireBaseId));
-  } else {
-    await Firebase.initializeApp();
-  }
-}
-
 final AudioPlayer audioPlayer = AudioPlayer();
 
 @pragma('vm:entry-point')
@@ -68,11 +53,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     await AppNotificationHandler().playCustomSound(message);
   }
 }
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);
   await firebaseInitializeApp();
+
   clearSecureStorageIfFreshInstall();
   Get.put(AuthController());
 
@@ -90,9 +78,9 @@ Future<void> main() async {
   appVersion = packageInfo.version;
   // FirebaseNotificationService().init();
 
-
   ///INIT FIREBASE NOTIFICATION...
   await AppNotificationHandler().firebaseNotificationSetup();
+
   ///APP ORIENTATIONS....
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -118,14 +106,44 @@ Future<void> main() async {
 
   cameras = await availableCameras();
   await Hive.initFlutter();
+  final localizationService = LocalizationService();
+  await localizationService.init();
+  await localizationService.preloadCachedLanguages();
 
-  // Open boxes for language and localization
+  // await Hive.openBox('translations');
+  //
+  // // Load saved language from Hive or fallback to English
+  // final box = Hive.box('translations');
+  // final langCode = box.get('selectedLanguage') ?? 'en';
+
+  // await LocalizationService().loadTranslations(langCode);
+  // // Open boxes for language and localization
   await Hive.openBox('languageBox');
   await Hive.openBox('localizationBox');
   Get.put(AppMaintenanceController());
 
   Get.put(LanguageListController());
-  runApp(MyApp());
+  if (kReleaseMode) {
+    // firebaseCrashServiceInit();
+    runZonedGuarded<Future<void>>(() async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Forward Flutter framework errors to Crashlytics
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+      // Forward uncaught async or platform errors
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+      runApp(MyApp(localizationService: localizationService,));
+    }, (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    });
+  } else {
+    runApp(MyApp(localizationService: localizationService,));
+  }
 }
 
 Future<void> initializeMappls() async {
@@ -139,7 +157,8 @@ late List<CameraDescription> cameras;
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatefulWidget {
-  MyApp({super.key});
+  final LocalizationService localizationService;
+  const MyApp({super.key, required this.localizationService});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -244,7 +263,10 @@ class _MyAppState extends State<MyApp> {
       // handled by logic below
       onGenerateRoute: RouteHelper.generateRoute,
       navigatorObservers: [RouteHelper.routeObserver],
-      supportedLocales: getSupportedLocales(),
+
+      translations:widget.localizationService,
+      locale:const Locale('en'),
+      fallbackLocale: const Locale('en'),
       localizationsDelegates: [
         AppLocalizations.delegate,
         CroppyLocalizations.delegate,

@@ -19,15 +19,15 @@ class CustomPollWidget extends StatefulWidget {
   final String? postedAgo;
   final String? message;
 
-  const CustomPollWidget(
-      {super.key,
-      required this.postId,
-      required this.question,
-      required this.options,
-      required this.postFilteredType,
-      this.postedAgo,
-      this.message,
-      });
+  const CustomPollWidget({
+    super.key,
+    required this.postId,
+    required this.question,
+    required this.options,
+    required this.postFilteredType,
+    this.postedAgo,
+    this.message,
+  });
 
   @override
   State<CustomPollWidget> createState() => _CustomPollWidgetState();
@@ -63,17 +63,17 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
     // API call
     await feedController.answerPoll(
-        optionId: index,
-        postId: widget.postId,
-        type: widget.postFilteredType,
-       );
+      optionId: index,
+      postId: widget.postId,
+      type: widget.postFilteredType,
+    );
 
-      if (!mounted) return;
-      // Update local state
-      setState(() {
-        localOptions[index].votes?.add(userIdLocal);
-        selectedIndex = index;
-      });
+    if (!mounted) return;
+    // Update local state
+    setState(() {
+      localOptions[index].votes?.add(userIdLocal);
+      selectedIndex = index;
+    });
   }
 
   @override
@@ -84,9 +84,12 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
     return Column(
       children: [
-
         Padding(
-          padding: EdgeInsets.only(left: SizeConfig.size32, right: SizeConfig.size15),
+          padding: EdgeInsets.only(
+              left: widget.postFilteredType == PostType.otherChannelPosts
+                  ? SizeConfig.size15
+                  : SizeConfig.size32,
+              right: SizeConfig.size15),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -99,14 +102,15 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(width: SizeConfig.size8),
-              // if (hasVoted)
+              if (widget.postFilteredType != PostType.otherChannelPosts) ...[
+                SizedBox(width: SizeConfig.size8),
                 CustomText(
                   '${totalVotes} votes',
                   fontSize: SizeConfig.medium,
                   color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
+              ]
             ],
           ),
         ),
@@ -123,7 +127,9 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
           return Padding(
             padding: EdgeInsets.only(
-                left: SizeConfig.size32,
+                left: widget.postFilteredType == PostType.otherChannelPosts
+                    ? SizeConfig.size15
+                    : SizeConfig.size32,
                 right: SizeConfig.size15,
                 bottom: SizeConfig.size5),
             child: InkWell(
@@ -138,10 +144,10 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
               child: Container(
                 height: SizeConfig.size35,
                 decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(8.0),
-                  border: Border.all(color: AppColors.secondaryTextColor,width: 0.5)
-                ),
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                        color: AppColors.secondaryTextColor, width: 0.5)),
                 child: Stack(
                   children: [
                     // Progress bar background (white)
@@ -202,12 +208,12 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                           ),
                           // Percentage
 
-                          if(hasVoted)...[
-                            if (selectedIndex == index)
-                              ...[
-                                Icon(Icons.check_circle_outline, color: AppColors.primaryColor),
-                                SizedBox(width: SizeConfig.size8),
-                              ],
+                          if (hasVoted) ...[
+                            if (selectedIndex == index) ...[
+                              Icon(Icons.check_circle_outline,
+                                  color: AppColors.primaryColor),
+                              SizedBox(width: SizeConfig.size8),
+                            ],
                             CustomText(
                               '$percentage%',
                               fontSize: SizeConfig.medium,
@@ -217,7 +223,6 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
                               fontWeight: FontWeight.w500,
                             ),
                           ]
-
                         ],
                       ),
                     ),
@@ -228,27 +233,40 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
           );
         }),
         // Total votes display
-
+        if (widget.postFilteredType == PostType.otherChannelPosts) ...[
+          SizedBox(width: SizeConfig.size8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: CustomText(
+              '${totalVotes} votes',
+              fontSize: SizeConfig.medium,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
         Padding(
           padding: EdgeInsets.only(
-            left: SizeConfig.size32,
+            left: widget.postFilteredType == PostType.otherChannelPosts
+                ? SizeConfig.size15
+                : SizeConfig.size32,
             right: SizeConfig.size15,
             top: SizeConfig.size5,
           ),
           child: widget.message?.isNotEmpty ?? false
-              ?  ExpandableText(
-            text: widget.message??'',
-            trimLines: 2,
-            style: TextStyle(
-              color: AppColors.mainTextColor,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w400,
-            ),
-            expandMode: ExpandMode.dialog,
-            dialogTitle: 'Poll Description',
-          ) : SizedBox.shrink(),
+              ? ExpandableText(
+                  text: widget.message ?? '',
+                  trimLines: 2,
+                  style: TextStyle(
+                    color: AppColors.mainTextColor,
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  expandMode: ExpandMode.dialog,
+                  dialogTitle: 'Poll Description',
+                )
+              : SizedBox.shrink(),
         ),
-
       ],
     );
   }

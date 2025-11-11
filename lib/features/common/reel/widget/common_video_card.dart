@@ -49,10 +49,10 @@ class CommonVideoCard extends StatelessWidget {
     final channelProfile = videoItem.channel?.id != null
         ? videoItem.channel?.logoUrl ?? ''
         : videoItem.author?.profileImage ?? '';
-    final postedAgo = timeAgo(
-      DateTime.parse(
-          videoItem.video?.createdAt ?? DateTime.now().toIso8601String()),
-    );
+    // final postedAgo = timeAgo(
+    //   DateTime.parse(
+    //       videoItem.video?.createdAt ?? DateTime.now().toIso8601String()),
+    // );
 
     return GestureDetector(
       onTap: () {
@@ -125,20 +125,21 @@ class CommonVideoCard extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: SizeConfig.size2),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: CustomText(
-                                          "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
-                                          fontSize: SizeConfig.small,
-                                          color: AppColors.secondaryTextColor,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ],
-                                  )
+                                  // Row(
+                                  //   children: [
+                                  //     Expanded(
+                                  //       child: CustomText(
+                                  //         "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views ",
+                                  //         // "$creator ${videoItem.video?.stats?.views.toString() ?? '0'} views $postedAgo",
+                                  //         fontSize: SizeConfig.small,
+                                  //         color: AppColors.secondaryTextColor,
+                                  //         maxLines: 2,
+                                  //         overflow: TextOverflow.ellipsis,
+                                  //         fontWeight: FontWeight.w400,
+                                  //       ),
+                                  //     ),
+                                  //   ],
+                                  // )
                                 ],
                               ),
                             ),

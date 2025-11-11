@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/language_service_app.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
@@ -24,6 +25,7 @@ class AccountSettingScreen extends StatefulWidget {
 class _AccountSettingScreenState extends State<AccountSettingScreen> {
   final AccountSettingsController accountController =
       Get.put(AccountSettingsController());
+  final controller = Get.put(LanguageControllerNew());
 
   @override
   void initState() {
@@ -203,7 +205,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 Widget _helpServiceCard(
     String iconPath, String title, GestureTapCallback? onTap) {
   Get.put(AccountSettingsController());
-  final lang = Get.put(LanguageListController());
+  final lang = Get.put(LanguageControllerNew());
 
   return InkWell(
     onTap: onTap,
@@ -243,7 +245,10 @@ Widget _helpServiceCard(
                 ),
               ),
               if (title == "Language")
-                Text(lang.selectedLanguageName.toUpperCase()),
+                Padding(
+                  padding:  EdgeInsets.only(right: 8.0),
+                  child: CustomText(lang.selectedLang.toUpperCase()),
+                ),
               if (title == "Verification Status")
                 Container(
                   margin: EdgeInsets.all(SizeConfig.size5),

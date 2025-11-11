@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CustomText extends StatelessWidget {
   final String? title;

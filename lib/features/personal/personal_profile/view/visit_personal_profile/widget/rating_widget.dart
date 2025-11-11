@@ -56,7 +56,8 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 0.5,
+      elevation: 0,
+      //elevation: 0.5,
       color: AppColors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(SizeConfig.size10),
@@ -135,7 +136,7 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
                 }),
               ),
             ),
-            SizedBox(height: SizeConfig.size20),
+            SizedBox(height: SizeConfig.size10),
           ],
         ),
       ),

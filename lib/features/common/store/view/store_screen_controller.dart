@@ -89,7 +89,7 @@ class StoreScreenController extends GetxController {
       }
 
       final locationData = await LocationService.fetchLocation(
-        isPermissionRequired: true,
+        isPermissionRequired: false,
       );
 
       if (locationData == null) {

@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/language_service_app.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
@@ -77,16 +80,25 @@ class LanguageListController extends GetxController {
       print("Error fetching languages: $e");
     }
   }
-
-  void selectLanguage(String code) {
+///OLD ONE...
+  void selectLanguage_(String code) {
     selectedCode.value = code;
     final selectedLang = languages.firstWhereOrNull((lang) => lang.code == code);
     if (selectedLang != null) {
       selectedLanguageName.value = selectedLang.name;
+      logs("lang.code 1 ${code} lang.name ${selectedLang.name}");
+      Get.updateLocale( Locale("hi"));
 
       languageBox.put('selected_language_code', code);
       languageBox.put('selected_language_name', selectedLang.name);
     }
+  }
+  Future<void> selectLanguage(String code) async {
+
+    selectedCode.value = code;
+    await LocalizationService().updateLanguage(code);
+    downloadedLanguages.add(code);
+
   }
 
   Future<void> downloadLanguage(String languageCode) async {

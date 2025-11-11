@@ -17,12 +17,13 @@ class ChannelCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+      elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
@@ -40,7 +41,7 @@ class ChannelCardWidget extends StatelessWidget {
                 },
                 child: CachedAvatarWidget(
                     imageUrl: channelModel.logoUrl,
-                    size: 40,
+                    size: 54,
                     borderColor: Colors.white,
                     borderRadius: 25),
               ),
@@ -53,41 +54,43 @@ class ChannelCardWidget extends StatelessWidget {
                 children: [
                   CustomText(
                     '${channelModel.name}',
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     fontSize: SizeConfig.large,
                     maxLines: 1,
-                    color: AppColors.secondaryTextColor,
+                    color: AppColors.black,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  ExpandableText(
-                    text: channelModel.latestPost?.subTitle ?? "",
-                    trimLines: 2,
-                    expandMode: ExpandMode.dialog,
-                    isReadMoreNewLine: false,
-                    style: TextStyle(
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: AppConstants.OpenSans,
-                        fontSize: SizeConfig.small
-                    ),
+                  CustomText(
+                  channelModel.latestPost?.subTitle,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: SizeConfig.medium,
+                    overflow: TextOverflow.ellipsis,
+
+                    maxLines: 2,
                   ),
+
                 ],
               ),
             ),
             const SizedBox(width: 8),
 
             // Trailing section (time, badge, link)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                CustomText(
-                  formatTime(channelModel.ownership?.claimedAt ?? ""),
-                  fontSize: SizeConfig.small,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(height: 6),
-              ],
+            Padding(
+              padding:  EdgeInsets.only(right: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CustomText(
+                    formatTime(channelModel.ownership?.claimedAt ?? ""),
+                    fontSize: SizeConfig.small11,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(height: 6),
+                ],
+              ),
             ),
           ],
         ),

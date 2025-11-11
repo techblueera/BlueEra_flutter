@@ -111,9 +111,9 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                       // if ((videoData.video?.duration ?? 0) > 0)
                       Padding(
                         padding: EdgeInsets.only(
-                            left: SizeConfig.size5,
-                            right: SizeConfig.size5,
-                            top: SizeConfig.size10),
+                            left: 0,
+                            right: 0,
+                            top:0),
                         child: PostFeedAutoPlayVideoCard(
                           videoItem: videoData!,
                           globalMuteNotifier: ValueNotifier(false),

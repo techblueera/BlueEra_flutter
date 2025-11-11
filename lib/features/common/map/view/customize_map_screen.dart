@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -13,7 +12,6 @@ import 'package:BlueEra/features/common/map/controller/map_service_controller.da
 import 'package:BlueEra/features/common/map/view/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/food_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/home_service_bottom_sheet.dart';
-import 'package:BlueEra/features/common/map/widget/job_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/rental_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -102,7 +100,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       // debugPrint("App is in background");
     } else if (state == AppLifecycleState.resumed) {
       // debugPrint("App resumed");
-      _initializeLocationAndMarkers(context);
+      // _initializeLocationAndMarkers(context);
     }
   }
 
@@ -199,13 +197,6 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     // Calculate distance between selected location and current GPS location
     double distanceInMeters = Geolocator.distanceBetween(
         _lng, _lng, _currentPosition.latitude, _currentPosition.longitude);
-
-    print("lat--> lng--> $lat $lng");
-    print(
-        "current lat--> current lng--> ${_currentPosition.latitude} ${_currentPosition.longitude}");
-    print(
-        "distance from current location--> ${distanceInMeters.toStringAsFixed(2)} meters");
-
     // If the selected location is within 50 meters of current location,
     // consider it as current location and remove marker
     // This handles GPS precision differences between device GPS and Google Places API
@@ -229,10 +220,10 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     //   centerIconAssetPath: AppImageAssets.temple,
     // );
 
-    generateNearbyDummyPlaces(
-      lat: lat,
-      lng: lng,
-    );
+    // generateNearbyDummyPlaces(
+    //   lat: lat,
+    //   lng: lng,
+    // );
 
     // add each place as a symbol
     for (final place in placeController.allPlaces) {
@@ -270,34 +261,34 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     // });
   }
 
-  List<Map<String, dynamic>> generateNearbyDummyPlaces(
-      {required double lat, required double lng, int count = 5}) {
-    final random = Random();
-    final dummyTypes = [
-      'restaurant',
-      'cafe',
-      'park',
-      'temple',
-      'market',
-      'museum'
-    ];
-    final dummyNames = ['Spot', 'Place', 'Zone', 'Corner', 'Point'];
-
-    return List.generate(count, (index) {
-      final offsetLat = (random.nextDouble() - 0.5) * 0.02; // ~2km range
-      final offsetLng = (random.nextDouble() - 0.5) * 0.02;
-
-      return {
-        'name':
-            '${GetStringUtils(dummyTypes[index % dummyTypes.length]).capitalize!} ${dummyNames[index % dummyNames.length]}',
-        'position': LatLng(
-          lat + offsetLat,
-          lng + offsetLng,
-        ),
-        'type': dummyTypes[index % dummyTypes.length],
-      };
-    });
-  }
+  // List<Map<String, dynamic>> generateNearbyDummyPlaces(
+  //     {required double lat, required double lng, int count = 5}) {
+  //   final random = Random();
+  //   final dummyTypes = [
+  //     'restaurant',
+  //     'cafe',
+  //     'park',
+  //     'temple',
+  //     'market',
+  //     'museum'
+  //   ];
+  //   final dummyNames = ['Spot', 'Place', 'Zone', 'Corner', 'Point'];
+  //
+  //   return List.generate(count, (index) {
+  //     final offsetLat = (random.nextDouble() - 0.5) * 0.02; // ~2km range
+  //     final offsetLng = (random.nextDouble() - 0.5) * 0.02;
+  //
+  //     return {
+  //       'name':
+  //           '${GetStringUtils(dummyTypes[index % dummyTypes.length]).capitalize!} ${dummyNames[index % dummyNames.length]}',
+  //       'position': LatLng(
+  //         lat + offsetLat,
+  //         lng + offsetLng,
+  //       ),
+  //       'type': dummyTypes[index % dummyTypes.length],
+  //     };
+  //   });
+  // }
 
   // void _openBottomSheet(BuildContext context) {
   //   showModalBottomSheet(
