@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -46,21 +47,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       icon: 'assets/svg/youtube_grey.svg',
       linkController: TextEditingController(),
     ),
-    // SocialInputFieldsModel(
-    //   name: 'Twitter',
-    //   icon: 'assets/svg/x_grey.svg',
-    //   linkController: TextEditingController(),
-    // ),
-    // SocialInputFieldsModel(
-    //   name: 'LinkedIn',
-    //   icon: 'assets/svg/linkedlin_grey.svg',
-    //   linkController: TextEditingController(),
-    // ),
-    // SocialInputFieldsModel(
-    //   name: 'Instagram',
-    //   icon: 'assets/svg/instagram_grey.svg',
-    //   linkController: TextEditingController(),
-    // ),
+
   ];
   final manageChannelController =
       Get.put<ManageChannelController>(ManageChannelController());
@@ -87,13 +74,8 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      print("Received arguments: $args");
-
       if (args != null) {
         _channelData = args[ApiKeys.channelData];
-
-        print("Populating fields with data: $_channelData");
-
         if (_channelData != null) {
           _populateFields();
         }
@@ -103,8 +85,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
   }
 
   void _populateFields() {
-    print("Channel website: ${_channelData?.websites}");
-
     _channelNameController.text = _channelData?.name ?? '';
     userNameController.text = _channelData?.username ?? '';
     _channelBioController.text = _channelData?.bio ?? '';
@@ -114,8 +94,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     }
 
     if (_channelData?.socialLinks != null) {
-      print("Social links found: ${_channelData!.socialLinks}");
-
       for (var socialLink in _channelData!.socialLinks) {
         try {
           var field = selectedInputFields.firstWhere(
@@ -131,7 +109,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
           }
 
           field.linkController.text = url;
-          print("Populated ${field.name} with: $url");
         } catch (e) {
           print(
               "Social link field not found for platform: ${socialLink.platform}");
@@ -153,7 +130,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
-        title: (_channelData != null) ? "Update Channel" : "Create Channel",
+        title: (_channelData != null) ? AppStrings.updateChannel : "Create Channel",
       ),
       body: Form(
         key: _formKey,
@@ -211,7 +188,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                                         borderRadius: BorderRadius.circular(
                                             SizeConfig.size50),
                                         child: Image.network(
-                                          _channelData!.logoUrl,
+                                          _channelData?.logoUrl??"",
                                           fit: BoxFit.cover,
                                           height: SizeConfig.size100,
                                           width: SizeConfig.size100,
@@ -270,12 +247,12 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                       ),
                       SizedBox(height: SizeConfig.size20),
                       CustomText(
-                        "Channel Logo",
+                        AppStrings.channelLogo,
                         fontSize: SizeConfig.small,
                       ),
                       SizedBox(height: SizeConfig.size4),
                       CustomText(
-                        "Add your brand logo or profile picture.",
+                        AppStrings.addChannelLogo,
                         fontSize: SizeConfig.small,
                         color: AppColors.grey80,
                       ),
@@ -289,12 +266,12 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                   textEditController: _channelNameController,
                   inputLength: AppConstants.inputCharterLimit50,
                   keyBoardType: TextInputType.text,
-                  title: "Channel Name",
+                  title:AppStrings.channelName,
                   hintText: "Eg. McDonald's India",
                   isValidate: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your channel name';
+                      return AppStrings.channelNameError.tr;
                     }
                     return null;
                   },
@@ -304,7 +281,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                 SizedBox(height: SizeConfig.size20),
                 Align(
                     alignment: Alignment.centerLeft,
-                    child: CustomText("Create Your Own Username")),
+                    child: CustomText(AppStrings.createUsername)),
 
                 // SizedBox(height: SizeConfig.size5),
 
@@ -374,7 +351,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                   prefixText: userNameController.text.isNotEmpty ? "@" : "",
                   validator: (value) {
                     if (value == null || value.trim().length < 4) {
-                      return "Username must be at least min 4 characters & max 8 characters";
+                      return AppStrings.usernameError.tr;
                     }
                     return null;
                   },
@@ -383,15 +360,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                     setState(() {});
                   },
                 ),
-                // CommonTextField(
-                //   textEditController: _userNameController,
-                //   keyBoardType: TextInputType.text,
-                //   title: "User Name",
-                //   hintText: "Eg. @mcdonaldsindia (min. 8 characters)",
-                //   isValidate: true,
-                //   validationType: ValidationTypeEnum.username,
-                //   onChange: (value) {},
-                // ),
 
                 SizedBox(height: SizeConfig.size20),
 
@@ -402,12 +370,12 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                   maxLine: 3,
                   inputLength: AppConstants.inputCharterLimit120,
                   keyBoardType: TextInputType.text,
-                  title: "Channel Bio/ Info",
+                  title: AppStrings.channelBio,
                   hintText: "Eg. India's fastest-growing streetwear brand...",
                   isValidate: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your channel bio';
+                      return AppStrings.channelBioError.tr;
                     }
                     return null;
                   },
@@ -429,7 +397,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                       ),
                     ),
                   ),
-                  title: "Website (Optional)",
+                  title: AppStrings.websiteOptional,
                   hintText: "eg. https://mcdindia.com/",
                   isUrlValidate: false,
                 ),
@@ -440,22 +408,11 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      'Other Social Media Links (Optional)',
+                      AppStrings.otherSocialLinks,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w500,
                       color: AppColors.black,
                     ),
-                    // Align(
-                    //   alignment: Alignment.centerLeft,
-                    //   child: Padding(
-                    //     padding: EdgeInsets.symmetric(vertical: 8),
-                    //     child: CustomText(
-                    //       "Add more",
-                    //       fontSize: SizeConfig.small,
-                    //       color: AppColors.primaryColor,
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size10),
@@ -475,7 +432,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                           ),
                         ),
                       ),
-                      hintText: "Your ${field.name} URL here",
+                      hintText: AppStrings.youtubeHint,
                       isUrlValidate: false,
                     ),
                   ),
@@ -491,7 +448,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                         },
                         height: SizeConfig.size40,
                         radius: 8,
-                        title: 'Cancel',
+                        title: AppStrings.cancel,
                         borderColor: AppColors.primaryColor,
                         bgColor: Colors.white,
                         textColor: AppColors.primaryColor,
@@ -503,7 +460,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                         onTap: () => _onSubmit(),
                         height: SizeConfig.size40,
                         radius: 8,
-                        title: (_channelData != null) ? 'Update' : 'Create',
+                        title: (_channelData != null) ? AppStrings.update : AppStrings.create,
                         borderColor: AppColors.primaryColor,
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
@@ -522,7 +479,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
 
   void _selectImage(BuildContext context) async {
     String imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, "Upload Channel Logo");
+        context, AppStrings.uploadChannelLogo);
     _profileImage = File(imagePath);
     if (_profileImage?.path.isNotEmpty ?? false) {
       setState(() {});
@@ -530,17 +487,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
   }
 
   Future<void> _onSubmit() async {
-    print("Form validation started...");
-
     bool isFormValid = _formKey.currentState?.validate() ?? false;
-    print("Form validation result: $isFormValid");
-    // await authController.getCheckUsernameController(
-    //     value: userNameController.text);
-    // if (authController.userNameList.isNotEmpty) {
-    //   commonSnackBar(message: "Select user name");
-    //   return;
-    // }
-
     if (isFormValid) {
       if (_channelData == null && _profileImage == null && !hasExistingLogo) {
         commonSnackBar(
@@ -570,11 +517,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
           return e;
         }).toList();
       }
-      //
-      //
-      // print("Websites List: $websitesList");
-      // print("Websites List Type: ${websitesList.runtimeType}");
-
       Map<String, dynamic> requestData = {
         ApiKeys.name: _channelNameController.text.trim(),
         ApiKeys.username: userNameController.text.trim(),
@@ -583,7 +525,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
 
       if (websitesList.isNotEmpty) {
         requestData[ApiKeys.websites] = websitesList;
-        print("Websites: $websitesList");
       } else {
         requestData[ApiKeys.websites] = [];
       }
@@ -606,17 +547,12 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
               ApiKeys.platform: field.name,
               ApiKeys.url: url,
             });
-            print("Added social link: ${field.name} -> $url");
           } else {
-            print("Invalid URL format for ${field.name}: $url");
             commonSnackBar(message: "Invalid URL format for ${field.name}");
             return;
           }
         }
       }
-
-      print("Final Request Data: $requestData");
-      print("Social Links Data: $socialLinkRequestData");
       // return;
       try {
         if (_channelData != null) {
@@ -638,7 +574,6 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
         commonSnackBar(message: "Something went wrong. Please try again.");
       }
     } else {
-      print("Form validation failed, enabling auto validation");
       setState(() {});
     }
   }

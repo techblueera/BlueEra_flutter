@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class RegularExpressionUtils {
   ///IN USED..
@@ -42,9 +43,9 @@ class ValidationMethod {
             r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
         .hasMatch(value);
     if (value == null) {
-      return AppStrings.emailIsRequired;
+      return AppStrings.emailIsRequired.tr;
     } else if (regex == false) {
-      return AppStrings.pleaseEnterValidEmail;
+      return AppStrings.pleaseEnterValidEmail.tr;
     }
 
     return null;

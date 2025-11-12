@@ -330,13 +330,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 textEditController: nameController,
                                 validationType: ValidationTypeEnum.name,
                                 autovalidateMode: _autoValidate,
-                                validator: (value) {
+                                validator: (String? value) {
                                   if (value == null || value.isEmpty) {
-                                    return AppStrings.pleaseEnterName;
+                                    return AppStrings.pleaseEnterName.tr;
                                   } else if (value.trim().length < 6) {
-                                    return AppStrings.nameMinLength;
+                                    return AppStrings.nameMinLength.tr;
                                   } else if (value.trim().length > 30) {
-                                    return AppStrings.nameMaxLength;
+                                    return AppStrings.nameMaxLength.tr;
                                   }
                                   return null;
                                 },
@@ -524,9 +524,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 },
                                 validator: (value) {
                                   if (value!.trim().length < 2) {
-                                    return AppStrings.educationMinLength;
+                                    return AppStrings.educationMinLength.tr;
                                   } else if (value.trim().length > 16) {
-                                    return AppStrings.educationMaxLength;
+                                    return AppStrings.educationMaxLength.tr;
                                   }
                                   return null;
                                 },
@@ -846,10 +846,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   hintText: AppStrings.sectorExample,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return AppStrings.enterSector;
+                                      return AppStrings.enterSector.tr;
                                     }
                                     if (value.trim().length > 24) {
-                                      return AppStrings.sectorMaxLength;
+                                      return AppStrings.sectorMaxLength.tr;
                                     }
                                     return null;
                                   },

@@ -107,7 +107,13 @@ class AppStrings {
   static const emailVerificationRequired = "emailVerificationRequired";
   static const emailVerificationMessage = "emailVerificationMessage";
   static const update = "update";
-
+  static const pleaseEnterBio = "pleaseEnterBio";
+  static const bioMinLength = "bioMinLength";
+  static const bioMaxLength = "bioMaxLength";
+  static const writeYour = "writeYour";
+  static const createViaBlueeraAI = "createViaBlueeraAI";
+  static const selectSuggestion = "selectSuggestion";
+  static const noSuggestionsFound = "noSuggestionsFound";
   ///HELP & Support...
   static const helpAndSupport = "helpAndSupport";
   static const customerSupport = "customerSupport";
@@ -151,7 +157,6 @@ class AppStrings {
   static const links = "links";
   static const addLinkPlaceholder = "addLinkPlaceholder";
   static const save = "save";
-
   static const create = "create";
   static const change = "change";
   static const uploading = "uploading";
@@ -203,5 +208,31 @@ class AppStrings {
   static const documentDeletedSuccessfully = "documentDeletedSuccessfully";
   static const delete = "delete";
   static const editFunctionalityMessage = "editFunctionalityMessage";
+
+  ///CHANNEL EDIT
+  static const updateChannel = "updateChannel";
+  static const channelLogo = "channelLogo";
+  static const addChannelLogo = "addChannelLogo";
+  static const channelName = "channelName";
+  static const channelNameError = "channelNameError";
+  static const createUsername = "createUsername";
+  static const usernameError = "usernameError";
+  static const channelBio = "channelBio";
+  static const channelBioError = "channelBioError";
+  static const websiteOptional = "websiteOptional";
+  static const otherSocialLinks = "otherSocialLinks";
+  static const youtubeHint = "youtubeHint";
+  static const uploadChannelLogo = "uploadChannelLogo";
+  static const addBrandLogoDescription = "addBrandLogoDescription";
+  static const close = "close";
+  static const unjoin = "unjoin";
+  static const join = "join";
+  static const members = "members";
+  static const channelEdit = "channelEdit";
+  static const channelSettings = "channelSettings";
+  static const addVideo = "addVideo";
+  static const addProduct = "addProduct";
+  static const addService = "addService";
+  static const noBioAvailable = "noBioAvailable";
 }
 

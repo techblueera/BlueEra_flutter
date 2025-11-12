@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -75,7 +76,7 @@ class AiSuggestionController extends GetxController {
           if (suggestions.isEmpty) {
             return const Padding(
               padding: EdgeInsets.all(20),
-              child: CustomText("No suggestions found."),
+              child: CustomText(AppStrings.noSuggestionsFound),
             );
           }
 
@@ -86,7 +87,7 @@ class AiSuggestionController extends GetxController {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const CustomText(
-                  "Select a Suggestion",
+                 AppStrings.selectSuggestion,
                 fontSize: 18, fontWeight: FontWeight.w600),
 
                 const SizedBox(height: 12),
@@ -147,7 +148,7 @@ class AiSuggestionController extends GetxController {
                   children: [
                     TextButton(
                       onPressed: () => Get.back(),
-                      child: const CustomText("Cancel"),
+                      child: const CustomText(AppStrings.cancel),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
@@ -166,7 +167,7 @@ class AiSuggestionController extends GetxController {
                         }
                         Get.back();
                       },
-                      child: const CustomText("Save",color: AppColors.white,),
+                      child: const CustomText(AppStrings.save,color: AppColors.white,),
                     ),
                   ],
                 ),

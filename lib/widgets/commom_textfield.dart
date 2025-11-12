@@ -192,7 +192,7 @@ class CommonTextField extends StatelessWidget {
                     return null;
                   }
                   if (value == null || value.isEmpty) {
-                    return validationMessage ?? AppStrings.required;
+                    return validationMessage?.tr ?? AppStrings.required;
                   }
                   if (validationType == ValidationTypeEnum.email) {
                     return ValidationMethod.validateEmail(value);
@@ -208,12 +208,6 @@ class CommonTextField extends StatelessWidget {
                   }
                   return null;
                 },
-            // textInputAction: textInputAction ??
-            //     (maxLine != null && (maxLine??1) > 1
-            //         ? TextInputAction.newline // 👈 allows Enter to go to next line
-            //         : TextInputAction.done),
-            // textInputAction:textInputAction??TextInputAction.done,
-                // maxLine == 4 ? TextInputAction.done : TextInputAction.none,
             focusNode: focusNode,
             decoration: InputDecoration(
               prefixText: prefixText??"",
@@ -261,18 +255,6 @@ class CommonTextField extends StatelessWidget {
             },
           ),
         ),
-        // if (isCounterVisible)
-        //   Align(
-        //     alignment: Alignment.centerRight,
-        //     child: Padding(
-        //       padding:  EdgeInsets.only(top: SizeConfig.size10),
-        //       child: CustomText(
-        //         '${textEditController?.text.length} / $maxLength',
-        //         color: AppColors.greyBf,
-        //         fontSize: 12,
-        //       ),
-        //     ),
-        //   )
       ],
     );
   }
