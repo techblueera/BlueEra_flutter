@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -288,7 +288,7 @@ class FoodUploadController extends GetxController {
       final ResponseModel responseModel;
       if (providerType == ProductServiceProviderType.user) {
         responseModel =
-        await EarnWithBlueEraRepo().addServiceRepo(params: data);
+        await EarnServiceRepo().addServiceRepo(params: data);
       } else {
         responseModel = await FoodAiRepo().addFoodService(queryParam: data);
       }
@@ -415,7 +415,7 @@ class FoodUploadController extends GetxController {
        if(!isFromEarnWithBlueEra){
          responseModel = await FoodAiRepo().getFoodService(queryParam: queryParams);
        }else{
-         responseModel = await EarnWithBlueEraRepo().getServiceRepo(queryParams: queryParams);
+         responseModel = await EarnServiceRepo().getServiceRepo(queryParams: queryParams);
        }
 
       if (responseModel.isSuccess) {
@@ -475,7 +475,7 @@ class FoodUploadController extends GetxController {
       if(!isFromEarnWithBlueEra){
         response = await FoodAiRepo().deleteFoodServiceRepo(serviceId: serviceId);
       }else{
-        response = await EarnWithBlueEraRepo().deleteServiceRepo(serviceId: serviceId);
+        response = await EarnServiceRepo().deleteServiceRepo(serviceId: serviceId);
       }
 
       if (response.isSuccess) {

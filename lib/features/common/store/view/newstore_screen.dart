@@ -281,13 +281,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
 // Case 0: All Stores Feed
   Widget _buildAllStoresSliverList(double Function(double) ds) {
-    final items = List<AllStoresFeedData>.from(controller.allNearByStoresFeed);
-
     if (controller.isAllStoreFeedFirstLoading.value) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Center(
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
             ),
@@ -296,40 +294,44 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
       );
     }
 
-    if (items.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: EmptyStateWidget(message: 'No store found'),
-      );
-    }
+    final groupedStoreFeed = controller.groupedStoreFeed;
 
-    final groupedStoreFeed = _groupStoreFeed(items);
+    if (groupedStoreFeed.isEmpty) {
+        return const SliverToBoxAdapter(
+          child: EmptyStateWidget(message: 'No store found'),
+        );
+      }
 
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-              (context, index) {
-            // Loading indicator at bottom
-            if (index >= groupedStoreFeed.length) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size15, vertical: ds(10)),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+                (context, index) {
 
-            final block = groupedStoreFeed[index];
-            if (block.isEmpty) return const SizedBox.shrink();
+               if (index == groupedStoreFeed.length) {
+                return controller.isAllStoreFeedLoadingMore.value
+                    ? const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+                    : const SizedBox.shrink();
+              }
 
-            final first = block.first;
-            final type = StoreTypeExtension.fromString(first.type);
+              final block = groupedStoreFeed[index];
+              if (block.isEmpty) return const SizedBox.shrink();
 
-            return _buildStoreBlock(context, type, block, first, ds);
-          },
-          childCount: groupedStoreFeed.length +
-              (controller.isAllStoreFeedLoadingMore.value ? 1 : 0),
+              final first = block.first;
+              final type = StoreTypeExtension.fromString(first.type);
+
+              return _buildStoreBlock(context, type, block, first, ds);
+            },
+            childCount:
+            groupedStoreFeed.length + (controller.isAllStoreFeedLoadingMore.value ? 1 : 0),
+          ),
         ),
-      ),
-    );
+      );
+
   }
 
 // Case 1: Products
