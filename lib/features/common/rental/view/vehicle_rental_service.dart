@@ -51,7 +51,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
   }
 
   Future<void> loadInitData() async {
-    await viewProfileController.viewPersonalProfile(isCheckServiceOpt: false);
+    await viewProfileController.viewPersonalProfile();
     controller.ownerNameCtrl.text =
         viewProfileController.personalProfileDetails.value.user?.name ?? "";
     controller.emailCtrl.text =

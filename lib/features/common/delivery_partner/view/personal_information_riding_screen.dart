@@ -43,7 +43,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
   }
 
   Future<void> loadInitData() async {
-    await viewProfileController.viewPersonalProfile(isCheckServiceOpt: false);
+    await viewProfileController.viewPersonalProfile();
     controller.fullNameController.text =
         viewProfileController.personalProfileDetails.value.user?.name ?? "";
     controller.emailController.text =

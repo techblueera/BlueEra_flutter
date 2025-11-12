@@ -19,8 +19,8 @@ import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 
 class CommonMobileOtpDialog {
-  Future<bool?> show(BuildContext context) async {
-    final mobileController = TextEditingController();
+  Future<String?> show(BuildContext context) async {
+    final newMobileController = TextEditingController();
     final otpController = TextEditingController();
     final langController = Get.find<LanguageListController>();
 
@@ -47,7 +47,7 @@ class CommonMobileOtpDialog {
     }
 
     /// Show main dialog
-    final result = await showDialog<bool>(
+    final result = await showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
@@ -75,11 +75,11 @@ class CommonMobileOtpDialog {
                       _buildMobileStep(
                         context: context,
                         langController: langController,
-                        mobileController: mobileController,
+                        mobileController: newMobileController,
                         isSendingOtp: isSendingOtp,
                         setSending: (sending) => setState(() => isSendingOtp = sending),
                         onSendOtp: () async {
-                          if (mobileController.text.length != 10) {
+                          if (newMobileController.text.length != 10) {
                             commonSnackBar(
                               message: langController.tr(
                                   'Please enter valid mobile number'),
@@ -87,9 +87,8 @@ class CommonMobileOtpDialog {
                             return;
                           }
                           setState(() => isSendingOtp = true);
-                          final success = await sendOTP({
-                            ApiKeys.contact_no: mobileController.text,
-                            ApiKeys.type: AppConstants.SMS,
+                          final success = await requestMobileUpdateOTP({
+                            ApiKeys.newContactNo: newMobileController.text,
                           });
 
                           if (success) {
@@ -108,7 +107,7 @@ class CommonMobileOtpDialog {
                       _buildOtpStep(
                         context: context,
                         langController: langController,
-                        mobileController: mobileController,
+                        mobileController: newMobileController,
                         otpController: otpController,
                         isVerifyingOtp: isVerifyingOtp,
                         isTimerActive: isTimerActive,
@@ -133,24 +132,16 @@ class CommonMobileOtpDialog {
                           }
 
                           log('call verify otp');
-                          // Example logic for verifying OTP:
-                          // setState(() => isVerifyingOtp = true);
-                          // final verified = await verifyOTP({
-                          //   ApiKeys.contact_no: mobileController.text,
-                          //   ApiKeys.otp: otpController.text,
-                          // });
-                          // setState(() => isVerifyingOtp = false);
-                          // if (verified) Navigator.of(context).pop(true);
+                          setState(() => isVerifyingOtp = true);
+                          final verified = await verifyMobileUpdateOTP({
+                            ApiKeys.newContactNo: newMobileController.text,
+                            ApiKeys.otp: otpController.text,
+                          });
+                          setState(() => isVerifyingOtp = false);
+                          if (verified) Navigator.of(context).pop(newMobileController.text);
                         },
                       ),
 
-                    SizedBox(height: SizeConfig.size15),
-                    CustomBtn(
-                      bgColor: Colors.grey[300],
-                      textColor: Colors.black,
-                      title: langController.tr('Cancel'),
-                      onTap: () => Navigator.of(context).pop(false),
-                    ),
                   ],
                 ),
               ),
@@ -202,13 +193,28 @@ class CommonMobileOtpDialog {
           ],
         ),
         SizedBox(height: SizeConfig.size25),
-        CustomBtn(
-          bgColor: AppColors.primaryColor,
-          textColor: AppColors.white,
-          title: isSendingOtp
-              ? langController.tr('Sending...')
-              : langController.tr('Send OTP'),
-          onTap: isSendingOtp ? null : onSendOtp,
+        Row(
+          children: [
+            Expanded(
+              child: CustomBtn(
+                bgColor: Colors.grey[300],
+                textColor: Colors.black,
+                title: langController.tr('Cancel'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Expanded(
+              child: CustomBtn(
+                bgColor: AppColors.primaryColor,
+                textColor: AppColors.white,
+                title: isSendingOtp
+                    ? langController.tr('Sending...')
+                    : langController.tr('Send OTP'),
+                onTap: isSendingOtp ? null : onSendOtp,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -292,23 +298,38 @@ class CommonMobileOtpDialog {
           ],
         ),
         SizedBox(height: SizeConfig.size25),
-        CustomBtn(
-          bgColor: AppColors.primaryColor,
-          textColor: AppColors.white,
-          title: isVerifyingOtp
-              ? langController.tr('Verifying...')
-              : langController.tr('Verify OTP'),
-          onTap: isVerifyingOtp ? null : onVerify,
+        Row(
+          children: [
+            Expanded(
+              child: CustomBtn(
+                bgColor: Colors.grey[300],
+                textColor: Colors.black,
+                title: langController.tr('Cancel'),
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Expanded(
+              child: CustomBtn(
+                bgColor: AppColors.primaryColor,
+                textColor: AppColors.white,
+                title: isVerifyingOtp
+                    ? langController.tr('Verifying...')
+                    : langController.tr('Verify OTP'),
+                onTap: isVerifyingOtp ? null : onVerify,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
   /// --- API CALLS ---
-  Future<bool> sendOTP(Map<String, dynamic> params) async {
+  Future<bool> requestMobileUpdateOTP(Map<String, dynamic> params) async {
     try {
       ResponseModel response =
-      await AuthRepo().authMobileOtpSendRepo(bodyRequest: params);
+      await AuthRepo().requestMobileUpdateOtpRepo(bodyRequest: params);
       if (response.isSuccess) {
         commonSnackBar(message: response.message ?? AppStrings.success);
         return true;
@@ -323,12 +344,13 @@ class CommonMobileOtpDialog {
     }
   }
 
-  Future<bool> verifyOTP(Map<String, dynamic> params) async {
+  Future<bool> verifyMobileUpdateOTP(Map<String, dynamic> params) async {
     try {
       ResponseModel response =
-      await AuthRepo().authMobileOtpVerifyRepo(bodyRequest: params);
+      await AuthRepo().verifyMobileUpdateOtpRepo(bodyRequest: params);
 
       if (response.statusCode == 200) {
+        commonSnackBar(message: response.message ?? AppStrings.success);
         return true;
       } else {
         commonSnackBar(
