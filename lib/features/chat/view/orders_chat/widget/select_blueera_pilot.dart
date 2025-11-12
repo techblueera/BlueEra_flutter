@@ -98,9 +98,12 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
 
 
   Future<void> fetchStream()async{
+
+
   _stream = await riderOrderStream(userId);
 
   _subscription = _stream.listen((event) {
+
     if (event is List) {
       if(event.isEmpty){
         if(paymentDialogShow==true){

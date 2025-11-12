@@ -38,7 +38,6 @@ class DeliverPartnerOrdersController extends GetxController {
 
   Future<void> fetchStream() async {
     stream = await getOrderFromUserStream();
-
     subscription = stream.listen((event) {
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
