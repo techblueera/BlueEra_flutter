@@ -30,33 +30,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _filterButtons(),
-          Expanded(
-            child: Obx(() {
-              if (controller.ordersListResponse.value.status ==
-                  Status.COMPLETE) {
-                switch (controller.selectedPickUp.value) {
-                  case PickUpTab.newOrder || PickUpTab.onGoing:
-                    return _buildOrder(controller.riderOrdersList);
-
-                  case PickUpTab.completed:
-                    return _buildCancelled(controller.completedOrders ?? []);
-                  // return CompletedPickupOrderScreen();
-
-                  case PickUpTab.cancel:
-                    return _buildCancelled(controller.cancelledOrders ?? []);
-                  // return CancelledPickupOrderScreen();
-
-                  case PickUpTab.rejected:
-                    return _buildCancelled(controller.rejectedOrders ?? []);
-                  // return RejectedPickupOrderScreen();
-                }
-              } else {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            }),
-          ),
+          _buildTabViews(),
         ],
       ),
     );
@@ -79,7 +53,9 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                   child: GestureDetector(
                     onTap: () {
                       controller.selectedPickUp.value = tab;
-                      controller.getRidersBookingOrders();
+                      if(controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing){
+                        controller.getRidersBookingOrders();
+                      }
                     },
                     child: CustomText(
                       tab.label,
@@ -99,43 +75,75 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     });
   }
 
-  Widget _buildOrder(List<RiderOrdersDetailsModel> ordersList) {
-    return ordersList.isEmpty
-        ? Center(
-            child: CustomText("No Orders Found"),
-          )
-        : ListView.builder(
-            itemCount: ordersList.length,
-            padding: EdgeInsets.only(
-                top: SizeConfig.size10,
-                bottom: kBottomNavigationBarHeight + SizeConfig.size40,
-                left: SizeConfig.size15,
-                right: SizeConfig.size15),
-            itemBuilder: (context, index) {
-              RiderOrdersDetailsModel rider = ordersList[index];
-              return OrderCard(
-                  order: rider,
-                  selectedPickUp: controller.selectedPickUp.value);
-            });
+  Widget _buildTabViews(){
+    return Expanded(
+      child: Obx(() {
+        if (controller.ordersListResponse.value.status ==
+            Status.COMPLETE) {
+          switch (controller.selectedPickUp.value) {
+
+            case PickUpTab.newOrder:
+              return _buildOrderList(controller.newOrders);
+
+            case PickUpTab.onGoing:
+              return _buildOrderList(controller.onGoingOrders);
+
+            case PickUpTab.completed:
+              return _buildOrderList(controller.completedOrders);
+
+            case PickUpTab.cancel:
+              return _buildOrderList(controller.cancelledOrders);
+
+            case PickUpTab.rejected:
+              return _buildOrderList(controller.rejectedOrders);
+          }
+        } else {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      }),
+    );
   }
 
-  Widget _buildCancelled(List<RiderOrdersDetailsModel> ordersList) {
-    return ordersList.isEmpty
+  Widget _buildOrderList(List<RiderOrdersDetailsModel> ordersList) {
+    return
+      ordersList.isEmpty
         ? Center(
-            child: CustomText("No Orders Found"),
-          )
+      child: CustomText("No Orders Found"),
+    )
         : ListView.builder(
-            itemCount: ordersList.length,
-            padding: EdgeInsets.only(
-                top: SizeConfig.size10,
-                bottom: kBottomNavigationBarHeight + SizeConfig.size40,
-                left: SizeConfig.size15,
-                right: SizeConfig.size15),
-            itemBuilder: (context, index) {
-              RiderOrdersDetailsModel rider = ordersList[index];
-              return OrderCard(
-                  order: rider,
-                  selectedPickUp: controller.selectedPickUp.value);
-            });
+        itemCount: ordersList.length,
+        padding: EdgeInsets.only(
+            top: SizeConfig.size10,
+            bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+            left: SizeConfig.size15,
+            right: SizeConfig.size15),
+        itemBuilder: (context, index) {
+          RiderOrdersDetailsModel rider = ordersList[index];
+          return OrderCard(
+              order: rider,
+              selectedPickUp: controller.selectedPickUp.value);
+        });
   }
+
+  // Widget _buildCancelled(List<RiderOrdersDetailsModel> ordersList) {
+  //   return ordersList.isEmpty
+  //       ? Center(
+  //     child: CustomText("No Orders Found"),
+  //   )
+  //       : ListView.builder(
+  //       itemCount: ordersList.length,
+  //       padding: EdgeInsets.only(
+  //           top: SizeConfig.size10,
+  //           bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+  //           left: SizeConfig.size15,
+  //           right: SizeConfig.size15),
+  //       itemBuilder: (context, index) {
+  //         RiderOrdersDetailsModel rider = ordersList[index];
+  //         return OrderCard(
+  //             order: rider,
+  //             selectedPickUp: controller.selectedPickUp.value);
+  //       });
+  // }
 }

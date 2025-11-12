@@ -141,6 +141,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                           await chatViewController.checkChatConnection(detas);
                           List<Map<String, String>> urlList =
                               photos.map((e) => { ApiKeys.url: e}).toList();
+
                           Map<String, dynamic> data = {
                            ApiKeys.food_id: "${item.id}",
                             ApiKeys.price: "${productPriceFormat}",
@@ -171,8 +172,6 @@ class FoodDetailsViewScreen extends StatelessWidget {
                             ApiKeys.veg_type :item.vegType,
                             ApiKeys.sub_category : item.subCategory,
                             ApiKeys.calories: item.nutritionalSummaryPer100g?.caloriesKcal,
-                            // ApiKeys.variant : "string",
-                            // ApiKeys.mrp : "string"
                             ApiKeys.url: urlList,
                           };
                           chatViewController.isChatFromBusinessProfile(true);

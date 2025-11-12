@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:mappls_gl/mappls_gl.dart';
@@ -78,9 +79,9 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                 // )),
               ],
             ),
-            SizedBox(height: 15),
+            SizedBox( height: SizeConfig.size8,),
             ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
                 // Adjust border radius here
                 child: SizedBox(
                   width: double.infinity,
@@ -105,15 +106,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                         bottom: SizeConfig.size10,
                         child: InkWell(
                           onTap: () async {
-                            final Uri googleMapUrl = Uri.parse(
-                                "https://www.google.com/maps/search/?api=1&query=${widget.latitude},${widget.longitude}");
-
-                            if (await canLaunchUrl(googleMapUrl)) {
-                              await launchUrl(googleMapUrl,
-                                  mode: LaunchMode.externalApplication);
-                            } else {
-                              throw "Could not open Google Maps";
-                            }
+                            openGoogleMaps(latitude: widget.latitude, longitude: widget.longitude);
                           },
                           child: Container(
                             padding: EdgeInsets.all(SizeConfig.size12),

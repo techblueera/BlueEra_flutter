@@ -878,13 +878,16 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText(
-                      letterSpacing: 0.6,
-                      "Your live store pictures",
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.bold,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.secondaryTextColor,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
+                      child: CustomText(
+                        letterSpacing: 0.6,
+                        "Your live store pictures",
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.bold,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.secondaryTextColor,
+                      ),
                     ),
                     CustomText(
                       textAlign: TextAlign.left,
@@ -897,7 +900,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 ),
 
                 SizedBox(
-                  height: SizeConfig.size10,
+                  height: SizeConfig.size8,
                 ),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -977,47 +980,56 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
           // ),
 
           CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
+            padding: EdgeInsets.all(SizeConfig.size12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        "Your business live location",
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.bold,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.secondaryTextColor,
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0,),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          "Your business live location",
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
+                          color: AppColors.secondaryTextColor,
+                        ),
                       ),
-                    ),
 
-                    InkWell(
-                        onTap: () => updateLocationDialog(context),
-                        child: LocalAssets(
-                          height: 16,
-                          imagePath: AppIconAssets.pen_line,
-                        ))
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: CustomText(
-                    "Your store’s map location",
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w400,
-                    overflow: TextOverflow.ellipsis,
+                      InkWell(
+                          onTap: () => updateLocationDialog(context),
+                          child: LocalAssets(
+                            height: 16,
+                            imagePath: AppIconAssets.pen_line,
+                          ))
+                    ],
                   ),
                 ),
+                // Align(
+                //   alignment: Alignment.centerLeft,
+                //   child: CustomText(
+                //     "Your store’s map location",
+                //     fontSize: SizeConfig.medium,
+                //     color: AppColors.secondaryTextColor,
+                //     fontWeight: FontWeight.w400,
+                //     overflow: TextOverflow.ellipsis,
+                //   ),
+                // ),
                 SizedBox(
-                  height: SizeConfig.size12,
+                  height: SizeConfig.size10,
                 ),
-                CustomText(
-                    '${details?.address}'
+                Padding(
+                  padding: const EdgeInsets.only(left: 6.0),
+                  child: CustomText(
+                      '${details?.address}',
+                    fontSize: SizeConfig.size14,
+                    fontWeight: FontWeight.w300,
 
+
+                  ),
                 ),
                 // SizedBox(
                 //   height: SizeConfig.size10,

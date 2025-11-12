@@ -73,53 +73,62 @@ class _ProductCardState extends State<ProductCardBusiness> {
         width: widget.width,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.whiteE5
+          ),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.black12,
+          //     blurRadius: 6,
+          //     offset: Offset(0, 3),
+          //   ),
+          // ],
         ),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 
           children: [
+            SizedBox(height: SizeConfig.size2),
             ClipRRect(
               borderRadius:
-              BorderRadius.vertical(top: Radius.circular(16)),
+              BorderRadius.all( Radius.circular(8)),
               child: CustomImageSlideshow(
+
+
                 isLoading: false,
                 width: double.infinity,
-                height: SizeConfig.size170,
+                height: SizeConfig.size134,
                 imagePaths: product.details?.media ?? [],
                 borderRadius: BorderRadius.zero,
               ),
             ),
 
-            SizedBox(height: SizeConfig.size5),
-
+            SizedBox(height: SizeConfig.size8),
             // Title & price
             Container(
               height: SizeConfig.size40,
               alignment: Alignment.centerLeft,
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
               child: CustomText(
                 product.details?.name,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w500,
+                fontSize: SizeConfig.size14,
+                fontWeight: FontWeight.w600,
                 overflow: TextOverflow.ellipsis,
+                color: AppColors.secondaryTextColor,
                 maxLines: 2,
+
               ),
             ),
-            SizedBox(height: SizeConfig.size5),
+            SizedBox(height: SizeConfig.size8),
+           // SizedBox(height: SizeConfig.size6),
             // Price Row
             if ((product.sellerClassification?.variants.isNotEmpty ??
                 false)) ...[
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
                 child: Row(
                   children: [
                     Flexible(
@@ -137,7 +146,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                       Flexible(
                         child: CustomText(
                           ' ₹${product.sellerClassification?.variants[0].mrp}',
-                          fontSize: SizeConfig.small11,
+                          fontSize: SizeConfig.small,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400,
                           decoration: TextDecoration.lineThrough,
@@ -146,44 +155,52 @@ class _ProductCardState extends State<ProductCardBusiness> {
                         ),
                       ),
                       SizedBox(
-                        width: 5,
+                        width: 6,
                       ),
                       Flexible(
-                        child: Container(
-                          // alignment: Alignment.center,
-                          // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.circular(30)),
-                          child: CustomText(
-                            '${discountProduct}% Off',
-                            fontSize: SizeConfig.size10,
-                            color: Colors.white,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        child: CustomText(
+                          '${discountProduct}% Off',
+                          fontSize: SizeConfig.size10,
+                          color: AppColors.greenPro,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
                   ],
                 ),
               ),
-              SizedBox(height: SizeConfig.size5),
+             // SizedBox(height: SizeConfig.size2),
             ],
+            SizedBox(height: SizeConfig.size10),
             if (widget.isShowKM)
-              KmAwayTextWidget(
-                  lat: widget.productData.product.sellerClassification
-                          ?.businessLocation?.latitude
-                          .toString() ??
-                      "",
-                  long: widget.productData.product.sellerClassification
-                          ?.businessLocation?.longitude
-                          ?.toString() ??
-                      ""),
-
+              Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size4,
+                ), margin: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size4
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(SizeConfig.size4),
+                  color: AppColors.blueShade.withOpacity(0.1),
+                  border: Border.all(
+                    color: AppColors.blueShade
+                  )
+                ),
+                child: KmAwayTextWidget(
+                  isUnderlineShow: false,
+                    lat: widget.productData.product.sellerClassification
+                            ?.businessLocation?.latitude
+                            .toString() ??
+                        "",
+                    long: widget.productData.product.sellerClassification
+                            ?.businessLocation?.longitude
+                            ?.toString() ??
+                        ""),
+              ),
+             // SizedBox(height: SizeConfig.size2),
+            SizedBox(height: SizeConfig.size10),
             if (widget.isShowChat)
               InkWell(
                 onTap: () async {
@@ -228,7 +245,6 @@ class _ProductCardState extends State<ProductCardBusiness> {
                     "${product.details?.name}",
                     ApiKeys.message_type: "product",
                     ApiKeys.title: product.details?.name,
-                    // ApiKeys.variant : jsonEncode(product.sellerClassification.),
                     ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
                     ApiKeys.url: urlList,
                   };
@@ -272,19 +288,21 @@ class _ProductCardState extends State<ProductCardBusiness> {
                 child: Container(
                   width: Get.width,
                   padding: EdgeInsets.all(SizeConfig.size5),
+
                   margin: EdgeInsets.only(
-                      top: SizeConfig.size5,
-                      left: SizeConfig.size10,
-                      right: SizeConfig.size10,
-                      bottom: SizeConfig.size8),
+                      left: SizeConfig.size4,
+                      right: SizeConfig.size4,
+                      bottom: SizeConfig.size2),
                   child: CustomText(
                     "Chat",
                     fontWeight: FontWeight.bold,
+                    color: AppColors.white,
                   ),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.primaryColor)),
+                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.primaryColor,)
+                     // border: Border.all(color: AppColors.primaryColor)),
                 ),
               ),
           ],

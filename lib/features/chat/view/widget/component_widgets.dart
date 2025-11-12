@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -205,7 +206,7 @@ Widget ChatListTile({required Function onSelect,
       }
     },
     child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -328,13 +329,13 @@ Widget ChatListTile({required Function onSelect,
 
             child: CircleAvatar(
               backgroundColor: theme.colorScheme.primary,
-              radius: 22,
+              radius: SizeConfig.size22,
               child:  (chat?.sender?.profileImage == null||chat?.sender?.profileImage == "null")? Center(
                   child: CustomText(
                     "${chat?.groupName?.split('')[0]}",
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: 18,
+                    fontSize: SizeConfig.size18,
                   )):(chat?.sender?.profileImage != null &&
                   chat!.sender!.profileImage!.isNotEmpty)
                   ? ClipOval(
@@ -342,8 +343,8 @@ Widget ChatListTile({required Function onSelect,
                     ? CachedNetworkImage(
                   imageUrl: chat.sender!.profileImage!,
                   fit: BoxFit.cover,
-                  width: 44,
-                  height: 44,
+                  width: SizeConfig.size44,
+                  height: SizeConfig.size44,
                   placeholder: (context, url) => Container(
                     color: Colors.grey.shade300,
                     child: Center(
@@ -359,15 +360,15 @@ Widget ChatListTile({required Function onSelect,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
-                        fontSize: 18,
+                        fontSize: SizeConfig.size18,
                       ),
                     ),
                   ),
                 )
                     : Image.file(
                   File(chat.sender!.profileImage!),
-                  width: 44,
-                  height: 44,
+                  width: SizeConfig.size44,
+                  height: SizeConfig.size44,
                   fit: BoxFit.cover,
                 ),
               )
@@ -377,13 +378,13 @@ Widget ChatListTile({required Function onSelect,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: 18,
+                    fontSize: SizeConfig.size18,
                   ),
                 ),
               ),
             ),
           ),
-          SizedBox(width: 12),
+          SizedBox(width: SizeConfig.size12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,12 +397,12 @@ Widget ChatListTile({required Function onSelect,
                       chat?.sender?.contactNo}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis, // 👈 ensures "..."
-                  fontSize: 16,
+                  fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.bold,
                 ),
-                SizedBox(height: 2),
+                SizedBox(height:  SizeConfig.size2),
                 SizedBox(
-                  width: 260,
+                  width:  SizeConfig.size260,
                   child: (chat?.lastMessageType == "document" ||
                       chat?.lastMessageType == "contact" ||
                       chat?.lastMessageType == "audio" ||
@@ -425,9 +426,9 @@ Widget ChatListTile({required Function onSelect,
                             ? Icons.location_history
                             : Icons.camera_alt,
                         color: AppColors.grey9A,
-                        size: 16,
+                        size: SizeConfig.size16,
                       ),
-                      const SizedBox(width: 4),
+                       SizedBox(width:  SizeConfig.size4),
                       CustomText(
                         chat?.lastMessageType == "document"
                             ? "Document"
@@ -442,7 +443,7 @@ Widget ChatListTile({required Function onSelect,
                             "location"
                             ? "Location"
                             : "Image",
-                        fontSize: 14,
+                        fontSize: SizeConfig.size14,
                         color: AppColors.grey9A,
                         overflow: TextOverflow.ellipsis,
                       )
@@ -452,14 +453,14 @@ Widget ChatListTile({required Function onSelect,
                       ? CustomText(
                     "${(chat?.sender?.designation == null) ? chat?.sender
                         ?.contactNo : chat?.sender?.designation}",
-                    fontSize: 14,
+                    fontSize:  SizeConfig.size14,
                     color: AppColors.grey9A,
                     overflow: TextOverflow.ellipsis,
                   )
                       : CustomText(
                     maxLines: 1,
                     "${chat?.lastMessage}",
-                    fontSize: 14,
+                    fontSize: SizeConfig.size14,
                     color: AppColors.grey9A,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -467,7 +468,7 @@ Widget ChatListTile({required Function onSelect,
               ],
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: SizeConfig.size10),
           (isForwardUI == true)
               ? SizedBox()
               : Column(
@@ -475,20 +476,20 @@ Widget ChatListTile({required Function onSelect,
             children: [
               CustomText(
                 "${formatTimeFromUtc(chat?.updatedAt ?? '')}",
-                fontSize: 11,
+                fontSize: SizeConfig.size11,
                 color: AppColors.grey9A,
               ),
-              SizedBox(height: 6),
+              SizedBox(height: SizeConfig.size6),
               (index == 0 || index == 1 || index == 2)
                   ? (chat?.unreadCount == 0)
                   ? SizedBox()
                   : CircleAvatar(
-                radius: 12,
+                radius:  SizeConfig.size12,
                 backgroundColor: Colors.lightBlue,
                 child: CustomText(
                   "${chat?.unreadCount}",
                   color: AppColors.white,
-                  fontSize: 12,
+                  fontSize:  SizeConfig.size12,
                 ),
               )
                   : SizedBox(),
@@ -561,37 +562,37 @@ Widget replyMessageTypeIcons(Messages message) {
   return (message.replyParentMessage?.messageType == "image")
       ? Icon(
     Icons.camera_enhance_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.white,
   )
       : (message.replyParentMessage?.messageType == "video")
       ? Icon(
     Icons.video_camera_back_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.white,
   )
       : (message.replyParentMessage?.messageType == "location")
       ? Icon(
     Icons.location_on_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.white,
   )
       : (message.replyParentMessage?.messageType == "document")
       ? Icon(
     Icons.picture_as_pdf_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.white,
   )
       : (message.replyParentMessage?.messageType == "contact")
       ? Icon(
     Icons.person_2_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.white,
   )
       : (message.replyParentMessage?.messageType == "audio")
       ? Icon(
     Icons.audio_file_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.white,
   )
       : CustomText(
@@ -600,7 +601,7 @@ Widget replyMessageTypeIcons(Messages message) {
     color: !(message.myMessage ?? false)
         ? Colors.black87
         : Colors.white,
-    fontSize: 13,
+    fontSize: SizeConfig.size13,
   );
 }
 
@@ -608,44 +609,44 @@ Widget messageTypeIcons(Messages message) {
   return (message.messageType == "image")
       ? Icon(
     Icons.camera_enhance_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.black,
   )
       : (message.messageType == "video")
       ? Icon(
     Icons.video_camera_back_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.black,
   )
       : (message.messageType == "location")
       ? Icon(
     Icons.location_on_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.black,
   )
       : (message.messageType == "document")
       ? Icon(
     Icons.picture_as_pdf_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.black,
   )
       : (message.messageType == "contact")
       ? Icon(
     Icons.person_2_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.black,
   )
       : (message.messageType == "audio")
       ? Icon(
     Icons.audio_file_outlined,
-    size: 16,
+    size: SizeConfig.size16,
     color: Colors.black,
   )
       : CustomText(
     "${message.message}",
     fontWeight: FontWeight.w500,
     color: Colors.black,
-    fontSize: 13,
+    fontSize: SizeConfig.size13,
   );
 }
 
@@ -654,15 +655,15 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       replyMessageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Image",
         fontWeight: FontWeight.w500,
         color:
         !(message.myMessage ?? false) ? Colors.black87 : Colors.white,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -670,8 +671,8 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       replyMessageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Video",
@@ -679,7 +680,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         color: !(message.myMessage ?? false)
             ? Colors.black87
             : Colors.white,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -687,8 +688,8 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       replyMessageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Location",
@@ -696,7 +697,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         color: !(message.myMessage ?? false)
             ? Colors.black87
             : Colors.white,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -704,8 +705,8 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       replyMessageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Document",
@@ -713,7 +714,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         color: !(message.myMessage ?? false)
             ? Colors.black87
             : Colors.white,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -721,8 +722,8 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       replyMessageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Contact",
@@ -730,7 +731,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         color: !(message.myMessage ?? false)
             ? Colors.black87
             : Colors.white,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -738,8 +739,8 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       replyMessageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Audio",
@@ -747,7 +748,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         color: !(message.myMessage ?? false)
             ? Colors.black87
             : Colors.white,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -757,7 +758,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
     color: !(message.myMessage ?? false)
         ? Colors.black87
         : Colors.white,
-    fontSize: 13,
+    fontSize: SizeConfig.size13,
   );
 }
 
@@ -766,14 +767,14 @@ Widget messageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       messageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Image",
         fontWeight: FontWeight.w500,
         color: Colors.black,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -781,14 +782,14 @@ Widget messageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       messageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Video",
         fontWeight: FontWeight.w500,
         color: Colors.black,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -796,14 +797,14 @@ Widget messageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       messageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Location",
         fontWeight: FontWeight.w500,
         color: Colors.black,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -811,14 +812,14 @@ Widget messageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       messageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Document",
         fontWeight: FontWeight.w500,
         color: Colors.black,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -826,14 +827,14 @@ Widget messageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       messageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Contact",
         fontWeight: FontWeight.w500,
         color: Colors.black,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -841,14 +842,14 @@ Widget messageTypeIconWithLabel(Messages message) {
       ? Row(
     children: [
       messageTypeIcons(message),
-      const SizedBox(
-        width: 4,
+       SizedBox(
+        width: SizeConfig.size4,
       ),
       CustomText(
         "Audio",
         fontWeight: FontWeight.w500,
         color: Colors.black,
-        fontSize: 13,
+        fontSize: SizeConfig.size13,
       ),
     ],
   )
@@ -856,13 +857,12 @@ Widget messageTypeIconWithLabel(Messages message) {
     "${message.message}",
     fontWeight: FontWeight.w500,
     color: Colors.black,
-    fontSize: 13,
+    fontSize: SizeConfig.size13,
   );
 }
 
 void _navigateToProfile({required String authorId, required String type}) {
   if (type.toUpperCase() == AppConstants.business) {
-    print("sldkclkmsldkcmslkdcmlskdc ");
     Get.to(() =>
         VisitBusinessProfileNew(
           businessId: authorId,
@@ -911,7 +911,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.only(left: 18.0),
+        padding:  EdgeInsets.only(left: SizeConfig.size18),
         // Reduce touch padding if needed
         child: Icon(Icons.arrow_back_ios, color: Colors.black),
       ),
@@ -945,7 +945,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           );
 
         }else{
-          print("skjdcnksjnckjsdc ${userId}");
+
           _navigateToProfile(authorId: userId ?? '', type: type ?? "");
 
         }
@@ -955,7 +955,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         children: [
           CircleAvatar(
             backgroundColor: theme.colorScheme.primary,
-            radius: 18,
+            radius: SizeConfig.size18,
             backgroundImage: profileImage != null
                 ? ((profileImage.contains('http'))
                 ? NetworkImage(profileImage)
@@ -965,7 +965,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                "${name!.split('')[0]}",
               color: Colors.white,
               fontWeight: FontWeight.w800,
-              fontSize: 18,
+              fontSize: SizeConfig.size18,
             ): (profileImage != null)
                 ? null
                 : (name != null)
@@ -974,7 +974,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                   name.isNotEmpty ? "${name.split('')[0]}" : "U",
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
-                  fontSize: 18,
+                  fontSize: SizeConfig.size18,
                 ))
                 : Center(
               child: Icon(
@@ -983,18 +983,18 @@ AppBar getChatTitleAppBar(BuildContext context, {
               ),
             ),
           ),
-          SizedBox(width: 6), // Slightly smaller spacing
+          SizedBox(width: SizeConfig.size6), // Slightly smaller spacing
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
-                width: 160,
+                width: SizeConfig.size160,
                 child: CustomText(
                   '${(name == "null") ? (contactNo) : name ?? contactNo}',
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: SizeConfig.size16,
                 ),
               ),
               if(isGroupAppBar == null)
@@ -1006,17 +1006,17 @@ AppBar getChatTitleAppBar(BuildContext context, {
                           .userOnlineStatus.value : "BlueCs Limited"}',
                       color: AppColors.grayText,
 
-                      fontSize: 12,
+                      fontSize: SizeConfig.size12,
                     ),
-                    const SizedBox(
-                      width: 3,
+                     SizedBox(
+                      width: SizeConfig.size3,
                     ),
                     (type != "Admin")
                         ? SizedBox()
                         : Icon(
                       Icons.verified,
                       color: Colors.blue,
-                      size: 14,
+                      size: SizeConfig.size14,
                     ),
                   ],
                 ),
@@ -1028,7 +1028,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
     actions: (type == "Admin")
         ? null
         : [
-      const SizedBox(width: 8),
+       SizedBox(width: SizeConfig.size8),
       if(isGroupAppBar == null)
         InkWell(
             onTap: () {
@@ -1055,7 +1055,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               launchDialPad(contactNo ?? '');
             },
             child: SvgPicture.asset(AppIconAssets.chat_call)),
-      const SizedBox(width: 12),
+       SizedBox(width: SizeConfig.size12),
       // SvgPicture.asset(AppIconAssets.chat_video_call),
       // const SizedBox(width: 12),
 
@@ -1105,7 +1105,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
             ])
       else
         SvgPicture.asset(AppIconAssets.chat_info_pop),
-      const SizedBox(width: 8),
+       SizedBox(width: SizeConfig.size8),
 
     ],
   );
@@ -1127,13 +1127,13 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
     child: AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
-      leadingWidth: 38,
+      leadingWidth: SizeConfig.size38,
       leading: InkWell(
         onTap: () {
           chatThemeController.resetSelection();
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 18.0),
+          padding:  EdgeInsets.only(left: SizeConfig.size18),
           child: Icon(Icons.arrow_back_ios,
               color: AppColors.chat_input_icon_color),
         ),
@@ -1144,7 +1144,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
         // or make dynamic
         color: Colors.black,
         fontWeight: FontWeight.bold,
-        fontSize: 16,
+        fontSize: SizeConfig.size16,
       ),
       actions: [
         IconButton(
@@ -1179,11 +1179,11 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                           },
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            margin: const EdgeInsets.only(bottom: 10),
+                            padding:  EdgeInsets.all(SizeConfig.size12),
+                            margin:  EdgeInsets.only(bottom: SizeConfig.size10),
                             decoration: BoxDecoration(
                               color: Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(SizeConfig.size10),
                             ),
                             child: Center(
                               child: CustomText(
@@ -1211,10 +1211,10 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                           },
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(12),
+                            padding:  EdgeInsets.all(SizeConfig.size12),
                             decoration: BoxDecoration(
                               color: Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(SizeConfig.size10),
                             ),
                             child: Center(
                               child: CustomText(
@@ -1239,7 +1239,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           icon: Icon(
             Icons.edit,
             color: AppColors.chat_input_icon_color,
-            size: 22,
+            size: SizeConfig.size22,
           ),
           onPressed: () {
             editingController.text = chatThemeController
@@ -1260,7 +1260,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
         //   onPressed: _showPinDialog,
         // ),
         Padding(
-          padding: const EdgeInsets.only(left: 6.0),
+          padding:  EdgeInsets.only(left: SizeConfig.size6),
           child: InkWell(
             onTap: () {
               Navigator.push(
@@ -1278,8 +1278,8 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
             },
             child: SvgPicture.asset(
               AppIconAssets.chat_media_forward,
-              height: 24,
-              width: 24,
+              height: SizeConfig.size24,
+              width: SizeConfig.size24,
             ),
           ),
         ),
@@ -1297,7 +1297,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           itemBuilder: (context) => [],
         ),
 
-        const SizedBox(width: 8),
+         SizedBox(width: SizeConfig.size8),
       ],
     ),
   );
@@ -1320,9 +1320,9 @@ void showMessageEditDialog(String userId,
     ChatViewController chatViewController) {
   Get.dialog(
     AlertDialog(
-      insetPadding: EdgeInsets.symmetric(vertical: 12),
+      insetPadding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
       // Reduced outer spacing
-      contentPadding: const EdgeInsets.only(bottom: 10),
+      contentPadding:  EdgeInsets.only(bottom: SizeConfig.size10),
       backgroundColor: AppColors.appBackgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -1331,7 +1331,7 @@ void showMessageEditDialog(String userId,
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 10),
+           SizedBox(height: SizeConfig.size10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
@@ -1340,17 +1340,17 @@ void showMessageEditDialog(String userId,
                 CustomText(
                   'Message',
                   color: AppColors.black,
-                  fontSize: 16,
+                  fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.w600,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 4),
+           SizedBox(height: SizeConfig.size4),
           Divider(color: AppColors.greyB4),
-          const SizedBox(height: 6),
+           SizedBox(height: SizeConfig.size6),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size14),
             child: TextFormField(
               controller: editingController,
               maxLines: 6,
@@ -1362,20 +1362,20 @@ void showMessageEditDialog(String userId,
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.05),
                 contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                 EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
               ),
-              style: const TextStyle(
-                fontSize: 16,
+              style:  TextStyle(
+                fontSize: SizeConfig.size16,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
             ),
           ),
-          const SizedBox(height: 24),
+           SizedBox(height: SizeConfig.size24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
@@ -1387,10 +1387,10 @@ void showMessageEditDialog(String userId,
                     'Close',
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: SizeConfig.size14,
                   ),
                 ),
-                const SizedBox(width: 16),
+                 SizedBox(width: SizeConfig.size16),
                 InkWell(
                   onTap: () async {
                     ApiKeys;
@@ -1417,14 +1417,14 @@ void showMessageEditDialog(String userId,
                     'Edit',
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: SizeConfig.size14,
                   ),
                 ),
-                const SizedBox(width: 2),
+                 SizedBox(width: SizeConfig.size2),
               ],
             ),
           ),
-          const SizedBox(height: 6),
+           SizedBox(height: SizeConfig.size6),
         ],
       ),
     ),

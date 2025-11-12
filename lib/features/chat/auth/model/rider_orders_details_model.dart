@@ -23,7 +23,10 @@ class RiderOrdersDetailsModel {
       this.distanceToPickup, 
       this.distancePickupToDrop, 
       this.user, 
-      this.receiverUser,});
+      this.receiverUser,
+      this.pickupOTP,
+      this.deliveryOTP,
+  });
 
   RiderOrdersDetailsModel.fromJson(dynamic json) {
     orderId = json['orderId'];
@@ -38,6 +41,8 @@ class RiderOrdersDetailsModel {
     distancePickupToDrop = json['distancePickupToDrop'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
     receiverUser = json['receiverUser'] != null ? ReceiverUser.fromJson(json['receiverUser']) : null;
+    pickupOTP = json['pickupOTP'];
+    deliveryOTP = json['deliveryOTP'];
   }
   String? orderId;
   String? id;
@@ -51,6 +56,8 @@ class RiderOrdersDetailsModel {
   String? distancePickupToDrop;
   User? user;
   ReceiverUser? receiverUser;
+  String? pickupOTP;
+  String? deliveryOTP;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -73,7 +80,9 @@ class RiderOrdersDetailsModel {
     }
     if (receiverUser != null) {
       map['receiverUser'] = receiverUser?.toJson();
-    }
+    };
+    map['pickupOTP'] = pickupOTP;
+    map['deliveryOTP'] = deliveryOTP;
     return map;
   }
 

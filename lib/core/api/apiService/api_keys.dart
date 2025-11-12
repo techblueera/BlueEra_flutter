@@ -507,4 +507,6 @@ class ApiKeys {
   static const noOfBeds = 'no_of_beds';
   static const propertyLocation = 'property_location';
   static const propertyHighlight = 'property_highlight';
+  static const deliveryOTP = 'deliveryOTP';
+  static const searchTerm = 'searchTerm';
 }

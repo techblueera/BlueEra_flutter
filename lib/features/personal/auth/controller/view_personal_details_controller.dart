@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
@@ -277,14 +278,15 @@ class ViewPersonalDetailsController extends GetxController {
         );
         await getUserLoginData();
 
-        if(isCheckServiceOpt){
-          if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
-              SELF_EMPLOYED ) {
+
+          /// need to verify (for checking is service exists or not)
+          if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED ) {
+            if(isCheckServiceOpt){
             await getUserServiceCreatedStatusUtils();
-            if (userServiceCreatedStatusGlobal.isEmpty ||
-                userServiceCreatedStatusGlobal == "false") {
+            if (userServiceCreatedStatusGlobal.isEmpty || userServiceCreatedStatusGlobal == "false") {
               await getUserServiceStatusController();
             }
+          }
 
             await getServiceProviderStatusUtils();
             if (serviceProviderStatusGlobal.isNotEmpty) {
@@ -298,7 +300,6 @@ class ViewPersonalDetailsController extends GetxController {
               getServiceProviderStatus();
             }
           }
-        }
 
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {
@@ -461,11 +462,15 @@ class ViewPersonalDetailsController extends GetxController {
             SharedPreferenceUtils.userServiceCreatedStatusKey, statusData);
         await getUserServiceCreatedStatusUtils();
         if (statusData == "false") {
-          Get.to(()=> ServiceUploadScreen(
-              providerType: ProductServiceProviderType.user,
-              serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
-              designation: userProfessionGlobal,
-          ));
+          Get.toNamed(
+            RouteHelper.getAddServicesScreenRoute(),
+            arguments: {
+              ApiKeys.providerType: ProductServiceProviderType.user,
+              ApiKeys.isFromEarnWithBlueEraService: true,
+              ApiKeys.designation: userProfessionGlobal,
+              ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
+            },
+          );
         }
       } else {
         commonSnackBar(

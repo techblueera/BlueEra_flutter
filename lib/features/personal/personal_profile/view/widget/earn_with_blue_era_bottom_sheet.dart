@@ -24,56 +24,56 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
   final List<ServiceItem> _services = [
     ServiceItem(
       label: 'Self Work',
-      name: 'SELF_WORK',
+      name: AppConstants.SELF_WORK_OPTION,
       icon: AppIconAssets.plumberIcon,
       bgColor: const Color(0xFFCBEAFC),
       labelColor: const Color(0xFF004E7C),
     ),
     ServiceItem(
       label: 'Delivery\nPartner',
-      name: 'DELIVERY_PARTNER',
+      name: AppConstants.DELIVERY_PARTNER_OPTION,
       icon: AppIconAssets.deliveryPartnerIcon,
       bgColor: const Color(0xFFDAEDCF),
       labelColor: const Color(0xFF204A08),
     ),
     ServiceItem(
       label: 'Home Made\nProducts',
-      name: 'HOME_MADE_PRODUCTS',
+      name:  AppConstants.HOME_MADE_PRODUCTS_OPTION,
       icon: AppIconAssets.homeMadeProductIcon,
       bgColor: const Color(0xFFFDD5A4),
       labelColor: const Color(0xFF8C4D00),
     ),
     ServiceItem(
       label: 'Home Made\nFood Items',
-      name: 'HOME_MADE_FOOD_ITEMS',
+      name:  AppConstants.HOME_MADE_FOOD_ITEMS_OPTION,
       icon: AppIconAssets.homeMadeFoodIcon,
       bgColor: const Color(0xFFFEF2B6),
       labelColor: const Color(0xFF856F00),
     ),
     ServiceItem(
       label: 'Home\nServices',
-      name: 'HOME_SERVICES',
+      name:  AppConstants.HOME_SERVICES_OPTION,
       icon: AppIconAssets.homeServiceIcon,
       bgColor: const Color(0xFFDBD5F7),
       labelColor: const Color(0xFF140074),
     ),
     ServiceItem(
       label: 'Rental\nServices',
-      name: 'RENTAL_SERVICES',
+      name:  AppConstants.RENTAL_SERVICES_OPTION,
       icon: AppIconAssets.rentalServiceIcon,
       bgColor: const Color(0xFFFAD7D3),
       labelColor: const Color(0xFF740C00),
     ),
     ServiceItem(
       label: 'Counselling /\nConsulting',
-      name: 'COUNSELLING_CONSULTING',
+      name:  AppConstants.COUNSELLING_CONSULTING_OPTION,
       icon: AppIconAssets.consultingIcon,
       bgColor: const Color(0xFFBCEEE2),
       labelColor: const Color(0xFF006950),
     ),
     ServiceItem(
       label: 'Tuition Classes\nOnline/Offline',
-      name: 'TUITION_CLASSES_ONLINE_OFFLINE',
+      name:  AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION,
       icon: AppIconAssets.teachingIcon,
       bgColor: const Color(0xFFEEBCE7),
       labelColor: const Color(0xFF8B0077),
@@ -139,8 +139,8 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
   }
 
   void _handleServiceTap(BuildContext context, ServiceItem service) async {
-    switch (service.label) {
-      case 'Self Work':
+    switch (service.name) {
+      case AppConstants.SELF_WORK_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -149,14 +149,14 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case 'Delivery\nPartner':
+      case AppConstants.DELIVERY_PARTNER_OPTION:
         showProfessionChangeDialog(
           context: context,
           designation: AppConstants.DELIVERY_PARTNER,
         );
         break;
 
-      case 'Home Mad\nProducts':
+      case AppConstants.HOME_MADE_PRODUCTS_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -165,7 +165,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case 'Home Made\nFood Items':
+      case AppConstants.HOME_MADE_FOOD_ITEMS_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -174,7 +174,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case 'Home\nServices':
+      case AppConstants.HOME_SERVICES_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -183,7 +183,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case 'Rental\nServices':
+      case AppConstants.RENTAL_SERVICES_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -192,7 +192,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case 'Counselling /\nConsulting':
+      case AppConstants.COUNSELLING_CONSULTING_OPTION:
         showProfessionChangeDialog(
           context: context,
           designation: AppConstants.CONSULTANT,
@@ -201,7 +201,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
 
         break;
 
-      case 'Tuition Classes\nOnline/Offline':
+      case AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION:
         showProfessionChangeDialog(
           context: context,
           designation: AppConstants.TUTOR,

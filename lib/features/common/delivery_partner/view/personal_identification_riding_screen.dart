@@ -52,7 +52,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
               children: [
                 GetBuilder<DeliveryPartnerController>(
                   id: DeliveryPartnerController.livePhotoImageId,
-                  builder: (ctrl) =>  CustomFormCard(
+                  builder: (ctrl) => CustomFormCard(
                     child: Column(
                       children: [
                         Row(

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -19,6 +20,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../widgets/local_assets.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
 import '../../auth/controller/view_business_details_controller.dart';
@@ -98,6 +100,8 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
               if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Service',
               if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Foods'
             ];
+            print("sd;kcmlskdmcsdc ${businessData?.businessLocation?.lat}");
+            print("sd;kcmlskdmcsdc ${businessData?.businessLocation?.lon}");
 
             return DefaultTabController(
               length: tabs.length,
@@ -139,6 +143,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                         children: [
                           SizedBox(height: SizeConfig.size10,),
                           // controller.userData.value?.user
+
                           RatingSummaryWidget(
                             rating: businessData?.avg_rating?.toDouble() ?? 0.0,
                             ratingPersonCount:
@@ -154,9 +159,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                           //     rating:
                           //         double.parse("${ratingData?.avgRating ?? 0}"),
                           //     totalReviews: "${ratingData?.totalRatings ?? 0}"),
-                          SizedBox(height: SizeConfig.size6),
+                          // SizedBox(height: SizeConfig.size8),
                           Card(
-                            margin: EdgeInsets.all(8),
+                            margin: EdgeInsets.all(SizeConfig.size10),
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(SizeConfig.size8),
@@ -173,13 +178,11 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                               (businessData?.businessLocation?.lon != null &&
                                   businessData?.businessLocation?.lon !=
                                       0)) ...[
-                            SizedBox(
-                              height: SizeConfig.size8,
-                            ),
+                            // s
 
                             Container(
-                              margin: EdgeInsets.symmetric(horizontal: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 6),
+                              margin: EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 10),
                               decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
                                 color: Colors.white,
 
@@ -188,34 +191,70 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
                               child: Column(
                                 children: [
-                                  Column(
+                                  SizedBox(
+                                    height: SizeConfig.size6,
+                                  ),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: CustomText(
-                                              "Your business live location",
-                                              fontSize: SizeConfig.large,
-                                              fontWeight: FontWeight.bold,
-                                              overflow: TextOverflow.ellipsis,
-                                              color: AppColors.secondaryTextColor,
-                                            ),
-                                          ),
-                                        ],
+                                      LocalAssets(
+                                        height: 30,width: 30,
+                                        imagePath: AppIconAssets.locationOutlineIconGreyIcon,
+                                        boxFix: BoxFit.cover,
                                       ),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
+                                      SizedBox(
+                                        width: SizeConfig.size4,
+                                      ),
+                                      Expanded(
                                         child: CustomText(
-                                          "Your store’s map location",
-                                          fontSize: SizeConfig.medium,
-                                          color: AppColors.secondaryTextColor,
+                                          businessData?.address??'',
+                                          fontSize: SizeConfig.size14,
+                                          color: AppColors.mainTextColor,
                                           fontWeight: FontWeight.w400,
                                           overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
                                         ),
                                       ),
                                     ],
                                   ),
+                                  // Column(
+                                  //   children: [
+                                  //     Row(
+                                  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  //       children: [
+                                  //         Expanded(
+                                  //           child: CustomText(
+                                  //             "Your business live location",
+                                  //             fontSize: SizeConfig.large,
+                                  //             fontWeight: FontWeight.bold,
+                                  //             overflow: TextOverflow.ellipsis,
+                                  //             color: AppColors.secondaryTextColor,
+                                  //           ),
+                                  //         ),
+                                  //       ],
+                                  //     ),
+                                  //     Align(
+                                  //       alignment: Alignment.centerLeft,
+                                  //       child: CustomText(
+                                  //         businessData?.address??'',
+                                  //         fontSize: SizeConfig.medium,
+                                  //         color: AppColors.secondaryTextColor,
+                                  //         fontWeight: FontWeight.w400,
+                                  //         overflow: TextOverflow.ellipsis,
+                                  //       ),
+                                  //     ),
+                                  //     // Align(
+                                  //     //   alignment: Alignment.centerLeft,
+                                  //     //   child: CustomText(
+                                  //     //     "Your store’s map location",
+                                  //     //     fontSize: SizeConfig.medium,
+                                  //     //     color: AppColors.secondaryTextColor,
+                                  //     //     fontWeight: FontWeight.w400,
+                                  //     //     overflow: TextOverflow.ellipsis,
+                                  //     //   ),
+                                  //     // ),
+                                  //   ],
+                                  // ),
 
                                   BusinessLocationWidget(locationText: businessData?.address,
                                       latitude: (businessData?.businessLocation?.lat
@@ -231,9 +270,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                               ),
                             ),
                           ],
-                          SizedBox(
-                            height: SizeConfig.size6,
-                          ),
+                          // SizedBox(
+                          //   height: SizeConfig.size6,
+                          // ),
                           StandaloneProductScreen(
                             businessId: businessData?.id ?? "",
                             isGrid: false,

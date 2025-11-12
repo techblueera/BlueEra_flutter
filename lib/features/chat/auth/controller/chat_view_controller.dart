@@ -168,7 +168,7 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> connectSocket() async {
-    // if (socketConnectedCalled.value == false) {
+
 
     if (socketConnected.value == false) {
       await chatSocket.connectToSocket();
@@ -197,7 +197,6 @@ class ChatViewController extends GetxController {
       final parsedData = GetListOfMessageData.fromJson(data);
 
 
-      // Ensure myMessage field is properly set for all messages
       if (parsedData.messages != null) {
         for (var message in parsedData.messages!) {
           if (message.myMessage == null) {

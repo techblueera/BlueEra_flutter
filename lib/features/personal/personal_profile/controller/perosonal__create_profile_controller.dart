@@ -105,7 +105,7 @@ class PersonalCreateProfileController extends GetxController {
 
       if (responseModel.isSuccess) {
         updateUserProfileResponse = ApiResponse.complete(responseModel);
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile(isCheckServiceOpt: false);
         if(!isFromProfileOnly)
           {
             Get.back();
@@ -118,9 +118,9 @@ class PersonalCreateProfileController extends GetxController {
           message: responseModel.message ?? AppStrings.somethingWentWrong,
         );
       }
-      updateBtnLoading.value=false;
+      updateBtnLoading.value = false;
     } catch (e) {
-      updateBtnLoading.value=false;
+      updateBtnLoading.value = false;
       updateUserProfileResponse = ApiResponse.error('Update failed');
     }
   }

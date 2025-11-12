@@ -110,12 +110,12 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
               // === PROFILE AVATAR ===
               Positioned(
                 left: 16,
-                bottom: -35,
+                bottom: -40,
                 child: CircleAvatar(
-                  radius: 36,
+                  radius: 46,
                   backgroundColor: Colors.white,
                   child: CircleAvatar(
-                    radius: 33,
+                    radius: 43,
                     backgroundImage: NetworkImage(
                         widget.businessProfileDetails.logo ?? ''),
                     backgroundColor: Colors.grey.shade300,
@@ -262,7 +262,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
 
           // === NAME, BUTTONS ===
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10,vertical: 10),
             child: Row(
               children: [
                 Expanded(
@@ -280,7 +280,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
             ),
           ),
 
-          const SizedBox(height: 6),
+         // const SizedBox(height: 6),
 
           // === TAGS (Shop / Close) ===
           Padding(

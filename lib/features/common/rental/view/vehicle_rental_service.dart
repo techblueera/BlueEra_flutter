@@ -720,7 +720,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 SizedBox(height: SizeConfig.paddingL),
                 CustomBtn(
                   title: 'Next',
-                  onTap: controller.nextStep,
+                  onTap: controller.validateStepThree,
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,
                 ),
@@ -870,7 +870,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                       CustomBtn(
                         title: 'Next',
-                        onTap: controller.nextStep,
+                        onTap: controller.validateStepFour,
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
                       ),

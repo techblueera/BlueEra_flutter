@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison, unnecessary_new, unrelated_type_equality_checks, unused_local_variable
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -19,6 +20,8 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as httpPkg;
 import 'package:permission_handler/permission_handler.dart';
+
+import '../routes/route_helper.dart';
 
 String notificationSound = 'sound/iphone_tone.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -153,6 +156,7 @@ class AppNotificationHandler {
   ///show notification msg
   void showMsg(RemoteMessage message) {
     // callUnreadCount();
+    log("sldclskdmclksdmclskdcmsldckmsdc ${message.toMap()}");
 
     ///FOR GROUND....
 
@@ -314,10 +318,11 @@ class AppNotificationHandler {
     }
     OneSignalNotificationDetailsModel data =
         OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
+    log('sldjncksjncksdjcnskjc ${dataNotificationResponse} ___ ${data.operation}');
+
     if (data.operation == "sent_message") {
       final chatViewController = Get.put(ChatViewController());
       chatViewController.connectSocket();
-
       chatViewController.openAnyOneChatFunction(
         type: data.conversationType ?? '',
         conversationId: data.conversationId ?? '',
@@ -327,6 +332,8 @@ class AppNotificationHandler {
         // contactNo: data.senderUser?.contact,
         isInitialMessage: false,
       );
+    }else if(data.operation=="RIDE_ORDER_CREATED"){
+      Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
     }
 
     ///CLEAR ALL NOTIFICATION...
