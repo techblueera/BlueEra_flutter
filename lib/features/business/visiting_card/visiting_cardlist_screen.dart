@@ -33,6 +33,9 @@ Widget_infoRow(
           fontSize: fontSize,
           fontWeight: fontWeight,
           textAlign: textAlign,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+
         ),
       ),
     ],
@@ -123,6 +126,8 @@ Widget buildCard1(BusinessProfileDetails data) {
                                   color: AppColors.black,
                                   fontSize: SizeConfig.small11,
                                   fontWeight: FontWeight.w500,
+
+                            maxLines: 4,
                                 ),
                         ],
                       ),
@@ -261,7 +266,7 @@ Widget buildCard2(BusinessProfileDetails data) {
                 image: DecorationImage(
                     image: AssetImage("assets/images/card_bg_2.png"),
                     fit: BoxFit.fill)),
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 38.0, vertical: 12),
             child: Column(
               children: [
                 Row(
@@ -289,7 +294,7 @@ Widget buildCard2(BusinessProfileDetails data) {
                                 fontSize: SizeConfig.medium,
                                 color: AppColors.black,
                               ),
-                        SizedBox(height: SizeConfig.size6),
+                        SizedBox(height: SizeConfig.size4),
                         (data.natureOfBusiness ?? "").isEmpty
                             ? SizedBox()
                             : CustomText(
@@ -334,6 +339,9 @@ Widget buildCard2(BusinessProfileDetails data) {
                         data.businessDescription ?? "",
                         fontSize: SizeConfig.small11,
                         fontWeight: FontWeight.w500,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+
                       ),
                 SizedBox(
                   height: 8,
@@ -383,72 +391,123 @@ Widget buildCard2(BusinessProfileDetails data) {
                   height: 8,
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ((data.businessNumber?.officeMobNo?.number ?? 0).toString())
-                            .isEmpty
-                        ? SizedBox()
-                        : Expanded(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.call,
-                                  size: 16,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Expanded(
-                                  child: CustomText(
-                                    (data.businessNumber?.officeMobNo?.number ?? 0)
-                                        .toString(),
-                                    fontSize: SizeConfig.small11,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                    SizedBox(
-                      width: 8,
+                        .isEmpty
+                        ? SizedBox(width: 2,):
+                    Icon(
+                      Icons.call,
+                      size: 16,
                     ),
+                    SizedBox(width: 2,),
+                    CustomText(
+                      (data.businessNumber?.officeMobNo?.number ?? 0)
+                          .toString(),
+                      fontSize: SizeConfig.small11,
+                    ),
+                    SizedBox(width: 10,),
                     (data.ownerDetails?.isNotEmpty ?? false
-                                ? data.ownerDetails?.first.email ?? ""
-                                : "")
-                            .isEmpty
-                        ? SizedBox()
-                        : Expanded(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.email,
-                                  size: 16,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Expanded(
-                                  child: CustomText(
-                                    data.ownerDetails?.isNotEmpty ?? false
-                                        ? data.ownerDetails?.first.email ?? ""
-                                        : "",
-                                    fontSize: SizeConfig.small11,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                    SizedBox(
-                      width: 8,
+                        ? data.ownerDetails?.first.email ?? ""
+                        : "")
+                        .isEmpty
+                        ? SizedBox():
+                    Icon(
+                      Icons.email,
+                      size: 8,
                     ),
+                    SizedBox(
+                      width: 4,
+                    ),
+                    CustomText(
+                      data.ownerDetails?.isNotEmpty ?? false
+                          ? data.ownerDetails?.first.email ?? ""
+                          : "",
+                      fontSize: SizeConfig.small11,
+                    ),
+                    // SizedBox(width: 10,),
+                    //
+                    // (data.websiteUrl ?? "").isEmpty
+                    //     ? SizedBox(width: 2,)
+                    //     : Icon(
+                    //   Icons.language,
+                    //   size: 16,
+                    // ),
+                    // SizedBox(
+                    //   width: 4,
+                    // ),
+                    // CustomText(
+                    //   data.websiteUrl ?? "",
+                    //   fontSize: SizeConfig.small11,
+                    // )
                   ],
                 ),
+                // Row(
+                //  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     ((data.businessNumber?.officeMobNo?.number ?? 0).toString())
+                //             .isEmpty
+                //         ? SizedBox(width: 2,)
+                //         : Expanded(
+                //             child: Row(
+                //               crossAxisAlignment: CrossAxisAlignment.start,
+                //               children: [
+                //                 Icon(
+                //                   Icons.call,
+                //                   size: 16,
+                //                 ),
+                //                 SizedBox(
+                //                   width: 4,
+                //                 ),
+                //                 Expanded(
+                //                   child: CustomText(
+                //                     (data.businessNumber?.officeMobNo?.number ?? 0)
+                //                         .toString(),
+                //                     fontSize: SizeConfig.small11,
+                //                   ),
+                //                 )
+                //               ],
+                //             ),
+                //           ),
+                //     // SizedBox(
+                //     //   width: 8,
+                //     // ),
+                //     (data.ownerDetails?.isNotEmpty ?? false
+                //                 ? data.ownerDetails?.first.email ?? ""
+                //                 : "")
+                //             .isEmpty
+                //         ? SizedBox()
+                //         : Expanded(
+                //             child: Row(
+                //               crossAxisAlignment: CrossAxisAlignment.start,
+                //               children: [
+                //                 Icon(
+                //                   Icons.email,
+                //                   size: 16,
+                //                 ),
+                //                 SizedBox(
+                //                   width: 4,
+                //                 ),
+                //                 Expanded(
+                //                   child: CustomText(
+                //                     data.ownerDetails?.isNotEmpty ?? false
+                //                         ? data.ownerDetails?.first.email ?? ""
+                //                         : "",
+                //                     fontSize: SizeConfig.small11,
+                //                   ),
+                //                 )
+                //               ],
+                //             ),
+                //           ),
+                //     SizedBox(
+                //       width: 8,
+                //     ),
+                //   ],
+                // ),
                 SizedBox(
                   height: 8,
                 ),
                 (data.websiteUrl ?? "").isEmpty
-                    ? SizedBox()
+                    ? SizedBox(width: 2,)
                     : Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -467,12 +526,13 @@ Widget buildCard2(BusinessProfileDetails data) {
                           )
                         ],
                       ),
-                SizedBox(
-                  height: 8,
-                ),
+                // SizedBox(
+                //   height: 6,
+                // ),
                 (data.address ?? "").isEmpty
                     ? SizedBox()
-                    : Row(
+                    :
+                Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
@@ -485,7 +545,7 @@ Widget buildCard2(BusinessProfileDetails data) {
                           Expanded(
                             child: CustomText(
                               data.address ?? "",
-                              maxLines: 2,
+                              maxLines: 3,
                               fontSize: SizeConfig.small11,
                             ),
                           )
@@ -565,6 +625,8 @@ Widget buildCard3(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -581,7 +643,7 @@ Widget buildCard3(BusinessProfileDetails data) {
                 image: DecorationImage(
                     image: AssetImage("assets/images/card_bg_3.jpeg"),
                     fit: BoxFit.fill)),
-            height: 280,
+            height: 250,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
               child: Row(
@@ -641,6 +703,8 @@ Widget buildCard3(BusinessProfileDetails data) {
                                 color: AppColors.black,
                                 fontSize: SizeConfig.small11,
                                 fontWeight: FontWeight.w500,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                               ),
                       ],
                     ),
@@ -728,6 +792,7 @@ Widget buildCard3(BusinessProfileDetails data) {
                                   fontSize: SizeConfig.small11,
                                   fontWeight: FontWeight.w500,
                                   title: data.address ?? "",
+
                                 ),
                         ],
                       ),
@@ -785,7 +850,7 @@ Widget buildCard4(BusinessProfileDetails data) {
           height: 18,
           width: 18,
           decoration: BoxDecoration(
-            color: Colors.yellow,
+            color: AppColors.yellowPro,
             borderRadius: BorderRadius.circular(4),
           ),
           alignment: Alignment.center,
@@ -795,7 +860,7 @@ Widget buildCard4(BusinessProfileDetails data) {
             size: 12,
           ),
         ),
-        SizedBox(width: 4),
+        SizedBox(width: 10),
         Expanded(
           child: CustomText(
             title,
@@ -803,6 +868,8 @@ Widget buildCard4(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -814,6 +881,7 @@ Widget buildCard4(BusinessProfileDetails data) {
       RepaintBoundary(
         key: _cardKey,
         child: Container(
+          height: 250,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
@@ -821,7 +889,7 @@ Widget buildCard4(BusinessProfileDetails data) {
                     fit: BoxFit.fill)),
             child: Padding(
               padding:
-                  const EdgeInsets.only(left: 20.0, right: 20, top: 12, bottom: 32),
+                  const EdgeInsets.only(left: 20.0, right: 48, top: 12, bottom: 32),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -890,6 +958,8 @@ Widget buildCard4(BusinessProfileDetails data) {
                                 fontSize: SizeConfig.small11,
                                 fontWeight: FontWeight.w500,
                                 textAlign: TextAlign.center,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                               ),
                       ],
                     ),
@@ -897,57 +967,69 @@ Widget buildCard4(BusinessProfileDetails data) {
                   SizedBox(width: 24),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
+                      padding: const EdgeInsets.only(top: 10.0,),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                width: 32,
-                                child: Icon(
-                                  Icons.person_2,
-                                  size: 32,
-                                  color: Colors.yellow,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 4,
-                              ),
+
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+
                                   (data.ownerDetails?.isNotEmpty ?? false
                                               ? data.ownerDetails?.first.name ?? ""
                                               : "")
                                           .isEmpty
                                       ? SizedBox()
-                                      : CustomText(
-                                          data.ownerDetails?.isNotEmpty ?? false
-                                              ? data.ownerDetails?.first.name ?? ""
-                                              : "",
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: SizeConfig.medium,
-                                          color: AppColors.black,
-                                        ),
-                                  (data.ownerDetails?.isNotEmpty ?? false
+                                      : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.person_2,
+                                                //size: 32,
+                                                color: AppColors.yellowPro,
+                                              ),
+                                              SizedBox(
+                                                width: 4,
+                                              ),
+                                              CustomText(
+                                                  data.ownerDetails?.isNotEmpty ?? false
+                                                      ? data.ownerDetails?.first.name ?? ""
+                                                      : "",
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: SizeConfig.medium,
+                                                  color: AppColors.black,
+                                                ),
+                                            ],
+                                          ),
+                                          (data.ownerDetails?.isNotEmpty ?? false
                                               ? data.ownerDetails?.first
-                                                      .role_in_business ??
-                                                  ""
+                                              .role_in_business ??
+                                              ""
                                               : "")
-                                          .isEmpty
-                                      ? SizedBox()
-                                      : CustomText(
-                                          data.ownerDetails?.isNotEmpty ?? false
-                                              ? data.ownerDetails?.first
-                                                      .role_in_business ??
+                                              .isEmpty
+                                              ? SizedBox()
+                                              : Padding(
+                                                padding: const EdgeInsets.only(left: 28.0),
+                                                child: CustomText(
+                                                                                            data.ownerDetails?.isNotEmpty ?? false
+                                                  ? data.ownerDetails?.first
+                                                  .role_in_business ??
                                                   ""
-                                              : "",
-                                          color: AppColors.black,
-                                          fontSize: SizeConfig.small,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                                  : "",
+                                                                                            color: AppColors.black,
+                                                                                            fontSize: SizeConfig.small,
+                                                                                            fontWeight: FontWeight.w500,
+                                                                                          ),
+                                              ),
+                                        ],
+                                      ),
+
                                 ],
                               ),
                             ],
@@ -1074,6 +1156,8 @@ Widget buildCard5(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -1085,6 +1169,7 @@ Widget buildCard5(BusinessProfileDetails data) {
       RepaintBoundary(
         key: _cardKey,
         child: Container(
+          height: 250,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
@@ -1092,7 +1177,7 @@ Widget buildCard5(BusinessProfileDetails data) {
                     fit: BoxFit.fill)),
             // height: 280,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12),
+              padding: const EdgeInsets.only(left: 10.0, top: 12,bottom: 12,right: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1146,12 +1231,18 @@ Widget buildCard5(BusinessProfileDetails data) {
                         SizedBox(height: SizeConfig.size2),
                         (data.businessDescription ?? "").isEmpty
                             ? SizedBox()
-                            : CustomText(
-                                data.businessDescription ?? "",
-                                color: AppColors.white,
-                                fontSize: SizeConfig.small11,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            : Padding(
+                              padding: const EdgeInsets.only(right: 40.0),
+                              child: CustomText(
+                                  data.businessDescription ?? "",
+                                  color: AppColors.white,
+                                  fontSize: SizeConfig.small11,
+                                  fontWeight: FontWeight.w500,
+                                                        maxLines: 4,
+                                                        overflow: TextOverflow.ellipsis,
+
+                                ),
+                            ),
                       ],
                     ),
                   ),
@@ -1192,7 +1283,7 @@ Widget buildCard5(BusinessProfileDetails data) {
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w500,
                                 ),
-                          SizedBox(height: SizeConfig.size18),
+                          SizedBox(height: SizeConfig.size12),
                           ((data.businessNumber?.officeMobNo?.number ?? 0).toString())
                                   .isEmpty
                               ? SizedBox()
@@ -1206,7 +1297,7 @@ Widget buildCard5(BusinessProfileDetails data) {
                                   fontWeight: FontWeight.w500,
                                   imagePath: "assets/svg/call_icon.svg",
                                 ),
-                          SizedBox(height: SizeConfig.size8),
+                          SizedBox(height: SizeConfig.size6),
                           (data.ownerDetails?.isNotEmpty ?? false
                                       ? data.ownerDetails?.first.email ?? ""
                                       : "")
@@ -1232,7 +1323,7 @@ Widget buildCard5(BusinessProfileDetails data) {
                                   fontSize: SizeConfig.small11,
                                   fontWeight: FontWeight.w500,
                                   imagePath: "assets/svg/website_icon.svg"),
-                          SizedBox(height: SizeConfig.size8),
+                          //SizedBox(height: SizeConfig.size8),
                           (data.address ?? "").isEmpty
                               ? SizedBox()
                               : card5Row(
@@ -1317,6 +1408,8 @@ Widget buildCard6(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -1328,6 +1421,7 @@ Widget buildCard6(BusinessProfileDetails data) {
       RepaintBoundary(
         key: _cardKey,
         child: Container(
+          height: 250,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
@@ -1407,6 +1501,8 @@ Widget buildCard6(BusinessProfileDetails data) {
                                 fontSize: SizeConfig.small11,
                                 fontWeight: FontWeight.w500,
                                 textAlign: TextAlign.center,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                               ),
                       ],
                     ),
@@ -1454,7 +1550,7 @@ Widget buildCard6(BusinessProfileDetails data) {
                                                     .role_in_business ??
                                                 ""
                                             : "",
-                                        color: AppColors.white,
+                                        color: AppColors.black,
                                         fontSize: SizeConfig.small,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -1576,6 +1672,8 @@ Widget buildCard7(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -1593,7 +1691,7 @@ Widget buildCard7(BusinessProfileDetails data) {
                 image: DecorationImage(
                     image: AssetImage("assets/images/card_bg_7.png"),
                     fit: BoxFit.fill)),
-            // height: 280,
+             height: 250,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 12),
               child: Column(
@@ -1644,7 +1742,7 @@ Widget buildCard7(BusinessProfileDetails data) {
                                       .isEmpty
                                   ? SizedBox()
                                   : Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.start,
                                       children: [
                                         Icon(
                                           Icons.call,
@@ -1677,6 +1775,8 @@ Widget buildCard7(BusinessProfileDetails data) {
                                   color: AppColors.white,
                                   fontSize: SizeConfig.small11,
                                   fontWeight: FontWeight.w500,
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                       ],
@@ -1742,7 +1842,9 @@ Widget buildCard7(BusinessProfileDetails data) {
                                       imagePath: "assets/svg/email_icon.svg",
                                     ),
                               SizedBox(height: SizeConfig.size8),
+
                               (data.websiteUrl ?? "").isEmpty
+
                                   ? SizedBox()
                                   : card7Row(
                                       icon: Icons.language,
@@ -1807,11 +1909,11 @@ Widget buildCard7(BusinessProfileDetails data) {
                       ],
                     ),
                   ),
-                  SizedBox(height: SizeConfig.size8),
+                 // SizedBox(height: SizeConfig.size8),
                   (data.address ?? "").isEmpty
                       ? SizedBox()
                       : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.only(right: 60,left: 20),
                           child: card7Row(
                               icon: Icons.location_on,
                               textColor: Colors.white,
@@ -1892,6 +1994,8 @@ Widget buildCard8(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -1903,6 +2007,7 @@ Widget buildCard8(BusinessProfileDetails data) {
       RepaintBoundary(
         key: _cardKey,
         child: Container(
+          height: 250,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
@@ -1970,7 +2075,9 @@ Widget buildCard8(BusinessProfileDetails data) {
                                 color: AppColors.black,
                                 fontSize: SizeConfig.small11,
                                 fontWeight: FontWeight.w500,
-                              ),
+
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,                              ),
                       ],
                     ),
                   ),
@@ -2039,12 +2146,12 @@ Widget buildCard8(BusinessProfileDetails data) {
                                 imagePath: "assets/svg/email_icon.svg",
                               ),
                         SizedBox(height: SizeConfig.size8),
-                        (data.websiteUrl ?? "").isEmpty
+                        (data.address ?? "").isEmpty
                             ? SizedBox()
                             : card8Row(
                                 icon: Icons.language,
                                 textColor: AppColors.white,
-                                title: data.websiteUrl ?? "",
+                                title: data.address ?? "",
                                 fontSize: SizeConfig.small11,
                                 fontWeight: FontWeight.w500,
                                 imagePath: "assets/svg/website_icon.svg"),
@@ -2137,6 +2244,8 @@ Widget buildCard9(BusinessProfileDetails data) {
             fontSize: fontSize,
             fontWeight: fontWeight,
             textAlign: textAlign,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -2153,7 +2262,7 @@ Widget buildCard9(BusinessProfileDetails data) {
                 image: DecorationImage(
                     image: AssetImage("assets/images/card_bg_9.png"),
                     fit: BoxFit.fill)),
-            // height: 300,
+             height: 250,
             child: Padding(
               padding:
                   EdgeInsets.symmetric(horizontal: Get.width * 0.056, vertical: 12),
@@ -2162,7 +2271,7 @@ Widget buildCard9(BusinessProfileDetails data) {
                 children: [
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 60.0),
+                      padding: const EdgeInsets.only(top: 40.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -2229,7 +2338,7 @@ Widget buildCard9(BusinessProfileDetails data) {
                               ),
                             ],
                           ),
-                          SizedBox(height: SizeConfig.size18),
+                          SizedBox(height: SizeConfig.size8),
                           ((data.businessNumber?.officeMobNo?.number ?? 0).toString())
                                   .isEmpty
                               ? SizedBox()
@@ -2266,7 +2375,7 @@ Widget buildCard9(BusinessProfileDetails data) {
                                   fontSize: SizeConfig.small11,
                                   fontWeight: FontWeight.w500,
                                   imagePath: "assets/svg/website_icon.svg"),
-                          SizedBox(height: SizeConfig.size12),
+                          SizedBox(height: SizeConfig.size2),
                           (data.address ?? "").isEmpty
                               ? SizedBox()
                               : card9Row(
@@ -2372,6 +2481,8 @@ Widget buildCard9(BusinessProfileDetails data) {
                                     fontSize: SizeConfig.small11,
                                     fontWeight: FontWeight.w500,
                                     textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                                   ),
                           ],
                         ),
@@ -2419,6 +2530,7 @@ Widget buildCard10(BusinessProfileDetails data) {
       RepaintBoundary(
         key: _cardKey,
         child: Container(
+          height: 250,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: AppColors.white,
@@ -2505,7 +2617,7 @@ Widget buildCard10(BusinessProfileDetails data) {
                               ],
                             ),
                             SizedBox(
-                              height: 28,
+                              height: 6,
                             ),
                             ((data.businessNumber?.officeMobNo?.number ?? 0)
                                         .toString())
@@ -2543,7 +2655,7 @@ Widget buildCard10(BusinessProfileDetails data) {
                                     ],
                                   ),
                             SizedBox(
-                              height: 14,
+                              height: 6,
                             ),
                             (data.ownerDetails?.isNotEmpty ?? false
                                         ? data.ownerDetails?.first.email ?? ""
@@ -2584,7 +2696,7 @@ Widget buildCard10(BusinessProfileDetails data) {
                                     ],
                                   ),
                             SizedBox(
-                              height: 14,
+                              height: 6,
                             ),
                             (data.websiteUrl ?? "").isEmpty
                                 ? SizedBox()
@@ -2620,7 +2732,7 @@ Widget buildCard10(BusinessProfileDetails data) {
                                     ],
                                   ),
                             SizedBox(
-                              height: 14,
+                              height: 6,
                             ),
                             (data.address ?? "").isEmpty
                                 ? SizedBox()
@@ -2651,6 +2763,8 @@ Widget buildCard10(BusinessProfileDetails data) {
                                           fontSize: SizeConfig.small11,
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.white,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
@@ -2676,8 +2790,8 @@ Widget buildCard10(BusinessProfileDetails data) {
                             offset: Offset(-4, 0), // Push left
                           ),
                         ]),
-                    margin: EdgeInsets.only(right: 20, bottom: 20, top: 20),
-                    padding: EdgeInsets.only(left: 20, bottom: 20, top: 20, right: 6),
+                    margin: EdgeInsets.only(right: 20, bottom: 20, top: 6),
+                    padding: EdgeInsets.only(left: 20, bottom: 20, top: 6, right: 6),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -2734,9 +2848,9 @@ Widget buildCard10(BusinessProfileDetails data) {
                                   ),
                                 ],
                               ),
-                        SizedBox(
-                          height: 4,
-                        ),
+                        // SizedBox(
+                        //   height: 4,
+                        // ),
                         (data.businessDescription ?? "").isEmpty
                             ? SizedBox()
                             : CustomText(
@@ -2745,6 +2859,8 @@ Widget buildCard10(BusinessProfileDetails data) {
                                 fontSize: SizeConfig.small11,
                                 fontWeight: FontWeight.w500,
                                 textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                               ),
                       ],
                     ),
@@ -2830,6 +2946,7 @@ Widget buildCard11(BusinessProfileDetails data) {
       RepaintBoundary(
         key: _cardKey,
         child: Container(
+          height: 250,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
@@ -2951,7 +3068,7 @@ Widget buildCard11(BusinessProfileDetails data) {
                   SizedBox(width: 30),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 40.0, left: 20),
+                      padding: const EdgeInsets.only( left: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -3019,6 +3136,8 @@ Widget buildCard11(BusinessProfileDetails data) {
                                   fontSize: SizeConfig.small11,
                                   fontWeight: FontWeight.w500,
                                   textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                                 ),
                         ],
                       ),

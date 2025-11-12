@@ -163,7 +163,6 @@ class ViewBusinessDetailsController extends GetxController {
           await BusinessProfileRepo().viewParticularBusinessProfile();
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-        log("dkjjskdklsd ${data}");
         businessProfileDetails = ViewBusinessProfileModel.fromJson(data);
 
         selectDay?.value =
@@ -174,7 +173,6 @@ class ViewBusinessDetailsController extends GetxController {
             businessProfileDetails?.data?.dateOfIncorporation?.year ?? 0;
         imagePath?.value = businessProfileDetails?.data?.logo ?? "";
         coverImage?.value= businessProfileDetails?.data?.coverimage ?? "";
-        print("skldclskmcsldkc ${businessProfileDetails?.data?.coverimage ?? ""}");
         selectedCategoryOfBusiness.value = CategoryData(
             id: businessProfileDetails?.data?.categoryDetails?.id,
             name: businessProfileDetails?.data?.categoryDetails?.name);
@@ -189,6 +187,7 @@ class ViewBusinessDetailsController extends GetxController {
                     : businessProfileDetails?.data?.typeOfBusiness == "Food"
                         ? BusinessType.Food
                         : BusinessType.Both;
+          log("wkjcnslkdclskcmsdc ${businessProfileDetails?.data?.typeOfBusiness} ___ ${ BusinessType.Product.name}");
         if (businessProfileDetails?.data?.typeOfBusiness ==
             BusinessType.Product.name) {
           selectedTypeOfBusiness.value = BusinessCategory(
