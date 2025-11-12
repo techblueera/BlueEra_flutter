@@ -1258,6 +1258,8 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                             ),
                             SizedBox(height: SizeConfig.size10),
 
+                            // [log] value categoryy id--> 68ce990eeac48e6b0d4972ad
+                            // [log] value categoryy name --> Education & Training Services
                             CommonDropdownDialog<CategoryData>(
                               items: viewBusinessDetailsController
                                   .businessCategoriesList,
@@ -1267,6 +1269,8 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                               hintText: "Select Business Category",
                               displayValue: (category) => "${category.name}",
                               onChanged: (value) {
+                                log('value categoryy id--> ${value?.id}');
+                                log('value categoryy name --> ${value?.name}');
                                 viewBusinessDetailsController
                                     .businessSubCategoriesList.clear();
                                 viewBusinessDetailsController
@@ -1298,10 +1302,13 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                               hintText: "Select Sub Category",
                               displayValue: (sub) => "${sub.name}",
                               onChanged: (value) {
-
                                 viewBusinessDetailsController
                                     .selectedSubCategoryOfBusinessNew.value =
                                     value;
+
+                                log('selectedSubCategoryOfBusinessNew categoryy id -- ${viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.sId}');
+                                log('selectedSubCategoryOfBusinessNew categoryy name-- ${viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.name}');
+
                               },
                             ),
 

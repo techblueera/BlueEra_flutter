@@ -71,18 +71,14 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     earnWithBlueEraController.fetchOwnProducts();
 
     /// check riding status
-    deliveryPartnerController.ridersOnboardingStatusRepoApi();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndOpenEarnServiceSheet();
     });
+    deliveryPartnerController.ridersOnboardingStatusRepoApi();
     super.initState();
   }
 
   void _checkAndOpenEarnServiceSheet() async {
-    // await viewPersonalDetailsController.getEarnServiceStatus(
-    //     isAddServiceRequired: false
-    // );
-    await Future.delayed(Duration(seconds: 2));
     _openEarnWithBlueEraSheet();
   }
 

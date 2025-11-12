@@ -1000,11 +1000,12 @@ class RouteHelper {
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreen(
+                id: id,
+                providerType: providerType,
                 productPreviewArgs: argProductData,
                 isFromProductCreation: isFromProductCreation ?? false,
                 isUserCanCreateVariants: isUserCanCreateVariants ?? true,
-                id: id,
-                providerType: providerType,
+
             ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.storeProductPreviewScreenProduct:
