@@ -156,7 +156,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
               ? videoWidth / videoHeight
               : 16 / 9;
 
-
           double displayWidth = screenWidth;
           double displayHeight;
 
@@ -196,8 +195,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                 ),
 
                 // --- 🎬 Video Player (only visible when ready)
-                if (showVideo &&
-                    controller.value.isInitialized)
+                if (showVideo && controller.value.isInitialized)
                   FittedBox(
                     fit: isLandscape ? BoxFit.contain : BoxFit.cover,
                     alignment: Alignment.center,
@@ -216,29 +214,32 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                   ),
 
                 // --- 🔇 Mute Button
-                if (isCurrent && controller != null)
-                  Positioned(
-                    top: SizeConfig.size12,
-                    right: SizeConfig.size10,
-                    child: GestureDetector(
-                      onTap: videoManager.toggleMute,
-                      child: Container(
-                        padding: EdgeInsets.all(SizeConfig.size6),
-                        decoration: BoxDecoration(
-                          color: AppColors.blackCC,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ValueListenableBuilder<bool>(
-                          valueListenable: videoManager.isMuted,
-                          builder: (_, isMuted, __) => Icon(
-                            isMuted ? Icons.volume_off : Icons.volume_up,
-                            color: AppColors.white,
-                            size: SizeConfig.size20,
+                if (isCurrent &&
+                    controller != null &&
+                    videoManager.isMuted.hasListeners)
+                  if (isCurrent && controller != null)
+                    Positioned(
+                      top: SizeConfig.size12,
+                      right: SizeConfig.size10,
+                      child: GestureDetector(
+                        onTap: videoManager.toggleMute,
+                        child: Container(
+                          padding: EdgeInsets.all(SizeConfig.size6),
+                          decoration: BoxDecoration(
+                            color: AppColors.blackCC,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: videoManager.isMuted,
+                            builder: (_, isMuted, __) => Icon(
+                              isMuted ? Icons.volume_off : Icons.volume_up,
+                              color: AppColors.white,
+                              size: SizeConfig.size20,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
               ],
             ),
           );
