@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
 import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -80,6 +81,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   ];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
+
   Future<void> noLocationPermissionDialogBox() async {
     Get.dialog(
       WillPopScope(
@@ -125,6 +127,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       barrierDismissible: false,
     );
   }
+
   Future<void> _handleLocationFlow() async {
     final locationData = await locationController.checkPermissionAndSetData();
 
@@ -147,15 +150,16 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handleLocationFlow();
     }); // ✅ Show after build
-   setFilters();
+    setFilters();
     super.initState();
   }
+
   Future<void> updateAddressFromLocation() async {
     final locationData = await locationController.checkPermissionAndSetData();
     if (locationData != null) {
-  locationData.fullAddress;
-     locationData.city;
-     locationData.pinCode;
+      locationData.fullAddress;
+      locationData.city;
+      locationData.pinCode;
       viewBusinessDetailsController.addressLat?.value =
           double.parse(locationData.lat);
       viewBusinessDetailsController.addressLong?.value =
@@ -173,27 +177,32 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<ViewBusinessDetailsController>(builder: (controller) {
       if (controller.viewBusinessResponse.status == Status.COMPLETE) {
-        BusinessProfileDetails? details = viewBusinessDetailsController.businessProfileDetails?.data;
+        BusinessProfileDetails? details =
+            viewBusinessDetailsController.businessProfileDetails?.data;
 
         return Padding(
           padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 12,),
+              SizedBox(
+                height: 12,
+              ),
               HorizontalTabSelector(
                 horizontalMargin: 2,
                 tabs: postTabs,
                 selectedIndex:
-                viewBusinessDetailsController.selectedIndex.value,
+                    viewBusinessDetailsController.selectedIndex.value,
                 onTabSelected: (index, value) {
                   setState(() => viewBusinessDetailsController
                       .selectedIndex.value = index);
                 },
                 labelBuilder: (label) => label,
               ),
-              SizedBox(height: 14,),
-
+              SizedBox(
+                height: 14,
+              ),
 
               // HorizontalTabSelector(
               //   tabs: postTab,
@@ -214,8 +223,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               // SizedBox(
               //   height: SizeConfig.size10,
               // ),
-              _buildTabContent(
-                  controller, viewBusinessDetailsController.selectedIndex.value,details)
+              _buildTabContent(controller,
+                  viewBusinessDetailsController.selectedIndex.value, details)
             ],
           ),
         );
@@ -234,7 +243,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     });
   }
 
-  Widget _buildTabContent(ViewBusinessDetailsController controller, int index,BusinessProfileDetails? details) {
+  Widget _buildTabContent(ViewBusinessDetailsController controller, int index,
+      BusinessProfileDetails? details) {
     switch (postTabs[index]) {
       case 'Profile':
         return Column(
@@ -275,53 +285,51 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
         return const Center(child: CustomText('Coming soon'));
     }
   }
-
 }
+
 class MyProductCardDetails extends StatelessWidget {
   const MyProductCardDetails({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())..fetchOwnProducts();
+    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())
+      ..fetchOwnProducts();
 
     final productList = earnWithBlueEraController.ownProductDataList;
 
-    return  Column(
+    return Column(
       children: [
-        (productList.isEmpty)?
-        Center(
-          child: EmptyStateWidget(
-            message:  'No Products available.',
-          ),
-        )
-            :SizedBox(
-          height: 600,
-          child: ListView.builder(
-
-            physics: const AlwaysScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: productList.length,
-            itemBuilder: (context, index) {
-              final productData = productList[index];
-
-              return Padding(
-                padding: EdgeInsets.only(
-                    bottom: SizeConfig.size8,
-                    left: SizeConfig.size8,
-                    right: SizeConfig.size8
+        (productList.isEmpty)
+            ? Center(
+                child: EmptyStateWidget(
+                  message: 'No Products available.',
                 ),
-                child: OwnProductCard(
-                  product: productData,
-                  isGridShow: false,
-                  deleteProductApi: (){
-                    // earnWithBlueEraController.deleteProduct();
+              )
+            : SizedBox(
+                height: 600,
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: productList.length,
+                  itemBuilder: (context, index) {
+                    final productData = productList[index];
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                          bottom: SizeConfig.size8,
+                          left: SizeConfig.size8,
+                          right: SizeConfig.size8),
+                      child: OwnProductCard(
+                        product: productData,
+                        isGridShow: false,
+                        deleteProductApi: () {
+                          // earnWithBlueEraController.deleteProduct();
+                        },
+                      ),
+                    );
                   },
                 ),
-              );
-            },
-          ),
-        ),
-
+              ),
         if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
@@ -331,8 +339,6 @@ class MyProductCardDetails extends StatelessWidget {
     );
   }
 }
-
-
 
 class BusinessProfileHeader extends StatelessWidget {
   final BusinessProfileDetails? details;
@@ -344,7 +350,7 @@ class BusinessProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    bool _isBottomSheetOpen =false;
+    bool _isBottomSheetOpen = false;
 
     return Container(
       // margin: const EdgeInsets.all(8),
@@ -378,7 +384,8 @@ class BusinessProfileHeader extends StatelessWidget {
                     height: 130,
                     width: double.infinity,
                     child: Image.network(
-                      (controller.coverImage?.value != null && controller.coverImage!.value!.isNotEmpty)
+                      (controller.coverImage?.value != null &&
+                              controller.coverImage!.value!.isNotEmpty)
                           ? controller.coverImage!.value!
                           : (controller.coverImage?.value ?? ''),
                       width: double.infinity,
@@ -427,12 +434,14 @@ class BusinessProfileHeader extends StatelessWidget {
                     child: InkWell(
                         onTap: () async {
                           try {
-                            final newPath = await SelectProfilePictureDialog.showLogoDialog(
-                              context,
-                              "Edit Cover Picture",
-                              cropAspectRatio: CropAspectRatio(width: 3, height: 1)
-                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
-                            ).catchError((_) => null);
+                            final newPath =
+                                await SelectProfilePictureDialog.showLogoDialog(
+                                        context, "Edit Cover Picture",
+                                        cropAspectRatio:
+                                            CropAspectRatio(width: 3, height: 1)
+                                        // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
+                                        )
+                                    .catchError((_) => null);
 
                             if (newPath == null || newPath.isEmpty) {
                               commonSnackBar(message: "No image selected");
@@ -443,7 +452,8 @@ class BusinessProfileHeader extends StatelessWidget {
 
                             // Compress before upload
                             final file = File(newPath);
-                            final compressed = await FlutterImageCompress.compressAndGetFile(
+                            final compressed =
+                                await FlutterImageCompress.compressAndGetFile(
                               file.absolute.path,
                               "${file.path}_compressed.jpg",
                               quality: 75,
@@ -454,24 +464,26 @@ class BusinessProfileHeader extends StatelessWidget {
                             );
 
                             if (dataImage == null) {
-                              commonSnackBar(message: "Image processing failed");
+                              commonSnackBar(
+                                  message: "Image processing failed");
                               return;
                             }
 
                             final reqProfile = {
-
                               ApiKeys.businessId: businessId,
                               ApiKeys.business_name: details?.businessName,
-
-                             "coverPicture": dataImage};
-                            await controller.updateBusinessProfileDetails(reqProfile);
+                              "coverPicture": dataImage
+                            };
+                            await controller
+                                .updateBusinessProfileDetails(reqProfile);
                           } catch (e, s) {
-                            debugPrint("❌ Crash in cover picture upload: $e\n$s");
-                            commonSnackBar(message: "Something went wrong while updating picture");
+                            debugPrint(
+                                "❌ Crash in cover picture upload: $e\n$s");
+                            commonSnackBar(
+                                message:
+                                    "Something went wrong while updating picture");
                           }
                         },
-
-
                         child: Image.asset('assets/diwali_card/camera.png'))),
 
                 // Follow button & menu
@@ -487,38 +499,42 @@ class BusinessProfileHeader extends StatelessWidget {
                       children: [
                         (details?.businessIsVerified ?? false)
                             ? Flexible(
-                              child:  Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 13, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color:  Color(0xffC5FFC9),
-                                  borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 13, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffC5FFC9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: CustomText(
+                                    "Verified Profile",
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                child:  CustomText(
-                                  "Verified Profile",
-                                  color:  AppColors.secondaryTextColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
+                              )
+                            : Flexible(
+                                child: BlinkingVerifyButton(
+                                  onTap: () {
+                                    Get.to(BusinessVerification());
+                                    // commonSnackBar(message: "Coming soon....");
+                                  },
                                 ),
                               ),
-                            )
-                            : Flexible(
-                          child: BlinkingVerifyButton(
-                            onTap: () {
-                              commonSnackBar(message: "Coming soon....");
-                            },
-                          ),
-                        ),
 
-                        SizedBox(width: SizeConfig.size10,),
+                        SizedBox(
+                          width: SizeConfig.size10,
+                        ),
                         InkWell(
                           onTap: () {
-
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      BusinessDetailsEditPageOne(prevBusinessDetails: details,),
+                                      BusinessDetailsEditPageOne(
+                                    prevBusinessDetails: details,
+                                  ),
                                 ));
                           },
                           child: Container(
@@ -577,7 +593,7 @@ class BusinessProfileHeader extends StatelessWidget {
                           border: Border.all(
                             color: AppColors.secondaryTextColor,
                           )),
-                      child:  Row(
+                      child: Row(
                         children: [
                           CustomText(
                             "${details?.categoryDetails?.name ?? ''}",
@@ -585,35 +601,28 @@ class BusinessProfileHeader extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                           ),
-                          SizedBox(width:  SizeConfig.size10),
-
+                          SizedBox(width: SizeConfig.size10),
                           GestureDetector(
-
                             onTap: () {
-                              TextEditingController ownerNameCtrl = TextEditingController(
+                              TextEditingController ownerNameCtrl =
+                                  TextEditingController(
                                 text: details!.ownerDetails?.first.name ?? '',
                               );
 
-                              TextEditingController ownerRoleCtrl = TextEditingController(
+                              TextEditingController ownerRoleCtrl =
+                                  TextEditingController(
                                 text: details?.ownerDetails?.first
-                                    .role_in_business ?? '',
-                              );
-
-                              TextEditingController ownerEmailCtrl = TextEditingController(
-                                text: details?.ownerDetails?.first.email ??
+                                        .role_in_business ??
                                     '',
                               );
 
+                              TextEditingController ownerEmailCtrl =
+                                  TextEditingController(
+                                text: details?.ownerDetails?.first.email ?? '',
+                              );
+
                               openBusinessDetailsEditSheet(context);
-
-
-
-
-
-
                             },
-
-
                             child: LocalAssets(
                               imagePath: AppIconAssets.editIcon,
                               height: SizeConfig.size12,
@@ -634,72 +643,65 @@ class BusinessProfileHeader extends StatelessWidget {
                           border: Border.all(
                             color: AppColors.secondaryTextColor,
                           )),
-                      child:  Row(
-
+                      child: Row(
                         children: [
                           CustomText(
-                            "${details!.ownerDetails?.first.name??''} (${details?.ownerDetails?.first.role_in_business})",
+                            "${details!.ownerDetails?.first.name ?? ''} (${details?.ownerDetails?.first.role_in_business})",
                             color: AppColors.secondaryTextColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                           ),
-                           SizedBox(width:  SizeConfig.size10),
-
+                          SizedBox(width: SizeConfig.size10),
                           GestureDetector(
+                            onTap: () {
+                              TextEditingController ownerNameCtrl =
+                                  TextEditingController(
+                                text: details!.ownerDetails?.first.name ?? '',
+                              );
 
-                              onTap: () {
-                                TextEditingController ownerNameCtrl = TextEditingController(
-                                  text: details!.ownerDetails?.first.name ?? '',
-                                );
+                              TextEditingController ownerRoleCtrl =
+                                  TextEditingController(
+                                text: details?.ownerDetails?.first
+                                        .role_in_business ??
+                                    '',
+                              );
 
-                                TextEditingController ownerRoleCtrl = TextEditingController(
-                                  text: details?.ownerDetails?.first
-                                      .role_in_business ?? '',
-                                );
+                              TextEditingController ownerEmailCtrl =
+                                  TextEditingController(
+                                text: details?.ownerDetails?.first.email ?? '',
+                              );
 
-                                TextEditingController ownerEmailCtrl = TextEditingController(
-                                  text: details?.ownerDetails?.first.email ??
-                                      '',
-                                );
+                              openOwnerEditSheet(
+                                context: context,
+                                nameController: ownerNameCtrl,
+                                roleController: ownerRoleCtrl,
+                                emailController: ownerEmailCtrl,
+                                onSave: () async {
+                                  if (!GetUtils.isEmail(
+                                      ownerEmailCtrl.text.trim())) {
+                                    commonSnackBar(
+                                        message: "Enter valid email");
+                                    return;
+                                  } else {
+                                    Map<String, dynamic> updatedParams = {
+                                      ApiKeys.owner_details: jsonEncode([
+                                        {
+                                          ApiKeys.name: ownerNameCtrl.text,
+                                          ApiKeys.role_in_business:
+                                              ownerRoleCtrl.text,
+                                          ApiKeys.email: ownerEmailCtrl.text
+                                        }
+                                      ]),
+                                    };
 
-                                openOwnerEditSheet(
-                                  context: context,
-                                  nameController: ownerNameCtrl,
-                                  roleController: ownerRoleCtrl,
-                                  emailController: ownerEmailCtrl,
-                                  onSave: () async {
-
-                                    if (!GetUtils.isEmail(
-                                        ownerEmailCtrl.text.trim())) {
-                                      commonSnackBar(
-                                          message: "Enter valid email");
-                                      return;
-                                    }else{
-                                      Map<String, dynamic> updatedParams = {
-                                        ApiKeys.owner_details: jsonEncode([
-                                          {
-                                            ApiKeys.name: ownerNameCtrl.text,
-                                            ApiKeys.role_in_business:
-                                            ownerRoleCtrl.text,
-                                            ApiKeys.email: ownerEmailCtrl.text
-                                          }
-                                        ]),
-                                      };
-
-
-                                      await Get.find<ViewBusinessDetailsController>()
-                                          .updateBusinessDetails(updatedParams);
-                                      Get.back();
-                                    }
-
-
-
-
-                                  },
-                                );
-                              },
-
-
+                                    await Get.find<
+                                            ViewBusinessDetailsController>()
+                                        .updateBusinessDetails(updatedParams);
+                                    Get.back();
+                                  }
+                                },
+                              );
+                            },
                             child: LocalAssets(
                               imagePath: AppIconAssets.editIcon,
                               height: SizeConfig.size12,
@@ -736,7 +738,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                 width: SizeConfig.paddingXSmall,
                               ),
                               CustomText(
-                                "Your Orders" ,
+                                "Your Orders",
                                 color: theme.colorScheme.surface,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -759,12 +761,13 @@ class BusinessProfileHeader extends StatelessWidget {
                             side: BorderSide(
                               color: theme.colorScheme.primary,
                             )),
-                        onPressed: () async{
-
-                          if (_isBottomSheetOpen) return; // ✅ Block second tap instantly
+                        onPressed: () async {
+                          if (_isBottomSheetOpen)
+                            return; // ✅ Block second tap instantly
                           _isBottomSheetOpen = true; // ✅ Lock immediately
 
-                          await _showVisitingCardDialog(context); // Wait for sheet to close
+                          await _showVisitingCardDialog(
+                              context); // Wait for sheet to close
 
                           _isBottomSheetOpen = false; //
                         },
@@ -785,7 +788,9 @@ class BusinessProfileHeader extends StatelessWidget {
                 //   onPressed: () {},
                 //   child: const Text("Read More"),
                 // ),
-                 SizedBox(height: SizeConfig.size10,),
+                SizedBox(
+                  height: SizeConfig.size10,
+                ),
 
                 Container(
                   // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
@@ -896,7 +901,6 @@ class BusinessProfileHeader extends StatelessWidget {
                             maxLines: 1,
                             fontWeight: FontWeight.w400,
                           ),
-
                           SizedBox(height: SizeConfig.size10),
                         ],
                       )
@@ -937,7 +941,6 @@ class BusinessProfileHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   Padding(
                     padding: EdgeInsets.all(SizeConfig.size12),
                     child: Column(
@@ -980,6 +983,7 @@ class BusinessProfileHeader extends StatelessWidget {
     );
   }
 }
+
 void openOwnerEditSheet({
   required BuildContext context,
   required TextEditingController nameController,
@@ -993,7 +997,8 @@ void openOwnerEditSheet({
     backgroundColor: Colors.transparent,
     builder: (_) {
       return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -1023,31 +1028,28 @@ void openOwnerEditSheet({
                     ],
                   ),
                   const SizedBox(height: 20),
-
                   CommonTextField(
                     textEditController: nameController,
                     inputLength: 50,
                     keyBoardType: TextInputType.text,
-                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                    regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
                     title: "Your Name",
                     hintText: "Eg., Rahul Sharma",
                     isValidate: false,
                   ),
-
                   const SizedBox(height: 16),
-
                   CommonTextField(
                     textEditController: roleController,
                     inputLength: 50,
                     keyBoardType: TextInputType.text,
-                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                    regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
                     title: "Your Role in the Business",
                     hintText: "Eg., Co-founder / Owner",
                     isValidate: false,
                   ),
-
                   const SizedBox(height: 16),
-
                   CommonTextField(
                     textEditController: emailController,
                     inputLength: 50,
@@ -1057,9 +1059,7 @@ void openOwnerEditSheet({
                     hintText: "Eg., yourname@email.com",
                     isValidate: false,
                   ),
-
                   const SizedBox(height: 24),
-
                   CustomBtn(
                     radius: 10,
                     bgColor: AppColors.primaryColor,
@@ -1075,14 +1075,15 @@ void openOwnerEditSheet({
     },
   );
 }
+
 void openBusinessDetailsEditSheet(BuildContext context) {
   final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+      Get.find<ViewBusinessDetailsController>();
 
   // Controllers pre-filled with existing data
   TextEditingController specializationCtrl = TextEditingController(
     text: viewBusinessDetailsController
-        .businessProfileDetails?.data?.specification ??
+            .businessProfileDetails?.data?.specification ??
         '',
   );
 
@@ -1092,7 +1093,8 @@ void openBusinessDetailsEditSheet(BuildContext context) {
     backgroundColor: Colors.transparent,
     builder: (_) {
       return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -1133,11 +1135,9 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                     hintText: "Select Business Category",
                     displayValue: (category) => "${category.name}",
                     onChanged: (value) {
-                      viewBusinessDetailsController
-                          .businessSubCategoriesList
+                      viewBusinessDetailsController.businessSubCategoriesList
                           .clear();
-                      viewBusinessDetailsController
-                          .businessSubCategoriesList
+                      viewBusinessDetailsController.businessSubCategoriesList
                           .addAll(value?.subCategories ?? []);
                       viewBusinessDetailsController
                           .selectedCategoryOfBusiness.value = value!;
@@ -1150,7 +1150,8 @@ void openBusinessDetailsEditSheet(BuildContext context) {
 
                   // Sub-Category
                   CommonDropdownDialog<SubCategories>(
-                    items: viewBusinessDetailsController.businessSubCategoriesList,
+                    items:
+                        viewBusinessDetailsController.businessSubCategoriesList,
                     title: "Sub-Category",
                     selectedValue: viewBusinessDetailsController
                         .selectedSubCategoryOfBusinessNew.value,
@@ -1184,14 +1185,14 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                     title: "Save",
                     onTap: () async {
                       if (viewBusinessDetailsController
-                          .selectedCategoryOfBusiness.value?.id ==
+                              .selectedCategoryOfBusiness.value?.id ==
                           null) {
                         commonSnackBar(message: "Please select category");
                         return;
                       }
 
                       if (viewBusinessDetailsController
-                          .selectedSubCategoryOfBusinessNew.value?.sId ==
+                              .selectedSubCategoryOfBusinessNew.value?.sId ==
                           null) {
                         commonSnackBar(message: "Please select sub-category");
                         return;
@@ -1205,8 +1206,9 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                         ApiKeys.specification: specializationCtrl.text.trim(),
                       };
 
-                      final success = await Get.find<ViewBusinessDetailsController>()
-                          .updateBusinessDetails(updatedParams);
+                      final success =
+                          await Get.find<ViewBusinessDetailsController>()
+                              .updateBusinessDetails(updatedParams);
 
                       // if (success == true) {
                       //   commonSnackBar(message: "Business details updated successfully");
@@ -1226,6 +1228,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
 
 class BlinkingVerifyButton extends StatefulWidget {
   final VoidCallback onTap;
+
   const BlinkingVerifyButton({super.key, required this.onTap});
 
   @override
@@ -1296,7 +1299,7 @@ Widget buildInfo(String title, String value) {
       SizedBox(width: SizeConfig.size6),
       Flexible(
         child: CustomText(
-          value ,
+          value,
           fontSize: SizeConfig.size12,
           fontWeight: FontWeight.w700,
           color: AppColors.secondaryTextColor,
