@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -50,6 +51,45 @@ import '../../../../widgets/common_back_app_bar.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
+
+
+class PostTabModel {
+  final String id;        // For internal logic
+  final String nameKey;   // For localization lookup
+
+  const PostTabModel({required this.id, required this.nameKey});
+}
+
+class PostTabs {
+  static const aboutMe = PostTabModel(
+    id: "aboutMe",
+    nameKey: AppStrings.aboutMe,
+  );
+
+  static const posts = PostTabModel(
+    id: "posts",
+    nameKey: AppStrings.posts,
+  );
+
+  static const testimonials = PostTabModel(
+    id: "testimonials",
+    nameKey: AppStrings.testimonials,
+  );
+
+  static const myStore = PostTabModel(
+    id: "myStore",
+    nameKey: AppStrings.myStore,
+  );
+
+  static const List<PostTabModel> postTab = [
+    aboutMe,
+    posts,
+    testimonials,
+    myStore,
+  ];
+}
+
+
 class PersonalProfileSetupNewScreen extends StatefulWidget {
   final int? selectedIndex;
   final SortBy? sortBy;
@@ -81,7 +121,7 @@ class _PersonalProfileSetupNewScreenState
 
   final introVideoController = Get.put(IntroductionVideoController());
   final youtubeController = TextEditingController();
-  List<String> postTab = [];
+  // List<String> postTab = [];
   int selectedIndex = 0;
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
@@ -111,7 +151,7 @@ class _PersonalProfileSetupNewScreenState
   }
 
   void updateFilters(int index) {
-    final currentTab = postTab[index];
+    final currentTab = PostTabs.postTab[index].id;
     if (currentTab == 'Shorts' || currentTab == 'Videos') {
       filters = SortBy.values.toList();
     } else {
@@ -153,27 +193,26 @@ class _PersonalProfileSetupNewScreenState
   }
 
   void _initializeTabController() {
-    final user = viewProfileController.personalProfileDetails.value.user;
-    postTab = [
-      //if (user?.profession == SELF_EMPLOYED) 'My Portfolio',
+    // postTab = [
+    //   AppStrings.aboutMe,
+    //   AppStrings.posts,
+    //   AppStrings.testimonials,
+    //   AppStrings.myStore,
+    //   // 'About Me',
+    //   // 'Posts',
+    //   // 'Testimonials',
+    //   // 'My Store'
+    // ];
 
-      'About Me',
-      'Posts',
-      // 'Shorts',
-      // 'Videos',
-      'Testimonials',
-      'My Store'
-    ];
-
-    if (_tabController == null || _tabController!.length != postTab.length) {
+    if (_tabController == null || _tabController!.length != PostTabs.postTab.length) {
       // Dispose old controller if exists
       _tabController?.removeListener(_onTabChanged);
       _tabController?.dispose();
 
       // Create new controller
-      final initialIndex = selectedIndex.clamp(0, postTab.length - 1);
+      final initialIndex = selectedIndex.clamp(0, PostTabs.postTab.length - 1);
       _tabController = TabController(
-        length: postTab.length,
+        length: PostTabs.postTab.length,
         vsync: this,
         initialIndex: initialIndex,
       );
@@ -249,7 +288,7 @@ class _PersonalProfileSetupNewScreenState
 
                 return SafeArea(
                   child: DefaultTabController(
-                    length: postTab.length,
+                    length: PostTabs.postTab.length,
                     child: NestedScrollView(
                       headerSliverBuilder: (context, innerBoxIsScrolled) => [
                         SliverToBoxAdapter(
@@ -264,8 +303,8 @@ class _PersonalProfileSetupNewScreenState
                       ],
                       body: TabBarView(
                         controller: _tabController,
-                        children: postTab.map((tab) {
-                          final index = postTab.indexOf(tab);
+                        children: PostTabs.postTab.map((tab) {
+                          final index = PostTabs.postTab.indexOf(tab);
                           return Padding(
                             padding: EdgeInsets.symmetric(
                                 horizontal: SizeConfig.size10),
@@ -290,7 +329,33 @@ class _PersonalProfileSetupNewScreenState
   }
 
   Widget _buildTabContent(int index) {
-    switch (postTab[index]) {
+    switch (PostTabs.postTab[index].id) {
+      case "myStore":
+        return PortfolioWidget(isSelfPortfolio: true);
+
+      case "aboutMe":
+        return AboutMeWidget();
+
+      case "posts":
+        return FeedScreen(
+          key: ValueKey('feedScreen_my_posts'),
+          postFilterType: PostType.myPosts,
+          id: userId,
+          isInParentScroll: true,
+        );
+
+      case "testimonials":
+        return TestimonialsScreen(
+          userName: "",
+          visitUserID: userId,
+          isSelfTestimonial: true,
+        );
+
+      default:
+        return const Center(child: Text('Unknown Tab'));
+    }
+
+    /*  switch (postTab[index]) {
       case 'My Store':
         return PortfolioWidget(
           isSelfPortfolio: true,
@@ -304,35 +369,15 @@ class _PersonalProfileSetupNewScreenState
           id: userId,
           isInParentScroll: true,
         );
-      // case 'Shorts':
-      //   return ShortsChannelSection(
-      //     isOwnShorts: true,
-      //     channelId: '',
-      //     authorId: userId,
-      //     showShortsInGrid: true,
-      //     sortBy: selectedFilter,
-      //     postVia: PostVia.profile,
-      //   );
-      // case 'Videos':
-      //   return VideoChannelSection(
-      //     isOwnVideos: true,
-      //     sortBy: selectedFilter,
-      //     channelId: '',
-      //     authorId: userId,
-      //     padding: 0.0,
-      //     postVia: PostVia.profile,
-      //   );
       case 'Testimonials':
         return TestimonialsScreen(
           userName: "",
           visitUserID: userId,
           isSelfTestimonial: true,
         );
-      // case 'Channels':
-      // return ChannelsWidget();
       default:
         return const Center(child: Text('Unknown Tab'));
-    }
+    }*/
   }
 
   Widget AboutMeWidget() {
@@ -391,7 +436,7 @@ class _PersonalProfileSetupNewScreenState
                         _buildCircleIcon(AppIconAssets.link),
                         SizedBox(width: SizeConfig.size6),
 
-                        _buildTitleWidget('Links'),
+                        _buildTitleWidget(AppStrings.links),
                       ],
                     ),
                     SizedBox(height: SizeConfig.size16),
@@ -400,18 +445,6 @@ class _PersonalProfileSetupNewScreenState
                       child: HttpsTextField(
                         controller: youtubeController,
                         isYoutubeValidation: true,
-                        // pIcon: Container(
-                        //   width: 40,
-                        //   child: Center(
-                        //     child: SvgPicture.asset(
-                        //       "assets/svg/youtube_grey.svg",
-                        //       height: SizeConfig.size24,
-                        //       width: SizeConfig.size24,
-                        //       fit: BoxFit.fitHeight,
-                        //     ),
-                        //   ),
-                        // ),
-                        // hintText: "Your your URL here",
                         hintText: "e.g. https://addlinkhere.com",
 
                         onChange: (value) {
@@ -419,35 +452,7 @@ class _PersonalProfileSetupNewScreenState
                         },
                       ),
                     ),
-                    /*   Column(
-                      children: List.generate(
-                        selectedInputFieldsPersonalProfile.length,
-                        (linkIndex) {
-                          final field =
-                              selectedInputFieldsPersonalProfile[linkIndex];
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: SizeConfig.size14),
-                            child: HttpsTextField(
-                              controller: field.linkController,
-                              pIcon: Container(
-                                width: 40,
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    field.icon,
-                                    height: SizeConfig.size24,
-                                    width: SizeConfig.size24,
-                                    fit: BoxFit.fitHeight,
-                                  ),
-                                ),
-                              ),
-                             // hintText: "Your your URL here",
-                               hintText: "Your ${field.name} URL here",
-                              onChange: (value) {},
-                            ),
-                          );
-                        },
-                      ),
-                    ),*/
+
                     SizedBox(height: SizeConfig.size10),
                     CustomBtn(
                       isValidate:
@@ -460,47 +465,18 @@ class _PersonalProfileSetupNewScreenState
                                     message: "Enter youtube link here...");
                                 return;
                               }
-                              /*
-                        for (var field in selectedInputFieldsPersonalProfile) {
-                          String name = field.name.toLowerCase();
-                          String url = field.linkController.text.trim();
 
-                          switch (name) {
-                            case 'youtube':
-                              viewProfileController.youtube.value = url;
-                              break;
-                            case 'twitter':
-                              viewProfileController.twitter.value = url;
-                              break;
-                            case 'linkedin':
-                              viewProfileController.linkedin.value = url;
-                              break;
-                            case 'instagram':
-                              viewProfileController.instagram.value = url;
-                              break;
-                            case 'website':
-                              viewProfileController.website.value = url;
-                              break;
-                          }
-                        }*/
                               await personalCreateProfileController
                                   .updateUserProfileDetails(
                                 params: {
                                   ApiKeys.id: userId,
                                   ApiKeys.youtube: youtubeController.text,
-                                  // ApiKeys.twitter: viewProfileController.twitter.value,
-                                  // ApiKeys.linkedin:
-                                  //     viewProfileController.linkedin.value,
-                                  // ApiKeys.instagram:
-                                  //     viewProfileController.instagram.value,
-                                  // ApiKeys.website: viewProfileController.website.value,
                                 },
                               );
                               viewProfileController.isSocialEdit.value = false;
-                              // await viewProfileController.viewPersonalProfile();
                             }
                           : null,
-                      title: "Save",
+                      title: AppStrings.save,
                     ),
                     SizedBox(height: SizeConfig.size16),
                   ],
@@ -508,48 +484,6 @@ class _PersonalProfileSetupNewScreenState
               );
             }
 
-            // If any social link exists and not in edit mode, show link preview card with edit icon
-            if (hasAnyLinks && !viewProfileController.isSocialEdit.value) {
-              return InfoCard(
-                icon: AppIconAssets.links_profile_header_icon,
-                title: "Links",
-                onTap: () {
-                  viewProfileController.isSocialEdit.value = true;
-                  _updateTextControllers(); // Update text controllers with current values
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: SizeConfig.size12),
-                    if (viewProfileController.instagram.value.isNotEmpty)
-                      LinkTile(
-                        label: "Instagram",
-                        url: viewProfileController.instagram.value,
-                      ),
-                    if (viewProfileController.website.value.isNotEmpty)
-                      LinkTile(
-                        label: "Website",
-                        url: viewProfileController.website.value,
-                      ),
-                    if (viewProfileController.linkedin.value.isNotEmpty)
-                      LinkTile(
-                        label: "LinkedIn",
-                        url: viewProfileController.linkedin.value,
-                      ),
-                    if (viewProfileController.twitter.value.isNotEmpty)
-                      LinkTile(
-                        label: "Twitter",
-                        url: viewProfileController.twitter.value,
-                      ),
-                    if (viewProfileController.youtube.value.isNotEmpty)
-                      LinkTile(
-                        label: "YouTube",
-                        url: viewProfileController.youtube.value,
-                      ),
-                  ],
-                ),
-              );
-            }
 
             return SizedBox();
           }),
@@ -626,7 +560,7 @@ class _PersonalProfileSetupNewScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      'Your profile completion score',
+                      AppStrings.yourProfileCompletionScore,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
@@ -814,7 +748,7 @@ class _PersonalProfileSetupNewScreenState
                               .updateUserProfileDetails(
                                   params: reqProfile, isFromProfileOnly: true);
                         },
-                        dialogTitle: 'Upload Profile Picture',
+                        dialogTitle: AppStrings.uploadProfilePicture,
                         //radius: 36,
                         showProfileBorder: true,
                       );
@@ -854,8 +788,8 @@ class _PersonalProfileSetupNewScreenState
                                 border: Border.all(
                                   color: AppColors.primaryColor,
                                 )),
-                            child: const CustomText(
-                              "Edit Profile",
+                            child:  CustomText(
+                              AppStrings.editProfile,
                               color: AppColors.primaryColor,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -897,7 +831,7 @@ class _PersonalProfileSetupNewScreenState
                             final String? newPath =
                                 await SelectProfilePictureDialog.showLogoDialog(
                               context,
-                              "Edit Cover Picture",
+                             AppStrings.editCoverPicture,
                               cropAspectRatio: CropAspectRatio(width: 3, height: 1)
                               // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
                             );
@@ -1007,7 +941,7 @@ class _PersonalProfileSetupNewScreenState
                   children: [
                     StatBlock(
                       count: viewProfileController.postsCount.value.toString(),
-                      label: "Post",
+                      label: AppStrings.post,
                     ),
                     const SizedBox(
                       width: 20,
@@ -1015,7 +949,7 @@ class _PersonalProfileSetupNewScreenState
                     StatBlock(
                       count:
                           viewProfileController.followingCount.value.toString(),
-                      label: "Following",
+                      label: AppStrings.following,
                       callback: () {
                         Get.to(() => FollowersFollowingPage(
                             tabIndex: 0, userID: userId));
@@ -1027,7 +961,7 @@ class _PersonalProfileSetupNewScreenState
                     StatBlock(
                       count:
                           viewProfileController.followersCount.value.toString(),
-                      label: "Followers",
+                      label: AppStrings.followers,
                       callback: () {
                         Get.to(() => FollowersFollowingPage(
                             tabIndex: 1, userID: userId));
@@ -1058,7 +992,7 @@ class _PersonalProfileSetupNewScreenState
                   height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
                 ),
                 expandMode: ExpandMode.dialog,
-                dialogTitle: 'Bio',
+                dialogTitle: AppStrings.bio,
               ),
             ),
 
@@ -1092,7 +1026,7 @@ class _PersonalProfileSetupNewScreenState
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CustomText(
-                              "My Resume",
+                              AppStrings.myResume,
                               color: AppColors.primaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -1141,7 +1075,7 @@ class _PersonalProfileSetupNewScreenState
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 CustomText(
-                                  "My Profile",
+                                  AppStrings.myProfile,
                                   color: viewProfileController
                                           .isMyProfileShow.isTrue
                                       ? Colors.white
@@ -1191,357 +1125,6 @@ class _PersonalProfileSetupNewScreenState
       ),
     );
   }
-
-  // Widget _buildHeaderSection() {
-  //   return Padding(
-  //     padding: EdgeInsets.only(
-  //         left: SizeConfig.size15,
-  //         right: SizeConfig.size15,
-  //         top: SizeConfig.size15,
-  //         bottom: SizeConfig.size10,
-  //       ),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         CustomFormCard(
-  //             padding: EdgeInsets.all(SizeConfig.size10),
-  //             child: Column(
-  //               children: [
-  //                 Row(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     Obx(() {
-  //                       return CommonProfileImage(
-  //                           imagePath: personalCreateProfileController
-  //                               .imagePath?.value ??
-  //                               "",
-  //                           onImageUpdate: (image) async {
-  //                             personalCreateProfileController
-  //                                 .imagePath?.value = image;
-  //
-  //                             dynamic dataImage = await multiPartImage(
-  //                               imagePath: image,
-  //                             );
-  //                             var reqProfile = {
-  //                               ApiKeys.profile_image: dataImage
-  //                             };
-  //                             await personalCreateProfileController
-  //                                 .updateUserProfileDetails(
-  //                                 params: reqProfile,
-  //                                 isFromProfileOnly: true);
-  //                             setState(() {
-  //
-  //                             });
-  //                           },
-  //                           dialogTitle: 'Upload Profile Picture',
-  //                           showProfileBorder: false
-  //                       );
-  //                     }),
-  //                     SizedBox(width: SizeConfig.size16),
-  //                     Expanded(
-  //                       child: Column(
-  //                         crossAxisAlignment:
-  //                         CrossAxisAlignment.start,
-  //                         children: [
-  //                           Row(
-  //                             mainAxisSize: MainAxisSize.max,
-  //                             mainAxisAlignment:
-  //                             MainAxisAlignment.spaceBetween,
-  //                             children: [
-  //                               Row(
-  //                                 mainAxisSize: MainAxisSize.min,
-  //                                 crossAxisAlignment:
-  //                                 CrossAxisAlignment.center,
-  //                                 children: [
-  //                                   ConstrainedBox(
-  //                                     constraints: BoxConstraints(
-  //                                         maxWidth:
-  //                                         SizeConfig.screenWidth /
-  //                                             2.5),
-  //                                     child: CustomText(
-  //                                       viewProfileController
-  //                                           .personalProfileDetails
-  //                                           .value
-  //                                           .user
-  //                                           ?.name ??
-  //                                           '',
-  //                                       fontSize: SizeConfig.large18,
-  //                                       fontWeight: FontWeight.bold,
-  //                                       maxLines: 1,
-  //                                       overflow:
-  //                                       TextOverflow.ellipsis,
-  //                                       color: AppColors.mainTextColor,
-  //                                     ),
-  //                                   ),
-  //                                   SizedBox(
-  //                                     width: SizeConfig.size8,
-  //                                   ),
-  //                                   GestureDetector(
-  //                                     onTap: () {
-  //                                       if (viewProfileController
-  //                                           .personalProfileDetails
-  //                                           .value
-  //                                           .isProfileCreated ==
-  //                                           false) {
-  //                                         Navigator.push(
-  //                                             context,
-  //                                             MaterialPageRoute(
-  //                                                 builder: (context) =>
-  //                                                     CreateProfileScreen()));
-  //                                       } else {
-  //                                         Navigator.push(
-  //                                             context,
-  //                                             MaterialPageRoute(
-  //                                                 builder: (context) =>
-  //                                                     UpdateProfileScreen()));
-  //                                       }
-  //                                     },
-  //                                     child: CircleAvatar(
-  //                                       radius: 12,
-  //                                       backgroundColor:
-  //                                       AppColors.primaryColor,
-  //                                       child: Icon(
-  //                                           Icons.edit_outlined,
-  //                                           size: 14,
-  //                                           color: Colors.white),
-  //                                     ),
-  //                                   ),
-  //                                 ],
-  //                               ),
-  //                               // Row(
-  //                               //   mainAxisAlignment: MainAxisAlignment.end,
-  //                               //   children: [
-  //                               //     InkWell(
-  //                               //         onTap: () {
-  //                               //           Navigator.push(
-  //                               //               context,
-  //                               //               MaterialPageRoute(
-  //                               //                   builder: (context) =>
-  //                               //                       ProfileSettingsScreen()));
-  //                               //         },
-  //                               //         child: SvgPicture.asset(
-  //                               //             AppIconAssets
-  //                               //                 .profile_v_settings)),
-  //                               //     SizedBox(
-  //                               //       width: SizeConfig.size16,
-  //                               //     ),
-  //                               //     InkWell(
-  //                               //         onTap: () {
-  //                               //         //   Navigator.push(
-  //                               //         //       context,
-  //                               //         //       MaterialPageRoute(
-  //                               //         //           builder: (context) =>
-  //                               //         //               VisitPersonalProfile()));
-  //                               //         },
-  //                               //         child: SvgPicture.asset(
-  //                               //             AppIconAssets.upload_share)),
-  //                               //   ],
-  //                               // ),
-  //                             ],
-  //                           ),
-  //                           SizedBox(height: SizeConfig.size5),
-  //                           CustomText(
-  //                             viewProfileController.personalProfileDetails.value.user?.profession ?? "OTHERS",
-  //                             color: AppColors.secondaryTextColor,
-  //                             fontSize: SizeConfig.small,
-  //                             fontWeight: FontWeight.w400,
-  //                           ),
-  //                           SizedBox(height: SizeConfig.size12),
-  //                           Obx(() {
-  //                             return Padding(
-  //                               padding: const EdgeInsets.only(right: 8.0),
-  //                               child: Row(
-  //                                 mainAxisAlignment:
-  //                                 MainAxisAlignment.start,
-  //                                 mainAxisSize: MainAxisSize.max,
-  //                                 children: [
-  //                                   StatBlock(
-  //                                     count: viewProfileController
-  //                                         .postsCount.value
-  //                                         .toString(),
-  //                                     label: "Posts",
-  //                                   ),
-  //                                   SizedBox(width: SizeConfig.size25),
-  //                                   StatBlock(
-  //                                     count: viewProfileController
-  //                                         .followersCount.value
-  //                                         .toString(),
-  //                                     label: "Followers",
-  //                                     callback: (){
-  //                                       Get.to(()=> FollowersFollowingPage(
-  //                                         tabIndex: 1,
-  //                                         userID: userId,
-  //                                       ));
-  //                                     },
-  //                                   ),
-  //                                   SizedBox(width: SizeConfig.size25),
-  //                                   StatBlock(
-  //                                     count: viewProfileController
-  //                                         .followingCount.value
-  //                                         .toString(),
-  //                                     label: "Following",
-  //                                     callback: (){
-  //                                       Get.to(()=> FollowersFollowingPage(
-  //                                         tabIndex: 0,
-  //                                         userID: userId,
-  //                                       ));
-  //                                     },
-  //                                   ),
-  //                                 ],
-  //                               ),
-  //                             );
-  //                           }),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                     SizedBox(width: SizeConfig.size8),
-  //                     LocalAssets(
-  //                         imagePath: AppIconAssets.upload_share,
-  //                         imgColor: AppColors.secondaryTextColor
-  //                     )
-  //                   ],
-  //                 ),
-  //
-  //                 // Conditional Bio Section
-  //                 if (_shouldShowBioSection())
-  //                   Padding(
-  //                     padding: EdgeInsets.only(top: SizeConfig.size15),
-  //                     child: ExpandableText(
-  //                       text: viewProfileController
-  //                           .personalProfileDetails.value.user?.bio ?? '',
-  //                       trimLines: 4,
-  //                       style: TextStyle(
-  //                         color: AppColors.mainTextColor,
-  //                         fontSize: SizeConfig.small,
-  //                         fontWeight: FontWeight.w400,
-  //                       ),
-  //                       expandMode: ExpandMode.dialog,
-  //                       dialogTitle: 'Bio',
-  //                     ),
-  //                   ),
-  //
-  //                 SizedBox(height: SizeConfig.size12),
-  //
-  //                 Row(
-  //                   children: [
-  //                     if ((viewProfileController.personalProfileDetails.value
-  //                         .isProfileCreated ??
-  //                         false) &&
-  //                         isResumeShow(
-  //                             designation: viewProfileController
-  //                                 .personalProfileDetails
-  //                                 .value
-  //                                 .user
-  //                                 ?.profession)) ...[
-  //                       Expanded(
-  //                         child: GestureDetector(
-  //                           onTap: (){
-  //                             Get.toNamed(
-  //                                 RouteHelper.getCreateResumeScreenRoute());
-  //                           },
-  //                           child: Container(
-  //                             padding: EdgeInsets.all(SizeConfig.size6),
-  //                             decoration: BoxDecoration(
-  //                               color: Colors.white,
-  //                               border: Border.all(color: AppColors.primaryColor),
-  //                               borderRadius: BorderRadius.circular(10),
-  //                             ),
-  //                             alignment: Alignment.center,
-  //                             child: Row(
-  //                               mainAxisSize: MainAxisSize.min,
-  //                               children: [
-  //                                 CustomText(
-  //                                   "My Resume",
-  //                                   color: AppColors.primaryColor,
-  //                                   fontSize: SizeConfig.medium,
-  //                                   fontWeight: FontWeight.w600,
-  //                                 ),
-  //                                 const SizedBox(width: 10),
-  //                                 SizedBox(
-  //                                   width: SizeConfig.size25,
-  //                                   height: SizeConfig.size25,
-  //                                   child: CustomPaint(
-  //                                     painter: CircleProgressPainter(0.85),
-  //                                     child: Center(
-  //                                       child: CustomText(
-  //                                         "${(0.85 * 100).toInt()}%",
-  //                                         fontWeight: FontWeight.w600,
-  //                                         fontSize: SizeConfig.extraSmall,
-  //                                         color: AppColors.mainTextColor,
-  //                                       ),
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                               ],
-  //                             ),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       SizedBox(width: SizeConfig.size10),
-  //                     ],
-  //                     Obx(()=> Expanded(
-  //                       child: GestureDetector(
-  //                         onTap: (){
-  //                           viewProfileController.isMyProfileShow.value = !viewProfileController.isMyProfileShow.value;
-  //                         },
-  //                         child: Container(
-  //                           padding: EdgeInsets.all(SizeConfig.size8),
-  //                           decoration: BoxDecoration(
-  //                             color: viewProfileController.isMyProfileShow.isTrue ? AppColors.primaryColor : AppColors.white,
-  //                             border: Border.all(color: AppColors.primaryColor),
-  //                             borderRadius: BorderRadius.circular(10),
-  //                           ),
-  //                           alignment: Alignment.center,
-  //                           child: Row(
-  //                             mainAxisSize: MainAxisSize.min,
-  //                             children: [
-  //                               CustomText(
-  //                                 "My Profile",
-  //                                 color: viewProfileController.isMyProfileShow.isTrue ? AppColors.white : AppColors.primaryColor,
-  //                                 fontSize: SizeConfig.medium,
-  //                                 fontWeight: FontWeight.w600,
-  //                               ),
-  //                               const SizedBox(width: 10),
-  //                               Obx(()=> SizedBox(
-  //                                 width: SizeConfig.size25,
-  //                                 height: SizeConfig.size25,
-  //                                 child: CustomPaint(
-  //                                   painter: CircleProgressPainter(
-  //                                       viewProfileController.myProfileCompletionPercent.value,
-  //                                       isMyProfile: viewProfileController.isMyProfileShow.value
-  //                                   ),
-  //                                   child: Center(
-  //                                     child: CustomText(
-  //                                       "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
-  //                                       fontWeight: FontWeight.w600,
-  //                                       fontSize: SizeConfig.extraSmall,
-  //                                       color: viewProfileController.isMyProfileShow.isTrue ? AppColors.white : AppColors.mainTextColor,
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                                )
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ),
-  //                     )),
-  //                   ],
-  //                 )
-  //
-  //               ],
-  //             )
-  //         ),
-  //
-  //
-  //         Obx(()=> (viewProfileController.isMyProfileShow.isTrue)
-  //             ?  _buildMyProfileWidget() : SizedBox())
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildTabButtons() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1549,7 +1132,7 @@ class _PersonalProfileSetupNewScreenState
         SizedBox(
           height: SizeConfig.size34,
           child: ListView.builder(
-            itemCount: postTab.length,
+            itemCount: PostTabs.postTab.length,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
               final isSelected = _tabController?.index == index;
@@ -1578,7 +1161,7 @@ class _PersonalProfileSetupNewScreenState
                    // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
                    // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                   ),
-                  child: CustomText('${postTab[index]}',color: isSelected?AppColors.white:AppColors.black,),
+                  child: CustomText('${PostTabs.postTab[index].nameKey}',color: isSelected?AppColors.white:AppColors.black,),
                 ),
               );
             },
@@ -1649,7 +1232,7 @@ class _PersonalProfileSetupNewScreenState
                       children: [
                         _buildCircleIcon(AppIconAssets.channelNew),
                         SizedBox(width: SizeConfig.size6),
-                        _buildTitleWidget('My Channel'),
+                        _buildTitleWidget(AppStrings.myChannel),
                       ],
                     ),
                     SizedBox(width: SizeConfig.size6),
@@ -1668,7 +1251,7 @@ class _PersonalProfileSetupNewScreenState
                         );
                       },
                       child: CustomText(
-                        'View',
+                        AppStrings.view,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
@@ -1712,10 +1295,10 @@ class _PersonalProfileSetupNewScreenState
                 children: [
                   _buildCircleIcon(AppIconAssets.channelNew),
                   SizedBox(width: SizeConfig.size6),
-                  _buildTitleWidget('My Channel'),
+                  _buildTitleWidget(AppStrings.myChannel),
                   Spacer(),
                   CustomText(
-                    'Create',
+                    AppStrings.create,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,
@@ -1734,7 +1317,7 @@ class _PersonalProfileSetupNewScreenState
         children: [
           _buildCircleIcon(AppIconAssets.earnWithBlueEra),
           SizedBox(width: SizeConfig.size6),
-          _buildTitleWidget('Earn with BlueEra'),
+          _buildTitleWidget(AppStrings.earnWithBlueEra),
         ],
       ),
       SizedBox(height: SizeConfig.size16),
@@ -1744,7 +1327,7 @@ class _PersonalProfileSetupNewScreenState
         alignment: Alignment.bottomRight,
         child: CustomBtn(
           width: SizeConfig.size160,
-          title: 'Let\'s Start Earing Now',
+          title: AppStrings.letsStartEarningNow,
           onTap: () {
             if (viewProfileController
                 .personalProfileDetails.value.isProfileCreated ==
@@ -1776,23 +1359,12 @@ class _PersonalProfileSetupNewScreenState
             children: [
               _buildCircleIcon(AppIconAssets.payment),
               SizedBox(width: SizeConfig.size6),
-              _buildTitleWidget('Payment Account'),
+              _buildTitleWidget(AppStrings.paymentAccount),
             ],
           ),
           SizedBox(width: SizeConfig.size6),
           InkWell(
             onTap: () {
-              // Get.toNamed(
-              //   RouteHelper.getChannelScreenRoute(),
-              //   arguments: {
-              //     ApiKeys.argAccountType: accountTypeGlobal,
-              //     ApiKeys.channelId: channelId,
-              //     ApiKeys.authorId:
-              //     (accountTypeGlobal == AppConstants.individual)
-              //         ? userId
-              //         : businessId
-              //   },
-              // );
             },
             child: LocalAssets(
               height: 18,
@@ -1810,13 +1382,13 @@ class _PersonalProfileSetupNewScreenState
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 CustomText(
-                  'My Wallet:',
+                  AppStrings.myWallet,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
                 ),
                 CustomText(
-                  ' ₹ 522',
+                  ' ₹ 0',
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
@@ -1831,13 +1403,13 @@ class _PersonalProfileSetupNewScreenState
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 CustomText(
-                  'Total Earning:',
+                  AppStrings.totalEarning,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
                 ),
                 CustomText(
-                  ' ₹ 522',
+                  ' ₹ 0',
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w700,
                   color: AppColors.secondaryTextColor,
@@ -1853,13 +1425,13 @@ class _PersonalProfileSetupNewScreenState
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           CustomText(
-            'Bank Account: ',
+            '${AppStrings.bankAccount}',
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600,
             color: AppColors.secondaryTextColor,
           ),
           CustomText(
-            ' Ramesh Kumar State bank Of India',
+            ' State bank Of India',
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w700,
             color: AppColors.secondaryTextColor,
@@ -1879,14 +1451,14 @@ class _PersonalProfileSetupNewScreenState
             ),
             SizedBox(width: SizeConfig.size10),
             CustomText(
-              'Manage Subscription',
+              AppStrings.manageSubscription,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w700,
               color: AppColors.secondaryTextColor,
             ),
             Spacer(),
             CustomText(
-              'Free Plan',
+              AppStrings.freePlan,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
@@ -1908,7 +1480,7 @@ class _PersonalProfileSetupNewScreenState
               children: [
                 _buildCircleIcon(AppIconAssets.myDocuments),
                 SizedBox(width: SizeConfig.size6),
-                _buildTitleWidget('My Documents'),
+                _buildTitleWidget(AppStrings.myDocuments),
               ],
             ),
             SizedBox(width: SizeConfig.size6),
@@ -1916,7 +1488,7 @@ class _PersonalProfileSetupNewScreenState
               onTap: () {
                 Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
               },
-              title: 'Add Document',
+              title: AppStrings.addDocument,
               textColor: AppColors.primaryColor,
               fontSize: SizeConfig.small,
               iconPath: AppIconAssets.add,
@@ -1945,13 +1517,13 @@ class _PersonalProfileSetupNewScreenState
                     color: AppColors.primaryColor,
                   ),
                   title: CustomText(
-                    'No documents found',
+                    AppStrings.noDocumentsFound,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
                   ),
                   subtitle: CustomText(
-                    'Add your first document',
+                    AppStrings.addYourFirstDocument,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.secondaryTextColor,
@@ -1964,7 +1536,7 @@ class _PersonalProfileSetupNewScreenState
                   collapsedShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   title: CustomText(
-                    'My Documents',
+                    AppStrings.myDocuments,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -1998,7 +1570,7 @@ class _PersonalProfileSetupNewScreenState
           children: [
             _buildCircleIcon(AppIconAssets.bookingEnquiries),
             SizedBox(width: SizeConfig.size6),
-            _buildTitleWidget('My Availability & Bookings'),
+            _buildTitleWidget(AppStrings.myAvailabilityAndBookings),
             if (viewProfileController.availabilityDetails.value != null) ...[
               Spacer(),
               InkWell(
@@ -2010,7 +1582,6 @@ class _PersonalProfileSetupNewScreenState
                         ApiKeys.availabilityBookingData:
                             viewProfileController.availabilityDetails.value,
                       });
-                  log('isDataUpdate-- $isDataUpdate');
                   if (isDataUpdate) {
                     getAvailabilityBookingData();
                   }
@@ -2273,7 +1844,7 @@ class _PersonalProfileSetupNewScreenState
                         ),
                         SizedBox(width: SizeConfig.size10),
                         CustomText(
-                          'Bookings',
+                          AppStrings.bookings,
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor,
@@ -2429,7 +2000,7 @@ class _PersonalProfileSetupNewScreenState
 
     if (openDays.isEmpty) {
       return CustomText(
-        "No visiting days selected",
+        AppStrings.noVisitingDaysSelected,
         fontSize: SizeConfig.medium,
         fontWeight: FontWeight.w600,
         color: AppColors.secondaryTextColor,

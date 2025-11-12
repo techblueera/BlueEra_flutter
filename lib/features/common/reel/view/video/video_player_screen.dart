@@ -19,7 +19,6 @@ import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

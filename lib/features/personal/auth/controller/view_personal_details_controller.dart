@@ -26,6 +26,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -199,34 +200,34 @@ class ViewPersonalDetailsController extends GetxController {
           fields = [
             _ProfileFieldStatus(
               id: 1,
-              title: 'Profile video',
+              title: AppStrings.profileVideo,
               isCompleted: user.introVideo?.isNotEmpty ?? false,
             ),
             _ProfileFieldStatus(
               id: 2,
-              title: 'Bio',
+              title: AppStrings.bio,
               isCompleted: user.bio?.isNotEmpty ?? false,
             ),
             _ProfileFieldStatus(
               id: 3,
-              title: 'Designation',
+              title: AppStrings.designation,
               isCompleted: user.designation?.isNotEmpty ?? false,
             ),
             _ProfileFieldStatus(
               id: 4,
-              title: 'Phone number',
+              title: AppStrings.phoneNumber,
               isCompleted: user.contactNo?.isNotEmpty ?? false,
             ),
             _ProfileFieldStatus(
               id: 5,
-              title: 'Organization',
+              title: AppStrings.organization,
               isCompleted: user.currentOrganisation?.isNotEmpty ?? false,
             ),
             _ProfileFieldStatus(
               id: 6,
               title: (user.emailVerified == true)
-                  ? 'Email (verified)'
-                  : 'Email (unverified)',
+                  ? AppStrings.emailVerified
+                  : AppStrings.emailUnverified,
               isCompleted: user.emailVerified ?? false,
             ),
           ];
@@ -524,7 +525,7 @@ class ViewPersonalDetailsController extends GetxController {
         if (!item.isCompleted) {
           showEmailVerificationDialog();
         } else {
-          commonSnackBar(message: 'Email, Your email is already verified.');
+          commonSnackBar(message: AppStrings.emailAlreadyVerified);
         }
         break;
       default:
@@ -555,19 +556,17 @@ class ViewPersonalDetailsController extends GetxController {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Verify Your Email',
-                    style: TextStyle(
+                   CustomText(
+                   AppStrings.verifyYourEmail,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                    ),
                   ),
                   const SizedBox(height: 12),
 
                   /// Email Field
                   CommonTextField(
-                    title: "Email",
-                    hintText: "Enter your email address",
+                    title: AppStrings.email,
+                    hintText: AppStrings.enterEmailAddress,
                     textEditController: emailController,
                     validationType: ValidationTypeEnum.email,
                     validator: ValidationMethod.validateEmail,
@@ -580,13 +579,13 @@ class ViewPersonalDetailsController extends GetxController {
                       Expanded(
                         child: TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
+                          child:  CustomText(AppStrings.cancel),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomBtn(
-                          title: 'Get Verify',
+                          title: AppStrings.getVerify,
                           height: SizeConfig.size40,
                           bgColor: AppColors.primaryColor,
                           radius: 10.0,
@@ -614,8 +613,4 @@ class ViewPersonalDetailsController extends GetxController {
       },
     );
   }
-
-
-
-
 }

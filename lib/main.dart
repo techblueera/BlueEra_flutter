@@ -128,7 +128,12 @@ Future<void> main() async {
   final locale = Locale(savedLangCode);
 
   // 🔄 Check if app version changed
-  // await checkAppVersionAndResetIfNeeded();
+  await checkAppVersionAndResetIfNeeded();
+  if(kDebugMode)
+    {
+      await resetLanguageLocalization();
+
+    }
   // await Hive.openBox('translations');
   //
   // // Load saved language from Hive or fallback to English

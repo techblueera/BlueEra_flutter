@@ -23,8 +23,6 @@ import 'package:BlueEra/features/common/post/controller/message_post_controller.
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -568,34 +566,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
     );
   }
 
-  openProfileToClickUser() {
-    Post? data = widget.post?.children_post;
-    String? authorId = data?.user?.id;
-    String? userBusinessId = data?.user?.id;
-    String? userAccountType = data?.user?.accountType?.toUpperCase();
-    logs("userAccountType=== ${userAccountType}");
-    logs("userId=== ${userId} authorId  === $authorId");
-    if (userAccountType == AppConstants.individual) {
-      if (userId == authorId) {
-        navigatePushTo(context, PersonalProfileSetupScreen());
-      } else {
-        Get.to(() => NewVisitProfileScreen(
-              authorId: authorId ?? "",
-              screenFromName: AppConstants.feedScreen,
-            ));
-      }
-    }
-    if (userAccountType == AppConstants.business) {
-      if (businessId == userBusinessId) {
-        navigatePushTo(context, BusinessOwnProfileScreen());
-      } else {
-        Get.to(() => VisitBusinessProfileNew(
-              businessId: userBusinessId ?? "",
-              screenName: AppConstants.feedScreen,
-            ));
-      }
-    }
-  }
 }
 
 ViewFeedActionWidget({required String iconPath, required String data}) {

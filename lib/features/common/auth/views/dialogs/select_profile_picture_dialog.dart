@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -72,7 +73,6 @@ class SelectProfilePictureDialog {
         bool? isGallery = true,
         CropAspectRatio? cropAspectRatio,
       }) async {
-    final appLocalizations = AppLocalizations.of(context);
    final langController = Get.find<LanguageListController>();
 
     return showDialog(
@@ -99,7 +99,7 @@ class SelectProfilePictureDialog {
                           Expanded(
                             child: OptionButton(
                               iconPath: AppIconAssets.camera_sky,
-                              label: appLocalizations?.takeOne ?? "",
+                              label: AppStrings.takeFromCamera,
                               onTap: () async {
                                 final path = await pickFromCamera(context,
                                     cropAspectRatio: cropAspectRatio);
@@ -112,7 +112,7 @@ class SelectProfilePictureDialog {
                             child: OptionButton(
                               iconPath: AppIconAssets.gallery_sky,
                               label:
-                              langController.tr('selectFromGallery'),
+                              AppStrings.selectFromGallery,
                               onTap: () async {
                                 final path = await pickFromGallery(context,
                                     cropAspectRatio: cropAspectRatio);

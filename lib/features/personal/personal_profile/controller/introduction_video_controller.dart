@@ -110,7 +110,7 @@ class IntroductionVideoController extends GetxController {
 
   Future<void> uploadIntroInit() async {
     if (selectedVideo.value == null) {
-      commonSnackBar(message: "No video selected");
+      commonSnackBar(message: AppStrings.noVideoSelected);
       return;
     }
     try {
@@ -202,7 +202,7 @@ class IntroductionVideoController extends GetxController {
 
         hasUploadedVideo.value = true;
         commonSnackBar(
-            message: response.message ?? 'Video uploaded successfully');
+            message: response.message ?? AppStrings.videoUploadedSuccessfully);
       } else {
         isUploading.value = false;
         commonSnackBar(message: response.message ?? 'Upload failed');
@@ -210,7 +210,6 @@ class IntroductionVideoController extends GetxController {
     } catch (e) {
       isUploading.value = false;
 
-      print('Error uploading video: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isUploading.value = false;
