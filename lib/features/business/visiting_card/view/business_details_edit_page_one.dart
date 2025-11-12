@@ -545,7 +545,7 @@ class _BusinessDetailsEditPageOneState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CommonTextField(
-                            readOnly: true,
+                           // readOnly: true,
                             maxLine: 3,
                             textEditController: fullBusinessAddressTextController,
                             inputLength: AppConstants.inputCharterLimit50,
@@ -554,8 +554,9 @@ class _BusinessDetailsEditPageOneState
                             regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
                             hintText: appLocalizations?.fullBusinessAddress,
-                            isValidate: false,
+                            //isValidate: false,
                           ),
+
                           _buildAddressField()
                         ],
                       ),
@@ -657,11 +658,11 @@ class _BusinessDetailsEditPageOneState
                                 }
 
                                 /// Validate Address Lat/Long
-                                if ((viewBusinessDetailsController.addressLat?.value == 0.0) ||
-                                    (viewBusinessDetailsController.addressLong?.value == 0.0)) {
-                                  commonSnackBar(message: "Please Enter Address");
-                                  return;
-                                }
+                                // if ((viewBusinessDetailsController.addressLat?.value == 0.0) ||
+                                //     (viewBusinessDetailsController.addressLong?.value == 0.0)) {
+                                //   commonSnackBar(message: "Please Enter Address");
+                                //   return;
+                                // }
 
                                 /// Validate Pin Code
                                 if (picCodeController.text.isEmpty) {
