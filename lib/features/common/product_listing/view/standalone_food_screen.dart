@@ -11,7 +11,6 @@ import 'package:get/get.dart';
 
 class StandaloneFoodScreen extends StatelessWidget {
   final String businessId;
-
   final bool isGrid;
   final BusinessProfileDetails? businessData;
 

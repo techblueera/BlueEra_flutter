@@ -238,8 +238,10 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               //   height: SizeConfig.size10,
               // ),
               _buildTabContent(
-                  controller, viewBusinessDetailsController.selectedIndex.value,
-                  details)
+                  controller,
+                  viewBusinessDetailsController.selectedIndex.value,
+                  details
+              )
             ],
           ),
         );
@@ -308,10 +310,10 @@ class MyProductCardDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())
-      ..fetchOwnProducts();
+    final inventoryController = Get.put(InventoryController())
+      ..fetchProducts();
 
-    final productList = earnWithBlueEraController.ownProductDataList;
+    final productList = inventoryController.allProducts;
 
     return Column(
       children: [
@@ -321,44 +323,39 @@ class MyProductCardDetails extends StatelessWidget {
             message: 'No Products available.',
           ),
         )
-            : SizedBox(
-          height: 600,
-          child: ListView.builder(
+            : ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: productList.length,
+              itemBuilder: (context, index) {
+                final productData = productList[index];
 
-            physics: const AlwaysScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: productList.length,
-            itemBuilder: (context, index) {
-              final productData = productList[index];
+                return Padding(
+                  padding: EdgeInsets.only(
+                      bottom: SizeConfig.size8,
+                      left: SizeConfig.size8,
+                      right: SizeConfig.size8
+                  ),
+                  child: OwnProductCard(
+                    product: productData,
+                    isGridShow: false,
+                    deleteProductApi: () {
+                      // earnWithBlueEraController.deleteProduct();
+                    },
+                  ),
+                );
+              },
+            ),
 
-              return Padding(
-                padding: EdgeInsets.only(
-                    bottom: SizeConfig.size8,
-                    left: SizeConfig.size8,
-                    right: SizeConfig.size8
-                ),
-                child: OwnProductCard(
-                  product: productData,
-                  isGridShow: false,
-                  deleteProductApi: () {
-                    // earnWithBlueEraController.deleteProduct();
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-
-        if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
-          ),
+        // if (inventoryController.isOwnProductDataLoadingMore.value)
+        //   const Padding(
+        //     padding: EdgeInsets.symmetric(vertical: 20),
+        //     child: Center(child: CircularProgressIndicator()),
+        //   ),
       ],
     );
   }
 }
-
 
 class BusinessProfileHeader extends StatelessWidget {
   final BusinessProfileDetails? details;
