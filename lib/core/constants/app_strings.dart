@@ -231,8 +231,48 @@ class AppStrings {
   static const channelEdit = "channelEdit";
   static const channelSettings = "channelSettings";
   static const addVideo = "addVideo";
-  static const addProduct = "addProduct";
+  static const addProduct = "add_product";
   static const addService = "addService";
   static const noBioAvailable = "noBioAvailable";
+  static const tab_drafts = "tab_drafts";
+  static const tab_saved = "tab_saved";
+  static const tab_statistics = "tab_statistics";
+  static const tab_product = "tab_product";
+  static const tab_service = "tab_service";
+
+  ///ADD CHANNEL PRODUCT....
+  static const updateProduct = "update_product";
+  static const productImage = "product_image";
+  static const title = "title";
+  static const enterProductTitle = "enter_product_title";
+  static const pleaseEnterProductTitle = "please_enter_product_title";
+  static const productDescription = "product_description";
+  static const enterProductDescription = "enter_product_description";
+  static const pleaseEnterProductDescription = "please_enter_product_description";
+  static const productDescriptionTooShort = "product_description_too_short";
+  static const productPrice = "product_price";
+  static const enterProductPrice = "enter_product_price";
+  static const pleaseEnterProductPrice = "please_enter_product_price";
+  static const addLink = "add_link";
+  static const enterUrlExample = "enter_url_example";
+  static const updatePost = "update_post";
+  static const postNow = "post_now";
+  static const uploadProductImage = "upload_product_image";
+  static const enter_product_price = "enter_product_price";
+  static const addProductImage = "addProductImage";
+  static const latest = "latest";
+  static const popular = "popular";
+  static const oldest = "oldest";
+  static const underProgress = "underProgress";
+  static const reportChannel = "reportChannel";
+  static const muteAccount = "muteAccount";
+  static const ownership = "ownership";
+  static const reportContent = "reportContent";
+  static const writeYourReason = "writeYourReason";
+  static const reasonRequired = "reasonRequired";
+  static const reasonTooShort = "reasonTooShort";
+  static const confirmMuteChannel = "confirmMuteChannel";
+  static const confirmUnmuteChannel = "confirmUnmuteChannel";
+
 }
 

@@ -1,486 +1,18 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:flutter/material.dart';
 
-enum ValidationTypeEnum { password, email, pNumber, name, Url, username, lNumber }
-
-///API TYPES
-enum APIType { aPost, aGet, aDelete, aPut }
-
-enum BusinessType { Food,Product, Service, Both }
-
-
-extension BusinessTypeExtension on BusinessType {
-  // Get display name
-  String get displayName {
-    switch (this) {
-      case BusinessType.Food:
-        return 'Food';
-      case BusinessType.Product:
-        return 'Product';
-      case BusinessType.Service:
-        return 'Service';
-      case BusinessType.Both:
-        return 'Both';
-    }
-  }
-
-  // Get enum from string
-  static BusinessType fromString(String value) {
-    switch (value.toLowerCase()) {
-      case 'food':
-        return BusinessType.Food;
-      case 'product':
-        return BusinessType.Product;
-      case 'service':
-        return BusinessType.Service;
-      case 'both':
-        return BusinessType.Both;
-      default:
-        return BusinessType.Both;
-
-    }
-  }
+enum ValidationTypeEnum {
+  password,
+  email,
+  pNumber,
+  name,
+  Url,
+  username,
+  lNumber
 }
 
-
-//
-// enum BusinessType { Product, Service, Both }
-//
-// // enum BusinessType { Product, Service, Both }
-//
-// extension BusinessTypeExtension on BusinessType {
-//   // Get display name
-//   String get displayName {
-//     switch (this) {
-//       case BusinessType.Product:
-//         return 'Product';
-//       case BusinessType.Service:
-//         return 'Service';
-//       case BusinessType.Both:
-//         return 'Both';
-//     }
-//   }
-//
-//   // Get enum from string
-//   static BusinessType fromString(String value) {
-//     switch (value.toLowerCase()) {
-//       case 'product':
-//         return BusinessType.Product;
-//       case 'service':
-//         return BusinessType.Service;
-//       case 'both':
-//         return BusinessType.Both;
-//       default:
-//         return BusinessType.Both;
-//
-//         throw ArgumentError('Invalid BusinessType value: $value');
-//     }
-//   }
-// }
-// POLITICIANORSOCIALIST,
-
-///FOR CREATE PERSONAL ACCOUNT...
-enum ProfessionType {
-  SELF_EMPLOYED,
-  PRIVATE_JOB,
-  GOVERNMENT_JOB,
-  SKILLED_WORKER,
-  CONTENT_CREATOR,
-  POLITICIAN,
-  GOVTPSU,
-  REG_UNION,
-  MEDIA,
-  ARTIST,
-  INDUSTRIALIST,
-  SOCIALIST,
-  HOMEMAKER,
-  FARMER,
-  SENIOR_CITIZEN_RETIRED,
-  STUDENT,
-  OTHERS, // keep Others last
-}
-
-extension ProfessionTypeExtension on ProfessionType {
-  String get displayName {
-    switch (this) {
-      case ProfessionType.ARTIST:
-        return "Artist";
-      case ProfessionType.INDUSTRIALIST:
-        return "Industrialist";
-      case ProfessionType.FARMER:
-        return "Farmer";
-      case ProfessionType.GOVERNMENT_JOB:
-        return "Government Job";
-      case ProfessionType.HOMEMAKER:
-        return "Homemaker";
-      case ProfessionType.MEDIA:
-        return "Media";
-      case ProfessionType.PRIVATE_JOB:
-        return "Private Job";
-      case ProfessionType.POLITICIAN:
-        return "Politician";
-      case ProfessionType.SOCIALIST:
-        return "Socialist";
-      case ProfessionType.GOVTPSU:
-        return "Govt. / PSU Department";
-      case ProfessionType.SELF_EMPLOYED:
-        return "Self Employed";
-      case ProfessionType.SENIOR_CITIZEN_RETIRED:
-        return "Senior Citizen / Retired";
-      case ProfessionType.SKILLED_WORKER:
-        return "Skilled Worker";
-      case ProfessionType.STUDENT:
-        return "Student";
-      case ProfessionType.REG_UNION:
-        return "Reg. NGO/ Union/ Society";
-      case ProfessionType.CONTENT_CREATOR:
-        return "Content Creator";
-      case ProfessionType.OTHERS:
-        return "Others";
-    }
-  }
-
-  static ProfessionType fromString(String value) {
-    switch (value.trim().toUpperCase()) {
-      case 'ARTIST':
-        return ProfessionType.ARTIST;
-      case 'INDUSTRIALIST':
-        return ProfessionType.INDUSTRIALIST;
-      case 'FARMER':
-        return ProfessionType.FARMER;
-      case 'GOVERNMENT_JOB':
-        return ProfessionType.GOVERNMENT_JOB;
-      case 'HOMEMAKER':
-        return ProfessionType.HOMEMAKER;
-      case 'MEDIA':
-        return ProfessionType.MEDIA;
-      case 'PRIVATE_JOB':
-        return ProfessionType.PRIVATE_JOB;
-      case 'POLITICIAN':
-        return ProfessionType.POLITICIAN;
-      case 'SOCIALIST':
-        return ProfessionType.SOCIALIST;
-      case 'GOVTPSU':
-        return ProfessionType.GOVTPSU;
-      case 'SELF_EMPLOYED':
-        return ProfessionType.SELF_EMPLOYED;
-      case 'SENIOR_CITIZEN_RETIRED':
-        return ProfessionType.SENIOR_CITIZEN_RETIRED;
-      case 'SKILLED_WORKER':
-        return ProfessionType.SKILLED_WORKER;
-      case 'STUDENT':
-        return ProfessionType.STUDENT;
-      case 'REG_UNION':
-        return ProfessionType.REG_UNION;
-      case 'CONTENT_CREATOR':
-        return ProfessionType.CONTENT_CREATOR;
-      case 'OTHERS':
-        return ProfessionType.OTHERS;
-
-      default:
-        return ProfessionType.OTHERS;
-
-        // throw ArgumentError(value);
-    }
-  }
-}
-
-enum SelfEmploymentType {
-  ELECTRICIAN,
-  PLUMBER,
-  PAINTER,
-  TECHNICIAN,
-  MAID_CLEANER,
-  CARPENTER,
-  CAR_DRIVER_TAXI,
-  DELIVERY_RIDER,
-  MECHANIC,
-  TAILOR,
-  BEAUTICIAN,
-  HOME_RENOVATION,
-  GARDENER, // added if required
-  OTHER,
-}
-
-extension SelfEmploymentTypeExtension on SelfEmploymentType {
-  String get displayName {
-    switch (this) {
-      case SelfEmploymentType.ELECTRICIAN:
-        return "Electrician";
-      case SelfEmploymentType.PLUMBER:
-        return "Plumber";
-      case SelfEmploymentType.TECHNICIAN:
-        return "Technician";
-      case SelfEmploymentType.MAID_CLEANER:
-        return "Maid / Cleaner";
-      case SelfEmploymentType.CARPENTER:
-        return "Carpenter";
-      case SelfEmploymentType.CAR_DRIVER_TAXI:
-        return "Car Driver / Taxi";
-      case SelfEmploymentType.DELIVERY_RIDER:
-        return "Delivery / Rider";
-      case SelfEmploymentType.MECHANIC:
-        return "Mechanic";
-      case SelfEmploymentType.TAILOR:
-        return "Tailor";
-      case SelfEmploymentType.BEAUTICIAN:
-        return "Beautician";
-      case SelfEmploymentType.HOME_RENOVATION:
-        return "Home Renovation";
-      case SelfEmploymentType.PAINTER:
-        return "Painter";
-      case SelfEmploymentType.GARDENER:
-        return "Gardener";
-      case SelfEmploymentType.OTHER:
-        return "Other";
-    }
-  }
-
-  static SelfEmploymentType fromString(String value) {
-    switch (value.trim().toUpperCase()) {
-      case 'ELECTRICIAN':
-        return SelfEmploymentType.ELECTRICIAN;
-      case 'PLUMBER':
-        return SelfEmploymentType.PLUMBER;
-      case 'TECHNICIAN':
-        return SelfEmploymentType.TECHNICIAN;
-      case 'MAID_CLEANER':
-        return SelfEmploymentType.MAID_CLEANER;
-      case 'CARPENTER':
-        return SelfEmploymentType.CARPENTER;
-      case 'CAR_DRIVER_TAXI':
-        return SelfEmploymentType.CAR_DRIVER_TAXI;
-      case 'DELIVERY_RIDER':
-        return SelfEmploymentType.DELIVERY_RIDER;
-      case 'MECHANIC':
-        return SelfEmploymentType.MECHANIC;
-      case 'TAILOR':
-        return SelfEmploymentType.TAILOR;
-      case 'BEAUTICIAN':
-        return SelfEmploymentType.BEAUTICIAN;
-      case 'HOME_RENOVATION':
-        return SelfEmploymentType.HOME_RENOVATION;
-      case 'PAINTER':
-        return SelfEmploymentType.PAINTER;
-      case 'GARDENER':
-        return SelfEmploymentType.GARDENER;
-      case 'OTHER':
-        return SelfEmploymentType.OTHER;
-      default:
-        return SelfEmploymentType.OTHER;
-
-    }
-  }
-}
-
-enum BankAccountType {
-  SAVINGS,
-  CURRENT,
-}
-
-extension AccountTypeExtension on BankAccountType {
-  String get displayName {
-    switch (this) {
-      case BankAccountType.SAVINGS:
-        return "Saving";
-      case BankAccountType.CURRENT:
-        return "Current";
-    }
-  }
-
-  static BankAccountType fromString(String value) {
-    switch (value.trim().toUpperCase()) {
-      case 'SAVINGS':
-        return BankAccountType.SAVINGS;
-      case 'CURRENT':
-        return BankAccountType.CURRENT;
-      default:
-        throw ArgumentError('Invalid AccountType value: $value');
-    }
-  }
-}
-
-enum ArtistCategory {
-  ACTOR_ACTRESS,
-  DANCER,
-  THEATRE_ARTIST,
-  MIME_ARTIST,
-  SINGER_VOCALIST,
-  MUSICIAN_INSTRUMENTALIST,
-  COMPOSER,
-  DJ_MUSIC_PRODUCER,
-  PHOTOGRAPHER,
-  VIDEOGRAPHER,
-  CINEMATOGRAPHER,
-  FILM_DIRECTOR,
-  FASHION_DESIGNER,
-  INTERIOR_DESIGNER,
-  CRAFTSPERSON,
-  JEWELRY_DESIGNER,
-  WRITER_AUTHOR,
-  POET,
-  SCREENWRITER,
-  STORYTELLER,
-  PAINTER,
-  SCULPTOR,
-  ILLUSTRATOR,
-  MURAL_ARTIST,
-  CALLIGRAPHER,
-  DIGITAL_ARTIST,
-  OTHER,
-}
-
-extension ArtistCategoryExtension on ArtistCategory {
-  String get displayName {
-    switch (this) {
-      case ArtistCategory.PAINTER:
-        return "Painter";
-      case ArtistCategory.SCULPTOR:
-        return "Sculptor";
-      case ArtistCategory.ILLUSTRATOR:
-        return "Illustrator";
-      case ArtistCategory.MURAL_ARTIST:
-        return "Mural Artist";
-      case ArtistCategory.CALLIGRAPHER:
-        return "Calligrapher";
-      case ArtistCategory.DIGITAL_ARTIST:
-        return "Digital Artist";
-      case ArtistCategory.ACTOR_ACTRESS:
-        return "Actor / Actress";
-      case ArtistCategory.DANCER:
-        return "Dancer";
-      case ArtistCategory.THEATRE_ARTIST:
-        return "Theatre Artist";
-      case ArtistCategory.MIME_ARTIST:
-        return "Mime Artist";
-      case ArtistCategory.SINGER_VOCALIST:
-        return "Singer / Vocalist";
-      case ArtistCategory.MUSICIAN_INSTRUMENTALIST:
-        return "Musician (Instrumentalist)";
-      case ArtistCategory.COMPOSER:
-        return "Composer";
-      case ArtistCategory.DJ_MUSIC_PRODUCER:
-        return "DJ / Music Producer";
-      case ArtistCategory.PHOTOGRAPHER:
-        return "Photographer";
-      case ArtistCategory.VIDEOGRAPHER:
-        return "Videographer";
-      case ArtistCategory.CINEMATOGRAPHER:
-        return "Cinematographer";
-      case ArtistCategory.FILM_DIRECTOR:
-        return "Film Director";
-      case ArtistCategory.FASHION_DESIGNER:
-        return "Fashion Designer";
-      case ArtistCategory.INTERIOR_DESIGNER:
-        return "Interior Designer";
-      case ArtistCategory.CRAFTSPERSON:
-        return "Craftsperson";
-      case ArtistCategory.JEWELRY_DESIGNER:
-        return "Jewelry Designer";
-      case ArtistCategory.WRITER_AUTHOR:
-        return "Writer / Author";
-      case ArtistCategory.POET:
-        return "Poet";
-      case ArtistCategory.SCREENWRITER:
-        return "Screenwriter";
-      case ArtistCategory.STORYTELLER:
-        return "Storyteller";
-      case ArtistCategory.OTHER:
-        return "Other";
-    }
-  }
-
-  static ArtistCategory fromString(String value) {
-    switch (value.trim().toUpperCase()) {
-      case 'PAINTER':
-        return ArtistCategory.PAINTER;
-      case 'SCULPTOR':
-        return ArtistCategory.SCULPTOR;
-      case 'ILLUSTRATOR':
-        return ArtistCategory.ILLUSTRATOR;
-      case 'MURAL_ARTIST':
-        return ArtistCategory.MURAL_ARTIST;
-      case 'CALLIGRAPHER':
-        return ArtistCategory.CALLIGRAPHER;
-      case 'DIGITAL_ARTIST':
-        return ArtistCategory.DIGITAL_ARTIST;
-      case 'ACTOR_ACTRESS':
-        return ArtistCategory.ACTOR_ACTRESS;
-      case 'DANCER':
-        return ArtistCategory.DANCER;
-      case 'THEATRE_ARTIST':
-        return ArtistCategory.THEATRE_ARTIST;
-      case 'MIME_ARTIST':
-        return ArtistCategory.MIME_ARTIST;
-      case 'SINGER_VOCALIST':
-        return ArtistCategory.SINGER_VOCALIST;
-      case 'MUSICIAN_INSTRUMENTALIST':
-        return ArtistCategory.MUSICIAN_INSTRUMENTALIST;
-      case 'COMPOSER':
-        return ArtistCategory.COMPOSER;
-      case 'DJ_MUSIC_PRODUCER':
-        return ArtistCategory.DJ_MUSIC_PRODUCER;
-      case 'PHOTOGRAPHER':
-        return ArtistCategory.PHOTOGRAPHER;
-      case 'VIDEOGRAPHER':
-        return ArtistCategory.VIDEOGRAPHER;
-      case 'CINEMATOGRAPHER':
-        return ArtistCategory.CINEMATOGRAPHER;
-      case 'FILM_DIRECTOR':
-        return ArtistCategory.FILM_DIRECTOR;
-      case 'FASHION_DESIGNER':
-        return ArtistCategory.FASHION_DESIGNER;
-      case 'INTERIOR_DESIGNER':
-        return ArtistCategory.INTERIOR_DESIGNER;
-      case 'CRAFTSPERSON':
-        return ArtistCategory.CRAFTSPERSON;
-      case 'JEWELRY_DESIGNER':
-        return ArtistCategory.JEWELRY_DESIGNER;
-      case 'WRITER_AUTHOR':
-        return ArtistCategory.WRITER_AUTHOR;
-      case 'POET':
-        return ArtistCategory.POET;
-      case 'SCREENWRITER':
-        return ArtistCategory.SCREENWRITER;
-      case 'STORYTELLER':
-        return ArtistCategory.STORYTELLER;
-      case 'OTHER':
-        return ArtistCategory.OTHER;
-      default:
-        return ArtistCategory.OTHER;
-
-    }
-  }
-}
-
-/// Types of Business
-enum TypesOfBusiness { SELL_PRODUCTS, PROVIDE_SERVICE, BOTH_SEEL_AND_PRODUCT }
-
-extension TypesOfBusinessExtension on TypesOfBusiness {
-  String get displayName {
-    switch (this) {
-      case TypesOfBusiness.SELL_PRODUCTS:
-        return "Sell Products (e.g. Clothes, General Store) ";
-      case TypesOfBusiness.PROVIDE_SERVICE:
-        return "Provide Services (e.g. Teacher, Doctor)";
-      case TypesOfBusiness.BOTH_SEEL_AND_PRODUCT:
-        return "Both Sell & Provide Services (e.g. Clinic with Doctor and Medicines)";
-    }
-  }
-
-  static TypesOfBusiness fromString(String value) {
-    switch (value.trim().toUpperCase()) {
-      case 'SELL_PRODUCTS':
-        return TypesOfBusiness.SELL_PRODUCTS;
-      case 'PROVIDE_SERVICE':
-        return TypesOfBusiness.PROVIDE_SERVICE;
-      case 'BOTH_SELL_AND_PRODUCT':
-        return TypesOfBusiness.BOTH_SEEL_AND_PRODUCT;
-      default:
-        return TypesOfBusiness.BOTH_SEEL_AND_PRODUCT;
-
-    }
-  }
-}
+enum BusinessType { Food, Product, Service, Both }
 
 /// Modes of Communication
 enum CommunicationMode { ONLINE, IN_PERSON, PHONE }
@@ -507,42 +39,9 @@ extension CommunicationModeExtension on CommunicationMode {
         return CommunicationMode.PHONE;
       default:
         return CommunicationMode.PHONE;
-
     }
   }
 }
-
-// enum CategoryOfBusiness {
-//   FOOD,
-//   RESTAURANT,
-//   FASHIONORCLOTHES,
-// }
-
-// extension CategoryOfBusinessExtension on CategoryOfBusiness {
-//   String get displayName {
-//     switch (this) {
-//       case CategoryOfBusiness.FOOD:
-//         return "Food";
-//       case CategoryOfBusiness.RESTAURANT:
-//         return "Restaurant";
-//       case CategoryOfBusiness.FASHIONORCLOTHES:
-//         return "Fashion & Clothes";
-//     }
-//   }
-
-//   static CategoryOfBusiness fromString(String value) {
-//     switch (value.trim().toUpperCase()) {
-//       case 'FOOD':
-//         return CategoryOfBusiness.FOOD;
-//       case 'RESTAURANT':
-//         return CategoryOfBusiness.RESTAURANT;
-//       case 'FASHIONORCLOTHES':
-//         return CategoryOfBusiness.FASHIONORCLOTHES;
-//       default:
-//         throw ArgumentError('Invalid CategoryOfBusiness value: $value');
-//     }
-//   }
-// }
 
 ///SIZED OF BUSINESS...
 enum SizeOfBusiness {
@@ -593,13 +92,9 @@ extension SizeOfBusinessExtension on SizeOfBusiness {
         return SizeOfBusiness.OTHERS;
       default:
         return SizeOfBusiness.OTHERS;
-
     }
   }
 }
-
-
-
 
 enum ContactType { Mobile, Landline }
 
@@ -623,7 +118,6 @@ extension ContactTypeExtension on ContactType {
         return ContactType.Landline;
       default:
         return ContactType.Landline;
-
     }
   }
 }
@@ -659,20 +153,16 @@ extension GenderTypeExtension on GenderType {
         return GenderType.Others;
       default:
         return GenderType.Male;
-
     }
   }
 }
+
 /// FEED TYPE...
 enum FeedType {
   photoPost('PHOTO_POST'),
   imagePost('IMAGE_POST'),
   messagePost('MESSAGE_POST'),
-  qaPost('POLL_POST'),
-  longVideo('LONG_VIDEO'),
-  shortVideo('SHORT_VIDEO'),
-  shorts('SHORTS');
-
+  qaPost('POLL_POST');
 
   final String label;
 
@@ -683,7 +173,7 @@ enum FeedType {
 
     try {
       return FeedType.values.firstWhere(
-            (e) => e.label.toUpperCase() == label.toUpperCase(),
+        (e) => e.label.toUpperCase() == label.toUpperCase(),
       );
     } catch (_) {
       return null;
@@ -770,7 +260,6 @@ enum MediaType { image, video, pdf, unknown }
 
 enum VisitingChannelMenuAction {
   reportChannel,
-  // blockUser,
   muteAccount,
   ownership,
 }
@@ -778,7 +267,6 @@ enum VisitingChannelMenuAction {
 enum OwnChannelMenuAction {
   channelEdit,
   channelSetting,
-  addVideo,
   addProduct,
   addService,
 }
@@ -812,11 +300,8 @@ extension MapCategoryExtension on String {
 
 /// Service sub category
 enum ServiceCategory {
-  // homeServices('Home Services');
   homeServices('Home Services'),
   foods('Foods');
-  // stay('Stay');
-
   final String label;
 
   const ServiceCategory(this.label);
@@ -826,11 +311,9 @@ extension ServiceCategoryExtension on String {
   ServiceCategory? toServiceCategory() {
     return ServiceCategory.values.firstWhere(
       (e) => e.label.toLowerCase() == this.toLowerCase(),
-      // orElse: () => null,
     );
   }
 }
-
 
 /// Stores sub category
 enum FoodCategory {
@@ -853,15 +336,6 @@ enum StoresCategory {
   final String label;
 
   const StoresCategory(this.label);
-}
-
-extension StoresCategoryExtension on String {
-  StoresCategory? toStoresCategory() {
-    return StoresCategory.values.firstWhere(
-      (e) => e.label.toLowerCase() == this.toLowerCase(),
-      // orElse: () => null,
-    );
-  }
 }
 
 /// Map Category
@@ -1043,7 +517,6 @@ enum HobbyType {
   const HobbyType(this.label);
 }
 
-
 enum BlockedType {
   full('FULL'),
   partial('PARTIAL');
@@ -1053,7 +526,17 @@ enum BlockedType {
   const BlockedType(this.label);
 }
 
-enum Shorts { trending, nearBy, personalized, saved, latest, popular, oldest, underProgress, draft }
+enum Shorts {
+  trending,
+  nearBy,
+  personalized,
+  saved,
+  latest,
+  popular,
+  oldest,
+  underProgress,
+  draft
+}
 
 extension ShortsX on Shorts {
   /// Label for UI display
@@ -1157,7 +640,6 @@ extension VideosX on VideoType {
   }
 }
 
-
 enum PostType {
   all,
   myPosts,
@@ -1168,23 +650,11 @@ enum PostType {
   oldest,
   otherChannelPosts
 
-
   // ownChannelPosts,
   // visitingChannelPosts
 }
 
 enum PaymentMethod { upi, card }
-
-enum PostSortBy {
-  Latest('Latest', 'latest'),
-  Popular('Popular', 'popular'),
-  Oldest('Oldest', 'oldest');
-
-  final String label;
-  final String queryValue;
-
-  const PostSortBy(this.label, this.queryValue);
-}
 
 enum SortBy {
   Latest('Latest', 'latest'),
@@ -1215,9 +685,7 @@ enum PostCreationMenu {
   message,
   poll,
   photos,
-  // videos,
   jobPost,
-  // place,
   travel;
 }
 
@@ -1245,21 +713,21 @@ extension StoreTypeExtension on StoreType {
   }
 
   static StoreType fromString(String? type) {
-      switch (type?.toLowerCase()) {
-        case 'inventory':
-          return StoreType.inventory;
-        case 'service':
-          return StoreType.service;
-        case 'food':
-          return StoreType.food;
-        case 'business':
-          return StoreType.business;
-        case 'product':
-          return StoreType.inventory;
-        default:
-          return StoreType.inventory;
-      }
+    switch (type?.toLowerCase()) {
+      case 'inventory':
+        return StoreType.inventory;
+      case 'service':
+        return StoreType.service;
+      case 'food':
+        return StoreType.food;
+      case 'business':
+        return StoreType.business;
+      case 'product':
+        return StoreType.inventory;
+      default:
+        return StoreType.inventory;
     }
+  }
 }
 
 enum ProductServiceProviderType {
@@ -1283,10 +751,7 @@ enum ChargesTypes {
   const ChargesTypes(this.label);
 }
 
-enum VehicleRegistrationType {
-  Personal,
-  Commercial
-}
+enum VehicleRegistrationType { Personal, Commercial }
 
 extension VehicleRegistrationTypeExtension on VehicleRegistrationType {
   // Get display name
@@ -1343,7 +808,6 @@ extension RentalRegistrationTypeExtension on RentalVehicleRegistrationType {
     }
   }
 }
-
 
 enum VehicleType {
   TwoWheeler,
@@ -1444,6 +908,7 @@ enum DeliveryPartnerOrdersTab {
   income("Income");
 
   final String label;
+
   const DeliveryPartnerOrdersTab(this.label);
 }
 
@@ -1455,13 +920,30 @@ enum PickUpTab {
   rejected("Rejected");
 
   final String label;
+
   const PickUpTab(this.label);
 }
 
+enum ChannelTab {
+  posts,
+  saved,
+  statistics,
+  product,
+  Service;
 
+  String getTitle(BuildContext context) {
+    switch (this) {
+      case ChannelTab.posts:
+        return AppStrings.post; // Example localized string
 
-
-
-
-
-
+      case ChannelTab.saved:
+        return AppStrings.tab_saved;
+      case ChannelTab.statistics:
+        return AppStrings.tab_statistics;
+      case ChannelTab.product:
+        return AppStrings.tab_product;
+      case ChannelTab.Service:
+        return AppStrings.tab_service;
+    }
+  }
+}

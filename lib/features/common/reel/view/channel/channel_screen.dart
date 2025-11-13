@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -16,7 +15,6 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
-import 'package:BlueEra/features/common/reel/view/sections/common_draft_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
@@ -34,20 +32,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
-
-enum ChannelTab {
-  // shorts,
-  // videos,
-  posts,
-  drafts,
-  saved,
-  statistics,
-  product,
-  Service;
-
-  String get title => name[0].toUpperCase() + name.substring(1);
-}
-
 
 class ChannelScreen extends StatefulWidget {
   final String accountType;
@@ -594,7 +578,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                     minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
                     maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                   ),
-                  child: Text('${_tabsList[index].title.tr}'),
+                  child: Text('${_tabsList[index].getTitle(context).tr}'),
                 ),
               );
             },
@@ -627,10 +611,11 @@ class _ChannelScreenState extends State<ChannelScreen>
                   });
                 },
                 child: CustomText(
-                  filter.label,
+                  filter.label.tr,
                   decoration: TextDecoration.underline,
-                  color: isSelected ? Colors.blue : Colors.black54,
-                  decorationColor: isSelected ? Colors.blue : Colors.black54,
+                  color: isSelected ? AppColors.primaryColor : Colors.black54,
+                  decorationColor:
+                      isSelected ? AppColors.primaryColor : Colors.black54,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -644,23 +629,6 @@ class _ChannelScreenState extends State<ChannelScreen>
 
   Widget _buildTabContent(ChannelTab tab) {
     switch (tab) {
-/*      case ChannelTab.shorts:
-        return ShortsChannelSection(
-          isOwnShorts: isOwnChannel,
-          sortBy: channelController.selectedFilter,
-          showShortsInGrid: true,
-          channelId: isOwnChannel ? '' : widget.channelId,
-          authorId: widget.authorId,
-          postVia: PostVia.channel,
-        );
-      case ChannelTab.videos:
-        return VideoChannelSection(
-          isOwnVideos: isOwnChannel,
-          sortBy: channelController.selectedFilter,
-          channelId: isOwnChannel ? '' : widget.channelId,
-          authorId: widget.authorId,
-          postVia: PostVia.channel,
-        );*/
       case ChannelTab.posts:
         return FeedScreen(
           key: ValueKey(
@@ -670,17 +638,6 @@ class _ChannelScreenState extends State<ChannelScreen>
           postFilterType: PostType.latest,
           // postFilterType: _getPostType(),
           isInParentScroll: true,
-        );
-      // case ChannelTab.product:
-      //   return ChannelProductScreen(
-      //     isOwnChannel: isOwnChannel,
-      //     channelId: widget.channelId,
-      //   );
-      case ChannelTab.drafts:
-        return CommonDraftSection(
-          isOwnProfile: isOwnChannel,
-          channelId: widget.channelId,
-          authorId: widget.authorId,
         );
       case ChannelTab.saved:
         return Text('coming soon..');
@@ -746,21 +703,17 @@ class _ChannelScreenState extends State<ChannelScreen>
       itemBuilder: (context) => [
         PopupMenuItem(
           value: VisitingChannelMenuAction.reportChannel,
-          child: Text("Report Channel",
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+          child:
+              CustomText(AppStrings.reportChannel, fontWeight: FontWeight.w600),
         ),
         PopupMenuItem(
           value: VisitingChannelMenuAction.muteAccount,
-          child: Text("Mute Account",
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+          child:
+              CustomText(AppStrings.muteAccount, fontWeight: FontWeight.w600),
         ),
         PopupMenuItem(
           value: VisitingChannelMenuAction.ownership,
-          child: Text("Ownership",
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+          child: CustomText(AppStrings.ownership, fontWeight: FontWeight.w600),
         ),
       ],
       child: Padding(
@@ -794,9 +747,6 @@ class _ChannelScreenState extends State<ChannelScreen>
           case OwnChannelMenuAction.channelSetting:
             if (onChannelSetting != null) onChannelSetting();
             break;
-          case OwnChannelMenuAction.addVideo:
-            if (onAddVideo != null) onAddVideo();
-            break;
           case OwnChannelMenuAction.addProduct:
             if (onAddProduct != null) onAddProduct();
             break;
@@ -813,10 +763,6 @@ class _ChannelScreenState extends State<ChannelScreen>
         PopupMenuItem(
           value: OwnChannelMenuAction.channelSetting,
           child: CustomText(AppStrings.channelSettings),
-        ),
-        PopupMenuItem(
-          value: OwnChannelMenuAction.addVideo,
-          child: CustomText(AppStrings.addVideo),
         ),
         PopupMenuItem(
           value: OwnChannelMenuAction.addProduct,
@@ -869,7 +815,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                         padding:
                             EdgeInsets.symmetric(vertical: SizeConfig.size10),
                         child: CustomText(
-                          "Report Content",
+                          AppStrings.reportChannel,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryColor,
@@ -879,13 +825,13 @@ class _ChannelScreenState extends State<ChannelScreen>
                       CommonTextField(
                         textEditController: reasonController,
                         maxLine: 4,
-                        hintText: "Write your reason...",
+                        hintText: AppStrings.writeYourReason,
                         maxLength: 150,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Reason is required';
+                            return AppStrings.reasonRequired.tr;
                           } else if (value.length < 10) {
-                            return 'length must be at least 10 characters long';
+                            return AppStrings.reasonTooShort.tr;
                           }
                           return null;
                         },
@@ -894,7 +840,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                       SizedBox(
                         width: double.infinity,
                         child: CustomBtn(
-                          title: "Confirm",
+                          title: AppStrings.confirm,
                           isValidate: true,
                           onTap: () {
                             if (_formKey.currentState!.validate()) {
@@ -920,16 +866,16 @@ class _ChannelScreenState extends State<ChannelScreen>
     await showCommonDialog(
         context: context,
         text: channelController.isMuteChannel
-            ? "Are you sure want to mute this channel?"
-            : "Are you sure want to unmute this channel?",
+            ? AppStrings.confirmMuteChannel
+            : AppStrings.confirmUnmuteChannel,
         confirmCallback: () {
           channelController.muteUnMuteChannel(channelId: channelId);
         },
         cancelCallback: () {
           Navigator.of(context).pop();
         },
-        confirmText: 'Confirm',
-        cancelText: 'Cancel');
+        confirmText: AppStrings.confirm,
+        cancelText: AppStrings.cancel);
   }
 
   void navigateToProfileSection() {

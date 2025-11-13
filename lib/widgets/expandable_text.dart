@@ -126,7 +126,10 @@ class _ExpandableTextState extends State<ExpandableText> {
   void _showFullTextDialog(BuildContext context, TextStyle style) {
     showDialog(
       context: context,
+
       builder: (_) => Dialog(
+        insetPadding: EdgeInsets.zero, // ✅ Removes outside padding
+
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           padding: EdgeInsets.all(SizeConfig.size20),

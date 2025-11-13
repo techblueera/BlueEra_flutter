@@ -35,7 +35,8 @@ class AddUpdateProductController extends GetxController{
 
     selectedImage.value = await SelectProfilePictureDialog.showLogoDialog(
         context,
-        'Add Product Image'
+        AppStrings.addProductImage
+        // 'Add Product Image'
     );
   }
 

@@ -222,7 +222,7 @@ class _FeedCardState extends State<FeedCard> {
           },
         );
 
-      case FeedType.shorts:
+ /*     case FeedType.shorts:
         List trendingShorts = [];
         List<String> postVideo = _post?.media ?? [];
         for (String media in postVideo) {
@@ -247,7 +247,7 @@ class _FeedCardState extends State<FeedCard> {
               );
             },
           ),
-        );
+        );*/
 
       default:
         // Default for other post types or null
